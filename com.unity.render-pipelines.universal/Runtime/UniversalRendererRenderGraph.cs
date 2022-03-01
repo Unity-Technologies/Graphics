@@ -188,8 +188,11 @@ namespace UnityEngine.Rendering.Universal
             //if (requiresColorCopyPass)
             {
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
-                frameResources.cameraOpaqueTexture = m_CopyColorPass.Render(frameResources.cameraColor, downsamplingMethod, ref renderingData);
+                m_CopyColorPass.Render(out frameResources.cameraOpaqueTexture, in frameResources.cameraColor, downsamplingMethod, ref renderingData);
             }
+
+            // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
+
             m_RenderTransparentForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
         }

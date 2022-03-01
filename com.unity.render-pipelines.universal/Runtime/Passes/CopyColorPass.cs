@@ -171,6 +171,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             //    source = renderingData.cameraData.renderer.cameraColorTargetHandle;
             //}
 
+            // TODO RENDERGRAPH: cmd.Blit is not compatible with RG but RenderingUtils.Blits would still call into it in some cases
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
                 ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag,
@@ -241,6 +242,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     ExecutePass(data, data.source, data.destination);
+                    //data.renderingData.commandBuffer.SetGlobalTexture("_CameraOpaqueTexture", data.destination);
                 });
 
                 return passData.destination;
