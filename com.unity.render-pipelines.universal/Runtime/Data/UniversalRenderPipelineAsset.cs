@@ -7,6 +7,7 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
+using UnityEditor.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 
@@ -29,6 +30,25 @@ namespace UnityEngine.Rendering.Universal
         /// Filtering is applied when sampling shadows. Shadows have smooth edges.
         /// </summary>
         SoftShadows,
+    }
+
+    /// <summary>
+    /// Softness quality of soft shadows. Higher means better quality, but lower performance.
+    /// </summary>
+    public enum SoftShadowQuality
+    {
+        /// <summary>
+        /// Low quality soft shadows. Recommended for mobile. 4 PCF sample filtering.
+        /// </summary>
+        Low,
+        /// <summary>
+        /// Medium quality soft shadows. The default. 5x5 tent filtering.
+        /// </summary>
+        Medium,
+        /// <summary>
+        /// High quality soft shadows. Low performance due to high sample count. 7x7 tent filtering.
+        /// </summary>
+        High,
     }
 
     /// <summary>
@@ -386,7 +406,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
-        // TODO: Shader Quality Tiers
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
