@@ -155,6 +155,8 @@ namespace UnityEngine.Rendering.Universal
             if (clearFlags != RTClearFlags.None)
                 ClearTargetsPass.Render(renderingData.renderGraph, this, clearFlags);
 
+            RecordCustomRenderGraphPasses(context, ref renderingData, RenderPassEvent.BeforeRenderingPrePasses);
+
             // sort out:
             // - cameraData.target texture
             // - offscreen depth camera
@@ -185,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 m_GBufferPass.Render(frameResources.cameraColor, frameResources.cameraDepth, ref renderingData, ref frameResources);
-                m_GBufferCopyDepthPass.Render( out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
+                m_GBufferCopyDepthPass.Render(out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
                 m_DeferredPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.gbuffer, ref renderingData);
             }
             else

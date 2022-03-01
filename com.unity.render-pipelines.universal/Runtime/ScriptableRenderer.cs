@@ -836,10 +836,36 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         public void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            AddRenderPasses(ref renderingData);
+
+            using (new ProfilingScope(null, Profiling.sortRenderPasses))
+            {
+                // Sort the render pass queue
+                SortStable(m_ActiveRenderPassQueue);
+            }
+
             InitRenderGraphFrame(ref renderingData);
             SetupRenderGraphCameraProperties(ref renderingData);
 
             RecordRenderGraphInternal(context, ref renderingData);
+
+            m_ActiveRenderPassQueue.Clear();
+        }
+
+        /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
+        /// <param name="injectionPoint"></param>
+        protected void RecordCustomRenderGraphPasses(ScriptableRenderContext context, ref RenderingData renderingData, RenderPassEvent injectionPoint)
+        {
+            // TODO RENDERGRAPH: this is a quick and easy way to test running custom passes. Optimize it by using proper ranges/blocks
+            foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
+            {
+                if (pass.renderPassEvent == injectionPoint)
+                    pass.RecordRenderGraph(context, ref renderingData);
+            }
         }
 
         /// <summary>
