@@ -1,4 +1,5 @@
 #if ENABLE_VR && ENABLE_XR_MODULE
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -13,15 +14,51 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
-        /// <inheritdoc/>
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData)
         {
+            var renderingData = passData.renderingData;
+            var cmd = renderingData.commandBuffer;
+
             if (renderingData.cameraData.xr.hasValidOcclusionMesh)
             {
-                CommandBuffer cmd = renderingData.commandBuffer;
                 renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            PassData passData = new PassData();
+            passData.renderingData = renderingData;
+            ExecutePass(context, passData);
+        }
+
+        public class PassData
+        {
+            public RenderingData renderingData;
+            public TextureHandle cameraDepthAttachment;
+        }
+
+        public void Render(in TextureHandle cameraDepthAttachment, ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+
+            using (var builder = graph.AddRenderPass<PassData>("XR Occlusion Pass", out var passData, new ProfilingSampler("XR Occlusion Pass")))
+            {
+                passData.renderingData = renderingData;
+                passData.cameraDepthAttachment = builder.UseDepthBuffer(cameraDepthAttachment, DepthAccess.Write);
+
+                //  TODO RENDERGRAPH: culling? force culluing off for testing
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    ExecutePass(context.renderContext, data);
+                });
+
+                return;
             }
         }
     }
