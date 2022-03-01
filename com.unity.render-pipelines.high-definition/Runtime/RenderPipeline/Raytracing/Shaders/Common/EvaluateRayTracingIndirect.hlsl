@@ -35,7 +35,6 @@ void EvaluateIndirectRayTracingLighting(PreLightData preLightData, PositionInput
         // Create and init the RayIntersection structure for this
         RayIntersection reflectedIntersection;
         reflectedIntersection.color = float3(0.0, 0.0, 0.0);
-        reflectedIntersection.origin = rayDescriptor.Origin;
         reflectedIntersection.t = -1.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
         reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
