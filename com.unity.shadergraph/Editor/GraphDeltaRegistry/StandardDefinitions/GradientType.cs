@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Registry.Types
 {
-
     internal class SampleGradientNode : Defs.INodeDefinitionBuilder
     {
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleGradientNode", Version = 1 };
@@ -74,7 +73,6 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             return shaderFunctionBuilder.Build();
         }
     }
-
 
     /// <summary>
     /// Constructor node with a static gradient type input; this is purely so that the gradient UI Widget has a node to use.

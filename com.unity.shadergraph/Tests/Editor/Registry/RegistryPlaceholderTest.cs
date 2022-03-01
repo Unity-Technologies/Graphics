@@ -203,5 +203,96 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
             Assert.AreEqual(expected, actual);
         }
+
+        [Test]
+        public void Texture2DTest()
+        {
+            var registry = new Registry();
+            registry.Register<Types.GraphType>();
+            registry.Register<Types.GraphTypeAssignment>();
+
+            registry.Register<Types.SamplerStateType>();
+            registry.Register<Types.SamplerStateAssignment>();
+            registry.Register<Types.SamplerStateNode>();
+
+            registry.Register<Types.Texture2DType>();
+            registry.Register<Types.Texture2DAssignment>();
+            registry.Register<Types.Texture2DNode>();
+            registry.Register<Types.SampleTexture2DNode>();
+
+
+            // check that the type initializes defaults correctly.
+            var graph = new GraphHandler();
+            graph.AddNode<Types.SamplerStateNode>("Sampler", registry);
+            var nodeReader = graph.GetNodeReader("Sampler");
+
+            // Test that defaults are sane
+            nodeReader.TryGetPort(Types.SamplerStateNode.kInlineStatic, out var portReader);
+            var fieldReader = (IFieldReader)portReader;
+            var filter = Types.SamplerStateHelper.GetFilter(fieldReader);
+            var wrap = Types.SamplerStateHelper.GetWrap(fieldReader);
+            Assert.AreEqual(Types.SamplerStateType.Filter.Linear, filter);
+            Assert.AreEqual(Types.SamplerStateType.Wrap.Repeat, wrap);
+
+            var nodeWriter = graph.GetNodeWriter("Sampler");
+            nodeWriter.TryGetPort(Types.SamplerStateNode.kInlineStatic, out var portwriter);
+            var fieldWriter = (IFieldWriter)portwriter;
+            Types.SamplerStateHelper.SetFilter(fieldWriter, Types.SamplerStateType.Filter.Point);
+            Types.SamplerStateHelper.SetWrap(fieldWriter, Types.SamplerStateType.Wrap.Mirror);
+
+            // Test that our values round tripped
+            nodeReader.TryGetPort(Types.SamplerStateNode.kInlineStatic, out portReader);
+            fieldReader = (IFieldReader)portReader;
+            filter = Types.SamplerStateHelper.GetFilter(fieldReader);
+            wrap = Types.SamplerStateHelper.GetWrap(fieldReader);
+            Assert.AreEqual(Types.SamplerStateType.Filter.Linear, filter);
+            Assert.AreEqual(Types.SamplerStateType.Wrap.Repeat, wrap);
+
+
+            //graph.AddNode<Types.GradientNode>("TestGradientNode", registry);
+            //var node = graph.GetNodeReader("TestGradientNode");
+            //node.TryGetPort(Types.GradientNode.kInlineStatic, out var port);
+            //var actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
+
+            //var expected = new Gradient();
+            //expected.mode = GradientMode.Blend;
+            //expected.SetKeys(
+            //    new GradientColorKey[]
+            //    {
+            //        new GradientColorKey(new Color(0,0,0), 0),
+            //        new GradientColorKey(new Color(1,1,1), 1)
+            //    },
+            //    new GradientAlphaKey[]
+            //    {
+            //        new GradientAlphaKey(1, 0),
+            //        new GradientAlphaKey(1, 1)
+            //    });
+
+            //Assert.AreEqual(expected, actual);
+
+            //// check to see that a basic round trip works.
+            //var nodeWriter = graph.GetNodeWriter("TestGradientNode");
+            //var field = (IFieldWriter)nodeWriter.GetPort(Types.GradientNode.kInlineStatic);
+
+            //expected.mode = GradientMode.Fixed;
+            //expected.SetKeys(
+            //    new GradientColorKey[]
+            //    {
+            //        new GradientColorKey(new Color(0,0,0), 0),
+            //        new GradientColorKey(new Color(0,1,0), 1)
+            //    },
+            //    new GradientAlphaKey[]
+            //    {
+            //        new GradientAlphaKey(1, 0),
+            //        new GradientAlphaKey(0, 1)
+            //    });
+            //Types.GradientTypeHelpers.SetGradient(field, expected);
+
+
+            //node = graph.GetNodeReader("TestGradientNode");
+            //node.TryGetPort(Types.GradientNode.kInlineStatic, out port);
+            //actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
+            //Assert.AreEqual(expected, actual);
+        }
     }
 }
