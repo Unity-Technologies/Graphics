@@ -1,8 +1,7 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class RegistryKeyPart : BaseModelUIPart
     {

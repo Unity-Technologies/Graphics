@@ -37,20 +37,21 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         // TypeConversionMapping represents the Types we can convert, but TypeDefinitions can represent templated concepts,
         // which may mean that incompatibilities within their data could be inconvertible. Types with static fields should
         // implement an ITypeConversion with itself to ensure that static concepts can be represented.
-        bool CanConvert(GraphDataHandler src, GraphDataHandler dst);
+        bool CanConvert(FieldHandler src, FieldHandler dst);
 
-        ShaderFunction GetShaderCast(GraphData src, GraphDataHandler dst, ShaderContainer container, Registry registry);
+        ShaderFunction GetShaderCast(FieldHandler src, FieldHandler dst, ShaderContainer container, Registry registry);
     }
 
 
-    internal interface IContextDescriptor : IRegistryEntry
+    public interface IContextDescriptor : IRegistryEntry
     {
-        struct ContextEntry
+        public struct ContextEntry
         {
             public string fieldName;
             internal Types.GraphType.Precision precision;
             internal Types.GraphType.Primitive primitive;
-            public int length, height;
+            public Types.GraphType.Length length;
+            public Types.GraphType.Height height;
             public Matrix4x4 initialValue;
             public string interpolationSemantic;
             public bool isFlat;
@@ -96,11 +97,10 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
                 pw.AddChild(Types.GraphType.kPrecision, entry.precision).SetHeader(new FieldHeader());
                 pw.AddChild(Types.GraphType.kPrimitive, entry.primitive).SetHeader(new FieldHeader());
                 pw.AddChild(Types.GraphType.kEntry, entry).SetHeader(new FieldHeader());
-                for (int i = 0; i < entry.length * entry.height; ++i)
+                for (int i = 0; i < (int)entry.length * (int)entry.height; ++i)
                     pw.AddChild($"c{i}", entry.initialValue[i]).SetHeader(new FieldHeader());
                 if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
                     pw.AddChild("semantic", entry.interpolationSemantic).SetHeader(new FieldHeader());
-                pw.AddChild("isFlat", entry.isFlat).SetHeader(new FieldHeader());
             }
             // We could "enfield" all of our ContextEntries into our output port, which would consequently make them accessible
             // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.

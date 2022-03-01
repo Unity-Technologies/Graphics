@@ -1,0 +1,24 @@
+.ge-port-container {
+    flex-grow: 1;
+    padding: 4px 10px;
+}
+
+.ge-port-container--port-count-0 {
+    display: none;
+}
+
+.ge-node__inputs {
+    align-items: flex-start;
+    border-right-width: 1px;
+    border-color: rgba(35,35,35,0.8);
+}
+
+.ge-node__outputs {
+    align-items: flex-end;
+    background-color: rgba(46, 46, 46, 0.8);
+}
+
+.ge-node__vertical-port-container {
+    flex-direction: row;
+    justify-content: center;
+}

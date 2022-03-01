@@ -1,0 +1,113 @@
+.ge-pill {
+    align-items: stretch;
+    font-size: 11px;
+}
+
+.ge-pill #selection-border {
+    border-width:0;
+    border-radius: 6px;
+    margin: 1px;
+    position: absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+}
+
+*:selected .ge-pill #selection-border {
+    border-color: #44C0FF;
+    border-width: 1px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+*:selected .ge-pill:hover #selection-border {
+    border-color: #44C0FF;
+    border-width: 2px;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.ge-pill--highlighted #selection-border {
+    border-color: #FF8000;
+    border-width: 1px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+.ge-pill--highlighted:hover #selection-border {
+    border-color: #FF8000;
+    border-width: 2px;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+*:selected .ge-pill--highlighted #selection-border {
+    border-color: #44C0FF;
+    border-width: 1px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+*:selected .ge-pill--highlighted:hover #selection-border {
+    border-color: #44C0FF;
+    border-width: 2px;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+}
+
+.ge-pill:hover #selection-border {
+    border-color: rgba(68,192,255, 0.5);
+    border-width: 1px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+.ge-pill #node-border {
+    margin: 3px;
+    border-radius: 4px; /* Yes radius is shorter than selection radius otherwise it looks weird... */
+    border-color: rgba(25,25,25,1.0);
+    border-width: 1px;
+    background-image: url("BackgroundImages/BlackboardFieldPillBackground.png");
+    padding: 1px 4px 1px 18px;
+}
+
+.ge-pill #contents > #top {
+    flex-direction: row;
+    align-items: center;
+}
+
+.ge-pill #contents > #top > #title-label {
+    color: #C1C1C1;
+    font-size : 12px;
+    -unity-text-align: middle-left;
+    margin: 0 2px;
+}
+
+.ge-pill #contents > #top > #icon {
+    align-self: center;
+    width: 0;
+    height: 0;
+    margin-left: 0;
+    margin-top: 2px;
+}
+
+.ge-pill--has-icon #contents > #top > #icon {
+    width: 6px;
+    height: 6px;
+    margin-left: 4px;
+}

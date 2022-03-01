@@ -2,11 +2,20 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.Utilities
+namespace UnityEditor.ShaderGraph.GraphUI
 {
    static class GraphElementHelper
     {
         internal const string AssetPath = "Packages/com.unity.shadergraph/Editor/GraphUI/";
+
+        internal static void LoadTemplate(VisualElement container, string name)
+        {
+            if (name != null && container != null)
+            {
+                var tpl = LoadUXML(name + ".uxml");
+                tpl.CloneTree(container);
+            }
+        }
 
         internal static void LoadTemplateAndStylesheet(VisualElement container, string name, string rootClassName, IEnumerable<string> additionalStylesheets = null)
         {

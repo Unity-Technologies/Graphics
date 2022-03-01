@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Editor.GraphUI.Utilities
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class NodeUtil
     {

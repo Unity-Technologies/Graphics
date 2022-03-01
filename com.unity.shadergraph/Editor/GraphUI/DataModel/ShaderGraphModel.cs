@@ -1,19 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Editor.GraphUI.Utilities;
 using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public enum PropagationDirection
     {
@@ -23,11 +18,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
     public class ShaderGraphModel : GraphModel
     {
-        IGraphHandler m_GraphHandler;
+        GraphHandler m_GraphHandler;
 
         // TODO: This will eventually delegate to real serialized data. For now, it's kept here ephemerally. Until
         //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
-        public IGraphHandler GraphHandler => m_GraphHandler ??= GraphUtil.CreateGraph();
+        public GraphHandler GraphHandler => m_GraphHandler ??= new GraphHandler();
 
         public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 
@@ -39,6 +34,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         /// <returns>True if the ports can be connected, false otherwise.</returns>
         bool TestConnection(GraphDataPortModel src, GraphDataPortModel dst)
         {
+            // temporarily disable connections to ports of different types.
+            if (src.PortDataType != dst.PortDataType)
+                return false;
+
             return GraphHandler.TestConnection(dst.graphDataNodeModel.graphDataName,
                 dst.graphDataName, src.graphDataNodeModel.graphDataName,
                 src.graphDataName, RegistryInstance);
@@ -119,20 +118,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
         {
             return this.VariableDeclarations;
-        }
-
-        public IEnumerable<IPortReader> GetInputPortsOnNode(GraphDataNodeModel nodeModel)
-        {
-            var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
-            var nodeInstanceInputPorts = nodeInstanceReader.GetInputPorts();
-            return nodeInstanceInputPorts;
-        }
-
-        public Shader GetShaderObject(GraphDataNodeModel nodeModel)
-        {
-            var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
-            string sourceCode = Interpreter.GetShaderForNode(nodeInstanceReader, m_GraphHandler, RegistryInstance);
-            return ShaderUtil.CreateShaderAsset(sourceCode);
         }
 
         public void GetTimeDependentNodesOnGraph(PooledHashSet<GraphDataNodeModel> timeDependentNodes)

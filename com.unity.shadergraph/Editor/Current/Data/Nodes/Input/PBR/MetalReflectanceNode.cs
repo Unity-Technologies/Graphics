@@ -17,7 +17,13 @@ namespace UnityEditor.ShaderGraph
         Nickel,
         Titanium,
         Cobalt,
-        Platinum
+        Platinum,
+        Brass,
+        Lead,
+        Tin,
+        Steel,
+        Bronze,
+        Tungsten
     };
 
     [Title("Input", "PBR", "Metal Reflectance")]
@@ -57,7 +63,13 @@ namespace UnityEditor.ShaderGraph
             {MetalMaterialType.Nickel, "(0.660, 0.609, 0.526)"},
             {MetalMaterialType.Titanium, "(0.542, 0.497, 0.449)"},
             {MetalMaterialType.Cobalt, "(0.662, 0.655, 0.634)"},
-            {MetalMaterialType.Platinum, "(0.672, 0.637, 0.585)"}
+            {MetalMaterialType.Platinum, "(0.672, 0.637, 0.585)"},
+            {MetalMaterialType.Brass, "(0.888, 0.745, 0.451)" },
+            {MetalMaterialType.Lead, "(0.491, 0.558, 0.591)" },
+            {MetalMaterialType.Tin, "(0.723, 0.584, 0.479)" },
+            {MetalMaterialType.Steel, "(0.61, 0.546, 0.509)" },
+            {MetalMaterialType.Bronze, "(0.88, 0.591, 0.558)" },
+            {MetalMaterialType.Tungsten, "(0.503, 0.491, 0.479)" },
         };
 
         private const int kOutputSlotId = 0;

@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return field.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static void AddReferenceNode(this IGraphHandler handler, string nodeName, string referenceName, Registry.Registry registry)
+        public static void AddReferenceNode(this GraphHandler handler, string nodeName, string referenceName, Registry.Registry registry)
         {
             var node = handler.AddNode<Registry.Defs.ReferenceNodeBuilder>(nodeName, registry);
             node.SetMetadata("_referenceName", referenceName);
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // all of their downstream nodes get propogated-- and then upstream node connections can be disrupted if the type every changes.
         }
 
-        internal static void SetupContext(this IGraphHandler handler, IEnumerable<Registry.Defs.IContextDescriptor> contexts, Registry.Registry registry)
+        internal static void SetupContext(this GraphHandler handler, IEnumerable<Registry.Defs.IContextDescriptor> contexts, Registry.Registry registry)
         {
             // only safe to call right now.
             NodeHandler previousContextNode = null;
@@ -226,7 +226,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         //    funcBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
         //}
 
-        public static bool TestConnection(this IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry.Registry registry)
+        public static bool TestConnection(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry.Registry registry)
         {
             var dstNodeHandler = handler.GetNode(dstNode);
             var dstPortHandler = dstNodeHandler.GetPort(dstPort);
@@ -234,12 +234,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return registry.CastExists(dstPortHandler.GetRegistryKey(), srcPortHandler.GetRegistryKey());
         }
 
-        public static IEdgeHandler Connect(this IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry.Registry registry)
+        public static bool TryConnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry.Registry registry)
         {
             var dstNodeHandler = handler.GetNode(dstNode);
             var dstPortHandler = dstNodeHandler.GetPort(dstPort);
             var srcPortHandler = handler.GetNode(srcNode).GetPort(srcPort);
-            return handler.AddEdge(srcPortHandler.ID, dstPortHandler.ID);
+            return handler.AddEdge(srcPortHandler.ID, dstPortHandler.ID) != null;
         }
 
 

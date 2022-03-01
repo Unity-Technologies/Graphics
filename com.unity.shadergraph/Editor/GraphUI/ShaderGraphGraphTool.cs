@@ -11,5 +11,4 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Name = toolName;
         }
     }
-
 }

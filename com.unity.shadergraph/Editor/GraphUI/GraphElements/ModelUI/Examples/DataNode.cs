@@ -1,6 +1,6 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class DataNode : CollapsibleInOutNode
     {

@@ -3,7 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     class PreviewSceneResources : IDisposable
     {

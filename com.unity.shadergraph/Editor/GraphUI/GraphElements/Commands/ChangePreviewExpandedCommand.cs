@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ChangePreviewExpandedCommand : ModelCommand<GraphDataNodeModel>
     {
@@ -18,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphViewStateComponent graphViewState,
-            GraphPreviewStateComponent graphPreviewState,
+            PreviewManager previewManager,
             ChangePreviewExpandedCommand command
         )
         {
@@ -32,12 +30,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
                 }
             }
 
-            using var previewUpdater = graphPreviewState.UpdateScope;
+            foreach (var graphDataNodeModel in command.Models)
             {
-                foreach (var graphDataNodeModel in command.Models)
-                {
-                    previewUpdater.ChangePreviewExpansionState(graphDataNodeModel.Guid.ToString(), command.m_IsPreviewExpanded);
-                }
+                previewManager.OnPreviewExpansionChanged(graphDataNodeModel.graphDataName, command.m_IsPreviewExpanded);
             }
         }
     }

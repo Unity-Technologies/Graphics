@@ -4,7 +4,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ConnectionInfoPart : BaseModelUIPart
     {

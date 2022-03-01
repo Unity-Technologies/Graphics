@@ -1,12 +1,17 @@
-﻿using System;
+using System;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphAssetModel : GraphAssetModel
     {
         protected override Type GraphModelType => typeof(ShaderGraphModel);
+
+        public void Init()
+        {
+            OnEnable();
+        }
 
         [OnOpenAsset(1)]
         public static bool OpenGraphAsset(int instanceId, int line)

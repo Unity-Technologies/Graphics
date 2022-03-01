@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Searcher;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.Registry;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
     /// A RegistryNodeSearcherItem is a GraphNodeModelSearcherItem associated with a registry key. The key is exposed
