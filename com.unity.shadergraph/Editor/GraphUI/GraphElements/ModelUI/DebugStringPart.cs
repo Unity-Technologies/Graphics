@@ -2,7 +2,7 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class DebugStringPart : BaseModelUIPart
     {

@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
+    using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
+
     /// <summary>
     /// GraphDataNodeModel is a model for a node backed by graph data. It can be used for a node on the graph (with
     /// an assigned graph data name) or a searcher preview (with only an assigned registry key).
@@ -53,7 +54,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         /// </summary>
         public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
 
-        IGraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
+        GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
         Registry.Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,
@@ -118,7 +119,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         bool m_IsPreviewExpanded = true;
 
         // By default every node's preview uses the inherit mode
-        public PreviewMode NodePreviewMode { get; set; }
+        public PreviewRenderMode NodePreviewMode { get; set; }
 
         public Texture PreviewTexture { get; private set; }
 
@@ -126,7 +127,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public GraphDataNodeModel()
         {
-            NodePreviewMode = PreviewMode.Inherit;
+            NodePreviewMode = PreviewRenderMode.Inherit;
         }
 
         public bool IsPreviewVisible
@@ -169,6 +170,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts())
             {
+                if (portReader.GetField("IsStatic", out bool isStatic) && isStatic) continue;
+                if (portReader.GetField("IsLocal", out bool isLocal) && isLocal) continue;
+
                 var isInput = portReader.IsInput();
                 var orientation = portReader.IsHorizontal() ? PortOrientation.Horizontal : PortOrientation.Vertical;
 

@@ -1,8 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -29,7 +26,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static IModelUI CreateEdge(
             this ElementBuilder elementBuilder,
-            CommandDispatcher store,
             EdgeModel model)
         {
             var ui = new RedirectableEdge();

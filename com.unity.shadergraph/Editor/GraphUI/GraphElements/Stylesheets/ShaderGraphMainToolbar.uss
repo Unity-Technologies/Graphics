@@ -1,0 +1,45 @@
+.ge-sg-toolbar #errorIconLabel, .ge-sg-toolbar #previousErrorButton {
+    border-left-width: 1px;
+}
+
+.ge-sg-toolbar #saveButton .icon {
+    background-image: resource("SaveActive");
+}
+
+.ge-sg-toolbar #saveAsButton .icon {
+    background-image: resource("d_SaveAs");
+}
+
+.ge-sg-toolbar #showInProjectButton .icon {
+    background-image: resource("toggle_searcher_preview_on");
+}
+
+.ge-sg-toolbar #showInProjectButton .icon {
+    background-image: resource("toggle_searcher_preview_on");
+}
+
+.ge-sg-toolbar #checkOutButton .icon {
+    background-image: resource("P4_CheckOutLocal");
+}
+
+/* breadcrumb */
+
+.ge-sg-toolbar #breadcrumbButton .popupIcon {
+    background-image: resource("IN pulldown");
+    width: 8px;
+    height: 13px;
+}
+
+.ge-sg-toolbar #breadcrumbButton .icon {
+    background-image: url("Icons/ScriptSelector.png");
+    width: 14px;
+    height: 12px;
+}
+
+.ge-sg-toolbar #breadcrumbButton {
+    flex-direction: row;
+    -unity-slice-left: 1;
+    -unity-slice-right: 1;
+    -unity-slice-top: 1;
+    -unity-slice-bottom: 1;
+}

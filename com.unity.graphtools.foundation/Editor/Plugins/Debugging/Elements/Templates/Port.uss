@@ -1,0 +1,3 @@
+.ge-port--execution-active {
+    --port-color: #b4ff69;
+}

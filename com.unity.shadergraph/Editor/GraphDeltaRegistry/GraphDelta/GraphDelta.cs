@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Registry.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    internal sealed class GraphDelta : IGraphHandler
+    internal sealed class GraphDelta
     {
         public const string k_concrete = "Concrete";
         public const string k_user = "User";
@@ -28,9 +28,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data = new GraphStorage();
         }
 
-        private List<ElementID> contextNodes = new List<ElementID>();
+        public GraphDelta(string serializedData) : this()
+        {
+            EditorJsonUtility.FromJsonOverwrite(serializedData, m_data);
+        }
 
-        NodeHandler IGraphHandler.AddNode<T>(ElementID id, Registry.Registry registry)//  where T : Registry.Defs.INodeDefinitionBuilder
+        public string ToSerializedFormat()
+        {
+            return EditorJsonUtility.ToJson(m_data);
+        }
+
+        private List<string> contextNodes = new List<string>();
+
+        NodeHandler AddNode<T>(string name, Registry.Registry registry)  where T : Registry.Defs.INodeDefinitionBuilder
         {
            var key = Registry.Registry.ResolveKey<T>();
            return AddNode(key, id, registry);
@@ -154,6 +164,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         public IEnumerable<PortHandler> GetConnectedPorts(ElementID port)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void RemoveNode(string id)
         {
             throw new System.NotImplementedException();
         }

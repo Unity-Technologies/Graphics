@@ -10,8 +10,24 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
+        public static string GetFunctionCode(INodeReader node, Registry.Registry registry)
+        {
+            var builder = new ShaderBuilder();
+            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry);
+            builder.AddDeclarationString(func);
+            return builder.ConvertToString();
+        }
 
-        public static string GetShaderForNode(NodeHandler node, IGraphHandler graph, Registry.Registry registry)
+        public static string GetBlockCode(INodeReader node, GraphHandler graph, Registry.Registry registry)
+        {
+            var builder = new ShaderBuilder();
+            var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
+            foreach (var func in block.Functions)
+                builder.AddDeclarationString(func);
+            return builder.ConvertToString();
+        }
+
+        public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
@@ -30,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ToString();
         }
 
-        internal static Block EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
+        internal static Block EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
         {
             const string BlockName = "ShaderGraphBlock";
             var blockBuilder = new Block.Builder(container, BlockName);
@@ -67,14 +83,14 @@ namespace UnityEditor.ShaderGraph.Generation
                 outputVariables.Add(colorOut);
             }
 
-
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.ToString()}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
-                ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
+                if(!isContext || (isContext && node != rootNode))
+                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
             }
 
             foreach(var func in shaderFunctions)
@@ -82,9 +98,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 blockBuilder.AddFunction(func);
             }
 
-
             var inputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Input", inputVariables);
-
 
             mainBodyFunctionBuilder.AddLine($"{outputType.Name} output;");
             if(isContext)
@@ -98,13 +112,13 @@ namespace UnityEditor.ShaderGraph.Generation
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
-                            NodeHandler connectedNode = null;//connectedPort.GetNode();
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.ID.ToString()}_{connectedPort.ID.ToString()}");
+                            var connectedNode = connectedPort.GetNode();
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()};");
                         }
                         else // not connected.
                         {
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            //mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList(port, registry)}");
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry)};");
                         }
                     }
                 }
@@ -112,7 +126,10 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             else
             {
-                //mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = SYNTAX_{rootNode.ID.ToString()}_{rootNode.GetOutputPorts().First().ID.ToString()};");
+                var port = rootNode.GetOutputPorts().First();
+                var outType = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType((IFieldReader)port, container, registry);
+                string assignment = ConvertToFloat3(outType, $"SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()}");
+                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = {assignment};");
             }
             mainBodyFunctionBuilder.AddLine("return output;");
 
@@ -132,11 +149,11 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             //length by height
             string lxh = "";
-            if(entry.length > 1 || entry.height > 1)
+            if((int)entry.length > 1 || (int)entry.height > 1)
             {
                 lxh += entry.length;
             }
-            if(entry.height > 1)
+            if((int)entry.height > 1)
             {
                 lxh += "x" + entry.height;
             }
@@ -147,7 +164,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 case Registry.Types.GraphType.Primitive.Int:
                     return container.GetType($"int{lxh}");
                 case Registry.Types.GraphType.Primitive.Float:
-                    if (entry.precision == Registry.Types.GraphType.Precision.Full)
+                    if (entry.precision == Registry.Types.GraphType.Precision.Single)
                     {
                         return container.GetType($"double{lxh}");
                     }
@@ -187,7 +204,12 @@ namespace UnityEditor.ShaderGraph.Generation
             return true;
         }
 
-        private static void ProcessNode(NodeHandler node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, ref List<ShaderFunction> shaderFuncitons, Registry.Registry registry)
+        private static void ProcessNode(NodeHandler node,
+            ref ShaderContainer container, ref List<BlockVariable> inputVariables,
+            ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder,
+            ref ShaderFunction.Builder mainBodyFunctionBuilder,
+            ref List<ShaderFunction> shaderFuncitons,
+            Registry.Registry registry)
         {
             /*
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
@@ -240,6 +262,17 @@ namespace UnityEditor.ShaderGraph.Generation
             mainBodyFunctionBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
             */
 
+        }
+
+        private static string ConvertToFloat3(ShaderType type, string name)
+        {
+            switch(type.VectorDimension)
+            {
+                case 4: return $"{name}.xyz";
+                case 2: return $"float3({name}.x, {name}.y, 0)";
+                case 1: return $"float3({name}, {name}, {name})";
+                default: return name;
+            }
         }
 
         private static IEnumerable<NodeHandler> GatherTreeLeafFirst(NodeHandler rootNode)

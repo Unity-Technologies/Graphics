@@ -1,6 +1,6 @@
 ﻿using UnityEngine.Rendering;
 
-namespace UnityEditor.ShaderGraph.GraphUI.Utilities
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphAssetUtils
     {

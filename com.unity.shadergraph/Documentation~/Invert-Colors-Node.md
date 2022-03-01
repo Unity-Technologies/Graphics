@@ -1,4 +1,4 @@
-# Invert Colors Node
+# Invert Channels Node
 
 ## Description
 

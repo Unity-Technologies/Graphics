@@ -1,6 +1,7 @@
+using System.IO;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.UIElements;
 
@@ -22,7 +23,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var promptTitle = string.Format(k_PromptToCreateTitle, template.GraphTypeName);
             var prompt = string.Format(k_PromptToCreate, template.GraphTypeName);
 
-            return GraphAssetCreationHelpers<ShaderGraphAssetModel>.PromptToCreate(template, promptTitle, prompt, k_AssetExtension);
+            var path = EditorUtility.SaveFilePanelInProject(promptTitle, template.DefaultAssetName,NewShaderGraphImporter.Extension, prompt);
+            if (path.Length != 0)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(path);
+                NewGraphAction action = new NewGraphAction();
+                action.Action(-1, path, null);
+                return AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(path);
+            }
+
+            return null;
         }
     }
 }

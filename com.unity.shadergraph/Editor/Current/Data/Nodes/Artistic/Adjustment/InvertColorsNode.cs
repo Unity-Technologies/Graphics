@@ -7,12 +7,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Artistic", "Adjustment", "Invert Colors")]
+    [Title("Artistic", "Adjustment", "Invert Channels")]
     class InvertColorsNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public InvertColorsNode()
         {
-            name = "Invert Colors";
+            name = "Invert Channels";
             UpdateNodeAfterDeserialization();
         }
 
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_InvertColors_{FindSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString()}";
+            return $"Unity_InvertChannels_{FindSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph
             if (!generationMode.IsPreview())
             {
                 sb.TryAppendIndentation();
-                sb.Append("{0} _{1}_InvertColors = {0} ({2}",
+                sb.Append("{0} _{1}_InvertChannels = {0} ({2}",
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(),
                     GetVariableNameForNode(),
                     Convert.ToInt32(m_RedChannel));
@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendNewLine();
             }
 
-            sb.AppendLine("{0}({1}, _{2}_InvertColors, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
+            sb.AppendLine("{0}({1}, _{2}_InvertChannels, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph
 
             properties.Add(new PreviewProperty(PropertyType.Vector4)
             {
-                name = string.Format("_{0}_InvertColors", GetVariableNameForNode()),
+                name = string.Format("_{0}_InvertChannels", GetVariableNameForNode()),
                 vector4Value = new Vector4(Convert.ToInt32(m_RedChannel), Convert.ToInt32(m_GreenChannel), Convert.ToInt32(m_BlueChannel), Convert.ToInt32(m_AlphaChannel)),
             });
         }
@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new Vector4ShaderProperty
             {
-                overrideReferenceName = string.Format("_{0}_InvertColors", GetVariableNameForNode()),
+                overrideReferenceName = string.Format("_{0}_InvertChannels", GetVariableNameForNode()),
                 generatePropertyBlock = false
             });
         }
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph
         {
             registry.ProvideFunction(GetFunctionName(), s =>
             {
-                s.AppendLine("void {0}({1} In, {2} InvertColors, out {3} Out)",
+                s.AppendLine("void {0}({1} In, {2} InvertChannels, out {3} Out)",
                     GetFunctionName(),
                     FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
                     FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
@@ -166,7 +166,7 @@ namespace UnityEditor.ShaderGraph
 
                 using (s.BlockScope())
                 {
-                    s.AppendLine("Out = abs(InvertColors - In);");
+                    s.AppendLine("Out = abs(InvertChannels - In);");
                 }
             });
         }

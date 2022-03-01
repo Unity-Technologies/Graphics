@@ -1,0 +1,4 @@
+/* TODO VladN: fix for light skin, remove when GTF supports light skin */
+.ge-minimap {
+    background-color: #383838;
+}

@@ -15,14 +15,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanCreateEmptyGraph()
             {
-                IGraphHandler graphHandler = GraphUtil.CreateGraph();
+                GraphHandler graphHandler = new GraphHandler();
                 Assert.NotNull(graphHandler);
             }
 
             [Test]
             public void CanAddEmptyNode()
             {
-                GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
+                GraphDelta graphHandler = new GraphHandler().graphDelta;
                 using (INodeWriter node = graphHandler.AddNode("foo"))
                 {
                     Assert.NotNull(node);
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddAndGetNode()
             {
-                GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
+                GraphDelta graphHandler = new GraphHandler().graphDelta;
                 graphHandler.AddNode("foo");
                 Assert.NotNull(graphHandler.GetNodeReader("foo"));
             }
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddAndRemoveNode()
             {
-                GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
+                GraphDelta graphHandler = new GraphHandler().graphDelta;
                 graphHandler.AddNode("foo");
                 Assert.NotNull(graphHandler.GetNodeReader("foo"));
                 graphHandler.RemoveNode("foo");
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddNodeAndPorts()
             {
-                GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
+                GraphDelta graphHandler = new GraphHandler().graphDelta;
                 using (INodeWriter node = graphHandler.AddNode("Add"))
                 {
                     node.TryAddPort("A", true, true, out IPortWriter _);
@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddTwoNodesAndConnect()
             {
-                GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
+                GraphDelta graphHandler = new GraphHandler().graphDelta;
                 using (INodeWriter foo = graphHandler.AddNode("Foo"))
                 using (INodeWriter bar = graphHandler.AddNode("Bar"))
                 {
@@ -105,8 +105,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                         {
                             fieldName = "Foo",
                             primitive = Registry.Types.GraphType.Primitive.Int,
-                            height = 1,
-                            length = 1,
+                            height = Registry.Types.GraphType.Height.One,
+                            length = Registry.Types.GraphType.Length.One,
                             precision = Registry.Types.GraphType.Precision.Fixed,
                             isFlat = true
                         }
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
                 public RegistryFlags GetRegistryFlags()
                 {
-                    throw new System.NotImplementedException();
+                    return RegistryFlags.Base;
                 }
 
                 public RegistryKey GetRegistryKey()
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanSetupContext()
             {
-                GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
+                GraphDelta graphHandler = new GraphHandler().graphDelta;
                 var registry = new Registry.Registry();
                 registry.Register<TestDescriptor>();
                 registry.Register<Registry.Types.GraphType>();

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 
-namespace Editor.GraphUI.Utilities
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class PooledHashSet<T> : HashSet<T>, IDisposable
     {

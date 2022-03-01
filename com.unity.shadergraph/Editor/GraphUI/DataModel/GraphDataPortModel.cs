@@ -1,6 +1,6 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 
-namespace UnityEditor.ShaderGraph.GraphUI.DataModel
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphDataPortModel : PortModel
     {

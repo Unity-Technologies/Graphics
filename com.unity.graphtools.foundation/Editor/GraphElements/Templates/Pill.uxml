@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="node-border">
+    <ui:VisualElement name="contents">
+      <ui:VisualElement name="top">
+        <ui:Image name="icon" />
+        <ui:Label name="title-label" text="" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+  <ui:VisualElement name="selection-border" />
+</ui:UXML>

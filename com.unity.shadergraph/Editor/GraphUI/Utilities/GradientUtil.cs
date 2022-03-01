@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Editor.GraphUI.Utilities
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public static class GradientUtil
     {
