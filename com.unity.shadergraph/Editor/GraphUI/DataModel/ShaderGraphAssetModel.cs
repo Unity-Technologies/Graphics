@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 
@@ -11,6 +12,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void Init()
         {
             OnEnable();
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            Name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this));
         }
 
         [OnOpenAsset(1)]

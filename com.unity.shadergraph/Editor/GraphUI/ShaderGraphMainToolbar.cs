@@ -100,7 +100,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Add(m_OptionsButton);
         }
 
-        // TODO (Sai): Add implementation for this button when Liz completes Save Asset functionality
         void OnSaveButton()
         {
             // If no currently opened graph, early out
@@ -109,16 +108,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (GraphTool.ToolState.GraphModel is ShaderGraphModel shaderGraphModel)
             {
                 var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
-                GraphUtil.SaveGraph(shaderGraphModel.GraphHandler, assetPath, true);
+                var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
+                GraphUtil.SaveGraph(shaderGraphModel.GraphHandler, assetModel, assetPath, true);
             }
         }
 
-        // TODO (Sai): Add implementation for this button when Liz completes Save Asset functionality
+        // TODO (Sai): What to do if the source graph has currently unsaved changes? Do we save first?
+        // Need to reference old sg behavior for parity
         void OnSaveAsButton()
         {
             // If no currently opened graph, early out
             if (GraphTool.ToolState.AssetModel == null)
                 return;
+
+            if (GraphTool.ToolState.GraphModel is ShaderGraphModel shaderGraphModel)
+            {
+                var sourcePath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", "", GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2");
+                // If User cancelled operation or provided an invalid path
+                if (destinationPath == String.Empty)
+                    return;
+                var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
+                GraphUtil.CopyGraph(shaderGraphModel.GraphHandler, assetModel, sourcePath, destinationPath);
+            }
         }
 
         void OnShowInProjectButton()
