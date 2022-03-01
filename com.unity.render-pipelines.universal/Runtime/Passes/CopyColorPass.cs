@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     ExecutePass(data, data.source, data.destination);
-                    //data.renderingData.commandBuffer.SetGlobalTexture("_CameraOpaqueTexture", data.destination);
+                    data.renderingData.commandBuffer.SetGlobalTexture("_CameraOpaqueTexture", data.destination);
                 });
 
                 return passData.destination;

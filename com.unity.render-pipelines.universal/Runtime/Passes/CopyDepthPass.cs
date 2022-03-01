@@ -259,6 +259,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     //bool isSourceYflipped = data.renderingData.cameraData.IsCameraProjectionMatrixFlipped(); 
                     bool isSourceYflipped = false;
                     ExecutePass(context.renderContext, data, data.source, data.destination, isSourceYflipped);
+                    data.renderingData.commandBuffer.SetGlobalTexture("_CameraDepthTexture", data.destination);
                 });
 
                 return;
