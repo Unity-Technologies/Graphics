@@ -5,6 +5,7 @@ using UnityEngine.Profiling;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using static Unity.Mathematics.math;
 //#define URP_HAS_BURST
 
@@ -188,6 +189,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Output lighting result.
         internal RTHandle[] GbufferAttachments { get; set; }
+
+        internal TextureHandle[] GbufferTextureHandles { get; set; }
         internal RTHandle[] DeferredInputAttachments { get; set; }
         internal bool[] DeferredInputIsTransient { get; set; }
         // Input depth texture, also bound as read-only RT
@@ -363,6 +366,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 this.GbufferAttachments = new RTHandle[gbufferSliceCount];
                 this.GbufferFormats = new GraphicsFormat[gbufferSliceCount];
+                this.GbufferTextureHandles = new TextureHandle[gbufferSliceCount];
                 for (int i = 0; i < gbufferSliceCount; ++i)
                 {
                     this.GbufferAttachments[i] = RTHandles.Alloc(k_GBufferNames[i], name: k_GBufferNames[i]);
@@ -416,6 +420,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 };
             }
             this.DepthAttachmentHandle = this.DepthAttachment;
+        }
+
+        // Currently only used by RenderGraph as we don't really need anything from the previous Setup call besides setting this variable
+        // TODO RenderGraph investigate how to clean up and reuse the same Setup method
+        public void Setup(AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass)
+        {
+            m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)

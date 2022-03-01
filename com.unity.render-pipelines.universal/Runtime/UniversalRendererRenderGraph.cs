@@ -21,7 +21,11 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle mainShadowsTexture;
             public TextureHandle additionalShadowsTexture;
 
-            // camear opauqe/depth/normal
+            // gbuffer targets
+
+            public TextureHandle[] gbuffer;
+
+            // camear opaque/depth/normal
             public TextureHandle cameraOpaqueTexture;
             public TextureHandle cameraDepthTexture;
             public TextureHandle cameraNormalsTexture;
@@ -151,6 +155,8 @@ namespace UnityEngine.Rendering.Universal
             if (clearFlags != RTClearFlags.None)
                 ClearTargetsPass.Render(renderingData.renderGraph, this, clearFlags);
 
+            RecordCustomRenderGraphPasses(context, ref renderingData, RenderPassEvent.BeforeRenderingPrePasses);
+
             // sort out:
             // - cameraData.target texture
             // - offscreen depth camera
@@ -172,14 +178,27 @@ namespace UnityEngine.Rendering.Universal
                     m_DepthPrepass.Render(out frameResources.cameraDepthTexture, ref renderingData);
                 }
             }
+            if (this.renderingModeActual == RenderingMode.Deferred)
+            {
+                m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
+                if (m_DeferredLights != null)
+                {
+                    m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
+                    m_DeferredLights.IsOverlay = renderingData.cameraData.renderType == CameraRenderType.Overlay;
+                }
 
-            m_RenderOpaqueForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
-
+                m_GBufferPass.Render(frameResources.cameraColor, frameResources.cameraDepth, ref renderingData, ref frameResources);
+                m_GBufferCopyDepthPass.Render(out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
+                m_DeferredPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.gbuffer, ref renderingData);
+            }
+            else
+            {
+                m_RenderOpaqueForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
+            }
             // RunCustomPasses(RenderPassEvent.AfterOpaque);
 
             if (renderingData.cameraData.renderType == CameraRenderType.Base)
                 m_DrawSkyboxPass.Render(frameResources.cameraColor, frameResources.cameraDepth, ref renderingData);
-
             //if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Render(out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
