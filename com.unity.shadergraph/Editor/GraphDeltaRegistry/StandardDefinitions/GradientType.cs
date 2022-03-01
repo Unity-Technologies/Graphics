@@ -7,6 +7,39 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Registry.Types
 {
+
+    // Placeholder node for testing purposes-- technically this is a node w/a a hint to the UI that it should use
+    // a Gradient widget to modify InlineStatic-- this sort of thing is going to be very common-- probably makes sense to have
+    // a generalized- "ConstructorNode<ITypeDefinitionBuilder>..." or just add a ctor to the type definition- then it can control
+    // it's own node representation more concisely.
+    internal class GradientNode : Defs.INodeDefinitionBuilder
+    {
+        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientNode", Version = 1 };
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
+
+        const string kInlineStatic = "InlineStatic";
+        const string kOutput = "Out";
+
+        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        {
+            var input = generatedData.AddPort<GradientType>(userData, kInlineStatic, true, registry);
+            input.SetField<bool>("IsStatic", true);
+            var output = generatedData.AddPort<GradientType>(userData, kOutput, false, registry);
+        }
+
+        public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+        {
+            var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, GetRegistryKey().Name);
+            data.TryGetPort("InlineStatic", out var port);
+
+            var shaderType = registry.GetShaderType((IFieldReader)port, container);
+            shaderFunctionBuilder.AddInput(shaderType, kInlineStatic);
+            shaderFunctionBuilder.AddOutput(shaderType, kOutput);
+            shaderFunctionBuilder.AddLine($"{kOutput} = {kInlineStatic};");
+            return shaderFunctionBuilder.Build();
+        }
+    }
+
     internal static class GradientTypeHelpers
     {
         public static Gradient GetToGradient(IFieldReader field)
@@ -199,34 +232,3 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 }
 
 
-
-
-//public static string GetGradientValue(Gradient gradient, string delimiter = ";")
-//{
-//    string colorKeys = "";
-//    for (int i = 0; i < 8; i++)
-//    {
-//        if (i < gradient.colorKeys.Length)
-//            colorKeys += $"$precision4({NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.r)}, " +
-//                $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.g)}, " +
-//                $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.b)}, " +
-//                $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].time)})";
-//        else
-//            colorKeys += "$precision4(0, 0, 0, 0)";
-//        if (i < 7)
-//            colorKeys += ",";
-//    }
-
-//    string alphaKeys = "";
-//    for (int i = 0; i < 8; i++)
-//    {
-//        if (i < gradient.alphaKeys.Length)
-//            alphaKeys += $"$precision2({NodeUtils.FloatToShaderValue(gradient.alphaKeys[i].alpha)}, {NodeUtils.FloatToShaderValue(gradient.alphaKeys[i].time)})";
-//        else
-//            alphaKeys += "$precision2(0, 0)";
-//        if (i < 7)
-//            alphaKeys += ",";
-//    }
-
-//    return $"NewGradient({(int)gradient.mode}, {gradient.colorKeys.Length}, {gradient.alphaKeys.Length}, {colorKeys}, {alphaKeys}){delimiter}";
-//}
