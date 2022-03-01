@@ -12,10 +12,10 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyColorPass : ScriptableRenderPass
     {
-        static int m_SampleOffsetShaderHandle;
-        static Material m_SamplingMaterial;
-        static Downsampling m_DownsamplingMethod;
-        static Material m_CopyColorMaterial;
+        int m_SampleOffsetShaderHandle;
+        Material m_SamplingMaterial;
+        Downsampling m_DownsamplingMethod;
+        Material m_CopyColorMaterial;
 
         private RTHandle source { get; set; }
 
@@ -130,91 +130,119 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (m_SamplingMaterial == null)
+            PassData passData = new PassData();
+            passData.renderingData = renderingData;
+            passData.passName = GetType().Name;
+            passData.samplingMaterial = m_SamplingMaterial;
+            passData.copyColorMaterial = m_CopyColorMaterial;
+            passData.downsamplingMethod = m_DownsamplingMethod;
+            passData.clearFlag = clearFlag;
+            passData.clearColor = clearColor;
+            passData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
+
+            ExecutePass(passData, source, destination);
+        }
+
+        private static void ExecutePass(PassData passData, RTHandle source, RTHandle destination)
+        {
+            var renderingData = passData.renderingData;
+            bool useDrawProceduralBlit = renderingData.cameraData.xr.enabled;
+            var cmd = renderingData.commandBuffer;
+            var samplingMaterial = passData.samplingMaterial;
+            var copyColorMaterial = passData.copyColorMaterial;
+            var downsamplingMethod = passData.downsamplingMethod;
+            var passName = passData.passName;
+            var clearFlag = passData.clearFlag;
+            var clearColor = passData.clearColor;
+            var sampleOffsetShaderHandle = passData.sampleOffsetShaderHandle;
+
+            if (samplingMaterial == null)
             {
                 Debug.LogErrorFormat(
                     "Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.",
-                    m_SamplingMaterial, GetType().Name);
+                    samplingMaterial, passName);
                 return;
             }
 
-            var cmd = renderingData.commandBuffer;
-
+            // TODO RENDERGRAPH: double check the logic here. we cannot swap source in RenderGraph like this. Need to go through RG ReadTexture call instead
             //It is possible that the given color target is now the frontbuffer
-            if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
-            {
-                source = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            }
+            //if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            //{
+            //    source = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            //}
 
+            // TODO RENDERGRAPH: cmd.Blit is not compatible with RG but RenderingUtils.Blits would still call into it in some cases
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
                 ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag,
                     clearColor);
 
-               ExecutePass(renderingData, source, destination);
+                switch (downsamplingMethod)
+                {
+                    case Downsampling.None:
+                        RenderingUtils.Blit(cmd, source, destination, copyColorMaterial, 0, useDrawProceduralBlit,
+                            RenderBufferLoadAction.DontCare);
+                        break;
+                    case Downsampling._2xBilinear:
+                        RenderingUtils.Blit(cmd, source, destination, copyColorMaterial, 0, useDrawProceduralBlit,
+                            RenderBufferLoadAction.DontCare);
+                        break;
+                    case Downsampling._4xBox:
+                        samplingMaterial.SetFloat(sampleOffsetShaderHandle, 2);
+                        RenderingUtils.Blit(cmd, source, destination, samplingMaterial, 0, useDrawProceduralBlit,
+                            RenderBufferLoadAction.DontCare);
+                        break;
+                    case Downsampling._4xBilinear:
+                        RenderingUtils.Blit(cmd, source, destination, copyColorMaterial, 0, useDrawProceduralBlit,
+                            RenderBufferLoadAction.DontCare);
+                        break;
+                }
             }
         }
 
-        private static void ExecutePass(RenderingData renderingData, RTHandle source, RTHandle destination)
-        {
-            bool useDrawProceduralBlit = renderingData.cameraData.xr.enabled;
-            var cmd = renderingData.commandBuffer;
-
-            switch (m_DownsamplingMethod)
-            {
-                case Downsampling.None:
-                    RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduralBlit,
-                        RenderBufferLoadAction.DontCare);
-                    break;
-                case Downsampling._2xBilinear:
-                    RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduralBlit,
-                        RenderBufferLoadAction.DontCare);
-                    break;
-                case Downsampling._4xBox:
-                    m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    RenderingUtils.Blit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduralBlit,
-                        RenderBufferLoadAction.DontCare);
-                    break;
-                case Downsampling._4xBilinear:
-                    RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduralBlit,
-                        RenderBufferLoadAction.DontCare);
-                    break;
-            }
-        }
-
-    class PassData
+        class PassData
         {
             public TextureHandle source;
             public TextureHandle destination;
-
-            public int copyID;
-
             public RenderingData renderingData;
+            public Material samplingMaterial;
+            public Material copyColorMaterial;
+            public string passName;
+            public Downsampling downsamplingMethod;
+            public ClearFlag clearFlag;
+            public Color clearColor;
+            public int sampleOffsetShaderHandle;
         }
 
-        public TextureHandle Render(TextureHandle src, Downsampling downsampling, ref RenderingData renderingData)
+        public TextureHandle Render(out TextureHandle destination, in TextureHandle source, Downsampling downsampling, ref RenderingData renderingData)
         {
-            using (var builder = renderingData.renderGraph.AddRenderPass<PassData>("Copy Color", out var passData, new ProfilingSampler("Copy Color Pass")))
-            {
-                passData.source = src;
-                passData.renderingData = renderingData;
+            m_DownsamplingMethod = downsampling;
 
+            RenderGraph graph = renderingData.renderGraph;
+            using (var builder = graph.AddRenderPass<PassData>("Copy Color", out var passData, new ProfilingSampler("Copy Color Pass")))
+            {
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                 ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
 
-                passData.destination = UniversalRenderer.CreateRenderGraphTexture(renderingData.renderGraph, descriptor, "Camera Opaque Texture", true);
-                builder.UseColorBuffer(passData.destination, 0);
-                builder.ReadTexture(passData.source);
+                destination = UniversalRenderer.CreateRenderGraphTexture(renderingData.renderGraph, descriptor, "_CameraOpaqueTexture", true);
+                passData.destination = builder.UseColorBuffer(destination, 0);
+                passData.source = builder.ReadTexture(source);
+                passData.renderingData = renderingData;
+                passData.passName = GetType().Name;
+                passData.samplingMaterial = m_SamplingMaterial;
+                passData.copyColorMaterial = m_CopyColorMaterial;
+                passData.downsamplingMethod = m_DownsamplingMethod;
+                passData.clearFlag = clearFlag;
+                passData.clearColor = clearColor;
+                passData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
 
-                passData.copyID = Shader.PropertyToID("_CameraOpaqueTexture");
-
+                // TODO RENDERGRAPH: culling? force culluing off for testing
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    ExecutePass(data.renderingData, data.source, data.destination);
-                    data.renderingData.commandBuffer.SetGlobalTexture(data.copyID, data.destination);
-
+                    ExecutePass(data, data.source, data.destination);
+                    data.renderingData.commandBuffer.SetGlobalTexture("_CameraOpaqueTexture", data.destination);
                 });
 
                 return passData.destination;

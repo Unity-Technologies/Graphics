@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.Universal
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             #region Intermediate Camera Target
-            // TODO: check if we need intermediate textures.Enable this code when we actually need the logic. Or can we always create them and RG will allocate only if needed?
+            // TODO RENDERGRAPH: check if we need intermediate textures.Enable this code when we actually need the logic. Or can we always create them and RG will allocate only if needed?
             // bool createColorTexture = false;
             // createColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
             // createColorTexture |= renderPassInputs.requiresColorTexture;
@@ -159,10 +159,10 @@ namespace UnityEngine.Rendering.Universal
             // - depth priming?
 
 
-            // TODO: check require DepthPrepass
+            // TODO RENDERGRAPH: check require DepthPrepass
             //if (requiresDepthPrepass)
             {
-                // TODO: check requires normal
+                // TODO RENDERGRAPH: check requires normal
                 //if (renderPassInputs.requiresNormalsTexture))
                 {
                     m_DepthNormalPrepass.Render(out frameResources.cameraDepthTexture, out frameResources.cameraNormalsTexture, ref renderingData);
@@ -188,8 +188,11 @@ namespace UnityEngine.Rendering.Universal
             //if (requiresColorCopyPass)
             {
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
-                frameResources.cameraOpaqueTexture = m_CopyColorPass.Render(frameResources.cameraColor, downsamplingMethod, ref renderingData);
+                m_CopyColorPass.Render(out frameResources.cameraOpaqueTexture, in frameResources.cameraColor, downsamplingMethod, ref renderingData);
             }
+
+            // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
+
             m_RenderTransparentForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
         }
