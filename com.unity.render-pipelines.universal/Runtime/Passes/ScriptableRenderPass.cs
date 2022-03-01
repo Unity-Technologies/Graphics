@@ -622,6 +622,15 @@ namespace UnityEngine.Rendering.Universal
         public abstract void Execute(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
+        public virtual void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+        }
+
+        /// <summary>
         /// Add a blit command to the context for execution. This changes the active render target in the ScriptableRenderer to
         /// destination.
         /// </summary>

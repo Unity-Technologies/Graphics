@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) blitting from render texture to backbuffer or
                     // 2) blitting from backbuffer to render texture
                     bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID);
-                    bool yflip = (isSourceYflipped && isGameViewFinalTarget) || (!isSourceYflipped && !isGameViewFinalTarget);
+                    bool yflip = isSourceYflipped && !isGameViewFinalTarget;
                     float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
@@ -256,8 +256,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     // TODO RENDERGRAPH: Fix warning "You can only call cameraColorTarget inside the scope of a ScriptableRenderPass."
-                    //bool isSourceYflipped = data.renderingData.cameraData.IsCameraProjectionMatrixFlipped(); 
-                    bool isSourceYflipped = false;
+                    //bool isSourceYflipped = data.renderingData.cameraData.IsCameraProjectionMatrixFlipped();
+                    bool isSourceYflipped = true;
                     ExecutePass(context.renderContext, data, data.source, data.destination, isSourceYflipped);
                     data.renderingData.commandBuffer.SetGlobalTexture("_CameraDepthTexture", data.destination);
                 });
