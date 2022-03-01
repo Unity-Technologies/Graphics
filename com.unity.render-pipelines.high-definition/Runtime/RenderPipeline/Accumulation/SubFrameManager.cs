@@ -8,6 +8,10 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEditor;
 #endif // UNITY_EDITOR
 
+#if ENABLE_UNITY_DENOISING_PLUGIN
+using UnityEngine.Rendering.Denoising;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Struct storing per-camera data, to handle accumulation and dirtiness
