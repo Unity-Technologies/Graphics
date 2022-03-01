@@ -607,7 +607,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             registry.Register<Types.GraphType>();
             registry.Register<Types.GraphTypeAssignment>();
             registry.Register<Types.GradientType>();
-            //registry.Register<Types.GradientNode>();
+            registry.Register<Types.GradientNode>();
             registry.Register<Types.SampleGradientNode>();
 
             previewMgr.SetActiveGraph(graphHandler);
@@ -616,14 +616,24 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var nodeWriter = graphHandler.AddNode<Types.SampleGradientNode>("SampleGradientNode", registry);
             previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
 
+            // Default 0 time color on a gradient is black.
             var nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
             Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
 
+            // default 1 time color is white.
             nodeWriter.SetPortField(Types.SampleGradientNode.kTime, "c0", 1f);
             previewMgr.SetLocalProperty("SampleGradientNode", Types.SampleGradientNode.kTime, 1f);
-
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
+
+            // our gradient comes from a connection now, so it should be black again.
+            graphHandler.AddNode<Types.GradientNode>("GradientNode", registry);
+            graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient", registry);
+            previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
+            nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
+
+            // TODO: split these tests up into fixtures and also move these sort of tests out of PreviewTests.cs
         }
     }
 }
