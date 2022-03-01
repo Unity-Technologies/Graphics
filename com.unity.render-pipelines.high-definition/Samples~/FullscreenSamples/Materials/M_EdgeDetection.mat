@@ -46,7 +46,7 @@ Material:
     - _RAINBOW_MODE: 1
     - _StepNormal: 0.1
     - _Step_Depth_Detection: 0.02
-    - _Step_Normal_Detection: 0.24
+    - _Step_Normal_Detection: 0.25
     - _ezgfvreg: 0.247
     - _stepDepth: 0.127
     m_Colors:
