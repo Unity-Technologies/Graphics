@@ -178,6 +178,7 @@ namespace UnityEngine.Rendering.Universal
             }
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
+                m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
                 if (m_DeferredLights != null)
                 {
                     m_DeferredLights.ResolveMixedLightingMode(ref renderingData);

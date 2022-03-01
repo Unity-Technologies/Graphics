@@ -422,6 +422,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DepthAttachmentHandle = this.DepthAttachment;
         }
 
+        // Currently only used by RenderGraph as we don't really need anything from the previous Setup call besides setting this variable
+        // TODO RenderGraph investigate how to clean up and reuse the same Setup method
+        public void Setup(AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass)
+        {
+            m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
+        }
+
         public void OnCameraCleanup(CommandBuffer cmd)
         {
             // Disable any global keywords setup in SetupLights().
