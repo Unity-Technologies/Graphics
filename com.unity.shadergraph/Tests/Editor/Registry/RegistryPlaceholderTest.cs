@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 using UnityEngine.TestTools.Utils;
 using UnityEditor.ShaderGraph.GraphDelta;
-
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Registry.UnitTests
 {
@@ -144,6 +144,64 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             Assert.That(v, Is.EqualTo(3F).Using(comparer));
             nodeReader.GetField("In.c3", out v);
             Assert.That(v, Is.EqualTo(1F).Using(comparer));
+        }
+
+        [Test]
+        public void GradientTypeTest()
+        {
+            var registry = new Registry();
+            registry.Register<Types.GraphType>();
+            registry.Register<Types.GraphTypeAssignment>();
+            registry.Register<Types.GradientType>();
+            registry.Register<Types.GradientNode>();
+
+
+            // check that the type initializes defaults correctly.
+            var graph = new GraphHandler();
+            graph.AddNode<Types.GradientNode>("TestGradientNode", registry);
+            var node = graph.GetNodeReader("TestGradientNode");
+            node.TryGetPort(Types.GradientNode.kInlineStatic, out var port);
+            var actual = Types.GradientTypeHelpers.GetToGradient((IFieldReader)port);
+
+            var expected = new Gradient();
+            expected.mode = GradientMode.Blend;
+            expected.SetKeys(
+                new GradientColorKey[]
+                {
+                    new GradientColorKey(new Color(0,0,0), 0),
+                    new GradientColorKey(new Color(1,1,1), 1)
+                },
+                new GradientAlphaKey[]
+                {
+                    new GradientAlphaKey(255, 0),
+                    new GradientAlphaKey(255, 1)
+                });
+
+            Assert.AreEqual(expected, actual);
+
+            // check to see that a basic round trip works.
+            var nodeWriter = graph.GetNodeWriter("TestGradientNode");
+            var field = (IFieldWriter)nodeWriter.GetPort(Types.GradientNode.kInlineStatic);
+
+            expected.mode = GradientMode.Fixed;
+            expected.SetKeys(
+                new GradientColorKey[]
+                {
+                    new GradientColorKey(new Color(0,0,0), 0),
+                    new GradientColorKey(new Color(0,1,0), 1)
+                },
+                new GradientAlphaKey[]
+                {
+                    new GradientAlphaKey(255, 0),
+                    new GradientAlphaKey(0, 1)
+                });
+            Types.GradientTypeHelpers.SetFromGradient(field, expected);
+
+
+            node = graph.GetNodeReader("TestGradientNode");
+            node.TryGetPort(Types.GradientNode.kInlineStatic, out port);
+            actual = Types.GradientTypeHelpers.GetToGradient((IFieldReader)port);
+            Assert.AreEqual(expected, actual);
         }
     }
 }

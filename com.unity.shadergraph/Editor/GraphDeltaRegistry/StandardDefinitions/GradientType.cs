@@ -3,10 +3,88 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
+using com.unity.shadergraph.defs;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Registry.Types
 {
+
+    internal class SampleGradientNode : Defs.INodeDefinitionBuilder
+    {
+        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleGradientNode", Version = 1 };
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
+
+        public const string kGradient = "Gradient";
+        public const string kTime = "Time";
+        public const string kOutput = "Out";
+
+        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        {
+            generatedData.AddPort<GradientType>(userData, kGradient, true, registry);
+
+            // setup a float1 for time port.
+            var time = generatedData.AddPort<GraphType>(userData, kTime, true, registry);
+            time.SetField(GraphType.kPrecision, GraphType.Precision.Single);
+            time.SetField(GraphType.kPrimitive, GraphType.Primitive.Float);
+            time.SetField(GraphType.kLength, GraphType.Length.One);
+            time.SetField(GraphType.kHeight, GraphType.Height.One);
+
+            // default for GraphType is a float4.
+            generatedData.AddPort<GraphType>(userData, kOutput, false, registry);
+        }
+
+        private void PortToParam(string name, INodeReader node, ShaderFoundry.ShaderFunction.Builder builder, ShaderFoundry.ShaderContainer container, Registry registry)
+        {
+            node.TryGetPort(name, out var port);
+            var shaderType = registry.GetShaderType((IFieldReader)port, container);
+            if (port.IsInput())
+                builder.AddInput(shaderType, name);
+            else builder.AddOutput(shaderType, name);
+        }
+
+        public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+        {
+            var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, GetRegistryKey().Name);
+
+            PortToParam(kGradient, data, shaderFunctionBuilder, container, registry);
+            PortToParam(kTime, data, shaderFunctionBuilder, container, registry);
+            PortToParam(kOutput, data, shaderFunctionBuilder, container, registry);
+
+            var body =
+@"
+{
+    float3 color = Gradient.colors[0].rgb;
+    [unroll]
+    for (int c = 1; c < Gradient.colorsLength; c++)
+    {
+        float colorPos = saturate((Time - Gradient.colors[c - 1].w) / (Gradient.colors[c].w - Gradient.colors[c - 1].w)) * step(c, Gradient.colorsLength - 1);
+        color = lerp(color, Gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), Gradient.type));
+    }
+#ifdef UNITY_COLORSPACE_GAMMA
+    color = LinearToSRGB(color);
+#endif
+    float alpha = Gradient.alphas[0].x;
+    [unroll]
+    for (int a = 1; a < Gradient.alphasLength; a++)
+    {
+        float alphaPos = saturate((Time - Gradient.alphas[a - 1].y) / (Gradient.alphas[a].y - Gradient.alphas[a - 1].y)) * step(a, Gradient.alphasLength - 1);
+        alpha = lerp(alpha, Gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), Gradient.type));
+    }
+    Out = float4(color, alpha);
+}
+";
+
+            shaderFunctionBuilder.AddLine(body);
+            return shaderFunctionBuilder.Build();
+        }
+    }
+
+
+
+
+
+
+
 
     // Placeholder node for testing purposes-- technically this is a node w/a a hint to the UI that it should use
     // a Gradient widget to modify InlineStatic-- this sort of thing is going to be very common-- probably makes sense to have
@@ -17,8 +95,8 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientNode", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-        const string kInlineStatic = "InlineStatic";
-        const string kOutput = "Out";
+        public const string kInlineStatic = "InlineStatic";
+        public const string kOutput = "Out";
 
         public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
         {
@@ -30,7 +108,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
             var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, GetRegistryKey().Name);
-            data.TryGetPort("InlineStatic", out var port);
+            data.TryGetPort(kInlineStatic, out var port);
 
             var shaderType = registry.GetShaderType((IFieldReader)port, container);
             shaderFunctionBuilder.AddInput(shaderType, kInlineStatic);
@@ -40,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         }
     }
 
-    internal static class GradientTypeHelpers
+    public static class GradientTypeHelpers
     {
         public static Gradient GetToGradient(IFieldReader field)
         {
@@ -107,12 +185,14 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             typeWriter.SetField(kAlphaCount, 2);
             typeWriter.SetField(kColor(0), new GradientColorKey(Color.black, 0));
             typeWriter.SetField(kColor(1), new GradientColorKey(Color.white, 1));
-            typeWriter.SetField(kAlpha(0), new GradientAlphaKey(255, 0));
-            typeWriter.SetField(kAlpha(1), new GradientAlphaKey(255, 1));
+            typeWriter.SetField(kAlpha(0), new GradientAlphaKey(1, 0));
+            typeWriter.SetField(kAlpha(1), new GradientAlphaKey(1, 1));
 
             // TODO: Precision; the Gradient type we use in Functions.hlsl does not handle precision, despite surrounding shader code.
             // Ideally, we could just generate the complete Gradient Struct per precision type, instead of using the one from Functions.hlsl;
             // this would depend on ShaderFoundry reintroducing better support for structs. For now we'll use the built-in type.
+            // Note that we could also not default to generating 16 total keys either, and potentially key against any underlying graph type,
+            // but for the purposes of working with the gradient widget, this makes the most sense.
         }
 
         private string ColorKeyToDecl(GradientColorKey key) => $"float4({key.color.r},{key.color.g},{key.color.b},{key.time})";
@@ -129,8 +209,8 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             string color = "";
             for(int i = 0; i < 8; ++i)
             {
-                var localColor =  "float4(0, 0, 0, 0)";
-                var localAlpha = "float2(0, 0)";
+                var localColor =  "float4(0,0,0,0)";
+                var localAlpha = "float2(0,0)";
 
                 if (i < colorCount)
                 {
@@ -148,84 +228,37 @@ namespace UnityEditor.ShaderGraph.Registry.Types
                 alpha += localAlpha + (i < 7 ? ", " : "");
             }
 
-            return $"NewGradient({(int)gradientMode},{colorCount}, {alphaCount}, {color}, {alpha})";
+            return $"NewGradient({(int)gradientMode}, {colorCount}, {alphaCount}, {color}, {alpha})";
         }
 
         ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
             var gradientBuilder = new ShaderFoundry.ShaderType.StructBuilder(container, "Gradient");
             gradientBuilder.DeclaredExternally();
-            var gradientType = gradientBuilder.Build();
-            return gradientType;
+            return gradientBuilder.Build();
         }
     }
 
     internal class GradientTypeAssignment : Defs.ICastDefinitionBuilder
     {
-        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
+        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientTypeAssignment", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
-        public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
-        public bool CanConvert(IFieldReader src, IFieldReader dst)
-        {
-            src.GetField(GraphType.kLength, out GraphType.Length srcLen);
-            src.GetField(GraphType.kHeight, out GraphType.Height srcHgt);
-
-            dst.GetField(GraphType.kLength, out GraphType.Length dstLen);
-            dst.GetField(GraphType.kHeight, out GraphType.Height dstHgt);
-
-            return srcHgt == dstHgt || srcHgt == GraphType.Height.One && srcLen >= dstLen;
-        }
-
-        private static string MatrixCompNameFromIndex(int i, int d)
-        {
-            return $"_mm{ i / d }{ i % d }";
-        }
-
-        private static string VectorCompNameFromIndex(int i)
-        {
-            switch (i)
-            {
-                case 0: return "x";
-                case 1: return "y";
-                case 2: return "z";
-                case 3: return "w";
-                default: throw new Exception("Invalid vector index.");
-            }
-        }
-
+        public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GradientType.kRegistryKey, GradientType.kRegistryKey);
+        public bool CanConvert(IFieldReader src, IFieldReader dst) => true;
 
         public ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry)
         {
-            // In this case, we can determine a casting operation purely from the built types. We don't actually need to analyze field data,
-            // this is because it's all alreay been encapsulated in the previously built ShaderType.
+            // There is currently no need to cast these, but if graphType was used for the underlying type, or precision was introduced--
+            // this is where we would map the data accordingly.
+
+            // The src/dst type in this case should reliably just be what's provided from GradientType.
             var srcType = registry.GetTypeBuilder(src.GetRegistryKey()).GetShaderType(src, container, registry);
             var dstType = registry.GetTypeBuilder(dst.GetRegistryKey()).GetShaderType(dst, container, registry);
-
             string castName = $"Cast{srcType.Name}_{dstType.Name}";
             var builder = new ShaderFoundry.ShaderFunction.Builder(container, castName);
             builder.AddInput(srcType, "In");
             builder.AddOutput(dstType, "Out");
-
-            // CanConvert should prevent srcSize from being smaller than dstSize.
-            var srcSize = srcType.IsVector ? srcType.VectorDimension : srcType.IsMatrix ? srcType.MatrixColumns * srcType.MatrixRows : 1;
-            var dstSize = dstType.IsVector ? dstType.VectorDimension : dstType.IsMatrix ? dstType.MatrixColumns * dstType.MatrixRows : 1;
-
-            string body = $"Out = {srcType.Name} {{ ";
-
-            for (int i = 0; i < dstSize; ++i)
-            {
-                if (i < srcSize)
-                {
-                    if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
-                    if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
-                    if (dstType.IsScalar) body += $"In";
-                }
-                else body += "0";
-                if (i != dstSize - 1) body += ", ";
-            }
-            body += " };";
-
-            builder.AddLine(body);
+            builder.AddLine("Out = In;");
             return builder.Build();
         }
     }

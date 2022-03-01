@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
         internal ShaderFoundry.ShaderType GetShaderType(IFieldReader field, ShaderFoundry.ShaderContainer container)
         {
-            var graphTypeBuilder = this.GetTypeBuilder(GraphType.kRegistryKey);
+            var graphTypeBuilder = this.GetTypeBuilder(field.GetRegistryKey());
             return graphTypeBuilder.GetShaderType(field, container, this);
         }
 
