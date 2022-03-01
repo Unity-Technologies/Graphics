@@ -216,15 +216,17 @@ Shader "Hidden/HDRP/TemporalAA"
 
         float3 FilterColorTest(int2 output_px, float2 sample_offset_pixels)
         {
-            sample_offset_pixels = _TaaJitterStrength.zw;
+            float halfof = 0.5;
 
+            sample_offset_pixels = _TaaJitterStrength.xy;
             const float2 input_tex_size = _InputSize.xy;
             const float2 input_resolution_scale = _TAAURenderScale;
-            const int2 base_src_px = int2((output_px + 0.5) * input_resolution_scale);
+            const int2 base_src_px = int2((output_px + halfof) * input_resolution_scale);
             // In pixel units of the destination (upsampled)
-            const float2 dst_sample_loc = output_px + 0.5;
+            const float2 dst_sample_loc = output_px + halfof;
             const float2 base_src_sample_loc =
-                (base_src_px + 0.5 + sample_offset_pixels * float2(1, -1)) / input_resolution_scale;
+                (base_src_px  + halfof +
+                    sample_offset_pixels) / input_resolution_scale;
 
             float3 res = 0.0;
             float dev_wt_sum = 0.0;
@@ -255,55 +257,72 @@ Shader "Hidden/HDRP/TemporalAA"
 
         float3 FilterColorTest(int2 output_px, float2 sample_offset_pixels, NeighbourhoodSamples samples)
         {
-            sample_offset_pixels = _TaaJitterStrength.zw;
+            float halfof = 0.5;
 
+            sample_offset_pixels = _TaaJitterStrength.xy;
             const float2 input_tex_size = _InputSize.xy;
-            const float2 input_resolution_scale = rcp(_TAAUScale);
-            const int2 base_src_px = int2((output_px + 0.5) * input_resolution_scale);
+            const float2 input_resolution_scale = _TAAURenderScale;
+            const int2 base_src_px = int2((output_px + halfof) * input_resolution_scale);
             // In pixel units of the destination (upsampled)
-            const float2 dst_sample_loc = output_px + 0.5;
+            const float2 dst_sample_loc = output_px + halfof;
             const float2 base_src_sample_loc =
-                (base_src_px + 0.5 + sample_offset_pixels * float2(1, -1)) / input_resolution_scale;
+                (base_src_px + halfof +
+                    sample_offset_pixels) / input_resolution_scale;
 
             float3 res = 0.0;
             float dev_wt_sum = 0.0;
             float wt_sum = 0.0;
 
-            const float kernel_distance_mult = 1.0;
+            const float kernel_distance_mult = 1;
+            int k = 1;
 
-#if WIDE_NEIGHBOURHOOD
-                        //int k = 1;
-            res = samples.central;
-            float2 sample_center_offset = (base_src_sample_loc - dst_sample_loc);
-            float2 dist2 = dot(sample_center_offset, sample_center_offset);
-
-            wt_sum = mitchell_netravali(2.5 * sqrt(dist2) * input_resolution_scale.x);
-            res *= wt_sum;
-
-            for (int i = 0; i < 8; ++i)
+            for (int i = 0; i < 9; ++i)
             {
-
-                int x = samples.offsets[i].x;
-                int y = samples.offsets[i].y;
-                float3 col = samples.neighbours[i];
+                int x = 0;
+                int y = 0;
+                if (i > 0)
+                {
+                    x = samples.offsets[i-1].x;
+                    y = samples.offsets[i-1].y;
+                }
 
                 int2 src_px = base_src_px + int2(x, y);
                 float2 src_sample_loc = base_src_sample_loc + float2(x, y) / input_resolution_scale;
-                sample_center_offset = (src_sample_loc - dst_sample_loc);
-                dist2 = dot(sample_center_offset, sample_center_offset);
+                float3 col = ConvertToWorkingSpace(_InputTexture[COORD_TEXTURE2D_X(src_px.xy)]);
+                col *= PerceptualWeight(col);
+
+#if WIDE_NEIGHBOURHOOD
+                if (i > 0)
+                {
+                    col = samples.neighbours[i - 1];
+                }
+                else
+                {
+                    col = samples.central;
+                }
+#else
+                col = 0;
+#endif
+
+                float2 sample_center_offset = (src_sample_loc - dst_sample_loc) * kernel_distance_mult;
+                float dist2 = dot(sample_center_offset, sample_center_offset);
                 float dist = sqrt(dist2);
-                float wt = mitchell_netravali(2.5 * dist * input_resolution_scale.x);
-                //float wt = exp2(-10 * dist2 * input_resolution_scale.x);
+                //float wt = mitchell_netravali(2.5 * dist * input_resolution_scale.x);
+                float wt = exp2(-15 * dist2 * input_resolution_scale.x);
                 res += col * wt;
                 wt_sum += wt;
 
             }
 
+            for (int y = -k; y <= k; ++y)
+            {
+                for (int x = -k; x <= k; ++x)
+                {
+                }
+            }
 
-#else
-            return 1;
-#endif
             return res / wt_sum;
+
         }
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
@@ -358,8 +377,14 @@ Shader "Hidden/HDRP/TemporalAA"
             CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
 
             color = FilterColorTest(input.positionCS.xy, _TaaJitterStrength.xy);
-            
-            if (false && !excludeTAABit)
+
+
+#if ANTI_RINGING
+            color = FilterColorTest(input.positionCS.xy, _TaaJitterStrength.xy);
+            //excludeTAABit = true;
+#endif
+
+            if ( !excludeTAABit)
             {
                 color = clamp(color, 0, CLAMP_MAX);
                 color = ConvertToWorkingSpace(color);
@@ -443,7 +468,7 @@ Shader "Hidden/HDRP/TemporalAA"
                 finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
                 finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
 #else
-                finalColor.xyz = lerp(history.xyz, filteredColor.xyz, 1);
+                finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
                 finalColor.xyz *= PerceptualInvWeight(finalColor);
 #endif
 
