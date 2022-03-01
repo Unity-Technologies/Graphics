@@ -161,7 +161,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             graph.AddNode<Types.GradientNode>("TestGradientNode", registry);
             var node = graph.GetNodeReader("TestGradientNode");
             node.TryGetPort(Types.GradientNode.kInlineStatic, out var port);
-            var actual = Types.GradientTypeHelpers.GetToGradient((IFieldReader)port);
+            var actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
 
             var expected = new Gradient();
             expected.mode = GradientMode.Blend;
@@ -195,12 +195,12 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
                     new GradientAlphaKey(1, 0),
                     new GradientAlphaKey(0, 1)
                 });
-            Types.GradientTypeHelpers.SetFromGradient(field, expected);
+            Types.GradientTypeHelpers.SetGradient(field, expected);
 
 
             node = graph.GetNodeReader("TestGradientNode");
             node.TryGetPort(Types.GradientNode.kInlineStatic, out port);
-            actual = Types.GradientTypeHelpers.GetToGradient((IFieldReader)port);
+            actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
             Assert.AreEqual(expected, actual);
         }
     }
