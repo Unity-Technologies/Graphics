@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
             useNativeRenderPass = false;
+            this.shaderTagIds = k_DepthNormals;
         }
 
         public static GraphicsFormat GetGraphicsFormat()
@@ -53,7 +54,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.depthHandle = depthHandle;
             this.normalHandle = normalHandle;
-            this.shaderTagIds = k_DepthNormals;
         }
 
         /// <inheritdoc/>
@@ -67,24 +67,33 @@ namespace UnityEngine.Rendering.Universal.Internal
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
-        /// <inheritdoc/>
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData)
         {
-            CommandBuffer cmd = renderingData.commandBuffer;
+            var renderingData = passData.renderingData;
+            var cmd = renderingData.commandBuffer;
+            var shaderTagIds = passData.shaderTagIds;
+            var filteringSettings = passData.filteringSettings;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
+                var drawSettings = CreateDrawingSettings(shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
-                ref CameraData cameraData = ref renderingData.cameraData;
-                Camera camera = cameraData.camera;
-
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
             }
+        }
+
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            PassData passData = new PassData();
+            passData.renderingData = renderingData;
+            passData.shaderTagIds = this.shaderTagIds;
+            passData.filteringSettings = m_FilteringSettings;
+            ExecutePass(context, passData);
         }
 
         /// <inheritdoc/>
@@ -103,9 +112,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             public TextureHandle cameraDepthTexture;
             public TextureHandle cameraNormalsTexture;
             public RenderingData renderingData;
+            public List<ShaderTagId> shaderTagIds;
+            public FilteringSettings filteringSettings;
         }
 
-        public TextureHandle Render(out TextureHandle cameraNormalsTexture, out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        public void Render(out TextureHandle cameraNormalsTexture, out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
         {
             RenderGraph graph = renderingData.renderGraph;
             const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
@@ -122,7 +133,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(graph, depthDescriptor, "_CameraDepthTexture", true);
 
-                //TODO: Handle Deferred case, see _CameraNormalsTexture logic in UniversalRenderer.cs 
+                // TODO RENDERGRAPH: Handle Deferred case, see _CameraNormalsTexture logic in UniversalRenderer.cs 
                 var normalDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 normalDescriptor.depthBufferBits = 0;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
@@ -137,25 +148,19 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 passData.cameraNormalsTexture = builder.UseColorBuffer(cameraNormalsTexture, 0);
                 passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
+                passData.renderingData = renderingData;
+                passData.shaderTagIds = this.shaderTagIds;
+                passData.filteringSettings = m_FilteringSettings;
 
-                // TODO: culling? force culluing off for testing
+                //  TODO RENDERGRAPH: culling? force culluing off for testing
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    var cmd = context.cmd;
-                    var renderingData = data.renderingData;
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
-                    {
-                        var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                        var drawSettings = CreateDrawingSettings(k_DepthNormals, ref renderingData, sortFlags);
-                        drawSettings.perObjectData = PerObjectData.None;
-
-                        context.renderContext.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-                    }
+                    ExecutePass(context.renderContext, data);
                 });
 
-                return passData.cameraDepthTexture;
+                return;
             }
         }
     }

@@ -76,28 +76,59 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ConfigureClear(ClearFlag.All, Color.black);
         }
 
+        public class PassData
+        {
+            public TextureHandle source;
+            public TextureHandle destination;
+            public RenderingData renderingData;
+            public Material copyDepthMaterial;
+            public int msaaSamples;
+            public bool copyResolvedDepth;
+            public bool copyToDepth;
+            public string passName;
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (m_CopyDepthMaterial == null)
+            PassData passData = new PassData();
+            passData.renderingData = renderingData;
+            passData.copyDepthMaterial = m_CopyDepthMaterial;
+            passData.msaaSamples = MssaSamples;
+            passData.copyResolvedDepth = m_CopyResolvedDepth;
+            passData.copyToDepth = CopyToDepth;
+            passData.passName = GetType().Name;
+            ExecutePass(context, passData, source, destination, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+        }
+
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData, RTHandle source, RTHandle destination, bool isSourceYflipped)
+        {
+            var copyDepthMaterial = passData.copyDepthMaterial;
+            var renderingData = passData.renderingData;
+            var cmd = renderingData.commandBuffer;
+            var msaaSamples = passData.msaaSamples;
+            var copyResolvedDepth = passData.copyResolvedDepth;
+            var copyToDepth = passData.copyToDepth;
+            var passName = passData.passName;
+
+            if (copyDepthMaterial == null)
             {
-                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", copyDepthMaterial, passName);
                 return;
             }
-            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
                 int cameraSamples = 0;
-                if (MssaSamples == -1)
+                if (msaaSamples == -1)
                 {
                     RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                     cameraSamples = descriptor.msaaSamples;
                 }
                 else
-                    cameraSamples = MssaSamples;
+                    cameraSamples = msaaSamples;
 
                 // When depth resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
+                if (SystemInfo.supportsMultisampledTextures == 0 || copyResolvedDepth)
                     cameraSamples = 1;
 
                 CameraData cameraData = renderingData.cameraData;
@@ -130,7 +161,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
 
-                if (CopyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
+                if (copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
                     cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
                 else
                     cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
@@ -156,7 +187,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
 
-                    cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Quads, 4);
+                    cmd.DrawProcedural(Matrix4x4.identity, copyDepthMaterial, 0, MeshTopology.Quads, 4);
                 }
                 else
 #endif
@@ -169,16 +200,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.y = scale
                     // scaleBias.z = bias
                     // scaleBias.w = unused
-                    // In game view final target acts as back buffer were target is not flipped
+                    // yFlip if
+                    // 1) blitting from render texture to backbuffer or
+                    // 2) blitting from backbuffer to render texture
                     bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID);
-                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
+                    bool yflip = (isSourceYflipped && isGameViewFinalTarget) || (!isSourceYflipped && !isGameViewFinalTarget);
                     float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                         : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
 
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, copyDepthMaterial);
                 }
             }
         }
@@ -192,146 +225,41 @@ namespace UnityEngine.Rendering.Universal.Internal
             destination = k_CameraTarget;
         }
 
-        public class PassData
+        public void Render(out TextureHandle destination, in TextureHandle source, ref RenderingData renderingData)
         {
-            public TextureHandle depthFrom;
-            public TextureHandle depthTo;
-            public TextureDesc depthToDesc;
-            public RenderingData renderingData;
-        }
-
-        public void Render(out TextureHandle depthTo, in TextureHandle depthFrom, ref RenderingData renderingData)
-        {
-            //TODO: should call the equivalent of Setup() to initialise everything correctly
+            // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;
 
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<PassData>("Copy Depth", out var passData, new ProfilingSampler("Copy Depth Pass")))
             {
-                passData.renderingData = renderingData;
                 var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
                 depthDescriptor.depthStencilFormat = GraphicsFormat.None;
                 depthDescriptor.depthBufferBits = 0;
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-                depthTo = UniversalRenderer.CreateRenderGraphTexture(graph, depthDescriptor, "_CameraDepthTexture", true);
+                destination = UniversalRenderer.CreateRenderGraphTexture(graph, depthDescriptor, "_CameraDepthTexture", true);
 
-                passData.depthFrom = builder.ReadTexture(depthFrom);
-                passData.depthTo = builder.UseColorBuffer(depthTo, 0);
-                passData.depthToDesc = graph.GetTextureDesc(depthTo);
+                passData.renderingData = renderingData;
+                passData.copyDepthMaterial = m_CopyDepthMaterial;
+                passData.msaaSamples = MssaSamples;
+                passData.copyResolvedDepth = m_CopyResolvedDepth;
+                passData.copyToDepth = CopyToDepth;
+                passData.source = builder.ReadTexture(source);
+                passData.destination = builder.UseColorBuffer(destination, 0);
+                passData.passName = GetType().Name;
 
-                // TODO: culling? force culluing off for testing
+                // TODO RENDERGRAPH: culling? force culluing off for testing
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    if (m_CopyDepthMaterial == null)
-                    {
-                        Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
-                        return;
-                    }
-                    var cmd = context.cmd;
-                    var renderingData = data.renderingData;
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
-                    {
-                        int cameraSamples = 0;
-                        if (MssaSamples == -1)
-                        {
-                            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-                            cameraSamples = descriptor.msaaSamples;
-                        }
-                        else
-                            cameraSamples = MssaSamples;
-
-                        // When depth resolve is supported or multisampled texture is not supported, set camera samples to 1
-                        if (SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
-                            cameraSamples = 1;
-
-                        CameraData cameraData = renderingData.cameraData;
-
-                        switch (cameraSamples)
-                        {
-                            case 8:
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                                break;
-
-                            case 4:
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                                break;
-
-                            case 2:
-                                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                                break;
-
-                            // MSAA disabled, auto resolve supported or ms textures not supported
-                            default:
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
-                                break;
-                        }
-
-                        if (data.depthToDesc.colorFormat == GraphicsFormat.None)
-                            cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
-                        else
-                            cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
-
-                        cmd.SetGlobalTexture("_CameraDepthAttachment", data.depthFrom);
-
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                        // XR uses procedural draw instead of cmd.blit or cmd.DrawFullScreenMesh
-                        if (renderingData.cameraData.xr.enabled)
-                        {
-                            // XR flip logic is not the same as non-XR case because XR uses draw procedure
-                            // and draw procedure does not need to take projection matrix yflip into account
-                            // We y-flip if
-                            // 1) we are bliting from render texture to back buffer and
-                            // 2) renderTexture starts UV at top
-                            // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                            bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget;
-                            bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                            float flipSign = (yflip) ? -1.0f : 1.0f;
-                            Vector4 scaleBiasRt = (flipSign < 0.0f)
-                                ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                                : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                            cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-
-                            cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Quads, 4);
-                        }
-                        else
-#endif
-                        {
-                            // TODO: Ideally, render graph could help handle the yflip issue
-                            //// Blit has logic to flip projection matrix when rendering to render texture.
-                            //// Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                            //// If you replace this Blit with a Draw* that sets projection matrix double check
-                            //// to also update shader.
-                            //// scaleBias.x = flipSign
-                            //// scaleBias.y = scale
-                            //// scaleBias.z = bias
-                            //// scaleBias.w = unused
-                            //// In game view final target acts as back buffer were target is not flipped
-                            //bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID);
-                            //bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
-                            //float flipSign = yflip ? -1.0f : 1.0f;
-                            //Vector4 scaleBiasRt = (flipSign < 0.0f)
-                            //    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                            //    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                            //cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-
-                            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
-                        }
-                    }
-
-                    cmd.SetGlobalTexture("_CameraDepthTexture", data.depthTo);
+                    // TODO RENDERGRAPH: Fix warning "You can only call cameraColorTarget inside the scope of a ScriptableRenderPass."
+                    //bool isSourceYflipped = data.renderingData.cameraData.IsCameraProjectionMatrixFlipped(); 
+                    bool isSourceYflipped = false;
+                    ExecutePass(context.renderContext, data, data.source, data.destination, isSourceYflipped);
+                    data.renderingData.commandBuffer.SetGlobalTexture("_CameraDepthTexture", data.destination);
                 });
 
                 return;

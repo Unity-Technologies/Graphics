@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
             useNativeRenderPass = false;
+            this.shaderTagId = k_ShaderTagId;
         }
 
         /// <summary>
@@ -51,7 +52,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.destination = depthAttachmentHandle;
             this.depthStencilFormat = baseDescriptor.depthStencilFormat;
-            this.shaderTagId = k_ShaderTagId;
         }
 
         /// <inheritdoc />
@@ -75,30 +75,45 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        /// <inheritdoc/>
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData)
         {
-            CommandBuffer cmd = renderingData.commandBuffer;
+            var renderingData = passData.renderingData;
+            var cmd = renderingData.commandBuffer;
+            var shaderTagId = passData.shaderTagId;
+            var filteringSettings = passData.filteringSettings;
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
+                var drawSettings = CreateDrawingSettings(shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
             }
+        }
+
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            PassData passData = new PassData();
+            passData.renderingData = renderingData;
+            passData.shaderTagId = this.shaderTagId;
+            passData.filteringSettings = m_FilteringSettings;
+            ExecutePass(context, passData);
         }
 
         public class PassData
         {
             public TextureHandle cameraDepthTexture;
             public RenderingData renderingData;
+            public ShaderTagId shaderTagId;
+            public FilteringSettings filteringSettings;
         }
 
-        public TextureHandle Render(out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        public void Render(out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
         {
             RenderGraph graph = renderingData.renderGraph;
             const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
@@ -115,25 +130,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(graph, depthDescriptor, "_CameraDepthTexture", true);
 
                 passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
+                passData.renderingData = renderingData;
+                passData.shaderTagId = this.shaderTagId;
+                passData.filteringSettings = m_FilteringSettings;
 
-                // TODO: culling? force culluing off for testing
+                //  TODO RENDERGRAPH: culling? force culluing off for testing
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    var cmd = context.cmd;
-                    var renderingData = data.renderingData;
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
-                    {
-                        var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                        var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
-                        drawSettings.perObjectData = PerObjectData.None;
-
-                        context.renderContext.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-                    }
+                    ExecutePass(context.renderContext, data);
                 });
 
-                return passData.cameraDepthTexture;
+                return;
             }
         }
     }

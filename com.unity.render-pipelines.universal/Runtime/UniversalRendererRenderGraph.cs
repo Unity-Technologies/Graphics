@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             #region Intermediate Camera Target
-            // TODO: check if we need intermediate textures.Enable this code when we actually need the logic. Or can we always create them and RG will allocate only if needed?
+            // TODO RENDERGRAPH: check if we need intermediate textures.Enable this code when we actually need the logic. Or can we always create them and RG will allocate only if needed?
             // bool createColorTexture = false;
             // createColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
             // createColorTexture |= renderPassInputs.requiresColorTexture;
@@ -108,36 +108,39 @@ namespace UnityEngine.Rendering.Universal
             #endregion
         }
 
-        protected override void RecordRenderGraphBlock(RenderGraphRenderPassBlock renderPassBlock, ScriptableRenderContext context, ref RenderingData renderingData)
+        protected override void RecordRenderGraphInternal(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
 
-            switch (renderPassBlock)
-            {
-                case RenderGraphRenderPassBlock.BeforeRendering:
-                    OnBeforeRendering(context, ref renderingData);
+            OnBeforeRendering(context, ref renderingData);
 
-                    break;
-                case RenderGraphRenderPassBlock.MainRendering:
-                    OnMainRendering(context, ref renderingData);
+            OnMainRendering(context, ref renderingData);
 
-                    break;
-                case RenderGraphRenderPassBlock.AfterRendering:
-                    OnAfterRendering(context, ref renderingData);
-
-                    break;
-            }
+            OnAfterRendering(context, ref renderingData);
         }
 
         private void OnBeforeRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CreateRenderGraphCameraRenderTargets(context, ref renderingData);
 
+            bool renderShadows = false;
+
             if (m_MainLightShadowCasterPass.Setup(ref renderingData))
+            {
+                renderShadows = true;
                 frameResources.mainShadowsTexture = m_MainLightShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+            }
 
             if (m_AdditionalLightsShadowCasterPass.Setup(ref renderingData))
+            {
+                renderShadows = true;
                 frameResources.additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderingData.renderGraph, ref renderingData);
+            }
+
+            // The camera need to be setup again after the shadows since those passes override some settings
+            // TODO RENDERGRAPH: move the setup code into the shadow passes
+            if (renderShadows)
+                SetupRenderGraphCameraProperties(ref renderingData);
         }
 
         private void OnMainRendering(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -160,10 +163,10 @@ namespace UnityEngine.Rendering.Universal
             // - depth priming?
 
 
-            // TODO: check require DepthPrepass
+            // TODO RENDERGRAPH: check require DepthPrepass
             //if (requiresDepthPrepass)
             {
-                // TODO: check requires normal
+                // TODO RENDERGRAPH: check requires normal
                 //if (renderPassInputs.requiresNormalsTexture))
                 {
                     m_DepthNormalPrepass.Render(out frameResources.cameraDepthTexture, out frameResources.cameraNormalsTexture, ref renderingData);
@@ -201,8 +204,11 @@ namespace UnityEngine.Rendering.Universal
             //if (requiresColorCopyPass)
             {
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
-                frameResources.cameraOpaqueTexture = m_CopyColorPass.Render(frameResources.cameraColor, downsamplingMethod, ref renderingData);
+                m_CopyColorPass.Render(out frameResources.cameraOpaqueTexture, in frameResources.cameraColor, downsamplingMethod, ref renderingData);
             }
+
+            // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
+
             m_RenderTransparentForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
         }
