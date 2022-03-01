@@ -806,6 +806,7 @@ namespace UnityEditor.VFX.UI
             mPos = view.contentViewContainer.ChangeCoordinatesTo(view, controller.position);
             var newNodeController = view.AddNode(d, mPos);
             var newContextController = newNodeController as VFXContextController;
+            newContextController.model.label = controller.model.label;
 
             //transfer blocks
             foreach (var block in controller.model.children.ToArray()) // To array needed as the IEnumerable content will change
