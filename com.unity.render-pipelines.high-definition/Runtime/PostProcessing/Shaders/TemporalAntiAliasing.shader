@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment _ ORTHOGRAPHIC
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ FORCE_BILINEAR_HISTORY
-        #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION
+        #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION ENABLE_MV_REJECTION_OBJ_ONLY
         #pragma multi_compile_local_fragment _ ANTI_RINGING
         #pragma multi_compile_local_fragment _ DIRECT_STENCIL_SAMPLE
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
@@ -69,7 +69,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
-    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION) || defined(ENABLE_MV_REJECTION_OBJ_ONLY)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
     #define CLOSEST_VEL_SEARCH_WIDTH 2
@@ -83,7 +83,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
-    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION) || defined(ENABLE_MV_REJECTION_OBJ_ONLY)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
     #define UPSCALE 
@@ -98,7 +98,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
-    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION) || defined(ENABLE_MV_REJECTION_OBJ_ONLY)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
     #define CLOSEST_VEL_SEARCH_WIDTH 1
@@ -193,21 +193,6 @@ Shader "Hidden/HDRP/TemporalAA"
 
     // ------------------------------------------------------------------
 
-        // This complexity will not be needed when moving to CS.
-        void SwizzleFilterWeights(int2 posSS, inout float4 filterParams1, inout float4 filterParams2)
-        {
-            // Data arrives as if filterParams weights for { (0, 1), (1, 0), (-1, 0), (0,-1) }, filterParams2 for { (-1, 1), (1, -1), (1, 1), (-1, -1) }
-            bool2 needSwizzle = (posSS & 1) == 0;
-
-            filterParams1.yz = needSwizzle.x ? filterParams1.zy : filterParams1.yz;
-            filterParams1.xw = needSwizzle.y ? filterParams1.wx : filterParams1.xw;
-#if WIDE_NEIGHBOURHOOD
-            filterParams2 = all(needSwizzle) ? filterParams2.yxwz :
-                (needSwizzle.x && !needSwizzle.y) ? filterParams2.zwxy :
-                (!needSwizzle.x && needSwizzle.y) ? filterParams2.wzyx : filterParams2;
-#endif
-        }
-
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -234,7 +219,10 @@ Shader "Hidden/HDRP/TemporalAA"
 #ifdef TAA_UPSCALE
             samplePos = outputPixInInput;
 #endif
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, CLOSEST_VEL_SEARCH_WIDTH);
+
+            float centerDepth, closestDepth;
+            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, CLOSEST_VEL_SEARCH_WIDTH, centerDepth, closestDepth);
+
 #endif
             bool excludeTAABit = false;
 #if DIRECT_STENCIL_SAMPLE
@@ -263,6 +251,9 @@ Shader "Hidden/HDRP/TemporalAA"
             
             CTYPE filteredColor = GatherNeighbourhoodAndFilterColor(_InputTexture, input.positionCS.xy, _TaaJitterStrength.xy, _TAAURenderScale, _CentralFilterSharpness, samples);
             CTYPE color = filteredColor;
+            float blendFactor = 0;
+
+            float3 dbg = 0;
 
             if (!excludeTAABit)
             {
@@ -281,6 +272,21 @@ Shader "Hidden/HDRP/TemporalAA"
 #if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
                 motionVectorLength = length(motionVector);
                 motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
+
+#if VELOCITY_REJECTION
+                bool skipRejection = false;
+
+#ifdef ENABLE_MV_REJECTION_OBJ_ONLY
+                // TODO: This is not possible to enable via UX because due to the fact that the recovered velocities are going to be aliased
+                // we are going to have weird results at silhouettes.
+                float2 cameraMV = GrabCameraMotionVec(velocityUV, centerDepth);
+                float speedRejectionLen = length(motionVector - cameraMV);
+#else
+                float speedRejectionLen = motionVectorLength;
+#endif
+
+#endif
+
 #endif
 
                 ResolveNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
@@ -290,7 +296,7 @@ Shader "Hidden/HDRP/TemporalAA"
                 // ------------------------------------------------------------------------------
 
                 // --------------- Compute blend factor for history ---------------
-                float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
+                blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
                 // --------------------------------------------------------
 
                 // ------------------- Alpha handling ---------------------------
@@ -310,8 +316,9 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if VELOCITY_REJECTION
                 // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
-                lengthMV = motionVectorLength * 10;
-                blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
+                lengthMV = speedRejectionLen * 10;
+                if (!skipRejection)
+                    blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif
 
 #ifdef TAA_UPSCALE

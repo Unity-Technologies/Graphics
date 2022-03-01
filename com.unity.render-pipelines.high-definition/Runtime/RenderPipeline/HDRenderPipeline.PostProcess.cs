@@ -1626,7 +1626,14 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.motionVectorRejection = camera.taaMotionVectorRejection > 0;
             if (passData.motionVectorRejection)
             {
-                passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
+                if (camera.taaSpeedRejectionObjOnly)
+                {
+                    passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION_OBJ_ONLY");
+                }
+                else
+                {
+                    passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
+                }
             }
 
             passData.runsTAAU = TAAU;

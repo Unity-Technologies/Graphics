@@ -337,6 +337,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0.0f, 1.0f)]
         public float taaCentralFilterStrength = 0.1f;
 
+        /// <summary> Whether the speed rejection operates only on object motion vectors. </summary>
+        public bool taaSpeedRejectionObjOnly = false;
+
+
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
@@ -614,6 +618,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
             data.taaBaseBlendFactor = taaBaseBlendFactor;
             data.taaCentralFilterStrength = taaCentralFilterStrength;
+            data.taaSpeedRejectionObjOnly = taaSpeedRejectionObjOnly;
+
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;

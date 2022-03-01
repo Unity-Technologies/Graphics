@@ -312,22 +312,46 @@ float3 ConvertToOutputSpace(float3 color)
 // Velocity related functions.
 // ---------------------------------------------------
 
-// Front most neighbourhood velocity ([Karis 2014])
-float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS, int searchWidth)
+
+float2 GrabCameraMotionVec(float2 NDC, float centralDepth)
 {
-    float center = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS, 0).r;
+    float3 posWS = ComputeWorldSpacePosition(NDC, centralDepth, UNITY_MATRIX_I_VP);
+    float4 worldPos = float4(posWS, 1.0);
+    float4 prevPos = worldPos;
+
+    float4 clipWP = mul(UNITY_MATRIX_UNJITTERED_VP, posWS);
+    float4 clipPrevWP = mul(UNITY_MATRIX_PREV_VP, prevPos);
+
+    clipWP.xy /= clipWP.w;
+    clipPrevWP.xy /= clipPrevWP.w;
+
+    float2 outDeltaVec = (clipWP.xy - clipPrevWP.xy);
+    outDeltaVec *= 0.5f;
+
+#if UNITY_UV_STARTS_AT_TOP
+    outDeltaVec.y = -outDeltaVec.y;
+#endif
+
+    return outDeltaVec;
+}
+
+// Front most neighbourhood velocity ([Karis 2014])
+float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS, int searchWidth, out float centralDepth, out float closestDepth)
+{
+    centralDepth = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS, 0).r;
 
     float s0 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + int2(-searchWidth, -searchWidth), 0).r;
-    float s1 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + int2( searchWidth, -searchWidth), 0).r;
-    float s2 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + int2(-searchWidth,  searchWidth), 0).r;
-    float s3 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + int2( searchWidth,  searchWidth), 0).r;
+    float s1 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + int2(searchWidth, -searchWidth), 0).r;
+    float s2 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + int2(-searchWidth, searchWidth), 0).r;
+    float s3 = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS + int2(searchWidth, searchWidth), 0).r;
 
-    float3 closest = float3(0.0, 0.0, center);
+    float3 closest = float3(0.0, 0.0, centralDepth);
     closest = COMPARE_DEPTH(s0, closest.z) ? float3(int2(-searchWidth, -searchWidth), s0) : closest;
-    closest = COMPARE_DEPTH(s1, closest.z) ? float3(int2( searchWidth, -searchWidth), s1) : closest;
-    closest = COMPARE_DEPTH(s2, closest.z) ? float3(int2(-searchWidth,  searchWidth), s2) : closest;
-    closest = COMPARE_DEPTH(s3, closest.z) ? float3(int2( searchWidth,  searchWidth), s3) : closest;
+    closest = COMPARE_DEPTH(s1, closest.z) ? float3(int2(searchWidth, -searchWidth), s1) : closest;
+    closest = COMPARE_DEPTH(s2, closest.z) ? float3(int2(-searchWidth, searchWidth), s2) : closest;
+    closest = COMPARE_DEPTH(s3, closest.z) ? float3(int2(searchWidth, searchWidth), s3) : closest;
 
+    closestDepth = closest.z;
     return closest.xy;
 }
 

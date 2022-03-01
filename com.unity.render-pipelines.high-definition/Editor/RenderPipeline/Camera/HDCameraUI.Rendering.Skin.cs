@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Advanced TAA
                 public static readonly GUIContent TAABaseBlendFactor = EditorGUIUtility.TrTextContent("Base blend factor", "Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution, which leads to better anti aliasing, but also more prone to ghosting.");
                 public static readonly GUIContent TAACentralFilterStrength = EditorGUIUtility.TrTextContent("Central filter sharpness", "Determines how much the contribution from current frame is filtered. Higher values lead to a sharp filter.");
-
+                public static readonly GUIContent TAASpeedRejectionObjOnly = EditorGUIUtility.TrTextContent("Speed Rejection Object Only", "Whether the speed rejection operates only on object motion vectors.");
 
                 public static readonly GUIContent renderingPath = EditorGUIUtility.TrTextContent("Custom Frame Settings", "Define custom values for Frame Settings for this Camera to use.");
                 public static readonly GUIContent fullScreenPassthrough = EditorGUIUtility.TrTextContent("Fullscreen Passthrough", "This will skip rendering settings to directly rendering in fullscreen(for instance: Useful for video)");
