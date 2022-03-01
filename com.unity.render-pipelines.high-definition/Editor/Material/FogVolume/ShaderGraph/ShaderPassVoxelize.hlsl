@@ -15,16 +15,22 @@ RW_TEXTURE2D_X(float, _FogVolumeDepth) : register(u2);
 float4 _ViewSpaceBounds;
 float3 _LocalDensityVolumeExtent;
 uint _SliceOffset;
+uint _SliceCount;
 float3 _RcpPositiveFade;
 float3 _RcpNegativeFade;
 float _Extinction;
 uint _InvertFade;
+float _MinDepth;
+float _MaxDepth;
+uint _FalloffMode;
+float4x4 _WorldToLocal; // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
 
 struct VertexToFragment
 {
     float4 positionCS : SV_POSITION;
     float3 viewDirectionWS : TEXCOORD0;
     float3 positionOS : TEXCOORD1;
+    float depth : TEXCOORD2; // TODO: packing
     uint depthSlice : SV_RenderTargetArrayIndex;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -42,21 +48,6 @@ uint DepthToSlice(float depth)
 
     return uint(slice);
 }
-
-float SliceToDepth(uint slice)
-{
-    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
-    float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
-    float e1 = slice * de + de; // (slice + 1) / sliceCount
-    float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
-    float dt = t1 - t0;
-    return t0 + 0.5 * dt;
-}
-
-// float LinearEyeDepth(float depth, float4 zBufferParam)
-// {
-//     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
-// }
 
 float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
 {
@@ -78,24 +69,21 @@ VertexToFragment Vert(Attributes input, uint instanceId : SV_INSTANCEID, uint ve
     output.depthSlice = _SliceOffset + instanceId;
 
     output.positionCS = GetQuadVertexPosition(vertexId);
-    float depthViewSpace = SliceToDepth(output.depthSlice);
 
-    float4 p = mul(UNITY_MATRIX_P, float4(0, 0, depthViewSpace, 1));
+    float s = float(instanceId) / float(_SliceCount);
+    float depthViewSpace = lerp(_MinDepth, _MaxDepth, s);
 
-    // output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.positionCS.xy *= _ViewSpaceBounds.zw;
     output.positionCS.xy += _ViewSpaceBounds.xy;
-    output.positionCS.z = EyeDepthToLinear(depthViewSpace, _ZBufferParams)/2;
+    output.positionCS.z = EyeDepthToLinear(depthViewSpace, _ZBufferParams);
     output.positionCS.w = 1;
 
-    output.positionOS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
-    output.positionOS = GetAbsolutePositionWS(output.positionOS);
-    // Encode view direction in texCoord1
-    output.viewDirectionWS = GetWorldSpaceViewDir(output.positionOS);
+    float3 positionWS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
+    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 
-    output.positionOS = mul(output.positionOS, GetWorldToObjectMatrix());
+    output.positionOS = mul(_WorldToLocal, float4(GetAbsolutePositionWS(positionWS), 1));
 
-    // Apply view space bounding box to the fullscreen vertex pos:
+    output.depth = depthViewSpace;
 
     return output;
 }
@@ -107,10 +95,10 @@ FragInputs BuildFragInputs(VertexToFragment v2f)
 
     float3 positionOS01 = v2f.positionOS / _LocalDensityVolumeExtent;
 
-    PositionInputs posInput = GetPositionInput(v2f.positionCS.xy, _ScreenSize.zw, v2f.positionCS.z, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    float3 positionWS = mul(UNITY_MATRIX_M, float4(v2f.positionOS, 1));
     output.positionSS = v2f.positionCS;
-    output.positionRWS = output.positionPredisplacementRWS = posInput.positionWS;
-    output.positionPixel = posInput.positionSS;
+    output.positionRWS = output.positionPredisplacementRWS = positionWS;
+    output.positionPixel = uint2(v2f.positionCS.xy);
     output.texCoord0 = float4(saturate(positionOS01 * 0.5 + 0.5), 0);
     output.tangentToWorld = k_identity3x3;
 
@@ -126,6 +114,9 @@ float ComputeFadeFactor(float3 positionOS)
     float3 posF = Remap10(coordNDC, _RcpPositiveFade, _RcpPositiveFade);
     float3 negF = Remap01(coordNDC, _RcpNegativeFade, 0);
     float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
+
+    if (_FalloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
+        fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
 
     fade = dstF * (_InvertFade ? (1 - fade) : fade);
 

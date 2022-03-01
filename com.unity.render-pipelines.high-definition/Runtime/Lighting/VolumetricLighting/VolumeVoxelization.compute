@@ -22,8 +22,6 @@
 #define GROUP_SIZE_1D     8
 #define SOFT_VOXELIZATION 1 // Hack which attempts to determine partial coverage of the voxel
 
-#define EXPONENTIAL_FALLOFF_EXPONENT 2.2
-
 //--------------------------------------------------------------------------------------------------
 // Included headers
 //--------------------------------------------------------------------------------------------------

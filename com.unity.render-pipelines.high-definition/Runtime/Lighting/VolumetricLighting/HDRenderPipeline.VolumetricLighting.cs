@@ -88,6 +88,12 @@ namespace UnityEngine.Rendering.HighDefinition
         Exponential,
     }
 
+    [GenerateHLSL]
+    public static class LocalVolumetricFogConstants
+    {
+        public static readonly float k_ExponentialFalloffExponent = 2.2f;
+    }
+
     public enum LocalVolumetricFogMaskMode
     {
         /// <summary>Use a 3D texture as mask.</summary>
@@ -207,11 +213,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float dt = t - vBufferNearPlane;
             dt *= 2;
             dt = t + vBufferNearPlane;
-            Debug.Log(vBufferNearPlane);
             float e1 = EncodeLogarithmicDepthGeneralized(dt, depthEncodingParams);
-            float rpcSliceCount = 1.0f / (float)maxSliceCount;
+            float rcpSliceCount = 1.0f / (float)maxSliceCount;
 
-            float slice = (e1 - rpcSliceCount) / rpcSliceCount;
+            float slice = (e1 - rcpSliceCount) / rcpSliceCount;
 
             return (int)slice;
         }
@@ -998,107 +1003,120 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<LocalVolumetricFogMaterialVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
                 {
                     var fog = hdCamera.volumeStack.GetComponent<Fog>();
-                    // if (hdCamera.camera.cameraType == CameraType.Game)
-                    {
-                        builder.SetRenderFunc(
-                            (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
+                    builder.SetRenderFunc(
+                        (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
+                        {
+                            var cameraPosition = hdCamera.camera.transform.position;
+
+                            foreach (var volume in m_VisibleLocalVolumetricMaterialFogVolumes)
                             {
-                                var cameraPosition = hdCamera.camera.transform.position;
+                                if (volume.parameters.maskMode != LocalVolumetricFogMaskMode.Material)
+                                    continue;
+                                if (volume.parameters.materialMask == null)
+                                    continue;
 
-                                foreach (var volume in m_VisibleLocalVolumetricMaterialFogVolumes)
-                                {
-                                    if (volume.parameters.maskMode != LocalVolumetricFogMaskMode.Material)
-                                        continue;
-                                    if (volume.parameters.materialMask == null)
-                                        continue;
+                                var volumePos = volume.transform.position;
+                                // Calculate how much volumetric fog slices are touched by the volume:
+                                // TODO: matrix calculation are horribly slow
+                                // TODO: take in account the rotation of the volume
+                                var aabb = new Bounds(volume.transform.position, volume.parameters.size);
+                                Vector3 halfSize = volume.parameters.size / 2.0f;
 
-                                    var volumePos = volume.transform.position;
-                                    // Calculate how much volumetric fog slices are touched by the volume:
-                                    // TODO: matrix calculation are horribly slow
-                                    // TODO: take in account the rotation of the volume
-                                    var aabb = new Bounds(volume.transform.position, volume.parameters.size);
-                                    Vector3 halfSize = volume.parameters.size / 2.0f;
+                                // Apply camera relative rendering
+                                Vector3 positionOffset = Vector3.zero;
+                                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                                    positionOffset -= cameraPosition;
 
-                                    // Apply camera relative rendering
-                                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                                        volumePos -= cameraPosition;
+                                // TODO: move this to a compute buffer and output to an indirect argument buffer
+                                Vector4 p0 = new Vector3(-halfSize.x, halfSize.y, halfSize.z);
+                                Vector4 p1 = new Vector3(halfSize.x, halfSize.y, halfSize.z);
+                                Vector4 p2 = new Vector3(-halfSize.x, -halfSize.y, halfSize.z);
+                                Vector4 p3 = new Vector3(halfSize.x, -halfSize.y, halfSize.z);
 
-                                    // TODO: move this to a compute buffer and output to an indirect argument buffer
-                                    Vector4 p0 = volumePos + new Vector3(-halfSize.x, halfSize.y, halfSize.z);
-                                    Vector4 p1 = volumePos + new Vector3(halfSize.x, halfSize.y, halfSize.z);
-                                    Vector4 p2 = volumePos + new Vector3(-halfSize.x, -halfSize.y, halfSize.z);
-                                    Vector4 p3 = volumePos + new Vector3(halfSize.x, -halfSize.y, halfSize.z);
+                                Vector4 p4 = new Vector3(-halfSize.x, halfSize.y, -halfSize.z);
+                                Vector4 p5 = new Vector3(halfSize.x, halfSize.y, -halfSize.z);
+                                Vector4 p6 = new Vector3(-halfSize.x, -halfSize.y, -halfSize.z);
+                                Vector4 p7 = new Vector3(halfSize.x, -halfSize.y, -halfSize.z);
 
-                                    Vector4 p4 = volumePos + new Vector3(-halfSize.x, halfSize.y, -halfSize.z);
-                                    Vector4 p5 = volumePos + new Vector3(halfSize.x, halfSize.y, -halfSize.z);
-                                    Vector4 p6 = volumePos + new Vector3(-halfSize.x, -halfSize.y, -halfSize.z);
-                                    Vector4 p7 = volumePos + new Vector3(halfSize.x, -halfSize.y, -halfSize.z);
+                                p0 = volume.transform.localToWorldMatrix.MultiplyPoint(p0) + positionOffset;
+                                p1 = volume.transform.localToWorldMatrix.MultiplyPoint(p1) + positionOffset;
+                                p2 = volume.transform.localToWorldMatrix.MultiplyPoint(p2) + positionOffset;
+                                p3 = volume.transform.localToWorldMatrix.MultiplyPoint(p3) + positionOffset;
 
-                                    var j0 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p0);
-                                    var j1 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p1);
-                                    var j2 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p2);
-                                    var j3 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p3);
+                                p4 = volume.transform.localToWorldMatrix.MultiplyPoint(p4) + positionOffset;
+                                p5 = volume.transform.localToWorldMatrix.MultiplyPoint(p5) + positionOffset;
+                                p6 = volume.transform.localToWorldMatrix.MultiplyPoint(p6) + positionOffset;
+                                p7 = volume.transform.localToWorldMatrix.MultiplyPoint(p7) + positionOffset;
 
-                                    var j4 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p4);
-                                    var j5 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p5);
-                                    var j6 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p6);
-                                    var j7 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p7);
+                                var j0 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p0);
+                                var j1 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p1);
+                                var j2 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p2);
+                                var j3 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p3);
 
-                                    p0 = hdCamera.mainViewConstants.viewMatrix * p0;
-                                    p1 = hdCamera.mainViewConstants.viewMatrix * p1;
-                                    p2 = hdCamera.mainViewConstants.viewMatrix * p2;
-                                    p3 = hdCamera.mainViewConstants.viewMatrix * p3;
+                                var j4 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p4);
+                                var j5 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p5);
+                                var j6 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p6);
+                                var j7 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p7);
 
-                                    p4 = hdCamera.mainViewConstants.viewMatrix * p4;
-                                    p5 = hdCamera.mainViewConstants.viewMatrix * p5;
-                                    p6 = hdCamera.mainViewConstants.viewMatrix * p6;
-                                    p7 = hdCamera.mainViewConstants.viewMatrix * p7;
+                                p0 = hdCamera.mainViewConstants.viewMatrix * p0;
+                                p1 = hdCamera.mainViewConstants.viewMatrix * p1;
+                                p2 = hdCamera.mainViewConstants.viewMatrix * p2;
+                                p3 = hdCamera.mainViewConstants.viewMatrix * p3;
 
-                                    // Reverse Z
-                                    float minViewSpaceDepth = -(Mathf.Max(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
-                                    float maxViewSpaceDepth = -(Mathf.Min(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
+                                p4 = hdCamera.mainViewConstants.viewMatrix * p4;
+                                p5 = hdCamera.mainViewConstants.viewMatrix * p5;
+                                p6 = hdCamera.mainViewConstants.viewMatrix * p6;
+                                p7 = hdCamera.mainViewConstants.viewMatrix * p7;
 
-                                    float minViewSpaceX = (Mathf.Min(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
-                                    float maxViewSpaceX = (Mathf.Max(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
+                                // Reverse Z
+                                float minViewSpaceDepth = -(Mathf.Max(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
+                                float maxViewSpaceDepth = -(Mathf.Min(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
 
-                                    float minViewSpaceY = (Mathf.Min(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
-                                    float maxViewSpaceY = (Mathf.Max(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
+                                float minViewSpaceX = (Mathf.Min(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
+                                float maxViewSpaceX = (Mathf.Max(j0.x, j1.x, j2.x, j3.x, j4.x, j5.x, j6.x, j7.x));
 
-                                    var camDir = (volume.transform.position - cameraPosition).normalized;
+                                float minViewSpaceY = (Mathf.Min(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
+                                float maxViewSpaceY = (Mathf.Max(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
 
-                                    int startSlice = currParams.ComputeSliceIndexFromDistance(minViewSpaceDepth, fog.volumeSliceCount.value);
-                                    int stopSlice = currParams.ComputeSliceIndexFromDistance(maxViewSpaceDepth, fog.volumeSliceCount.value);
-                                    if (startSlice == stopSlice)
-                                        continue;
+                                var camDir = (volume.transform.position - cameraPosition).normalized;
 
-                                    Vector3 rcpPosFade, rcpNegFade;
+                                int startSlice = currParams.ComputeSliceIndexFromDistance(minViewSpaceDepth, fog.volumeSliceCount.value);
+                                int stopSlice = currParams.ComputeSliceIndexFromDistance(maxViewSpaceDepth, fog.volumeSliceCount.value);
+                                if (startSlice == stopSlice)
+                                    continue;
 
-                                    rcpPosFade.x = Mathf.Min(1.0f / volume.parameters.positiveFade.x, float.MaxValue);
-                                    rcpPosFade.y = Mathf.Min(1.0f / volume.parameters.positiveFade.y, float.MaxValue);
-                                    rcpPosFade.z = Mathf.Min(1.0f / volume.parameters.positiveFade.z, float.MaxValue);
+                                Vector3 rcpPosFade, rcpNegFade;
 
-                                    rcpNegFade.y = Mathf.Min(1.0f / volume.parameters.negativeFade.y, float.MaxValue);
-                                    rcpNegFade.x = Mathf.Min(1.0f / volume.parameters.negativeFade.x, float.MaxValue);
-                                    rcpNegFade.z = Mathf.Min(1.0f / volume.parameters.negativeFade.z, float.MaxValue);
+                                rcpPosFade.x = Mathf.Min(1.0f / volume.parameters.positiveFade.x, float.MaxValue);
+                                rcpPosFade.y = Mathf.Min(1.0f / volume.parameters.positiveFade.y, float.MaxValue);
+                                rcpPosFade.z = Mathf.Min(1.0f / volume.parameters.positiveFade.z, float.MaxValue);
 
-                                    var props = new MaterialPropertyBlock();
-                                    var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
-                                    if (aabb.Contains(cameraPosition))
-                                        viewSpaceBounds = new Vector4(-1, -1, 2, 2);
-                                    props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
-                                    props.SetInteger("_SliceOffset", startSlice);
-                                    props.SetVector("_LocalDensityVolumeExtent", volume.parameters.size / 2.0f);
-                                    props.SetVector("_RcpPositiveFade", rcpPosFade);
-                                    props.SetVector("_RcpNegativeFade", rcpNegFade);
-                                    props.SetFloat("_InvertFade", volume.parameters.invertFade ? 1 : 0);
-                                    props.SetFloat("_Extinction", VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath));
+                                rcpNegFade.y = Mathf.Min(1.0f / volume.parameters.negativeFade.y, float.MaxValue);
+                                rcpNegFade.x = Mathf.Min(1.0f / volume.parameters.negativeFade.x, float.MaxValue);
+                                rcpNegFade.z = Mathf.Min(1.0f / volume.parameters.negativeFade.z, float.MaxValue);
 
-                                    CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
-                                    ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
-                                    ctx.cmd.DrawProcedural(volume.transform.localToWorldMatrix, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, Mathf.Abs(stopSlice - startSlice), props);
-                                }
-                            });
-                    }
+                                var props = new MaterialPropertyBlock();
+                                var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
+                                if (aabb.Contains(cameraPosition))
+                                    viewSpaceBounds = new Vector4(-1, -1, 2, 2);
+                                props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
+                                props.SetInteger("_SliceOffset", startSlice);
+                                props.SetVector("_LocalDensityVolumeExtent", volume.parameters.size / 2.0f);
+                                props.SetVector("_RcpPositiveFade", rcpPosFade);
+                                props.SetVector("_RcpNegativeFade", rcpNegFade);
+                                props.SetFloat("_InvertFade", volume.parameters.invertFade ? 1 : 0);
+                                props.SetFloat("_Extinction", VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath));
+                                props.SetInteger("_SliceCount", Mathf.Abs(stopSlice - startSlice));
+                                props.SetFloat("_MinDepth", minViewSpaceDepth);
+                                props.SetFloat("_MaxDepth", maxViewSpaceDepth);
+                                props.SetInteger("_FalloffMode", (int)volume.parameters.falloffMode);
+                                props.SetMatrix("_WorldToLocal", volume.transform.worldToLocalMatrix); // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
+
+                                CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
+                                ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
+                                ctx.cmd.DrawProcedural(volume.transform.localToWorldMatrix, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, Mathf.Abs(stopSlice - startSlice), props);
+                            }
+                        });
                 }
 
                 return densityBuffer;
