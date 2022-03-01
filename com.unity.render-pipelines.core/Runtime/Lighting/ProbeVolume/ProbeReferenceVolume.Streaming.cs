@@ -196,6 +196,25 @@ namespace UnityEngine.Rendering
                 m_BlendingPool.PerformBlending(scenarioBlendingFactor, m_Pool);
         }
 
+        int FindWorstBlendingCellToBeLoaded()
+        {
+            int idx = -1;
+            float worstBlending = -1;
+            float factor = scenarioBlendingFactor;
+            for (int i = m_TempBlendingCellToLoadList.size; i < m_ToBeLoadedBlendingCells.size; ++i)
+            {
+                float score = Mathf.Abs(m_ToBeLoadedBlendingCells[i].blendingFactor - factor);
+                if (score > worstBlending)
+                {
+                    idx = i;
+                    if (m_ToBeLoadedBlendingCells[i].ShouldReupload()) // We are not gonna find worse than that
+                        break;
+                    worstBlending = score;
+                }
+            }
+            return idx;
+        }
+
         bool UpdateBlendingCellStreaming()
         {
             if (!m_HasRemainingCellsToBlend)
@@ -237,8 +256,10 @@ namespace UnityEngine.Rendering
             {
                 // Turnover allows a percentage of the pool to be replaced by cells with a lower streaming score
                 // once the system is in a stable state. This ensures all cells get updated regularly.
+                int turnoverOffset = -1;
                 int idx = (int)(m_LoadedBlendingCells.size * (1.0f - turnoverRate));
                 var worstNoTurnover = idx < m_LoadedBlendingCells.size ? m_LoadedBlendingCells[idx] : null;
+
                 while (m_TempBlendingCellToLoadList.size < cellCountToLoad)
                 {
                     if (m_LoadedBlendingCells.size - m_TempBlendingCellToUnloadList.size == 0) // We unloaded everything
@@ -252,17 +273,26 @@ namespace UnityEngine.Rendering
                         if (worstNoTurnover == null) // Disable turnover
                             break;
 
-                        int turnoverOffset = Random.Range(m_TempBlendingCellToLoadList.size, m_ToBeLoadedBlendingCells.size);
+                        // Find worst cell and assume contiguous cells have rougly the same blending factor
+                        // (contiguous cells are spatially close by, so it's good anyway to update them together)
+                        if (turnoverOffset == -1)
+                            turnoverOffset = FindWorstBlendingCellToBeLoaded();
+
                         bestCellToBeLoaded = m_ToBeLoadedBlendingCells[turnoverOffset];
                         if (bestCellToBeLoaded.IsUpToDate()) // We really are in a "stable" state
                             break;
-                        // swap to ensure loaded cells are at the start of m_ToBeLoadedBlendingCells
-                        m_ToBeLoadedBlendingCells[turnoverOffset] = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size];
-                        m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size] = bestCellToBeLoaded;
                     }
 
                     UnloadBlendingCell(worstCellLoaded, m_TempBlendingCellToUnloadList);
-                    TryLoadBlendingCell(bestCellToBeLoaded, m_TempBlendingCellToLoadList);
+                    // Loading can still fail cause all cells don't have the same chunk count
+                    if (TryLoadBlendingCell(bestCellToBeLoaded, m_TempBlendingCellToLoadList) && turnoverOffset != -1)
+                    {
+                        // swap to ensure loaded cells are at the start of m_ToBeLoadedBlendingCells
+                        m_ToBeLoadedBlendingCells[turnoverOffset] = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size-1];
+                        m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size-1] = bestCellToBeLoaded;
+                        if (++turnoverOffset >= m_ToBeLoadedBlendingCells.size)
+                            turnoverOffset = m_TempBlendingCellToLoadList.size;
+                    }
                 }
 
                 m_LoadedBlendingCells.RemoveRange(m_LoadedBlendingCells.size - m_TempBlendingCellToUnloadList.size, m_TempBlendingCellToUnloadList.size);
@@ -289,7 +319,6 @@ namespace UnityEngine.Rendering
             m_ToBeLoadedBlendingCells.AddRange(m_TempBlendingCellToUnloadList);
             m_TempBlendingCellToUnloadList.Clear();
 
-            m_HasRemainingCellsToBlend = true;
             return m_BlendingPool.isAllocated;
         }
     }

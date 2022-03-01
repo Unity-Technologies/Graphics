@@ -480,8 +480,10 @@ namespace UnityEngine.Rendering
             public BlendingCellInfo blendingCell;
             public List<Chunk> chunkList = new List<Chunk>();
             public int flatIdxInCellIndices = -1;
-            public bool loaded = false;
+            public bool loaded;
             public ProbeBrickIndex.CellIndexUpdateInfo updateInfo;
+            public bool indexUpdated;
+            public ProbeBrickIndex.CellIndexUpdateInfo tempUpdateInfo;
             public int sourceAssetInstanceID;
             public float streamingScore;
             public int referenceCount = 0;
@@ -544,6 +546,7 @@ namespace UnityEngine.Rendering
             public void MarkUpToDate() => streamingScore = float.MaxValue;
             public bool IsUpToDate() => streamingScore == float.MaxValue;
             public void ForceReupload() => blendingFactor = -1.0f;
+            public bool ShouldReupload() => blendingFactor == -1.0f;
             public void Prioritize() => blendingFactor = -2.0f;
             public bool ShouldPrioritize() => blendingFactor == -2.0f;
         }
@@ -1548,6 +1551,10 @@ namespace UnityEngine.Rendering
             if (!bypassBlending && !m_BlendingPool.Allocate(cell.shChunkCount, blendingCell.chunkList))
                 return false;
 
+            // Now that we are sure probe data will be uploaded, we can update the cell index
+            if (!blendingCell.cellInfo.indexUpdated)
+                UpdateCellIndex(blendingCell.cellInfo);
+
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkCount = bypassBlending ? blendingCell.cellInfo.chunkList.Count : blendingCell.chunkList.Count;
             for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += kTemporaryDataLocChunkCount)
@@ -1610,7 +1617,6 @@ namespace UnityEngine.Rendering
             Profiler.BeginSample("AddBricks");
 
             var cell = cellInfo.cell;
-            var bricks = cell.bricks;
 
             // calculate the number of chunks necessary
             cellInfo.chunkList.Clear();
@@ -1621,6 +1627,8 @@ namespace UnityEngine.Rendering
 
             if (enableScenarioBlending) // Register this cell for blending system
                 m_ToBeLoadedBlendingCells.Add(cellInfo.blendingCell);
+
+            cellInfo.tempUpdateInfo = cellUpdateInfo;
 
             // If blending is enabled, we rely on it to upload data already blended to avoid popping
             // If enabled but blending factor is 0, upload here in case blending pool is not already allocated
@@ -1644,31 +1652,40 @@ namespace UnityEngine.Rendering
                     m_Pool.Update(m_TemporaryDataLocation, srcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
                 }
 
+                UpdateCellIndex(cellInfo);
                 cellInfo.blendingCell.blendingFactor = 0.0f;
             }
             else if (enableScenarioBlending)
             {
                 cellInfo.blendingCell.Prioritize();
                 m_HasRemainingCellsToBlend = true;
+                // Cell index update is delayed until probe data is loaded
+                cellInfo.indexUpdated = false;
             }
 
-            m_BricksLoaded = true;
-
-            // Build index
-            m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
-
-            // Update CellInfo
-            cellInfo.updateInfo = cellUpdateInfo;
             cellInfo.loaded = true;
-
-            // Update indirection buffer
-            m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
-
             ClearDebugData();
 
             Profiler.EndSample();
 
             return true;
+        }
+
+        void UpdateCellIndex(CellInfo cellInfo)
+        {
+            cellInfo.indexUpdated = true;
+            m_BricksLoaded = true;
+
+            // Build index
+            var bricks = cellInfo.cell.bricks;
+            var cellUpdateInfo = cellInfo.tempUpdateInfo;
+            m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
+
+            // Update CellInfo
+            cellInfo.updateInfo = cellUpdateInfo;
+
+            // Update indirection buffer
+            m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
         }
 
         void ReleaseBricks(CellInfo cellInfo)
