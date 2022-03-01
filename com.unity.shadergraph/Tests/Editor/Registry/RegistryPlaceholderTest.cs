@@ -173,8 +173,8 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
                 },
                 new GradientAlphaKey[]
                 {
-                    new GradientAlphaKey(255, 0),
-                    new GradientAlphaKey(255, 1)
+                    new GradientAlphaKey(1, 0),
+                    new GradientAlphaKey(1, 1)
                 });
 
             Assert.AreEqual(expected, actual);
@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
                 },
                 new GradientAlphaKey[]
                 {
-                    new GradientAlphaKey(255, 0),
+                    new GradientAlphaKey(1, 0),
                     new GradientAlphaKey(0, 1)
                 });
             Types.GradientTypeHelpers.SetFromGradient(field, expected);
