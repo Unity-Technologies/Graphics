@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ContextLayeredDataStorage;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -23,14 +25,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return EditorJsonUtility.ToJson(graphDelta.m_data, true);
         }
 
-        internal INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder => graphDelta.AddNode<T>(name, registry);
-        public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry) => graphDelta.AddNode(key, name, registry);
-        public INodeWriter AddContextNode(RegistryKey key, Registry.Registry registry) => graphDelta.AddContextNode(key, registry);
+        internal NodeHandler AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder => graphDelta.AddNode<T>(name, registry);
+
+        public NodeHandler AddNode(RegistryKey key, string name, Registry.Registry registry) => graphDelta.AddNode(key, name, registry);
+        public NodeHandler AddContextNode(RegistryKey key, Registry.Registry registry) => graphDelta.AddContextNode(key, registry);
         public bool ReconcretizeNode(string name, Registry.Registry registry) => graphDelta.ReconcretizeNode(name, registry);
-        public INodeReader GetNodeReader(string name) => graphDelta.GetNodeReader(name);
-        public INodeWriter GetNodeWriter(string name) => graphDelta.GetNodeWriter(name);
+
+        [Obsolete]
+        public NodeHandler GetNodeReader(string name) => graphDelta.GetNode(name);
+        [Obsolete]
+        public NodeHandler GetNodeWriter(string name) => graphDelta.GetNode(name);
+
+        public NodeHandler GetNode(string name) => graphDelta.GetNode(name);
         public void RemoveNode(string name) => graphDelta.RemoveNode(name);
-        public IEnumerable<INodeReader> GetNodes() => graphDelta.GetNodes();
+        public IEnumerable<NodeHandler> GetNodes() => graphDelta.GetNodes();
+
+        public IEdgeHandler AddEdge(ElementID src, ElementID dst) => graphDelta.AddEdge(src, dst);
 
         //public TargetRef AddTarget(TargetType targetType)
 

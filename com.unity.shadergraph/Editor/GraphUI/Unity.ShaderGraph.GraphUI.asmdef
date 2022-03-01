@@ -17,10 +17,10 @@
         "Unity.ShaderGraph.GraphDeltaRegistry",
         "Unity.ShaderGraph.Generation"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [
+    "includePlatforms": [
         "Editor"
     ],
+    "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],

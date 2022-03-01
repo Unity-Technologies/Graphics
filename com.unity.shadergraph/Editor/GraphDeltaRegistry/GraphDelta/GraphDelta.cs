@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private List<string> contextNodes = new List<string>();
 
-        NodeHandler AddNode<T>(string name, Registry.Registry registry)  where T : Registry.Defs.INodeDefinitionBuilder
+        public NodeHandler AddNode<T>(string name, Registry.Registry registry)  where T : Registry.Defs.INodeDefinitionBuilder
         {
            var key = Registry.Registry.ResolveKey<T>();
            return AddNode(key, name, registry);
