@@ -95,7 +95,7 @@ namespace UnityEditor.VFX
 
         private VFXSRPSubOutput GetOrCreateSubOutput()
         {
-            VFXSRPBinder binder = VFXLibrary.currentSRPBinder;
+            VFXSRPBinder binder = VFXLibrary.activeSRPBinder;
             if (binder == null)
                 return CreateDefaultSubOutput();
 
@@ -118,19 +118,19 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            VFXLibrary.OnSRPChanged += OnSRPChanged;
+            //VFXLibrary.OnSRPChanged += OnSRPChanged;
             InitSubOutputs(m_SubOutputs, false);
             base.OnEnable();
         }
 
         public virtual void OnDisable()
         {
-            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+            //VFXLibrary.OnSRPChanged -= OnSRPChanged;
         }
 
         private void OnSRPChanged()
         {
-            m_CurrentSubOutput = null;
+           // m_CurrentSubOutput = null;
         }
 
         public List<VFXSRPSubOutput> GetSubOutputs()

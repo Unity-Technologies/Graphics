@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.HDRP
 
         public override sealed bool CanBeCompiled()
         {
-            return (VFXLibrary.currentSRPBinder is VFXHDRPBinder) && base.CanBeCompiled();
+            return (VFXLibrary.activeSRPBinder is VFXHDRPBinder) && base.CanBeCompiled();
         }
 
         protected override bool needsExposureWeight { get { return GetOrRefreshShaderGraphObject() == null && ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap); } }

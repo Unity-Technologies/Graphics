@@ -135,7 +135,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
             if (TargetsVFX())
-                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+            {
+                var binder = VFXLibrary.GetBinderForSRP(typeof(HDRenderPipelineAsset));
+                subShaderDescriptor = VFXSubTarget.InjectVFXSubshader(binder, subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+            }
 
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;

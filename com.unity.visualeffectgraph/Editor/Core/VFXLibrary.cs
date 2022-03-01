@@ -568,20 +568,42 @@ namespace UnityEditor.VFX
         public static void LogUnsupportedSRP(bool forceLog = true)
         {
             bool logIssued = unsupportedSRPWarningIssued;
-            var binder = currentSRPBinder;
+            var binder = activeSRPBinder;
 
             if (logIssued || !unsupportedSRPWarningIssued) // Don't reissue warning if inner currentSRPBinder call has already logged it
                 LogUnsupportedSRP(binder, forceLog);
         }
 
-        public static VFXSRPBinder currentSRPBinder
+        public static List<VFXSRPBinder> currentSRPBinders
+        {
+            get
+            {
+                LoadSRPBindersIfNeeded();
+                return srpBinders.Values.ToList();
+            }
+        }
+
+        public static VFXSRPBinder GetBinderForSRP(Type asset)
+        {
+             LoadSRPBindersIfNeeded();
+
+            VFXSRPBinder binder = null;
+            if (asset != null)
+                srpBinders.TryGetValue(asset.Name, out binder);
+
+            LogUnsupportedSRP(binder, false);
+
+            return binder;
+        }
+
+        public static VFXSRPBinder activeSRPBinder
         {
             get
             {
                 LoadSRPBindersIfNeeded();
 
                 VFXSRPBinder binder = null;
-                var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                var currentSRP = GraphicsSettings.currentRenderPipeline;
                 if (currentSRP != null)
                     srpBinders.TryGetValue(currentSRP.GetType().Name, out binder);
 
@@ -591,21 +613,21 @@ namespace UnityEditor.VFX
             }
         }
 
-        [InitializeOnLoadMethod]
+       /* [InitializeOnLoadMethod]
         private static void RegisterSRPChangeCallback()
         {
             RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
         }
 
-        public delegate void OnSRPChangedEvent();
-        public static event OnSRPChangedEvent OnSRPChanged;
+       // public delegate void OnSRPChangedEvent();
+        //public static event OnSRPChangedEvent OnSRPChanged;
 
         private static void SRPChanged()
         {
             unsupportedSRPWarningIssued = false;
-            OnSRPChanged?.Invoke();
+          //  OnSRPChanged?.Invoke();
             VFXAssetManager.Build();
-        }
+        }*/
 
         private static LibrarySentinel m_Sentinel = null;
 

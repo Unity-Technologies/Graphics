@@ -4,6 +4,8 @@ using static Unity.Rendering.Universal.ShaderUtils;
 using UnityEditor.ShaderGraph.Internal;
 #if HAS_VFX_GRAPH
 using UnityEditor.VFX;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.VFX;
 #endif
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
@@ -33,14 +35,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_ContextVFX = context;
             m_ContextDataVFX = data;
         }
-
 #endif
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
 #if HAS_VFX_GRAPH
             if (TargetsVFX())
-                return VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+            {
+                var binder = VFXLibrary.GetBinderForSRP(typeof(UniversalRenderPipelineAsset));
+                return VFXSubTarget.InjectVFXSubshader(binder, subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+            }
 #endif
             return subShaderDescriptor;
         }

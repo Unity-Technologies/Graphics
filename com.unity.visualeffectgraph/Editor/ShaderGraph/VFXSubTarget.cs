@@ -274,13 +274,9 @@ namespace UnityEditor.VFX
             return pragmas;
         }
 
-        internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
+        internal static SubShaderDescriptor InjectVFXSubshader(VFXSRPBinder binder, SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
         {
-            var srp = VFXLibrary.currentSRPBinder;
-            if (srp == null)
-                return subShaderDescriptor;
-
-            var shaderGraphSRPInfo = srp.GetShaderGraphDescriptor(context, data);
+            var shaderGraphSRPInfo = binder.GetShaderGraphDescriptor(context, data);
 
             var attributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Current);
             var sourceAttributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Source);
@@ -289,7 +285,7 @@ namespace UnityEditor.VFX
             // We use the AdditionalCommand descriptors for ShaderGraph generation to splice these in.
             // ( i.e. VFX Graph Block Function declaration + calling, Property Mapping, etc. )
             GenerateVFXAdditionalCommands(
-                context, srp, shaderGraphSRPInfo, data,
+                context, binder, shaderGraphSRPInfo, data,
                 out var srpCommonInclude,
                 out var loadAttributeDescriptor,
                 out var blockFunctionDescriptor,

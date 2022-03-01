@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
     {
         protected static string RenderPipeTemplate(string fileName)
         {
-            return VFXLibrary.currentSRPBinder.templatePath + "/Templates/" + fileName;
+            return VFXLibrary.activeSRPBinder.templatePath + "/Templates/" + fileName;
         }
 
         [SerializeField]

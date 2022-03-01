@@ -373,13 +373,13 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            VFXLibrary.OnSRPChanged += OnSRPChanged;
+           // VFXLibrary.OnSRPChanged += OnSRPChanged;
             m_ExpressionGraphDirty = true;
         }
 
         public virtual void OnDisable()
         {
-            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+           // VFXLibrary.OnSRPChanged -= OnSRPChanged;
         }
 
         private void OnSRPChanged()

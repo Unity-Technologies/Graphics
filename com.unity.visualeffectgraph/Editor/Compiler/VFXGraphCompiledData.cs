@@ -1000,7 +1000,7 @@ namespace UnityEditor.VFX
         {
             // Early out in case: (Not even displaying the popup)
             if (m_Graph.children.Count() < 1 ||         // Graph is empty
-                VFXLibrary.currentSRPBinder == null)    // One of supported SRPs is not current SRP
+                VFXLibrary.currentSRPBinders.Count == 0)    // One of supported SRPs is not current SRP
             {
                 CleanRuntimeData();
                 return;

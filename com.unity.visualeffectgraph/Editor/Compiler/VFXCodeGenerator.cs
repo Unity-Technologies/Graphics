@@ -275,7 +275,7 @@ namespace UnityEditor.VFX
 
                 string absolutePath;
                 if (renderPipelineInclude)
-                    absolutePath = VFXLibrary.currentSRPBinder.templatePath + "/" + includePath;
+                    absolutePath = VFXLibrary.activeSRPBinder.templatePath + "/" + includePath;
                 else
                     absolutePath = VisualEffectGraphPackageInfo.assetPackagePath + "/" + includePath;
                 dependencies.Add(AssetDatabase.AssetPathToGUID(absolutePath));
@@ -598,8 +598,8 @@ namespace UnityEditor.VFX
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0}{1}", additionnalDefine, additionnalDefine.Contains(' ') ? "" : " 1");
 
-            var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
-            var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
+            var renderTemplatePipePath = VFXLibrary.activeSRPBinder.templatePath;
+            var renderRuntimePipePath = VFXLibrary.activeSRPBinder.runtimePath;
             if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderTemplatePipePath))
             {
                 string renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
@@ -753,7 +753,7 @@ namespace UnityEditor.VFX
             graph.ValidateGraph();
 
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
-            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
+            if (VFXLibrary.currentSRPBinders.Count != 0 || !VFXLibrary.activeSRPBinder.IsGraphDataValid(graph))
                 return null;
 
             var target = graph.activeTargets.Where(o =>
@@ -761,7 +761,7 @@ namespace UnityEditor.VFX
                 if (o.SupportsVFX())
                 {
                     //We are assuming the target has been implemented in the same package than srp binder.
-                    var srpBinderAssembly = VFXLibrary.currentSRPBinder.GetType().Assembly;
+                    var srpBinderAssembly = VFXLibrary.activeSRPBinder.GetType().Assembly;
                     var targetAssembly = o.GetType().Assembly;
                     if (srpBinderAssembly == targetAssembly)
                         return true;
@@ -778,6 +778,8 @@ namespace UnityEditor.VFX
             // Append the shader + strip the name header (VFX stamps one in later on).
             stringBuilder.Append(text);
             stringBuilder.Remove(0, text.IndexOf("{", StringComparison.Ordinal));
+
+            Debug.Log(stringBuilder.ToString());
 
             return stringBuilder;
         }

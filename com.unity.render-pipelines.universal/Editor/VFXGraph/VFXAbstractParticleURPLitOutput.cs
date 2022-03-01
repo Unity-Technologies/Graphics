@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.URP
 
         public override sealed bool CanBeCompiled()
         {
-            return (VFXLibrary.currentSRPBinder is VFXURPBinder) && base.CanBeCompiled();
+            return (VFXLibrary.activeSRPBinder is VFXURPBinder) && base.CanBeCompiled();
         }
 
         private IEnumerable<SmoothnessSource> validSmoothnessSources
