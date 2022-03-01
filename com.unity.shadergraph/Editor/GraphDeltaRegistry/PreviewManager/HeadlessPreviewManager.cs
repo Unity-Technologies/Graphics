@@ -199,11 +199,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var impactedNodes = new List<string>();
             foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(globalPropertyNode))
             {
-                var downStreamNodeName = downStreamNode.GetName();
+                var downStreamNodeName = downStreamNode.ID.LocalPath;
                 var nodePreviewData = m_CachedPreviewData[downStreamNodeName];
                 nodePreviewData.isShaderOutOfDate = true;
 
-                impactedNodes.Add(downStreamNode.GetName());
+                impactedNodes.Add(downStreamNode.ID.LocalPath);
             }
 
             return impactedNodes;
@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var impactedNodes = new List<string>();
                 foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
                 {
-                    var downStreamNodeName = downStreamNode.GetName();
+                    var downStreamNodeName = downStreamNode.ID.LocalPath;
                     impactedNodes.Add(downStreamNodeName);
 
                     m_CachedPreviewData[downStreamNodeName].isShaderOutOfDate = true;
@@ -276,12 +276,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                     foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
                     {
-                        if (m_CachedPreviewData.TryGetValue(downStreamNode.GetName(), out var downStreamNodeData))
+                        if (m_CachedPreviewData.TryGetValue(downStreamNode.ID.LocalPath, out var downStreamNodeData))
                         {
                             downStreamNodeData.isShaderOutOfDate = true;
                         }
 
-                        impactedNodes.Add(downStreamNode.GetName());
+                        impactedNodes.Add(downStreamNode.ID.LocalPath);
                     }
                 }
 
@@ -517,12 +517,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return output;
         }
 
-        Shader GetNodeShaderObject(INodeReader nodeReader)
+        Shader GetNodeShaderObject(NodeHandler nodeReader)
         {
             string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
-            m_CachedPreviewData[nodeReader.GetName()].shaderString = shaderOutput;
-            m_CachedPreviewData[nodeReader.GetName()].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance);
-            m_CachedPreviewData[nodeReader.GetName()].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
+            m_CachedPreviewData[nodeReader.ID.LocalPath].shaderString = shaderOutput;
+            m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            m_CachedPreviewData[nodeReader.ID.LocalPath].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
             return MakeShader(shaderOutput);
         }
 
@@ -722,10 +722,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return false;
         }
 
-        IPortReader Mock_GetPortReaderForProperty(string nodeName, string propertyName)
+        PortHandler Mock_GetPortReaderForProperty(string nodeName, string propertyName)
         {
             var nodeReader = m_GraphHandle.GetNodeReader(nodeName);
-            return nodeReader.TryGetPort(propertyName, out var portReader) ? portReader : null;
+            return nodeReader.GetPort(propertyName);
         }
 
         // Stubbed function bodies below ----
@@ -743,7 +743,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return "";
         }
 
-        void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, string propertyName, object propertyValue, IPortReader portReader = null)
+        void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, string propertyName, object propertyValue, PortHandler portReader = null)
         {
 
         }

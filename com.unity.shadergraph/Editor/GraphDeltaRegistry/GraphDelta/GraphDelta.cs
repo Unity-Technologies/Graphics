@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         NodeHandler AddNode<T>(string name, Registry.Registry registry)  where T : Registry.Defs.INodeDefinitionBuilder
         {
            var key = Registry.Registry.ResolveKey<T>();
-           return AddNode(key, id, registry);
+           return AddNode(key, name, registry);
         }
 
         public NodeHandler AddNode(RegistryKey key, ElementID id, Registry.Registry registry)
@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             if(contextNodes.Count == 0)
             {
-                contextNodes.Add(newContextNode.ID);
+                contextNodes.Add(newContextNode.ID.FullPath);
             }
             else
             {
@@ -119,7 +119,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var tailHandler = m_data.GetHandler(last) as NodeHandler;
                 tailHandler.AddPort("Out", false, false);
                 newContextNode.AddPort("In", true, false);
-                
             }
         }
 

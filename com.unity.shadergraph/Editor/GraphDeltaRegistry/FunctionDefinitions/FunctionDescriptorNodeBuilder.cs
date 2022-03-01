@@ -26,7 +26,7 @@ namespace com.unity.shadergraph.defs
         /// </summary>
         /// <param name="userData">A reader for a node in the user layer.</param>
         /// <returns>The type that Any should resolve to for ports in the node.</returns>
-        static TypeDescriptor FallbackTypeResolver(INodeReader userData)
+        static TypeDescriptor FallbackTypeResolver(NodeHandler userData)
         {
             // TODO (Brett) You really need to test this more!
             // 1 < 4 < 3 < 2 for Height and Length
@@ -41,39 +41,26 @@ namespace com.unity.shadergraph.defs
             // in the user data.
             foreach (var port in userData.GetPorts())
             {
-                var field = (IFieldReader)port;
-                if (field.TryGetSubField(kLength, out IFieldReader fieldReader))
-                {
-                    fieldReader.TryGetValue(out Length readLength);
-                    if (LengthToPriority[resolvedLength] < LengthToPriority[readLength])
-                    {
-                        resolvedLength = readLength;
-                    }
-                }
-                if (field.TryGetSubField(kHeight, out fieldReader))
-                {
-                    fieldReader.TryGetValue(out Height readHeight);
-                    if (HeightToPriority[resolvedHeight] < HeightToPriority[readHeight])
-                    {
-                        resolvedHeight = readHeight;
-                    }
-                }
-                if (field.TryGetSubField(kPrecision, out fieldReader))
-                {
-                    fieldReader.TryGetValue(out Precision readPrecision);
-                    if (PrecisionToPriority[resolvedPrecision] < PrecisionToPriority[readPrecision])
-                    {
-                        resolvedPrecision = readPrecision;
-                    }
-                }
-                if (field.TryGetSubField(kPrimitive, out fieldReader))
-                {
-                    fieldReader.TryGetValue(out Primitive readPrimitive);
-                    if (PrimitiveToPriority[resolvedPrimitive] < PrimitiveToPriority[readPrimitive])
-                    {
-                        resolvedPrimitive = readPrimitive;
-                    }
-                }
+                var field = port.GetField("TypeField");
+
+                var lengthField = field.GetSubField<Length>(kLength);
+                var heightField = field.GetSubField<Height>(kLength);
+                var precisionField = field.GetSubField<Precision>(kLength);
+                var primitiveField = field.GetSubField<Primitive>(kLength);
+
+                if (lengthField != null && LengthToPriority[resolvedLength] < LengthToPriority[lengthField.GetData()])
+                    resolvedLength = lengthField.GetData();
+
+                if (heightField != null && HeightToPriority[resolvedHeight] < HeightToPriority[heightField.GetData()])
+                    resolvedHeight = heightField.GetData();
+
+                if (precisionField != null && PrecisionToPriority[resolvedPrecision] < PrecisionToPriority[precisionField.GetData()])
+                    resolvedPrecision = precisionField.GetData();
+
+                if (primitiveField != null && PrimitiveToPriority[resolvedPrimitive] < PrimitiveToPriority[primitiveField.GetData()])
+                    resolvedPrimitive = primitiveField.GetData();
+
+
             }
 
             // If we didn't find a value for a type parameter in user data,
@@ -113,20 +100,15 @@ namespace com.unity.shadergraph.defs
         /// <param name="nodeWriter">The way to write to the port/field.</param>
         /// <param name="registry">The registry holding the node.</param>
         /// <returns></returns>
-        static IPortWriter ParameterDescriptorToField(
+        static PortHandler ParameterDescriptorToField(
             ParameterDescriptor param,
             TypeDescriptor fallbackType,
-            INodeReader nodeReader,
-            INodeWriter nodeWriter,
+            NodeHandler node,
             Registry registry)
         {
             // Create a port.
-            IPortWriter port = nodeWriter.AddPort<GraphType>(
-                nodeReader,
-                param.Name,
-                param.Usage is Usage.In or Usage.Static or Usage.Local,
-                registry
-            );
+            var port = node.AddPort<GraphType>(param.Name, param.Usage is Usage.In or Usage.Static or Usage.Local, registry);
+
             TypeDescriptor paramType = param.TypeDescriptor;
 
             // A new type descriptor with all Any values replaced.
@@ -138,18 +120,18 @@ namespace com.unity.shadergraph.defs
             );
 
             // Set the port's parameters from the resolved type.
-            port.SetField(kLength, resolvedType.Length);
-            port.SetField(kHeight, resolvedType.Height);
-            port.SetField(kPrecision, resolvedType.Precision);
-            port.SetField(kPrimitive, resolvedType.Primitive);
+            port.AddField(kLength, resolvedType.Length);
+            port.AddField(kHeight, resolvedType.Height);
+            port.AddField(kPrecision, resolvedType.Precision);
+            port.AddField(kPrimitive, resolvedType.Primitive);
 
-            if (param.Usage is Usage.Static) port.SetField("IsStatic", true);
-            if (param.Usage is Usage.Local) port.SetField("IsLocal", true);
+            if (param.Usage is Usage.Static) port.AddField("IsStatic", true);
+            if (param.Usage is Usage.Local) port.AddField("IsLocal", true);
 
             int i = 0;
             foreach(var val in param.DefaultValue)
             {
-                port.SetField($"c{i++}", val);
+                port.AddField($"c{i++}", val);
             }
 
             return port;
@@ -161,25 +143,23 @@ namespace com.unity.shadergraph.defs
         }
 
         public void BuildNode(
-            INodeReader userData,
-            INodeWriter generatedData,
+            NodeHandler node,
             Registry registry)
         {
-            TypeDescriptor fallbackType = FallbackTypeResolver(userData);
+            TypeDescriptor fallbackType = FallbackTypeResolver(node);
             foreach (var param in m_functionDescriptor.Parameters)
             {
                 //userData.TryGetPort(param.Name, out IPortReader portReader);
                 ParameterDescriptorToField(
                     param,
                     fallbackType,
-                    userData,
-                    generatedData,
+                    node,
                     registry);
             }
         }
 
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
-            INodeReader data,
+            NodeHandler data,
             ShaderContainer container,
             Registry registry)
         {
@@ -189,8 +169,9 @@ namespace com.unity.shadergraph.defs
             // Set up the vars in the shader function.
             foreach (var param in m_functionDescriptor.Parameters)
             {
-                data.TryGetPort(param.Name, out var port);
-                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+                var port = data.GetPort(param.Name);
+                var field = port.GetField("TypeField");
+                var shaderType = registry.GetShaderType(field, container);
 
                 if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.Local)
                 {

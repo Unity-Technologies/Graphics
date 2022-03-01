@@ -64,8 +64,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             // Setup a separate graph for the interpreter tests
             m_InterpreterTestsGraph = new GraphHandler();
-            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add1", m_RegistryInstance).SetPortField("In1", "c0", 1f); //(1,0,0,0)
-            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add2", m_RegistryInstance).SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add1", m_RegistryInstance).GetPort("In1").GetField("c0").SetData(1); //(1,0,0,0)
+            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add2", m_RegistryInstance).GetPort("in2").GetField("c1").SetData(1); //(0,1,0,0)
             m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add3", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add1", "Out", "Add3", "In1", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add2", "Out", "Add3", "In2", m_RegistryInstance); //should be (1,1,0,0)

@@ -25,8 +25,8 @@ namespace UnityEditor.ShaderGraph.Registry
             public static void MathNodeDynamicResolver(NodeHandler node)
             {
                 int operands = 0;
-                int resolvedLength = Length.Four;
-                int resolvedHeight = Height.One; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
+                Length resolvedLength = Length.Four;
+                Height resolvedHeight = Height.One; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
                 var resolvedPrimitive = Primitive.Float;
                 var resolvedPrecision = Precision.Single;
 
@@ -39,12 +39,12 @@ namespace UnityEditor.ShaderGraph.Registry
                     FieldHandler field = port.GetField(kLength);
                     if (field != null)
                     {
-                        resolvedLength = (Length)Mathf.Min(resolvedLength, (int)field.GetData<Length>());
+                        resolvedLength = (Length)Mathf.Min((int)resolvedLength, (int)field.GetData<Length>());
                     }
                     field = port.GetField(kHeight);
                     if (field != null)
                     {
-                        resolvedHeight = (Height)Mathf.Min(resolvedHeight, (int)field.GetData<Height>());
+                        resolvedHeight = (Height)Mathf.Min((int)resolvedHeight, (int)field.GetData<Height>());
                     }
                     field = port.GetField(kPrecision);
                     if (field != null)
@@ -85,7 +85,8 @@ namespace UnityEditor.ShaderGraph.Registry
                 ShaderContainer container,
                 Registry registry)
             {
-                //var outField = node.GetField("Out");
+                node.GetPort("Out");
+                var outField = node.GetField("TypeField");
                 var typeBuilder = registry.GetTypeBuilder(kRegistryKey);
 
                 var shaderType = typeBuilder.GetShaderType(outField, container, registry);
