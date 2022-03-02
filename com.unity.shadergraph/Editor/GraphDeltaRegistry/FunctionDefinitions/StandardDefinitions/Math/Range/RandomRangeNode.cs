@@ -11,14 +11,12 @@ namespace com.unity.shadergraph.defs
             "RandomRange",
 @"
 {
-    randomno =  frac(sin(dot(Seed, temp))*43758.5453);
-    Out = lerp(Min, Max, randomno);
+    Out = lerp(Min, Max, frac(sin(dot(Seed, temp))*43758.5453));
 }",
             new ParameterDescriptor("Seed", TYPE.Vec2, Usage.In),
             new ParameterDescriptor("Min", TYPE.Float, Usage.In),
             new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 1f }),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("randomno", TYPE.Float, Usage.Local),
             new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local, new float[] { 12.9898f, 78.233f })
         );
 
@@ -26,8 +24,8 @@ namespace com.unity.shadergraph.defs
         {
             { "Category", "Math, Range" },
             { "DisplayName", "Random Range" },
-            { "Tooltip", "returns a psuedo-random value base on input Seed between min and max" },
-            { "Parameters.Seed.Tooltip", " input Seed" },
+            { "Tooltip", "returns a psuedo-random value base on input Seed between Min and Max" },
+            { "Parameters.Seed.Tooltip", "input Seed" },
             { "Parameters.Min.Tooltip", "minimum value" },
             { "Parameters.Max.Tooltip", "maximum value" },
             { "Parameters.Out.Tooltip", "a psuedo-random value between min and max" }

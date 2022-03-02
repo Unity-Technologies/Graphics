@@ -11,15 +11,13 @@ namespace com.unity.shadergraph.defs
             "ReplaceColor",
 @"
 {
-    Distance = distance(From, In);
-    Out = lerp(To, In, saturate((Distance - Range) / max(Fuzziness, 1e-5f)));
+    Out = lerp(To, In, saturate((distance(From, In) - Range) / max(Fuzziness, 1e-5f)));
 }",
             new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("From", TYPE.Vector, Usage.In),//TODO: Need to be color picker 
-            new ParameterDescriptor("To", TYPE.Vector, Usage.In),//Need to be color picker 
+            new ParameterDescriptor("From", TYPE.Vec3, Usage.In),//TODO: Need to be color picker 
+            new ParameterDescriptor("To", TYPE.Vec3, Usage.In),//Need to be color picker 
             new ParameterDescriptor("Range", TYPE.Float, Usage.In),
             new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Distance", TYPE.Float, Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
         );
 

@@ -10,9 +10,9 @@ namespace com.unity.shadergraph.defs
             1,
             "Smoothstep",
             "Out = smoothstep(Edge1, Edge2, In);",
+            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Edge1", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Edge2", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 

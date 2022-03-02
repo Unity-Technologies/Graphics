@@ -10,10 +10,10 @@ namespace com.unity.shadergraph.defs
             1,
             "FadeTransition",
             "Fade = saturate(FadeValue*(FadeContrast+1)+(NoiseValue-1)*FadeContrast)",
-            new ParameterDescriptor("NoiseValue", TYPE.Float, Usage.In, new float[] { 0.5f }),//ShaderStageCapability.Fragment 
-            new ParameterDescriptor("FadeValue", TYPE.Float, Usage.In, new float[] { 0.5f }),//ShaderStageCapability.Fragment 
-            new ParameterDescriptor("FadeContrast", TYPE.Float, Usage.In, new float[] { 1f }),//ShaderStageCapability.Fragment 
-            new ParameterDescriptor("Fade", TYPE.Float, Usage.Out)//ShaderStageCapability.Fragment 
+            new ParameterDescriptor("NoiseValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
+            new ParameterDescriptor("FadeValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
+            new ParameterDescriptor("FadeContrast", TYPE.Float, Usage.In, new float[] { 1f }), 
+            new ParameterDescriptor("Fade", TYPE.Float, Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

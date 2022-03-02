@@ -40,7 +40,9 @@ namespace com.unity.shadergraph.defs
             { "Parameters.G.Tooltip", "green channel of output" },
             { "Parameters.B.Tooltip", "blue channel of output" },
             { "Parameters.A.Tooltip", "alpha channel of output" },
-            { "Parameters.Out.Tooltip", "A vector formed by the input values " }
+            { "Parameters.RGBA.Tooltip", "A vector4 formed by the input values" },
+            { "Parameters.RGB.Tooltip", "A vector3 formed by the input values" },
+            { "Parameters.RG.Tooltip", "A vector2 formed by the input values" },
         };
     }
 }
