@@ -239,6 +239,8 @@ namespace UnityEditor.ShaderGraph.Generation
                     string argument = "";
                     if (!port.IsHorizontal())
                         continue;
+
+                    bool shouldPromote = port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name || port.GetRegistryKey().Name == Registry.Types.SamplerStateType.kRegistryKey.Name;
                     if (port.IsInput())
                     {
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
@@ -246,21 +248,35 @@ namespace UnityEditor.ShaderGraph.Generation
                         {
                             var connectedNode = connectedPort.GetNode();
                             argument = $"SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}";
+                            shouldPromote = false;
                         }
                         else // not connected.
                         {
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((IFieldReader)port, registry);
                         }
                     }
                     else // this is an output port.
                     {
+
                         argument = $"SYNTAX_{node.GetName()}_{port.GetName()}"; // add to the arguments for the function call.
                         // default initialize this before our function call.
-                        var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
-                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
+                        // var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                        // mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
+
+                        // TEMP: We probably don't need initializers for output ports-- simplifies property promotion requirements.
+                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument};");
+                        shouldPromote = false;
                     }
                     arguments += argument + ", ";
+
+                    if (shouldPromote)
+                    {
+                        if (port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name)
+                            Registry.Types.Texture2DHelpers.PropertyPromotion((IFieldReader)port, container, blockBuilder);
+                        if (port.GetRegistryKey().Name == Registry.Types.SamplerStateType.kRegistryKey.Name)
+                            Registry.Types.SamplerStateHelper.PropertyPromotion((IFieldReader)port, container, blockBuilder);
+                    }
                 }
             }
             if (arguments.Length != 0)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using com.unity.shadergraph.defs;
 using UnityEngine;
+using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.Registry.Types
 {
@@ -53,6 +54,33 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             field.GetField(SamplerStateType.kWrap, out SamplerStateType.Wrap wrap);
             return wrap;
         }
+
+        public static string ToSamplerName(IFieldReader data)
+        {
+            data.GetField<SamplerStateType.Filter>(SamplerStateType.kFilter, out var filter);
+            data.GetField<SamplerStateType.Wrap>(SamplerStateType.kWrap, out var wrap);
+            return $"_sampler_{filter}_{wrap}";
+        }
+
+        internal static void PropertyPromotion(IFieldReader field, ShaderContainer container, Block.Builder blockBuilder)
+        {
+            var uniformName = ToSamplerName(field);
+            var location = new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build();
+
+            var samplerBuilder = new BlockVariable.Builder(container);
+            samplerBuilder.ReferenceName = $"sampler{uniformName}";
+            samplerBuilder.Type = container._SamplerState;
+            samplerBuilder.AddAttribute(location);
+
+            var attributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.UniformDeclaration);
+            var nameParamBuilder = new ShaderAttributeParam.Builder(container, "name", samplerBuilder.ReferenceName);
+            var declarationParamBuilder = new ShaderAttributeParam.Builder(container, "declaration", "SAMPLER(#)");
+            attributeBuilder.Param(nameParamBuilder.Build());
+            attributeBuilder.Param(declarationParamBuilder.Build());
+            samplerBuilder.AddAttribute(attributeBuilder.Build());
+
+            blockBuilder.AddInput(samplerBuilder.Build());
+        }
     }
 
     internal class SamplerStateType : Defs.ITypeDefinitionBuilder
@@ -75,17 +103,12 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             typeWriter.SetField(kWrap, Wrap.Repeat);
         }
 
-        private static string ToSamplerName(IFieldReader data)
-        {
-            data.GetField<Filter>(kFilter, out var filter);
-            data.GetField<Wrap>(kWrap, out var wrap);
-            return $"_SamplerState_{filter}_{wrap}";
-        }
+
 
         string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
         {
             // ShaderLab generates samplers by strstr(...) the sampler name.
-            return $"UnityBuildSamplerStateStruct({ToSamplerName(data)})";
+            return $"UnityBuildSamplerStateStruct({SamplerStateHelper.ToSamplerName(data)})";
         }
 
         ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)

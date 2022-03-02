@@ -690,12 +690,12 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Types.Texture2DHelpers.SetTextureAsset((IFieldWriter)port, texAsset);
 
             // just hook some stuff up for defaulting purposes.
-            graphHandler.TryConnect("SamplerState", "Out", "SampleTexture2D", Types.SampleTexture2DNode.kSampler, registry);
+            //graphHandler.TryConnect("SamplerState", "Out", "SampleTexture2D", Types.SampleTexture2DNode.kSampler, registry);
             graphHandler.TryConnect("Texture2D", "Out", "SampleTexture2D", Types.SampleTexture2DNode.kTexture, registry);
             previewMgr.NotifyNodeFlowChanged("SampleTexture2D");
 
-            previewMgr.RequestNodePreviewShaderCodeStrings("SampleTexture2D", out _, out _, out string block, out _);
-            Debug.Log(block);
+            previewMgr.RequestNodePreviewShaderCodeStrings("SampleTexture2D", out _, out string code, out string block, out _);
+            Debug.Log(code);
 
             // Texture2D.whiteTexture;
 

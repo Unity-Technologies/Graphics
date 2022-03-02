@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using com.unity.shadergraph.defs;
 using UnityEngine;
 using System.Linq;
+using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.Registry.Types
 {
@@ -111,6 +112,52 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         }
 
         public static string GetUniquePropertyName(IFieldReader data) => data.GetFullPath().Replace('.', '_') + "_Tex";
+
+
+        internal static void PropertyPromotion(IFieldReader field, ShaderContainer container, Block.Builder blockBuilder)
+        {
+            var uniformName = GetUniquePropertyName(field);
+            var location = new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build();
+
+            var textureBuilder = new BlockVariable.Builder(container);
+            var samplerBuilder = new BlockVariable.Builder(container);
+            var texsizeBuilder = new BlockVariable.Builder(container);
+            var sctransBuilder = new BlockVariable.Builder(container);
+
+            textureBuilder.ReferenceName = uniformName;
+            samplerBuilder.ReferenceName = $"sampler{uniformName}";
+            texsizeBuilder.ReferenceName = $"{uniformName}_TexelSize";
+            sctransBuilder.ReferenceName = $"{uniformName}_ST";
+
+            textureBuilder.Type = container._Texture2D;
+            samplerBuilder.Type = container._SamplerState;
+            texsizeBuilder.Type = container._float4;
+            sctransBuilder.Type = container._float4;
+
+            textureBuilder.AddAttribute(location);
+            samplerBuilder.AddAttribute(location);
+            texsizeBuilder.AddAttribute(location);
+            sctransBuilder.AddAttribute(location);
+
+            var attributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.UniformDeclaration);
+            var nameParamBuilder = new ShaderAttributeParam.Builder(container, "name", samplerBuilder.ReferenceName);
+            var declarationParamBuilder = new ShaderAttributeParam.Builder(container, "declaration", "SAMPLER(#)");
+            attributeBuilder.Param(nameParamBuilder.Build());
+            attributeBuilder.Param(declarationParamBuilder.Build());
+            samplerBuilder.AddAttribute(attributeBuilder.Build());
+
+            attributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.UniformDeclaration);
+            nameParamBuilder = new ShaderAttributeParam.Builder(container, "name", textureBuilder.ReferenceName);
+            declarationParamBuilder = new ShaderAttributeParam.Builder(container, "declaration", "TEXTURE2D(#)");
+            attributeBuilder.Param(nameParamBuilder.Build());
+            attributeBuilder.Param(declarationParamBuilder.Build());
+            textureBuilder.AddAttribute(attributeBuilder.Build());
+
+            blockBuilder.AddInput(textureBuilder.Build());
+            blockBuilder.AddInput(samplerBuilder.Build());
+            blockBuilder.AddInput(texsizeBuilder.Build());
+            blockBuilder.AddInput(sctransBuilder.Build());
+        }
     }
 
 
