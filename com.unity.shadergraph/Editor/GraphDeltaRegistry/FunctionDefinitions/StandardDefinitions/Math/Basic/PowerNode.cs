@@ -23,9 +23,8 @@ namespace com.unity.shadergraph.defs
             { "Tooltip", "multiplies Base by itself the number of times given by Exp" },
             { "Parameters.Base.Tooltip", "Base" },
             { "Parameters.Exp.Tooltip", "Exponent" },
-            { "Parameters.UnsignedBase.Tooltip", "Performing power on a negative values results in a NaN. When true, this feature prevents that." },
+            { "Parameters.UnsignedBase.Tooltip", "Performing power on negative values results in a NaN. When true, this feature prevents that." },
             { "Parameters.Out.Tooltip", "Base raised to the power of Exp" }
-
         };
     }
 }
