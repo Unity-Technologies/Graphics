@@ -45,7 +45,7 @@ float4 FragBilinear(Varyings input) : SV_Target
     float4 outColor;
     float2 uv = input.texcoord.xy;
 
-#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
+#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_FOVEATED_RENDERING)
     uv = ApplyFoveatedRenderingResolve(input.texcoord.xy);
 #endif
 

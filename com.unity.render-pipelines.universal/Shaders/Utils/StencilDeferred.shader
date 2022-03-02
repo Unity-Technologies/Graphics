@@ -243,7 +243,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
 
-#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
+#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_FOVEATED_RENDERING)
         float2 undistorted_screen_uv = screen_uv;
         screen_uv = input.positionCS.xy * _ScreenSize.zw;
 #endif
@@ -286,7 +286,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             return half4(color, alpha); // Cannot discard because stencil must be updated.
         #endif
 
-        #if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
+        #if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_FOVEATED_RENDERING)
         input.positionCS.xy = undistorted_screen_uv * _ScreenSize.xy;
         #endif
 
@@ -447,7 +447,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _USE_FOVEATED_RENDERING
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -495,7 +495,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _USE_FOVEATED_RENDERING
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -545,7 +545,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _USE_FOVEATED_RENDERING
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -595,7 +595,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile_fragment _ _USE_FOVEATED_RENDERING
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

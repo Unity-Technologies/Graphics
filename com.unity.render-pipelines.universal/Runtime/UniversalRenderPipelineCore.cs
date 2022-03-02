@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.Universal
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
-        public static readonly string UseFoveatedRendering = "_USE_FOVEATED_RENDERING";
+        public static readonly string FoveatedRendering = "_FOVEATED_RENDERING";
     }
 
     public sealed partial class UniversalRenderPipeline

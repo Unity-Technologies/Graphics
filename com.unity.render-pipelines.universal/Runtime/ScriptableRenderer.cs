@@ -1388,7 +1388,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.xr.StartSinglePass(cmd);
 
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.UseFoveatedRendering, cameraData.xr.foveatedRenderingInfo != IntPtr.Zero);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.FoveatedRendering, cameraData.xr.foveatedRenderingInfo != IntPtr.Zero);
                 cmd.ConfigureFoveatedRendering(cameraData.xr.foveatedRenderingInfo);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -1405,7 +1405,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.xr.StopSinglePass(cmd);
 
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseFoveatedRendering);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.FoveatedRendering);
                 cmd.ConfigureFoveatedRendering(IntPtr.Zero);
 
                 context.ExecuteCommandBuffer(cmd);
