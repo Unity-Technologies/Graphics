@@ -164,21 +164,21 @@ half2 CosSin(half theta)
     return half2(cs, sn);
 }
 
-float2 GetScreenSpacePosition(float2 uv)
-{
-    return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
-}
-
+// Pseudo random number generator with 2D coordinates
 half GetRandomUVForSSAO(float u, int sampleIndex)
 {
     return SSAORandomUV[u * 20 + sampleIndex];
 }
 
-// Pseudo random number generator with 2D coordinates
 half GetRandomUVForSSAO(float2 uv, float dx, float dy)
 {
     uv += float2(dx, dy);
     return half(frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453));
+}
+
+float2 GetScreenSpacePosition(float2 uv)
+{
+    return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
 }
 
 // Sample point picker
@@ -188,17 +188,15 @@ half3 PickSamplePoint(float2 uv, int sampleIndex)
         const half index = half(sampleIndex);
         const half u = GetRandomUVForSSAO(uv, 0.0, index) * half(2.0) - half(1.0);
         const half theta = GetRandomUVForSSAO(uv, 1.0, index) * half(TWO_PI);
-        const half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
         const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
-
         const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
         const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
-
-        const half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
     #endif
 
+    const half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
     return v;
 }
 
@@ -344,14 +342,16 @@ half4 SSAO(Varyings input) : SV_Target
     half3 vpos_o;
     SampleDepthNormalView(uv, depth_o, norm_o, vpos_o);
 
-    if (depth_o > FALLOFF)
-    {
-        #if defined(_ONLY_AO)
-            return half(1.0);
-        #else
-            return PackAONormal(0.0, norm_o);
-        #endif
-    }
+    #if defined(_NEW)
+        if (depth_o > FALLOFF)
+        {
+            #if defined(_ONLY_AO)
+                return half(1.0);
+            #else
+                return PackAONormal(0.0, norm_o);
+            #endif
+        }
+    #endif
 
     // This was added to avoid a NVIDIA driver issue.
     const half rcpSampleCount = half(rcp(SAMPLE_COUNT));
@@ -397,18 +397,18 @@ half4 SSAO(Varyings input) : SV_Target
         ao += a1 * rcp(a2);
     }
 
-    const half rcpFalloff = half(rcp(FALLOFF));
-    float falloff = 1.0 - depth_o * rcpFalloff;
-
     #if defined(_OLD)
-    // Intensity normalization
-    ao *= RADIUS;
+        // Intensity normalization
+        ao *= RADIUS;
 
-    // Apply contrast
-    ao = PositivePow(saturate(ao * INTENSITY * falloff) , kContrast);
+        // Apply contrast + intensity + falloff
+        ao = PositivePow(saturate(ao * INTENSITY * rcpSampleCount), kContrast);
     #else
-    // Apply contrast
-    ao = saturate(ao * INTENSITY * falloff);
+        const half rcpFalloff = half(rcp(FALLOFF));
+        float falloff = 1.0 - depth_o * rcpFalloff;
+
+        // Apply intensity + falloff
+        ao = saturate(ao * INTENSITY * falloff * rcpSampleCount);
     #endif
 
     #if defined(_ONLY_AO)
