@@ -51,6 +51,10 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
 #endif
 
+#if defined(_FOVEATED_RENDERING)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+#endif
+
 void MeshDecalsPositionZBias(inout Varyings input)
 {
 #if UNITY_REVERSED_Z
@@ -209,6 +213,14 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
+
+#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_FOVEATED_RENDERING)
+    // TODO: rework y-flip handling to be more explicit
+    int2 posCS = input.positionCS.xy;
+    posCS.y = _ScreenSize.y - posCS.y;
+    positionSS = ApplyFoveatedRenderingDistortCS(posCS) * _ScreenSize.zw;
+    positionSS.y = 1.0f - positionSS.y;
+#endif
 
 #ifdef DECAL_PROJECTOR
     float3 positionWS = ComputeWorldSpacePosition(positionSS, depth, UNITY_MATRIX_I_VP);
