@@ -574,6 +574,21 @@ float2 Unpack888ToFloat2(float3 x)
     return Unpack888UIntToFloat2(i);
 }
 
+// Pack a 32-bit integer into four 8-bit color channels such that the integer can be
+// exactly reconstructed afterwards.
+float4 PackId32ToRGBA8888(uint id32)
+{
+    uint b0 = (id32 >>  0) & 0xff;
+    uint b1 = (id32 >>  8) & 0xff;
+    uint b2 = (id32 >> 16) & 0xff;
+    uint b3 = (id32 >> 24) & 0xff;
+    float f0 = (float)b0 / 255.0f;
+    float f1 = (float)b1 / 255.0f;
+    float f2 = (float)b2 / 255.0f;
+    float f3 = (float)b3 / 255.0f;
+    return float4(f0, f1, f2, f3);
+}
+
 #endif // SHADER_API_GLES
 
 // Pack 2 float values from the [0, 1] range, to an 8 bits float from the [0, 1] range
