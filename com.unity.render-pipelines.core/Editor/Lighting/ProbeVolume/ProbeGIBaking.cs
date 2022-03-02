@@ -1265,7 +1265,9 @@ namespace UnityEngine.Rendering
                                         validityChunkTarget[index] = bakingCell.validity[shidx];
                                         validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
-                                        offsetChunkTarget[index] = bakingCell.offsetVectors[shidx];
+                                        // TODO for Julien: Just skip if we don't have the offsets; no need to store the data.
+                                        // Shouldn't be hard, but currently it is expecting it will always be there.
+                                        offsetChunkTarget[index] = shidx < bakingCell.offsetVectors.Length ? bakingCell.offsetVectors[shidx] : Vector3.zero;
                                         touchupVolumeInteractionChunkTarget[index] = bakingCell.touchupVolumeInteraction[shidx];
 
                                         if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
