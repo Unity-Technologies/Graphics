@@ -5,9 +5,9 @@ using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using Object = System.Object;
 
-namespace UnityEditor.ShaderGraph.Utils
+namespace UnityEditor.ShaderGraph.GraphDelta.Utils
 {
-    static class GraphUtils
+    static class FileHelpers
     {
         public static bool WriteToFile(string path, string content)
         {

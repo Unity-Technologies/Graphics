@@ -4,8 +4,8 @@ using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.GraphDelta.Utils;
 using UnityEditor.ShaderGraph.GraphUI;
-using UnityEditor.ShaderGraph.Utils;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -26,8 +26,8 @@ namespace UnityEditor.ShaderGraph
                 var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
-                if (GraphUtils.WriteToFile(path, shaderCode))
-                    GraphUtils.OpenFile(path);
+                if (FileHelpers.WriteToFile(path, shaderCode))
+                    FileHelpers.OpenFile(path);
             }
 
             ApplyRevertGUI();

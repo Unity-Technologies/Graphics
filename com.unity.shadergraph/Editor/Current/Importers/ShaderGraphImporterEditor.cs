@@ -12,7 +12,6 @@ using UnityEditor.Graphing;
 using System.Text;
 using UnityEditor.ShaderGraph.Serialization;
 
-
 namespace UnityEditor.ShaderGraph
 {
     [CustomEditor(typeof(ShaderGraphImporter))]

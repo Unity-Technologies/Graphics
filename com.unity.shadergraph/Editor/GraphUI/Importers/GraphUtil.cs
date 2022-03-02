@@ -10,8 +10,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     {
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
-            GraphHandler output = new GraphHandler();
+            ShaderGraphAssetHelper helper = CreateInstance<ShaderGraphAssetHelper>();
+            GraphHandler output = new();
             var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
             var contextKey = Registry.Registry.ResolveKey< Registry.Default.DefaultContext>();
             output.AddContextNode(contextKey, reg);
