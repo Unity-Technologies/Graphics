@@ -1,7 +1,4 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
-using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -1263,7 +1260,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
                     UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
 
-                UnityEditor.AssetDatabase.Refresh();
+                // TODO: Why do we need this? Let's try without it to speed baking up.
+                // UnityEditor.AssetDatabase.Refresh();
 
                 dataUpdated = true;
                 dataNeedsDilation = true;
@@ -1296,7 +1294,50 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.supportDynamicGI)
             {
-                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, transform.rotation, ref probeVolumeAsset, in parameters);
+                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, transform.rotation, ref probeVolumeAsset, in parameters, false);
+            }
+
+            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+
+            dataUpdated = true;
+            dataNeedsDilation = false;
+        }
+
+        internal void BakeDynamicGIOnly()
+        {
+            if (this.gameObject == null || !this.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
+            
+            var bakeId = GetBakeID();
+            if (probeVolumeAsset == null)
+            {
+                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(bakeId);
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+            else
+            {
+                probeVolumeAsset.globalUniqueID = bakeId;
+                ProbeVolumePayload.Dispose(ref probeVolumeAsset.payload);
+            }
+
+            probeVolumeAsset.resolutionX = parameters.resolutionX;
+            probeVolumeAsset.resolutionY = parameters.resolutionY;
+            probeVolumeAsset.resolutionZ = parameters.resolutionZ;
+
+            // Store the orientation that the probe data was baked at in order to support probe volume rotation post bake.
+            // Without this data, the probe positions will be correct, but the orientation of the spherical harmonics will be incorrect
+            // (as the spherical harmonics are baked and serialized in world space).
+            probeVolumeAsset.rotation = transform.rotation;
+
+            ProbeVolumePayload.Allocate(ref probeVolumeAsset.payload, numProbes);
+
+            if (parameters.supportDynamicGI)
+            {
+                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, transform.rotation, ref probeVolumeAsset, in parameters, true);
             }
 
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);

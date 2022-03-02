@@ -43,11 +43,32 @@ namespace UnityEngine.Rendering.HighDefinition
             internal Vector3 emission;
         }
 
-        internal struct RequestInput
+        internal struct RequestInput : IEquatable<RequestInput>
         {
             internal MeshRenderer renderer;
             internal Mesh mesh;
             internal int subMesh;
+
+            public bool Equals(RequestInput other)
+            {
+                return Equals(renderer, other.renderer) && Equals(mesh, other.mesh) && subMesh == other.subMesh;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is RequestInput other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = renderer != null ? renderer.GetHashCode() : 0;
+                    hashCode = (hashCode * 397) ^ (mesh != null ? mesh.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ subMesh;
+                    return hashCode;
+                }
+            }
         }
 
         // Debugging code
@@ -62,6 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal Dictionary<RequestInput, List<ExtraDataRequests>> requestsList = new Dictionary<RequestInput, List<ExtraDataRequests>>();
         internal List<ExtraDataRequestOutput> extraRequestsOutput = new List<ExtraDataRequestOutput>();
+        RaycastHit[] hitBuffer = new RaycastHit[256];
 
         List<int> processingIdxToOutputIdx = new List<int>();
 
@@ -77,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float validity;
         }
 
-        internal void ConstructNeighborData(Vector3[] probePositionsWS, Quaternion rotation, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters)
+        internal void ConstructNeighborData(Vector3[] probePositionsWS, Quaternion rotation, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters, bool overwriteValidity)
         {
             requestsList.Clear();
             extraRequestsOutput.Clear();
@@ -94,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < numProbes; ++i)
             {
                 var probePositionWS = probePositionsWS[i];
-                hits += GenerateBakeNeighborData(probePositionWS, voxelTransform, inverseVoxelTransform, ref neighborBakeDatas[i], ref probeVolumeAsset.payload.dataValidity[i]);
+                hits += GenerateBakeNeighborData(probePositionWS, voxelTransform, inverseVoxelTransform, ref neighborBakeDatas[i], ref probeVolumeAsset.payload.dataValidity[i], overwriteValidity);
             }
 
             ExecutePendingRequests();
@@ -169,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return extraRequestsOutput[requestIndex];
         }
 
-        private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, ref float validity)
+        private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, ref float validity, bool overwriteValidity)
         {
             InitBakeNeighborData(ref neighborBakeData);
 
@@ -203,7 +225,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            validity = anyHits != 0 ? (float)backfaceHits / anyHits : 0f;
+            if (overwriteValidity)
+                validity = anyHits != 0 ? (float)backfaceHits / anyHits : 0f;
+            
             neighborBakeData.validity = validity;
             
             return hitsWithMaterial;
@@ -216,10 +240,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bakeNeighborData.neighborNormal = new Vector3[s_NeighborAxis.Length];
             bakeNeighborData.neighborDistance = new float[s_NeighborAxis.Length];
             bakeNeighborData.requestIndex = new int[s_NeighborAxis.Length];
-            for (int i = 0; i < s_NeighborAxis.Length; ++i)
-            {
-                bakeNeighborData.requestIndex[i] = -1;
-            }
         }
 
         private void GeneratePackedNeighborData(ProbeBakeNeighborData[] neighborBakeDatas, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters, int hits)
@@ -257,7 +277,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-
         }
 
         enum RaycastFaceSide
@@ -282,20 +301,20 @@ namespace UnityEngine.Rendering.HighDefinition
             var directionWS = offsetWS / neighborDistanceWS;
             var collisionLayerMask = ~0;
 
-            RaycastHit[] outBoundHits = Physics.RaycastAll(positionWS, directionWS, neighborDistanceWS, collisionLayerMask);
-            RaycastHit[] inBoundHits = Physics.RaycastAll(positionWS + offsetWS, -1.0f * directionWS, neighborDistanceWS, collisionLayerMask);
+            int inHitCount = Physics.RaycastNonAlloc(positionWS + offsetWS, -1.0f * directionWS, hitBuffer, neighborDistanceWS, collisionLayerMask);
+            int inIndex = FindNearestHit(inHitCount, neighborDistanceWS, true, out var inDistance);
 
-            int outIndex = FindNearestHit(outBoundHits, neighborDistanceWS, false, out var outDistance);
-            int inIndex = FindNearestHit(inBoundHits, neighborDistanceWS, true, out var inDistance);
+            int outHitCount = Physics.RaycastNonAlloc(positionWS, directionWS, hitBuffer, neighborDistanceWS, collisionLayerMask);
+            int outIndex = FindNearestHit(outHitCount, neighborDistanceWS, false, out var outDistance);
 
             if (outIndex != -1)
             {
-                RaycastHit hit = outBoundHits[outIndex];
+                RaycastHit hit = hitBuffer[outIndex];
                 var requestIndex = EnqueueExtraDataRequest(voxelTransform, inverseVoxelTransform, hit, positionWS + directionWS * outDistance);
                 if (requestIndex != -1)
                 {
                     distance = outDistance;
-                    normalWS = inverseVoxelTransform.MultiplyVector(outBoundHits[outIndex].normal).normalized;
+                    normalWS = inverseVoxelTransform.MultiplyVector(hit.normal).normalized;
                     faceSide = outDistance < inDistance ? RaycastFaceSide.Frontface : RaycastFaceSide.Backface;
                     return requestIndex;
                 }
@@ -307,13 +326,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return -1;
         }
 
-        private static int FindNearestHit(RaycastHit[] hits, float maxDist, bool rayIsInverted, out float distance)
+        private int FindNearestHit(int hitCount, float maxDist, bool rayIsInverted, out float distance)
         {
             int index = -1;
             distance = maxDist;
-            for (int i = 0; i < hits.Length; ++i)
+            for (int i = 0; i < hitCount; ++i)
             {
-                RaycastHit hit = hits[i];
+                RaycastHit hit = hitBuffer[i];
                 var hitDistance = rayIsInverted ? (maxDist - hit.distance) : hit.distance;
                 var collider = hit.collider;
                 if (collider is MeshCollider && IsValidForBaking(collider.gameObject) && hitDistance < distance)

@@ -98,8 +98,10 @@ namespace UnityEngine.Rendering.HighDefinition
             string assetFileName = GetFileName(globalUniqueID);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
+            
+            // TODO: Why do we need those? Let's try without it to speed baking up.
+            // UnityEditor.AssetDatabase.SaveAssets();
+            // UnityEditor.AssetDatabase.Refresh();
 
             return asset;
         }
