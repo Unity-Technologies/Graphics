@@ -90,8 +90,9 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
-
-            return container._SamplerState;
+            var builder = new ShaderFoundry.ShaderType.StructBuilder(container, "UnitySamplerState");
+            builder.DeclaredExternally();
+            return builder.Build();
         }
     }
 

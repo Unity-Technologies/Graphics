@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleTexture2DNode", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-        public const string kTexture = "Texture2D";
+        public const string kTexture = "InTex";
         public const string kUV = "UV";
         public const string kSampler = "Sampler";
         public const string kOutput = "Out";
@@ -50,10 +50,14 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
             builder.AddInput(texType, kTexture);
             builder.AddInput(container._float2, kUV);
-            builder.AddInput(container._float4, kOutput);
 
             if (useSampler)
-                builder.AddInput(container._SamplerState, kSampler);
+            {
+                var samplerType = registry.GetShaderType((IFieldReader)samplerPort, container);
+                builder.AddInput(samplerType, kSampler);
+            }
+
+            builder.AddOutput(container._float4, kOutput);
 
             string body = $"{kOutput} = SAMPLE_TEXTURE2D({kTexture}.tex, {(useSampler ? kSampler : kTexture)}.samplerstate, {kTexture}.GetTransformedUV({kUV}));";
             builder.AddLine(body);
@@ -136,9 +140,9 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
-            var gradientBuilder = new ShaderFoundry.ShaderType.StructBuilder(container, "UnityTexture2D");
-            gradientBuilder.DeclaredExternally();
-            return gradientBuilder.Build();
+            var builder = new ShaderFoundry.ShaderType.StructBuilder(container, "UnityTexture2D");
+            builder.DeclaredExternally();
+            return builder.Build();
         }
     }
 

@@ -235,8 +235,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             Assert.AreEqual(Types.SamplerStateType.Wrap.Repeat, wrap);
 
             var nodeWriter = graph.GetNodeWriter("Sampler");
-            nodeWriter.TryGetPort(Types.SamplerStateNode.kInlineStatic, out var portwriter);
-            var fieldWriter = (IFieldWriter)portwriter;
+            var fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.SamplerStateNode.kInlineStatic);
             Types.SamplerStateHelper.SetFilter(fieldWriter, Types.SamplerStateType.Filter.Point);
             Types.SamplerStateHelper.SetWrap(fieldWriter, Types.SamplerStateType.Wrap.Mirror);
 
@@ -245,54 +244,36 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             fieldReader = (IFieldReader)portReader;
             filter = Types.SamplerStateHelper.GetFilter(fieldReader);
             wrap = Types.SamplerStateHelper.GetWrap(fieldReader);
-            Assert.AreEqual(Types.SamplerStateType.Filter.Linear, filter);
-            Assert.AreEqual(Types.SamplerStateType.Wrap.Repeat, wrap);
+            Assert.AreEqual(Types.SamplerStateType.Filter.Point, filter);
+            Assert.AreEqual(Types.SamplerStateType.Wrap.Mirror, wrap);
 
 
-            //graph.AddNode<Types.GradientNode>("TestGradientNode", registry);
-            //var node = graph.GetNodeReader("TestGradientNode");
-            //node.TryGetPort(Types.GradientNode.kInlineStatic, out var port);
-            //var actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
-
-            //var expected = new Gradient();
-            //expected.mode = GradientMode.Blend;
-            //expected.SetKeys(
-            //    new GradientColorKey[]
-            //    {
-            //        new GradientColorKey(new Color(0,0,0), 0),
-            //        new GradientColorKey(new Color(1,1,1), 1)
-            //    },
-            //    new GradientAlphaKey[]
-            //    {
-            //        new GradientAlphaKey(1, 0),
-            //        new GradientAlphaKey(1, 1)
-            //    });
-
-            //Assert.AreEqual(expected, actual);
-
-            //// check to see that a basic round trip works.
-            //var nodeWriter = graph.GetNodeWriter("TestGradientNode");
-            //var field = (IFieldWriter)nodeWriter.GetPort(Types.GradientNode.kInlineStatic);
-
-            //expected.mode = GradientMode.Fixed;
-            //expected.SetKeys(
-            //    new GradientColorKey[]
-            //    {
-            //        new GradientColorKey(new Color(0,0,0), 0),
-            //        new GradientColorKey(new Color(0,1,0), 1)
-            //    },
-            //    new GradientAlphaKey[]
-            //    {
-            //        new GradientAlphaKey(1, 0),
-            //        new GradientAlphaKey(0, 1)
-            //    });
-            //Types.GradientTypeHelpers.SetGradient(field, expected);
 
 
-            //node = graph.GetNodeReader("TestGradientNode");
-            //node.TryGetPort(Types.GradientNode.kInlineStatic, out port);
-            //actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
-            //Assert.AreEqual(expected, actual);
+            graph.AddNode<Types.Texture2DNode>("Texture2D", registry);
+            nodeReader = graph.GetNodeReader("Texture2D");
+            nodeReader.TryGetPort(Types.Texture2DNode.kInlineStatic, out portReader);
+            fieldReader = (IFieldReader)portReader;
+
+            var actualName = Types.Texture2DHelpers.GetUniquePropertyName(fieldReader);
+            var actualTex = Types.Texture2DHelpers.GetTextureAsset(fieldReader);
+            Assert.AreEqual("Texture2D_InlineStatic_Tex", actualName);
+            Assert.IsNull(actualTex);
+
+            var expectedTex = new Internal.SerializableTexture();
+            expectedTex.texture = new Texture2D(800, 600);
+
+            nodeWriter = graph.GetNodeWriter("Texture2D");
+            fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.Texture2DNode.kInlineStatic);
+            Types.Texture2DHelpers.SetTextureAsset(fieldWriter, expectedTex);
+
+            nodeReader = graph.GetNodeReader("Texture2D");
+            nodeReader.TryGetPort(Types.Texture2DNode.kInlineStatic, out portReader);
+            fieldReader = (IFieldReader)portReader;
+            actualTex = Types.Texture2DHelpers.GetTextureAsset(fieldReader);
+
+            Assert.AreEqual(800, actualTex.texture.width);
+            Assert.AreEqual(600, actualTex.texture.height);
         }
     }
 }
