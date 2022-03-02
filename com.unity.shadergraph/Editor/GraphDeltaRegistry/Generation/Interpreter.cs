@@ -240,7 +240,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (!port.IsHorizontal())
                         continue;
 
-                    bool shouldPromote = port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name || port.GetRegistryKey().Name == Registry.Types.SamplerStateType.kRegistryKey.Name;
+                    bool shouldPromote = port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name;
                     if (port.IsInput())
                     {
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
@@ -273,9 +273,9 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (shouldPromote)
                     {
                         if (port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name)
-                            Registry.Types.Texture2DHelpers.PropertyPromotion((IFieldReader)port, container, blockBuilder);
-                        if (port.GetRegistryKey().Name == Registry.Types.SamplerStateType.kRegistryKey.Name)
-                            Registry.Types.SamplerStateHelper.PropertyPromotion((IFieldReader)port, container, blockBuilder);
+                            Registry.Types.Texture2DHelpers.PropertyPromotion((IFieldReader)port, container, inputVariables);
+                        //if (port.GetRegistryKey().Name == Registry.Types.SamplerStateType.kRegistryKey.Name)
+                        //    Registry.Types.SamplerStateHelper.PropertyPromotion((IFieldReader)port, container, inputVariables);
                     }
                 }
             }

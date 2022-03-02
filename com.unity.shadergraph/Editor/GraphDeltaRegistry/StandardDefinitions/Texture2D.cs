@@ -17,14 +17,14 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         public const string kTexture = "InTex";
         public const string kUV = "UV";
-        public const string kSampler = "Sampler";
+        //public const string kSampler = "Sampler";
         public const string kOutput = "Out";
 
         public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
         {
             generatedData.AddPort<Texture2DType>(userData, kTexture, true, registry);
             var uv = generatedData.AddPort<GraphType>(userData, kUV, true, registry);
-            generatedData.AddPort<SamplerStateType>(userData, kSampler, true, registry);
+            //generatedData.AddPort<SamplerStateType>(userData, kSampler, true, registry);
             var color = generatedData.AddPort<GraphType>(userData, kOutput, false, registry);
 
             uv.SetField(GraphType.kPrecision, GraphType.Precision.Single);
@@ -41,10 +41,10 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
             // If there is no connected sampler, we'll generate the NoSampler version.
-            data.TryGetPort(kSampler, out var samplerPort);
-            bool useSampler = samplerPort.GetConnectedPorts().Count() != 0;
+            //data.TryGetPort(kSampler, out var samplerPort);
+            //bool useSampler = samplerPort.GetConnectedPorts().Count() != 0;
 
-            var builder = new ShaderFoundry.ShaderFunction.Builder(container, GetRegistryKey().Name + (useSampler ? "" : "_NoSampler"));
+            var builder = new ShaderFoundry.ShaderFunction.Builder(container, GetRegistryKey().Name /* + (useSampler ? "" : "_NoSampler") */);
 
             data.TryGetPort(kTexture, out var port);
             var texType = registry.GetShaderType((IFieldReader)port, container);
@@ -52,15 +52,15 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             builder.AddInput(texType, kTexture);
             builder.AddInput(container._float2, kUV);
 
-            if (useSampler)
-            {
-                var samplerType = registry.GetShaderType((IFieldReader)samplerPort, container);
-                builder.AddInput(samplerType, kSampler);
-            }
+            //if (useSampler)
+            //{
+            //    var samplerType = registry.GetShaderType((IFieldReader)samplerPort, container);
+            //    builder.AddInput(samplerType, kSampler);
+            //}
 
             builder.AddOutput(container._float4, kOutput);
 
-            string body = $"{kOutput} = SAMPLE_TEXTURE2D({kTexture}.tex, {(useSampler ? kSampler : kTexture)}.samplerstate, {kTexture}.GetTransformedUV({kUV}));";
+            string body = $"{kOutput} = SAMPLE_TEXTURE2D({kTexture}.tex, {/*(useSampler ? kSampler :*/ kTexture}.samplerstate, {kTexture}.GetTransformedUV({kUV}));";
             builder.AddLine(body);
 
             return builder.Build();
@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public static string GetUniquePropertyName(IFieldReader data) => data.GetFullPath().Replace('.', '_') + "_Tex";
 
 
-        internal static void PropertyPromotion(IFieldReader field, ShaderContainer container, Block.Builder blockBuilder)
+        internal static void PropertyPromotion(IFieldReader field, ShaderContainer container, List<BlockVariable> inputVariables)
         {
             var uniformName = GetUniquePropertyName(field);
             var location = new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build();
@@ -153,10 +153,15 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             attributeBuilder.Param(declarationParamBuilder.Build());
             textureBuilder.AddAttribute(attributeBuilder.Build());
 
-            blockBuilder.AddInput(textureBuilder.Build());
-            blockBuilder.AddInput(samplerBuilder.Build());
-            blockBuilder.AddInput(texsizeBuilder.Build());
-            blockBuilder.AddInput(sctransBuilder.Build());
+            var texture = textureBuilder.Build();
+            var sampler = samplerBuilder.Build();
+            var texsize = texsizeBuilder.Build();
+            var sctrans = sctransBuilder.Build();
+
+            inputVariables.Add(texture);
+            inputVariables.Add(sampler);
+            inputVariables.Add(texsize);
+            inputVariables.Add(sctrans);
         }
     }
 

@@ -666,9 +666,9 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             registry.Register<Types.GraphType>();
             registry.Register<Types.GraphTypeAssignment>();
 
-            registry.Register<Types.SamplerStateType>();
-            registry.Register<Types.SamplerStateAssignment>();
-            registry.Register<Types.SamplerStateNode>();
+            //registry.Register<Types.SamplerStateType>();
+            //registry.Register<Types.SamplerStateAssignment>();
+            //registry.Register<Types.SamplerStateNode>();
 
             registry.Register<Types.Texture2DType>();
             registry.Register<Types.Texture2DAssignment>();
@@ -678,7 +678,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
 
-            var samplerNode = graphHandler.AddNode<Types.SamplerStateNode>("SamplerState", registry);
+            //var samplerNode = graphHandler.AddNode<Types.SamplerStateNode>("SamplerState", registry);
             var textureNode = graphHandler.AddNode<Types.Texture2DNode>("Texture2D", registry);
             var sampleTexNode = graphHandler.AddNode<Types.SampleTexture2DNode>("SampleTexture2D", registry);
 
@@ -694,53 +694,10 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphHandler.TryConnect("Texture2D", "Out", "SampleTexture2D", Types.SampleTexture2DNode.kTexture, registry);
             previewMgr.NotifyNodeFlowChanged("SampleTexture2D");
 
-            previewMgr.RequestNodePreviewShaderCodeStrings("SampleTexture2D", out _, out string code, out string block, out _);
-            Debug.Log(code);
-
-            // Texture2D.whiteTexture;
-
-            //var nodeWriter = graphHandler.AddNode<Types.SampleGradientNode>("SampleGradientNode", registry);
-            //previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
-
-            //// Default 0 time color on a gradient is black.
             //var nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
-            //Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
 
-            //// default 1 time color is white.
-            //nodeWriter.SetPortField(Types.SampleGradientNode.kTime, "c0", 1f);
-            //previewMgr.SetLocalProperty("SampleGradientNode", Types.SampleGradientNode.kTime, 1f);
-            //nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
+            previewMgr.RequestNodePreviewShaderCodeStrings("SampleGradientNode", out _, out _, out string block, out _);
             //Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
-
-            //// our gradient comes from a connection now, let's pick a fun color (time is still 1).
-            //var gradientNode = graphHandler.AddNode<Types.GradientNode>("GradientNode", registry);
-            //var portField = (IFieldWriter)gradientNode.GetPort(Types.GradientNode.kInlineStatic);
-
-            //// Setup the end color to be yellow.
-            //var gradient = new Gradient();
-            //gradient.mode = GradientMode.Blend;
-            //gradient.SetKeys(
-            //    new GradientColorKey[]
-            //    {
-            //        new GradientColorKey(new Color(0,0,0), 0),
-            //        new GradientColorKey(new Color(1,1,0), 1)
-            //    },
-            //    new GradientAlphaKey[]
-            //    {
-            //        new GradientAlphaKey(1, 0),
-            //        new GradientAlphaKey(1, 1)
-            //    });
-
-            //Types.GradientTypeHelpers.SetGradient(portField, gradient);
-
-            //graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient", registry);
-            //previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
-            //nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
-
-            //previewMgr.RequestNodePreviewShaderCodeStrings("SampleGradientNode", out _, out _, out string block, out _);
-            //Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(nodePreviewMaterial));
-
-            // TODO: split these tests up into fixtures and also move these sort of tests out of PreviewTests.cs
         }
     }
 }

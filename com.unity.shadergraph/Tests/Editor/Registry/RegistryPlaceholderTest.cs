@@ -211,9 +211,9 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             registry.Register<Types.GraphType>();
             registry.Register<Types.GraphTypeAssignment>();
 
-            registry.Register<Types.SamplerStateType>();
-            registry.Register<Types.SamplerStateAssignment>();
-            registry.Register<Types.SamplerStateNode>();
+            //registry.Register<Types.SamplerStateType>();
+            //registry.Register<Types.SamplerStateAssignment>();
+            //registry.Register<Types.SamplerStateNode>();
 
             registry.Register<Types.Texture2DType>();
             registry.Register<Types.Texture2DAssignment>();
@@ -221,39 +221,40 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             registry.Register<Types.SampleTexture2DNode>();
 
 
-            // check that the type initializes defaults correctly.
             var graph = new GraphHandler();
-            graph.AddNode<Types.SamplerStateNode>("Sampler", registry);
-            var nodeReader = graph.GetNodeReader("Sampler");
 
-            // Test that defaults are sane
-            nodeReader.TryGetPort(Types.SamplerStateNode.kInlineStatic, out var portReader);
-            var fieldReader = (IFieldReader)portReader;
-            var filter = Types.SamplerStateHelper.GetFilter(fieldReader);
-            var wrap = Types.SamplerStateHelper.GetWrap(fieldReader);
-            Assert.AreEqual(Types.SamplerStateType.Filter.Linear, filter);
-            Assert.AreEqual(Types.SamplerStateType.Wrap.Repeat, wrap);
+            // check that the type initializes defaults correctly.
+            //graph.AddNode<Types.SamplerStateNode>("Sampler", registry);
+            //var nodeReader = graph.GetNodeReader("Sampler");
 
-            var nodeWriter = graph.GetNodeWriter("Sampler");
-            var fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.SamplerStateNode.kInlineStatic);
-            Types.SamplerStateHelper.SetFilter(fieldWriter, Types.SamplerStateType.Filter.Point);
-            Types.SamplerStateHelper.SetWrap(fieldWriter, Types.SamplerStateType.Wrap.Mirror);
+            //// Test that defaults are sane
+            //nodeReader.TryGetPort(Types.SamplerStateNode.kInlineStatic, out var portReader);
+            //var fieldReader = (IFieldReader)portReader;
+            //var filter = Types.SamplerStateHelper.GetFilter(fieldReader);
+            //var wrap = Types.SamplerStateHelper.GetWrap(fieldReader);
+            //Assert.AreEqual(Types.SamplerStateType.Filter.Linear, filter);
+            //Assert.AreEqual(Types.SamplerStateType.Wrap.Repeat, wrap);
 
-            // Test that our values round tripped
-            nodeReader.TryGetPort(Types.SamplerStateNode.kInlineStatic, out portReader);
-            fieldReader = (IFieldReader)portReader;
-            filter = Types.SamplerStateHelper.GetFilter(fieldReader);
-            wrap = Types.SamplerStateHelper.GetWrap(fieldReader);
-            Assert.AreEqual(Types.SamplerStateType.Filter.Point, filter);
-            Assert.AreEqual(Types.SamplerStateType.Wrap.Mirror, wrap);
+            //var nodeWriter = graph.GetNodeWriter("Sampler");
+            //var fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.SamplerStateNode.kInlineStatic);
+            //Types.SamplerStateHelper.SetFilter(fieldWriter, Types.SamplerStateType.Filter.Point);
+            //Types.SamplerStateHelper.SetWrap(fieldWriter, Types.SamplerStateType.Wrap.Mirror);
+
+            //// Test that our values round tripped
+            //nodeReader.TryGetPort(Types.SamplerStateNode.kInlineStatic, out portReader);
+            //fieldReader = (IFieldReader)portReader;
+            //filter = Types.SamplerStateHelper.GetFilter(fieldReader);
+            //wrap = Types.SamplerStateHelper.GetWrap(fieldReader);
+            //Assert.AreEqual(Types.SamplerStateType.Filter.Point, filter);
+            //Assert.AreEqual(Types.SamplerStateType.Wrap.Mirror, wrap);
 
 
 
 
             graph.AddNode<Types.Texture2DNode>("Texture2D", registry);
-            nodeReader = graph.GetNodeReader("Texture2D");
-            nodeReader.TryGetPort(Types.Texture2DNode.kInlineStatic, out portReader);
-            fieldReader = (IFieldReader)portReader;
+            var nodeReader = graph.GetNodeReader("Texture2D");
+            nodeReader.TryGetPort(Types.Texture2DNode.kInlineStatic, out var portReader);
+            var fieldReader = (IFieldReader)portReader;
 
             var actualName = Types.Texture2DHelpers.GetUniquePropertyName(fieldReader);
             var actualTex = Types.Texture2DHelpers.GetTextureAsset(fieldReader);
@@ -263,8 +264,8 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             var expectedTex = new Internal.SerializableTexture();
             expectedTex.texture = new Texture2D(800, 600);
 
-            nodeWriter = graph.GetNodeWriter("Texture2D");
-            fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.Texture2DNode.kInlineStatic);
+            var nodeWriter = graph.GetNodeWriter("Texture2D");
+            var fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.Texture2DNode.kInlineStatic);
             Types.Texture2DHelpers.SetTextureAsset(fieldWriter, expectedTex);
 
             nodeReader = graph.GetNodeReader("Texture2D");
