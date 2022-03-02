@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -50,12 +51,19 @@ namespace UnityEditor.ShaderGraph
             var inputLayerIndexValue = GetSlotValue(InputLayerId, GenerationMode.ForReals);
             var inputLayerIndex = int.Parse(inputLayerIndexValue);
 
-            var albedoType = FindOutputSlot<MaterialSlot>(OutputAlbedoId).concreteValueType.ToShaderString();
-            var normalType = FindOutputSlot<MaterialSlot>(OutputNormalId).concreteValueType.ToShaderString();
-            var metallicType = FindOutputSlot<MaterialSlot>(OutputMetallicId).concreteValueType.ToShaderString();
-            var smoothnessType = FindOutputSlot<MaterialSlot>(OutputSmoothnessId).concreteValueType.ToShaderString();
-            var occlusionType = FindOutputSlot<MaterialSlot>(OutputOcclusionId).concreteValueType.ToShaderString();
-            var alphaType = FindOutputSlot<MaterialSlot>(OutputAlphaId).concreteValueType.ToShaderString();
+            var albedoNode = FindOutputSlot<MaterialSlot>(OutputAlbedoId);
+            var normalNode = FindOutputSlot<MaterialSlot>(OutputNormalId);
+            var metallicNode = FindOutputSlot<MaterialSlot>(OutputMetallicId);
+            var smoothnessNode = FindOutputSlot<MaterialSlot>(OutputSmoothnessId);
+            var occlusionNode = FindOutputSlot<MaterialSlot>(OutputOcclusionId);
+            var alphaNode = FindOutputSlot<MaterialSlot>(OutputAlphaId);
+
+            var albedoType = albedoNode.concreteValueType.ToShaderString();
+            var normalType = normalNode.concreteValueType.ToShaderString();
+            var metallicType = metallicNode.concreteValueType.ToShaderString();
+            var smoothnessType = smoothnessNode.concreteValueType.ToShaderString();
+            var occlusionType = occlusionNode.concreteValueType.ToShaderString();
+            var alphaType = occlusionNode.concreteValueType.ToShaderString();
 
             var albedoValue = GetVariableNameForSlot(OutputAlbedoId);
             var normalValue = GetVariableNameForSlot(OutputNormalId);
@@ -64,9 +72,18 @@ namespace UnityEditor.ShaderGraph
             var occlusionValue = GetVariableNameForSlot(OutputOcclusionId);
             var alphaValue = GetVariableNameForSlot(OutputAlphaId);
 
+            var albedoEdge = owner.GetEdges(albedoNode.slotReference);
+            var normalEdge = owner.GetEdges(normalNode.slotReference);
+            var metallicEdge = owner.GetEdges(metallicNode.slotReference);
+            var smoothnessEdge = owner.GetEdges(smoothnessNode.slotReference);
+            var occlusionEdge = owner.GetEdges(occlusionNode.slotReference);
+            var alphaEdge = owner.GetEdges(alphaNode.slotReference);
+
             if (inputLayerIndex < 4)
             {
                 sb.AppendLine("#if defined(UNIVERSAL_TERRAIN_ENABLED)");
+                sb.IncreaseIndent();
+                sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
                 sb.AppendLine("half2 splat{0}uv = GetSplat{0}UV(IN);", inputLayerIndex);
                 sb.AppendLine("half4 albedoSmoothness{0} = SampleLayerAlbedo({0});", inputLayerIndexValue);
                 sb.AppendLine("half3 normal{0} = SampleLayerNormal({0});", inputLayerIndexValue);
@@ -74,13 +91,20 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("half defaultSmoothness{0} = albedoSmoothness{0}.a * _Smoothness{0};", inputLayerIndexValue);
                 sb.AppendLine("half defaultMetallic{0} = _Metallic{0};", inputLayerIndexValue);
                 sb.AppendLine("half defaultOcclusion{0} = _MaskMapRemapScale{0}.g * _MaskMapRemapOffset{0}.g;", inputLayerIndexValue);
-                sb.AppendLine("");
-                sb.AppendLine("{0} {1} = albedoSmoothness{2}.rgb;", albedoType, albedoValue, inputLayerIndexValue);
-                sb.AppendLine("{0} {1} = normal{2};", normalType, normalValue, inputLayerIndexValue);
-                sb.AppendLine("{0} {1} = lerp(defaultMetallic{2}, mask{2}.r, _LayerHasMask{2});", metallicType, metallicValue, inputLayerIndexValue);
-                sb.AppendLine("{0} {1} = lerp(defaultSmoothness{2}, mask{2}.a, _LayerHasMask{2});", smoothnessType, smoothnessValue, inputLayerIndexValue);
-                sb.AppendLine("{0} {1} = lerp(defaultOcclusion{2}, mask{2}.g, _LayerHasMask{2});", occlusionType, occlusionValue, inputLayerIndexValue);
-                sb.AppendLine("{0} {1} = 1.0;", alphaType, alphaValue);
+                sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
+                sb.DecreaseIndent();
+                if (albedoEdge.Any())
+                    sb.AppendLine("{0} {1} = albedoSmoothness{2}.rgb;", albedoType, albedoValue, inputLayerIndexValue);
+                if (normalEdge.Any())
+                    sb.AppendLine("{0} {1} = normal{2};", normalType, normalValue, inputLayerIndexValue);
+                if (metallicEdge.Any())
+                    sb.AppendLine("{0} {1} = lerp(defaultMetallic{2}, mask{2}.r, _LayerHasMask{2});", metallicType, metallicValue, inputLayerIndexValue);
+                if (smoothnessEdge.Any())
+                    sb.AppendLine("{0} {1} = lerp(defaultSmoothness{2}, mask{2}.a, _LayerHasMask{2});", smoothnessType, smoothnessValue, inputLayerIndexValue);
+                if (occlusionEdge.Any())
+                    sb.AppendLine("{0} {1} = lerp(defaultOcclusion{2}, mask{2}.g, _LayerHasMask{2});", occlusionType, occlusionValue, inputLayerIndexValue);
+                if (alphaEdge.Any())
+                    sb.AppendLine("{0} {1} = 1.0;", alphaType, alphaValue);
                 sb.AppendLine("#elif defined(HD_TERRAIN_ENABLED)");
             }
             else
@@ -88,43 +112,60 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("#if defined(HD_TERRAIN_ENABLED) && defined(_TERRAIN_8_LAYERS)");
             }
             sb.IncreaseIndent();
-            sb.AppendLine("#ifndef SPLAT_DXDY");
-            sb.AppendLine("#define SPLAT_DXDY");
-            sb.AppendLine("float2 dxuv = ddx(IN.uv0.xy);");
-            sb.AppendLine("float2 dyuv = ddy(IN.uv0.xy);");
-            sb.AppendLine("#endif // SPLAT_DXDY");
-            sb.DecreaseIndent();
-            sb.AppendLine("");
-            sb.AppendLine("float2 splat{0}uv = IN.uv0.xy * _Splat{0}_ST.xy + _Splat{0}_ST.zw;", inputLayerIndexValue);
-            sb.AppendLine("float2 splat{0}dxuv = dxuv * _Splat{0}_ST.x;", inputLayerIndexValue);
-            sb.AppendLine("float2 splat{0}dyuv = dyuv * _Splat{0}_ST.x;", inputLayerIndexValue);
-            sb.AppendLine("");
-            sb.IncreaseIndent();
             sb.AppendLine("#ifndef LAYER_ELEMENTS");
             sb.AppendLine("#define LAYER_ELEMENTS");
             sb.AppendLine("float4 albedo[_LAYER_COUNT];");
             sb.AppendLine("float3 normal[_LAYER_COUNT];");
             sb.AppendLine("float4 masks[_LAYER_COUNT];");
             sb.AppendLine("#endif // LAYER_ELEMENTS");
-            sb.DecreaseIndent();
+            sb.AppendLine("#ifndef SPLAT_DXDY");
+            sb.AppendLine("#define SPLAT_DXDY");
+            sb.AppendLine("float2 dxuv = ddx(IN.uv0.xy);");
+            sb.AppendLine("float2 dyuv = ddy(IN.uv0.xy);");
+            sb.AppendLine("#endif // SPLAT_DXDY");
+            sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
+            sb.AppendLine("float2 splat{0}uv = IN.uv0.xy * _Splat{0}_ST.xy + _Splat{0}_ST.zw;", inputLayerIndexValue);
+            sb.AppendLine("float2 splat{0}dxuv = dxuv * _Splat{0}_ST.x;", inputLayerIndexValue);
+            sb.AppendLine("float2 splat{0}dyuv = dyuv * _Splat{0}_ST.x;", inputLayerIndexValue);
             sb.AppendLine("");
             sb.AppendLine("albedo[{0}] = SampleLayerAlbedo({0});", inputLayerIndexValue);
             sb.AppendLine("normal[{0}] = SampleLayerNormal({0});", inputLayerIndexValue);
             sb.AppendLine("masks[{0}] = SampleLayerMasks({0});", inputLayerIndexValue);
-            sb.AppendLine("{0} {1} = albedo[{2}].xyz;", albedoType, albedoValue, inputLayerIndexValue);
-            sb.AppendLine("{0} {1} = normal[{2}];", normalType, normalValue, inputLayerIndexValue);
-            sb.AppendLine("{0} {1} = masks[{2}].x;", metallicType, metallicValue, inputLayerIndexValue);
-            sb.AppendLine("{0} {1} = masks[{2}].w;", smoothnessType, smoothnessValue, inputLayerIndexValue);
-            sb.AppendLine("{0} {1} = masks[{2}].y;", occlusionType, occlusionValue, inputLayerIndexValue);
-            sb.AppendLine("{0} {1} = albedo[{2}].w;", alphaType, alphaValue, inputLayerIndexValue);
+            sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
+            sb.DecreaseIndent();
+            if (albedoEdge.Any())
+                sb.AppendLine("{0} {1} = albedo[{2}].xyz;", albedoType, albedoValue, inputLayerIndexValue);
+            if (normalEdge.Any())
+                sb.AppendLine("{0} {1} = normal[{2}];", normalType, normalValue, inputLayerIndexValue);
+            if (metallicEdge.Any())
+                sb.AppendLine("{0} {1} = masks[{2}].x;", metallicType, metallicValue, inputLayerIndexValue);
+            if (smoothnessEdge.Any())
+                sb.AppendLine("{0} {1} = masks[{2}].w;", smoothnessType, smoothnessValue, inputLayerIndexValue);
+            if (occlusionEdge.Any())
+                sb.AppendLine("{0} {1} = masks[{2}].y;", occlusionType, occlusionValue, inputLayerIndexValue);
+            if (alphaEdge.Any())
+                sb.AppendLine("{0} {1} = albedo[{2}].w;", alphaType, alphaValue, inputLayerIndexValue);
             sb.AppendLine("#else");
-            sb.AppendLine("{0} {1} = 0.0;", albedoType, albedoValue);
-            sb.AppendLine("{0} {1} = 0.0;", normalType, normalValue);
-            sb.AppendLine("{0} {1} = 0.0;", metallicType, metallicValue);
-            sb.AppendLine("{0} {1} = 0.0;", smoothnessType, smoothnessValue);
-            sb.AppendLine("{0} {1} = 0.0;", occlusionType, occlusionValue);
-            sb.AppendLine("{0} {1} = 0.0;", alphaType, alphaValue);
-            sb.AppendLine("#endif // UNIVERSAL_TERRAIN_ENABLED / HD_TERRAIN_ENABLED");
+            if (albedoEdge.Any())
+                sb.AppendLine("{0} {1} = 0.0;", albedoType, albedoValue);
+            if (normalEdge.Any())
+                sb.AppendLine("{0} {1} = 0.0;", normalType, normalValue);
+            if (metallicEdge.Any())
+                sb.AppendLine("{0} {1} = 0.0;", metallicType, metallicValue);
+            if (smoothnessEdge.Any())
+                sb.AppendLine("{0} {1} = 0.0;", smoothnessType, smoothnessValue);
+            if (occlusionEdge.Any())
+                sb.AppendLine("{0} {1} = 0.0;", occlusionType, occlusionValue);
+            if (alphaEdge.Any())
+                sb.AppendLine("{0} {1} = 0.0;", alphaType, alphaValue);
+            if (inputLayerIndex < 4)
+            {
+                sb.AppendLine("#endif // UNIVERSAL_TERRAIN_ENABLED / HD_TERRAIN_ENABLED");
+            }
+            else
+            {
+                sb.AppendLine("#endif // HD_TERRAIN_ENABLED");
+            }
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
