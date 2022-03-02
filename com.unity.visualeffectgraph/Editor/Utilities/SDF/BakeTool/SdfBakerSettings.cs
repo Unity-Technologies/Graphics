@@ -34,6 +34,8 @@ namespace UnityEditor.VFX.SDF
         internal GameObject m_MeshPrefab;
         [SerializeField]
         internal Mesh m_Mesh;
+        [SerializeField]
+        internal bool m_LiftSizeLimit;
 
         [SerializeField]
         internal PreviewChoice m_PreviewObject = PreviewChoice.MeshAndTexture;
@@ -71,6 +73,7 @@ namespace UnityEditor.VFX.SDF
             m_MeshPrefab = null;
             m_SelectedMesh = null;
             m_Mesh = null;
+            m_LiftSizeLimit = false;
         }
 
         internal void ApplySelectedMesh()

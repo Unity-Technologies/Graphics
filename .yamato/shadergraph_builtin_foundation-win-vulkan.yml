@@ -11,7 +11,7 @@ ShaderGraph_BuiltIn_Foundation_Win_Vulkan_playmode_mono_Linear_trunk:
     name: ShaderGraph_BuiltIn_Foundation on Win_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -21,10 +21,9 @@ ShaderGraph_BuiltIn_Foundation_Win_Vulkan_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -42,11 +41,45 @@ ShaderGraph_BuiltIn_Foundation_Win_Vulkan_playmode_mono_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
+ShaderGraph_BuiltIn_Foundation_Win_Vulkan_editmode_mono_Linear_trunk:
+    name: ShaderGraph_BuiltIn_Foundation on Win_Vulkan_editmode_mono_Linear on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: automation-tooling/win-10:v0.0.1-971269
+        flavor: b1.xlarge
+        model: rtx2080
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/BuiltInGraphicsTest_Foundation
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/BuiltInGraphicsTest_Foundation/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 ShaderGraph_BuiltIn_Foundation_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_BuiltIn_Foundation on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -56,10 +89,9 @@ ShaderGraph_BuiltIn_Foundation_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -69,6 +101,40 @@ ShaderGraph_BuiltIn_Foundation_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BuiltInGraphicsTest_Foundation
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/BuiltInGraphicsTest_Foundation/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+         rerun: on_new_revision
+ShaderGraph_BuiltIn_Foundation_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: ShaderGraph_BuiltIn_Foundation on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: automation-tooling/win-10:v0.0.1-971269
+        flavor: b1.xlarge
+        model: rtx2080
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/BuiltInGraphicsTest_Foundation
     artifacts:
         logs:
             paths:

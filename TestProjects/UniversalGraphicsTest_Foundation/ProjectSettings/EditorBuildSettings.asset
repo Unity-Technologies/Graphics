@@ -123,6 +123,12 @@ EditorBuildSettings:
     path: Assets/Scenes/050_Shader_Graphs_Override.unity
     guid: 773767ac5b09198408c0c084dc243abc
   - enabled: 1
+    path: Assets/Scenes/050_Shader_Graph_ScreenCoordinates.unity
+    guid: e983e6ee0e89e14478c8f616dfbc3e20
+  - enabled: 1
+    path: Assets/Scenes/050_Shader_Graph_ScreenCoordinates_DynamicRez.unity
+    guid: ea8e093d73ca555418eb5f7ae5fb9b3d
+  - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
   - enabled: 1
@@ -237,6 +243,9 @@ EditorBuildSettings:
     path: Assets/Scenes/147_LightCookies_Shaders.unity
     guid: 66d9465bb28c441c7ba39334a5ad8e68
   - enabled: 1
+    path: Assets/Scenes/161_FP16_BackBuffer.unity
+    guid: e4bd4cb963e384819a1d8a13bc5127a8
+  - enabled: 1
     path: Assets/Scenes/200_DepthDeferred.unity
     guid: 3bbe19bef8dcc4e65b7aaa710c4114c6
   - enabled: 1
@@ -278,4 +287,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/206_Motion_Vectors.unity
     guid: aa08e99a89c77574e9a00b9888fc75ce
+  - enabled: 1
+    path: Assets/Scenes/055_SoftShadowQuality_Low.unity
+    guid: e9e5c842eb0ba4a1798a7ddb05f68d7e
+  - enabled: 1
+    path: Assets/Scenes/055_SoftShadowQuality_Medium.unity
+    guid: e6fb9446c7b8045a6a963b95486f41c5
+  - enabled: 1
+    path: Assets/Scenes/055_SoftShadowQuality_High.unity
+    guid: 55923f5f43d284f20a0a566a84d43269
+  - enabled: 1
+    path: Assets/Scenes/250_ScreenSpaceShadows.unity
+    guid: 0ed880bcaac387e4eaef5f365a545090
   m_configObjects: {}

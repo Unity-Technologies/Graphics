@@ -3,13 +3,11 @@ project:
   folder: UniversalGraphicsTest_Foundation
 reuse_blocks:
   setup_with_utr:
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
     - [all]: <shared.platform.commands.call_utr>
   setup_without_utr:
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
@@ -26,7 +24,6 @@ test_platforms:
     allow_cache: False
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
@@ -36,7 +33,8 @@ test_platforms:
           - [OSX_Metal]: --timeout=2400
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
-      - <reuse_blocks.setup_without_utr>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --timeout=3000
@@ -65,7 +63,6 @@ test_platforms:
     allow_cache: False
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
@@ -74,7 +71,8 @@ test_platforms:
           - [all]: --extra-editor-arg="-xr-reuse-tests"
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
-      - <reuse_blocks.setup_without_utr>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --extra-editor-arg="-xr-reuse-tests"
@@ -93,16 +91,16 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
   - name: OSX
     apis:
@@ -163,6 +161,17 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
+    # Temporarily override iPhone tests with SE device with 3GB RAM to avoid OOM issues.
+    agents_project:
+      default:
+        type: Unity::mobile::iPhone
+        model: SE
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.large
 
 jobs:
   - name: PR <PROJECT_NAME>

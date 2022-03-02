@@ -18,10 +18,10 @@ namespace UnityEngine.Rendering.Universal
         {
             if (renderingData.cameraData.xr.hasValidOcclusionMesh)
             {
-                CommandBuffer cmd = CommandBufferPool.Get();
+                CommandBuffer cmd = renderingData.commandBuffer;
                 renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.Clear();
             }
         }
     }
