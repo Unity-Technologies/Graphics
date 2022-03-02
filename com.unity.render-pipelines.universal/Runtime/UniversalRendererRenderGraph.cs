@@ -218,6 +218,17 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnAfterRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
+            bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
+
+            if (drawGizmos)
+                DrawRenderGraphGizmos(frameResources.cameraColor, frameResources.cameraDepth, GizmoSubset.PreImageEffects, ref renderingData);
+
+            // TODO RENDERGRAPH: postprocessing passes
+
+            if (drawGizmos)
+                DrawRenderGraphGizmos(frameResources.cameraColor, frameResources.cameraDepth, GizmoSubset.PostImageEffects, ref renderingData);
+
             m_FinalBlitPass.Render(ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);
         }
 
@@ -244,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    context.cmd.ClearRenderTarget(clearFlags, Color.red, 1, 0);
+                    context.cmd.ClearRenderTarget(clearFlags, Color.black, 1, 0);
                 });
 
                 return passData;

@@ -818,7 +818,45 @@ namespace UnityEngine.Rendering.Universal
 
                 });
             }
+        }
 
+
+        class DrawGizmosPassData
+        {
+            public RenderingData renderingData;
+            public ScriptableRenderer renderer;
+            public GizmoSubset gizmoSubset;
+        };
+
+        /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="depth"></param>
+        /// <param name="gizmoSubset"></param>
+        /// <param name="renderingData"></param>
+        protected void DrawRenderGraphGizmos(TextureHandle color, TextureHandle depth, GizmoSubset gizmoSubset, ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+
+            using (var builder = graph.AddRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
+                new ProfilingSampler("Draw Gizmos Profiler")))
+            {
+                builder.UseColorBuffer(color, 0);
+                builder.UseDepthBuffer(depth, DepthAccess.Read);
+
+                passData.renderingData = renderingData;
+                passData.renderer = this;
+                passData.gizmoSubset = gizmoSubset;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((DrawGizmosPassData data, RenderGraphContext rgContext) =>
+                {
+                    Camera camera = data.renderingData.cameraData.camera;
+                    data.renderer.DrawGizmos(rgContext.renderContext, camera, data.gizmoSubset, data.renderingData);
+                });
+            }
         }
 
         class PassData
