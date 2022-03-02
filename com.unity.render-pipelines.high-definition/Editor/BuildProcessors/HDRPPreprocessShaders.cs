@@ -186,11 +186,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Global Illumination
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || !globalSettings.supportProbeVolumes || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || !globalSettings.supportProbeVolumes || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
             return false;
@@ -375,16 +375,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             ++i;
                     }
 
-                    if (inputData is List<ShaderCompilerData> inputDataList)
-                    {
-                        inputDataList.RemoveRange(inputShaderVariantCount,
-                            inputDataList.Count - inputShaderVariantCount);
-                    }
-                    else
-                    {
-                        for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                            inputData.RemoveAt(i);
-                    }
+                    if(!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
+                        Debug.LogException(error);
                 }
 
                 LogShaderVariants(shader, kernelName, preStrippingCount, (uint)inputData.Count, stripTimeMs);
@@ -546,12 +538,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             ++i;
                     }
 
-                    if (inputData is List<ShaderCompilerData> inputDataList)
-                        inputDataList.RemoveRange(inputShaderVariantCount,
-                            inputDataList.Count - inputShaderVariantCount);
-                    else
-                        for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                            inputData.RemoveAt(i);
+                    if (!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
+                        Debug.LogException(error);
                 }
 
                 LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count, stripTimeMs);

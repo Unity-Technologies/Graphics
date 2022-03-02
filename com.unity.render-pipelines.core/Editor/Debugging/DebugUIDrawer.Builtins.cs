@@ -293,54 +293,36 @@ namespace UnityEditor.Rendering
     /// Builtin Drawer for Enum Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.EnumField))]
-    public sealed class DebugUIDrawerEnumField : DebugUIDrawer
+    public sealed class DebugUIDrawerEnumField : DebugUIFieldDrawer<int, DebugUI.EnumField, DebugStateEnum>
     {
         /// <summary>
-        /// OnGUI implementation for Enum DebugUIDrawer.
+        /// Does the GUI implementation for editor
         /// </summary>
-        /// <param name="widget">DebugUI Widget.</param>
-        /// <param name="state">Debug State associated with the Debug Item.</param>
-        /// <returns>The state of the widget.</returns>
-        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        /// <param name="rect"><see cref="Rect"/> the rect where to render the field</param>
+        /// <param name="label"><see cref="GUIContent"/> the label</param>
+        /// <param name="field"><see cref="DebugUI.EnumField"/>The enum field</param>
+        /// <param name="state"><see cref="DebugStateEnum"/>The serialized state of the enum</param>
+        /// <returns>The index selected on the enum</returns>
+        protected override int DoGUI(Rect rect, GUIContent label, DebugUI.EnumField field, DebugStateEnum state)
         {
-            var w = Cast<DebugUI.EnumField>(widget);
-            var s = Cast<DebugStateEnum>(state);
+            int index = Mathf.Max(0, field.currentIndex); // Fallback just in case, we may be handling sub/sectioned enums here
+            int value = field.GetValue();
 
-            if (w.indexes == null)
-                w.InitIndexes();
-
-            EditorGUI.BeginChangeCheck();
-
-            var rect = PrepareControlRect();
-
-            int index = -1;
-            int value = w.GetValue();
-
-            var label = EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip);
-
-            if (w.enumNames == null || w.enumValues == null)
+            if (field.enumNames == null || field.enumValues == null)
             {
                 EditorGUI.LabelField(rect, label, "Can't draw an empty enumeration.");
             }
-            else if (w.enumNames.Length != w.enumValues.Length)
+            else if (field.enumNames.Length != field.enumValues.Length)
             {
                 EditorGUI.LabelField(rect, label, "Invalid data");
             }
             else
             {
-                index = value;
-                index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
-                value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
+                index = EditorGUI.IntPopup(rect, label, index, field.enumNames, field.indexes);
+                value = field.enumValues[index];
             }
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                Apply(w, s, value);
-                if (index > -1)
-                    w.currentIndex = index;
-            }
-
-            return true;
+            return value;
         }
     }
 
@@ -400,9 +382,6 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.HistoryEnumField>(widget);
             var s = Cast<DebugStateEnum>(state);
-
-            if (w.indexes == null)
-                w.InitIndexes();
 
             EditorGUI.BeginChangeCheck();
 

@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
 
+            ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+
             Bounds bounds = new Bounds();
             bool foundABound = false;
             bool performFitting = false;
@@ -42,6 +44,9 @@ namespace UnityEditor.Rendering
                     bounds.Encapsulate(currBound);
                 }
             }
+
+            EditorGUI.BeginDisabledGroup(pv.globalVolume);
+
             if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to all Scenes", "Fits the Probe Volume's boundary to all open Scenes"), EditorStyles.miniButton))
             {
                 performFitting = true;
@@ -56,10 +61,10 @@ namespace UnityEditor.Rendering
                 performFitting = true;
                 performFittingOnlyOnSelection = true;
             }
+            EditorGUI.EndDisabledGroup();
 
             if (performFitting)
             {
-                ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
                 Undo.RecordObject(pv.transform, "Fitting Probe Volume");
 
                 if (performFittingOnlyOnSelection)

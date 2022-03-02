@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [14.0.1] - 2021-12-07
 ### Added
 - New Timeline Integration which supports scrubbing
+- Samples project github link button in package manager
 
 ### Fixed
 - Creating a new VFX of the same name as an already opened VFX will reuse the existing window [Case 1382841](https://issuetracker.unity3d.com/product/unity/issues/guid/1382841/)
@@ -31,8 +32,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Folder named with a ".vfx" extension could lead to an error on macOS [case 1385206](https://issuetracker.unity3d.com/product/unity/issues/guid/1385206/)
 - Fixed possible NaNs in Vortex Subgraph node
 - Better node position when created by dragging an edge
-- Fixed an exception when setting when changing the space of a shape to world (https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
+- Fixed an exception when setting when changing the space of a shape to world [Case 1389076](https://issuetracker.unity3d.com/product/unity/issues/guid/1389076/)
 - Context labels where not displayed in the inspector except for outputs where it was always a letter, even if the user had given a custom label
+- In `Output Particle` blocks, shader graph exposed properties order is consistent with shader graph blackboard
+- Picking and Selection passes [Case 1382788](https://issuetracker.unity3d.com/product/unity/issues/guid/1382788/), [Case 1402283](https://issuetracker.unity3d.com/product/unity/issues/guid/1402283/)
+- Reduce GC.Allocs in the SceneViewGUICallback. [Case 1305929](https://issuetracker.unity3d.com/product/unity/issues/guid/1305929/)
+- HDRP Decals are not in experimental.
+- Fix Motion vectors in XR. [Case 14003636](https://issuetracker.unity3d.com/product/unity/issues/guid/14003636/)
 
 ## [14.0.0] - 2021-11-17
 

@@ -149,7 +149,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
-        bool m_ScreenCoordOverride;
 
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
@@ -360,7 +359,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS = frameSettings.IsEnabled(FrameSettingsField.FilmGrain) && m_PostProcessEnabled;
             m_DitheringFS = frameSettings.IsEnabled(FrameSettingsField.Dithering) && m_PostProcessEnabled;
             m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing) || camera.IsTAAUEnabled();
-            m_ScreenCoordOverride = frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride) && m_PostProcessEnabled;
 
             // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
             m_AntialiasingFS &= !m_PathTracing.enable.value;
@@ -480,7 +478,8 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle afterPostProcessBuffer,
             TextureHandle sunOcclusionTexture,
             CullingResults cullResults,
-            HDCamera hdCamera)
+            HDCamera hdCamera,
+            CubemapFace cubemapFace)
         {
             bool postPRocessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
             TextureHandle dest = postPRocessIsFinalPass ? backBuffer : renderGraph.CreateTexture(
@@ -601,7 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
             }
 
-            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess);
+            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess, cubemapFace);
 
             bool currFrameIsTAAUpsampled = hdCamera.IsTAAUEnabled();
             bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
@@ -1449,6 +1448,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
+                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomPostProcessInput, data.source);
 
                                         data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
 
@@ -4627,12 +4627,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.uberPostCS.shaderKeywords = null;
 
                 passData.uberPostKernel = passData.uberPostCS.FindKernel("Uber");
-
-                if (m_ScreenCoordOverride)
-                {
-                    passData.uberPostCS.EnableKeyword("SCREEN_COORD_OVERRIDE");
-                }
-
                 if (PostProcessEnableAlpha())
                 {
                     passData.uberPostCS.EnableKeyword("ENABLE_ALPHA");
@@ -4943,9 +4937,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle alphaTexture;
             public TextureHandle uiBuffer;
             public TextureHandle destination;
+
+            public CubemapFace cubemapFace;
         }
 
-        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, TextureHandle uiBuffer, BlueNoise blueNoise, bool flipY)
+        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, TextureHandle uiBuffer, BlueNoise blueNoise, bool flipY, CubemapFace cubemapFace)
         {
             using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
@@ -4981,6 +4977,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.alphaTexture = builder.ReadTexture(alphaTexture);
                 passData.destination = builder.WriteTexture(finalRT);
                 passData.uiBuffer = builder.ReadTexture(uiBuffer);
+                passData.cubemapFace = cubemapFace;
 
                 passData.outputColorSpace = 0;
                 if (HDROutputIsActive())
@@ -5152,7 +5149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
                         }
 
-                        HDUtils.DrawFullScreen(ctx.cmd, backBufferRect, finalPassMaterial, data.destination);
+                        HDUtils.DrawFullScreen(ctx.cmd, backBufferRect, finalPassMaterial, data.destination, cubemapFace: data.cubemapFace);
                     });
             }
         }

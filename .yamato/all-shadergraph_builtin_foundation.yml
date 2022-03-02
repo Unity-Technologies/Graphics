@@ -17,11 +17,19 @@ PR_ShaderGraph_BuiltIn_Foundation_trunk:
     dependencies:
       -  path: .yamato/shadergraph_builtin_foundation-win-dx11.yml#ShaderGraph_BuiltIn_Foundation_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-win-dx11.yml#ShaderGraph_BuiltIn_Foundation_Win_DX11_editmode_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/shadergraph_builtin_foundation-osx-openglcore.yml#ShaderGraph_BuiltIn_Foundation_OSX_OpenGLCore_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-osx-openglcore.yml#ShaderGraph_BuiltIn_Foundation_OSX_OpenGLCore_editmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/shadergraph_builtin_foundation-linux-vulkan.yml#ShaderGraph_BuiltIn_Foundation_Linux_Vulkan_playmode_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-linux-vulkan.yml#ShaderGraph_BuiltIn_Foundation_Linux_Vulkan_editmode_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/shadergraph_builtin_foundation-osx-metal.yml#ShaderGraph_BuiltIn_Foundation_OSX_Metal_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-osx-metal.yml#ShaderGraph_BuiltIn_Foundation_OSX_Metal_editmode_mono_Linear_trunk
          rerun: on_new_revision
 Extra_ShaderGraph_BuiltIn_Foundation_trunk:
     name: Extra ShaderGraph_BuiltIn_Foundation on trunk
@@ -53,11 +61,19 @@ PR_ShaderGraph_BuiltIn_Foundation_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/shadergraph_builtin_foundation-win-dx11.yml#ShaderGraph_BuiltIn_Foundation_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-win-dx11.yml#ShaderGraph_BuiltIn_Foundation_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/shadergraph_builtin_foundation-osx-openglcore.yml#ShaderGraph_BuiltIn_Foundation_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-osx-openglcore.yml#ShaderGraph_BuiltIn_Foundation_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/shadergraph_builtin_foundation-linux-vulkan.yml#ShaderGraph_BuiltIn_Foundation_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-linux-vulkan.yml#ShaderGraph_BuiltIn_Foundation_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/shadergraph_builtin_foundation-osx-metal.yml#ShaderGraph_BuiltIn_Foundation_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_builtin_foundation-osx-metal.yml#ShaderGraph_BuiltIn_Foundation_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_ShaderGraph_BuiltIn_Foundation_CUSTOM-REVISION:
     name: Extra ShaderGraph_BuiltIn_Foundation on CUSTOM-REVISION

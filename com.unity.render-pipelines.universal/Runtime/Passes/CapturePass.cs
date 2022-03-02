@@ -29,23 +29,15 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmdBuf = CommandBufferPool.Get();
-
-            if (m_CameraColorHandle == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmdBuf))
-            {
-                m_CameraColorHandle = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            }
+            CommandBuffer cmdBuf = renderingData.commandBuffer;
 
             using (new ProfilingScope(cmdBuf, m_ProfilingSampler))
             {
                 var colorAttachmentIdentifier = m_CameraColorHandle.nameID;
                 var captureActions = renderingData.cameraData.captureActions;
                 for (captureActions.Reset(); captureActions.MoveNext();)
-                    captureActions.Current(colorAttachmentIdentifier, cmdBuf);
+                    captureActions.Current(colorAttachmentIdentifier, renderingData.commandBuffer);
             }
-
-            context.ExecuteCommandBuffer(cmdBuf);
-            CommandBufferPool.Release(cmdBuf);
         }
     }
 }
