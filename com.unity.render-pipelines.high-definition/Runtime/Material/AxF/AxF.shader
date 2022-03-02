@@ -227,6 +227,8 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
             // Note: Require _SelectionID variable
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation

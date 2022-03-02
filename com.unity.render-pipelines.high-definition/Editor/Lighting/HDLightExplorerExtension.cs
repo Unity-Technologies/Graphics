@@ -239,7 +239,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ColorTemperatureMode, "m_UseColorTemperature", 150),        // 6: Color Temperature Mode
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ColorTemperature, "m_ColorTemperature", 120, (r, prop, dep) => // 7: Color Temperature
                 {
-                    using(new EditorGUI.DisabledScope(!prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue))
+                    // Sometimes during scene transition, the target object can be null, causing exceptions.
+                    using (new EditorGUI.DisabledScope(prop.serializedObject.targetObject == null || !prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue))
                     {
                         EditorGUI.PropertyField(r, prop, GUIContent.none);
                     }
