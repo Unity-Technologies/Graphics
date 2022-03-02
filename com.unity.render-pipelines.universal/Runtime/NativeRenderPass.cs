@@ -661,6 +661,12 @@ namespace UnityEngine.Rendering.Universal
                     targetRT.width = cameraData.pixelWidth;
                     targetRT.height = cameraData.pixelHeight;
                 }
+
+                if (cameraColorTargetHandle.rt != null)
+                {
+                    targetRT.width = cameraColorTargetHandle.rt.width;
+                    targetRT.height = cameraColorTargetHandle.rt.height;
+                }
             }
             else
             {
