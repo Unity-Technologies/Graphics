@@ -108,7 +108,7 @@ static half SSAORandomUV[40] =
 // kContrast determines the contrast of occlusion. This allows users to control over/under
 // occlusion. At the moment, this is not exposed to the editor because it's rarely useful.
 // The range is between 0 and 1.
-static const half kContrast = half(0.6);
+static const half kContrast = half(0.5);
 
 // The constant below controls the geometry-awareness of the bilateral
 // filter. The higher value, the more sensitive it is.
@@ -169,32 +169,42 @@ float2 GetScreenSpacePosition(float2 uv)
     return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
 }
 
+half GetRandomUVForSSAO(float u, int sampleIndex)
+{
+    return SSAORandomUV[u * 20 + sampleIndex];
+}
+
 // Pseudo random number generator with 2D coordinates
 half GetRandomUVForSSAO(float2 uv, float dx, float dy)
 {
-    #if defined(_NEW)
-        uv += float2(dx, dy);
-        return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
-    #else
-        const float2 positionSS = GetScreenSpacePosition(uv);
-        const half gn = half(InterleavedGradientNoise(positionSS, dy));
-        return SSAORandomUV[dx * 20 + dy] + gn;
-    #endif
+    uv += float2(dx, dy);
+    return half(frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453));
 }
 
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex)
 {
-    half index = half(sampleIndex);
-    const half u = GetRandomUVForSSAO(uv, 0.0, index) * half(2.0) - half(1.0);
-    const half theta = GetRandomUVForSSAO(uv, 1.0, index) * half(TWO_PI);
-    half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+    #if defined(_NEW)
+        const half index = half(sampleIndex);
+        const half u = GetRandomUVForSSAO(uv, 0.0, index) * half(2.0) - half(1.0);
+        const half theta = GetRandomUVForSSAO(uv, 1.0, index) * half(TWO_PI);
+        const half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+    #else
+        const float2 positionSS = GetScreenSpacePosition(uv);
+        const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
+
+        const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
+        const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
+
+        const half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+    #endif
+
     return v;
 }
 
 float SampleAndGetLinearEyeDepth(float2 uv)
 {
-    float rawDepth = SampleSceneDepth(uv.xy);
+    const float rawDepth = SampleSceneDepth(uv.xy);
     #if defined(_ORTHOGRAPHIC)
         return LinearDepthToEyeDepth(rawDepth);
     #else
