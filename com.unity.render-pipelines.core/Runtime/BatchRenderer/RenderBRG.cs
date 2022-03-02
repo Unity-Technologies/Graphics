@@ -581,6 +581,7 @@ namespace UnityEngine.Rendering
 
             Assert.IsTrue(cc.cullingSplits.Length <= 6, "RenderBRG supports up to 6 culling splits.");
 
+            
 #if DEBUG_LOG_CULLING
         Debug.Log(
             "[OnPerformCulling] viewType=" + cc.viewType +
@@ -634,7 +635,13 @@ namespace UnityEngine.Rendering
 
             if (cc.viewType == BatchCullingViewType.Light)
             {
-                if (cc.isOrthographic == 1)
+                bool isOrthographic = false;
+                if (cc.cullingSplits.Length > 0)
+                {
+                    Matrix4x4 m = cc.cullingSplits[0].cullingMatrix;
+                    isOrthographic = m[15] == 1.0f && m[11] == 0.0f && m[7] == 0.0f && m[3] == 0.0f;
+                }
+                if (isOrthographic)
                 {
                     Vector3 direction = cc.localToWorldMatrix.GetColumn(2);
 #if DEBUG_LOG_RECEIVER_PLANES
