@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
+        FoveatedRendering = (1 << 31),
     }
 
     [Flags]
@@ -110,6 +111,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendMedium;
         LocalKeyword m_DecalNormalBlendHigh;
         LocalKeyword m_ClusteredRendering;
+        LocalKeyword m_FoveatedRendering;
         LocalKeyword m_EditorVisualization;
 
         LocalKeyword m_LocalDetailMulx2;
@@ -182,6 +184,7 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendMedium);
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
             m_ClusteredRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
+            m_FoveatedRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.FoveatedRendering);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
@@ -458,6 +461,17 @@ namespace UnityEditor.Rendering.Universal
 
             if (stripTool.StripMultiCompile(m_ClusteredRendering, ShaderFeatures.ClusteredRendering))
                 return true;
+
+            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.PS5NGGC || compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.Metal)
+            {
+                if (stripTool.StripMultiCompile(m_FoveatedRendering, ShaderFeatures.FoveatedRendering))
+                    return true;
+            }
+            else
+            {
+                if (compilerData.shaderKeywordSet.IsEnabled(m_FoveatedRendering))
+                    return true;
+            }
 
             // Screen Space Occlusion
             if (IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque))
@@ -1003,7 +1017,10 @@ namespace UnityEditor.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (universalRendererData.xrSystemData != null)
+                        {
                             shaderFeatures |= ShaderFeatures.DrawProcedural;
+                            shaderFeatures |= ShaderFeatures.FoveatedRendering; // expose setting in URP asset ?
+                        }
 #endif
                     }
                 }
