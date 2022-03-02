@@ -6,8 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [14.0.2] - 2021-02-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
+- Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
+- Added Screen Coordinates Override shader utilities.
+- Added API to blend between baking states for Probe Volumes.
+- Aded explicit control over scenario blending factor and a debug mode for visualization.
+
+### Fixed
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
+- Fixed regression on ResourceReloader due to change for supporting built-in resources.
+- Fixed issue with debug markers in Unity Profiler in deep profiler mode
 
 ## [14.0.1] - 2021-12-07
 
@@ -15,13 +25,8 @@ The version number for this package has increased due to a version update of a r
 - Linear version of function that sets FSR RCAS shader constants
 - `DebugUI.ObjectPopupField` to render a list of `UnityEngine.Objects` as a popup on the Rendering Debugger.
 - Add probe volume influence weight parameter
-- Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
 - Added support for multiple Baking States to Prove Volumes.
 - Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
-- Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
-- Added Screen Coordinates Override shader utilities.
-- Added API to blend between baking states for Probe Volumes.
-- Aded explicit control over scenario blending factor and a debug mode for visualization.
 
 ### Changed
 - Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
@@ -35,10 +40,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue with Probe Volume Baking window incorrectly displaying the icon for probe volumes in scenes that don't contain probe volumes.
 - Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
 - Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
-- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
-- Fixed cubemap array macros for GLCore.
-- Fixed regression on ResourceReloader due to change for supporting built-in resources.
-- Fixed issue with debug markers in Unity Profiler in deep profiler mode
 
 ## [14.0.0] - 2021-11-17
 
