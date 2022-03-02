@@ -29,6 +29,7 @@
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 
             // VFX includes
+            ${VFXIncludeRP("VFXLitVaryings.template")}
             ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/RayTracingInputStructure.template")}
             ${VFXHDRPLitVaryingsMacros}
             ${VFXPerPassInclude}
@@ -48,15 +49,12 @@
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/EvaluateRayTracingIndirect.hlsl"
 
-            // Defines for the attributes
-            ${VFXIncludeRP("VFXLitVaryings.template")}
-
             // Graph functions
             ${VFXGeneratedBlockFunction}
 
             // Include to evaluate the material data
             ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/EvaluateMaterialData.template")}
-            
+
             [shader("closesthit")]
             void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
             {
@@ -73,7 +71,7 @@
 
                 // Evaluate the position input
                 PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
-                
+
                 // Output structures
                 SurfaceData surfaceData = (SurfaceData)0;
                 BuiltinData builtinData = (BuiltinData)0;

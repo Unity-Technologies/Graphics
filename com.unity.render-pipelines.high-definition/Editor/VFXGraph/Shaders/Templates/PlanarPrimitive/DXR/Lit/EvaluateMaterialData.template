@@ -1,5 +1,17 @@
-void EvaluateLitMaterialData(in PositionInputs posInput, in AttributeData attributeData, 
-                            out SurfaceData surfaceData, out BuiltinData builtinData, 
+float4 GetScreenSpacePos(float3 posWS)
+{
+    float4 posSS = VFXTransformPositionWorldToClip(posWS);
+    posSS.xyz /= posSS.w;
+    posSS.xy = 0.5f * posSS.xy + 0.5;
+    #if UNITY_UV_STARTS_AT_TOP
+        posSS.y = 1.0 - posSS.y;
+    #endif
+    posSS.xy *= _ScreenSize.xy;
+    return posSS;
+}
+
+void EvaluateLitMaterialData(in PositionInputs posInput, in AttributeData attributeData,
+                            out SurfaceData surfaceData, out BuiltinData builtinData,
                             out BSDFData bsdfData, out PreLightData preLightData,
                             out float velocity)
 {
@@ -24,6 +36,10 @@ void EvaluateLitMaterialData(in PositionInputs posInput, in AttributeData attrib
     ${VFXHDRPLitFillVaryings}
 
     o.VFX_VARYING_UV.xy = attributeData.barycentrics;
+
+    o.VFX_VARYING_POSCS = GetScreenSpacePos(posInput.positionWS);
+    VFXTransformPSInputs(o);
+
     #ifdef VFX_VARYING_BENTFACTORS
         ${VFXLoadParameter:{normalBendingFactor}}
         #define BENT_FACTOR_MULTIPLIER 1.41421353816986083984375f

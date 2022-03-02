@@ -19,9 +19,15 @@ void ClosestHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_R
     rayIntersection.t = RayTCurrent();
 
     // Compute the velocity of the itnersection
-    float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
-    float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
-    rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
+    #ifdef HAVE_VFX_MODIFICATION
+        uint index = PrimitiveIndex() * VFX_RT_DECIMATION_FACTOR;
+        float3 inputVertexPosition = 0.0;
+        rayIntersection.velocity = GetVFXVertexDisplacement(index, posInput.positionWS, inputVertexPosition);
+    #else
+        float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
+        float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
+        rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
+    #endif
 }
 
 // Generic function that handles the reflection code
@@ -30,14 +36,20 @@ void AnyHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_RayPa
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-    // The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
+    #ifdef HAVE_VFX_MODIFICATION
+        IntersectionVertex currentVertex;
+        ZERO_INITIALIZE(IntersectionVertex, currentVertex);
+        FragInputs fragInput;
+        BuildFragInputsFromVFXIntersection(attributeData, fragInput);
+    #else
+        // The first thing that we should do is grab the intersection vertice
+        IntersectionVertex currentVertex;
+        GetCurrentIntersectionVertex(attributeData, currentVertex);
 
-    // Build the Frag inputs from the intersection vertice
-    FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, fragInput);
-
+        // Build the Frag inputs from the intersection vertice
+        FragInputs fragInput;
+        BuildFragInputsFromIntersection(currentVertex, fragInput);
+    #endif
     // Compute the view vector
     float3 viewWS = -WorldRayDirection();
 
@@ -63,9 +75,16 @@ void AnyHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_RayPa
 
 #if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
     // Compute the velocity of the itnersection
-    float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
-    float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
-    rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
+
+    #ifdef HAVE_VFX_MODIFICATION
+        uint index = PrimitiveIndex() * VFX_RT_DECIMATION_FACTOR;
+        float3 inputVertexPosition = 0.0;
+        rayIntersection.velocity = GetVFXVertexDisplacement(index, posInput.positionWS, inputVertexPosition);
+    #else
+        float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
+        float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
+        rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
+    #endif
 
     // Adjust the color based on the transmittance or opacity
     #if HAS_REFRACTION

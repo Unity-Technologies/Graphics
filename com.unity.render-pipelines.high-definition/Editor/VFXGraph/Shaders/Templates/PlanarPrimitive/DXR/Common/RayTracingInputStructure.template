@@ -35,7 +35,8 @@
             #define VFX_VARYING_POSCS pos
             #define VFX_VARYING_UV uv
             #define VFX_VARYING_NORMAL normal
-			${VFXHDRPLitVaryingsMacros}   
+            #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+			${VFXHDRPLitVaryingsMacros}
 
             #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
             #define VFX_VARYING_TANGENT tangent
