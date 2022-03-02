@@ -313,6 +313,9 @@ namespace UnityEditor.ShaderFoundry
             var container = context.Container;
             var uniformName = context.UniformName;
             var displayName = context.DisplayName;
+            var defaultValue = context.DefaultValue;
+            if (defaultValue == null)
+                defaultValue = "\"\" {}";
 
             // Process all layers into a list. If a layer is not specified then it is left as null.
             var layerCount = virtualTextureAttribute.LayerCount;
@@ -346,10 +349,11 @@ namespace UnityEditor.ShaderFoundry
                 var layerTextureName = layerUniformName;
                 var layerSamplerName = $"sampler{layerTextureName}";
                 var layerTextureType = layerInfo[layer]?.TextureType ?? VirtualTextureLayerAttribute.LayerTextureType.Default;
-                var layerDefaultName = layerInfo[layer]?.TextureName ?? "\"\" {}";
+                var layerDefaultTextureName = layerInfo[layer]?.TextureName ?? defaultValue;
 
                 // Declare a property and two uniforms (texture + sampler) per layer
-                result.MaterialPropertyDeclarations.Add(new MaterialPropertyDeclarationData { UniformName = layerUniformName, DisplayName = layerDisplayName, DisplayType = "2D", DefaultValueExpression = layerDefaultName });
+                var slAttributes = new List<string> { $"[TextureStack._VirtualTexture({layer})]", "[NoScaleOffset]" };
+                result.MaterialPropertyDeclarations.Add(new MaterialPropertyDeclarationData { UniformName = layerUniformName, DisplayName = layerDisplayName, DisplayType = "2D", DefaultValueExpression = layerDefaultTextureName, Attributes = slAttributes } );
                 result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = UniformDataSource.Global, Name = layerTextureName, Type = container._Texture2D });
                 result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = UniformDataSource.Global, Name = layerSamplerName, Type = container._SamplerState });
 

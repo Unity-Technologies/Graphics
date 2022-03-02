@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderFoundry
         internal ShaderAttribute Build(ShaderContainer container)
         {
             var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
-            attributeBuilder.Param(new ShaderAttributeParam.Builder(container, null, LayerCount.ToString()).Build());
+            attributeBuilder.Param(new ShaderAttributeParam.Builder(container, LayerCountParamName, LayerCount.ToString()).Build());
             return attributeBuilder.Build();
         }
 
@@ -30,13 +30,13 @@ namespace UnityEditor.ShaderFoundry
         {
             ParameterDescriptions = new List<AttributeParsing.ParameterDescription<VirtualTextureAttribute>>
             {
-                new AttributeParsing.ParameterDescription<VirtualTextureAttribute>(LayerCountParamName, (param, index, target) => AttributeParsing.ParseIntRange(param, index, 0, MaxLayerCount - 1, ref target.LayerCount)),
+                new AttributeParsing.ParameterDescription<VirtualTextureAttribute>(LayerCountParamName, (param, index, target) => AttributeParsing.ParseIntRange(param, index, 0, MaxLayerCount, ref target.LayerCount)),
             },
             UnknownParameterCallback = (param, index, target) =>
             {
                 if (index != 0)
                     ErrorHandling.ReportError($"Attribute {AttributeName} only allows one argument.");
-                AttributeParsing.ParseIntRange(param, index, 0, MaxLayerCount - 1, ref target.LayerCount);
+                AttributeParsing.ParseIntRange(param, index, 0, MaxLayerCount, ref target.LayerCount);
             }
         };
 

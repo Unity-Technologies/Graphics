@@ -9,6 +9,12 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         internal static ShaderContainer CreateContainer()
         {
             var container = new ShaderContainer();
+
+            var builder = new ShaderType.StructBuilder(container, "VTPropertyWithTextureType");
+            builder.DeclaredExternally();
+            builder.AddInclude("Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl");
+            builder.Build();
+
             return container;
         }
 
@@ -40,7 +46,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return shader;
         }
 
-        internal int TestSurfaceBlockIsConstantColor(ShaderContainer container, string shaderName, Block block, Color32 expectedColor, SetupMaterialDelegate setupMaterial = null, int expectedIncorrectPixels = 0, int errorThreshold = 0, bool compareAlpha = true, bool reportArtifacts = true)
+        internal int TestSurfaceBlockIsConstantColor(ShaderContainer container, string shaderName, Block block, Color expectedColor, SetupMaterialDelegate setupMaterial = null, int expectedIncorrectPixels = 0, int errorThreshold = 0, bool compareAlpha = true, bool reportArtifacts = true)
         {
             GraphicsFormat oldFormat = defaultFormat;
             defaultFormat = GraphicsFormat.R32G32B32A32_SFloat;

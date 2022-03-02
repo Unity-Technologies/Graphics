@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     $"ImageComparisonThresholdIgnoresSmallerDifferences_{colorStrings[i]}",
                     expectedColor: colors[i],
                     expectedIncorrectPixels: 0,
-                    errorThreshold: 7,  // error within threshold, no pixels should be detected as incorrect
+                    errorThreshold: 8,  // error within threshold, no pixels should be detected as incorrect
                     setupMaterial: m => m.EnableKeyword(colorStrings[i]),
                     reportArtifacts: false);
             }
