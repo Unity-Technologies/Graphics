@@ -815,7 +815,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int bsdfIdx = 0; bsdfIdx < data.bsdfs.Length; ++bsdfIdx)
                     {
                         // First of all filter this cubemap using the target filter
-                        data.bsdfs[bsdfIdx].FilterCubemap(ctx.cmd, data.input, data.intermediateTexture);
+                        data.bsdfs[bsdfIdx].FilterCubemap(ctx.cmd, data.input, data.intermediateTexture, 0);
                         // Then copy it to the cubemap array slice
                         for (int i = 0; i < 6; ++i)
                         {

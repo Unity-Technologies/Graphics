@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty pointCookieSize;
 #endif
         public SerializedProperty reflectionProbeCacheSize;
-        public SerializedProperty reflectionCubemapSize;
+        public SerializedProperty reflectionProbeResolution;
         public SerializedProperty reflectionCacheCompressed;
         public SerializedProperty reflectionProbeFormat;
         public SerializedProperty reflectionProbeAtlasSize;
@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
-            reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
+            reflectionProbeResolution = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeResolution);
             reflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.reflectionCacheCompressed);
             reflectionProbeFormat = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeFormat);
             reflectionProbeAtlasSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeAtlasSize);

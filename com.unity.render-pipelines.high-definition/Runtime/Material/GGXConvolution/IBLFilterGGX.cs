@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void FilterCubemapCommon(CommandBuffer cmd,
             Texture source, RenderTexture target,
-            Matrix4x4[] worldToViewMatrices)
+            Matrix4x4[] worldToViewMatrices, int targetSlice)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FilterCubemapGGX)))
             {
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Copy the first mip
                 for (int f = 0; f < 6; f++)
                 {
-                    cmd.CopyTexture(source, f, 0, target, f, 0);
+                    cmd.CopyTexture(source, f, 0, target, targetSlice * 6 + f, 0);
                 }
 
                 // Solid angle associated with a texel of the cubemap.
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_MaterialPropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 
-                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
+                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, Color.black, mip, depthSlice: targetSlice * 6 + face);
                         CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, m_MaterialPropertyBlock);
                     }
                 }
@@ -183,12 +183,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_convolveMaterial.SetTexture("_ConditionalDensities", conditionalCdf);
             m_convolveMaterial.SetTexture("_MarginalRowDensities", marginalRowCdf);
 
-            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
+            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices, 0);
         }
 
-        override public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target)
+        override public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target, int targetSlice)
         {
-            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
+            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices, targetSlice);
         }
 
         void CheckIntermediateTexturesSize(int texWidth, int texHeight)

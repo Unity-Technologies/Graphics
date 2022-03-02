@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         abstract public void Cleanup();
 
         // Filters MIP map levels (other than 0) with GGX using BRDF importance sampling.
-        abstract public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target);
+        abstract public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target, int targetSlice);
 
         internal struct PlanarTextureFilteringParameters
         {

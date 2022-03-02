@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportCustomPass;
         public SerializedProperty customBufferFormat;
         public SerializedScalableSetting planarReflectionResolution;
+        public SerializedScalableSetting cubeReflectionResolution;
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
         public SerializedProperty supportSurfaceGradient;
@@ -97,6 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportCustomPass = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
             planarReflectionResolution = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.planarReflectionResolution));
+            cubeReflectionResolution = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.cubeReflectionResolution));
 
             supportDecals = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportDecalLayers = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);

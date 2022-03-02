@@ -517,7 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material debugBlitMaterial;
         }
 
-        void RenderAtlasDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, Texture atlas, int mipLevel, bool applyExposure, string passName, HDProfileId profileID)
+        void RenderAtlasDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, Texture atlas, int slice, int mipLevel, bool applyExposure, string passName, HDProfileId profileID)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAtlasDebugOverlayPassData>(passName, out var passData, ProfilingSampler.Get(profileID)))
             {
@@ -534,8 +534,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         mpb.SetFloat(HDShaderIDs._ApplyExposure, applyExposure ? 1.0f : 0.0f);
                         mpb.SetFloat(HDShaderIDs._Mipmap, data.mipLevel);
-                        mpb.SetTexture(HDShaderIDs._InputTexture, data.atlasTexture);
                         data.debugOverlay.SetViewport(ctx.cmd);
+                        if(data.atlasTexture.dimension == TextureDimension.Tex2DArray)
+                        {
+                            mpb.SetInt("_ArrayIndex", slice);
+                            mpb.SetTexture("_InputTextureArray", data.atlasTexture);
+                        }
+                        else
+                        {
+                            mpb.SetInt("_ArrayIndex", -1);
+                            mpb.SetTexture(HDShaderIDs._InputTexture, data.atlasTexture);
+                        }
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
                         data.debugOverlay.Next();
                     });
@@ -842,13 +851,13 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderRayCountOverlay(renderGraph, hdCamera, colorBuffer, depthBuffer, rayCountTexture);
 
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayCookieAtlas)
-                RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.lightCookieManager.atlasTexture, (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.cookieAtlasMipLevel, applyExposure: false, "RenderCookieAtlasOverlay", HDProfileId.DisplayCookieAtlas);
+                RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.lightCookieManager.atlasTexture, 0, (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.cookieAtlasMipLevel, applyExposure: false, "RenderCookieAtlasOverlay", HDProfileId.DisplayCookieAtlas);
 
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayPlanarReflectionProbeAtlas)
-                RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache(), (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.planarReflectionProbeMipLevel, applyExposure: true, "RenderPlanarProbeAtlasOverlay", HDProfileId.DisplayPlanarReflectionProbeAtlas);
+                RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache(), 0, (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.planarReflectionProbeMipLevel, applyExposure: true, "RenderPlanarProbeAtlasOverlay", HDProfileId.DisplayPlanarReflectionProbeAtlas);
 
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayReflectionProbeAtlas)
-                RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionProbeCache2D.GetTexCache(), (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.reflectionProbeMipLevel, applyExposure: true, "RenderReflectionProbeAtlasOverlay", HDProfileId.DisplayReflectionProbeAtlas);
+                RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionProbeCache2D.GetTexCache(), (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.reflectionProbeSlice, (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.reflectionProbeMipLevel, applyExposure: true, "RenderReflectionProbeAtlasOverlay", HDProfileId.DisplayReflectionProbeAtlas);
 
             RenderLocalVolumetricFogAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer);
             RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);

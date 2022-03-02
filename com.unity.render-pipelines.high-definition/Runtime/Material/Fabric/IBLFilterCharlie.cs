@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void FilterCubemapCommon(CommandBuffer cmd,
             Texture source, RenderTexture target,
-            Matrix4x4[] worldToViewMatrices)
+            Matrix4x4[] worldToViewMatrices, int targetSlice)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FilterCubemapCharlie)))
             {
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Copy the first mip
                 for (int f = 0; f < 6; f++)
                 {
-                    cmd.CopyTexture(source, f, 0, target, f, 0);
+                    cmd.CopyTexture(source, f, 0, target, targetSlice * 6 + f, 0);
                 }
 
                 var props = new MaterialPropertyBlock();
@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float invFaceCenterTexelSolidAngle = 1.0f / (((4.0f * Mathf.PI) / 6.0f) * 4.0f / (3.173436852f * source.width * source.width)); // inverse of the solid angle of the face center texel
                 props.SetFloat("_InvFaceCenterTexelSolidAngle", invFaceCenterTexelSolidAngle);
 
+                //@ Should be 1?
                 for (int mip = 0; mip < (int)EnvConstants.ConvolutionMipCount; ++mip)
                 {
                     props.SetFloat("_Level", mip);
@@ -72,16 +73,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 
-                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
+                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, Color.black, mip, depthSlice: targetSlice * 6 + face);
                         CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
                     }
                 }
             }
         }
 
-        override public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target)
+        override public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target, int targetSlice)
         {
-            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
+            FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices, targetSlice);
         }
 
         public override void FilterCubemapMIS(CommandBuffer cmd, Texture source, RenderTexture target, RenderTexture conditionalCdf, RenderTexture marginalRowCdf)

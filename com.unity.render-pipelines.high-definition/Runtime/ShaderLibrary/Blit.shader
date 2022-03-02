@@ -252,6 +252,17 @@ Shader "Hidden/HDRP/Blit"
                 #pragma fragment FragBilinearRedToRGBA
             ENDHLSL
         }
+
+        // 21. Project CubeArray slice to Octahedral 2d quad
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragOctahedralProjectArraySlice
+            ENDHLSL
+        }
     }
 
     Fallback Off

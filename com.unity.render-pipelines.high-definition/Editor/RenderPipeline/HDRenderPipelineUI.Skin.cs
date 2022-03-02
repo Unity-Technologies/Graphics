@@ -126,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportShadowMaskContent = EditorGUIUtility.TrTextContent("Shadowmask", "When enabled, HDRP allocates Shader variants and memory for processing shadow masks. This allows you to use shadow masks in your Unity Project.");
             public static readonly GUIContent supportSSRContent = EditorGUIUtility.TrTextContent("Screen Space Reflection", "When enabled, HDRP allocates memory for processing screen space reflection (SSR). This allows you to use SSR in your Unity Project.");
             public static readonly GUIContent planarResolutionTitle = EditorGUIUtility.TrTextContent("Planar Resolution Tiers");
+            public static readonly GUIContent reflectionCubemapResolutionTiersTitle = EditorGUIUtility.TrTextContent("Reflection Probe Resolution Tiers");
             public static readonly GUIContent supportSSRTransparentContent = EditorGUIUtility.TrTextContent("Transparent", "When enabled, HDRP executes additional steps to achieve screen space reflection (SSR) on transparent objects. This feature requires both screen space reflections and transparent depth prepass to be enabled.");
             public static readonly GUIContent supportSSAOContent = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion", "When enabled, HDRP allocates memory for processing screen space ambient occlusion (SSAO). This allows you to use SSAO in your Unity Project.");
             public static readonly GUIContent supportSSGIContent = EditorGUIUtility.TrTextContent("Screen Space Global Illumination", "When enabled, HDRP allocates memory for processing screen space global illumination (SSGI). This allows you to use SSGI in your Unity Project.");
@@ -184,11 +185,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent cookieAtlasFormatContent = EditorGUIUtility.TrTextContent("Format", "Specifies the HDR format of the atlas used for 2D cookies. R16G16B16A16 can be use for EXR cookies (it provides more precision than R11G11B10)");
             public static readonly GUIContent cookieAtlasLastValidMipContent = EditorGUIUtility.TrTextContent("2D Atlas Last Valid Mip", "Apply border when the cookie is copied into the atlas. It avoid the cookie border to be clamped when sampling mips but can intoduce some blurriness.");
 
-            public static readonly GUIContent compressProbeCacheContent = EditorGUIUtility.TrTextContent("Compress Reflection Probe Cache", "When enabled, HDRP compresses the Reflection Probe cache to save disk space.");
-            public static readonly GUIContent cubemapSizeContent = EditorGUIUtility.TrTextContent("Reflection Cubemap Size", "Specifies the maximum resolution of the individual Reflection Probe cube maps.");
+            public static readonly GUIContent compressReflectionProbeCacheContent = EditorGUIUtility.TrTextContent("Compress Reflection Probe Cache", "When enabled, HDRP compresses the Reflection Probe cache to save disk space.");
+            public static readonly GUIContent reflectionCubemapResolutionContent = EditorGUIUtility.TrTextContent("Reflection Probe Resolution", "Specifies the maximum resolution of the individual Reflection Probe cube maps.");
             public static readonly GUIContent probeCacheSizeContent = EditorGUIUtility.TrTextContent("Probe Cache Size", "Sets the maximum size of the Probe Cache.");
             public static readonly GUIContent reflectionProbeFormatContent = EditorGUIUtility.TrTextContent("Reflection and Planar Probes Format", "Color format used for reflection and planar probes. Keep in mind that probes are not pre-exposed when selecting the format.");
-            public static readonly GUIContent reflectionProbeAtlasSizeContent = EditorGUIUtility.TrTextContent("Reflection Probe Atlas Size", "Specifies the resolution of Reflection Probes Atlas.");
+            public static readonly GUIContent reflectionProbeCacheSizeContent = EditorGUIUtility.TrTextContent("Reflection Probe Cache Size", "Specifies the resolution of Reflection Probes Atlas.");
 
             public static readonly GUIContent compressPlanarProbeCacheContent = EditorGUIUtility.TrTextContent("Compress Planar Reflection Probe Cache", "When enabled, HDRP compresses the Planar Reflection Probe cache to save disk space.");
             public static readonly GUIContent planarTextureSizeContent = EditorGUIUtility.TrTextContent("Planar Reflection Texture Size", "Specifies the maximum resolution of Planar Reflection Textures.");

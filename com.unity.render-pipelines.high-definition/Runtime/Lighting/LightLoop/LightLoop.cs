@@ -357,11 +357,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    probeCacheFormat = GraphicsFormat.RGB_BC6H_SFloat;
                 //}
 
-                int reflectionCubeSize = lightLoopSettings.reflectionProbeCacheSize;
-                int reflectionCubeResolution = (int)lightLoopSettings.reflectionCubemapSize;
-                if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionCubeSize, reflectionCubeResolution, iBLFilterBSDFArray.Length) > k_MaxCacheSize)
-                    reflectionCubeSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionCubeResolution, iBLFilterBSDFArray.Length);
-                reflectionProbeCache = new ReflectionProbeCache(defaultResources, iBLFilterBSDFArray, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
+                int reflectionProbeCacheSize = lightLoopSettings.reflectionProbeCacheSize;
+                int reflectionProbeResolution = (int)lightLoopSettings.reflectionProbeResolution;
+                if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionProbeCacheSize, reflectionProbeResolution, iBLFilterBSDFArray.Length) > k_MaxCacheSize)
+                    reflectionProbeCacheSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionProbeResolution, iBLFilterBSDFArray.Length);
+                reflectionProbeCache = new ReflectionProbeCache(defaultResources, iBLFilterBSDFArray, reflectionProbeCacheSize, reflectionProbeResolution, probeCacheFormat, true);
 
                 //@ Validate that it fits. See above.
                 int reflectionAtlasSize = (int)lightLoopSettings.reflectionProbeAtlasSize;

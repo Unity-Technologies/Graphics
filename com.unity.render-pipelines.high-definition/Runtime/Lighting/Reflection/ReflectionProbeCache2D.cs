@@ -25,17 +25,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ReflectionProbeCache2D(HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFiltersBSDF, int resolution, GraphicsFormat format)
         {
-            Debug.Assert(format == GraphicsFormat.RGB_BC6H_SFloat || format == GraphicsFormat.B10G11R11_UFloatPack32 || format == GraphicsFormat.R16G16B16A16_SFloat,
-                "Reflection Probe Cache format for HDRP can only be BC6H, FP16 or R11G11B10.");
+            Debug.Assert(format == GraphicsFormat.B10G11R11_UFloatPack32 || format == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be FP16 or R11G11B10.");
 
             m_IBLFiltersBSDF = iblFiltersBSDF;
             m_Resolution = resolution;
             m_Format = format;
 
-
             //@ Real size must be larger as octahedral area must be equal to cube map area.
             int mipPadding = 0;
-            m_TextureAtlas = new PowerOfTwoTextureAtlas(resolution, mipPadding, format, FilterMode.Trilinear, "ReflectionProbeCache2D Atlas", true);
+            m_TextureAtlas = new PowerOfTwoTextureAtlas(resolution, mipPadding, format, FilterMode.Trilinear, "ReflectionProbeCache2D Atlas", true, m_IBLFiltersBSDF.Length);
 
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
         }
@@ -79,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Debug.Assert((renderTexture && renderTexture.dimension == TextureDimension.Cube) || cubemap);
 
-            RenderTexture convolvedTextureTemp;
+            RenderTexture convolvedTextureArrayTemp;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConvolveReflectionProbe)))
             {
@@ -119,21 +117,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     texture = convertedTextureTemp;
                 }
 
-                convolvedTextureTemp = RenderTexture.GetTemporary(texture.width, texture.height, 1, m_Format);
-                convolvedTextureTemp.hideFlags = HideFlags.HideAndDontSave;
-                convolvedTextureTemp.dimension = TextureDimension.Cube;
-                convolvedTextureTemp.useMipMap = true;
-                convolvedTextureTemp.autoGenerateMips = false;
-                convolvedTextureTemp.name = CoreUtils.GetRenderTargetAutoName(texture.width, texture.height, 1, m_Format, "ConvolvedReflectionProbeTemp", mips: true);
-                convolvedTextureTemp.Create();
+                convolvedTextureArrayTemp = RenderTexture.GetTemporary(texture.width, texture.height, 0, m_Format);
+                convolvedTextureArrayTemp.hideFlags = HideFlags.HideAndDontSave;
+                convolvedTextureArrayTemp.volumeDepth = 6 * m_IBLFiltersBSDF.Length;
+                convolvedTextureArrayTemp.dimension = TextureDimension.CubeArray;
+                convolvedTextureArrayTemp.useMipMap = true;
+                convolvedTextureArrayTemp.autoGenerateMips = false;
+                convolvedTextureArrayTemp.anisoLevel = 0;
+                convolvedTextureArrayTemp.name = CoreUtils.GetRenderTargetAutoName(texture.width, texture.height, 1, m_Format, "ConvolvedReflectionProbeTemp", mips: true);
+                convolvedTextureArrayTemp.Create();
 
-                //@ All filters 
-                m_IBLFiltersBSDF[0].FilterCubemap(cmd, texture, convolvedTextureTemp);
+                for (int filterIndex = 0; filterIndex < m_IBLFiltersBSDF.Length; ++filterIndex)
+                    m_IBLFiltersBSDF[filterIndex].FilterCubemap(cmd, texture, convolvedTextureArrayTemp, filterIndex);
 
                 RenderTexture.ReleaseTemporary(convertedTextureTemp);
             }
 
-            return convolvedTextureTemp;
+            return convolvedTextureArrayTemp;
         }
 
         private bool TryAllocateTextureWithoutBlit(int textureId, int width, int height, ref Vector4 scaleOffset)
@@ -187,17 +187,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateReflectionProbeAtlas)))
             {
-                RenderTexture convolvedTextureTemp = ConvolveProbeTexture(cmd, texture);
+                RenderTexture convolvedTextureArrayTemp = ConvolveProbeTexture(cmd, texture);
 
-                if (convolvedTextureTemp == null)
+                if (convolvedTextureArrayTemp == null)
                     return false;
-
-                //@ Add compression
-                //@ Get octahedral 2D texture and convert it in BC6H the same way as in EncodeBC6H.DefaultInstance.EncodeFastCubemap
-                if (m_Format == GraphicsFormat.RGB_BC6H_SFloat)
-                {
-                    Debug.Assert(false, "Not supported for now.");
-                }
 
                 bool success = true;
 
@@ -206,17 +199,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_TextureAtlas.IsCached(out scaleOffset, textureId))
                 {
                     if (m_TextureAtlas.NeedsUpdate(texture, false))
-                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureTemp, true, textureId);
+                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
                 }
                 else
                 {
-                    if (TryAllocateTextureWithoutBlit(textureId, convolvedTextureTemp.width, convolvedTextureTemp.height, ref scaleOffset))
-                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureTemp, true, textureId);
+                    if (TryAllocateTextureWithoutBlit(textureId, convolvedTextureArrayTemp.width, convolvedTextureArrayTemp.height, ref scaleOffset))
+                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
                     else
                         success = false;
                 }
 
-                RenderTexture.ReleaseTemporary(convolvedTextureTemp);
+                RenderTexture.ReleaseTemporary(convolvedTextureArrayTemp);
 
                 return success;
             }

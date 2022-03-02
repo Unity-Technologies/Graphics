@@ -28,12 +28,14 @@ namespace UnityEngine.Rendering
         {
             public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
             public static readonly int _BlitCubeTexture = Shader.PropertyToID("_BlitCubeTexture");
+            public static readonly int _BlitCubeTextureArray = Shader.PropertyToID("_BlitCubeTextureArray");
             public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
             public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
             public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
             public static readonly int _BlitTextureSize = Shader.PropertyToID("_BlitTextureSize");
             public static readonly int _BlitPaddingSize = Shader.PropertyToID("_BlitPaddingSize");
             public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
+            public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
         }
 
         /// <summary>
@@ -455,6 +457,16 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             DrawQuad(cmd, GetBlitMaterial(source.dimension), 14);
+        }
+
+        public static void BlitCubeArraySliceToOctahedral2DQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasRT, int mipLevelTex, int slice)
+        {
+            s_PropertyBlock.SetTexture(BlitShaderIDs._BlitCubeTextureArray, source);
+            s_PropertyBlock.SetInt(BlitShaderIDs._BlitTexArraySlice, slice);
+            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), 21);
         }
 
         /// <summary>

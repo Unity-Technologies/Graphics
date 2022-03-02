@@ -109,9 +109,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
-                cubeReflectionResolution = new CubeReflectionResolutionScalableSetting(new[] { CubeReflectionResolution.CubeReflectionResolution128,
-                                                                                               CubeReflectionResolution.CubeReflectionResolution256,
-                                                                                               CubeReflectionResolution.CubeReflectionResolution512 }, ScalableSettingSchemaId.With3Levels),
+                cubeReflectionResolution = new ReflectionProbeResolutionScalableSetting(new[] { ReflectionProbeResolution.ReflectionProbeResolution128, 
+                                                                                               ReflectionProbeResolution.ReflectionProbeResolution256,
+                                                                                               ReflectionProbeResolution.ReflectionProbeResolution512 }, ScalableSettingSchemaId.With3Levels),
                 lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
                 hdShadowInitParams = HDShadowInitParameters.NewDefault(),
                 decalSettings = GlobalDecalSettings.NewDefault(),
@@ -169,14 +169,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [Serializable]
-        public class CubeReflectionResolutionScalableSetting : ScalableSetting<CubeReflectionResolution>
+        public class ReflectionProbeResolutionScalableSetting : ScalableSetting<ReflectionProbeResolution>
         {
             /// <summary>
-            /// Instantiate a new CubeReflectionResolution scalable setting.
+            /// Instantiate a new ReflectionProbeResolution scalable setting.
             /// </summary>
             /// <param name="values">The values of the settings</param>
             /// <param name="schemaId">The schema of the setting.</param>
-            public CubeReflectionResolutionScalableSetting(CubeReflectionResolution[] values, ScalableSettingSchemaId schemaId)
+            public ReflectionProbeResolutionScalableSetting(ReflectionProbeResolution[] values, ScalableSettingSchemaId schemaId)
                 : base(values, schemaId)
             {
             }
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public SupportedLitShaderMode supportedLitShaderMode;
         /// <summary></summary>
         public PlanarReflectionAtlasResolutionScalableSetting planarReflectionResolution;
-        public CubeReflectionResolutionScalableSetting cubeReflectionResolution;
+        public ReflectionProbeResolutionScalableSetting cubeReflectionResolution;
         // Engine
         /// <summary>Support decals.</summary>
         public bool supportDecals;

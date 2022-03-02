@@ -95,8 +95,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (((int)ProbeSettingsFields.cubeResolution & (int)displayedFields.probe) != 0)
             {
                 var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.cubeReflectionResolution;
-                serialized.cubeResolution.LevelAndEnumGUILayout<CubeReflectionResolution>(
-                    EditorGUIUtility.TrTextContent("Cube Resolution", "Sets the resolution for the reflection probe camera."), scalableSetting, null
+                serialized.cubeResolution.LevelAndEnumGUILayout<ReflectionProbeResolution>(
+                    EditorGUIUtility.TrTextContent("Reflection Probe Resolution", "Sets the resolution for the reflection probe camera."), scalableSetting, null
                 );
             }
 

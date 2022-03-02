@@ -7,6 +7,7 @@
 
 TEXTURE2D_X(_BlitTexture);
 TEXTURECUBE(_BlitCubeTexture);
+TEXTURECUBE_ARRAY(_BlitCubeTextureArray);
 SamplerState sampler_PointClamp;
 SamplerState sampler_LinearClamp;
 SamplerState sampler_PointRepeat;
@@ -182,6 +183,14 @@ float4 FragOctahedralProject(Varyings input) : SV_Target
     float2 UV = saturate(input.texcoord);
     float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
     return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
+}
+
+float4 FragOctahedralProjectArraySlice(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 UV = saturate(input.texcoord);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f * UV - 1.0f);
+    return float4(SAMPLE_TEXTURECUBE_ARRAY_LOD(_BlitCubeTextureArray, sampler_LinearRepeat, dir, _BlitTexArraySlice, _BlitMipLevel).rgb, 1);
 }
 
 // 8-bit single channel sampling/format conversions

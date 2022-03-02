@@ -12,35 +12,35 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for the cubemap texture size used for reflection probes.
     /// </summary>
     [Serializable]
-    public enum CubeReflectionResolution
+    public enum ReflectionProbeResolution
     {
         /// <summary>Size 128</summary>
-        CubeReflectionResolution128 = 128,
+        ReflectionProbeResolution128 = 128,
         /// <summary>Size 256</summary>
-        CubeReflectionResolution256 = 256,
+        ReflectionProbeResolution256 = 256,
         /// <summary>Size 512</summary>
-        CubeReflectionResolution512 = 512,
+        ReflectionProbeResolution512 = 512,
         /// <summary>Size 1024</summary>
-        CubeReflectionResolution1024 = 1024,
+        ReflectionProbeResolution1024 = 1024,
         /// <summary>Size 2048</summary>
-        CubeReflectionResolution2048 = 2048,
+        ReflectionProbeResolution2048 = 2048,
         /// <summary>Size 4096</summary>
-        CubeReflectionResolution4096 = 4096
+        ReflectionProbeResolution4096 = 4096
     }
 
     [Serializable]
-    public enum ReflectionAtlasSize
+    public enum ReflectionProbeCacheSize
     {
         /// <summary>Size 512</summary>
-        ReflectionAtlasSize512 = 512,
+        ReflectionProbeCacheSize512 = 512,
         /// <summary>Size 1024</summary>
-        ReflectionAtlasSize1024 = 1024,
+        ReflectionProbeCacheSize1024 = 1024,
         /// <summary>Size 2048</summary>
-        ReflectionAtlasSize2048 = 2048,
+        ReflectionProbeCacheSize2048 = 2048,
         /// <summary>Size 4096</summary>
-        ReflectionAtlasSize4096 = 4096,
-        /// <summary>Size 4096</summary>
-        ReflectionAtlasSize8192 = 8192
+        ReflectionProbeCacheSize4096 = 4096,
+        /// <summary>Size 8192</summary>
+        ReflectionProbeCacheSize8192 = 8192
     }
 
     /// <summary>
@@ -171,9 +171,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             planarReflectionAtlasSize = PlanarReflectionAtlasResolution.Resolution1024,
             reflectionProbeCacheSize = 64,
-            reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
+            reflectionProbeResolution = ReflectionProbeResolution.ReflectionProbeResolution256,
             reflectionProbeFormat = ReflectionAndPlanarProbeFormat.R11G11B10,
-            reflectionProbeAtlasSize = ReflectionAtlasSize.ReflectionAtlasSize2048,
+            reflectionProbeAtlasSize = ReflectionProbeCacheSize.ReflectionProbeCacheSize2048,
 
             skyReflectionSize = SkyResolution.SkyResolution256,
             skyLightingOverrideLayerMask = 0,
@@ -211,12 +211,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of cached reflection probes.</summary>
         public int reflectionProbeCacheSize;
         /// <summary>Reflection probes resolution.</summary>
-        public CubeReflectionResolution reflectionCubemapSize;
+        public ReflectionProbeResolution reflectionProbeResolution;
         /// <summary>Enable reflection probe cache compression.</summary>
         public bool reflectionCacheCompressed;
         /// <summary>Reflection probes resolution.</summary>
         public ReflectionAndPlanarProbeFormat reflectionProbeFormat;
-        public ReflectionAtlasSize reflectionProbeAtlasSize;
+        public ReflectionProbeCacheSize reflectionProbeAtlasSize;
 
         /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;

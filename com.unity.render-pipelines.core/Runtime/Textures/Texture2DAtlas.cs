@@ -152,6 +152,7 @@ namespace UnityEngine.Rendering
             CubeTo2DOctahedral,
             SingleChannel,
             CubeTo2DOctahedralSingleChannel,
+            CubeArrayTo2DOctahedral,
         }
 
         /// <summary>
@@ -182,6 +183,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Format of the atlas.
         /// </summary>
+
+        private protected int m_ArraySize;
+
         private protected GraphicsFormat m_Format;
         /// <summary>
         /// Atlas uses mip maps.
@@ -224,15 +228,18 @@ namespace UnityEngine.Rendering
         /// <param name="powerOfTwoPadding">Power of two padding.</param>
         /// <param name="name">Name of the atlas</param>
         /// <param name="useMipMap">Use mip maps</param>
-        public Texture2DAtlas(int width, int height, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false, string name = "", bool useMipMap = true)
+        public Texture2DAtlas(int width, int height, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false, string name = "", bool useMipMap = true, int arraySize = 1)
         {
             m_Width = width;
             m_Height = height;
+            m_ArraySize = arraySize;
             m_Format = format;
             m_UseMipMaps = useMipMap;
             m_AtlasTexture = RTHandles.Alloc(
                 width: m_Width,
                 height: m_Height,
+                slices: m_ArraySize,
+                dimension: m_ArraySize > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
                 filterMode: filterMode,
                 colorFormat: m_Format,
                 wrapMode: TextureWrapMode.Clamp,
@@ -244,10 +251,14 @@ namespace UnityEngine.Rendering
 
             // We clear on create to avoid garbage data to be present in the atlas
             int mipCount = useMipMap ? GetTextureMipmapCount(m_Width, m_Height) : 1;
-            for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+
+            for(int arrayIdx = 0; arrayIdx < m_ArraySize; ++arrayIdx)
             {
-                Graphics.SetRenderTarget(m_AtlasTexture, mipIdx);
-                GL.Clear(false, true, Color.clear);
+                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+                {
+                    Graphics.SetRenderTarget(m_AtlasTexture, mipIdx, CubemapFace.Unknown, arrayIdx);
+                    GL.Clear(false, true, Color.clear);
+                }
             }
 
             m_AtlasAllocator = new AtlasAllocator(width, height, powerOfTwoPadding);
@@ -282,10 +293,13 @@ namespace UnityEngine.Rendering
             int mipCount = (m_UseMipMaps) ? GetTextureMipmapCount(m_Width, m_Height) : 1;
 
             // clear the atlas by blitting a black texture at every mips
-            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            for (int arrayIdx = 0; arrayIdx < m_ArraySize; ++arrayIdx)
             {
-                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                Blitter.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel, CubemapFace.Unknown, arrayIdx);
+                    Blitter.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
+                }
             }
 
             m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
@@ -316,7 +330,7 @@ namespace UnityEngine.Rendering
         {
             RenderTexture rt = texture as RenderTexture;
 
-            return (texture is Texture2D || rt?.dimension == TextureDimension.Tex2D);
+            return (texture is Texture2D || rt?.dimension == TextureDimension.Tex2D || rt?.dimension == TextureDimension.Tex2DArray);
         }
 
         /// <summary>
@@ -360,15 +374,29 @@ namespace UnityEngine.Rendering
             if (!blitMips)
                 mipCount = 1;
 
-            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            if(blitType == BlitType.CubeArrayTo2DOctahedral)
             {
-                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                switch (blitType)
+                for (int arrayIdx = 0; arrayIdx < m_ArraySize; ++arrayIdx)
                 {
-                    case BlitType.Default: Blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true); break;
-                    case BlitType.CubeTo2DOctahedral: Blitter.BlitCubeToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel); break;
-                    case BlitType.SingleChannel: Blitter.BlitQuadSingleChannel(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel); break;
-                    case BlitType.CubeTo2DOctahedralSingleChannel: Blitter.BlitCubeToOctahedral2DQuadSingleChannel(cmd, texture, scaleOffset, mipLevel); break;
+                    for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                    {
+                        cmd.SetRenderTarget(m_AtlasTexture, mipLevel, CubemapFace.Unknown, arrayIdx);
+                        Blitter.BlitCubeArraySliceToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel, arrayIdx);
+                    }
+                }
+            }
+            else
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel, CubemapFace.Unknown, 0);
+                    switch (blitType)
+                    {
+                        case BlitType.Default: Blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true); break;
+                        case BlitType.CubeTo2DOctahedral: Blitter.BlitCubeToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel); break;
+                        case BlitType.SingleChannel: Blitter.BlitQuadSingleChannel(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel); break;
+                        case BlitType.CubeTo2DOctahedralSingleChannel: Blitter.BlitCubeToOctahedral2DQuadSingleChannel(cmd, texture, scaleOffset, mipLevel); break;
+                    }
                 }
             }
         }
@@ -439,14 +467,17 @@ namespace UnityEngine.Rendering
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
         public virtual void BlitCubeTexture2D(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true, int overrideInstanceID = -1)
         {
-            Debug.Assert(texture.dimension == TextureDimension.Cube);
+            Debug.Assert(texture.dimension == TextureDimension.Cube || texture.dimension == TextureDimension.CubeArray);
 
             // This atlas only support 2D texture so we map Cube into set of 2D textures
-            if (texture.dimension == TextureDimension.Cube)
+            if (texture.dimension == TextureDimension.Cube || texture.dimension == TextureDimension.CubeArray)
             {
                 BlitType blitType = BlitType.CubeTo2DOctahedral;
                 if (IsSingleChannelBlit(texture, m_AtlasTexture.m_RT))
                     blitType = BlitType.CubeTo2DOctahedralSingleChannel;
+
+                if (texture.dimension == TextureDimension.CubeArray)
+                    blitType = BlitType.CubeArrayTo2DOctahedral;
 
                 // By default blit cube into a single octahedral 2D texture quad
                 Blit2DTexture(cmd, scaleOffset, texture, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), blitMips, blitType);

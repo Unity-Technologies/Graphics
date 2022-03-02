@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public CubeReflectionResolution cubeResolution
+        public ReflectionProbeResolution cubeResolution
         {
             get
             {

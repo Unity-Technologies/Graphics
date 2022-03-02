@@ -160,8 +160,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
                 float2 atlasCoords = texCoordOct;// RemapUVForPlanarAtlas(texCoordOct, scale, lod);
                 atlasCoords = atlasCoords * scale + offset;
 
-                color.rgb = SAMPLE_TEXTURE2D_LOD(_EnvOctahedralTextures, s_trilinear_clamp_sampler, atlasCoords, lod).rgb;
+                color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_EnvOctahedralTextures, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
             #else
+                //@ is _EnvSliceSize needed?
                 color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
             #endif
         }

@@ -369,6 +369,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool displayReflectionProbeAtlas = false;
         /// <summary>Mip level of the reflection probe atlas display.</summary>
         public uint reflectionProbeMipLevel = 0;
+        /// <summary>Slice of the reflection probe atlas display.</summary>
+        public uint reflectionProbeSlice = 0;
         /// <summary>Clear reflection probe atlas each frame.</summary>
         public bool clearReflectionProbeAtlas = false;
 

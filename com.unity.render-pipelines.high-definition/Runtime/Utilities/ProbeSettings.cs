@@ -224,11 +224,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [Serializable]
-        public class CubeReflectionResolutionScalableSettingValue : ScalableSettingValue<CubeReflectionResolution>
+        public class CubeReflectionResolutionScalableSettingValue : ScalableSettingValue<ReflectionProbeResolution>
         {
         }
 
-        public const CubeReflectionResolution k_DefaultCubeResolution = CubeReflectionResolution.CubeReflectionResolution256;
+        public const ReflectionProbeResolution k_DefaultCubeResolution = ReflectionProbeResolution.ReflectionProbeResolution256;
 
         /// <summary>Default value.</summary>
         [Obsolete("Since 2019.3, use ProbeSettings.NewDefault() instead.")]
@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             h2 = cameraSettings.GetHash();
             HashUtilities.AppendHash(ref h2, ref h);
 
-            CubeReflectionResolution cubeReflectionRes = k_DefaultCubeResolution;
+            ReflectionProbeResolution cubeReflectionRes = k_DefaultCubeResolution;
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdrp != null)
                 cubeReflectionRes = cubeResolution.Value(hdrp.asset.currentPlatformRenderPipelineSettings.cubeReflectionResolution);

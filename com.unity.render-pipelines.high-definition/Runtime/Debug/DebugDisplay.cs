@@ -1316,6 +1316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reflection probe atlas
             public static readonly NameAndTooltip DisplayReflectionProbeAtlas = new() { name = "Display Reflection Probe Atlas", tooltip = "Enable the checkbox to display an overlay of the reflection probe atlas." };
             public static readonly NameAndTooltip ReflectionProbeAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the reflection probe atlas." };
+            public static readonly NameAndTooltip ReflectionProbeAtlasSlice = new() { name = "Slice", tooltip = "Use the slider to set the slice of the reflection probe atlas." };
             public static readonly NameAndTooltip ClearReflectionProbeAtlas = new() { name = "Clear Reflection Probe Atlas", tooltip = "Enable to clear the reflection probe atlas at each frame." };
 
             // Volumetric fog atlas
@@ -1728,6 +1729,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     children =
                     {
+                        new DebugUI.UIntField { nameAndTooltip = LightingStrings.ReflectionProbeAtlasSlice, getter = () => data.lightingDebugSettings.reflectionProbeSlice, setter = value => data.lightingDebugSettings.reflectionProbeSlice = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetReflectionProbeArraySize() - 1},
                         new DebugUI.UIntField { nameAndTooltip = LightingStrings.ReflectionProbeAtlasMipLevel, getter = () => data.lightingDebugSettings.reflectionProbeMipLevel, setter = value => data.lightingDebugSettings.reflectionProbeMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetReflectionProbeMipCount()},
                         new DebugUI.BoolField { nameAndTooltip = LightingStrings.ClearReflectionProbeAtlas, getter = () => data.lightingDebugSettings.clearReflectionProbeAtlas, setter = value => data.lightingDebugSettings.clearReflectionProbeAtlas = value},
                     }

@@ -210,6 +210,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return (int)Mathf.Log(size, 2);
         }
 
+        internal int GetReflectionProbeArraySize()
+        {
+            //@ Fix later
+            return 2;
+        }
+
         internal int GetPlanarReflectionProbeMipCount()
         {
             int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize;

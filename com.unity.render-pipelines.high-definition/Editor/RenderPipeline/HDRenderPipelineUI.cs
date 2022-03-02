@@ -278,9 +278,29 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeFormat, Styles.reflectionProbeFormatContent);
 
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.compressProbeCacheContent);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeAtlasSize, Styles.reflectionProbeAtlasSizeContent);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize, Styles.cubemapSizeContent);
+            // Reflection probes section
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.compressReflectionProbeCacheContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeAtlasSize, Styles.reflectionProbeCacheSizeContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeResolution, Styles.reflectionCubemapResolutionContent);
+                serialized.renderPipelineSettings.cubeReflectionResolution.ValueGUI<ReflectionProbeResolution>(Styles.reflectionCubemapResolutionTiersTitle);
+                // We need to clamp the values to the resolution
+                int cubeAtlasResolution = serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeResolution.intValue;
+                int cubeNumLevels = serialized.renderPipelineSettings.cubeReflectionResolution.values.arraySize;
+                for (int levelIdx = 0; levelIdx < cubeNumLevels; ++levelIdx)
+                {
+                    SerializedProperty levelValue = serialized.renderPipelineSettings.cubeReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
+                    levelValue.intValue = Mathf.Min(levelValue.intValue, cubeAtlasResolution);
+                }
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen, Styles.maxEnvContent);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue, 1, HDRenderPipeline.k_MaxEnvLightsOnScreen);
+                EditorGUILayout.Space();
+            }
+
+            // @ Remove this
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize, Styles.probeCacheSizeContent);
             if (EditorGUI.EndChangeCheck())
@@ -289,10 +309,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
             else
             {
-                long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
+                long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeResolution.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
                 if (currentCache > HDRenderPipeline.k_MaxCacheSize)
                 {
-                    int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
+                    int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeResolution.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
                     string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
                     EditorGUILayout.HelpBox(message, MessageType.Error);
                 }
@@ -332,11 +352,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.Space();
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen, Styles.maxEnvContent);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue, 1, HDRenderPipeline.k_MaxEnvLightsOnScreen);
         }
 
         static void Drawer_SectionSky(SerializedHDRenderPipelineAsset serialized, Editor owner)

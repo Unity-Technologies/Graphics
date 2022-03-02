@@ -22,9 +22,12 @@ Shader "Hidden/HDRP/DebugBlitQuad"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             TEXTURE2D(_InputTexture);
+            TEXTURE2D_ARRAY(_InputTextureArray);
             SAMPLER(sampler_InputTexture);
+            SAMPLER(sampler_InputTextureArray);
             float _Mipmap;
             float _ApplyExposure;
+            int _ArrayIndex;
 
             struct Attributes
             {
@@ -48,7 +51,11 @@ Shader "Hidden/HDRP/DebugBlitQuad"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float3 color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_InputTexture, input.texcoord.xy, _Mipmap).rgb;
+                float3 color;
+                if(_ArrayIndex >= 0 )
+                    color = SAMPLE_TEXTURE2D_ARRAY_LOD(_InputTextureArray, sampler_InputTextureArray, input.texcoord.xy, _ArrayIndex, _Mipmap).rgb;
+                else
+                    color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_InputTexture, input.texcoord.xy, _Mipmap).rgb;
                 return float4(color * (_ApplyExposure > 0.0 ? GetCurrentExposureMultiplier() : 1.0), 1.0);
             }
 
