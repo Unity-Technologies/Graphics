@@ -81,10 +81,10 @@
         "com.unity.modules.animation": "1.0.0",
         "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.modules.terrain": "1.0.0",
-        "com.unity.render-pipelines.core": "14.0.1",
-        "com.unity.shadergraph": "14.0.1",
-        "com.unity.visualeffectgraph": "14.0.1",
-        "com.unity.render-pipelines.high-definition-config": "14.0.1"
+        "com.unity.render-pipelines.core": "14.0.2",
+        "com.unity.shadergraph": "14.0.2",
+        "com.unity.visualeffectgraph": "14.0.2",
+        "com.unity.render-pipelines.high-definition-config": "14.0.2"
       }
     },
     "com.unity.render-pipelines.high-definition-config": {
@@ -92,7 +92,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "14.0.1"
+        "com.unity.render-pipelines.core": "14.0.2"
       }
     },
     "com.unity.scriptablebuildpipeline": {
@@ -114,7 +114,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "14.0.1",
+        "com.unity.render-pipelines.core": "14.0.2",
         "com.unity.searcher": "4.9.1"
       }
     },
@@ -212,8 +212,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "14.0.1",
-        "com.unity.render-pipelines.core": "14.0.1"
+        "com.unity.shadergraph": "14.0.2",
+        "com.unity.render-pipelines.core": "14.0.2"
       }
     },
     "com.unity.xr.legacyinputhelpers": {
