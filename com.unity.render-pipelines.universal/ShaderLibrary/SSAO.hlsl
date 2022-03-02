@@ -188,7 +188,6 @@ half3 PickSamplePoint(float2 uv, int sampleIndex)
         const half index = half(sampleIndex);
         const half u = GetRandomUVForSSAO(uv, 0.0, index) * half(2.0) - half(1.0);
         const half theta = GetRandomUVForSSAO(uv, 1.0, index) * half(TWO_PI);
-
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
         const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
@@ -397,19 +396,15 @@ half4 SSAO(Varyings input) : SV_Target
         ao += a1 * rcp(a2);
     }
 
-    #if defined(_OLD)
-        // Intensity normalization
-        ao *= RADIUS;
+    // Intensity normalization
+    ao *= RADIUS;
 
-        // Apply contrast + intensity + falloff
-        ao = PositivePow(saturate(ao * INTENSITY * rcpSampleCount), kContrast);
-    #else
-        const half rcpFalloff = half(rcp(FALLOFF));
-        float falloff = 1.0 - depth_o * rcpFalloff;
+    // Calculate falloff...
+    const half rcpFalloff = half(rcp(FALLOFF));
+    float falloff = 1.0 - depth_o * rcpFalloff;
 
-        // Apply intensity + falloff
-        ao = saturate(ao * INTENSITY * falloff * rcpSampleCount);
-    #endif
+    // Apply contrast + intensity + falloff
+    ao = PositivePow(saturate(ao * INTENSITY * falloff * rcpSampleCount), kContrast);
 
     #if defined(_ONLY_AO)
         return half(1.0) - ao;
