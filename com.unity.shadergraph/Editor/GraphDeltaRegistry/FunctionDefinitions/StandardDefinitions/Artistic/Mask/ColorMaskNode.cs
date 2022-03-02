@@ -11,15 +11,13 @@ namespace com.unity.shadergraph.defs
             "ColorMask", // Name
 @"
 {
-    Distance = distance(MaskColor, In);
-    Out = saturate(1 - (Distance - Range) / max(Fuzziness, 1e-5));
+    Out = saturate(1 - (distance(MaskColor, In) - Range) / max(Fuzziness, 1e-5));
 }",
             new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("MaskColor", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("Range", TYPE.Float, Usage.In),
             new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("Distance", TYPE.Float, Usage.Local)
+            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
         );
         public static Dictionary<string, float> UIHints => new()
         {
