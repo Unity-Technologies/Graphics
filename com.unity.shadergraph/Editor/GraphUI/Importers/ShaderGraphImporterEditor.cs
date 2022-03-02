@@ -1,10 +1,11 @@
-using System;
 using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Generation;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
+using UnityEditor.ShaderGraph.Utils;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -18,22 +19,15 @@ namespace UnityEditor.ShaderGraph
             if (GUILayout.Button("View Generated Shader"))
             {
                 AssetImporter importer = target as AssetImporter;
-                //var graph = GraphUtil.OpenGraph((target as NewShaderGraphImporter).assetPath);
-                var graph = GraphDelta.GraphUtil.OpenGraph(importer.assetPath);
+                var graph = GraphUtil.OpenGraph(importer.assetPath);
                 var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
                 var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
                 var node = graph.GetNodeReader(key.Name);
                 var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
-
-                // check for string
-
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
-                string path = String.Format("Temp/GeneratedFromGraph-{0}.shader", assetName.Replace(" ", ""));
-
-                if (Utils.GraphUtil.WriteToFile(path, shaderCode))
-                    Utils.GraphUtil.OpenFile(path);
-
-                Debug.Log(shaderCode);
+                string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
+                if (GraphUtils.WriteToFile(path, shaderCode))
+                    GraphUtils.OpenFile(path);
             }
 
             ApplyRevertGUI();
