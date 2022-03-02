@@ -193,8 +193,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 2147483647
   hasPersistentHistory: 0
-  screenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
-  screenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   allowDeepLearningSuperSampling: 0
   deepLearningSuperSamplingUseCustomQualitySettings: 0
   deepLearningSuperSamplingQuality: 0
@@ -820,6 +818,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1551221568}
     m_Modifications:
+    - target: {fileID: 1921992551, guid: b8d2d2d36c08ac14aad48aeebb2fd6dd, type: 3}
+      propertyPath: m_ProbeSettings.mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2113987580, guid: b8d2d2d36c08ac14aad48aeebb2fd6dd, type: 3}
+      propertyPath: m_ProbeSettings.mode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5142444953592389, guid: b8d2d2d36c08ac14aad48aeebb2fd6dd, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.01

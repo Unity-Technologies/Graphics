@@ -452,7 +452,7 @@ ReflectionProbe:
   m_BlendDistance: 0
   m_HDR: 1
   m_BoxProjection: 0
-  m_RenderDynamicObjects: 0
+  m_RenderDynamicObjects: 1
   m_UseOcclusionCulling: 1
   m_Importance: 1
   m_CustomBakedTexture: {fileID: 0}
@@ -475,7 +475,7 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
+    mode: 1
     realtimeMode: 1
     timeSlicing: 0
     lighting:
@@ -1048,7 +1048,7 @@ GameObject:
   - component: {fileID: 2113987581}
   - component: {fileID: 2113987580}
   m_Layer: 0
-  m_Name: Reflection Probe Aquairum
+  m_Name: Reflection Probe Aquarium
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1098,7 +1098,7 @@ ReflectionProbe:
   m_BlendDistance: 0
   m_HDR: 1
   m_BoxProjection: 0
-  m_RenderDynamicObjects: 0
+  m_RenderDynamicObjects: 1
   m_UseOcclusionCulling: 1
   m_Importance: 1
   m_CustomBakedTexture: {fileID: 0}
@@ -1121,7 +1121,7 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
+    mode: 1
     realtimeMode: 1
     timeSlicing: 0
     lighting:
@@ -3186,11 +3186,11 @@ Transform:
   m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4894890251289270699}
   - {fileID: 568827120715433548}
   - {fileID: 2075758225877986841}
   - {fileID: 9026010754139271632}
   - {fileID: 6126098150106346089}
+  - {fileID: 7247622307661938713}
   m_Father: {fileID: 3918449169809160477}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6165,7 +6165,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2343858607361781195
 Transform:
   m_ObjectHideFlags: 0
@@ -6432,8 +6432,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 170aaafd8be982b419e7206db5dd652f, type: 3}
---- !u!4 &4894890251289270699 stripped
+--- !u!4 &7247622307661938713 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 5489756278169982765, guid: 170aaafd8be982b419e7206db5dd652f, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7734112771653455519, guid: 170aaafd8be982b419e7206db5dd652f, type: 3}
   m_PrefabInstance: {fileID: 1135378248664108678}
   m_PrefabAsset: {fileID: 0}
