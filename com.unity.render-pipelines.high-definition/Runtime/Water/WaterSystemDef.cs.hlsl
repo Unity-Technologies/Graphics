@@ -26,12 +26,13 @@ CBUFFER_START(ShaderVariablesWater)
     uint _BandResolution;
     float _MaxWaveHeight;
     float _SimulationTime;
-    float _DirectionDampener;
-    float4 _WaveAmplitude;
-    float4 _WaveDisplacement;
+    float _PaddingW0;
+    float4 _DirectionDampener;
     float4 _BandPatchSize;
     float4 _WindSpeed;
-    float2 _WindDirection;
+    float4 _WindDirection;
+    float _SwellCurrent;
+    float _RipplesCurrent;
     float _Choppiness;
     float _DeltaTime;
     float _SimulationFoamSmoothness;
@@ -56,7 +57,7 @@ CBUFFER_START(ShaderVariablesWater)
     float _OutScatteringCoefficient;
     float _FoamSmoothness;
     float _HeightBasedScattering;
-    float _CurrentSpeed;
+    float _PaddingW1;
     float4 _FoamJacobianLambda;
     int _WaterRefSimRes;
     float _WaterSpectrumOffset;

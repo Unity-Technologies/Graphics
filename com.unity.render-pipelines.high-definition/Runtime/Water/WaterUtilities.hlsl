@@ -48,7 +48,7 @@ float GaussianDis(float u, float v)
     return sqrt(-2.0 * log(max(u, 1e-6f))) * cos(PI * v);
 }
 
-float Phillips(float2 k, float2 w, float V)
+float Phillips(float2 k, float2 w, float V, float directionDampener)
 {
     float kk = k.x * k.x + k.y * k.y;
     float result = 0.0;
@@ -56,9 +56,9 @@ float Phillips(float2 k, float2 w, float V)
     {
         float L = (V * V) / EARTH_GRAVITY;
         // To avoid _any_ directional bias when there is no wind we lerp towards 0.5f
-        float wk = lerp(dot(normalize(k), w), 0.5, _DirectionDampener);
+        float wk = lerp(dot(normalize(k), w), 0.5, directionDampener);
         float phillips = (exp(-1.0f / (kk * L * L)) / (kk * kk)) * (wk * wk);
-        result = phillips * (wk < 0.0f ? _DirectionDampener : 1.0);
+        result = phillips * (wk < 0.0f ? directionDampener : 1.0);
     }
     return PHILLIPS_AMPLITUDE_SCALAR * result;
 }
@@ -93,11 +93,11 @@ struct WaterSimulationCoordinates
 
 void ComputeWaterUVs(float3 positionWS, out WaterSimulationCoordinates waterCoord)
 {
-    float2 uv = positionWS.xz + _WindDirection * _CurrentSpeed * _SimulationTime;
-    waterCoord.uvBand0 = uv / _BandPatchSize.x;
-    waterCoord.uvBand1 = uv / _BandPatchSize.y;
-    waterCoord.uvBand2 = uv / _BandPatchSize.z;
-    waterCoord.uvBand3 = uv / _BandPatchSize.w;
+    float2 uv = positionWS.xz;
+    waterCoord.uvBand0 = (uv + _WindDirection.xy * _SwellCurrent * _SimulationTime) / _BandPatchSize.x;
+    waterCoord.uvBand1 = (uv + _WindDirection.zw * _RipplesCurrent * _SimulationTime) / _BandPatchSize.y;
+    waterCoord.uvBand2 = (uv + _WindDirection.zw * _RipplesCurrent * _SimulationTime) / _BandPatchSize.z;
+    waterCoord.uvBand3 = (uv + _WindDirection.zw * _RipplesCurrent * _SimulationTime) / _BandPatchSize.w;
 }
 
 float2 ComputeWaterUV(float3 positionWS, int bandIndex)
@@ -113,15 +113,13 @@ float3 ShuffleDisplacement(float3 displacement)
 float EvaluateDisplacementNormalization(uint bandIndex)
 {
     // Compute the displacement normalization factor
-    float patchSizeRatio = _BandPatchSize[bandIndex] / _BandPatchSize[0];
-    return _WaveAmplitude[bandIndex] / patchSizeRatio;
+    return _WaterMaxAmplitude * _BandPatchSize[0] / _BandPatchSize[bandIndex];
 }
 
 float4 EvaluateDisplacementNormalization()
 {
     // Compute the displacement normalization factor
-    float4 patchSizeRatio = _BandPatchSize / _BandPatchSize[0];
-    return _WaveAmplitude / patchSizeRatio;
+    return _WaterMaxAmplitude * _BandPatchSize[0] / _BandPatchSize;
 }
 
 void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
@@ -438,7 +436,7 @@ float EvaluateHeightBasedScattering(float lowFrequencyHeight)
 
 float EvaluateDisplacementScattering(float displacement)
 {
-    float displacementScattering = lerp(1.0, 0.01, displacement / max(max(_WaveAmplitude.x, _WaveAmplitude.y), 1.0));
+    float displacementScattering = lerp(1.0, 0.01, displacement / max(_WaterMaxAmplitude, 1.0));
     return lerp(1.0, displacementScattering, _DisplacementScattering);
 }
 

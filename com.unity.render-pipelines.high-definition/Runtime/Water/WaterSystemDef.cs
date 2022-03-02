@@ -34,14 +34,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MaxWaveHeight;
         // Current simulation time
         public float _SimulationTime;
+        // Padding
+        public float _PaddingW0;
+
         // Controls how much the wind affect the current of the waves
-        public float _DirectionDampener;
-
-        // Individual heights of the wave bands.
-        public Vector4 _WaveAmplitude;
-
-        // Maximal horizontal displacements due to each wave
-        public Vector4 _WaveDisplacement;
+        public Vector4 _DirectionDampener;
 
         // Individual sizes of the wave bands
         public Vector4 _BandPatchSize;
@@ -50,7 +47,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _WindSpeed;
 
         // Horizontal wind direction
-        public Vector2 _WindDirection;
+        public Vector4 _WindDirection;
+
+        // Swell Current (speed m/s)
+        public float _SwellCurrent;
+        // Ripples Current (speed m/s)
+        public float _RipplesCurrent;
         // Amount of choppiness
         public float _Choppiness;
         // Delta-time since the last simulation step
@@ -98,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _OutScatteringCoefficient;
         public float _FoamSmoothness;
         public float _HeightBasedScattering;
-        public float _CurrentSpeed;
+        public float _PaddingW1;
 
         public Vector4 _FoamJacobianLambda;
 

@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float choppiness;
 
         /// <summary>
-        /// Wave amplitude for each patch.
+        /// Wave amplitude of the system
         /// </summary>
-        public float4 amplitude;
+        public float maximumWaveHeight;
 
         /// <summary>
         /// Per band patch size.
@@ -159,11 +159,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public int bufferOffset;
 
             // Wind direction
-            public float2 windDirection;
+            public float4 windDirection;
             // Wind speed scalar
             public float windSpeed;
             // Attenuation of the current based on the wind direction
-            public float directionDampner;
+            public float4 directionDampner;
             // Ratio between the current slice and the biggest slice
             public float patchSizeRatio;
 
@@ -181,9 +181,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     float L = (V * V) / k_EarthGravity;
                     // To avoid _any_ directional bias when there is no wind we lerp towards 0.5f
                     float2 k_n = k / Mathf.Sqrt(kk);
-                    float wk = Mathf.Lerp(Vector2.Dot(k_n, w), 0.5f, directionDampner);
+                    float wk = Mathf.Lerp(Vector2.Dot(k_n, w), 1.0f, directionDampner[sliceIndex]);
                     float phillips = (Mathf.Exp(-1.0f / (kk * L * L)) / (kk * kk)) * (wk * wk);
-                    result = phillips * (wk < 0.0f ? directionDampner : 1.0f);
+                    result = phillips * (wk < 0.0f ? directionDampner[sliceIndex] : 1.0f);
                 }
                 return k_PhillipsAmplitudeScalar * result;
             }
@@ -204,7 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Second part of the Phillips spectrum term
                 float2 nDC = (new float2(x, y) / (float)refSimResolution - spectrumOffset) * 2.0f;
                 float2 k = (Mathf.PI * 2.0f * nDC) * patchSizeRatio;
-                float P = Phillips(k, windDirection, windSpeed);
+                float2 windDir = sliceIndex == 0 ? windDirection.xy : windDirection.zw;
+                float P = Phillips(k, windDir, windSpeed);
 
                 // Combine and output
                 H0Buffer[index + bufferOffset] = E * Mathf.Sqrt(P);
@@ -658,7 +659,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Compute the displacement normalization factor
             float4 patchSizeRatio = wsd.patchSizes / wsd.patchSizes[0];
-            return wsd.amplitude * 10.0f / patchSizeRatio;
+            return wsd.maximumWaveHeight / patchSizeRatio;
         }
 
         static int SignedMod(int x, int m)

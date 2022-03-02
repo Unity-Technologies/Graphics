@@ -101,27 +101,47 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2(directionX, directionY);
         }
 
+        internal static float AmplitudeToWindSpeed(float normalizedAmplitude)
+        {
+            // First it is converted from normalized space to km/h then to m/s
+            return normalizedAmplitude * 100.0f * 0.277778f;
+        }
+
         // Function that loops thought all the current waves and computes the maximal wave height
-        internal static void ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float maxAmplitude, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
+        internal static void ComputeMaximumWaveHeight(float maxAmplitude, bool highBandCount, out Vector4 waveHeights, out float maxWaveHeight)
         {
             // Initialize the band data
             float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f, b3 = 0.0f;
 
             // Evaluate the wave height for each band (lower frequencies)
-            b0 = normalizedWaveAmplitude.x * maxAmplitude;
-            b1 = normalizedWaveAmplitude.y * maxAmplitude;
+            b0 = maxAmplitude;
+            b1 = maxAmplitude;
 
             // Evaluate the wave height for each band (higher frequencies)
             if (highBandCount)
             {
-                b2 = normalizedWaveAmplitude.z * maxAmplitude;
-                b3 = normalizedWaveAmplitude.w * maxAmplitude;
+                b2 = maxAmplitude;
+                b3 = maxAmplitude;
             }
 
             // Output the wave heights
             waveHeights = new Vector4(b0, b1, b2, b3);
             // TODO have a better estimation for this
             maxWaveHeight = maxAmplitude * 2.0f;
+        }
+
+        static float EvaluatePolynomial3(float x, float c0, float c1, float c2, float c3)
+        {
+            float x2 = x * x;
+            float x3 = x2 * x;
+            return x3 * c3 + x2 * c2 + x * c1 + c0;
+        }
+
+        static internal float ComputeOceanMaxPatchSize(float maxAmplitude, float waveSize)
+        {
+            float patchSizeMin = EvaluatePolynomial3(maxAmplitude, -24.23f, 41.01f, -1.03f, 0.013f);
+            float patchSizeMax = maxAmplitude * 50.0f;
+            return Mathf.Lerp(patchSizeMin, patchSizeMax, waveSize);
         }
 
         // Function that evaluates the patch sizes of the 4 bands based on the max patch size

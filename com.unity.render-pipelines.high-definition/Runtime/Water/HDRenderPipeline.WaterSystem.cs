@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Number of bands when the water is rendered at low band count
         const int k_WaterLowBandCount = 2;
         // Minimal size that a patch can reach (in meters)
-        const float k_MinPatchSize = 5.0f;
+        const float k_MinPatchSize = 2.0f;
         // Minimal quad resolution when rendering a water patch
         const int k_WaterMinGridSize = 2;
 
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_MaxWaterSurfaceElevation = 16.0f;
 
         // Maximum choppiness value
-        const float k_WaterMaxChoppinessValue = 3.0f;
+        const float k_WaterMaxChoppinessValue = 2.25f;
 
         // Constant that converts km/h to m/s
         const float k_KilometerPerHourToMeterPerSecond = 0.277778f;
@@ -226,25 +226,22 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._BandResolution = (uint)m_WaterBandResolution;
 
             // Amplitude multiplier (per band)
-            cb._WaveAmplitude = currentWater.simulation.waveAmplitude;
-            cb._WaterMaxAmplitude = currentWater.simulation.maxAmplitude;
+            cb._WaterMaxAmplitude = currentWater.simulation.maximumWaveHeight;
 
             // Max wave height for the system
-            cb._MaxWaveHeight = currentWater.simulation.maxWaveHeight;
+            cb._MaxWaveHeight = cb._WaterMaxAmplitude * 1.5f;
 
             // Choppiness factor
-            float actualChoppiness = currentWater.choppiness * k_WaterMaxChoppinessValue;
-            cb._Choppiness = actualChoppiness;
+            cb._Choppiness = k_WaterMaxChoppinessValue;
 
             // Horizontal displacement due to each band
-            cb._WaveDisplacement = cb._WaveAmplitude * actualChoppiness;
-            cb._MaxWaveDisplacement = cb._MaxWaveHeight * actualChoppiness;
+            cb._MaxWaveDisplacement = cb._WaterMaxAmplitude * cb._Choppiness;
 
             // Current simulation time
             cb._SimulationTime = currentWater.simulation.simulationTime;
 
             // Controls how much the wind affect the current of the waves
-            cb._DirectionDampener = 1.0f - currentWater.windAffectCurrent;
+            cb._DirectionDampener = currentWater.simulation.patchWindDirDampener;
 
             // Water smoothness
             cb._WaterSmoothness = currentWater.waterSmoothness;
@@ -253,7 +250,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._BandPatchSize = currentWater.simulation.patchSizes;
 
             // Wind direction
-            cb._WindDirection = OrientationToDirection(currentWater.windOrientation);
+            Vector2 dir0 = OrientationToDirection(currentWater.simulation.orientation.x);
+            Vector2 dir1 = OrientationToDirection(currentWater.simulation.orientation.y);
+            cb._WindDirection = new Vector4(dir0.x, dir0.y, dir1.x, dir1.y);
 
             // Manually set wind by the user
             cb._WindSpeed = currentWater.simulation.patchWindSpeed;
@@ -269,10 +268,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Smoothness of the foam
             cb._SimulationFoamSmoothness = currentWater.simulationFoamSmoothness;
-            cb._FoamTilling = 1.0f / (currentWater.waterMaxPatchSize / 25.0f);
-            float foamSpeed = currentWater.simulation.simulationTime * Mathf.Sqrt(cb._WindSpeed.x * k_PhillipsGravityConstant) * currentWater.windAffectCurrent;
+            cb._FoamTilling = 1.0f / (currentWater.simulation.patchSizes.x / 25.0f);
+            float foamSpeed = currentWater.simulation.simulationTime * Mathf.Sqrt(cb._WindSpeed.x * k_PhillipsGravityConstant) * currentWater.simulation.chaos.x;
             cb._FoamOffsets = new Vector2(cb._WindDirection.x * foamSpeed * 0.5f, cb._WindDirection.y * foamSpeed * 0.5f);
-            cb._WindFoamAttenuation = Mathf.Clamp(currentWater.windFoamCurve.Evaluate(currentWater.largeBandAgitation / 100.0f), 0.0f, 1.0f);
+            cb._WindFoamAttenuation = Mathf.Clamp(currentWater.windFoamCurve.Evaluate(currentWater.simulation.wind.x), 0.0f, 1.0f);
 
             // We currently only support properly up to 16 unique water surfaces
             cb._SurfaceIndex = surfaceIndex & 0xF;
@@ -306,8 +305,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WaterSpectrumOffset = EvaluateFrequencyOffset(m_WaterBandResolution);
             cb._WaterBandCount = currentWater.highFrequencyBands ? 4 : 2;
 
-
-            cb._CurrentSpeed = currentWater.current * 0.27777f;
+            // Current parameters
+            cb._SwellCurrent = currentWater.swellCurrent * 0.27777f;
+            cb._RipplesCurrent = currentWater.ripplesCurrent * 0.27777f;
         }
 
         void UpdateGPUWaterSimulation(CommandBuffer cmd, WaterSurface currentWater, bool gpuResourcesInvalid, ShaderVariablesWater shaderVariablesWater)
@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 parameters.infinite = false;
-                if (currentWater.geometryType == WaterSurface.WaterGeometryType.Quad || currentWater.geometry == null)
+                if (currentWater.geometryType == WaterGeometryType.Quad || currentWater.geometry == null)
                 {
                     parameters.customMesh = false;
                     parameters.targetMesh = m_TessellableMesh;
@@ -616,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Compute the caustics offsets
             float causticsOffset = currentWater.simulation.simulationTime * currentWater.causticsSpeed * k_KilometerPerHourToMeterPerSecond;
-            Vector2 causticOrientation = OrientationToDirection(currentWater.windOrientation);
+            Vector2 causticOrientation = OrientationToDirection(currentWater.simulation.orientation.x);
             parameters.waterRenderingCB._CausticsOffset.Set(causticsOffset * causticOrientation.x, causticsOffset * causticOrientation.y);
 
             // Bind the decal layer data

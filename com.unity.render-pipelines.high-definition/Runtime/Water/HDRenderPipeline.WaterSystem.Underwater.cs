@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Maximal possible wave height of the current setup
                     float maxWaveHeight;
                     Vector4 waveAmpltiude;
-                    ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.maxAmplitude, currentWater.highFrequencyBands, out waveAmpltiude, out maxWaveHeight);
+                    ComputeMaximumWaveHeight(currentWater.simulation.maximumWaveHeight, currentWater.highFrequencyBands, out waveAmpltiude, out maxWaveHeight);
 
                     // Evaluate the vertical boundaries of the volume
                     float topPlane = currentWater.transform.position.y + k_MaxWaterSurfaceElevation;

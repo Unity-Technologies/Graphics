@@ -52,27 +52,31 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Overall time that has passed since Unity has been initialized
         private float m_Time = 0;
-
         // Current simulation time (used to compute the dispersion of the Phillips spectrum)
         public float simulationTime = 0;
-
         // Delta time of the current frame
         public float deltaTime = 0;
 
         // Resolution at which the water system is ran
         public int simulationResolution = 0;
-
         // The number bands that we will be running the simulation at
         public int numBands = 0;
 
         // The maximum amplitude of the water system
-        public float maxAmplitude = 0.0f;
+        public float maximumWaveHeight = 0.0f;
+        // The normalized wave spread
+        public float waveSpread = 0.0f;
+        // The patch size of the largest band
+        public float maxPatchSize = 0.0f;
+        // The type of the surface
+        public WaterSurfaceType surfaceType;
+        // High frequency bands enabled
+        public bool highFrequencyBands = false;
 
         // The wind speed, orientation and weight used to evaluate the Phillips spectrum
-        public float lbAgitation = 0;
-        public float sbAgitation = 0;
-        public float windOrientation = 0;
-        public float windAffectCurrent = 0;
+        public Vector4 wind = Vector4.zero;
+        public Vector2 chaos = Vector4.zero;
+        public Vector4 orientation = Vector4.zero;
 
         // Value that defines the patch sizes of the bands (up to 4)
         public Vector4 patchSizes = Vector4.zero;
@@ -80,11 +84,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Value that defines the wind speed that is applied to each patch (up to 4)
         public Vector4 patchWindSpeed = Vector4.zero;
 
-        // Wave amplitude multiplier
-        public Vector4 waveAmplitude = Vector4.zero;
-
-        // Maximum wave height of the simulation
-        public float maxWaveHeight = 0.0f;
+        // Value that defines the wind directionality to each patch (up to 4)
+        public Vector4 patchWindDirDampener = Vector4.zero;
 
         // The set of GPU Buffers used to run the simulation
         public WaterSimulationResourcesGPU gpuBuffers = null;
@@ -198,14 +199,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Time = 0;
             simulationTime = 0;
             deltaTime = 0;
-
-            // Reset the simulation parameters
-            lbAgitation = 0;
-            sbAgitation = 0;
-            windOrientation = 0;
-            windAffectCurrent = 0;
-            patchSizes = Vector4.zero;
-            maxAmplitude = 0.0f;
         }
     }
 }

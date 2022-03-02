@@ -19,10 +19,7 @@ namespace UnityEditor.Rendering
             var waterSurface = go.AddComponent<WaterSurface>();
 
             // Set the various parameters
-            waterSurface.infinite = true;
-            waterSurface.largeBandAgitation = 0.5f;
-            waterSurface.choppiness = 3.0f;
-            waterSurface.windAffectCurrent = 0.2f;
+            waterSurface.geometryType = WaterGeometryType.Infinite;
             waterSurface.causticsIntensity = 0.0f;
         }
 
@@ -39,20 +36,14 @@ namespace UnityEditor.Rendering
             // Add the water surface component
             var waterSurface = go.AddComponent<WaterSurface>();
 
-            waterSurface.infinite = false;
-            waterSurface.geometryType = WaterSurface.WaterGeometryType.Quad;
-            waterSurface.waterMaxPatchSize = 70.0f;
-            waterSurface.amplitude = new Vector2(0.5f, 1.0f);
-            waterSurface.choppiness = 1.0f;
+            waterSurface.geometryType = WaterGeometryType.Quad;
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.refractionColor = new Color(0, 0.3f, 0.6f);
             waterSurface.maxRefractionDistance = 1.0f;
             waterSurface.absorptionDistance = 1.0f;
             waterSurface.scatteringColor = new Color(0.0f, 0.3f, 0.25f);
-            waterSurface.largeBandAgitation = 0.3f;
             waterSurface.causticsIntensity = 0.1f;
             waterSurface.causticsTiling = 0.8f;
-            waterSurface.windAffectCurrent = 1.0f;
         }
 
         [MenuItem("GameObject/Water Surface/Pool", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
@@ -68,28 +59,17 @@ namespace UnityEditor.Rendering
             // Add the water surface component
             var waterSurface = go.AddComponent<WaterSurface>();
 
-            // Not an finite surface
-            waterSurface.infinite = false;
-
             // The max patch size should be smaller
-            waterSurface.waterMaxPatchSize = 20.0f;
+            waterSurface.maximumWaveHeight = 0.5f;
 
             // The two bands have very little amplitude
             waterSurface.highFrequencyBands = false;
-            waterSurface.amplitude.x = 1.0f;
-            waterSurface.amplitude.y = 1.0f;
 
             // Scattering & transparency data
             waterSurface.refractionColor = new Color(0, 0.3f, 0.6f);
             waterSurface.maxRefractionDistance = 0.5f;
             waterSurface.absorptionDistance = 10.0f;
             waterSurface.scatteringColor = new Color(0.0f, 0.40f, 0.75f);
-
-            // No choppiness for the water
-            waterSurface.choppiness = 0.0f;
-
-            // Wind is quite light on rivers
-            waterSurface.largeBandAgitation = 0.5f;
 
             // Setup caustics for pools
             waterSurface.causticsIntensity = 0.4f;
