@@ -113,12 +113,12 @@ namespace UnityEditor.ShaderGraph.Generation
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNodePath = port.ID.FullPath.Replace("." + port.ID.LocalPath, "");
-                            var connectedNode = shaderGraph.GetNodeReader(connectedNodePath);
+                            var connectedNode = shaderGraph.GetNode(connectedNodePath);
                             mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
                         }
                         else // not connected.
                         {
-                            var field = port.GetField("TypeField");
+                            var field = port.GetTypeField();
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
                             mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList(field, registry)};");
                         }
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph.Generation
             else
             {
                 var port = rootNode.GetPorts().Where(e => !e.IsInput).First(); // get the first output node
-                var field = port.GetField("TypeField");
+                var field = port.GetTypeField();
                 var outType = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType(field, container, registry);
                 string assignment = ConvertToFloat3(outType, $"SYNTAX_{rootNode.ID.LocalPath}_{port.ID.LocalPath}");
                 mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = {assignment};");

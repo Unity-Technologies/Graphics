@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         [Obsolete]
         public NodeHandler GetNodeWriter(string name) => graphDelta.GetNode(name);
 
-        public NodeHandler GetNode(string name) => graphDelta.GetNode(name);
+        public NodeHandler GetNode(ElementID name) => graphDelta.GetNode(name);
         public void RemoveNode(string name) => graphDelta.RemoveNode(name);
         public IEnumerable<NodeHandler> GetNodes() => graphDelta.GetNodes();
 

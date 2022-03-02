@@ -41,11 +41,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             if (!command.m_GraphDataNodeModel.TryGetNodeWriter(out var nodeWriter)) return;
-
-            for (var i = 0; i < command.m_Values.Length; i++)
-            {
-                nodeWriter.SetPortField(command.m_PortName, $"c{i}", command.m_Values[i]);
-            }
+            var field = nodeWriter.GetPort(command.m_PortName).GetTypeField();
+            GraphTypeHelpers.SetComponents(field, 0, command.m_Values);
 
             object propertyBlockValue = command.m_Values[0];
 

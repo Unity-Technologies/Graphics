@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     /// Experimenting with different helper function interfaces.
     /// </summary>
 
-    internal static class GraphTypeHelpers
+    public static class GraphTypeHelpers
     {
         public static GraphType.Precision GetPrecision(FieldHandler field) => field.GetSubField<GraphType.Precision>(GraphType.kPrecision).GetData();
 

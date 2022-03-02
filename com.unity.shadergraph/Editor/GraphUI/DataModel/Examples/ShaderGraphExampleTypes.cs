@@ -19,13 +19,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
     }
     public static class ShaderGraphExampleTypes
     {
-        public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
+        public static TypeHandle GetGraphType(GraphDelta.PortHandler reader)
         {
-            reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len);
+            var len = Registry.Types.GraphTypeHelpers.GetLength(reader.GetTypeField());
             switch ((int)len)
             {
                 case 1:
-                    reader.GetField(Registry.Types.GraphType.kPrimitive, out Registry.Types.GraphType.Primitive prim);
+                    var prim = Registry.Types.GraphTypeHelpers.GetPrimitive(reader.GetTypeField());
                     switch(prim)
                     {
                         case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;

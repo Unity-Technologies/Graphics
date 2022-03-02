@@ -35,19 +35,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        void AddPortFromReader(GraphDelta.IPortReader portReader)
+        void AddPortFromReader(GraphDelta.PortHandler portReader)
         {
-            var isInput = portReader.IsInput();
-            var orientation = portReader.IsHorizontal()
+            var isInput = portReader.IsInput;
+            var orientation = portReader.IsHorizontal
                 ? PortOrientation.Horizontal
                 : PortOrientation.Vertical;
 
             var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
 
             if (isInput)
-                this.AddDataInputPort(portReader.GetName(), type, orientation: orientation);
+                this.AddDataInputPort(portReader.LocalID, type, orientation: orientation);
             else
-                this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);
+                this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
         }
     }
 }

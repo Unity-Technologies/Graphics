@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEditor.ShaderGraph.Registry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -8,6 +10,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public string LocalID { get; private set; }
         public bool IsInput { get; }
         public bool IsHorizontal { get; }
+        public FieldHandler GetTypeField() => GetField("TypeField");
+
+        [Obsolete]
+        public RegistryKey GetRegistryKey() { return GetTypeField().GetRegistryKey(); }
+
+        public IEnumerable<PortHandler> GetConnectedPorts()
+        {
+            throw new System.Exception();
+        }
 
         internal PortHandler(ElementID elementID, GraphStorage owner)
             : base(elementID, owner)

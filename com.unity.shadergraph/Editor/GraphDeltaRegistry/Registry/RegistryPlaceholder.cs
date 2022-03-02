@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Registry
     public class RegistryPlaceholder
     {
         public int data;
- 
+
         public RegistryPlaceholder(int d) { data = d; }
     }
 
@@ -85,8 +85,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 ShaderContainer container,
                 Registry registry)
             {
-                node.GetPort("Out");
-                var outField = node.GetField("TypeField");
+                var outField = node.GetPort("Out").GetTypeField();
                 var typeBuilder = registry.GetTypeBuilder(kRegistryKey);
 
                 var shaderType = typeBuilder.GetShaderType(outField, container, registry);

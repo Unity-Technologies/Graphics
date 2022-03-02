@@ -60,7 +60,7 @@ Shader ""Hidden/GraphErrorShader2""
         {
             var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
             var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
-            var node = graph.GetNodeReader(key.Name);
+            var node = graph.GetNode(key.Name);
 
             var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
             return ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);

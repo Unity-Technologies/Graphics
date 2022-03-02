@@ -25,10 +25,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 change.newValue));
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
-            if (!reader.GetField("c0", out float value)) value = 0;
-            m_Field.SetValueWithoutNotify((int) value);
+            var field = reader.GetTypeField();
+            var value = field != null ? GraphTypeHelpers.GetAsInt(field) : 0;
+            m_Field.SetValueWithoutNotify(value);
         }
     }
 }

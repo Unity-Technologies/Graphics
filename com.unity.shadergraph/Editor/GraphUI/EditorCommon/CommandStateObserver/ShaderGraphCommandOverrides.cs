@@ -255,7 +255,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var portModel = updatePortConstantCommand.PortModel;
             if (portModel.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
             {
-                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
+                var nodeWriter = shaderGraphModel.GraphHandler.GetNode(nodeModel.graphDataName);
                 if (nodeWriter != null)
                 {
                     previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, portModel.UniqueName, updatePortConstantCommand.NewValue);

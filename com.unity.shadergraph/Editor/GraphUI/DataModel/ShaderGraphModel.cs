@@ -181,35 +181,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
         }
 
-        static IEnumerable<INodeReader> GetUpstreamNodes(INodeReader startingNode)
+        static IEnumerable<NodeHandler> GetUpstreamNodes(NodeHandler startingNode)
         {
-            foreach (var inputPort in startingNode.GetInputPorts())
-            {
-                foreach (var connectedPort in inputPort.GetConnectedPorts())
-                {
-                    foreach (var upstreamNode in GetUpstreamNodes(connectedPort.GetNode()))
-                        yield return upstreamNode;
-                }
-            }
-
-            yield return startingNode;
+            return Utils.GraphTraversalUtils.GetUpstreamNodes(startingNode);
         }
 
-        static IEnumerable<INodeReader> GetDownstreamNodes(INodeReader startingNode)
+        static IEnumerable<NodeHandler> GetDownstreamNodes(NodeHandler startingNode)
         {
-            foreach (var inputPort in startingNode.GetOutputPorts())
-            {
-                foreach (var connectedPort in inputPort.GetConnectedPorts())
-                {
-                    foreach (var downstreamNodes in GetDownstreamNodes(connectedPort.GetNode()))
-                        yield return downstreamNodes;
-                }
-            }
-
-            yield return startingNode;
+            return Utils.GraphTraversalUtils.GetDownstreamNodes(startingNode);
         }
 
-        static GraphDataNodeModel TryGetNodeModel(ShaderGraphModel shaderGraphModel, INodeReader inputNodeReader)
+        static GraphDataNodeModel TryGetNodeModel(ShaderGraphModel shaderGraphModel, NodeHandler inputNodeReader)
         {
             // TODO: Make a mapping between every node model and node reader so we can also do lookup
             // from NodeReaders to NodeModels, as is needed below for instance

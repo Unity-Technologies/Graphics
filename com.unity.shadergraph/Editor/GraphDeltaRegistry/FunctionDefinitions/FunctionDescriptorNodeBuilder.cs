@@ -41,7 +41,7 @@ namespace com.unity.shadergraph.defs
             // in the user data.
             foreach (var port in userData.GetPorts())
             {
-                var field = port.GetField("TypeField");
+                var field = port.GetTypeField();
 
                 var lengthField = field.GetSubField<Length>(kLength);
                 var heightField = field.GetSubField<Height>(kLength);
@@ -125,7 +125,7 @@ namespace com.unity.shadergraph.defs
             port.AddField(kPrecision, resolvedType.Precision);
             port.AddField(kPrimitive, resolvedType.Primitive);
 
-            if (param.Usage is Usage.Static) port.AddField("IsStatic", true);
+            if (param.Usage is Usage.Static) port.AddField("IsStatic", true); // TODO(Liz) : should be metadata
             if (param.Usage is Usage.Local) port.AddField("IsLocal", true);
 
             int i = 0;
@@ -170,7 +170,7 @@ namespace com.unity.shadergraph.defs
             foreach (var param in m_functionDescriptor.Parameters)
             {
                 var port = data.GetPort(param.Name);
-                var field = port.GetField("TypeField");
+                var field = port.GetTypeField();
                 var shaderType = registry.GetShaderType(field, container);
 
                 if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.Local)

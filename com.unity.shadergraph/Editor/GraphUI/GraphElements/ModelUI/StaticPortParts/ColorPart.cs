@@ -28,14 +28,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Field.showAlpha = m_IncludeAlpha;
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler port)
         {
             var newColor = new Color();
+            var reader = port.GetTypeField();
 
             for (var i = 0; i < length; i++)
             {
-                if (!reader.GetField($"c{i}", out float component)) continue;
-                newColor[i] = component;
+                var componentField = reader.GetSubField<float>($"c{i}");
+                if (componentField == null)
+                    continue;
+                newColor[i] = componentField.GetData();
             }
 
             m_Field.SetValueWithoutNotify(newColor);
