@@ -9,16 +9,13 @@
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
-TEXTURE2D_X(_BlueNoiseTexture);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
-SAMPLER(sampler_BlueNoiseTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
 half4 _BlurOffset;
-float4 _BlueNoiseTexture_TexelSize;
 
 half _KawaseBlurIteration;
 int _LastKawasePass;
