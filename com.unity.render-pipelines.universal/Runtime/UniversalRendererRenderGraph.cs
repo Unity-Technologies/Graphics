@@ -190,6 +190,7 @@ namespace UnityEngine.Rendering.Universal
                 m_GBufferPass.Render(frameResources.cameraColor, frameResources.cameraDepth, ref renderingData, ref frameResources);
                 m_GBufferCopyDepthPass.Render(out frameResources.cameraDepthTexture, in frameResources.cameraDepth, ref renderingData);
                 m_DeferredPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.gbuffer, ref renderingData);
+                m_RenderOpaqueForwardOnlyPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
             }
             else
             {
@@ -214,6 +215,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_RenderTransparentForwardPass.Render(frameResources.cameraColor, frameResources.cameraDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
+            m_OnRenderObjectCallbackPass.Render(frameResources.cameraColor, frameResources.cameraDepth, ref renderingData);
         }
 
         private void OnAfterRendering(ScriptableRenderContext context, ref RenderingData renderingData)

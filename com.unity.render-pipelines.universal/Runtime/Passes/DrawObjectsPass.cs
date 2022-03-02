@@ -215,8 +215,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.m_Albedo = builder.UseColorBuffer(colorTarget, 0);
                 passData.m_Depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Write);
 
-                builder.ReadTexture(mainShadowsTexture);
-                builder.ReadTexture(additionalShadowsTexture);
+                if (mainShadowsTexture.IsValid())
+                    builder.ReadTexture(mainShadowsTexture);
+                if (additionalShadowsTexture.IsValid())
+                    builder.ReadTexture(additionalShadowsTexture);
 
                 passData.m_RenderingData = renderingData;
 
