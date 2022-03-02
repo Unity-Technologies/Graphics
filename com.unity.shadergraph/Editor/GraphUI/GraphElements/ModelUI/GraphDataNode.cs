@@ -18,12 +18,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var shouldShowPreview = m_GraphDataNodeModel.existsInGraphData;
 
-            // TODO (Brett) This should only happen if m_GraphDataNodeMode.HasPreview
-            if(shouldShowPreview)
+            if (shouldShowPreview)
                 m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
+
             PartList.AppendPart(m_NodePreviewPart);
 
-            // TODO: Build out fields from node definition
             if (Model is not GraphDataNodeModel graphDataNodeModel) return;
             if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
 
