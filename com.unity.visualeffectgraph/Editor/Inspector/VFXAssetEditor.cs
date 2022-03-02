@@ -195,7 +195,12 @@ class VisualEffectAssetEditor : Editor
                 EditorGUIUtility.TrIconContent("PlayButton", "Animate preview"),
                 EditorGUIUtility.TrIconContent("PauseButton", "Pause preview animation"),
             };
+
+            var pauseContent = EditorGUIUtility.TrIconContent("Refresh", "Restart VFX");
+
+            s_PausButtonStates = new[] { pauseContent, pauseContent };
         }
+
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
         m_ReorderableList.displayRemove = false;
         m_ReorderableList.displayAdd = false;
@@ -331,13 +336,14 @@ class VisualEffectAssetEditor : Editor
         }
 
         GUI.enabled = m_IsAnimated;
-        if (EditorGUILayout.IconButton(0, EditorGUIUtility.TrIconContent("Refresh", "Restart VFX"), EditorStyles.toolbarButton, null))
+        if (PreviewGUI.CycleButton(0, s_PausButtonStates) != 0)
         {
             m_VisualEffect.Reinit();
         }
         GUI.enabled = true;
     }
 
+    private static GUIContent[] s_PausButtonStates;
     private static GUIContent[] s_PlayPauseIcons;
     private bool m_IsAnimated;
     private Texture m_PreviewTexture;
