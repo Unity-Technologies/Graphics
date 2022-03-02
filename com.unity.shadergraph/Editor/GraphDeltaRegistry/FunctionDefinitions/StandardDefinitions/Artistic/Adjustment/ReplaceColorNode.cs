@@ -28,11 +28,11 @@ namespace com.unity.shadergraph.defs
             { "Category", "Artistic, Adjustment" },
             { "DisplayName", "Replace Color" },
             { "Tooltip", "converts the chosen colors to another color value" },
-            { "Parameters.In.Tooltip", "Input value" },
-            { "Parameters.From.Tooltip", "Color to replace" },
-            { "Parameters.Range.Tooltip", "Replace colors within this range from input From" },
-            { "Parameters.Fuzziness.Tooltip", "Soften edges around selection" },
-            { "Parameters.Out.Tooltip", "In color with colors replaced" }
+            { "Parameters.In.Tooltip", "input value" },
+            { "Parameters.From.Tooltip", "color to replace" },
+            { "Parameters.Range.Tooltip", "replace colors within this range from input From" },
+            { "Parameters.Fuzziness.Tooltip", "soften edges around selection" },
+            { "Parameters.Out.Tooltip", "in color with colors replaced" }
         };
     }
 }

@@ -21,9 +21,9 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Interpolation" },
             { "Name.Synonyms", "curve" },
             { "Tooltip", "returns the result of a smooth Hermite interpolation between 0 and 1" },
-            { "Parameters.Edge1.Tooltip", "	Minimum step value" },
-            { "Parameters.Edge2.Tooltip", "Maximum step value" },
-            { "Parameters.In.Tooltip", "Input value" },
+            { "Parameters.Edge1.Tooltip", "	minimum step value" },
+            { "Parameters.Edge2.Tooltip", "maximum step value" },
+            { "Parameters.In.Tooltip", "input value" },
             { "Parameters.Out.Tooltip", "the result of a smooth Hermite interpolation between 0 and 1" }
         };
     }

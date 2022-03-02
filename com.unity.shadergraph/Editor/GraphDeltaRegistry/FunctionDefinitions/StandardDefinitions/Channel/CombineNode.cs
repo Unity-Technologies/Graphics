@@ -9,7 +9,7 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1,
             "Combine",
-            @"
+@"
 {
     RGBA.r = R;
     RGBA.g = G;
@@ -36,10 +36,10 @@ namespace com.unity.shadergraph.defs
             { "Category", "Channel" },
             { "Name.Synonyms", "append" },
             { "Tooltip", "merges two or more float values into a vector" },
-            { "Parameters.R.Tooltip","Red channel of output" },
-            { "Parameters.G.Tooltip", "Green channel of output" },
-            { "Parameters.B.Tooltip", "Blue channel of output" },
-            { "Parameters.A.Tooltip", "Alpha channel of output" },
+            { "Parameters.R.Tooltip","red channel of output" },
+            { "Parameters.G.Tooltip", "green channel of output" },
+            { "Parameters.B.Tooltip", "blue channel of output" },
+            { "Parameters.A.Tooltip", "alpha channel of output" },
             { "Parameters.Out.Tooltip", "A vector formed by the input values " }
         };
     }

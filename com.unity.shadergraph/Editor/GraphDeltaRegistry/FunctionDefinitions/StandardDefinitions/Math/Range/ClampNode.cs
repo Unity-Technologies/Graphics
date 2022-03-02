@@ -21,10 +21,10 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Range" },
             { "Name.Synonyms", "limit" },
             { "Tooltip", "prevents the input from going below min or above max" },
-            { "Parameters.In.Tooltip", "Input value" },
-            { "Parameters.Min.Tooltip", "Minimum value" },
-            { "Parameters.Max.Tooltip", "Maximum value" },
-            { "Parameters.Out.Tooltip", "Inupt value clamped between Min and Max" }
+            { "Parameters.In.Tooltip", "input value" },
+            { "Parameters.Min.Tooltip", "minimum value" },
+            { "Parameters.Max.Tooltip", "maximum value" },
+            { "Parameters.Out.Tooltip", "inupt value clamped between Min and Max" }
         };
     }
 }

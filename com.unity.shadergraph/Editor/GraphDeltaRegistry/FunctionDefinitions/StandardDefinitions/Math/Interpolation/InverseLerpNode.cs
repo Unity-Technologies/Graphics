@@ -21,9 +21,9 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Interpolation" },
             { "DisplayName", "Inverse Lerp" },
             { "Tooltip", "returns the linear parameter that produces the interpolant specified by T within the range of A to B" },
-            { "Parameters.A.Tooltip", "Out will be this value when T is zero" },
-            { "Parameters.B.Tooltip", "Out will be this value when T is one" },
-            { "Parameters.T.Tooltip", "the blend value.  Will return A when this is 0 and B when this is 1" },
+            { "Parameters.A.Tooltip", "out will be this value when T is zero" },
+            { "Parameters.B.Tooltip", "out will be this value when T is one" },
+            { "Parameters.T.Tooltip", "the blend value" },
             { "Parameters.Out.Tooltip", "the linear parameter that produces the interpolant specified by T within the range of A to B" }
         };
     }

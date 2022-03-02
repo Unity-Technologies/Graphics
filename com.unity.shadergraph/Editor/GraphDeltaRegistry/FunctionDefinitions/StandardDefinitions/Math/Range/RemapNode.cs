@@ -11,8 +11,8 @@ namespace com.unity.shadergraph.defs
             "Remap",
             "Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { -1f, -1f, -1f, -1f }),
-            new ParameterDescriptor("InMinMax", TYPE.Vec2, Usage.In, new float[] { -1f, 1f, 0f, 0f }),
-            new ParameterDescriptor("OutMinMax", TYPE.Vec2, Usage.In, new float[] { 0f, 1f, 0f, 0f }),
+            new ParameterDescriptor("InMinMax", TYPE.Vec2, Usage.In, new float[] { -1f, 1f }),
+            new ParameterDescriptor("OutMinMax", TYPE.Vec2, Usage.In, new float[] { 0f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
@@ -20,9 +20,9 @@ namespace com.unity.shadergraph.defs
         {
             { "Category", "Math, Range" },
             { "Tooltip", "returns a value between out min and max based on lerping the input between in min and max" },
-            { "Parameters.In.Tooltip", " Input value" },
-            { "Parameters.InMinMax.Tooltip", "Minimum and Maximum values for input interpolation" },
-            { "Parameters.OutMinMax.Tooltip", "Minimum and Maximum values for output interpolation" },
+            { "Parameters.In.Tooltip", "input value" },
+            { "Parameters.InMinMax.Tooltip", "minimum and Maximum values for input interpolation" },
+            { "Parameters.OutMinMax.Tooltip", "minimum and Maximum values for output interpolation" },
             { "Parameters.Out.Tooltip", "the input value with it's range remapped to the Out Min Max values" }
         };
     }

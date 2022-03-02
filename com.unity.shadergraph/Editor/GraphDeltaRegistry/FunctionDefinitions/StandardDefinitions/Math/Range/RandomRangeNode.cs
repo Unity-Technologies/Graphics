@@ -9,9 +9,8 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1,
             "RandomRange",
-            @"
+@"
 {
-    
     randomno =  frac(sin(dot(Seed, temp))*43758.5453);
     Out = lerp(Min, Max, randomno);
 }",
@@ -20,7 +19,7 @@ namespace com.unity.shadergraph.defs
             new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 1f }),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
             new ParameterDescriptor("randomno", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("temp", TYPE.Float, Usage.Local, new float[] { 12.9898f, 78.233f })
+            new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local, new float[] { 12.9898f, 78.233f })
         );
 
         public static Dictionary<string, string> UIStrings => new()
@@ -28,9 +27,9 @@ namespace com.unity.shadergraph.defs
             { "Category", "Math, Range" },
             { "DisplayName", "Random Range" },
             { "Tooltip", "returns a psuedo-random value base on input Seed between min and max" },
-            { "Parameters.Seed.Tooltip", " Input Seed" },
-            { "Parameters.Min.Tooltip", "Minimum value" },
-            { "Parameters.Max.Tooltip", "Maximum value" },
+            { "Parameters.Seed.Tooltip", " input Seed" },
+            { "Parameters.Min.Tooltip", "minimum value" },
+            { "Parameters.Max.Tooltip", "maximum value" },
             { "Parameters.Out.Tooltip", "a psuedo-random value between min and max" }
         };
     }

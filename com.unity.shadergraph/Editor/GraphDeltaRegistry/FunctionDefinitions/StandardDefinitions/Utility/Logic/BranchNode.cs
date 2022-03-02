@@ -21,9 +21,9 @@ namespace com.unity.shadergraph.defs
             { "Category", "Utility, Logic" },
             { "Name.Synonyms", "switch, if, else" },
             { "Tooltip", "provides a dynamic branch to the shader. Both sides of the branch will be evaluated" },
-            { "Parameters.Predicate.Tooltip", "Value of predicate" },
-            { "Parameters.True.Tooltip", "True branch" },
-            { "Parameters.False.Tooltip", "Flase branch" },
+            { "Parameters.Predicate.Tooltip", "value of predicate" },
+            { "Parameters.True.Tooltip", "true branch" },
+            { "Parameters.False.Tooltip", "flase branch" },
             { "Parameters.Out.Tooltip", "either the True branch or the False branch depending on the value of predicate" }
         };
     }
