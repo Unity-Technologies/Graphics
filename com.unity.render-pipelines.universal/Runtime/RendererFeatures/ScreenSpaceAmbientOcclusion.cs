@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionSettings
     {
         // Parameters
-        [SerializeField] internal AOMethod AOAlgorithm = AOMethod.BlueNoise;
+        [SerializeField] internal AOMethod AOAlgorithm = AOMethod.Old;
         [SerializeField] internal bool Downsample = false;
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal bool SinglePassBlur = false;
         [SerializeField] internal UpsampleTypes FinalUpsample = UpsampleTypes.None;
         [SerializeField] internal BlurTypes BlurType = BlurTypes.Bilateral;
-        [SerializeField] internal Texture2D BlueNoiseTexture;
         [SerializeField] internal float Falloff = 100f;
 
         // Enums
@@ -49,9 +48,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal enum AOMethod
         {
-            BlueNoise,
-            Keijiro,
-            OldWithBlueNoise,
+            New,
             Old,
         }
 
@@ -90,10 +87,8 @@ namespace UnityEngine.Rendering.Universal
         // Constants
         private const string k_SSAOShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion";
         private const string k_BlitShaderName = "Hidden/Universal Render Pipeline/Blit";
-        private const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
-        private const string k_AOKeijiroKeyword = "_KEIJIRO";
+        private const string k_AONewKeyword = "_NEW";
         private const string k_AOOldKeyword = "_OLD";
-        private const string k_AOOldBlueNoiseKeyword = "_OLD_BLUE_NOISE";
         private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
         private const string k_NormalReconstructionLowKeyword = "_RECONSTRUCT_NORMAL_LOW";
         private const string k_NormalReconstructionMediumKeyword = "_RECONSTRUCT_NORMAL_MEDIUM";
@@ -146,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material, m_BlitMaterial, m_Settings.BlueNoiseTexture);
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material, m_BlitMaterial);
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_SSAOPass);
@@ -207,7 +202,6 @@ namespace UnityEngine.Rendering.Universal
             private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
             private Material m_Material;
             private Material m_BlitMaterial;
-            private Texture2D m_BlueNoise;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
             private Vector4[] m_CameraXExtent = new Vector4[2];
             private Vector4[] m_CameraYExtent = new Vector4[2];
@@ -229,7 +223,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
-            private static readonly int s_BlueNoiseTextureID = Shader.PropertyToID("_BlueNoiseTexture");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
             private static readonly int s_KawaseBlurIterationID = Shader.PropertyToID("_KawaseBlurIteration");
             private static readonly int s_LastKawasePass = Shader.PropertyToID("_LastKawasePass");
@@ -282,9 +275,8 @@ namespace UnityEngine.Rendering.Universal
                 m_SSAOTexture5.Release();
             }
 
-            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Material blitMaterial, Texture2D blueNoiseTexture)
+            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Material blitMaterial)
             {
-                m_BlueNoise = blueNoiseTexture;
                 m_Material = material;
                 m_BlitMaterial = blitMaterial;
                 m_Renderer = renderer;
@@ -317,9 +309,9 @@ namespace UnityEngine.Rendering.Universal
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-                return m_Material != null
+                return m_Material != null/*
                     && m_CurrentSettings.Intensity > 0.0f
-                    && m_CurrentSettings.Radius > 0.0f;
+                    && m_CurrentSettings.Radius > 0.0f*/;
             }
 
             /// <inheritdoc/>
@@ -371,25 +363,16 @@ namespace UnityEngine.Rendering.Universal
                 m_Material.SetVectorArray(s_CameraViewXExtentID, m_CameraXExtent);
                 m_Material.SetVectorArray(s_CameraViewYExtentID, m_CameraYExtent);
                 m_Material.SetVectorArray(s_CameraViewZExtentID, m_CameraZExtent);
-                m_Material.SetTexture(s_BlueNoiseTextureID, m_BlueNoise);
 
 
                 // Update keywords
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
-                CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, false);
-                CoreUtils.SetKeyword(m_Material, k_AOKeijiroKeyword, false);
-                CoreUtils.SetKeyword(m_Material, k_AOOldBlueNoiseKeyword, false);
+                CoreUtils.SetKeyword(m_Material, k_AONewKeyword, false);
                 CoreUtils.SetKeyword(m_Material, k_AOOldKeyword, false);
                 switch (m_CurrentSettings.AOAlgorithm)
                 {
-                    case ScreenSpaceAmbientOcclusionSettings.AOMethod.BlueNoise:
-                        CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, true);
-                        break;
-                    case ScreenSpaceAmbientOcclusionSettings.AOMethod.Keijiro:
-                        CoreUtils.SetKeyword(m_Material, k_AOKeijiroKeyword, true);
-                        break;
-                    case ScreenSpaceAmbientOcclusionSettings.AOMethod.OldWithBlueNoise:
-                        CoreUtils.SetKeyword(m_Material, k_AOOldBlueNoiseKeyword, true);
+                    case ScreenSpaceAmbientOcclusionSettings.AOMethod.New:
+                        CoreUtils.SetKeyword(m_Material, k_AONewKeyword, true);
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.AOMethod.Old:
                         CoreUtils.SetKeyword(m_Material, k_AOOldKeyword, true);

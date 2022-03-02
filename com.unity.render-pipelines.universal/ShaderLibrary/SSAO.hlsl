@@ -84,14 +84,7 @@ static half SSAORandomUV[40] =
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
-
-#if defined(_BLUE_NOISE)
 #define RADIUS _SSAOParams.y
-#elif defined(_KEIJIRO)
-#define RADIUS _SSAOParams.y * 1.5
-#else
-#define RADIUS _SSAOParams.y
-#endif
 #define DOWNSAMPLE _SSAOParams.z
 #define FALLOFF _SSAOParams.w
 
@@ -177,70 +170,32 @@ half2 CosSin(half theta)
     return half2(cs, sn);
 }
 
-// Pseudo random number generator with 2D coordinates
-half GetRandomUVForSSAO(float u, int sampleIndex)
-{
-    return SSAORandomUV[u * 20 + sampleIndex];
-}
-
 float2 GetScreenSpacePosition(float2 uv)
 {
     return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
 }
 
-float nrand(float2 uv, float dx, float dy)
+// Pseudo random number generator with 2D coordinates
+half GetRandomUVForSSAO(float2 uv, float dx, float dy)
 {
-    uv += float2(dx, dy/* + _Time.x*/);
-    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
-}
-
-half3 PickSamplePointKeijiro(float2 uv, float index)
-{
-    // Uniformaly distributed points
-    // http://mathworld.wolfram.com/SpherePointPicking.html
-    float u = nrand(uv, 0, index) * 2 - 1;
-    float theta = nrand(uv, 1, index) * PI * 2;
-    float u2 = sqrt(1 - u * u);
-    float3 v = float3(u2 * cos(theta), u2 * sin(theta), u);
-
-    // Adjustment for distance distribution.
-    float l = index / SAMPLE_COUNT;
-    return v * lerp(0.1, 1.0, l * l);
-}
-
-half3 PickSamplePointBlueNoise(float2 uv, float index)
-{
-    const float2 positionSS = GetScreenSpacePosition(uv);
-    float2 noise = frac(float2(index + _Time.x * 100.0, index + _Time.y * 100.0));
-    return SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
-}
-
-half3 PickSamplePointOld(float2 uv, float index)
-{
-    const float2 positionSS = GetScreenSpacePosition(uv);
-
-    #if defined(_OLD_BLUE_NOISE)
-        const half gn = SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy);
+    #if defined(_NEW)
+        uv += float2(dx, dy);
+        return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
     #else
-        const half gn = half(InterleavedGradientNoise(positionSS, index));
+        const float2 positionSS = GetScreenSpacePosition(uv);
+        const half gn = half(InterleavedGradientNoise(positionSS, dy));
+        return SSAORandomUV[dx * 20 + dy] + gn;
     #endif
-
-    const half u = frac(GetRandomUVForSSAO(half(0.0), index) + gn) * half(2.0) - half(1.0);
-    const half theta = (GetRandomUVForSSAO(half(1.0), index) + gn) * half(TWO_PI);
-
-    return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
 }
 
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex)
 {
-    #if defined(_BLUE_NOISE)
-        return PickSamplePointBlueNoise(uv, sampleIndex);
-    #elif defined(_KEIJIRO)
-        return PickSamplePointKeijiro(uv, sampleIndex);
-    #else
-        return PickSamplePointOld(uv, sampleIndex);
-    #endif
+    half index = half(sampleIndex);
+    const half u = GetRandomUVForSSAO(uv, 0.0, index) * half(2.0) - half(1.0);
+    const half theta = GetRandomUVForSSAO(uv, 1.0, index) * half(TWO_PI);
+    half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+    return v;
 }
 
 float SampleAndGetLinearEyeDepth(float2 uv)
@@ -404,7 +359,6 @@ half4 SSAO(Varyings input) : SV_Target
 
         // Make it distributed between [0, _Radius]
         v_s1 *= sqrt((half(s) + half(1.0)) * rcpSampleCount) * RADIUS;
-
         v_s1 = faceforward(v_s1, -norm_o, v_s1);
 
         half3 vpos_s1 = vpos_o + v_s1;
@@ -439,15 +393,19 @@ half4 SSAO(Varyings input) : SV_Target
         ao += a1 * rcp(a2);
     }
 
+    const half rcpFalloff = half(rcp(FALLOFF));
+    float falloff = 1.0 - depth_o * rcpFalloff;
+
+    #if defined(_OLD)
     // Intensity normalization
     ao *= RADIUS;
 
     // Apply contrast
-    ao = PositivePow(ao * INTENSITY * rcpSampleCount, kContrast);
-
-    const half rcpFalloff = half(rcp(FALLOFF));
-    float falloff = 1.0 - depth_o * rcpFalloff;
-    ao = saturate(ao * INTENSITY * falloff * rcpSampleCount);
+    ao = PositivePow(saturate(ao * INTENSITY * falloff) , kContrast);
+    #else
+    // Apply contrast
+    ao = saturate(ao * INTENSITY * falloff);
+    #endif
 
     #if defined(_ONLY_AO)
         return half(1.0) - ao;

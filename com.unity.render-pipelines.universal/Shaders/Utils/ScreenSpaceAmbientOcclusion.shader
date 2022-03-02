@@ -68,7 +68,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
                 #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS
                 #pragma multi_compile_local _RECONSTRUCT_NORMAL_LOW _RECONSTRUCT_NORMAL_MEDIUM _RECONSTRUCT_NORMAL_HIGH
-                #pragma multi_compile_local _BLUE_NOISE _KEIJIRO _OLD_BLUE_NOISE _OLD
+                #pragma multi_compile_local _OLD _NEW
                 #pragma multi_compile_local _ _ONLY_AO
                 #pragma multi_compile_local _ _ORTHOGRAPHIC
                 #pragma multi_compile_local _SAMPLE_COUNT4 _SAMPLE_COUNT6 _SAMPLE_COUNT8 _SAMPLE_COUNT10 _SAMPLE_COUNT12
@@ -85,7 +85,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             HLSLPROGRAM
                 #pragma vertex VertDefault
                 #pragma fragment HorizontalBlur
-                #define BLUR_SAMPLE_CENTER_NORMAL  // TODO: this is causing extra fp32 operations on mobile. In general makes blur more expensive. Remove it?
+                //#define BLUR_SAMPLE_CENTER_NORMAL  // TODO: this is causing extra fp32 operations on mobile. In general makes blur more expensive. Remove it?
                 #pragma multi_compile_local _ _ORTHOGRAPHIC
                 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
                 #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS
@@ -228,7 +228,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
-        // 4 - After Opaque
+        // 13 - After Opaque
         Pass
         {
             Name "SSAO_AfterOpaque"

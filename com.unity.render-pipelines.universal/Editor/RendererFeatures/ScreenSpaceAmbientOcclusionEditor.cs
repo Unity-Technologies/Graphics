@@ -79,12 +79,12 @@ namespace UnityEditor.Rendering.Universal
 
             bool isDeferredRenderingMode = RendererIsDeferred();
 
-            EditorGUILayout.PropertyField(m_BlueNoiseTexture, Styles.BlueNoiseTexture);
-
             EditorGUILayout.PropertyField(m_AOAlgorithm, Styles.AOAlgorithm);
+            EditorGUILayout.PropertyField(m_OnlyAO, Styles.OnlyAO);
+
+            EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
-
             EditorGUILayout.PropertyField(m_AfterOpaque, Styles.AfterOpaque);
 
             GUI.enabled = !isDeferredRenderingMode;
@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.PropertyField(m_OnlyAO, Styles.OnlyAO);
+
             EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
             EditorGUILayout.PropertyField(m_SinglePassBlur, Styles.SinglePassBlur);
             EditorGUILayout.PropertyField(m_FinalUpsample, Styles.FinalUpsample);
