@@ -32,7 +32,11 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracing,
         RayTracingDebug,
         Constant,
+        VBufferLighting,
+        VBufferLightingOffscreen,
         Visibility,
+        VisibilityOitCount,
+        VisibilityOitStorage,
         FullScreenDebug,
     }
 }

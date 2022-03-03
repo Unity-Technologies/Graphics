@@ -525,7 +525,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
                 }
 
-                if (transparentSortPriority != null)
+                if (transparentSortPriority != null && HDRenderQueue.SupportsTransparencySortingPriority(renderQueue))
                     materialEditor.IntSliderShaderProperty(transparentSortPriority, -HDRenderQueue.sortingPriorityRange, HDRenderQueue.sortingPriorityRange, Styles.transparentSortPriorityText);
 
                 if (enableFogOnTransparent != null)
@@ -643,7 +643,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SurfaceType.Transparent:
                     //GetTransparentEquivalent: prevent issue when switching surface type
                     HDRenderQueue.TransparentRenderQueue renderQueueTransparentType = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(renderQueueType));
-                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, true, showLowResolutionPass, showAfterPostProcessPass);
+                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, true, showLowResolutionPass, showAfterPostProcessPass, true);
                     if (newRenderQueueTransparentType != renderQueueTransparentType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                     {
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
@@ -689,7 +689,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
-        int DoTransparentRenderingPassPopup(string text, int inputValue, bool refraction, bool lowRes, bool afterPost)
+        int DoTransparentRenderingPassPopup(string text, int inputValue, bool refraction, bool lowRes, bool afterPost, bool oit)
         {
             // Build UI enums
             m_RenderingPassNames.Clear();
@@ -714,6 +714,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_RenderingPassNames.Add("After post-process");
                 m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
+            }
+
+            if (oit)
+            {
+                m_RenderingPassNames.Add("Order independent");
+                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.OrderIndependent);
             }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());

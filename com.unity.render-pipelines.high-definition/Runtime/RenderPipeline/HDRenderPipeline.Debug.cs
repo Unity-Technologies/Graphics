@@ -349,13 +349,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer depthPyramidOffsets;
             public TextureHandle output;
             public TextureHandle input;
+            public TextureHandle oitGBuffer0;
+            public TextureHandle oitGBuffer1;
             public VBufferInformation vBufferInfo;
+            public VBufferOITOutput vBufferOIT;
             public TextureHandle depthPyramid;
             public ComputeBufferHandle fullscreenBuffer;
             public RenderBRGBindingData BRGBindData;
         }
 
-        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, VBufferInformation vBufferInfo, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, VBufferInformation vBufferInfo, VBufferOITOutput vBufferOIT, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveFullScreenDebugPassData>("ResolveFullScreenDebug", out var passData))
             {
@@ -364,6 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugFullScreenMaterial = m_DebugFullScreen;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
                 passData.vBufferInfo = vBufferInfo.Read(builder);
+                passData.vBufferOIT = vBufferOIT.Read(builder);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
                 passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
@@ -376,6 +380,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, false /* we dont want DRS on this output target*/, true /*We want XR support on this output target*/)
                 { colorFormat = rtFormat, name = "ResolveFullScreenDebug" }));
 
+                if (vBufferOIT.gBuffer0Texture.IsValid() && vBufferOIT.gBuffer1Texture.IsValid())
+                {
+                    passData.oitGBuffer0 = builder.ReadTexture(vBufferOIT.gBuffer0Texture);
+                    passData.oitGBuffer1 = builder.ReadTexture(vBufferOIT.gBuffer1Texture);
+                }
+
                 passData.BRGBindData = new RenderBRGBindingData();
                 if (IsVisibilityPassEnabled())
                     passData.BRGBindData = RenderBRG.GetRenderBRGMaterialBindingData();
@@ -386,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         ComputeBuffer fullscreenBuffer = data.fullscreenBuffer;
 
-                        if (data.vBufferInfo.valid)
+                        if (data.vBufferInfo.valid || data.vBufferOIT.valid)
                             data.debugFullScreenMaterial.EnableKeyword("DOTS_INSTANCING_ON");
                         else
                             data.debugFullScreenMaterial.DisableKeyword("DOTS_INSTANCING_ON");
@@ -405,6 +415,35 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)data.debugDisplaySettings.data.maxQuadCost);
                         mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)data.debugDisplaySettings.data.maxVertexDensity);
                         mpb.SetFloat(HDShaderIDs._MinMotionVector, data.debugDisplaySettings.data.minMotionVectorLength);
+
+                        if (data.vBufferOIT.valid)
+                        {
+                            mpb.SetTexture(HDShaderIDs._VisOITCount, data.vBufferOIT.stencilBuffer, RenderTextureSubElement.Stencil);
+                            mpb.SetBuffer(HDShaderIDs._VisOITHistogramBuffer, data.vBufferOIT.histogramBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITPrefixedHistogramBuffer, data.vBufferOIT.prefixedHistogramBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITListsCounts, data.vBufferOIT.sampleListCountBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITListsOffsets, data.vBufferOIT.sampleListOffsetBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITSubListsCounts, data.vBufferOIT.sublistCounterBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITBuffer, data.vBufferOIT.oitVisibilityBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITPixelHash, data.vBufferOIT.pixelHashBuffer);
+
+                            uint oitGBufferLayerIdx = data.debugDisplaySettings.data.materialDebugSettings.oitGBufferLayerIdx;
+                            int oitGBufferLayer = (int)data.debugDisplaySettings.data.materialDebugSettings.oitGBufferLayer;
+                            int offScreenLightingWidth = GetOITOffscreenLightingSize(hdCamera, 16).x;
+
+                            float packedOITGBufferLayerIdx; unsafe { packedOITGBufferLayerIdx = *((float*)&oitGBufferLayerIdx); };
+                            float packedOITGBufferLayer; unsafe { packedOITGBufferLayer = *((float*)&oitGBufferLayer); };
+                            float packedOffscreenLightingWidth; unsafe { packedOffscreenLightingWidth = *((float*)&offScreenLightingWidth); };
+                            mpb.SetFloat(HDShaderIDs._VisOITGBufferLayerIdx, packedOITGBufferLayerIdx);
+                            mpb.SetFloat(HDShaderIDs._VisOITGBufferLayer, packedOITGBufferLayer);
+                            mpb.SetFloat(HDShaderIDs._VBufferOITLightingOffscreenWidth, packedOffscreenLightingWidth);
+
+                            if (passData.oitGBuffer0.IsValid() && passData.oitGBuffer1.IsValid())
+                            {
+                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer0, passData.oitGBuffer0);
+                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer1, passData.oitGBuffer1);
+                            }
+                        }
 
                         if (fullscreenBuffer != null)
                             ctx.cmd.SetRandomWriteTarget(1, fullscreenBuffer);
@@ -1166,6 +1205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             TextureHandle colorBuffer,
             VBufferInformation vBufferInfo,
+            VBufferOITOutput vBufferOIT,
             TextureHandle depthBuffer,
             TextureHandle depthPyramidTexture,
             TextureHandle colorPickerDebugTexture,
@@ -1184,7 +1224,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed)
             {
-                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, vBufferInfo, depthPyramidTexture, hdCamera, colorFormat);
+                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, vBufferInfo, vBufferOIT, depthPyramidTexture, hdCamera, colorFormat);
 
                 // If we have full screen debug, this is what we want color picked, so we replace color picker input texture with the new one.
                 if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))

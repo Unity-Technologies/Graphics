@@ -1,0 +1,256 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/BTDF.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel MainComputePhotonBuffer
+
+#define MIN_GGX_ROUGHNESS           0.00001f
+#define MAX_GGX_ROUGHNESS           0.99999f
+float4 _VBufferLightingOffscreenParams;
+
+TEXTURE2D_X(_DepthTexture);
+
+// Weight for SSR where Fresnel == 1 (returns value/pdf)
+float GetSSRSampleWeight(float3 V, float3 L, float roughness)
+{
+    // Simplification:
+    // value = D_GGX / (lambdaVPlusOne + lambdaL);
+    // pdf = D_GGX / lambdaVPlusOne;
+
+    const float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
+    const float lambdaL = Lambda_GGX(roughness, L);
+
+    return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
+}
+
+float Normalize01(float value, float minValue, float maxValue)
+{
+    return (value - minValue) / (maxValue - minValue);
+}
+
+// Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
+bool SampleGGX_VNDF(float roughness_,
+                    float3 normalWS,
+                    float3 V,
+                    float2 inputSample,
+                out float3 outgoingDir,
+                out float weight)
+{
+    weight = 0.0f;
+
+    float3x3 localToWorld = GetLocalFrame(normalWS);
+    float roughness = clamp(roughness_, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+
+    float VdotH;
+    float3 localV, localH;
+    SampleGGXVisibleNormal(inputSample.xy, V, localToWorld, roughness, localV, localH, VdotH);
+
+    // Compute the reflection direction
+    float3 localL = 2.0 * VdotH * localH - localV;
+    outgoingDir = mul(localL, localToWorld);
+
+    if (localL.z < 0.001)
+    {
+        return false;
+    }
+
+    weight = GetSSRSampleWeight(localV, localL, roughness);
+
+    if (weight < 0.001)
+        return false;
+
+    return true;
+}
+
+uint GetMaxSamplesCount()
+{
+    return (int)asuint(_VBufferLightingOffscreenParams.y);
+}
+
+uint GetOffscreenLightBufferWidth()
+{
+    return asuint(_VBufferLightingOffscreenParams.x);
+}
+
+ByteAddressBuffer _VisOITSamplesCountBuffer;
+RW_TEXTURE2D_X(float4, _VisOITOutputPhotonBuffer);
+
+float halton(int index, float base)
+{
+    float result = 0.0;
+    float f = 1.0 / base;
+    float i = float(index);
+
+    for (int x = 0; x < 8; x++)
+    {
+        if (i <= 0.0)
+            break;
+
+        result += f*fmod(i, base);
+        i = floor(i / base);
+        f = f / base;
+    }
+
+    return result;
+}
+
+float2 halton2D(int index)
+{
+    return float2(halton(index, 2.0), halton(index, 3.0));
+}
+
+bool ClosestSample(float2 texelCoord, float srcDepth, out int2 offscreenSampleCoord, out int globalSampleIndex)
+{
+    offscreenSampleCoord = int2(-1,-1);
+    globalSampleIndex = -1;
+    if (any(texelCoord < float2(0,0)) || any(texelCoord >= _ScreenSize.xy))
+        return false;
+
+    uint2 clampedCoords = (uint2)texelCoord.xy;
+    int pixelOffset = clampedCoords.y * _ScreenSize.x + clampedCoords.x;
+    uint listCount, listOffset;
+    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+    float minDist = 1e5;
+
+    for (uint i = 0; i < listCount; ++i)
+    {
+        uint2 sampleCoord;
+        float sampleDepth;
+        Visibility::VisibilityData visSample;
+        VisibilityOIT::GetVisibilitySample(i, listOffset, visSample, sampleCoord, sampleDepth);
+        float sampleDist = abs(srcDepth - sampleDepth);
+
+        if (sampleDist > minDist)
+            continue;
+
+        minDist = sampleDist;
+        globalSampleIndex = i + listOffset;
+        offscreenSampleCoord = (int2)uint2(globalSampleIndex % GetOffscreenLightBufferWidth(), globalSampleIndex / GetOffscreenLightBufferWidth());
+    }
+
+    if (offscreenSampleCoord.x < 0.0)
+        return false;
+
+    return true;
+}
+
+uint bobJenkinsHash(uint seed)
+{
+    seed += (seed << 10u);
+    seed ^= (seed >> 6u);
+    seed += (seed << 3u);
+    seed ^= (seed >> 11u);
+    seed += (seed << 15u);
+    return seed;
+}
+
+float floatConstruct(uint m)
+{
+    const uint ieeeMantissa = 0x007FFFFFu;
+    const uint ieeeOne = 0x3F800000u;
+
+    m &= ieeeMantissa;
+    m |= ieeeOne;
+
+    float  f = asfloat(m);
+    return f - 1.0;
+}
+
+float randomFloat(uint seed)
+{
+    return floatConstruct(bobJenkinsHash(seed));
+}
+
+#define ITERATION_COUNTS 8
+
+[numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
+void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint maxSamplesCount = min(GetMaxSamplesCount(), _VisOITSamplesCountBuffer.Load(0));
+    uint srcSampleId = dispatchThreadId.x;
+    if (srcSampleId >= maxSamplesCount)
+        return;
+
+    uint2 offscreenCoord = uint2(srcSampleId % GetOffscreenLightBufferWidth(), srcSampleId / GetOffscreenLightBufferWidth());
+
+    Visibility::VisibilityData visData;
+    uint2 texCoord;
+    float depthValue;
+    VisibilityOIT::GetVisibilitySample(srcSampleId, 0, visData, texCoord, depthValue);
+    if (!visData.valid)
+        return;
+
+    float2 screenUV = (float2)(texCoord + 0.5) * _ScreenSize.zw;
+    float3 posWS = ComputeWorldSpacePosition(screenUV, depthValue, UNITY_MATRIX_I_VP);
+    float3 V = GetWorldSpaceNormalizeViewDir(posWS);
+
+    // Sample GBuffer
+    uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+    uint2 packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].rg;
+    float3 normalWS;
+    float roughness;
+    float3 baseColor;
+    float metalness;
+    float3 absorptionCoefficient;
+    float ior;
+    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normalWS, roughness, baseColor, metalness, absorptionCoefficient, ior);
+    float3 f0 = lerp(DEFAULT_SPECULAR_VALUE.xxx, baseColor, metalness);
+    float NdotV = dot(V, normalWS);
+    bool isBackface = NdotV < 0.0;
+    normalWS *= isBackface ? -1.0f : 1.0f;
+
+    float iorEstimated = ior; // Use IOR or F0 based on HAS_REFRACTION of the shader cf. OITGBufferPacking
+
+    float internalIORSource =  isBackface ? 1.0f : iorEstimated;
+    float internalIORMedium =  isBackface ? iorEstimated : 1.0f;
+    float eta = internalIORMedium / internalIORSource;
+
+    //Importance sample the first direction, along the nromal of the current sample.
+    float4 accumulatedRadiance = float4(0,0,0,0);
+    for (int it = 0; it  < ITERATION_COUNTS; ++it)
+    {
+        float2 rand = frac(offscreenCoord + halton2D((int)(srcSampleId) ^ it));
+        float3 microNormal;
+        float sampleWeight = 1.0;
+        BTDF::GGXSampleWSOmega_w(V, normalWS, rand, roughness, microNormal);
+
+        float3 reflectedDir = reflect(-V, microNormal);
+        float3 refractedDir = refract(-V, microNormal, eta);
+        float randFloat = randomFloat(srcSampleId + it);
+        float3 sampleDir = refractedDir;// randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
+
+        // kleber: should multiplye by roughness? 'lerp(0.8, 2.0, randFloat) * sampleDir * roughness'
+        float3 sampledWS = posWS + lerp(0.8, 2.0, randFloat) * sampleDir;// - 0.001*reflectedDir;//small world increment. TODO make this adaptive
+        float3 sampleNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledWS, UNITY_MATRIX_VP);
+        float2 samplePixelPos = (sampleNDC.xy * _ScreenSize.xy);
+
+        float curOpaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, samplePixelPos.xy).r;
+        // Hit Opaque
+        if (sampleNDC.z < curOpaqueDeviceDepth)
+        {
+            float3 radiance = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, samplePixelPos.xy).rgb;
+            radiance *= exp(-absorptionCoefficient * length(sampledWS - posWS));
+            accumulatedRadiance += float4(radiance * sampleWeight, sampleWeight);
+        }
+        else
+        {
+            int2 bestSampleCoord;
+            int bestSampleIndex;
+            if (ClosestSample(samplePixelPos, sampleNDC.z, bestSampleCoord, bestSampleIndex))
+            {
+                float3 radiance = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(bestSampleCoord)].rgb;
+                radiance *= exp(-absorptionCoefficient * length(sampledWS - posWS));
+                accumulatedRadiance += float4(radiance * sampleWeight, sampleWeight);
+            }
+        }
+    }
+
+    _VisOITOutputPhotonBuffer[COORD_TEXTURE2D_X(offscreenCoord)] += accumulatedRadiance;
+}

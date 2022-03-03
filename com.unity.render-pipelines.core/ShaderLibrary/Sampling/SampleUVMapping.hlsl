@@ -9,6 +9,7 @@
 #define UV_MAPPING_UVSET 0
 #define UV_MAPPING_PLANAR 1
 #define UV_MAPPING_TRIPLANAR 2
+#define UV_MAPPING_ANALYTICAL_GRADIENTS 3
 
 struct UVMapping
 {
@@ -22,6 +23,10 @@ struct UVMapping
 
     float3 normalWS; // vertex normal
     float3 triplanarWeights;
+
+    //analytical gradients only
+    float2 ddxUV;
+    float2 ddyUV;
 
 #ifdef SURFACE_GRADIENT
     // tangent basis to use when mappingType is UV_MAPPING_UVSET

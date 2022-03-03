@@ -1,0 +1,118 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel MainInitialize
+#pragma kernel MainTileComputeHiZ
+
+#define GROUP_SIZE 8
+
+#if defined(USE_TEXTURE2D_X_AS_ARRAY)
+RWTexture2DArray<float2> _OITTileHiZOutput;
+#else
+RWTexture2D<float2> _OITTileHiZOutput;
+#endif
+
+uint4 _SrcOffsetAndLimit;
+uint4 _DstOffset;
+
+float4 _VBufferLightingOffscreenParams;
+
+uint GetOffscreenLightBufferWidth()
+{
+    return asuint(_VBufferLightingOffscreenParams.x);
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainInitialize(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+
+    if (any((float2)dispatchThreadID.xy > _ScreenSize.xy))
+    {
+        return;
+    }
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadID.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+
+    uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
+    uint listCount, listOffset;
+    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+    if (listCount == 0)
+    {
+        _OITTileHiZOutput[COORD_TEXTURE2D_X(dispatchThreadID.xy)] = float2(UNITY_RAW_FAR_CLIP_VALUE, UNITY_RAW_FAR_CLIP_VALUE);
+
+        return;
+    }
+
+    float minDepth =  1e7f;
+    float maxDepth = -1e7f;
+
+    for (uint i = 0; i < listCount; ++i)
+    {
+        int globalOffset = i + listOffset;
+        uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+
+        Visibility::VisibilityData unusedVisData;
+        uint2 unusedTexelCoord;
+        float deviceDepth;
+        float linearDepth;
+        VisibilityOIT::GetVisibilitySampleWithLinearDepth(i, listOffset, unusedVisData, unusedTexelCoord, deviceDepth, linearDepth);
+
+        uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+        float3 normal;
+        VisibilityOIT::UnpackOITNormalFromGBufferData0(packedOITGBuffer0, normal);
+
+        float2 minMax = GeomHelper::GetPixelMinMax(linearDepth, normal);
+
+        //float hitPerspective;
+        //PlaneLineIntersection(zero, w0, center, float3(0, 0, 1), hitPerspective);
+
+        //minDepth = min(linearDepth, minDepth);
+        //maxDepth = max(linearDepth, maxDepth);
+        minDepth = min(minMax.x, minDepth);
+        maxDepth = max(minMax.y, maxDepth);
+    }
+
+    _OITTileHiZOutput[COORD_TEXTURE2D_X(dispatchThreadID.xy)] = float2(minDepth, maxDepth);
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainTileComputeHiZ(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+
+    uint2 srcLimit = _SrcOffsetAndLimit.zw;
+
+    //if (any(dispatchThreadID.xy >= (int2)(2.0f*srcLimit.xy)))
+    //    return;
+
+    uint2 srcOffset = _SrcOffsetAndLimit.xy;
+    uint2 dstOffset = _DstOffset.xy;
+
+    //float minDepth = 1.0f;
+    //float maxDepth = 0.0f;
+
+    float minDepth =  1e7f;
+    float maxDepth = -1e7f;
+
+    uint2 srcPixel = srcOffset + (dispatchThreadID.xy << 1);
+
+    // TODO: Replace this loop by GatherRed, GatherGreen
+    UNITY_UNROLL
+    for (int i = 0; i < 2; ++i)
+    {
+        UNITY_UNROLL
+        for (int j = 0; j < 2; ++j)
+        {
+            float2 minMax = _OITTileHiZOutput[COORD_TEXTURE2D_X(min(srcPixel + uint2(i, j), srcLimit))].xy;
+
+            minDepth = min(minMax.x, minDepth);
+            maxDepth = max(minMax.y, maxDepth);
+        }
+    }
+
+    _OITTileHiZOutput[COORD_TEXTURE2D_X(dstOffset + dispatchThreadID.xy)] = float2(minDepth, maxDepth);
+}

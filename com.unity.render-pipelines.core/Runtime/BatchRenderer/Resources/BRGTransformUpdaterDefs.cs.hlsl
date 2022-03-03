@@ -8,12 +8,12 @@
 // PackingRules = Exact
 struct BRGGpuTransformUpdate
 {
-    float4 localToWorld0; // x: x y: y z: z w: w
-    float4 localToWorld1; // x: x y: y z: z w: w
-    float4 localToWorld2; // x: x y: y z: z w: w
-    float4 worldToLocal0; // x: x y: y z: z w: w
-    float4 worldToLocal1; // x: x y: y z: z w: w
-    float4 worldToLocal2; // x: x y: y z: z w: w
+    float4 localToWorld0; // x: x y: y z: z w: w 
+    float4 localToWorld1; // x: x y: y z: z w: w 
+    float4 localToWorld2; // x: x y: y z: z w: w 
+    float4 worldToLocal0; // x: x y: y z: z w: w 
+    float4 worldToLocal1; // x: x y: y z: z w: w 
+    float4 worldToLocal2; // x: x y: y z: z w: w 
 };
 
 // Generated from UnityEngine.Rendering.BRGSHUpdate

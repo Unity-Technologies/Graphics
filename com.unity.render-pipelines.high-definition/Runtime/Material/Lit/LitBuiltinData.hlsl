@@ -50,6 +50,12 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     mappingType = UV_MAPPING_PLANAR;
     #elif defined(_EMISSIVE_MAPPING_TRIPLANAR)
     mappingType = UV_MAPPING_TRIPLANAR;
+    #elif defined(_EMISSIVE_MAPPING_ANALYTICAL_GRADIENTS)
+    mappingType = UV_MAPPING_ANALYTICAL_GRADIENTS;
+        #ifndef LAYERED_LIT_SHADER
+        layerTexCoord.base.ddxUV = input.texCoord0ddx;
+        layerTexCoord.base.ddyUV = input.texCoord0ddy;
+        #endif
     #endif
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code

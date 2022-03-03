@@ -1,0 +1,186 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel MainClearHistogram
+#pragma kernel MainCreateStencilHistogram
+#pragma kernel MainFlatEnableActiveCounts
+#pragma kernel MainCreateSampleDispatchArgs
+
+#define GROUP_SIZE_Y 8
+#define GROUP_SIZE_X 8
+#define GROUP_SIZE 64
+
+#define APPLY_JITTER_BIAS 0
+
+#define APPLY_BORDER_BIAS 1
+
+float4 _PackedOITTileHistogramArgs;
+
+RWStructuredBuffer<uint> _OITSortMemoryBuffer;
+
+int _VisOITBlockJitterOffsetX;
+int _VisOITBlockJitterOffsetY;
+
+Texture2D<float> _OITDitherTexture;
+RWByteAddressBuffer _VisOITHistogramOutput;
+
+uint GetPixelIndex(int2 pixelCoordinates)
+{
+    float ditherRatio = _OITDitherTexture[(uint2)pixelCoordinates % uint2(DITHER_TILE_SIZE, DITHER_TILE_SIZE)];
+
+#if APPLY_BORDER_BIAS
+    uint countVal_c = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(0,0))].xy);
+    uint countVal_l = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(-1,0))].xy);
+    uint countVal_r = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(1,0))].xy);
+    uint countVal_u = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(0,-1))].xy);
+    uint countVal_d = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(0,1))].xy);
+
+    if (countVal_c != countVal_l ||
+        countVal_c != countVal_r ||
+        countVal_c != countVal_u ||
+        countVal_c != countVal_d)
+    {
+        ditherRatio = 0.5f * ditherRatio;
+    }
+#endif
+
+#if APPLY_JITTER_BIAS
+    int isMod4X = ((pixelCoordinates.x-_VisOITBlockJitterOffsetX) % 4 == 0) ? 1 : 0;
+    int isMod8X = ((pixelCoordinates.x-_VisOITBlockJitterOffsetX) % 8 == 0) ? 1 : 0;
+    int isMod4Y = ((pixelCoordinates.y-_VisOITBlockJitterOffsetY) % 4 == 0) ? 1 : 0;
+    int isMod8Y = ((pixelCoordinates.y-_VisOITBlockJitterOffsetY) % 8 == 0) ? 1 : 0;
+
+    int totalSum = isMod4X + isMod8X + isMod4Y + isMod8Y;
+
+    [flatten]
+    if (totalSum >= 1)
+    {
+        ditherRatio = 0.5f + float(totalSum-1) / 8.0f + ditherRatio / 8.0f;
+    }
+    else
+    {
+        ditherRatio = 0.5f * ditherRatio;
+    }
+#endif
+
+    return (uint)((DITHER_TILE_TOTAL_PIXELS) * ditherRatio);
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void MainClearHistogram(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= DITHER_TILE_TOTAL_PIXELS)
+        return;
+
+    _VisOITHistogramOutput.Store(dispatchThreadID.x << 2,  0);
+
+    // Initialize some sorting variables to 0
+    if (dispatchThreadID.x == 0)
+    {
+        // Sums
+        // Count <= 4
+        _OITSortMemoryBuffer[0] = 0;
+
+        // Count <= 32
+        _OITSortMemoryBuffer[1] = 0;
+
+        // Count > 32
+        _OITSortMemoryBuffer[2] = 0;
+
+        // Counters
+        // Count <= 4
+        _OITSortMemoryBuffer[3] = 0;
+
+        // Count <= 32
+        _OITSortMemoryBuffer[4] = 0;
+
+        // Count > 32
+        _OITSortMemoryBuffer[5] = 0;
+    }
+}
+
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void MainCreateStencilHistogram(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+
+    if (any(dispatchThreadID.xy >= (int2)_ScreenSize.xy))
+        return;
+
+    uint pixelIndex = GetPixelIndex(dispatchThreadID.xy);
+    uint countVal = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(dispatchThreadID.xy)].xy);
+    int dummy;
+    _VisOITHistogramOutput.InterlockedAdd(pixelIndex << 2, countVal, dummy);
+
+}
+
+RWByteAddressBuffer _OITOutputActiveCounts;
+RWByteAddressBuffer _OITOutputSublistCounter;
+RWByteAddressBuffer _OITOutputPixelHash;
+
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+
+    if (any(dispatchThreadID.xy >= (int2)_ScreenSize.xy))
+        return;
+
+    uint maxMaterialSampleCount = asuint(_PackedOITTileHistogramArgs.x);
+
+    uint pixelIndex = GetPixelIndex(dispatchThreadID.xy);
+    uint prefixCountVal = _VisOITPrefixedHistogramBuffer.Load(pixelIndex << 2);
+
+    uint outputPixel = dispatchThreadID.y * (int)_ScreenSize.x + dispatchThreadID.x;
+
+    uint storageValue = 0u;
+
+    [branch]
+    if (prefixCountVal <= maxMaterialSampleCount)
+    {
+        storageValue = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(dispatchThreadID.xy)].xy);
+
+        // Make a note of this sample list if it requires sorting
+        // (Lists of 0 or 1 samples don't need sorting)
+        if (storageValue >= 2)
+        {
+            uint sortVariantOffset;
+            if (storageValue <= 8)
+            {
+                sortVariantOffset = 0;
+            }
+            else if (storageValue <= 32)
+            {
+                sortVariantOffset = 1;
+            }
+            else
+            {
+                sortVariantOffset = 2;
+            }
+
+            // Increment the sublist allocation count every time we encounter a valid sublist
+            uint dummy;
+            InterlockedAdd(_OITSortMemoryBuffer[sortVariantOffset], 1, dummy);
+        }
+    }
+
+    _OITOutputActiveCounts.Store(outputPixel << 2, storageValue);
+    _OITOutputSublistCounter.Store(outputPixel << 2, 0); //initialize buffer to 0
+    _OITOutputPixelHash.Store(outputPixel << 2, 0x0); // initialize hash value to zero
+}
+
+ByteAddressBuffer _VisOITInputInclusivePrefixSumActiveCount;
+RWStructuredBuffer<uint4> _OITOutputDispatchSampleArgs;
+RWByteAddressBuffer _OITOutputSamplesCount;
+
+[numthreads(1, 1, 1)]
+void MainCreateSampleDispatchArgs()
+{
+    int lastPixelValue = _ScreenSize.x *_ScreenSize.y - 1;
+    uint totalPixelCount = _VisOITInputInclusivePrefixSumActiveCount.Load(lastPixelValue << 2);
+    _OITOutputDispatchSampleArgs[0] = uint4((totalPixelCount + (SAMPLES_DISPATCH_THREAD_COUNT - 1))/SAMPLES_DISPATCH_THREAD_COUNT,1,1,totalPixelCount);
+    _OITOutputSamplesCount.Store(0, totalPixelCount);
+}

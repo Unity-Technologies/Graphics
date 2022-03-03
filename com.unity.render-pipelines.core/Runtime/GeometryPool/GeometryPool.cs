@@ -26,11 +26,11 @@ namespace UnityEngine.Rendering
         {
             return new GeometryPoolDesc()
             {
-                vertexPoolByteSize = 32 * 1024 * 1024, //32 mb
-                indexPoolByteSize = 16 * 1024 * 1024, //16 mb
-                subMeshLookupPoolByteSize = 3 * 1024 * 1024, // 3mb
-                subMeshEntryPoolByteSize = 2 * 1024 * 1024, // 2mb
-                batchInstancePoolByteSize = 4 * 1024 * 1024, //4 mb
+                vertexPoolByteSize = 64 * 1024 * 1024, //64 mb
+                indexPoolByteSize = 32 * 1024 * 1024, //32 mb
+                subMeshLookupPoolByteSize = 6 * 1024 * 1024, // 6mb
+                subMeshEntryPoolByteSize = 4 * 1024 * 1024, // 4mb
+                batchInstancePoolByteSize = 8 * 1024 * 1024, //16 mb
                 maxMeshes = 4096
             };
         }
@@ -130,6 +130,8 @@ namespace UnityEngine.Rendering
             public static readonly int _InputUv0BufferOffset = Shader.PropertyToID("_InputUv0BufferOffset");
             public static readonly int _InputUv1BufferStride = Shader.PropertyToID("_InputUv1BufferStride");
             public static readonly int _InputUv1BufferOffset = Shader.PropertyToID("_InputUv1BufferOffset");
+            public static readonly int _InputColorBufferOffset = Shader.PropertyToID("_InputColorBufferOffset");
+            public static readonly int _InputColorBufferStride = Shader.PropertyToID("_InputColorBufferStride");
             public static readonly int _InputNormalBufferStride = Shader.PropertyToID("_InputNormalBufferStride");
             public static readonly int _InputNormalBufferOffset = Shader.PropertyToID("_InputNormalBufferOffset");
             public static readonly int _InputTangentBufferStride = Shader.PropertyToID("_InputTangentBufferStride");
@@ -140,6 +142,7 @@ namespace UnityEngine.Rendering
             public static readonly int _Uv1Buffer = Shader.PropertyToID("_Uv1Buffer");
             public static readonly int _NormalBuffer = Shader.PropertyToID("_NormalBuffer");
             public static readonly int _TangentBuffer = Shader.PropertyToID("_TangentBuffer");
+            public static readonly int _ColorBuffer = Shader.PropertyToID("_ColorBuffer");
             public static readonly int _OutputIndexBuffer = Shader.PropertyToID("_OutputIndexBuffer");
             public static readonly int _OutputVB = Shader.PropertyToID("_OutputVB");
             public static readonly int _OutputGeoMetadataBuffer = Shader.PropertyToID("_OutputGeoMetadataBuffer");
@@ -571,11 +574,13 @@ namespace UnityEngine.Rendering
             if (tBuffer != null)
                 Assertions.Assert.IsTrue(tBuffer != null);
 
+            GraphicsBuffer cBuffer = LoadVertexAttribInfo(mesh, VertexAttribute.Color, out int cStride, out int cOffset, out int _);
 
             GeoPoolInputFlags vertexFlags = GeoPoolInputFlags.None;
             AddVertexUpdateCommand(
-                cmdBuffer, posBuffer, uvBuffer, uv1Buffer, nBuffer, tBuffer,
+                cmdBuffer, posBuffer, uvBuffer, uv1Buffer, nBuffer, tBuffer, cBuffer,
                 posStride, posOffset, uvStride, uvOffset, uv1Stride, uv1Offset, nStride, nOffset, tStride, tOffset,
+                cStride, cOffset,
                 geoSlot.vertexAlloc, out vertexFlags, m_GlobalVertexBuffer);
 
             {
@@ -1033,15 +1038,17 @@ namespace UnityEngine.Rendering
 
         private void AddVertexUpdateCommand(
             CommandBuffer cmdBuffer,
-            in GraphicsBuffer p, in GraphicsBuffer uv0, in GraphicsBuffer uv1, in GraphicsBuffer n, in GraphicsBuffer t,
+            in GraphicsBuffer p, in GraphicsBuffer uv0, in GraphicsBuffer uv1, in GraphicsBuffer n, in GraphicsBuffer t, in GraphicsBuffer c,
             int posStride, int posOffset, int uv0Stride, int uv0Offset, int uv1Stride, int uv1Offset, int normalStride, int normalOffset, int tangentStride, int tangentOffset,
+            int colStride, int colOffset,
             in BlockAllocator.Allocation location,
             out GeoPoolInputFlags ouputFlags,
             ComputeBuffer outputVertexBuffer)
         {
             GeoPoolInputFlags flags =
                 (uv1 != null ? GeoPoolInputFlags.HasUV1 : GeoPoolInputFlags.None)
-              | (t != null ? GeoPoolInputFlags.HasTangent : GeoPoolInputFlags.None);
+              | (t != null ? GeoPoolInputFlags.HasTangent : GeoPoolInputFlags.None)
+              | (c != null ? GeoPoolInputFlags.HasColor : GeoPoolInputFlags.None);
 
             ouputFlags = flags;
 
@@ -1057,6 +1064,8 @@ namespace UnityEngine.Rendering
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv0BufferOffset, uv0Offset);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferStride, uv1Stride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputUv1BufferOffset, uv1Offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputColorBufferStride, colStride);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputColorBufferOffset, colOffset);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferStride, normalStride);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputNormalBufferOffset, normalOffset);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputTangentBufferStride, tangentStride);
@@ -1069,6 +1078,7 @@ namespace UnityEngine.Rendering
             cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._Uv1Buffer, uv1 != null ? t : p); /*unity always wants something set*/
             cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._NormalBuffer, n);
             cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._TangentBuffer, t != null ? t : p);/*unity always wants something set*/
+            cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._ColorBuffer, c != null ? c : p);/*unity always wants something set*/
 
             cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._OutputVB, outputVertexBuffer);
 

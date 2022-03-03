@@ -227,6 +227,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private static Material s_VisibilityMaterial = null;
         public Material VisibilityMaterial { get { return s_VisibilityMaterial; } }
 
+        private static Material s_VisibilityOITMaterial = null;
+        public Material VisibilityOITMaterial { get { return s_VisibilityOITMaterial; } }
+
         private static Material s_CreateMaterialDepthMaterial = null;
         public Material CreateMaterialDepthMaterial { get { return s_CreateMaterialDepthMaterial; } }
 
@@ -243,7 +246,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RenderBRGMaterialRenderInfo GetMaterialInfoForBRG(RenderBRGGetMaterialRenderInfoArgs arguments)
         {
-            if (HDRenderPipeline.IsTransparentMaterial(arguments.material) || HDRenderPipeline.IsAlphaTestedMaterial(arguments.material))
+            bool isOIT = arguments.material.renderQueue == (int)HDRenderQueue.Priority.OrderIndependentTransparent && m_RenderPipelineSettings.orderIndependentTransparentSettings.enabled;
+
+            if ((HDRenderPipeline.IsTransparentMaterial(arguments.material) && !isOIT) || HDRenderPipeline.IsAlphaTestedMaterial(arguments.material))
                 return new RenderBRGMaterialRenderInfo() { supportsVisibility = false, supportsBRGRendering = false };
 
             if (!HasVlightingPass(arguments.material))
@@ -255,6 +260,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_VisibilityMaterial.renderQueue = (int)HDRenderQueue.Priority.Visibility;
             }
 
+            if (isOIT && s_VisibilityOITMaterial == null)
+            {
+                s_VisibilityOITMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.visibilityOITPS);
+                s_VisibilityOITMaterial.renderQueue = (int)HDRenderQueue.Priority.OrderIndependentTransparent;
+            }
+
             if (s_CreateMaterialDepthMaterial == null)
                 s_CreateMaterialDepthMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.createMaterialDepthPS);
 
@@ -262,7 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 supportsBRGRendering = true,
                 supportsVisibility = true,
-                materialOverride = s_VisibilityMaterial
+                materialOverride = !isOIT ? s_VisibilityMaterial : s_VisibilityOITMaterial
             };
         }
     }

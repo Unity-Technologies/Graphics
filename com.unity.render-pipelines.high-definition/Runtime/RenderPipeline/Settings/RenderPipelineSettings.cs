@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 postProcessSettings = GlobalPostProcessSettings.NewDefault(),
                 dynamicResolutionSettings = GlobalDynamicResolutionSettings.NewDefault(),
                 lowresTransparentSettings = GlobalLowResolutionTransparencySettings.NewDefault(),
+                orderIndependentTransparentSettings = GlobalOrderIndependentTransparencySettings.NewDefault(),
                 xrSettings = GlobalXRSettings.NewDefault(),
                 postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
                 lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
@@ -389,6 +390,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public GlobalDynamicResolutionSettings dynamicResolutionSettings;
         /// <summary>Global low resolution transparency settings.</summary>
         public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
+        /// <summary>Global oit settings.</summary>
+        public GlobalOrderIndependentTransparencySettings orderIndependentTransparentSettings;
         /// <summary>Global XR settings.</summary>
         public GlobalXRSettings xrSettings;
         /// <summary>Global post processing quality settings.</summary>

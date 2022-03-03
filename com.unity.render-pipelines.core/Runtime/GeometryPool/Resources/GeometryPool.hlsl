@@ -42,6 +42,10 @@ void StoreVertex(
     if ((vertexFlags & GEOPOOLINPUTFLAGS_HAS_UV1) != 0)
         output.Store2(componentOffset + vertexIndex * GEO_POOL_UV1BYTE_SIZE, asuint(vertex.uv1));
 
+    componentOffset = outputBufferSize * GEO_POOL_COL_BYTE_OFFSET;
+    if ((vertexFlags & GEOPOOLINPUTFLAGS_HAS_COLOR) != 0)
+        output.Store3(componentOffset + vertexIndex * GEO_POOL_COL_BYTE_SIZE, asuint(vertex.C));
+
     componentOffset = outputBufferSize * GEO_POOL_NORMAL_BYTE_OFFSET;
     output.Store3(componentOffset + vertexIndex * GEO_POOL_NORMAL_BYTE_SIZE, asuint(vertex.N));
 
@@ -68,6 +72,15 @@ void LoadVertex(
         outputVertex.uv1 = asfloat(vertexBuffer.Load2(componentOffset + vertexIndex * GEO_POOL_UV1BYTE_SIZE));
     else
         outputVertex.uv1 = outputVertex.uv;
+
+    componentOffset = vertexBufferSize * GEO_POOL_COL_BYTE_OFFSET;
+    if ((vertexFlags & GEOPOOLINPUTFLAGS_HAS_COLOR) != 0)
+    {
+        uint packedRGB = vertexBuffer.Load(componentOffset + vertexIndex * GEO_POOL_COL_BYTE_SIZE);
+        outputVertex.C = float3(float(packedRGB & 0xFF)/255.0,float((packedRGB >> 8) & 0xFF)/255.0,float((packedRGB >> 16) & 0xFF)/255.0);
+    }
+    else
+        outputVertex.C = float3(0, 0, 0);
 
     componentOffset = vertexBufferSize * GEO_POOL_NORMAL_BYTE_OFFSET;
     outputVertex.N = asfloat(vertexBuffer.Load3(componentOffset + vertexIndex * GEO_POOL_NORMAL_BYTE_SIZE));

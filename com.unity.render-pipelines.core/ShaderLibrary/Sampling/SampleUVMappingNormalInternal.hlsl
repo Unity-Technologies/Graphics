@@ -51,7 +51,14 @@ real3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_P
         real2 deriv = UNPACK_DERIVATIVE_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uv, param), scale);
         return SurfaceGradientFromTBN(deriv, uvMapping.tangentWS, uvMapping.bitangentWS);
 #else
-        return UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uv, param), scale);
+        if (uvMapping.mappingType == UV_MAPPING_ANALYTICAL_GRADIENTS)
+        {
+            return UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uvMapping.uv, uvMapping.ddxUV, uvMapping.ddyUV), scale);
+        }
+        else
+        {
+            return UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uv, param), scale);
+        }
 #endif
     }
 }

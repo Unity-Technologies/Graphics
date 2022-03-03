@@ -149,6 +149,16 @@ namespace UnityEngine.Rendering.HighDefinition
         VisibilityBucketID,
         /// <summary>Display lighting result of visibility buffer.</summary>
         VisibilityBufferLighting,
+        /// <summary>Maximum count of visibility OIT stencil buffer.</summary>
+        VisibilityOITStencilCount,
+        /// <summary>Maximum count of visibility OIT stencil buffer.</summary>
+        VisibilityOITPrimitives,
+        /// <summary>OIT HiZ buffer.</summary>
+        VisibilityOITHiZ,
+        /// <summary>OIT Hash buffer.</summary>
+        VisibilityOITPixelHash,
+        /// <summary>OIT GBuffer.</summary>
+        VisibilityOITGBuffer,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -365,6 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int rtasDebugViewEnumIndex;
             internal int rtasDebugModeEnumIndex;
+            internal int oitGBufferLayerEnumIdx;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -1146,6 +1157,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip Attributes = new() { name = "Attributes", tooltip = "Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen." };
             public static readonly NameAndTooltip Properties = new() { name = "Properties", tooltip = "Use the drop-down to select a property that the debugger uses to highlight GameObjects on screen. The debugger highlights GameObjects that use a Material with the property that you select." };
             public static readonly NameAndTooltip GBuffer = new() { name = "GBuffer", tooltip = "Use the drop-down to select a property from the GBuffer to visualize for deferred Materials." };
+            public static readonly NameAndTooltip OITGBufferLayerIdx = new() { name = "OIT GBuffer Layer Index", tooltip = "OIT GBuffer, the index of GBuffer." };
+            public static readonly NameAndTooltip OITGBufferLayer = new() { name = "OIT GBuffer Layer", tooltip = "OIT GBuffer, the layuer of GBuffer." };
             public static readonly NameAndTooltip MaterialValidator = new() { name = "Material Validator", tooltip = "Use the drop-down to select which properties show validation colors." };
             public static readonly NameAndTooltip ValidatorTooHighColor = new() { name = "Too High Color", tooltip = "Select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range." };
             public static readonly NameAndTooltip ValidatorTooLowColor = new() { name = "Too Low Color", tooltip = "Select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range." };
@@ -1857,6 +1870,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     children =
                     {
                         new DebugUI.FloatField {displayName = "Min Motion Vector Length (in pixels)", getter = () => data.minMotionVectorLength, setter = value => data.minMotionVectorLength = value, min = () => 0}
+                    }
+                });
+            }
+
+            if (data.fullScreenDebugMode == FullScreenDebugMode.VisibilityOITGBuffer)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField { nameAndTooltip = MaterialStrings.OITGBufferLayerIdx, getter = () => data.materialDebugSettings.oitGBufferLayerIdx, setter = value => data.materialDebugSettings.oitGBufferLayerIdx = value },
+                        new DebugUI.EnumField { nameAndTooltip = MaterialStrings.OITGBufferLayer, getter = () => (int)data.materialDebugSettings.oitGBufferLayer, setter = value => data.materialDebugSettings.oitGBufferLayer = (MaterialDebugSettings.OITGBufferLayer)value, autoEnum = typeof(MaterialDebugSettings.OITGBufferLayer), getIndex = () => data.oitGBufferLayerEnumIdx, setIndex = value => data.oitGBufferLayerEnumIdx = value }
                     }
                 });
             }

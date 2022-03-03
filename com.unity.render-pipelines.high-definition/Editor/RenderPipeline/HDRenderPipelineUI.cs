@@ -121,6 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.decalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
                     CED.FoldoutGroup(Styles.dynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
                     CED.FoldoutGroup(Styles.lowResTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings),
+                    CED.FoldoutGroup(Styles.orderIndependentTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionOrderIndependentTransparentSettings),
                     CED.FoldoutGroup(Styles.waterSubTitle, Expandable.Water, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionWaterSettings)
                     ),
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
@@ -703,6 +704,18 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             --EditorGUI.indentLevel;
             */
+        }
+
+        static void Drawer_SectionOrderIndependentTransparentSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.enabled, Styles.orderIndepdendentTransparentEnabled);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.memoryBudget, Styles.orderIndepdendentTransparentMemBudget);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode, Styles.orderIndepdendentTransparentOITLightingMode);
+            if (serialized.renderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode.enumValueIndex == (int)OITLightingMode.DeferredSSTracing)
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip, Styles.orderIndepdendentTransparentMaxHizZMip);
+            }
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.sortingEnabled, Styles.orderIndepdendentTransparentSortingEnabled);
         }
 
         static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

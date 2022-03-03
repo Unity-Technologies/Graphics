@@ -2,6 +2,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/AlixAwesomeVertAnimHack.hlsl"
 
 struct Attributes
 {
@@ -187,6 +188,12 @@ FragInputs EvaluateFragInput(
     GeoPoolVertex v1 = GeometryPool::LoadVertex(i1, geoMetadata);
     GeoPoolVertex v2 = GeometryPool::LoadVertex(i2, geoMetadata);
 
+#if ENABLE_HACK_VERTEX_ANIMATION
+    AlixVertAnimHack::ApplyLocalAnim(v0);
+    AlixVertAnimHack::ApplyLocalAnim(v1);
+    AlixVertAnimHack::ApplyLocalAnim(v2);
+#endif
+
     // Convert the positions to world space
     float3 pos0WS = TransformObjectToWorld(v0.pos);
     float3 pos1WS = TransformObjectToWorld(v1.pos);
@@ -240,13 +247,16 @@ FragInputs EvaluateFragInput(
     outFragInputs.positionRWS = posWS;
     outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
     outFragInputs.texCoord1 = float4(texCoord1, 0.0, 1.0);
+
+    outFragInputs.texCoord0ddx = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, baryResult.m_ddx);
+    outFragInputs.texCoord0ddy = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, baryResult.m_ddy);
     //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
     outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(tangentOS.w));
     outFragInputs.isFrontFace = dot(V, normalWS) > 0.0f;
     return outFragInputs;
 }
 
-VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(float4 positionCS, uint currentMaterialKey, Visibility::VisibilityData visData)
+VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(float4 positionCS, uint currentMaterialKey, Visibility::VisibilityData visData, float customDepthValue, bool useCustomDepthValue)
 {
     VBufferDeferredMaterialFragmentData fragmentData;
     ZERO_INITIALIZE(VBufferDeferredMaterialFragmentData, fragmentData);
@@ -268,7 +278,7 @@ VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(floa
         return fragmentData;
 
     float2 pixelCoord = positionCS.xy;
-    float depthValue = LOAD_TEXTURE2D_X(_VisBufferDepthTexture, pixelCoord).x;
+    float depthValue = useCustomDepthValue ? customDepthValue : LOAD_TEXTURE2D_X(_VisBufferDepthTexture, pixelCoord).x;;
     float2 ndc = pixelCoord * _ScreenSize.zw;
     float3 posWS = ComputeWorldSpacePosition(ndc, depthValue, UNITY_MATRIX_I_VP);
     ndc = (ndc * 2.0 - 1.0) * float2(1.0, -1.0);
@@ -281,8 +291,8 @@ VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(floa
     fragmentData.fragInputs = fragInputs;
     fragmentData.depthValue = depthValue;
     fragmentData.V = V;
-
 #endif
+
     return fragmentData;
 }
 
@@ -292,7 +302,7 @@ VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(Vary
     ZERO_INITIALIZE(VBufferDeferredMaterialFragmentData, fragmentData);
 #ifdef DOTS_INSTANCING_ON
     Visibility::VisibilityData visData = Visibility::LoadVisibilityData(packedInput.positionCS.xy);
-    fragmentData = BootstrapDeferredMaterialFragmentShader(packedInput.positionCS, packedInput.currentMaterialKey, visData);
+    fragmentData = BootstrapDeferredMaterialFragmentShader(packedInput.positionCS, packedInput.currentMaterialKey, visData, 0.0f, false);
 #endif
     return fragmentData;
 }

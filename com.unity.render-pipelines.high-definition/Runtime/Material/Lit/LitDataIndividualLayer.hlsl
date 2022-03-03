@@ -61,6 +61,9 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
     ADD_IDX(layerTexCoord.base).uvXY = uvXY * texScale + texBias;
     ADD_IDX(layerTexCoord.base).uvZY = uvZY * texScale + texBias;
 
+    ADD_IDX(layerTexCoord.base).ddxUV *= texScale;
+    ADD_IDX(layerTexCoord.base).ddyUV *= texScale;
+
     ADD_IDX(layerTexCoord.details).uvXZ = uvXZ * texScaleDetails + texBiasDetails;
     ADD_IDX(layerTexCoord.details).uvXY = uvXY * texScaleDetails + texBiasDetails;
     ADD_IDX(layerTexCoord.details).uvZY = uvZY * texScaleDetails + texBiasDetails;

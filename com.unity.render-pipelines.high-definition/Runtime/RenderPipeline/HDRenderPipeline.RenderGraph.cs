@@ -322,6 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         hdCamera,
                         postProcessDest,
                         vBufferInfo,
+                        prepassOutput.vbufferOIT,
                         prepassOutput.resolvedDepthBuffer,
                         prepassOutput.depthPyramidTexture,
                         colorPickerTexture,
@@ -712,11 +713,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public bool decalsEnabled;
             public bool renderMotionVecForTransparent;
+            public bool renderOITFallback;
             public int colorMaskTransparentVel;
             public TextureHandle transparentSSRLighting;
             public TextureHandle volumetricLighting;
             public TextureHandle depthPyramidTexture;
             public TextureHandle normalBuffer;
+
+            public RendererListHandle oitFallbackRendererList;
         }
 
         void PrepareCommonForwardPassData(
@@ -766,12 +770,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting);
         }
 
-        RendererListDesc PrepareForwardTransparentRendererList(CullingResults cullResults, HDCamera hdCamera, bool preRefraction)
+        RendererListDesc PrepareForwardTransparentRendererList(CullingResults cullResults, HDCamera hdCamera, bool preRefraction, bool oitRange = false)
         {
             RenderQueueRange transparentRange;
             if (preRefraction)
             {
                 transparentRange = HDRenderQueue.k_RenderQueue_PreRefraction;
+            }
+            else if (oitRange) // this is for fallback reasons, so we render OIT as a regular transparent pass
+            {
+                transparentRange = HDRenderQueue.k_RenderQueue_AllTransparentOIT;
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
             {
@@ -1068,6 +1076,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.transparentSSRLighting = builder.ReadTexture(ssrLighting);
                 passData.depthPyramidTexture = builder.ReadTexture(prepassOutput.depthPyramidTexture); // We need to bind this for transparent materials doing stuff like soft particles etc.
+                passData.renderOITFallback = !preRefractionPass && !IsVisibilityOITPassEnabled();
+
+                if (passData.renderOITFallback)
+                    passData.oitFallbackRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullResults, hdCamera, preRefraction: false, oitRange: true)));
 
                 int index = 0;
                 builder.UseColorBuffer(colorBuffer, index++);
@@ -1118,6 +1130,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                         RenderForwardRendererList(data.frameSettings, data.rendererList, false, context.renderContext, context.cmd);
+
+                        if (data.renderOITFallback)
+                            RenderForwardRendererList(data.frameSettings, data.oitFallbackRendererList, false, context.renderContext, context.cmd);
                     });
             }
         }
@@ -1390,7 +1405,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Fill depth buffer to reduce artifact for transparent object during postprocess
-            RenderTransparentDepthPostpass(renderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
+            RenderTransparentDepthPostpass(renderGraph, hdCamera, prepassOutput.depthBuffer, cullingResults);
+
+            //***** OIT Transparency resolve ****/
+            ////OIT Transparency pass. Feel free to comment
+            TextureHandle gBuffer0Texture = TextureHandle.nullHandle;
+            TextureHandle gBuffer1Texture = TextureHandle.nullHandle;
+            RenderOITLighting(
+                renderGraph, cullingResults, hdCamera, shadowResult,
+                lightLists, prepassOutput, prepassOutput.resolvedDepthBuffer,
+                ref colorBuffer,
+                ref gBuffer0Texture,
+                ref gBuffer1Texture);
+            prepassOutput.vbufferOIT.gBuffer0Texture = gBuffer0Texture;
+            prepassOutput.vbufferOIT.gBuffer1Texture = gBuffer1Texture;
+            //TODO: uncomment the code below to do a simple test to see / debug results of OIT visibility buffer.
+            //colorBuffer = TestOITLighting(renderGraph, ref prepassOutput, colorBuffer, hdCamera);
+            //**********************************/
 
             return colorBuffer;
         }

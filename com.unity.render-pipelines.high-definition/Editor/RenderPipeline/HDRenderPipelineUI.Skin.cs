@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent dynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
             public static readonly GUIContent lowResTransparencySubTitle = EditorGUIUtility.TrTextContent("Low res Transparency");
+            public static readonly GUIContent orderIndependentTransparencySubTitle = EditorGUIUtility.TrTextContent("Order Independent Transparency");
 
             public static readonly GUIContent motionBlurQualitySettings = EditorGUIUtility.TrTextContent("Motion Blur");
             public static readonly GUIContent bloomQualitySettings = EditorGUIUtility.TrTextContent("Bloom");
@@ -266,6 +267,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lowResTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, materials tagged as Low Res Transparent, will be rendered in a quarter res offscreen buffer and then composited to full res.");
             public static readonly GUIContent checkerboardDepthBuffer = EditorGUIUtility.TrTextContent("Checkerboarded depth buffer downsample", "When enabled, the depth buffer used for low res transparency is generated in a min/max checkerboard pattern from original full res buffer.");
             public static readonly GUIContent lowResTranspUpsample = EditorGUIUtility.TrTextContent("Upsample type", "The type of upsampling filter used to composite the low resolution transparency.");
+
+            public static readonly GUIContent orderIndepdendentTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "Enable order independent transparency.");
+            public static readonly GUIContent orderIndepdendentTransparentMemBudget = EditorGUIUtility.TrTextContent("Memory Budget (MB)", "Memory budget of OIT");
+            public static readonly GUIContent orderIndepdendentTransparentOITLightingMode = EditorGUIUtility.TrTextContent("Lighting Mode", "Choose the way, the lighting is computed");
+            public static readonly GUIContent orderIndepdendentTransparentMaxHizZMip = EditorGUIUtility.TrTextContent("Max HiZ Mip", "Maximum Mips Depth used for Screen Space Tracing");
+            public static readonly GUIContent orderIndepdendentTransparentSortingEnabled = EditorGUIUtility.TrTextContent("Sorting Enabled", "Enable depth sorting for transparent samples within a pixel");
 
             public static readonly GUIContent XRSinglePass = EditorGUIUtility.TrTextContent("Single Pass", "When enabled, XR views are rendered simultaneously and the render loop is processed only once. This setting will improve CPU and GPU performance but will use more GPU memory.");
             public static readonly GUIContent XROcclusionMesh = EditorGUIUtility.TrTextContent("Occlusion Mesh", "When enabled, the occlusion mesh will be rendered for each view during the depth prepass to reduce shaded fragments.");

@@ -1,0 +1,403 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+
+//#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel OITSort_Init
+#pragma kernel OITSort_BinPixels
+#pragma kernel OITSort_Network
+#pragma kernel OITSort_GroupShared_Wave
+#pragma kernel OITSort_GroupShared
+
+RWStructuredBuffer<uint> _OITSortMemoryBuffer;
+
+RWByteAddressBuffer _RWVisOITBuffer;
+
+uint3 LoadPackedVisibilitySample(uint i, uint listOffset)
+{
+    return _RWVisOITBuffer.Load3(((listOffset + i) * 3) << 2);
+}
+
+void StorePackedVisibilitySample(uint i, uint listOffset, uint3 packedSample)
+{
+    _RWVisOITBuffer.Store3(((listOffset + i) * 3) << 2, packedSample);
+}
+
+[numthreads(1, 1, 1)]
+void OITSort_Init()
+{
+    uint sumSmall = _OITSortMemoryBuffer[0];
+    uint sumMed = _OITSortMemoryBuffer[1];
+    uint sumBig = _OITSortMemoryBuffer[2];
+
+    // 3-5 is counter data
+
+    // Offsets
+    // Count <= 4
+    _OITSortMemoryBuffer[6] = 0;
+
+    // Count <= 32
+    _OITSortMemoryBuffer[7] = sumSmall;
+
+    // Count > 32
+    _OITSortMemoryBuffer[8] = sumSmall + sumMed;
+
+    uint3 numGroupsSmall = uint3((sumSmall + 63) / 64, 1, 1);
+    uint3 numGroupsMed = uint3(sumMed, 1, 1);
+    uint3 numGroupsBig = uint3(sumBig, 1, 1);
+
+    _OITSortMemoryBuffer[9 + 0] = numGroupsSmall.x;
+    _OITSortMemoryBuffer[9 + 1] = numGroupsSmall.y;
+    _OITSortMemoryBuffer[9 + 2] = numGroupsSmall.z;
+
+    _OITSortMemoryBuffer[9 + 3] = numGroupsMed.x;
+    _OITSortMemoryBuffer[9 + 4] = numGroupsMed.y;
+    _OITSortMemoryBuffer[9 + 5] = numGroupsMed.z;
+
+    _OITSortMemoryBuffer[9 + 6] = numGroupsBig.x;
+    _OITSortMemoryBuffer[9 + 7] = numGroupsBig.y;
+    _OITSortMemoryBuffer[9 + 8] = numGroupsBig.z;
+}
+
+[numthreads(8, 8, 1)]
+void OITSort_BinPixels(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+
+    if (any(dispatchThreadID.xy >= (int2)_ScreenSize.xy))
+        return;
+
+    uint outputPixel = dispatchThreadID.y * (int)_ScreenSize.x + dispatchThreadID.x;
+    uint listCount = _VisOITListsCounts.Load(outputPixel << 2);
+
+    //// List sizes of 0 or 1 don't need any sorting
+    if (listCount < 2)
+        return;
+
+    uint sortVariantOffset;
+    if (listCount <= 8)
+    {
+        sortVariantOffset = 0;
+    }
+    else if (listCount <= 32)
+    {
+        sortVariantOffset = 1;
+    }
+    else
+    {
+        sortVariantOffset = 2;
+    }
+
+    uint sortCounterAddr = 3 + sortVariantOffset;
+    uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+
+    uint globalSortIndexOffset = _OITSortMemoryBuffer[sortIndexOffsetAddr];
+    uint localSortIndexOffset;
+    InterlockedAdd(_OITSortMemoryBuffer[sortCounterAddr], 1, localSortIndexOffset);
+
+    uint sortIndexAddr = 18 + globalSortIndexOffset + localSortIndexOffset;
+    _OITSortMemoryBuffer[sortIndexAddr] = outputPixel;
+}
+
+// Please turn this into a v_swap ;)
+void SwapUint(inout uint a, inout uint b)
+{
+    uint temp = a;
+    a = b;
+    b = temp;
+}
+
+uint GenerateSortKey(uint keyIndex, uint listCount, uint listOffset)
+{
+    uint key = 0xFFFFFFFF;
+    if (keyIndex < listCount)
+    {
+        uint depth = ((LoadPackedVisibilitySample(keyIndex, listOffset).y >> 16) & 0xFFFF);
+        key = ((depth & 0xFFFF) << 16) | (keyIndex & 0xFFFF);
+    }
+    return key;
+}
+
+uint3 LoadKeyValue(uint sortKey, uint listOffset)
+{
+    uint3 value = uint3(0, 0, 0);
+    uint srcIndex = (sortKey & 0xFFFF);
+    value = LoadPackedVisibilitySample(srcIndex, listOffset);
+    return value;
+}
+
+void StoreKeyValue(uint keyIndex, uint listOffset, uint3 value)
+{
+    StorePackedVisibilitySample(keyIndex, listOffset, value);
+}
+
+#define CSWAP(a, b) if (a < b) SwapUint(a, b)
+#define MAX_NETWORK_INPUTS 8
+
+[numthreads(64, 1, 1)]
+void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint threadIndex = dispatchThreadId.x;
+
+    // Load pixel index
+    uint sortVariantOffset = 0;
+    uint sortSumAddr = sortVariantOffset;
+
+    uint numPixels = _OITSortMemoryBuffer[sortSumAddr];
+
+    // Note: this is always 0 since this is the first group
+    //uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    //uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+    uint globalSortIndexOffset = 0;
+
+    if (threadIndex < numPixels)
+    {
+        uint pixelIndexAddr = 18 + globalSortIndexOffset + threadIndex;
+        uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+        uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+        uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+        // Generate sort keys from depth
+        uint sortKeys[MAX_NETWORK_INPUTS];
+        for (uint sortKeyIndex = 0; sortKeyIndex < MAX_NETWORK_INPUTS; ++sortKeyIndex)
+        {
+            sortKeys[sortKeyIndex] = GenerateSortKey(sortKeyIndex, listCount, listOffset);
+        }
+
+        // Sort the keys
+        CSWAP(sortKeys[0], sortKeys[1]);
+        CSWAP(sortKeys[2], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[5]);
+        CSWAP(sortKeys[6], sortKeys[7]);
+        CSWAP(sortKeys[0], sortKeys[2]);
+        CSWAP(sortKeys[1], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[6]);
+        CSWAP(sortKeys[5], sortKeys[7]);
+        CSWAP(sortKeys[1], sortKeys[2]);
+        CSWAP(sortKeys[5], sortKeys[6]);
+        CSWAP(sortKeys[0], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[7]);
+        CSWAP(sortKeys[1], sortKeys[5]);
+        CSWAP(sortKeys[2], sortKeys[6]);
+        CSWAP(sortKeys[1], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[6]);
+        CSWAP(sortKeys[2], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[5]);
+        CSWAP(sortKeys[3], sortKeys[4]);
+
+        // Shuffle the samples based on the sort results
+        uint3 packedSamples[MAX_NETWORK_INPUTS];
+        for (uint packedSampleIndex = 0; packedSampleIndex < listCount; ++packedSampleIndex)
+        {
+            packedSamples[packedSampleIndex] = LoadKeyValue(sortKeys[packedSampleIndex + (MAX_NETWORK_INPUTS - listCount)], listOffset);
+        }
+
+        for (uint storeIndex = 0; storeIndex < listCount; ++storeIndex)
+        {
+            StoreKeyValue(storeIndex, listOffset, packedSamples[storeIndex]);
+        }
+    }
+}
+
+groupshared uint sSums[16];
+groupshared uint sKeys[256];
+
+[numthreads(32, 1, 1)]
+void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: SV_GroupID)
+{
+    uint threadIndex = groupThreadId.x;
+
+    // Load pixel index
+
+    // Note: This is always 1 since it's the medium variant
+    uint sortVariantOffset = 1;
+    uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+
+    uint pixelIndexAddr = 18 + globalSortIndexOffset + groupId.x;
+    uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+    uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+    uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+    uint sortKey = GenerateSortKey(threadIndex, listCount, listOffset);
+
+    // Flip the key so the depth is in the LSBs
+    sortKey = (sortKey << 16) | (sortKey >> 16);
+
+    sKeys[threadIndex] = sortKey;
+
+    // 16-bit radix sort (we don't bother sorting the top half since they contain indices)
+    for (uint radixPassIndex = 0; radixPassIndex < 4; ++radixPassIndex)
+    {
+        sortKey = sKeys[threadIndex];
+
+        // Initialize the sum bins to 0
+        if (threadIndex < 16)
+        {
+            sSums[threadIndex] = 0;
+        }
+
+        uint binIndex = ((sortKey >> (radixPassIndex * 4)) & 0xF);
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Increment the bin associated with the current value to sort
+        uint localOffset;
+        InterlockedAdd(sSums[binIndex], 1, localOffset);
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Do a dumb exclusive prefix sum (replace this with a parallel version)
+        if (threadIndex == 0)
+        {
+            uint previousSum = 0;
+
+            for (uint binIndex = 0; binIndex < 16; ++binIndex)
+            {
+                uint currentSum = sSums[binIndex];
+                sSums[binIndex] = previousSum;
+                previousSum += currentSum;
+            }
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        uint newKeyIndex = sSums[binIndex] + localOffset;
+        sKeys[newKeyIndex] = sortKey;
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Load the final sort key for the current thread
+    sortKey = sKeys[threadIndex];
+
+    uint srcKeyIndex = ((sortKey >> 16) & 0xFFFF);
+    uint dstKeyIndex = threadIndex;
+
+    uint3 packedSample;
+    if (dstKeyIndex < listCount)
+    {
+        packedSample = LoadPackedVisibilitySample(srcKeyIndex, listOffset);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (dstKeyIndex < listCount)
+    {
+        StorePackedVisibilitySample((listCount - 1) - dstKeyIndex, listOffset, packedSample);
+    }
+}
+
+// TODO: Remove this once the serialized reorder step of radix sort is removed
+groupshared uint sOutputKeys[256];
+
+[numthreads(256, 1, 1)]
+void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: SV_GroupID)
+{
+    uint threadIndex = groupThreadId.x;
+
+    // Load pixel index
+
+    // Note: This is always 2 since it's the big variant
+    uint sortVariantOffset = 2;
+    uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+
+    uint pixelIndexAddr = 18 + globalSortIndexOffset + groupId.x;
+    uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+    uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+    uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+    uint sortKey = GenerateSortKey(threadIndex, listCount, listOffset);
+
+    // Flip the key so the depth is in the LSBs
+    sortKey = (sortKey << 16) | (sortKey >> 16);
+
+    sKeys[threadIndex] = sortKey;
+
+    // 16-bit radix sort (we don't bother sorting the top half since they contain indices)
+    for (uint radixPassIndex = 0; radixPassIndex < 4; ++radixPassIndex)
+    {
+        sortKey = sKeys[threadIndex];
+
+        // Initialize the sum bins to 0
+        if (threadIndex < 16)
+        {
+            sSums[threadIndex] = 0;
+        }
+
+        uint binIndex = ((sortKey >> (radixPassIndex * 4)) & 0xF);
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Increment the bin associated with the current value to sort
+        uint localOffset;
+        InterlockedAdd(sSums[binIndex], 1, localOffset);
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Do a dumb inclusive prefix sum (replace this with a parallel version)
+        if (threadIndex == 0)
+        {
+            uint previousSum = sSums[0];
+
+            for (uint binIndex = 1; binIndex < 16; ++binIndex)
+            {
+                uint currentSum = previousSum + sSums[binIndex];
+                previousSum = currentSum;
+
+                sSums[binIndex] = currentSum;
+            }
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // This is even worse than the prefix sum above! :(
+        if (threadIndex == 0)
+        {
+            uint i = 0;
+            for (i = 0; i < 256; ++i)
+            {
+                uint val = sKeys[255 - i];
+                uint localBinIndex = ((val >> (radixPassIndex * 4)) & 0xF);
+                uint index = sSums[localBinIndex] - 1;
+                sOutputKeys[index] = val;
+                sSums[localBinIndex] = index;
+                GroupMemoryBarrier();
+            }
+
+            for (i = 0; i < 256; ++i)
+            {
+                sKeys[i] = sOutputKeys[i];
+            }
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Load the final sort key for the current thread
+    sortKey = sKeys[threadIndex];
+
+    uint srcKeyIndex = ((sortKey >> 16) & 0xFFFF);
+    uint dstKeyIndex = threadIndex;
+
+    uint3 packedSample;
+    if (dstKeyIndex < listCount)
+    {
+        packedSample = LoadPackedVisibilitySample(srcKeyIndex, listOffset);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (dstKeyIndex < listCount)
+    {
+        StorePackedVisibilitySample((listCount - 1) - dstKeyIndex, listOffset, packedSample);
+    }
+}

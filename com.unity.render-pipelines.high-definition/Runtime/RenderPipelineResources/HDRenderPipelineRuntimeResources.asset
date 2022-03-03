@@ -67,8 +67,15 @@ MonoBehaviour:
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3, type: 3}
     resolveStencilCS: {fileID: 7200000, guid: 65b89cac5f286b043a31bf8041776ee7, type: 3}
     visibilityPS: {fileID: 4800000, guid: 633338306378163479b295584aba76c3, type: 3}
+    visibilityOITPS: {fileID: 4800000, guid: d47507026dc84104a84c610d9b4b3132, type: 3}
     createMaterialDepthPS: {fileID: 4800000, guid: dbc5c19310f2c544c91d4bf81b05ddc6, type: 3}
     vbufferTileClassificationCS: {fileID: 7200000, guid: 8097d48cf7ce091419dc8bf4ffc35e1a, type: 3}
+    oitTileHistogramCS: {fileID: 7200000, guid: 6868e66d816c0a346a08a9ea0f58ec59, type: 3}
+    oitSortCS: {fileID: 7200000, guid: 79d1a47657dbe3945b77121d0d4067c9, type: 3}
+    oitResolveForwardFastCS: {fileID: 7200000, guid: df166825db32f7c41b45e7a1b8709292, type: 3}
+    oitResolveDeferredSSTracingCS: {fileID: 7200000, guid: 2c76c1540432e224dbc33802bd61d353, type: 3}
+    oitTileComputeHiZCS: {fileID: 7200000, guid: 696d90c019f9bfc429b07913cb9be8a8, type: 3}
+    oitPhotonBuffer: {fileID: 7200000, guid: 0368822bf8925f94cbbd05f6393ed42a, type: 3}
     blitCubemapPS: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
     buildProbabilityTablesCS: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c, type: 3}
     computeGgxIblSampleDataCS: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445, type: 3}
@@ -181,6 +188,7 @@ MonoBehaviour:
     bilateralUpsampleCS: {fileID: 7200000, guid: 68e831c555284d741b985e05369f0e63, type: 3}
     temporalFilterCS: {fileID: 7200000, guid: 741979ff70f7bd6489fbcb464280ecff, type: 3}
     diffuseDenoiserCS: {fileID: 7200000, guid: b4ed2382141619f40af1f743a84ccaea, type: 3}
+    gpuPrefixSumCS: {fileID: 7200000, guid: 7838798c3a41d7d4895eb0f1be6e2447, type: 3}
     furnaceTestCS: {fileID: 7200000, guid: 9c19385e40e70ea41811a942a46b04a3, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
@@ -252,6 +260,7 @@ MonoBehaviour:
     - {fileID: 2800000, guid: 7641a2b116fafd64d9c3d6459fdfe801, type: 3}
     - {fileID: 2800000, guid: c6a5e40e6746fef4fa486e8f620ee8d4, type: 3}
     - {fileID: 2800000, guid: fd4189357c6dfb94fa2d36afbce72086, type: 3}
+    blueNoise128RTex: {fileID: 2800000, guid: fc388e2910c94b544a2ca8337a472e7a, type: 3}
     owenScrambledRGBATex: {fileID: 2800000, guid: b0fe077c1ee7d80428f3d8dfa28a027d, type: 3}
     owenScrambled256Tex: {fileID: 2800000, guid: 2a205358e67aa9e4a94a128ac9362f4e, type: 3}
     scramblingTex: {fileID: 2800000, guid: bf25cd6288e2c8d43854a61a8496a830, type: 3}

@@ -1,0 +1,297 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+
+//#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel MainResolveOffscreenLighting
+#pragma kernel MainResolveSparseOITLighting
+#pragma kernel MainResolveDirectCopy
+
+#define GROUP_SIZE 8
+
+//
+// Sorting Debug Logic
+//
+// Uncomment the following define to enable the sorting debug visualization
+// The logic causes pixels on screen to be displayed in different colors based on their sorting state
+//
+// Red    = Incorrect sorting order
+// Green  = Correct sorting order (Front to back)
+// Yellow = Two contiguous samples have the same depth value so they cannot be sorted in a stable manner
+//
+
+//#define ENABLE_SORTING_DEBUG 1
+
+TEXTURE2D_X(_DepthTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+TEXTURE2D_X(_VisOITSparseColorBuffer);
+
+float4 _VBufferLightingOffscreenParams;
+
+RWByteAddressBuffer _OITOutputPixelHash;
+
+RW_TEXTURE2D_X(float4, _VisOITOutputSparseColorBuffer);
+
+uint GetOffscreenLightBufferWidth()
+{
+    return asuint(_VBufferLightingOffscreenParams.x);
+}
+
+float4 ApplyOitAlphaToAccumulation(float4 accumulation, float4 currColor)
+{
+    float4 ret;
+    // back to front
+    //ret.xyz = currColor.rgb * currColor.a + accumulation.rgb * (1.0f - currColor.a);
+    //ret.a = currColor.a + accumulation.a * (1.0f - currColor.a);
+
+    // front to back
+    ret.xyz = accumulation.rgb + currColor.rgb * (1.0f - accumulation.a);
+    ret.a = accumulation.a + currColor.a * (1.0f - accumulation.a);
+    return ret;
+}
+
+float3 ApplyOitAlphaToBackground(float3 backgroundColor, float4 oitColor)
+{
+    // assume premultiplied alpha
+    return backgroundColor * (1.0f - oitColor.a) + oitColor.rgb;
+}
+
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    if (any((float2)dispatchThreadId.xy > _ScreenSize.xy))
+        return;
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+
+    uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
+    uint listCount, listOffset;
+    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+    if (listCount == 0)
+    {
+        _VisOITOutputSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(0.0, 0.0, 0.0, -1.0);
+        return;
+    }
+
+    //float dstAlpha = 0.0f;
+
+    float currentDepth = _DepthTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].x;
+    //float3 currentColor = 0.0f;// _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].rgb;
+    float3 lighting = float3(0.0f, 0.0f, 0.0f);
+    float4 dstAccumulation = 0.0f;
+
+#if ENABLE_SORTING_DEBUG
+    bool isSorted = true;
+    bool isSortingPrecisionLimited = false;
+    float lastDepthValue;
+#endif
+
+    //int peelLimit = 2;
+    float minDepth = 1.0;
+    for (uint i = 0; i < listCount; ++i)
+    {
+        int globalOffset = i + listOffset;
+        uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+
+
+        //if (i >= peelLimit)
+        //{
+        //    continue;
+        //}
+
+        Visibility::VisibilityData unusedVisData;
+        uint2 unusedTexelCoord;
+        float depthValue;
+        VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
+
+#if ENABLE_SORTING_DEBUG
+        if (i == 0)
+        {
+            lastDepthValue = depthValue;
+        }
+        else
+        {
+            if (isSorted && (depthValue <= lastDepthValue))
+            {
+                if (lastDepthValue == depthValue)
+                {
+                    isSortingPrecisionLimited = true;
+                }
+
+                lastDepthValue = depthValue;
+            }
+            else
+            {
+                isSorted = false;
+            }
+        }
+#endif
+
+        if (depthValue < currentDepth)
+            continue;
+
+        minDepth = max(depthValue, minDepth);
+
+        float4 currColor = _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+        //dstAccumulation = currColor;
+
+
+        // use this function once are sorted
+        dstAccumulation = ApplyOitAlphaToAccumulation(dstAccumulation, currColor);
+
+        // since sorting isn't ready yet, do something hacky that is order independent
+        //dstAccumulation.rgb += currColor.rgb * currColor.a;
+        //dstAccumulation.a = dstAccumulation.a * (1.0f - currColor.a) + currColor.a;
+
+        // .
+        lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+    }
+
+    lighting /= (float)listCount;
+
+#if ENABLE_SORTING_DEBUG
+    dstAccumulation = isSorted ? float4(isSortingPrecisionLimited ? 1.0 : 0.0, 1.0, 0.0, 1.0) : float4(1.0, 0.0, 0.0, 1.0);
+#endif
+
+    //_OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(lighting + currentColor, 1.0);
+    _VisOITOutputSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = dstAccumulation;
+}
+
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainResolveDirectCopy(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    if (any((float2)dispatchThreadId.xy > _ScreenSize.xy))
+        return;
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+
+
+    float3 srcColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].rgb;
+
+    uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
+
+    //float r = (posInputs.positionSS.y / 8) % 2 == 0 ? 1.0 : 0.0;
+
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(srcColor, 1.0);
+}
+
+bool IsColorValid(float4 color)
+{
+    return color.a > 0.0f;
+}
+
+float GaussianFunc(float x, float invRR)
+{
+    return exp(-x * x * 0.5f * invRR);
+}
+
+#define KERNEL_RADIUS 4
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    if (any((float2)dispatchThreadId.xy > _ScreenSize.xy))
+        return;
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+
+    float3 backgroundColor = _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].xyz;
+
+    float4 srcOitColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].rgba;
+
+    uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
+
+    float3 centerColor = backgroundColor;
+
+    uint centerHash = _VisOITPixelHash.Load(pixelOffset << 2);
+
+    float4 sumOitSame = 0.0f;
+    float4 sumOitAll = 0.0f;
+    float weightSame = 0.0f;
+    float weightAll = 0.0f;
+
+    float rho = 2.5f;
+    float invRR = 1.0f / (rho * rho);
+
+    int offsetY = 0;
+    int offsetX = 0;
+    int totalArea = (2 * KERNEL_RADIUS + 1) * (2 * KERNEL_RADIUS + 1);
+
+    for (offsetY = -KERNEL_RADIUS; offsetY <= KERNEL_RADIUS; offsetY++)
+    {
+        for (offsetX = -KERNEL_RADIUS; offsetX <= KERNEL_RADIUS; offsetX++)
+        {
+            float wx = GaussianFunc((float)offsetX, invRR);
+            float wy = GaussianFunc((float)offsetY, invRR);
+
+
+            int startX = posInputs.positionSS.x + offsetX;
+            int startY = posInputs.positionSS.y + offsetY;
+            int currX = clamp(startX, (int)0, (int)(_ScreenSize.x - 1));
+            int currY = clamp(startY, (int)0, (int)(_ScreenSize.y - 1));
+
+            bool isInBorder = (startX == currX && startY == currY);
+
+            int currPixelOffset = currY * _ScreenSize.x + currX;
+            uint currPixelHash = _VisOITPixelHash.Load(currPixelOffset << 2);
+
+            float4 currOitColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(uint2(currX,currY))].rgba;
+            bool currValid = IsColorValid(currOitColor) && isInBorder && (currPixelHash == centerHash);
+            bool currCoarse = isInBorder && IsColorValid(currOitColor);
+
+            float weight = wx * wy;
+
+            [flatten]
+            if (currCoarse)
+            {
+                sumOitAll += currOitColor * weight;
+                weightAll += weight;
+            }
+
+            [flatten]
+            if (currValid)
+            {
+                sumOitSame += currOitColor * weight;
+                weightSame += weight;
+            }
+        }
+    }
+
+
+    float4 avgOitColor = 0.0f;
+    if (weightAll > 0)
+    {
+        avgOitColor = sumOitAll / weightAll;
+    }
+    if (weightSame > 0.0f)
+    {
+        avgOitColor = sumOitSame / weightSame;
+    }
+
+    float3 dstColor = backgroundColor;
+    if (IsColorValid(srcOitColor))
+    {
+        dstColor = ApplyOitAlphaToBackground(backgroundColor,srcOitColor);
+    }
+    else
+    {
+        dstColor = ApplyOitAlphaToBackground(backgroundColor,avgOitColor);
+    }
+
+    if (centerHash == 0)
+    {
+        dstColor = backgroundColor;
+    }
+
+
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(dstColor, 1.0);
+}
