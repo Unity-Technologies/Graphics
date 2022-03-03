@@ -59,7 +59,13 @@ namespace UnityEngine.Rendering.Universal
             CameraData cameraData = renderingData.cameraData;
             RenderGraph renderGraph = renderingData.renderGraph;
 
-            frameResources.backBufferColor = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
+
+            RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+                targetId = cameraData.xr.renderTarget;
+#endif
+            frameResources.backBufferColor = renderGraph.ImportBackbuffer(targetId);
             //frameResources.backBufferDepth = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
 
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
