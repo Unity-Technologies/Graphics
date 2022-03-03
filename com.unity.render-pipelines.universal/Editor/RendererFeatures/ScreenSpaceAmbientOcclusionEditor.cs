@@ -79,6 +79,9 @@ namespace UnityEditor.Rendering.Universal
 
             bool isDeferredRenderingMode = RendererIsDeferred();
 
+            EditorGUILayout.PropertyField(m_BlueNoiseTexture, Styles.BlueNoiseTexture);
+
+
             EditorGUILayout.PropertyField(m_AOAlgorithm, Styles.AOAlgorithm);
             EditorGUILayout.PropertyField(m_OnlyAO, Styles.OnlyAO);
 
