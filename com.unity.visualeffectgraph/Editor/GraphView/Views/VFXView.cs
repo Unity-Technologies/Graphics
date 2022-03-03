@@ -2163,7 +2163,7 @@ namespace UnityEditor.VFX.UI
 
                 // This is to select the current VFX asset in the inspector.
                 // But, we temporary lock the project window during the selection so that the project browser don't change directory
-                var projectBrowser = EditorWindow.HasOpenInstances<ProjectBrowser>() ? EditorWindow.GetWindow<ProjectBrowser>() : null;
+                var projectBrowser = EditorWindow.HasOpenInstances<ProjectBrowser>() ? EditorWindow.GetWindow<ProjectBrowser>(null, false) : null;
                 if (projectBrowser != null && !projectBrowser.isLocked && assetToSelectPath != projectBrowser.GetActiveFolderPath())
                 {
                     projectBrowser.isLocked = true;
