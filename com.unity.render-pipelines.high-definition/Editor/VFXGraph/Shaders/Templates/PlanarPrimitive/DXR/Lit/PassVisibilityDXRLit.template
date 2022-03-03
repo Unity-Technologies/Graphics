@@ -9,6 +9,9 @@
             #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
+	        #if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE
+	        #define USE_ALPHA_TEST 1
+	        #endif
 
             // Global includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

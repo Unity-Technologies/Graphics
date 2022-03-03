@@ -9,16 +9,20 @@ void ClosestSubSurface(inout RayIntersectionSubSurface rayIntersection : SV_RayP
     // Always set the new t value
     rayIntersection.t = RayTCurrent();
 
-    // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
+    #ifdef HAVE_VFX_MODIFICATION
+        ZERO_INITIALIZE(IntersectionVertex, currentVertex);
+        FragInputs fragInput;
+        BuildFragInputsFromVFXIntersection(attributeData, fragInput);
+    #else
+        GetCurrentIntersectionVertex(attributeData, currentVertex);
+        // Build the Frag inputs from the intersection vertice
+        FragInputs fragInput;
+        BuildFragInputsFromIntersection(currentVertex, fragInput);
+    #endif
 
-    // define the incident direction
+    // Evaluate the incident direction
     const float3 incidentDirection = WorldRayDirection();
-
-    // Build the Frag inputs from the intersection vertex
-    FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;

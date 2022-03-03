@@ -125,11 +125,34 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     return true;
 }
 
+float GetVFXVertexDisplacement(int index, float3 currentWS, float3 inputVertexPosition)
+{
+    float displacement = 0.0;
+    #if VFX_FEATURE_MOTION_VECTORS
+    uint elementToVFXBaseIndex = index * 13;
+    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
+    if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
+        {
+        float4x4 previousElementToVFX = (float4x4)0;
+        previousElementToVFX[3] = float4(0,0,0,1);
+        UNITY_UNROLL
+        for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+        {
+            uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
+            previousElementToVFX[itIndexMatrixRow] = asfloat(read);
+        }
+        float3 previousWS = TransformPreviousVFXPositionToWorld(mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz);
+        displacement = length(currentWS - previousWS);
+        }
+    #endif
+    return displacement;
+}
+
 #if defined(SHADER_STAGE_RAY_TRACING)
     #define VFXAttributes InternalAttributesElement
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXRayTracingCommon.hlsl"
 
-    void BuildFragInputsFromVFXIntersection(AttributeData attributeData, out FragInputs outFragInputs)
+    void BuildFragInputsFromVFXIntersection(AttributeData attributeData, out FragInputs output)
     {
 
         int index = PrimitiveIndex() * VFX_RT_DECIMATION_FACTOR;
@@ -142,20 +165,54 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         size3 *= sqrt(VFX_RT_DECIMATION_FACTOR);
 
         float3 rayDirection = WorldRayDirection();
-        outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);
-        outFragInputs.positionRWS = WorldRayOrigin() + rayDirection * RayTCurrent();
-        outFragInputs.texCoord0 = float4(attributeData.barycentrics,0,0);
-        outFragInputs.texCoord1 = float4(attributeData.barycentrics,0,0);
-        outFragInputs.texCoord2 = float4(attributeData.barycentrics,0,0);
-        outFragInputs.texCoord3 = float4(attributeData.barycentrics,0,0);
+        output.positionSS = float4(0.0, 0.0, 0.0, 0.0);
+        output.positionRWS = WorldRayOrigin() + rayDirection * RayTCurrent();
+        output.texCoord0 = float4(attributeData.barycentrics,0,0);
+        output.texCoord1 = float4(attributeData.barycentrics,0,0);
+        output.texCoord2 = float4(attributeData.barycentrics,0,0);
+        output.texCoord3 = float4(attributeData.barycentrics,0,0);
 
-        outFragInputs.color = float4(attributes.color, attributes.alpha);
+        output.color = float4(attributes.color, attributes.alpha);
 
         // Compute the world space normal
         float3 normalWS = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
         float3 tangentWS = normalize(WorldToPrimitive(attributes, size3)[0].xyz);
-        outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, /*sign(currentVertex.tangentOS.w)*/1);
+        output.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, /*sign(currentVertex.tangentOS.w)*/1);
 
-        outFragInputs.isFrontFace = dot(rayDirection, outFragInputs.tangentToWorld[2]) < 0.0f;
+        output.isFrontFace = dot(rayDirection, output.tangentToWorld[2]) < 0.0f;
+        VFX_SRP_VARYINGS input;
+        ZERO_INITIALIZE(VFX_SRP_VARYINGS, input);
+
+        $splice(VFXInterpolantsGenerationRT)
+        $splice(VFXSetFragInputs)
+
     }
+
+    void BuildFragInputsFromIntersection(float2 uv, RayTracingProceduralData rtData, out FragInputs output)
+    {
+        InternalAttributesElement attributes = rtData.attributes;
+        float3 rayDirection = WorldRayDirection();
+        output.positionSS = float4(0.0, 0.0, 0.0, 0.0);
+        output.positionRWS = WorldRayOrigin() + rayDirection * RayTCurrent();
+        output.texCoord0 = float4(uv,0,0);
+        output.texCoord1 = float4(uv,0,0);
+        output.texCoord2 = float4(uv,0,0);
+        output.texCoord3 = float4(uv,0,0);
+        output.color = float4(attributes.color,attributes.alpha);
+
+        // Compute the world space normal
+        float3 normalWS = normalize(mul(rtData.objectToPrimitive[2].xyz, (float3x3)WorldToObject3x4()));
+        float3 tangentWS = normalize(mul(rtData.objectToPrimitive[0].xyz, (float3x3)WorldToObject3x4()));
+        output.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(/*sign(currentVertex.tangentOS.w)*/1));
+
+        output.isFrontFace = dot(rayDirection, output.tangentToWorld[2]) < 0.0f;
+        VFX_SRP_VARYINGS input;
+        ZERO_INITIALIZE(VFX_SRP_VARYINGS, input);
+
+        $splice(VFXInterpolantsGenerationRT)
+        $splice(VFXSetFragInputs)
+
+    }
+
+
 #endif

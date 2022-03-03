@@ -1,8 +1,7 @@
-
 // Visibility function required for the intersection shader
 bool AABBPrimitiveIsVisible(RayTracingProceduralData rtProceduralData, float2 uv)
 {
-    InternalAttributesElement attributes = rtProceduralData.attributes;
+    //In shadergraph, alpha clipping is handled in the any-hit
     return true;
 }
 

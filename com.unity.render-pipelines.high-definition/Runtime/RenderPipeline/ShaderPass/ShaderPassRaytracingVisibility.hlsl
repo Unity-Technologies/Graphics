@@ -22,7 +22,7 @@ void ClosestHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_R
     #ifdef HAVE_VFX_MODIFICATION
         uint index = PrimitiveIndex() * VFX_RT_DECIMATION_FACTOR;
         float3 inputVertexPosition = 0.0;
-        rayIntersection.velocity = GetVFXVertexDisplacement(index, posInput.positionWS, inputVertexPosition);
+        rayIntersection.velocity = GetVFXVertexDisplacement(index, fragInput.positionRWS, inputVertexPosition);
     #else
         float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
         float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
@@ -36,20 +36,18 @@ void AnyHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_RayPa
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
+    IntersectionVertex currentVertex;
     #ifdef HAVE_VFX_MODIFICATION
-        IntersectionVertex currentVertex;
         ZERO_INITIALIZE(IntersectionVertex, currentVertex);
         FragInputs fragInput;
         BuildFragInputsFromVFXIntersection(attributeData, fragInput);
     #else
-        // The first thing that we should do is grab the intersection vertice
-        IntersectionVertex currentVertex;
         GetCurrentIntersectionVertex(attributeData, currentVertex);
-
         // Build the Frag inputs from the intersection vertice
         FragInputs fragInput;
         BuildFragInputsFromIntersection(currentVertex, fragInput);
     #endif
+
     // Compute the view vector
     float3 viewWS = -WorldRayDirection();
 

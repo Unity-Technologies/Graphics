@@ -437,7 +437,7 @@ namespace UnityEditor.VFX
             buildVertexPropertiesGeneration = vertexInputsGeneration.ToString();
         }
 
-        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData,
+        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData, bool raytracing,
             out string interpolatorsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
@@ -447,7 +447,7 @@ namespace UnityEditor.VFX
 
             var additionalInterpolantsGeneration = new VFXShaderWriter();
             var additionalInterpolantsPreparation = new VFXShaderWriter();
-
+            string varyingVariableName = raytracing ? "input." : "output.";
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
@@ -468,7 +468,7 @@ namespace UnityEditor.VFX
                         additionalInterpolantsGeneration.WriteLine();
                     }
                     additionalInterpolantsGeneration.ExitScope();
-                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "output." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
+                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, varyingVariableName + filteredNamedExpression.name, filteredNamedExpression.name + "__");
                     additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
                 }
             }

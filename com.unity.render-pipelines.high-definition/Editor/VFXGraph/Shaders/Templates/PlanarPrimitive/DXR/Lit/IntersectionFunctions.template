@@ -13,7 +13,7 @@
                 #endif
                 #if HDRP_USE_BASE_COLOR_MAP && USE_ALPHA_TEST
                     ${VFXLoadParameter:{alphaThreshold}}
-                    return attributes.alpha * SampleTexture(VFX_SAMPLER(baseColorMap), uv).a > alphaThreshold;
+                    return attributes.alpha * SampleTexture(VFX_SAMPLER(baseColorMap), uv, 0).a > alphaThreshold;
                 #else
                     return true;
                 #endif

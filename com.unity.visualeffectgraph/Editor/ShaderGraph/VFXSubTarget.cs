@@ -119,6 +119,7 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
             out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
+            out AdditionalCommandDescriptor interpolantsGenerationRTDescriptor,
             out AdditionalCommandDescriptor buildVFXFragInputsDescriptor,
             out AdditionalCommandDescriptor pixelPropertiesAssignDescriptor,
             out AdditionalCommandDescriptor defineSpaceDescriptor,
@@ -152,8 +153,12 @@ namespace UnityEditor.VFX
             vertexPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesAssign", vertexPropertiesAssign);
 
             // Interpolator
-            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, out var interpolatorsGeneration);
+            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, false, out var interpolatorsGeneration);
             interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
+
+            // Interpolator for ray traxcing
+            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, true, out var interpolatorsGenerationRT);
+            interpolantsGenerationRTDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGenerationRT", interpolatorsGenerationRT);
 
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
             VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, shaderGraphBinder.useFragInputs, out var buildFragInputsGeneration);
@@ -295,6 +300,7 @@ namespace UnityEditor.VFX
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
                 out var interpolantsGenerationDescriptor,
+                out var interpolantsGenerationRTDescriptor,
                 out var buildVFXFragInputs,
                 out var pixelPropertiesAssignDescriptor,
                 out var defineSpaceDescriptor,
@@ -344,6 +350,7 @@ namespace UnityEditor.VFX
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor,
                     interpolantsGenerationDescriptor,
+                    interpolantsGenerationRTDescriptor,
                     buildVFXFragInputs,
                     pixelPropertiesAssignDescriptor,
                     defineSpaceDescriptor,
