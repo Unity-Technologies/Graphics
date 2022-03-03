@@ -43,6 +43,7 @@ namespace UnityEditor.VFX
         public VFXCoordinateSpace currentSpace { get; set; }
         public bool spaceLocalByDefault { get; set; }
         public VisualEffect component { get; set; }
+        public int currentHashCode { get; set; }
 
         private static readonly int s_HandleColorID = Shader.PropertyToID("_HandleColor");
         private static readonly int s_HandleSizeID = Shader.PropertyToID("_HandleSize");
@@ -195,7 +196,7 @@ namespace UnityEditor.VFX
         static Vector3[] s_AxisVector = { Vector3.right, Vector3.up, Vector3.forward, Vector3.zero };
         static int[] s_AxisId = { "VFX_RotateAxis_X".GetHashCode(), "VFX_RotateAxis_Y".GetHashCode(), "VFX_RotateAxis_Z".GetHashCode(), "VFX_RotateAxis_Camera".GetHashCode() };
         static Color s_DisabledHandleColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-        static Quaternion CustomRotationHandle(Quaternion rotation, Vector3 position, bool onlyCameraAxis = false)
+        private Quaternion CustomRotationHandle(Quaternion rotation, Vector3 position, bool onlyCameraAxis = false)
         {
             //Equivalent of Rotation Handle but with explicit id & *without* free rotate.
             var evt = Event.current;
@@ -209,7 +210,7 @@ namespace UnityEditor.VFX
             {
                 Handles.color = ToActiveColorSpace(s_AxisColor[i]);
                 var axisDir = i == 3 ? camForward : rotation * s_AxisVector[i];
-                rotation = Handles.Disc(s_AxisId[i], rotation, position, axisDir, size, true, EditorSnapSettings.rotate);
+                rotation = Handles.Disc(GetCombinedHashCode(s_AxisId[i]), rotation, position, axisDir, size, true, EditorSnapSettings.rotate);
             }
 
             if (isHot && evt.type == EventType.Repaint)
@@ -223,11 +224,11 @@ namespace UnityEditor.VFX
         }
 
         static int s_FreeRotationID = "VFX_FreeRotation_Id".GetHashCode();
-        static Quaternion CustomFreeRotationHandle(Quaternion rotation, Vector3 position)
+        private Quaternion CustomFreeRotationHandle(Quaternion rotation, Vector3 position)
         {
             var previousColor = Handles.color;
             Handles.color = ToActiveColorSpace(s_DisabledHandleColor);
-            var newRotation = Handles.FreeRotateHandle(s_FreeRotationID, rotation, position, HandleUtility.GetHandleSize(position));
+            var newRotation = Handles.FreeRotateHandle(GetCombinedHashCode(s_FreeRotationID), rotation, position, HandleUtility.GetHandleSize(position));
             Handles.color = previousColor;
             return newRotation;
         }
@@ -303,7 +304,7 @@ namespace UnityEditor.VFX
                     EditorGUI.BeginChangeCheck();
                     Vector3 arcHandlePosition = Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
                     arcHandlePosition = Handles.Slider2D(
-                        s_ArcGizmoName,
+                        GetCombinedHashCode(s_ArcGizmoName),
                         arcHandlePosition,
                         Vector3.up,
                         Vector3.forward,
@@ -347,7 +348,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        public void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             Handles.DrawLine(Vector3.zero, position);
 
@@ -358,10 +359,12 @@ namespace UnityEditor.VFX
             rotation = Quaternion.LookRotation(tangent, normal);
             Matrix4x4 matrix = Matrix4x4.TRS(worldPosition, rotation, (Vector3.one + Vector3.forward * arcHandleSizeMultiplier));
             using (new Handles.DrawingScope(matrix))
-                Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
+                Handles.CylinderHandleCap(GetCombinedHashCode(controlID), Vector3.zero, Quaternion.identity, size, eventType);
         }
 
         public virtual bool needsComponent { get { return false; } }
+
+        public int GetCombinedHashCode(int hashCode) => (currentHashCode + hashCode) % int.MaxValue;
     }
 
     abstract class VFXGizmo<T> : VFXGizmo
