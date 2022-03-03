@@ -33,6 +33,11 @@ namespace UnityEngine.Rendering.Universal
 
         public bool isEmpty => end < start;
 
+        public bool Contains(short index)
+        {
+            return index >= start && index <= end;
+        }
+
         public static InclusiveRange Merge(InclusiveRange a, InclusiveRange b) => new(Math.Min(a.start, b.start), Math.Max(a.end, b.end));
 
         public static InclusiveRange empty => new InclusiveRange(short.MaxValue, short.MinValue);

@@ -54,6 +54,8 @@ namespace UnityEngine.Rendering.Universal
         ? RenderingMode.Forward
         : this.renderingModeRequested;
 
+        bool clusteredRendering;
+
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -168,6 +170,7 @@ namespace UnityEngine.Rendering.Universal
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.clusteredRendering = data.clusteredRendering;
             forwardInitParams.improvedTiling = data.improvedTiling;
+            clusteredRendering = data.clusteredRendering;
             forwardInitParams.tileSize = (int)data.tileSize;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
@@ -977,6 +980,11 @@ namespace UnityEngine.Rendering.Universal
             // {
             //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             // }
+
+            if (clusteredRendering)
+            {
+                cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            }
 
             // We disable shadow casters if both shadow casting modes are turned off
             // or the shadow distance has been turned down to zero

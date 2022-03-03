@@ -202,12 +202,10 @@ half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceDa
 #if USE_CLUSTERED_LIGHTING
     int numLights = _AdditionalLightsDirectionalCount;
     ClusteredLightLoop cll = ClusteredLightLoopInit(inputData.normalizedScreenSpaceUV, inputData.positionWS);
-    [loop] while (ClusteredLightLoopNextWord(cll))
+    [loop] while (ClusteredLightLoopNext(cll))
     {
-        [loop] while (ClusteredLightLoopNextLight(cll))
-        {
-            numLights++;
-        }
+        ClusteredLightLoopGetLightIndex(cll);
+        numLights++;
     }
 #else
     // Assume a main light and add 1 to the additional lights.

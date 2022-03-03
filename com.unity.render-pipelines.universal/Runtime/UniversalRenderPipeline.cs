@@ -1020,7 +1020,7 @@ namespace UnityEngine.Rendering.Universal
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
-            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
+            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount, (settings.scriptableRendererData as UniversalRendererData)?.clusteredRendering ?? false);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
 
             CheckAndApplyDebugSettings(ref renderingData);
@@ -1180,13 +1180,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
+        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount, bool clusteredRendering)
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
 
             var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
-            if (additionalLightsCount > 0)
+            if (additionalLightsCount > 0 && !clusteredRendering)
             {
                 configuration |= PerObjectData.LightData;
 

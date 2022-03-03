@@ -21,20 +21,41 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute(int rowIndex)
         {
-            var rowBaseMaskIndex = rowIndex * wordsPerTile * tileResolution.x;
+            var compactCount = 0;
+            var lightIndices = new NativeArray<byte>(lightCount, Allocator.Temp);
+            var lightRanges = new NativeArray<InclusiveRange>(lightCount, Allocator.Temp);
+
+            // Compact the light ranges for the current row.
             for (var lightIndex = 0; lightIndex < lightCount; lightIndex++)
             {
-                var wordIndex = lightIndex / 32;
-                var lightMask = 1u << (lightIndex % 32);
                 var range = tileRanges[lightIndex * itemsPerLight + 1 + rowIndex];
-
-                // if (!range.isEmpty) Debug.Log($"light{lightIndex}@row{rowIndex}: {range.start}..={range.end}");
-                for (var tileIndex = range.start; tileIndex <= range.end; tileIndex++)
+                if (!range.isEmpty)
                 {
-                    // if (rowBaseMaskIndex + tileIndex * wordsPerTile + wordIndex >= lightMasks.Length) Debug.Log(tileIndex);
-                    lightMasks[rowBaseMaskIndex + tileIndex * wordsPerTile + wordIndex] |= lightMask;
+                    lightIndices[compactCount] = (byte)lightIndex;
+                    lightRanges[compactCount] = range;
+                    compactCount++;
                 }
             }
+
+            var rowBaseMaskIndex = rowIndex * wordsPerTile * tileResolution.x;
+            for (var tileIndex = 0; tileIndex < tileResolution.x; tileIndex++)
+            {
+                var tileBaseIndex = rowBaseMaskIndex + tileIndex * wordsPerTile;
+                for (var i = 0; i < compactCount; i++)
+                {
+                    var lightIndex = lightIndices[i];
+                    var wordIndex = lightIndex / 32;
+                    var lightMask = 1u << (lightIndex % 32);
+                    var range = lightRanges[i];
+                    if (range.Contains((short)tileIndex))
+                    {
+                        lightMasks[tileBaseIndex + wordIndex] |= lightMask;
+                    }
+                }
+            }
+
+            lightIndices.Dispose();
+            lightRanges.Dispose();
         }
     }
 }

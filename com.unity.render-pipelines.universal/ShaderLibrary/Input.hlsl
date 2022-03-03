@@ -26,9 +26,9 @@
 #define MAX_ZBIN_VEC4S 1024
 #define MAX_TILE_VEC4S 4096
 #if MAX_VISIBLE_LIGHTS < 32
-    #define LIGHTS_PER_TILE 32
+    #define MAX_LIGHTS_PER_TILE 32
 #else
-    #define LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
+    #define MAX_LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
 #endif
 
 struct InputData
@@ -100,13 +100,15 @@ half4 _AdditionalLightsCount;
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.
 uint _AdditionalLightsDirectionalCount;
-// The number of Z-bins to skip based on near plane distance.
-uint _AdditionalLightsZBinOffset;
-// Scale from view-space Z to Z-bin.
-float _AdditionalLightsZBinScale;
 // Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
 float2 _AdditionalLightsTileScale;
 uint _AdditionalLightsTileCountX;
+uint _AdditionalLightsWordsPerTile;
+float4 _AdditionalLightsParams0;
+
+#define URP_ADDITIONAL_LIGHTS_ZBIN_MUL _AdditionalLightsParams0.x
+#define URP_ADDITIONAL_LIGHTS_ZBIN_ADD _AdditionalLightsParams0.y
+
 #endif
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA

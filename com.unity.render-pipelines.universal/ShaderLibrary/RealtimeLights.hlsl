@@ -43,9 +43,9 @@ struct Light
 #if USE_CLUSTERED_LIGHTING
     #define LIGHT_LOOP_BEGIN(lightCount) \
     ClusteredLightLoop cll = ClusteredLightLoopInit(inputData.normalizedScreenSpaceUV, inputData.positionWS); \
-    [loop] while (ClusteredLightLoopNextWord(cll)) { [loop] while (ClusteredLightLoopNextLight(cll)) { \
+    [loop] while (ClusteredLightLoopNext(cll)) { \
         uint lightIndex = ClusteredLightLoopGetLightIndex(cll);
-    #define LIGHT_LOOP_END } }
+    #define LIGHT_LOOP_END }
 #elif !_USE_WEBGL1_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
