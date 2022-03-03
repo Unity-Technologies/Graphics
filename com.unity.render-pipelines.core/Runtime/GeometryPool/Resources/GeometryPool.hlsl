@@ -9,6 +9,9 @@ ByteAddressBuffer _GeoPoolGlobalSubMeshLookupBuffer;
 StructuredBuffer<GeoPoolSubMeshEntry> _GeoPoolGlobalSubMeshEntryBuffer;
 StructuredBuffer<GeoPoolMetadataEntry> _GeoPoolGlobalMetadataBuffer;
 StructuredBuffer<GeoPoolBatchTableEntry> _GeoPoolGlobalBatchTableBuffer;
+StructuredBuffer<GeoPoolClusterEntry> _GeoPoolGlobalClusterEntriesBuffer;
+StructuredBuffer<GeoPoolMeshEntry> _GeoPoolMeshEntriesBuffer;
+
 ByteAddressBuffer _GeoPoolGlobalBatchInstanceBuffer;
 float4 _GeoPoolGlobalParams;
 
@@ -86,6 +89,20 @@ GeoPoolVertex LoadVertex(
     return outputVertex;
 }
 
+GeoPoolVertex LoadVertex(
+    GeoPoolMeshEntry meshEntry,
+    int clusterIndex,
+    int indexOffset)
+{
+    GeoPoolClusterEntry clusterEntry = _GeoPoolGlobalClusterEntriesBuffer[clusterIndex];
+
+    uint indexValue = _GeoPoolGlobalIndexBuffer.Load((clusterEntry.indexOffset + indexOffset) << 2);
+
+    GeoPoolVertex outputVertex;
+    LoadVertex(clusterEntry.vertexOffset + indexValue, (int)_GeoPoolGlobalParams.x, meshEntry.vertexFlags, _GeoPoolGlobalVertexBuffer, outputVertex);
+    return outputVertex;
+}
+
 void SubMeshLookupBucketShiftMask(int index, out int bucketId, out int shift, out int mask)
 {
     bucketId = index >> 2;
@@ -121,6 +138,26 @@ GeoPoolMetadataEntry GetMetadataEntry(int instanceID, int batchID)
     uint pair = _GeoPoolGlobalBatchInstanceBuffer.Load((globalInstanceIndex >> 1) << 2);
     uint metadataIdx = (globalInstanceIndex & 0x1) ? (pair >> 16) : (pair & 0xFF);
     return _GeoPoolGlobalMetadataBuffer[metadataIdx];
+}
+
+GeoPoolMeshEntry GetMeshEntry(uint geoHandle)
+{
+    return _GeoPoolMeshEntriesBuffer[geoHandle];
+}
+
+void PackMaterialKeyClusterCount(inout GeoPoolClusterEntry entry, int materialKey, int primitiveCount)
+{
+    entry.materialKey_PrimitiveCount = (materialKey & 0xFFFF) | ((primitiveCount & 0xFFFF) << 16);
+}
+
+int GetMaterialKey(GeoPoolClusterEntry entry)
+{
+    return entry.materialKey_PrimitiveCount & 0xFFFF;
+}
+
+int GetClusterPrimitiveCount(inout GeoPoolClusterEntry entry)
+{
+    return (entry.materialKey_PrimitiveCount >> 16) & 0xFFFF;
 }
 
 }

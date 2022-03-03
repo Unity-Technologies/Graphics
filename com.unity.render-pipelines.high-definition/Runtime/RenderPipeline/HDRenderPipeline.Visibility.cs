@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle vbuffer0;
             public TextureHandle vbuffer1;
             public TextureHandle vbufferMaterialDepth;
-            public RenderBRGBindingData BRGBindingData;
+            public VisibilityBRGBindingData visibilityBindingData;
 
             public static VBufferOutput NewDefault()
             {
@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     vbuffer0 = TextureHandle.nullHandle,
                     vbuffer1 = TextureHandle.nullHandle,
                     vbufferMaterialDepth = TextureHandle.nullHandle,
-                    BRGBindingData = RenderBRGBindingData.NewDefault()
+                    visibilityBindingData = VisibilityBRGBindingData.NewDefault()
                 };
             }
 
@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     readVBuffer.vbufferMaterialDepth = builder.ReadTexture(vbufferMaterialDepth);
                 else
                     readVBuffer.vbufferMaterialDepth = vbufferMaterialDepth;
-                readVBuffer.BRGBindingData = BRGBindingData;
+                readVBuffer.visibilityBindingData = visibilityBindingData;
                 return readVBuffer;
             }
         }
@@ -54,15 +54,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public FrameSettings frameSettings;
             public RendererListHandle rendererList;
-            public RenderBRGBindingData BRGBindingData;
+            public VisibilityBRGBindingData visibilityBindingData;
         }
 
         void RenderVBuffer(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
         {
             output.vbuffer = VBufferOutput.NewDefault();
 
-            var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
-            if (!IsVisibilityPassEnabled() || !BRGBindingData.valid)
+            var visibilityBindingData = RenderBRG.GetVisiblityBindingData();
+            if (!IsVisibilityPassEnabled() || !visibilityBindingData.valid)
             {
                 output.vbuffer.vbuffer0 = renderGraph.defaultResources.blackUIntTextureXR;
                 output.vbuffer.vbuffer1 = renderGraph.defaultResources.blackUIntTextureXR;
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         name = "VisibilityBuffer1"
                     }), 1);
 
-                passData.BRGBindingData = BRGBindingData;
+                passData.visibilityBindingData = visibilityBindingData;
                 passData.rendererList = builder.UseRendererList(
                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(
                         cull, hdCamera.camera,
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VBufferPassData data, RenderGraphContext context) =>
                     {
-                        data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
+                        data.visibilityBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
             }
@@ -121,28 +121,31 @@ namespace UnityEngine.Rendering.HighDefinition
             output.vbuffer.vbuffer0 = vbuffer0;
             output.vbuffer.vbuffer1 = vbuffer1;
             output.vbuffer.vbufferMaterialDepth = RenderMaterialDepth(renderGraph, hdCamera, colorBuffer);
-            output.vbuffer.BRGBindingData = BRGBindingData;
+            output.vbuffer.visibilityBindingData = visibilityBindingData;
         }
 
         static void BindVBufferResources(Material material, in VBufferOutput resources)
         {
             material.SetTexture(HDShaderIDs._VisBufferTexture0, resources.vbuffer0);
             material.SetTexture(HDShaderIDs._VisBufferTexture1, resources.vbuffer1);
-            resources.BRGBindingData.globalGeometryPool.BindResources(material);
+            material.SetBuffer(HDShaderIDs._GlobalVisibleClusters, resources.visibilityBindingData.visibleClustersBuffer);
+            resources.visibilityBindingData.globalGeometryPool.BindResources(material);
         }
 
         static void BindVBufferResourcesCS(CommandBuffer cmd, ComputeShader cs, int kernel, in VBufferOutput resources)
         {
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VisBufferTexture0, resources.vbuffer0);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VisBufferTexture1, resources.vbuffer1);
-            resources.BRGBindingData.globalGeometryPool.BindResourcesCS(cmd, cs, kernel);
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._GlobalVisibleClusters, resources.visibilityBindingData.visibleClustersBuffer);
+            resources.visibilityBindingData.globalGeometryPool.BindResourcesCS(cmd, cs, kernel);
         }
 
         static void BindVBufferResourcesGlobal(CommandBuffer cmd, in VBufferOutput resources)
         {
             cmd.SetGlobalTexture(HDShaderIDs._VisBufferTexture0, resources.vbuffer0);
             cmd.SetGlobalTexture(HDShaderIDs._VisBufferTexture1, resources.vbuffer1);
-            resources.BRGBindingData.globalGeometryPool.BindResourcesGlobal(cmd);
+            cmd.SetGlobalBuffer(HDShaderIDs._GlobalVisibleClusters, resources.visibilityBindingData.visibleClustersBuffer);
+            resources.visibilityBindingData.globalGeometryPool.BindResourcesGlobal(cmd);
         }
 
         static void BindVBufferResources(Material material, in VBufferInformation vBufferInfo)

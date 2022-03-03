@@ -1100,6 +1100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcOffset = Shader.PropertyToID("_SrcOffset");
 
         //Visibility material
+        public static readonly int _GlobalVisibleClusters = Shader.PropertyToID("_GlobalVisibleClusters");
         public static readonly int _VisBufferTexture0 = Shader.PropertyToID("_VisBufferTexture0");
         public static readonly int _VisBufferTexture1 = Shader.PropertyToID("_VisBufferTexture1");
         public static readonly int _VisBufferFeatureTiles = Shader.PropertyToID("_VisBufferFeatureTiles");

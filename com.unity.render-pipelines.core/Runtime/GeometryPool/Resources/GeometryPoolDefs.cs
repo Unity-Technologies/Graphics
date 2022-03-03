@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering
     [GenerateHLSL]
     public static class GeometryPoolConstants
     {
+        public static int GeoPoolClusterPrimitiveCount = 64; //64 triangles per cluster
+
         public static int GeoPoolPosByteSize = 3 * 4;
         public static int GeoPoolUV0ByteSize = 2 * 4;
         public static int GeoPoolUV1ByteSize = 2 * 4;
@@ -67,5 +69,21 @@ namespace UnityEngine.Rendering
     {
         public int offset;
         public int count;
+    }
+
+    [GenerateHLSL(needAccessors = false)]
+    internal struct GeoPoolClusterEntry
+    {
+        public int indexOffset;
+        public int vertexOffset;
+        public int materialKey_PrimitiveCount;
+    }
+
+    [GenerateHLSL]
+    internal struct GeoPoolMeshEntry
+    {
+        public int clustersBufferIndex;
+        public int clustersCounts;
+        public int vertexFlags; //16 bits for submesh entry, 16 bits for vertex flags.
     }
 }

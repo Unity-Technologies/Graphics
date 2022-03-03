@@ -7,6 +7,7 @@
 //
 // UnityEngine.Rendering.GeometryPoolConstants:  static fields
 //
+#define GEO_POOL_CLUSTER_PRIMITIVE_COUNT (64)
 #define GEO_POOL_POS_BYTE_SIZE (12)
 #define GEO_POOL_UV0BYTE_SIZE (8)
 #define GEO_POOL_UV1BYTE_SIZE (8)
@@ -68,6 +69,24 @@ struct GeoPoolBatchTableEntry
     int count;
 };
 
+// Generated from UnityEngine.Rendering.GeoPoolClusterEntry
+// PackingRules = Exact
+struct GeoPoolClusterEntry
+{
+    int indexOffset;
+    int vertexOffset;
+    int materialKey_PrimitiveCount;
+};
+
+// Generated from UnityEngine.Rendering.GeoPoolMeshEntry
+// PackingRules = Exact
+struct GeoPoolMeshEntry
+{
+    int clustersBufferIndex;
+    int clustersCounts;
+    int vertexFlags;
+};
+
 //
 // Accessors for UnityEngine.Rendering.GeoPoolSubMeshEntry
 //
@@ -116,6 +135,21 @@ int GetOffset(GeoPoolBatchTableEntry value)
 int GetCount(GeoPoolBatchTableEntry value)
 {
     return value.count;
+}
+//
+// Accessors for UnityEngine.Rendering.GeoPoolMeshEntry
+//
+int GetClustersBufferIndex(GeoPoolMeshEntry value)
+{
+    return value.clustersBufferIndex;
+}
+int GetClustersCounts(GeoPoolMeshEntry value)
+{
+    return value.clustersCounts;
+}
+int GetVertexFlags(GeoPoolMeshEntry value)
+{
+    return value.vertexFlags;
 }
 
 #endif

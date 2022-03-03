@@ -70,101 +70,6 @@ namespace UnityEngine.Rendering.Tests
             return newMesh;
         }
 
-        internal struct GeometryPoolTestCpuData
-        {
-            CommandBuffer m_cmdBuffer;
-            AsyncGPUReadbackRequest m_request;
-            GeometryPool m_geometryPool;
-
-            public GeometryPool geoPool { get { return m_geometryPool; } }
-            public NativeArray<int> gpuIndexData;
-            public NativeArray<float> gpuVertexData;
-            public NativeArray<int> gpuSubMeshLookupData;
-            public NativeArray<GeoPoolSubMeshEntry> gpuSubMeshEntryData;
-            public NativeArray<GeoPoolMetadataEntry> gpuMetadatas;
-            public NativeArray<GeoPoolBatchTableEntry> gpuBatchTable;
-            public NativeArray<short> gpuBatchInstanceData;
-
-            public void Load(GeometryPool geometryPool)
-            {
-                m_cmdBuffer = new CommandBuffer();
-                m_geometryPool = geometryPool;
-
-                var indexData = new NativeArray<int>(geometryPool.indicesCount, Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalIndexBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        indexData.CopyFrom(req.GetData<int>());
-                });
-
-                var vertData = new NativeArray<float>(geometryPool.verticesCount * (GeometryPool.GetVertexByteSize() / 4), Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalVertexBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        vertData.CopyFrom(req.GetData<float>());
-                });
-
-                var subMeshLookupData = new NativeArray<int>(geometryPool.subMeshLookupCount / 4, Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalSubMeshLookupBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        subMeshLookupData.CopyFrom(req.GetData<int>());
-                });
-
-                var subMeshEntryData = new NativeArray<GeoPoolSubMeshEntry>(geometryPool.subMeshEntryCount, Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalSubMeshEntryBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        subMeshEntryData.CopyFrom(req.GetData<GeoPoolSubMeshEntry>());
-                });
-
-                var metaData = new NativeArray<GeoPoolMetadataEntry>(geometryPool.maxMeshes, Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalMetadataBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        metaData.CopyFrom(req.GetData<GeoPoolMetadataEntry>());
-                });
-
-                var batchTable = new NativeArray<GeoPoolBatchTableEntry>(geometryPool.maxBatchCount, Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalBatchTableBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        batchTable.CopyFrom(req.GetData<GeoPoolBatchTableEntry>());
-                });
-
-
-                var batchInstances = new NativeArray<short>(geometryPool.maxBatchInstanceCount, Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalBatchInstanceBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        batchInstances.CopyFrom(req.GetData<short>());
-                });
-
-                m_cmdBuffer.WaitAllAsyncReadbackRequests();
-
-                Graphics.ExecuteCommandBuffer(m_cmdBuffer);
-                gpuIndexData = indexData;
-                gpuVertexData = vertData;
-                gpuSubMeshLookupData = subMeshLookupData;
-                gpuSubMeshEntryData = subMeshEntryData;
-                gpuMetadatas = metaData;
-                gpuBatchTable = batchTable;
-                gpuBatchInstanceData = batchInstances;
-            }
-
-            public void Dispose()
-            {
-                gpuIndexData.Dispose();
-                gpuVertexData.Dispose();
-                gpuMetadatas.Dispose();
-                gpuSubMeshLookupData.Dispose();
-                gpuSubMeshEntryData.Dispose();
-                gpuBatchTable.Dispose();
-                gpuBatchInstanceData.Dispose();
-                m_cmdBuffer.Dispose();
-            }
-        }
-
         private static bool EpsilonAreEqual(Vector3 a, Vector3 b)
         {
             var d = a - b;
@@ -173,7 +78,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         internal static void VerifyMeshInPool(
-            in GeometryPoolTestCpuData geopoolCpuData,
+            in GeometryPoolCPUReadbackData geopoolCpuData,
             in GeometryPoolHandle handle,
             in Mesh mesh)
         {
@@ -181,7 +86,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         internal static void VerifyMeshInPool(
-            in GeometryPoolTestCpuData geopoolCpuData,
+            in GeometryPoolCPUReadbackData geopoolCpuData,
             in GeometryPoolHandle handle,
             in GeometryPoolEntryDesc geoDesc)
         {
@@ -291,10 +196,46 @@ namespace UnityEngine.Rendering.Tests
             GeoPoolMetadataEntry metadataEntry = geopoolCpuData.gpuMetadatas[handle.index];
             Assert.AreEqual(metadataEntry.vertexOffset, idxVertexBlock.offset);
             Assert.AreEqual(metadataEntry.indexOffset, idxBufferBlock.offset);
+
+            //validate sequential clusters
+            GeoPoolMeshEntry meshEntry = geopoolCpuData.gpuMeshEntries[handle.index];
+            int currentCluster = meshEntry.clustersBufferIndex;
+            for (int subMeshIndex = 0; subMeshIndex < mesh.subMeshCount; ++subMeshIndex)
+            {
+                SubMeshDescriptor submeshDescriptor = mesh.GetSubMesh(subMeshIndex);
+                Material subMeshMaterial = null;
+                submeshMaterialMap.TryGetValue(subMeshIndex, out subMeshMaterial);
+
+                var geoPoolMaterialEntry = GeometryPoolMaterialEntry.NewDefault();
+                if (subMeshMaterial != null)
+                    geopoolCpuData.geoPool.globalMaterialEntries.TryGetValue(subMeshMaterial.GetHashCode(), out geoPoolMaterialEntry);
+
+
+                int clusterCounts = (submeshDescriptor.indexCount / 3 + GeometryPoolConstants.GeoPoolClusterPrimitiveCount - 1) / GeometryPoolConstants.GeoPoolClusterPrimitiveCount;
+                int indicesCount = 0;
+                for (int clusterIndex = 0; clusterIndex < clusterCounts; ++clusterIndex)
+                {
+                    GeoPoolClusterEntry clusterEntry = geopoolCpuData.gpuClusterEntries[currentCluster + clusterIndex];
+                    int materialKey = clusterEntry.materialKey_PrimitiveCount & 0xFFFF;
+                    int primitiveCount = clusterEntry.materialKey_PrimitiveCount >> 16;
+                    int predictedPrimitiveCount = Math.Min(GeometryPoolConstants.GeoPoolClusterPrimitiveCount, submeshDescriptor.indexCount / 3 - GeometryPoolConstants.GeoPoolClusterPrimitiveCount * clusterIndex);
+                    Assert.IsTrue(materialKey == geoPoolMaterialEntry.materialGPUKey);
+                    Assert.IsTrue(primitiveCount == predictedPrimitiveCount);
+                    Assert.IsTrue(clusterEntry.vertexOffset == idxVertexBlock.offset);
+
+                    int predictedIndexOffset = idxBufferBlock.offset + submeshDescriptor.indexStart + indicesCount;
+                    int actualIndexOffset = clusterEntry.indexOffset;
+                    Assert.IsTrue(actualIndexOffset == predictedIndexOffset);
+
+                    indicesCount += primitiveCount * 3;
+                }
+
+                currentCluster += clusterCounts;
+            }
         }
 
         internal void VerifyInstanceDataInPool(
-            in GeometryPoolTestCpuData geopoolCpuData,
+            in GeometryPoolCPUReadbackData geopoolCpuData,
             GeometryPoolBatchHandle batchHandle,
             GeometryPoolBatchInstanceBuffer instanceData)
         {
@@ -306,7 +247,6 @@ namespace UnityEngine.Rendering.Tests
                 Assert.AreEqual(instanceData.instanceValues[i], geopoolCpuData.gpuBatchInstanceData[tableEntry.offset + i]);
             }
         }
-
 
         [SetUp]
         public void SetupGeometryPoolTests()
@@ -497,7 +437,7 @@ namespace UnityEngine.Rendering.Tests
 
             geometryPool.SendGpuCommands();
 
-            GeometryPoolTestCpuData geopoolCpuData = new GeometryPoolTestCpuData();
+            GeometryPoolCPUReadbackData geopoolCpuData = new GeometryPoolCPUReadbackData();
             geopoolCpuData.Load(geometryPool);
 
             VerifyMeshInPool(geopoolCpuData, cubeHandle, sCube);
@@ -529,7 +469,7 @@ namespace UnityEngine.Rendering.Tests
 
             geometryPool.SendGpuCommands();
 
-            GeometryPoolTestCpuData geopoolCpuData = new GeometryPoolTestCpuData();
+            GeometryPoolCPUReadbackData geopoolCpuData = new GeometryPoolCPUReadbackData();
             geopoolCpuData.Load(geometryPool);
             VerifyMeshInPool(geopoolCpuData, cubeHandle, sCube);
             VerifyMeshInPool(geopoolCpuData, capsuleHandle, sCapsule);
@@ -553,7 +493,7 @@ namespace UnityEngine.Rendering.Tests
 
             geometryPool.SendGpuCommands();
 
-            GeometryPoolTestCpuData geopoolCpuData = new GeometryPoolTestCpuData();
+            GeometryPoolCPUReadbackData geopoolCpuData = new GeometryPoolCPUReadbackData();
             geopoolCpuData.Load(geometryPool);
 
             VerifyMeshInPool(geopoolCpuData, cubeHandle, sCube16bit);
@@ -585,7 +525,7 @@ namespace UnityEngine.Rendering.Tests
 
             geometryPool.SendGpuCommands();
 
-            GeometryPoolTestCpuData geopoolCpuData = new GeometryPoolTestCpuData();
+            GeometryPoolCPUReadbackData geopoolCpuData = new GeometryPoolCPUReadbackData();
             geopoolCpuData.Load(geometryPool);
             VerifyMeshInPool(geopoolCpuData, cubeHandle, sCube16bit);
             VerifyMeshInPool(geopoolCpuData, capsuleHandle, sCapsule16bit);
@@ -621,7 +561,7 @@ namespace UnityEngine.Rendering.Tests
 
             geometryPool.SendGpuCommands();
 
-            GeometryPoolTestCpuData geopoolCpuData = new GeometryPoolTestCpuData();
+            GeometryPoolCPUReadbackData geopoolCpuData = new GeometryPoolCPUReadbackData();
             geopoolCpuData.Load(geometryPool);
             VerifyMeshInPool(geopoolCpuData, cubeHandle, sCube16bit);
             VerifyMeshInPool(geopoolCpuData, capsuleHandle, sCapsule16bit);
@@ -674,7 +614,7 @@ namespace UnityEngine.Rendering.Tests
 
             geometryPool.SendGpuCommands();
 
-            GeometryPoolTestCpuData geopoolCpuData = new GeometryPoolTestCpuData();
+            GeometryPoolCPUReadbackData geopoolCpuData = new GeometryPoolCPUReadbackData();
             geopoolCpuData.Load(geometryPool);
             VerifyMeshInPool(geopoolCpuData, mergedSphereCubeHandle, mergedSphereCubeDesc);
             VerifyMeshInPool(geopoolCpuData, capsuleHandle, sCapsule16bit);
@@ -763,7 +703,7 @@ namespace UnityEngine.Rendering.Tests
 
             geometryPool.SendGpuCommands();
 
-            GeometryPoolTestCpuData geopoolCpuData = new GeometryPoolTestCpuData();
+            GeometryPoolCPUReadbackData geopoolCpuData = new GeometryPoolCPUReadbackData();
             geopoolCpuData.Load(geometryPool);
             VerifyMeshInPool(geopoolCpuData, cubeHandle, sCube16bit);
             VerifyMeshInPool(geopoolCpuData, sphereHandle, sSphere);

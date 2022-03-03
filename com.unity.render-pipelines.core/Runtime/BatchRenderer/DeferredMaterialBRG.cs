@@ -490,7 +490,7 @@ namespace UnityEngine.Rendering
             }
             m_IndirectArguments = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, GraphicsBuffer.UsageFlags.None, m_MaterialDrawList.Length, GraphicsBuffer.IndirectDrawIndexedArgs.size);
             m_IndirectArgumentsID = m_IndirectArguments.bufferHandle;
-            
+
             var args = new GraphicsBuffer.IndirectDrawIndexedArgs[m_MaterialDrawList.Length];
             for (int i = 0; i < m_MaterialDrawList.Length; ++i)
             {

@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public VBufferInformation vBufferInfo;
             public TextureHandle depthPyramid;
             public ComputeBufferHandle fullscreenBuffer;
-            public RenderBRGBindingData BRGBindData;
+            public VisibilityBRGBindingData visibilityBindingData;
         }
 
         TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, VBufferInformation vBufferInfo, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
@@ -376,9 +376,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, false /* we dont want DRS on this output target*/, true /*We want XR support on this output target*/)
                 { colorFormat = rtFormat, name = "ResolveFullScreenDebug" }));
 
-                passData.BRGBindData = new RenderBRGBindingData();
+                passData.visibilityBindingData = new VisibilityBRGBindingData();
                 if (IsVisibilityPassEnabled())
-                    passData.BRGBindData = RenderBRG.GetRenderBRGMaterialBindingData();
+                    passData.visibilityBindingData = RenderBRG.GetVisiblityBindingData();
 
                 builder.SetRenderFunc(
                     (ResolveFullScreenDebugPassData data, RenderGraphContext ctx) =>

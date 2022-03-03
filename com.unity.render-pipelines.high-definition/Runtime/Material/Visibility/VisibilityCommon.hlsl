@@ -50,6 +50,8 @@ float3 DebugVisIndexToRGB(uint index, uint maxCol = 512)
     return saturate(float3(R,G,B));
 }
 
+
+
 void PackVisibilityData(in VisibilityData data, out uint packedData0, out uint2 packedData1)
 {
     packedData0 = 0;

@@ -10,6 +10,20 @@ using System;
 
 namespace UnityEngine.Rendering
 {
+    internal struct BRGInstanceBufferOffsets
+    {
+        public int localToWorld;
+        public int worldToLocal;
+        public int probeOffsetSHAr;
+        public int probeOffsetSHAg;
+        public int probeOffsetSHAb;
+        public int probeOffsetSHBr;
+        public int probeOffsetSHBg;
+        public int probeOffsetSHBb;
+        public int probeOffsetSHC;
+        public int probeOffsetOcclusion;
+    }
+
     internal struct BRGMatrix : IEquatable<BRGMatrix>
     {
         public float4 localToWorld0;
@@ -49,6 +63,46 @@ namespace UnityEngine.Rendering
         }
     }
 
+    internal struct SHProperties
+    {
+        public float4 SHAr;
+        public float4 SHAg;
+        public float4 SHAb;
+        public float4 SHBr;
+        public float4 SHBg;
+        public float4 SHBb;
+        public float4 SHC;
+
+        public SHProperties(SphericalHarmonicsL2 sh)
+        {
+            SHAr = GetSHA(sh, 0);
+            SHAg = GetSHA(sh, 1);
+            SHAb = GetSHA(sh, 2);
+
+            SHBr = GetSHB(sh, 0);
+            SHBg = GetSHB(sh, 1);
+            SHBb = GetSHB(sh, 2);
+
+            SHC = GetSHC(sh);
+        }
+
+        static float4 GetSHA(SphericalHarmonicsL2 sh, int i)
+        {
+            return new float4(sh[i, 3], sh[i, 1], sh[i, 2], sh[i, 0] - sh[i, 6]);
+        }
+
+        static float4 GetSHB(SphericalHarmonicsL2 sh, int i)
+        {
+            return new float4(sh[i, 4], sh[i, 5], sh[i, 6] * 3f, sh[i, 7]);
+        }
+
+        static float4 GetSHC(SphericalHarmonicsL2 sh)
+        {
+            return new float4(sh[0, 8], sh[1, 8], sh[2, 8], 1);
+        }
+    }
+
+
     internal struct BRGDrawData
     {
         public int length;
@@ -68,6 +122,20 @@ namespace UnityEngine.Rendering
             if (bounds.IsCreated)
                 bounds.Dispose();
         }
+    }
+
+    internal enum BRGTransformUpdaterFlags
+    {
+        None = 0,
+        EnableMeshBoundsUpdate = 1 << 0
+    }
+
+    internal struct BRGTransformObjectIndex : IEquatable<BRGTransformObjectIndex>
+    {
+        public int index;
+        public static BRGTransformObjectIndex Invalid = new BRGTransformObjectIndex() { index = -1 };
+        public bool valid => index != -1;
+        public bool Equals(BRGTransformObjectIndex other) => index == other.index;
     }
 
     internal struct BRGTransformUpdater
@@ -106,7 +174,14 @@ namespace UnityEngine.Rendering
         private int m_ProbeUpdateKernel;
 
         private BRGDrawData m_DrawData;
+
         public BRGDrawData drawData => m_DrawData;
+        public NativeArray<int> indices => m_Indices;
+
+        public int capacity => m_Capacity;
+        public int length => m_Length;
+
+        BRGTransformUpdaterFlags m_Flags;
 
         private enum QueueType
         {
@@ -206,6 +281,7 @@ namespace UnityEngine.Rendering
         [BurstCompile]
         private struct UpdateJob : IJobParallelForTransform
         {
+            public BRGTransformUpdaterFlags flags;
             public float minDistance;
 
             [ReadOnly]
@@ -268,8 +344,12 @@ namespace UnityEngine.Rendering
                 cachedTransforms[index] = m;
 
                 int instanceIndex = inputIndices[index];
-                AABB srcAABB = meshAABB[sourceAABBIndex[instanceIndex]];
-                boundsToUpdate[instanceIndex] = AABB.Transform(transform.localToWorldMatrix, srcAABB);
+
+                if ((flags & BRGTransformUpdaterFlags.EnableMeshBoundsUpdate) != 0)
+                {
+                    AABB srcAABB = meshAABB[sourceAABBIndex[instanceIndex]];
+                    boundsToUpdate[instanceIndex] = AABB.Transform(transform.localToWorldMatrix, srcAABB);
+                }
 
                 int outputIndex = IncrementCounter(QueueType.Transform);
                 transformUpdateIndexQueue[outputIndex] = instanceIndex;
@@ -307,7 +387,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void RecreteGpuBuffers()
+        private void RecreateGpuBuffers()
         {
             if (m_TransformUpdateIndexQueueBuffer != null)
                 m_TransformUpdateIndexQueueBuffer.Release();
@@ -332,15 +412,14 @@ namespace UnityEngine.Rendering
             m_ProbeOcclusionUpdateDataQueueBuffer = new ComputeBuffer(m_Capacity, System.Runtime.InteropServices.Marshal.SizeOf<Vector4>(), ComputeBufferType.Structured);
         }
 
-        public void Initialize()
+        public void Initialize(int initialCapacity, BRGTransformUpdaterFlags flags)
         {
+            m_Flags = flags;
             m_TransformUpdateIndexQueueBuffer = null;
             m_TransformUpdateDataQueueBuffer = null;
 
-            LoadShaders();
-
             m_Length = 0;
-            m_Capacity = sBlockSize;
+            m_Capacity = Math.Max(initialCapacity, sBlockSize);
             m_Transforms = new TransformAccessArray(m_Capacity);
             m_Indices = new NativeArray<int>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_HasProbes = new NativeArray<bool>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -354,18 +433,30 @@ namespace UnityEngine.Rendering
             m_QueryProbePosition = new NativeArray<Vector3>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_UpdateQueueCounter = new NativeArray<int>((int)QueueType.Count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-            m_MeshToBoundIndexMap = new NativeHashMap<int, int>(1024, Allocator.Persistent);
-            m_MeshBounds = new NativeArray<AABB>(1024, Allocator.Persistent);
-            m_MeshBoundsCount = 0;
-
             m_DrawData = new BRGDrawData();
-            m_DrawData.Resize(m_Capacity);
+            if ((m_Flags & BRGTransformUpdaterFlags.EnableMeshBoundsUpdate) != 0)
+            {
+                m_MeshToBoundIndexMap = new NativeHashMap<int, int>(1024, Allocator.Persistent);
+                m_MeshBounds = new NativeArray<AABB>(1024, Allocator.Persistent);
+                m_MeshBoundsCount = 0;
+                m_DrawData.Resize(m_Capacity);
+            }
+            else
+            {
+                m_MeshToBoundIndexMap = new NativeHashMap<int, int>(1, Allocator.Persistent);
+                m_MeshBounds = new NativeArray<AABB>(1, Allocator.Persistent);
+                m_DrawData.Resize(1);//only allocate 1 element on this unused buffer.
+            }
 
-            RecreteGpuBuffers();
+            RecreateGpuBuffers();
+
+            LoadShaders();
+
         }
 
         int RegisterMesh(Mesh mesh)
         {
+            Assert.IsTrue((m_Flags & BRGTransformUpdaterFlags.EnableMeshBoundsUpdate) != 0);
             if (m_MeshToBoundIndexMap.TryGetValue(mesh.GetHashCode(), out var foundIndex))
                 return foundIndex;
 
@@ -379,46 +470,79 @@ namespace UnityEngine.Rendering
             return nextIndex;
         }
 
-        public void RegisterTransformObject(int instanceIndex, Transform transformObject, Mesh mesh, bool hasLightProbe)
+        public void GrowBuffers(int newCapacity, int instanceIndex)
         {
+            if (newCapacity < m_Capacity)
+                return;
+
+            m_Capacity = Math.Max(m_Capacity, newCapacity) + sBlockSize;
+            m_Transforms.ResizeArray(m_Capacity);
+            m_Indices.ResizeArray(m_Capacity);
+            m_HasProbes.ResizeArray(m_Capacity);
+            m_TetrahedronCache.ResizeArray(m_Capacity);
+            m_CachedTransforms.ResizeArray(m_Capacity);
+            m_TransformUpdateIndexQueue.ResizeArray(m_Capacity);
+            m_TransformUpdateDataQueue.ResizeArray(m_Capacity);
+            m_ProbeUpdateIndexQueue.ResizeArray(m_Capacity);
+            m_ProbeUpdateDataQueue.ResizeArray(m_Capacity);
+            m_ProbeOcclusionUpdateDataQueue.ResizeArray(m_Capacity);
+            m_QueryProbePosition.ResizeArray(m_Capacity);
+            if ((m_Flags & BRGTransformUpdaterFlags.EnableMeshBoundsUpdate) != 0)
+                m_DrawData.Resize(Math.Max(m_Capacity, instanceIndex + 1));
+            RecreateGpuBuffers();
+        }
+
+        public BRGTransformObjectIndex RegisterTransformObject(int instanceIndex, Transform transformObject, bool hasLightProbe, Mesh mesh)
+        {
+            int newIndex = m_Length;
             int newLen = m_Length + 1;
             int instanceLen = instanceIndex + 1;
             int newCapacity = Math.Max(instanceLen, newLen);
-            if (newCapacity >= m_Capacity)
-            {
-                m_Capacity = Math.Max(m_Capacity, newCapacity) + sBlockSize;
-                m_Transforms.ResizeArray(m_Capacity);
-                m_Indices.ResizeArray(m_Capacity);
-                m_HasProbes.ResizeArray(m_Capacity);
-                m_TetrahedronCache.ResizeArray(m_Capacity);
-                m_CachedTransforms.ResizeArray(m_Capacity);
-                m_TransformUpdateIndexQueue.ResizeArray(m_Capacity);
-                m_TransformUpdateDataQueue.ResizeArray(m_Capacity);
-                m_ProbeUpdateIndexQueue.ResizeArray(m_Capacity);
-                m_ProbeUpdateDataQueue.ResizeArray(m_Capacity);
-                m_ProbeOcclusionUpdateDataQueue.ResizeArray(m_Capacity);
-                m_DrawData.Resize(m_Capacity);
-                m_QueryProbePosition.ResizeArray(m_Capacity);
-                RecreteGpuBuffers();
-            }
+            GrowBuffers(newCapacity, instanceIndex);
 
             m_Transforms.Add(transformObject);
-            m_Indices[m_Length] = instanceIndex;
-            m_HasProbes[m_Length] = hasLightProbe;
-            m_TetrahedronCache[m_Length] = -1;
+            m_Indices[newIndex] = instanceIndex;
+            m_HasProbes[newIndex] = hasLightProbe;
+            m_TetrahedronCache[newIndex] = -1;
             var cachedTransform = BRGMatrix.FromMatrix4x4(transformObject.localToWorldMatrix);
             //Dirty the instances with light probe transform always.
             if (hasLightProbe)
                 cachedTransform.SetTranslation(new float3(10000.0f, 10000.0f, 10000.0f));
-            m_CachedTransforms[m_Length] = cachedTransform;
+            m_CachedTransforms[newIndex] = cachedTransform;
 
-            int boundsIndex = RegisterMesh(mesh);
-            var localAABB = mesh.bounds.ToAABB();
-            m_MeshBounds[boundsIndex] = localAABB;
-            m_DrawData.sourceAABBIndex[instanceIndex] = boundsIndex;
-            m_DrawData.bounds[instanceIndex] = AABB.Transform(transformObject.localToWorldMatrix, mesh.bounds.ToAABB());
+            if ((m_Flags & BRGTransformUpdaterFlags.EnableMeshBoundsUpdate) != 0)
+            {
+                Assert.IsTrue(mesh != null, "Mesh object expected.");
+                int boundsIndex = RegisterMesh(mesh);
+                var localAABB = mesh.bounds.ToAABB();
+                m_MeshBounds[boundsIndex] = localAABB;
+                m_DrawData.sourceAABBIndex[instanceIndex] = boundsIndex;
+                m_DrawData.bounds[instanceIndex] = AABB.Transform(transformObject.localToWorldMatrix, mesh.bounds.ToAABB());
+                m_DrawData.length = Math.Max(instanceLen, m_DrawData.length);
+            }
+            else
+            {
+                Assert.IsTrue(mesh == null, "Mesh passed must be null. Mesh bounds update is disabled on this BRG Transform updater.");
+            }
+
             m_Length = newLen;
-            m_DrawData.length = Math.Max(instanceLen, m_DrawData.length);
+            return new BRGTransformObjectIndex() { index = newIndex };
+        }
+
+        public void DeleteTransformObjectSwapBack(BRGTransformObjectIndex transformObjectIndex)
+        {
+            Assert.IsTrue(transformObjectIndex.index < m_Length, "Use the transform index returned by the RegisterTransformObject function.");
+            int instanceIndex = m_Indices[transformObjectIndex.index];
+            m_Transforms.RemoveAtSwapBack(transformObjectIndex.index);
+            m_Indices[transformObjectIndex.index] = m_Indices[m_Length - 1];
+            m_HasProbes[transformObjectIndex.index] = m_HasProbes[m_Length - 1];
+            m_TetrahedronCache[transformObjectIndex.index] = m_TetrahedronCache[m_Length - 1];
+            m_CachedTransforms[transformObjectIndex.index] = m_CachedTransforms[m_Length - 1];
+            if ((m_Flags & BRGTransformUpdaterFlags.EnableMeshBoundsUpdate) != 0)
+            {
+                Assert.IsTrue(false, "Mesh deregistering has not been implemented. Mesh references will leak.");
+            }
+            --m_Length;
         }
 
         public void StartUpdateJobs()
@@ -432,6 +556,7 @@ namespace UnityEngine.Rendering
             m_LightProbesQuery = new LightProbesQuery(Allocator.TempJob);
             var jobData = new UpdateJob()
             {
+                flags = m_Flags,
                 minDistance = System.Single.Epsilon,
                 inputIndices = m_Indices,
                 sourceAABBIndex = m_DrawData.sourceAABBIndex,

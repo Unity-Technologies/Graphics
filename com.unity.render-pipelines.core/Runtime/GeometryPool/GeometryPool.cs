@@ -20,7 +20,9 @@ namespace UnityEngine.Rendering
         public int subMeshLookupPoolByteSize;
         public int subMeshEntryPoolByteSize;
         public int batchInstancePoolByteSize;
+        public int clusterPoolByteSize;
         public int maxMeshes;
+
 
         public static GeometryPoolDesc NewDefault()
         {
@@ -31,6 +33,7 @@ namespace UnityEngine.Rendering
                 subMeshLookupPoolByteSize = 3 * 1024 * 1024, // 3mb
                 subMeshEntryPoolByteSize = 2 * 1024 * 1024, // 2mb
                 batchInstancePoolByteSize = 4 * 1024 * 1024, //4 mb
+                clusterPoolByteSize = 16 * 1024 * 1024, //16mb
                 maxMeshes = 4096
             };
         }
@@ -149,6 +152,8 @@ namespace UnityEngine.Rendering
             public static readonly int _GeoPoolGlobalSubMeshEntryBuffer = Shader.PropertyToID("_GeoPoolGlobalSubMeshEntryBuffer");
             public static readonly int _GeoPoolGlobalMetadataBuffer = Shader.PropertyToID("_GeoPoolGlobalMetadataBuffer");
             public static readonly int _GeoPoolGlobalBatchTableBuffer = Shader.PropertyToID("_GeoPoolGlobalBatchTableBuffer");
+            public static readonly int _GeoPoolGlobalClusterEntriesBuffer = Shader.PropertyToID("_GeoPoolGlobalClusterEntriesBuffer");
+            public static readonly int _GeoPoolMeshEntriesBuffer = Shader.PropertyToID("_GeoPoolMeshEntriesBuffer");
             public static readonly int _GeoPoolGlobalBatchInstanceBuffer = Shader.PropertyToID("_GeoPoolGlobalBatchInstanceBuffer");
             public static readonly int _GeoPoolGlobalParams = Shader.PropertyToID("_GeoPoolGlobalParams");
             public static readonly int _OutputSubMeshLookupBuffer = Shader.PropertyToID("_OutputSubMeshLookupBuffer");
@@ -164,6 +169,17 @@ namespace UnityEngine.Rendering
             public static readonly int _ClearBufferSize = Shader.PropertyToID("_ClearBufferSize");
             public static readonly int _ClearBufferOffset = Shader.PropertyToID("_ClearBufferOffset");
             public static readonly int _ClearBufferValue = Shader.PropertyToID("_ClearBufferValue");
+            public static readonly int _InputClusterCounts = Shader.PropertyToID("_InputClusterCounts");
+            public static readonly int _InputClusterBaseOffset = Shader.PropertyToID("_InputClusterBaseOffset");
+            public static readonly int _InputMaterialKey = Shader.PropertyToID("_InputMaterialKey");
+            public static readonly int _InputIndexBufferBaseOffset = Shader.PropertyToID("_InputIndexBufferBaseOffset");
+            public static readonly int _InputVertexBufferBaseOffset = Shader.PropertyToID("_InputVertexBufferBaseOffset");
+            public static readonly int _InputIndexBufferCounts = Shader.PropertyToID("_InputIndexBufferCounts");
+            public static readonly int _OutputClusterBuffer = Shader.PropertyToID("_OutputClusterBuffer");
+            public static readonly int _InputClusterBufferIndex = Shader.PropertyToID("_InputClusterBufferIndex");
+            public static readonly int _InputClusterBufferCounts = Shader.PropertyToID("_InputClusterBufferCounts");
+            public static readonly int _InputMeshVertFlags = Shader.PropertyToID("_InputMeshVertFlags");
+            public static readonly int _OutputMeshEntries = Shader.PropertyToID("_OutputMeshEntries");
         }
 
         private struct MeshSlot
@@ -178,13 +194,15 @@ namespace UnityEngine.Rendering
             public BlockAllocator.Allocation indexAlloc;
             public BlockAllocator.Allocation subMeshLookupAlloc;
             public BlockAllocator.Allocation subMeshEntryAlloc;
+            public BlockAllocator.Allocation clusterBufferAlloc;
 
             public static GeometrySlot Invalid = new GeometrySlot()
             {
                 vertexAlloc = BlockAllocator.Allocation.Invalid,
                 indexAlloc = BlockAllocator.Allocation.Invalid,
                 subMeshLookupAlloc = BlockAllocator.Allocation.Invalid,
-                subMeshEntryAlloc = BlockAllocator.Allocation.Invalid
+                subMeshEntryAlloc = BlockAllocator.Allocation.Invalid,
+                clusterBufferAlloc = BlockAllocator.Allocation.Invalid
             };
 
             public bool valid => vertexAlloc.valid && indexAlloc.valid && subMeshLookupAlloc.valid && subMeshEntryAlloc.valid;
@@ -197,6 +215,9 @@ namespace UnityEngine.Rendering
         public static int GetGeoMetadataByteSize() => System.Runtime.InteropServices.Marshal.SizeOf<GeoPoolMetadataEntry>();
         public static int GetGeoBatchInstancesInfoByteSize() => System.Runtime.InteropServices.Marshal.SizeOf<GeoPoolBatchTableEntry>();
         public static int GetGeoBatchInstancesDataByteSize() => GeometryPoolConstants.GeoPoolBatchInstanceDataByteSize;
+
+        public static int GetMeshEntryBufferSize() => System.Runtime.InteropServices.Marshal.SizeOf<GeoPoolMeshEntry>();
+        public static int GetClusterEntryBufferSize() => System.Runtime.InteropServices.Marshal.SizeOf<GeoPoolClusterEntry>();
 
         private int GetFormatByteCount(VertexAttributeFormat format)
         {
@@ -230,6 +251,8 @@ namespace UnityEngine.Rendering
         public ComputeBuffer globalMetadataBuffer { get { return m_GlobalGeoMetadataBuffer; } }
         public ComputeBuffer globalBatchTableBuffer { get { return m_GlobalBatchTableBuffer; } }
         public ComputeBuffer globalBatchInstanceBuffer { get { return m_GlobalBatchInstanceBuffer; } }
+        public ComputeBuffer globalClusterEntryBuffer { get { return m_GlobalClusterEntryBuffer; } }
+        public ComputeBuffer globalMeshEntryBuffer { get { return m_GlobalMeshEntryBuffer; } }
         public Dictionary<int, GeometryPoolMaterialEntry> globalMaterialEntries { get { return m_MaterialEntries; } }
 
         public int maxMeshes => m_Desc.maxMeshes;
@@ -239,6 +262,7 @@ namespace UnityEngine.Rendering
         public int subMeshEntryCount => m_MaxSubMeshEntryCounts;
         public int maxBatchCount => m_MaxBatchCount;
         public int maxBatchInstanceCount => m_MaxBatchInstanceCount;
+        public int maxClusterEntryCount => m_MaxPoolClusterEntryCounts;
 
         private GraphicsBuffer m_GlobalIndexBuffer = null;
         private ComputeBuffer m_GlobalVertexBuffer = null;
@@ -247,6 +271,8 @@ namespace UnityEngine.Rendering
         private ComputeBuffer m_GlobalGeoMetadataBuffer = null;
         private ComputeBuffer m_GlobalBatchTableBuffer = null;
         private ComputeBuffer m_GlobalBatchInstanceBuffer = null;
+        private ComputeBuffer m_GlobalClusterEntryBuffer = null;
+        private ComputeBuffer m_GlobalMeshEntryBuffer = null;
 
         private int m_MaxVertCounts;
         private int m_MaxIndexCounts;
@@ -254,11 +280,13 @@ namespace UnityEngine.Rendering
         private int m_MaxSubMeshEntryCounts;
         private int m_MaxBatchCount;
         private int m_MaxBatchInstanceCount;
+        private int m_MaxPoolClusterEntryCounts;
 
         private BlockAllocator m_VertexAllocator;
         private BlockAllocator m_IndexAllocator;
         private BlockAllocator m_SubMeshLookupAllocator;
         private BlockAllocator m_SubMeshEntryAllocator;
+        private BlockAllocator m_ClusterEntryAllocator;
 
         private NativeHashMap<GeometryPoolHandle, MeshSlot> m_MeshSlots;
         private Dictionary<GeometryPoolHandle, NativeArray<int>> m_MaterialHashes;
@@ -278,6 +306,8 @@ namespace UnityEngine.Rendering
         private int m_KernelMainUpdateSubMeshData;
         private int m_KernelMainUpdateMeshMetadata;
         private int m_KernelMainClearSubMeshData;
+        private int m_KernelMainUpdateSequentialClusterData;
+        private int m_KernelMainUpdateMeshEntry;
 
         private CommandBuffer m_CmdBuffer;
         private bool m_MustClearCmdBuffer;
@@ -303,6 +333,7 @@ namespace UnityEngine.Rendering
             m_MaxIndexCounts = CalcIndexCount();
             m_MaxSubMeshLookupCounts = CalcSubMeshLookupCount();
             m_MaxSubMeshEntryCounts = CalcSubMeshEntryCount();
+            m_MaxPoolClusterEntryCounts = DivUp(m_Desc.clusterPoolByteSize, GetClusterEntryBufferSize());
             m_UsedGeoSlots = 0;
 
             m_GlobalVertexBuffer = new ComputeBuffer(DivUp(m_MaxVertCounts * GetVertexByteSize(), 4), 4, ComputeBufferType.Raw);
@@ -318,6 +349,8 @@ namespace UnityEngine.Rendering
             m_GlobalSubMeshLookupBuffer = new ComputeBuffer(DivUp(m_MaxSubMeshLookupCounts * GetSubMeshLookupByteSize(), 4), 4, ComputeBufferType.Raw);
             m_GlobalSubMeshEntryBuffer = new ComputeBuffer(m_MaxSubMeshEntryCounts, GetSubMeshEntryByteSize(), ComputeBufferType.Structured);
             m_GlobalGeoMetadataBuffer = new ComputeBuffer(m_Desc.maxMeshes, GetGeoMetadataByteSize(), ComputeBufferType.Structured);
+            m_GlobalMeshEntryBuffer = new ComputeBuffer(maxMeshes, GetMeshEntryBufferSize(), ComputeBufferType.Structured);
+            m_GlobalClusterEntryBuffer = new ComputeBuffer(m_MaxPoolClusterEntryCounts, GetClusterEntryBufferSize(), ComputeBufferType.Structured);
 
             m_MaxBatchCount = 256; //up to 256 batches, 8 bits per batch index.
             m_GlobalBatchTableBuffer = new ComputeBuffer(m_MaxBatchCount, GetGeoBatchInstancesInfoByteSize(), ComputeBufferType.Structured);
@@ -330,6 +363,7 @@ namespace UnityEngine.Rendering
             m_BatchInstancesAllocator = new BlockAllocator();
             m_BatchInstancesAllocator.Initialize(m_MaxBatchInstanceCount);
             m_GlobalBatchInstanceBuffer = new ComputeBuffer(DivUp(m_MaxBatchInstanceCount * GetGeoBatchInstancesDataByteSize(), 4), 4, ComputeBufferType.Raw);
+
 
             Assertions.Assert.IsTrue(m_GlobalIndexBuffer != null);
             Assertions.Assert.IsTrue((m_GlobalIndexBuffer.target & GraphicsBuffer.Target.Raw) != 0);
@@ -353,6 +387,9 @@ namespace UnityEngine.Rendering
             m_SubMeshEntryAllocator = new BlockAllocator();
             m_SubMeshEntryAllocator.Initialize(m_MaxSubMeshEntryCounts);
 
+            m_ClusterEntryAllocator = new BlockAllocator();
+            m_ClusterEntryAllocator.Initialize(m_MaxPoolClusterEntryCounts);
+
             m_MaterialEntries = new Dictionary<int, GeometryPoolMaterialEntry>();
             m_NextMaterialGPUKey = 0x1;
         }
@@ -373,6 +410,7 @@ namespace UnityEngine.Rendering
             m_VertexAllocator.Dispose();
             m_SubMeshLookupAllocator.Dispose();
             m_SubMeshEntryAllocator.Dispose();
+            m_ClusterEntryAllocator.Dispose();
 
             m_BatchTable.Dispose();
             m_BatchTableAllocations.Dispose();
@@ -398,6 +436,9 @@ namespace UnityEngine.Rendering
             m_GlobalBatchInstanceBuffer.Dispose();
             m_CmdBuffer.Release();
 
+            m_GlobalMeshEntryBuffer.Dispose();
+            m_GlobalClusterEntryBuffer.Dispose();
+
             CoreUtils.Destroy(globalMesh);
             globalMesh = null;
             DisposeInputBuffers();
@@ -413,6 +454,8 @@ namespace UnityEngine.Rendering
             m_KernelMainUpdateSubMeshData = m_GeometryPoolKernelsCS.FindKernel("MainUpdateSubMeshData");
             m_KernelMainUpdateMeshMetadata = m_GeometryPoolKernelsCS.FindKernel("MainUpdateMeshMetadata");
             m_KernelMainClearSubMeshData = m_GeometryPoolKernelsCS.FindKernel("MainClearBuffer");
+            m_KernelMainUpdateSequentialClusterData = m_GeometryPoolKernelsCS.FindKernel("MainUpdateSequentialClusterData");
+            m_KernelMainUpdateMeshEntry = m_GeometryPoolKernelsCS.FindKernel("MainUpdateMeshEntry");
         }
 
         private int CalcVertexCount() => DivUp(m_Desc.vertexPoolByteSize, GetVertexByteSize());
@@ -434,10 +477,13 @@ namespace UnityEngine.Rendering
             if (slot.subMeshEntryAlloc.valid)
                 m_SubMeshEntryAllocator.FreeAllocation(slot.subMeshEntryAlloc);
 
+            if (slot.clusterBufferAlloc.valid)
+                m_ClusterEntryAllocator.FreeAllocation(slot.clusterBufferAlloc);
+
             slot = GeometrySlot.Invalid;
         }
 
-        private bool AllocateGeo(int vertexCount, int indexCount, int subMeshEntries, out GeometryPoolHandle outHandle)
+        private bool AllocateGeo(int vertexCount, int indexCount, int subMeshEntries, int clusterCounts, out GeometryPoolHandle outHandle)
         {
             var newSlot = GeometrySlot.Invalid;
 
@@ -472,6 +518,12 @@ namespace UnityEngine.Rendering
             {
                 newSlot.subMeshEntryAlloc = m_SubMeshEntryAllocator.Allocate(subMeshEntries);
                 allocationSuccess = newSlot.subMeshEntryAlloc.valid;
+            }
+
+            if (allocationSuccess)
+            {
+                newSlot.clusterBufferAlloc = m_ClusterEntryAllocator.Allocate(clusterCounts);
+                allocationSuccess = newSlot.clusterBufferAlloc.valid;
             }
 
             if (!allocationSuccess)
@@ -571,7 +623,6 @@ namespace UnityEngine.Rendering
             if (tBuffer != null)
                 Assertions.Assert.IsTrue(tBuffer != null);
 
-
             GeoPoolInputFlags vertexFlags = GeoPoolInputFlags.None;
             AddVertexUpdateCommand(
                 cmdBuffer, posBuffer, uvBuffer, uv1Buffer, nBuffer, tBuffer,
@@ -612,6 +663,47 @@ namespace UnityEngine.Rendering
             AddMetadataUpdateCommand(
                 cmdBuffer, handle.index,
                 PackGpuGeoPoolMetadataEntry(geoSlot, vertexFlags), m_GlobalGeoMetadataBuffer);
+
+            {
+                var baseVertexAlloc = geoSlot.vertexAlloc;
+                var baseIndexAlloc = geoSlot.indexAlloc;
+                var baseClusterAlloc = geoSlot.clusterBufferAlloc;
+                int subMeshIndexOffset = 0;
+                int clusterOffset = 0;
+                for (int subMeshId = 0; subMeshId < mesh.subMeshCount; ++subMeshId)
+                {
+                    SubMeshDescriptor submeshDescriptor = mesh.GetSubMesh(subMeshId);
+
+                    int clusterCounts = DivUp(submeshDescriptor.indexCount / 3, GeometryPoolConstants.GeoPoolClusterPrimitiveCount);
+                    uint materialKey = materialKeys.IsCreated && subMeshId < materialKeys.Length ? materialKeys[subMeshId] : 0;
+
+                    var submeshIndexAllocation = baseIndexAlloc;
+                    submeshIndexAllocation.block.offset = baseIndexAlloc.block.offset + subMeshIndexOffset;
+                    submeshIndexAllocation.block.count = submeshDescriptor.indexCount;
+
+                    var submeshClusterAllocation = baseClusterAlloc;
+                    submeshClusterAllocation.block.offset = baseClusterAlloc.block.offset + clusterOffset;
+                    submeshClusterAllocation.block.count = clusterCounts;
+
+                    AddSequentialClustersInformation(
+                        cmdBuffer,
+                        submeshClusterAllocation,
+                        baseVertexAlloc,
+                        submeshIndexAllocation,
+                        materialKey,
+                        m_GlobalClusterEntryBuffer);
+
+                    subMeshIndexOffset += submeshDescriptor.indexCount;
+                    clusterOffset += clusterCounts;
+                    Assertions.Assert.IsTrue((subMeshIndexOffset / 3) <= geoSlot.subMeshLookupAlloc.block.count);
+                    Assertions.Assert.IsTrue(clusterOffset <= geoSlot.clusterBufferAlloc.block.count);
+                }
+            }
+
+            //Update mesh entry buffer
+            AddMeshEntryUpdateCommand(
+                cmdBuffer, handle.index,
+                PackGpuGeoPoolMeshEntry(geoSlot, vertexFlags), m_GlobalMeshEntryBuffer);
         }
 
         private GeoPoolMetadataEntry PackGpuGeoPoolMetadataEntry(in GeometrySlot geoSlot, GeoPoolInputFlags vertexFlags)
@@ -622,6 +714,16 @@ namespace UnityEngine.Rendering
                 indexOffset = geoSlot.indexAlloc.block.offset,
                 subMeshLookupOffset = geoSlot.subMeshLookupAlloc.block.offset,
                 subMeshEntryOffset_VertexFlags = (int)((geoSlot.subMeshEntryAlloc.block.offset << 16) | ((int)vertexFlags & 0xFFFF))
+            };
+        }
+
+        private GeoPoolMeshEntry PackGpuGeoPoolMeshEntry(in GeometrySlot geoSlot, GeoPoolInputFlags vertexFlags)
+        {
+            return new GeoPoolMeshEntry()
+            {
+                clustersBufferIndex = (int)geoSlot.clusterBufferAlloc.block.offset,
+                clustersCounts = (int)geoSlot.clusterBufferAlloc.block.count,
+                vertexFlags = (int)vertexFlags
             };
         }
 
@@ -801,66 +903,70 @@ namespace UnityEngine.Rendering
                 m_MeshSlots[outHandle] = meshSlot;
                 return true;
             }
-            else
+
+            var newSlot = new MeshSlot()
             {
-                var newSlot = new MeshSlot()
-                {
-                    refCount = 1,
-                    meshHash = meshHashCode,
-                };
+                refCount = 1,
+                meshHash = meshHashCode,
+            };
 
-                int indexCount = 0;
-                for (int i = 0; i < (int)mesh.subMeshCount; ++i)
-                    indexCount += (int)mesh.GetIndexCount(i);
-
-                if (!AllocateGeo(mesh.vertexCount, indexCount, mesh.subMeshCount, out outHandle))
-                    return false;
-
-                if (!m_MeshSlots.TryAdd(outHandle, newSlot))
-                {
-                    //revert the allocation.
-                    DeallocateGeo(outHandle);
-                    outHandle = GeometryPoolHandle.Invalid;
-                    return false;
-                }
-
-                if (!m_MeshHashToHandle.TryAdd(meshHashCode, outHandle))
-                {
-                    DeallocateGeo(outHandle);
-                    m_MeshSlots.Remove(outHandle);
-                    outHandle = GeometryPoolHandle.Invalid;
-                    return false;
-                }
-
-                //register material information
-                var materialHashes = new NativeArray<int>(mesh.subMeshCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-                var materialKeys = new NativeArray<uint>(mesh.subMeshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                if (mesh.subMeshCount > 0)
-                {
-                    for (int submeshIndex = 0; submeshIndex < materialKeys.Length; ++submeshIndex)
-                    {
-                        int entryIndex = FindSubmeshEntryInDesc(submeshIndex, entryDesc);
-                        int materialHash = 0;
-                        uint materialKey = 0;
-
-                        if (entryIndex != -1)
-                        {
-                            Material m = entryDesc.submeshData[entryIndex].material;
-                            materialHash = m.GetHashCode();
-                            materialKey = RegisterMaterial(m);
-                        }
-
-                        materialHashes[submeshIndex] = materialHash;
-                        materialKeys[submeshIndex] = materialKey;
-                    }
-                }
-
-                m_MaterialHashes.Add(outHandle, materialHashes);
-                UpdateGeoGpuState(mesh, materialKeys, outHandle);
-                materialKeys.Dispose();
-
-                return true;
+            int clusterCounts = 0;
+            int indexCount = 0;
+            for (int i = 0; i < (int)mesh.subMeshCount; ++i)
+            {
+                int submeshIndexCount = (int)mesh.GetIndexCount(i);
+                int submeshClusterCount = DivUp(submeshIndexCount / 3, GeometryPoolConstants.GeoPoolClusterPrimitiveCount);
+                indexCount += submeshIndexCount;
+                clusterCounts += submeshClusterCount;
             }
+
+            if (!AllocateGeo(mesh.vertexCount, indexCount, mesh.subMeshCount, clusterCounts, out outHandle))
+                return false;
+
+            if (!m_MeshSlots.TryAdd(outHandle, newSlot))
+            {
+                //revert the allocation.
+                DeallocateGeo(outHandle);
+                outHandle = GeometryPoolHandle.Invalid;
+                return false;
+            }
+
+            if (!m_MeshHashToHandle.TryAdd(meshHashCode, outHandle))
+            {
+                DeallocateGeo(outHandle);
+                m_MeshSlots.Remove(outHandle);
+                outHandle = GeometryPoolHandle.Invalid;
+                return false;
+            }
+
+            //register material information
+            var materialHashes = new NativeArray<int>(mesh.subMeshCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var materialKeys = new NativeArray<uint>(mesh.subMeshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            if (mesh.subMeshCount > 0)
+            {
+                for (int submeshIndex = 0; submeshIndex < materialKeys.Length; ++submeshIndex)
+                {
+                    int entryIndex = FindSubmeshEntryInDesc(submeshIndex, entryDesc);
+                    int materialHash = 0;
+                    uint materialKey = 0;
+
+                    if (entryIndex != -1)
+                    {
+                        Material m = entryDesc.submeshData[entryIndex].material;
+                        materialHash = m.GetHashCode();
+                        materialKey = RegisterMaterial(m);
+                    }
+
+                    materialHashes[submeshIndex] = materialHash;
+                    materialKeys[submeshIndex] = materialKey;
+                }
+            }
+
+            m_MaterialHashes.Add(outHandle, materialHashes);
+            UpdateGeoGpuState(mesh, materialKeys, outHandle);
+            materialKeys.Dispose();
+
+            return true;
         }
 
         public void Unregister(GeometryPoolHandle handle)
@@ -869,26 +975,27 @@ namespace UnityEngine.Rendering
                 return;
 
             --outSlot.refCount;
-            if (outSlot.refCount == 0)
+            if (outSlot.refCount != 0)
             {
-                m_MeshHashToHandle.Remove(outSlot.meshHash);
-                m_MeshSlots.Remove(handle);
-
-                if (m_MaterialHashes.TryGetValue(handle, out var materialHashes))
-                {
-                    if (materialHashes.IsCreated)
-                    {
-                        foreach (var hash in materialHashes)
-                            UnregisterMaterial(hash);
-                        materialHashes.Dispose();
-                    }
-
-                    m_MaterialHashes.Remove(handle);
-                }
-                DeallocateGeo(handle);
-            }
-            else
                 m_MeshSlots[handle] = outSlot;
+                return;
+            }
+
+            m_MeshHashToHandle.Remove(outSlot.meshHash);
+            m_MeshSlots.Remove(handle);
+
+            if (m_MaterialHashes.TryGetValue(handle, out var materialHashes))
+            {
+                if (materialHashes.IsCreated)
+                {
+                    foreach (var hash in materialHashes)
+                        UnregisterMaterial(hash);
+                    materialHashes.Dispose();
+                }
+
+                m_MaterialHashes.Remove(handle);
+            }
+            DeallocateGeo(handle);
         }
 
         public void SendGpuCommands()
@@ -940,32 +1047,30 @@ namespace UnityEngine.Rendering
             if ((mesh.indexBufferTarget & GraphicsBuffer.Target.Raw) != 0)
             {
                 fmt = mesh.indexFormat;
-                var idxBuffer = mesh.GetIndexBuffer();
-                m_InputBufferReferences.Add(idxBuffer);
-                return idxBuffer;
+                var currIdxBuffer = mesh.GetIndexBuffer();
+                m_InputBufferReferences.Add(currIdxBuffer);
+                return currIdxBuffer;
             }
-            else
+
+            fmt = IndexFormat.UInt32;
+
+            int indexCount = 0;
+            for (int i = 0; i < (int)mesh.subMeshCount; ++i)
+                indexCount += (int)mesh.GetIndexCount(i);
+
+            var idxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index | GraphicsBuffer.Target.Raw, indexCount, 4);
+            m_InputBufferReferences.Add(idxBuffer);
+
+            int indexOffset = 0;
+
+            for (int i = 0; i < (int)mesh.subMeshCount; ++i)
             {
-                fmt = IndexFormat.UInt32;
-
-                int indexCount = 0;
-                for (int i = 0; i < (int)mesh.subMeshCount; ++i)
-                    indexCount += (int)mesh.GetIndexCount(i);
-
-                var idxBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index | GraphicsBuffer.Target.Raw, indexCount, 4);
-                m_InputBufferReferences.Add(idxBuffer);
-
-                int indexOffset = 0;
-
-                for (int i = 0; i < (int)mesh.subMeshCount; ++i)
-                {
-                    int currentIndexCount = (int)mesh.GetIndexCount(i);
-                    cmdBuffer.SetBufferData(idxBuffer, mesh.GetIndices(i), 0, indexOffset, currentIndexCount);
-                    indexOffset += currentIndexCount;
-                }
-
-                return idxBuffer;
+                int currentIndexCount = (int)mesh.GetIndexCount(i);
+                cmdBuffer.SetBufferData(idxBuffer, mesh.GetIndices(i), 0, indexOffset, currentIndexCount);
+                indexOffset += currentIndexCount;
             }
+
+            return idxBuffer;
         }
 
         GraphicsBuffer LoadVertexAttribInfo(Mesh mesh, VertexAttribute attribute, out int streamStride, out int attributeOffset, out int attributeBytes)
@@ -986,7 +1091,6 @@ namespace UnityEngine.Rendering
             return gb;
         }
 
-
         private CommandBuffer AllocateCommandBuffer()
         {
             if (m_MustClearCmdBuffer)
@@ -997,6 +1101,20 @@ namespace UnityEngine.Rendering
 
             ++m_PendingCmds;
             return m_CmdBuffer;
+        }
+
+        private void AddMeshEntryUpdateCommand(
+            CommandBuffer cmdBuffer,
+            int geoHandleIndex,
+            in GeoPoolMeshEntry meshEntry, ComputeBuffer outputMeshEntryBuffer)
+        {
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._GeoHandle, geoHandleIndex);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputClusterBufferIndex, meshEntry.clustersBufferIndex);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputClusterBufferCounts, meshEntry.clustersCounts);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputMeshVertFlags, meshEntry.vertexFlags);
+            int kernel = m_KernelMainUpdateMeshEntry;
+            cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._OutputMeshEntries, outputMeshEntryBuffer);
+            cmdBuffer.DispatchCompute(m_GeometryPoolKernelsCS, kernel, 1, 1, 1);
         }
 
         private void AddMetadataUpdateCommand(
@@ -1128,6 +1246,30 @@ namespace UnityEngine.Rendering
             cmdBuffer.DispatchCompute(m_GeometryPoolKernelsCS, kernel, groupCountsX, 1, 1);
         }
 
+        private void AddSequentialClustersInformation(
+            CommandBuffer cmdBuffer,
+            in BlockAllocator.Allocation baseClusterAllocation,
+            in BlockAllocator.Allocation baseVertexAllocation,
+            in BlockAllocator.Allocation baseIndexAllocation,
+            uint materialKey,
+            ComputeBuffer outputClusterEntryBuffer)
+        {
+            if (baseClusterAllocation.block.count == 0)
+                return;
+
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputClusterCounts, baseClusterAllocation.block.count);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputClusterBaseOffset, baseClusterAllocation.block.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputMaterialKey, (int)materialKey);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputIndexBufferBaseOffset, baseIndexAllocation.block.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputVertexBufferBaseOffset, baseVertexAllocation.block.offset);
+            cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._InputIndexBufferCounts, baseIndexAllocation.block.count);
+
+            int kernel = m_KernelMainUpdateSequentialClusterData;
+            cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._OutputClusterBuffer, outputClusterEntryBuffer);
+            int groupCountsX = DivUp(baseClusterAllocation.block.count, 64);
+            cmdBuffer.DispatchCompute(m_GeometryPoolKernelsCS, kernel, groupCountsX, 1, 1);
+        }
+
         private Vector4 GetPackedGeoPoolParam0()
         {
             return new Vector4(m_MaxVertCounts, 0.0f, 0.0f, 0.0f);
@@ -1142,6 +1284,8 @@ namespace UnityEngine.Rendering
             cmdBuffer.SetComputeBufferParam(cs, kernel, GeoPoolShaderIDs._GeoPoolGlobalMetadataBuffer, globalMetadataBuffer);
             cmdBuffer.SetComputeBufferParam(cs, kernel, GeoPoolShaderIDs._GeoPoolGlobalBatchTableBuffer, globalBatchTableBuffer);
             cmdBuffer.SetComputeBufferParam(cs, kernel, GeoPoolShaderIDs._GeoPoolGlobalBatchInstanceBuffer, globalBatchInstanceBuffer);
+            cmdBuffer.SetComputeBufferParam(cs, kernel, GeoPoolShaderIDs._GeoPoolGlobalClusterEntriesBuffer, globalClusterEntryBuffer);
+            cmdBuffer.SetComputeBufferParam(cs, kernel, GeoPoolShaderIDs._GeoPoolMeshEntriesBuffer, globalMeshEntryBuffer);
             cmdBuffer.SetComputeVectorParam(cs, GeoPoolShaderIDs._GeoPoolGlobalParams, GetPackedGeoPoolParam0());
         }
 
@@ -1154,6 +1298,8 @@ namespace UnityEngine.Rendering
             material.SetBuffer(GeoPoolShaderIDs._GeoPoolGlobalMetadataBuffer, globalMetadataBuffer);
             material.SetBuffer(GeoPoolShaderIDs._GeoPoolGlobalBatchTableBuffer, globalBatchTableBuffer);
             material.SetBuffer(GeoPoolShaderIDs._GeoPoolGlobalBatchInstanceBuffer, globalBatchInstanceBuffer);
+            material.SetBuffer(GeoPoolShaderIDs._GeoPoolGlobalClusterEntriesBuffer, globalClusterEntryBuffer);
+            material.SetBuffer(GeoPoolShaderIDs._GeoPoolMeshEntriesBuffer, globalMeshEntryBuffer);
             material.SetVector(GeoPoolShaderIDs._GeoPoolGlobalParams, GetPackedGeoPoolParam0());
         }
 
@@ -1166,6 +1312,8 @@ namespace UnityEngine.Rendering
             cmdBuffer.SetGlobalBuffer(GeoPoolShaderIDs._GeoPoolGlobalMetadataBuffer, globalMetadataBuffer);
             cmdBuffer.SetGlobalBuffer(GeoPoolShaderIDs._GeoPoolGlobalBatchTableBuffer, globalBatchTableBuffer);
             cmdBuffer.SetGlobalBuffer(GeoPoolShaderIDs._GeoPoolGlobalBatchInstanceBuffer, globalBatchInstanceBuffer);
+            cmdBuffer.SetGlobalBuffer(GeoPoolShaderIDs._GeoPoolGlobalClusterEntriesBuffer, globalClusterEntryBuffer);
+            cmdBuffer.SetGlobalBuffer(GeoPoolShaderIDs._GeoPoolMeshEntriesBuffer, globalMeshEntryBuffer);
             cmdBuffer.SetGlobalVector(GeoPoolShaderIDs._GeoPoolGlobalParams, GetPackedGeoPoolParam0());
         }
     }

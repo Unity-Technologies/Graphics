@@ -3,6 +3,8 @@
 #pragma kernel MainUpdateVertexBuffer
 #pragma kernel MainUpdateSubMeshData
 #pragma kernel MainUpdateMeshMetadata
+#pragma kernel MainUpdateSequentialClusterData
+#pragma kernel MainUpdateMeshEntry
 #pragma kernel MainClearBuffer
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/GeometryPool/Resources/GeometryPool.hlsl"
@@ -179,4 +181,46 @@ void MainClearBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
 
     _ClearBuffer.Store((_ClearBufferOffset + dispatchThreadID.x) << 2, _ClearBufferValue);
+}
+
+int _InputClusterCounts;
+int _InputClusterBaseOffset;
+int _InputMaterialKey;
+int _InputIndexBufferBaseOffset;
+int _InputVertexBufferBaseOffset;
+int _InputIndexBufferCounts;
+RWStructuredBuffer<GeoPoolClusterEntry> _OutputClusterBuffer;
+
+[numthreads(GROUP_SIZE_X, 1, 1)]
+void MainUpdateSequentialClusterData(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    int clusterIndex = (int)dispatchThreadID.x;
+
+    if (clusterIndex >= _InputClusterCounts)
+        return;
+
+    GeoPoolClusterEntry entry;
+    entry.indexOffset = _InputIndexBufferBaseOffset + (clusterIndex * GEO_POOL_CLUSTER_PRIMITIVE_COUNT * 3);
+    entry.vertexOffset = _InputVertexBufferBaseOffset;
+
+    int remainingPrimitives = (int)((uint)_InputIndexBufferCounts / 3) - (clusterIndex * GEO_POOL_CLUSTER_PRIMITIVE_COUNT);
+    int primitiveCount = min(GEO_POOL_CLUSTER_PRIMITIVE_COUNT, remainingPrimitives);
+    GeometryPool::PackMaterialKeyClusterCount(entry, _InputMaterialKey, primitiveCount);
+
+    _OutputClusterBuffer[_InputClusterBaseOffset + clusterIndex] = entry;
+}
+
+int _InputClusterBufferIndex;
+int _InputClusterBufferCounts;
+int _InputMeshVertFlags;
+RWStructuredBuffer<GeoPoolMeshEntry> _OutputMeshEntries;
+
+[numthreads(1,1,1)]
+void MainUpdateMeshEntry()
+{
+    GeoPoolMeshEntry entry;
+    entry.clustersBufferIndex = _InputClusterBufferIndex;
+    entry.clustersCounts = _InputClusterBufferCounts;
+    entry.vertexFlags = _InputMeshVertFlags;
+    _OutputMeshEntries[_GeoHandle] = entry;
 }

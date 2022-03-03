@@ -1,0 +1,120 @@
+#pragma kernel MainWriteVisibleInstances
+#pragma kernel MainWriteIndirectArgs
+#pragma kernel MainWriteVisibleClusters
+#pragma kernel MainWriteVisibleIndices
+#pragma kernel MainWriteIndexDrawArguments
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/GeometryPool/Resources/GeometryPool.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUVisibilityBRG/GPUVisibilityCuller.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUVisibilityBRG/VisibleClustersCommon.hlsl"
+
+//#pragma enable_d3d11_debug_symbols
+
+#define GROUP_SIZE 64
+
+int _TotalInstanceCount;
+ByteAddressBuffer _InputInstances;
+RWByteAddressBuffer _InstanceOutCounter;
+RWByteAddressBuffer _VisibleInstanceBuffer;
+
+bool IsInstanceVisible(uint instanceID)
+{
+    //TODO: test visibility against frustum here
+    return true;
+}
+
+[numthreads(GROUP_SIZE,1,1)]
+void MainWriteVisibleInstances(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_TotalInstanceCount)
+        return;
+
+    uint instanceOffset = dispatchThreadID.x;
+    uint instanceID = _InputInstances.Load(instanceOffset << 2);
+
+    if (!IsInstanceVisible(instanceID))
+        return;
+
+    uint outInstanceIndex;
+    _InstanceOutCounter.InterlockedAdd(0, 1, outInstanceIndex);
+
+    _VisibleInstanceBuffer.Store(outInstanceIndex << 2, instanceID);
+}
+
+int _MaxCounterValue;
+int _ArgsGroupSize;
+ByteAddressBuffer _InputCounterBuffer;
+RWStructuredBuffer<uint> _OutIndirectArgs;
+
+[numthreads(1,1,1)]
+void MainWriteIndirectArgs()
+{
+    uint counter = (uint)min(_InputCounterBuffer.Load(0), _MaxCounterValue);
+    _OutIndirectArgs[0] = (counter + _ArgsGroupSize - 1) / _ArgsGroupSize;
+    _OutIndirectArgs[1] = 1;
+    _OutIndirectArgs[2] = 1;
+}
+
+int _DeferredMaterialInstanceDataAddress;
+int _MaxOutputClusterOffset;
+ByteAddressBuffer _BigInstanceBuffer;
+ByteAddressBuffer _InputInstanceCounter;
+ByteAddressBuffer _InputVisibleInstanceBuffer;
+RWByteAddressBuffer _ClustersOutCounter;
+RWByteAddressBuffer _OutVisibleClustersBuffer;
+
+[numthreads(GROUP_SIZE,1,1)]
+void MainWriteVisibleClusters(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    uint numOfInstances = _InputInstanceCounter.Load(0);
+    if (dispatchThreadID.x >= (uint)numOfInstances)
+        return;
+
+    uint instanceID = _InputVisibleInstanceBuffer.Load(dispatchThreadID.x << 2);
+    uint geoHandle = _BigInstanceBuffer.Load(_DeferredMaterialInstanceDataAddress + instanceID * 16);
+    GeoPoolMeshEntry meshEntry = GeometryPool::GetMeshEntry(geoHandle);
+
+    uint clusterOutputIndex;
+    _ClustersOutCounter.InterlockedAdd(0, meshEntry.clustersCounts, clusterOutputIndex);
+    if (clusterOutputIndex >= (uint)_MaxOutputClusterOffset)
+        return;
+
+    //naively write visible clusters.
+    [loop]
+    for (int i = 0; i < meshEntry.clustersCounts; ++i)
+    {
+        uint clusterIndex = (uint)(meshEntry.clustersBufferIndex + i);
+        _OutVisibleClustersBuffer.Store((clusterOutputIndex + i) << 2, VisibleClusters::PackVisibleClusterInfo(instanceID, clusterIndex));
+    }
+}
+
+RWByteAddressBuffer _OutputVisibilityIndices;
+
+[numthreads(GROUP_SIZE,1,1)]
+void MainWriteVisibleIndices(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    uint indicesPerPrimitive = GEO_POOL_CLUSTER_PRIMITIVE_COUNT * 3;
+    for (int primitiveID = 0; primitiveID < GEO_POOL_CLUSTER_PRIMITIVE_COUNT; ++primitiveID)
+    {
+        uint3 data = uint3(
+            VisibleClusters::PackIndexData(dispatchThreadID.x, primitiveID * 3 + 0),
+            VisibleClusters::PackIndexData(dispatchThreadID.x, primitiveID * 3 + 1),
+            VisibleClusters::PackIndexData(dispatchThreadID.x, primitiveID * 3 + 2));
+        _OutputVisibilityIndices.Store3((dispatchThreadID.x * indicesPerPrimitive + primitiveID*3) << 2, data);
+    }
+}
+
+ByteAddressBuffer _InputClusterCounts;
+RWStructuredBuffer<BRGDrawCallArgument> _OutDrawIndexedArguments;
+
+[numthreads(1,1,1)]
+void MainWriteIndexDrawArguments()
+{
+    BRGDrawCallArgument args;
+    args.indexCountPerInstance = _InputClusterCounts.Load(0) * GEO_POOL_CLUSTER_PRIMITIVE_COUNT * 3;
+    args.instanceCount = 1;
+    args.startIndex = 0;
+    args.baseVertexIndex = 0;
+    args.startInstance = 0;
+    _OutDrawIndexedArguments[0] = args;
+}
