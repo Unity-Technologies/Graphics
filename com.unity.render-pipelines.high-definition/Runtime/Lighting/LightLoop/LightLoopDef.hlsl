@@ -81,7 +81,10 @@ EnvLightData InitDefaultRefractionEnvLightData(int envIndex)
     EnvLightData output = InitSkyEnvLightData(envIndex);
 
     // For screen space refraction, instead of an infinite projection, utilize the renderer's extents.
+#ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
+    //TODO: enable this for refraction with DOTS.
     output.proxyExtents = GetRendererExtents();
+#endif
 
     // Revert the infinite projection.
     output.minProjectionDistance = 0;
