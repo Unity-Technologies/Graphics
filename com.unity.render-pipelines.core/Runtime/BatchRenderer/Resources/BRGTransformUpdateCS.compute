@@ -1,0 +1,92 @@
+#include "BRGTransformUpdaterDefs.cs.hlsl"
+
+#pragma kernel ScatterUpdateTransformMain
+#pragma kernel ScatterUpdateProbesMain
+
+int _TransformUpdateQueueCount;
+int _TransformUpdateOutputL2WVec4Offset;
+int _TransformUpdateOutputW2LVec4Offset;
+
+StructuredBuffer<BRGGpuTransformUpdate> _TransformUpdateDataQueue;
+ByteAddressBuffer _TransformUpdateIndexQueue;
+RWByteAddressBuffer _OutputTransformBuffer;
+
+[numthreads(64, 1, 1)]
+void ScatterUpdateTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
+        return;
+
+    uint outputIndex = _TransformUpdateIndexQueue.Load(dispatchThreadID.x << 2);
+    BRGGpuTransformUpdate updatePacket = _TransformUpdateDataQueue[dispatchThreadID.x];
+
+    uint byteOutputL2WOffset = _TransformUpdateOutputL2WVec4Offset * 16 + outputIndex * 4 * 4 * 3;
+    uint byteOutputW2LOffset = _TransformUpdateOutputW2LVec4Offset * 16 + outputIndex * 4 * 4 * 3;
+
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 0,  asuint(updatePacket.localToWorld0));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 16, asuint(updatePacket.localToWorld1));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 32, asuint(updatePacket.localToWorld2));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 0,  asuint(updatePacket.worldToLocal0));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 16, asuint(updatePacket.worldToLocal1));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 32, asuint(updatePacket.worldToLocal2));
+}
+
+int _ProbeUpdateQueueCount;
+int _ProbeUpdateVec4OffsetSHAr;
+int _ProbeUpdateVec4OffsetSHAg;
+int _ProbeUpdateVec4OffsetSHAb;
+int _ProbeUpdateVec4OffsetSHBr;
+int _ProbeUpdateVec4OffsetSHBg;
+int _ProbeUpdateVec4OffsetSHBb;
+int _ProbeUpdateVec4OffsetSHC;
+int _ProbeUpdateVec4OffsetSOcclusion;
+
+StructuredBuffer<BRGSHUpdate> _ProbeUpdateDataQueue;
+StructuredBuffer<float4> _ProbeOcclusionUpdateDataQueue;
+ByteAddressBuffer _ProbeUpdateIndexQueue;
+RWByteAddressBuffer _OutputProbeBuffer;
+
+struct SHProperties
+{
+    float4 SHAr;
+    float4 SHAg;
+    float4 SHAb;
+    float4 SHBr;
+    float4 SHBg;
+    float4 SHBb;
+    float4 SHC;
+};
+
+SHProperties UnpackShUpdate(BRGSHUpdate sh)
+{
+    SHProperties p;
+    p.SHAr = float4(sh.shr3, sh.shr1, sh.shr2, sh.shr0 - sh.shr6);//GetSHA(sh, 0);
+    p.SHAg = float4(sh.shg3, sh.shg1, sh.shg2, sh.shg0 - sh.shg6);//GetSHA(sh, 1);
+    p.SHAb = float4(sh.shb3, sh.shb1, sh.shb2, sh.shb0 - sh.shb6);//GetSHA(sh, 2);
+    p.SHBr = float4(sh.shr4, sh.shr5, sh.shr6 * 3.0f, sh.shr7);//GetSHB(sh, 0);
+    p.SHBg = float4(sh.shg4, sh.shg5, sh.shg6 * 3.0f, sh.shg7);//GetSHB(sh, 1);
+    p.SHBb = float4(sh.shb4, sh.shb5, sh.shb6 * 3.0f, sh.shb7);//GetSHB(sh, 2);
+    p.SHC = float4(sh.shr8, sh.shg8, sh.shb8, 1.0);//GetSHC(sh);
+    return p;
+}
+
+[numthreads(64, 1, 1)]
+void ScatterUpdateProbesMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_ProbeUpdateQueueCount)
+            return;
+
+    uint outputIndex = _ProbeUpdateIndexQueue.Load(dispatchThreadID.x << 2);
+    BRGSHUpdate updatePacket = _ProbeUpdateDataQueue[dispatchThreadID.x];
+    SHProperties sh = UnpackShUpdate(updatePacket);
+    float4 occlusionData = _ProbeOcclusionUpdateDataQueue[dispatchThreadID.x];
+    uint outputByteIndex = outputIndex * 16;
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSHAr * 16 + outputByteIndex, asuint(sh.SHAr));
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSHAg * 16 + outputByteIndex, asuint(sh.SHAg));
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSHAb * 16 + outputByteIndex, asuint(sh.SHAb));
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSHBr * 16 + outputByteIndex, asuint(sh.SHBr));
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSHBg * 16 + outputByteIndex, asuint(sh.SHBg));
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSHBb * 16 + outputByteIndex, asuint(sh.SHBb));
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSHC  * 16 + outputByteIndex, asuint(sh.SHC));
+    _OutputProbeBuffer.Store4(_ProbeUpdateVec4OffsetSOcclusion * 16 + outputByteIndex, asuint(occlusionData));
+}

@@ -1,0 +1,138 @@
+
+#define DOTS_INSTANCING_ON
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel FeatureTileClassifyReduction
+#pragma kernel MaterialReduction
+#pragma kernel MaterialFinalReduction
+
+#define GROUP_SIZE 8
+
+StructuredBuffer<uint> g_TileFeatureFlags;
+RW_TEXTURE2D_X(uint, _VisBufferFeatureTileOutput);
+
+float4 _VisBufferTileSize;
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void FeatureTileClassifyReduction(uint3 id : SV_DispatchThreadID)
+{
+    uint2 topLeftTileCoord = id.xy * (VIS_BUFFER_TILE_SIZE / TILE_SIZE_FPTL);
+
+    if (any((int2)id.xy >= _VisBufferTileSize.xy))
+        return;
+
+    uint screenWidth = (uint)_ScreenSize.x;
+    uint numTilesX = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
+
+    uint featureSet = 0;
+    // Very dumb loop. Can be vastly improved with LDS or wave intrinsics.
+    for (int x = 0; x < 4; ++x)
+    {
+        for (int y = 0; y < 4; ++y)
+        {
+            uint2 tileCoord = topLeftTileCoord + uint2(x, y);
+            uint tileIndex = tileCoord.x + tileCoord.y * numTilesX;
+
+            featureSet |= g_TileFeatureFlags[tileIndex];
+        }
+    }
+
+    _VisBufferFeatureTileOutput[COORD_TEXTURE2D_X(id.xy)] = featureSet;
+}
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+groupshared uint gs_minMatID[GROUP_SIZE * GROUP_SIZE];
+groupshared uint gs_maxMatID[GROUP_SIZE * GROUP_SIZE];
+groupshared uint gs_bucketID[GROUP_SIZE * GROUP_SIZE];
+#endif
+
+void ParallelReduction(uint threadIdx, uint minValueInput, uint maxValueInput, uint bucketValue, out uint minValue, out uint maxValue, out uint bucketOr)
+{
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    minValue = WaveActiveMin(minValueInput);
+    maxValue = WaveActiveMax(maxValueInput);
+    bucketOr = WaveActiveBitOr(bucketValue);
+    return;
+#else
+    gs_minMatID[threadIdx] = minValueInput;
+    gs_maxMatID[threadIdx] = maxValueInput;
+    gs_bucketID[threadIdx] = bucketValue;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    UNITY_UNROLL
+        for (uint s = (GROUP_SIZE * GROUP_SIZE) / 2u; s > 0u; s >>= 1u)
+        {
+            if (threadIdx < s)
+            {
+                gs_maxMatID[threadIdx] = max(gs_maxMatID[threadIdx], gs_maxMatID[threadIdx + s]);
+                gs_minMatID[threadIdx] = min(gs_minMatID[threadIdx], gs_minMatID[threadIdx + s]);
+                gs_bucketID[threadIdx] = (gs_bucketID[threadIdx] | gs_bucketID[threadIdx + s]);
+            }
+
+            GroupMemoryBarrierWithGroupSync();
+        }
+    minValue = gs_minMatID[0];
+    maxValue = gs_maxMatID[0];
+    bucketOr = gs_bucketID[0];
+#endif
+}
+
+TEXTURE2D_X_UINT2(_VisBufferMaterialTileInput);
+TEXTURE2D_X_UINT(_VisBufferBucketTileInput);
+RW_TEXTURE2D_X(uint2, _VisBufferMaterialTileOutput);
+RW_TEXTURE2D_X(uint, _VisBufferBucketTileOutput);
+
+void ParallelReduction(uint threadIdx, uint value, uint bucketValue, out uint minValue, out uint maxValue, out uint bucketOr)
+{
+    ParallelReduction(threadIdx, value, value, bucketValue, minValue, maxValue, bucketOr);
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MaterialReduction(uint3 id : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    uint threadIdx = groupThreadId.y * GROUP_SIZE + groupThreadId.x;
+
+    uint materialKey = Visibility::GetMaterialKey(Visibility::LoadVisibilityData(id.xy));
+
+    uint minMat = 0xffffff;
+    uint maxMat = 0;
+    uint bucketOR = 0;
+    ParallelReduction(threadIdx, materialKey, materialKey, minMat, maxMat, bucketOR);
+
+    if (any((int2)id.xy >= _ScreenSize.xy)) return;
+
+    if (threadIdx == 0)
+    {
+        _VisBufferMaterialTileOutput[COORD_TEXTURE2D_X(groupID.xy)] =  uint2(minMat, maxMat);
+        _VisBufferBucketTileOutput[COORD_TEXTURE2D_X(groupID.xy)] = bucketOR;
+    }
+}
+
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MaterialFinalReduction(uint3 id : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    uint threadIdx = groupThreadId.y * GROUP_SIZE + groupThreadId.x;
+    uint2 samplingCoord = min(id.xy, _ScreenSize.xy / 8);
+
+    uint2 minMaxMatID = _VisBufferMaterialTileInput[COORD_TEXTURE2D_X(samplingCoord)];
+    uint bucketID = _VisBufferBucketTileInput[COORD_TEXTURE2D_X(samplingCoord)];
+
+    uint minMat = 0xffffff;
+    uint maxMat = 0;
+    uint bucketOR = 0;
+    ParallelReduction(threadIdx, minMaxMatID.x, minMaxMatID.y, bucketID, minMat, maxMat, bucketOR);
+
+    if (threadIdx == 0)
+    {
+        _VisBufferMaterialTileOutput[COORD_TEXTURE2D_X(groupID.xy)] = uint2(minMat, maxMat);
+        _VisBufferBucketTileOutput[COORD_TEXTURE2D_X(groupID.xy)] = bucketOR;
+    }
+}

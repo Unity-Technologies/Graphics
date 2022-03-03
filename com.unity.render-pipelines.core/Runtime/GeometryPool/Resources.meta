@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.render-pipelines.core/Runtime/GeometryPool/Resources.meta
+guid: 39d4d4f92f217634f920615794be6469
+||||||| 70464fc4df:TestProjects/UniversalHybridTest/Assets/ReferenceImages/Linear/Android/Vulkan.meta
+guid: 31b0d3de252d0a743879f938c645d6e9
+=======
+guid: a8fa2723336c4ac4989bd019fa4905cb
+>>>>>>> master:TestProjects/BatchRendererGroup_HDRP/Assets/ReferenceImages/Linear/LinuxEditor/Vulkan.meta
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

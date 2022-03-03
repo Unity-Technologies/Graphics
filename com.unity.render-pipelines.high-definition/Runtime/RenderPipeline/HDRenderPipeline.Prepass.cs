@@ -59,6 +59,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
             public TextureHandle motionVectorsBuffer;
 
+            public VBufferOutput vbuffer;
+
             // GBuffer output. Will also contain a reference to the normal buffer (as it is shared between deferred and forward objects)
             public GBufferOutput gbuffer;
 
@@ -215,6 +217,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
                 }
+
+                RenderVBuffer(renderGraph, colorBuffer, hdCamera, cullingResults, ref result);
 
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
                 // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.

@@ -133,6 +133,22 @@ namespace UnityEngine.Rendering.HighDefinition
         RequestedVirtualTextureTiles,
         /// <summary>Black background to visualize the Lens Flare</summary>
         LensFlareDataDriven,
+        /// <summary>Display the visibility buffer instaces.</summary>
+        VisibilityBufferInstances,
+        /// <summary>Display the visibility buffer primitives.</summary>
+        VisibilityBufferPrimitives,
+        /// <summary>Display the visibility buffer materials.</summary>
+        VisibilityBufferMaterials,
+        /// <summary>Display the visibility buffer batch.</summary>
+        VisibilityBufferBatch,
+        /// <summary>Display the visibility feature tile.</summary>
+        VisibilityFeatureTile,
+        /// <summary>Display the visibility material tile.</summary>
+        VisibilityMaterialsTile,
+        /// <summary>Display the visibility bucket id.</summary>
+        VisibilityBucketID,
+        /// <summary>Display lighting result of visibility buffer.</summary>
+        VisibilityBufferLighting,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 

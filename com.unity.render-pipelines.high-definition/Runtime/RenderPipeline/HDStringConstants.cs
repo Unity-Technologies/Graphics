@@ -14,8 +14,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DepthForwardOnlyStr = "DepthForwardOnly";
         /// <summary>Forward Only pass name.</summary>
         public static readonly string s_ForwardOnlyStr = "ForwardOnly";
+        /// <summary>VBuffer pass name.</summary>
+        public static readonly string s_VBufferStr = "VBuffer";
         /// <summary>GBuffer pass name.</summary>
         public static readonly string s_GBufferStr = "GBuffer";
+        /// <summary>VBufferLighting pass name.</summary>
+        public static readonly string s_VBufferLightingStr = "VBufferLighting";
         /// <summary>GBuffer With Prepass pass name.</summary>
         public static readonly string s_GBufferWithPrepassStr = "GBufferWithPrepass";
         /// <summary>Legacy Unlit cross pipeline pass name.</summary>
@@ -71,8 +75,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DepthForwardOnlyName = new ShaderTagId(s_DepthForwardOnlyStr);
         /// <summary>Forward Only shader tag id.</summary>
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
+        /// <summary>VBuffer shader tag id.</summary>
+        public static readonly ShaderTagId s_VBufferName = new ShaderTagId(s_VBufferStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
+        /// <summary>VBufferLighting shader tag id.</summary>
+        public static readonly ShaderTagId s_VBufferLightingName = new ShaderTagId(s_VBufferLightingStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferWithPrepassName = new ShaderTagId(s_GBufferWithPrepassStr);
         /// <summary>Legacy Unlit cross pipeline shader tag id.</summary>
@@ -1090,6 +1098,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcMip = Shader.PropertyToID("_SrcMip");
         public static readonly int _SrcScale = Shader.PropertyToID("_SrcScale");
         public static readonly int _SrcOffset = Shader.PropertyToID("_SrcOffset");
+
+        //Visibility material
+        public static readonly int _VisBufferTexture0 = Shader.PropertyToID("_VisBufferTexture0");
+        public static readonly int _VisBufferTexture1 = Shader.PropertyToID("_VisBufferTexture1");
+        public static readonly int _VisBufferFeatureTiles = Shader.PropertyToID("_VisBufferFeatureTiles");
+        public static readonly int _VisBufferMaterialTiles = Shader.PropertyToID("_VisBufferMaterialTiles");
+        public static readonly int _VisBufferBucketTiles = Shader.PropertyToID("_VisBufferBucketTiles");
+        public static readonly int _VisBufferDepthTexture = Shader.PropertyToID("_VisBufferDepthTexture");
+
+        //Visibility classification
+        public static readonly int _VisBufferFeatureTileOutput = Shader.PropertyToID("_VisBufferFeatureTileOutput");
+        public static readonly int _VisBufferTileSize = Shader.PropertyToID("_VisBufferTileSize");
+        public static readonly int _VisBufferMaterialTileInput = Shader.PropertyToID("_VisBufferMaterialTileInput");
+        public static readonly int _VisBufferBucketTileInput = Shader.PropertyToID("_VisBufferBucketTileInput");
+        public static readonly int _VisBufferMaterialTileOutput = Shader.PropertyToID("_VisBufferMaterialTileOutput");
+        public static readonly int _VisBufferBucketTileOutput = Shader.PropertyToID("_VisBufferBucketTileOutput");
+
+        //Visibility Lighting
+        public static readonly int _VisBufferTileData = Shader.PropertyToID("_VisBufferTileData");
     }
 
     /// <summary>

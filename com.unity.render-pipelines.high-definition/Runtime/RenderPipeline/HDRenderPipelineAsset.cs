@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
+            RenderBRG.RegisterSRPRenderInfoCallback(this, GetMaterialInfoForBRG);
         }
 
         void Reset()
@@ -222,5 +223,47 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
+
+        private static Material s_VisibilityMaterial = null;
+        public Material VisibilityMaterial { get { return s_VisibilityMaterial; } }
+
+        private static Material s_CreateMaterialDepthMaterial = null;
+        public Material CreateMaterialDepthMaterial { get { return s_CreateMaterialDepthMaterial; } }
+
+        internal bool HasVlightingPass(Material m)
+        {
+            for (int i = 0; i < m.passCount; ++i)
+            {
+                if (m.GetPassName(i).IndexOf(HDShaderPassNames.s_VBufferLightingStr) >= 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public RenderBRGMaterialRenderInfo GetMaterialInfoForBRG(RenderBRGGetMaterialRenderInfoArgs arguments)
+        {
+            if (HDRenderPipeline.IsTransparentMaterial(arguments.material) || HDRenderPipeline.IsAlphaTestedMaterial(arguments.material))
+                return new RenderBRGMaterialRenderInfo() { supportsVisibility = false, supportsBRGRendering = false };
+
+            if (!HasVlightingPass(arguments.material))
+                return new RenderBRGMaterialRenderInfo() { supportsVisibility = false, supportsBRGRendering = true };
+
+            if (s_VisibilityMaterial == null)
+            {
+                s_VisibilityMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.visibilityPS);
+                s_VisibilityMaterial.renderQueue = (int)HDRenderQueue.Priority.Visibility;
+            }
+
+            if (s_CreateMaterialDepthMaterial == null)
+                s_CreateMaterialDepthMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.createMaterialDepthPS);
+
+            return new RenderBRGMaterialRenderInfo()
+            {
+                supportsBRGRendering = true,
+                supportsVisibility = true,
+                materialOverride = s_VisibilityMaterial
+            };
+        }
     }
 }

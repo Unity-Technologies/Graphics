@@ -2552,6 +2552,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = SortingCriteria.CommonOpaque,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                //TODO: hide this layer from the user so we can reserve it for the SRP
+                renderingLayerMask = ~DeferredMaterialBRG.RenderLayerMask, //exclude the deferred material draw calls by default.
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;
@@ -2575,6 +2577,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = SortingCriteria.CommonOpaque,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                renderingLayerMask = ~DeferredMaterialBRG.RenderLayerMask, //exclude the deferred material draw calls by default.
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;
@@ -2598,6 +2601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = SortingCriteria.CommonTransparent | SortingCriteria.RendererPriority,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                renderingLayerMask = ~DeferredMaterialBRG.RenderLayerMask, //exclude the deferred material draw calls by default.
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;
@@ -2621,6 +2625,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = SortingCriteria.CommonTransparent | SortingCriteria.RendererPriority,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                renderingLayerMask = ~DeferredMaterialBRG.RenderLayerMask, //exclude the deferred material draw calls by default.
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;

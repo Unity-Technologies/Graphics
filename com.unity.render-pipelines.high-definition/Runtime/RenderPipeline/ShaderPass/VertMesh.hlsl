@@ -168,7 +168,18 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 #endif
 
     // This return the camera relative position (if enable)
-    float3 positionRWS = TransformObjectToWorld(input.positionOS) + worldSpaceOffset;
+#ifndef ATTRIBUTE_NEEDS_PROCEDURAL_POSITION
+    float3 positionOS = input.positionOS;
+#else
+    //Means we need a procedural position, so lets make sure the callee declared this macro
+    #ifndef CreateProceduralPositionOS
+        #error Must_declare_CreateProceduralPositionOS_macro
+    #endif
+    float3 positionOS = CreateProceduralPositionOS(input);
+#endif
+
+    float3 positionRWS = TransformObjectToWorld(positionOS) + worldSpaceOffset;
+
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 #else

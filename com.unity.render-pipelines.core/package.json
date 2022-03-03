@@ -5,6 +5,8 @@
   "unity": "2022.1",
   "displayName": "Core RP Library",
   "dependencies": {
+    "com.unity.collections": "1.0.0-pre.6",
+    "com.unity.mathematics": "1.2.1",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.jsonserialize": "1.0.0"

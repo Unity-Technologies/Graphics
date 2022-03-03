@@ -44,7 +44,9 @@ namespace UnityEngine.Rendering.HighDefinition
             AfterPostprocessTransparent = 3700,
             AfterPostprocessTransparentLast = 3700 + k_TransparentPriorityQueueRangeStep,
 
-            Overlay = RenderQueue.Overlay
+            Overlay = RenderQueue.Overlay,
+
+            Visibility = Overlay + 500
         }
 
         public enum RenderQueueType

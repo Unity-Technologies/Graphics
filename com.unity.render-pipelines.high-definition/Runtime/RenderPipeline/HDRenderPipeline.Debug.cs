@@ -349,11 +349,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer depthPyramidOffsets;
             public TextureHandle output;
             public TextureHandle input;
+            public VBufferInformation vBufferInfo;
             public TextureHandle depthPyramid;
             public ComputeBufferHandle fullscreenBuffer;
+            public RenderBRGBindingData BRGBindData;
         }
 
-        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, VBufferInformation vBufferInfo, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveFullScreenDebugPassData>("ResolveFullScreenDebug", out var passData))
             {
@@ -361,6 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.debugFullScreenMaterial = m_DebugFullScreen;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
+                passData.vBufferInfo = vBufferInfo.Read(builder);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
                 passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
@@ -373,11 +376,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, false /* we dont want DRS on this output target*/, true /*We want XR support on this output target*/)
                 { colorFormat = rtFormat, name = "ResolveFullScreenDebug" }));
 
+                passData.BRGBindData = new RenderBRGBindingData();
+                if (IsVisibilityPassEnabled())
+                    passData.BRGBindData = RenderBRG.GetRenderBRGMaterialBindingData();
+
                 builder.SetRenderFunc(
                     (ResolveFullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         ComputeBuffer fullscreenBuffer = data.fullscreenBuffer;
+
+                        if (data.vBufferInfo.valid)
+                            data.debugFullScreenMaterial.EnableKeyword("DOTS_INSTANCING_ON");
+                        else
+                            data.debugFullScreenMaterial.DisableKeyword("DOTS_INSTANCING_ON");
 
                         mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.input);
                         mpb.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
@@ -396,6 +408,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (fullscreenBuffer != null)
                             ctx.cmd.SetRandomWriteTarget(1, fullscreenBuffer);
+
+                        if (data.vBufferInfo.valid)
+                            BindVBufferResources(data.debugFullScreenMaterial, data.vBufferInfo);
 
                         HDUtils.DrawFullScreen(ctx.cmd, data.debugFullScreenMaterial, data.output, mpb, 0);
 
@@ -1150,6 +1165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderDebug(RenderGraph renderGraph,
             HDCamera hdCamera,
             TextureHandle colorBuffer,
+            VBufferInformation vBufferInfo,
             TextureHandle depthBuffer,
             TextureHandle depthPyramidTexture,
             TextureHandle colorPickerDebugTexture,
@@ -1168,7 +1184,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed)
             {
-                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, depthPyramidTexture, hdCamera, colorFormat);
+                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, vBufferInfo, depthPyramidTexture, hdCamera, colorFormat);
 
                 // If we have full screen debug, this is what we want color picked, so we replace color picker input texture with the new one.
                 if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))

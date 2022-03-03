@@ -66,6 +66,9 @@ MonoBehaviour:
     downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3, type: 3}
     resolveStencilCS: {fileID: 7200000, guid: 65b89cac5f286b043a31bf8041776ee7, type: 3}
+    visibilityPS: {fileID: 4800000, guid: 633338306378163479b295584aba76c3, type: 3}
+    createMaterialDepthPS: {fileID: 4800000, guid: dbc5c19310f2c544c91d4bf81b05ddc6, type: 3}
+    vbufferTileClassificationCS: {fileID: 7200000, guid: 8097d48cf7ce091419dc8bf4ffc35e1a, type: 3}
     blitCubemapPS: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
     buildProbabilityTablesCS: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c, type: 3}
     computeGgxIblSampleDataCS: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445, type: 3}
