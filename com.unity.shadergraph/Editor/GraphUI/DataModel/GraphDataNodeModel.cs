@@ -180,7 +180,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
                 Action<IConstant> initCallback = (IConstant e) =>
                 {
-                    var constant = e as GraphTypeConstant;
+                    var constant = e as ICLDSConstant;
                     var shaderGraphModel = ((ShaderGraphModel)GraphModel);
                     var handler = shaderGraphModel.GraphHandler;
                     var possiblyNodeReader = handler.GetNodeReader(nodeReader.GetName());
