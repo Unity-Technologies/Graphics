@@ -34,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public FilterSettings filterSettings = new FilterSettings();
 
             public Material overrideMaterial = null;
+            public bool overrideMaterialProperties = true;
             public int overrideMaterialPassIndex = 0;
 
             public bool overrideDepthState = false;
@@ -89,8 +90,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
                 filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
 
-            renderObjectsPass.overrideMaterial = settings.overrideMaterial;
-            renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;
+            if(settings.overrideMaterialProperties)
+            {
+                renderObjectsPass.overrideMaterial = settings.overrideMaterial;
+                renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;
+            }
+            else
+            {
+                renderObjectsPass.replacementShader = settings.overrideMaterial.shader;
+            }
 
             if (settings.overrideDepthState)
                 renderObjectsPass.SetDetphState(settings.enableWrite, settings.depthCompareFunction);

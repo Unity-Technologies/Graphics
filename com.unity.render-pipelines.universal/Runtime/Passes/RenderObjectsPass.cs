@@ -14,6 +14,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         ProfilingSampler m_ProfilingSampler;
 
         public Material overrideMaterial { get; set; }
+        public Shader replacementShader { get; set; }
+        public ShaderTagId replacementShaderTag { get; set; }
         public int overrideMaterialPassIndex { get; set; }
 
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
@@ -50,6 +52,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             this.renderQueueType = renderQueueType;
             this.overrideMaterial = null;
             this.overrideMaterialPassIndex = 0;
+            this.replacementShader = null;
+            this.replacementShaderTag = new ShaderTagId();
             RenderQueueRange renderQueueRange = (renderQueueType == RenderQueueType.Transparent)
                 ? RenderQueueRange.transparent
                 : RenderQueueRange.opaque;
@@ -87,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
             drawingSettings.overrideMaterial = overrideMaterial;
             drawingSettings.overrideMaterialPassIndex = overrideMaterialPassIndex;
-
+            drawingSettings.replacementShader = replacementShader;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
@@ -98,8 +102,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
             // Currently there's an issue which results in mismatched markers.
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
                 if (m_CameraSettings.overrideCamera)
                 {
                     if (cameraData.xr.enabled)
@@ -144,6 +148,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.GetViewMatrix(), cameraData.GetGPUProjectionMatrix(), false);
                 }
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
