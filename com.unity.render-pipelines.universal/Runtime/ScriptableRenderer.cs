@@ -820,7 +820,45 @@ namespace UnityEngine.Rendering.Universal
                     // XRBuiltinShaderConstants.Update(cameraData.xr, cmd, true);
                 });
             }
+        }
 
+
+        class DrawGizmosPassData
+        {
+            public RenderingData renderingData;
+            public ScriptableRenderer renderer;
+            public GizmoSubset gizmoSubset;
+        };
+
+        /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="depth"></param>
+        /// <param name="gizmoSubset"></param>
+        /// <param name="renderingData"></param>
+        protected void DrawRenderGraphGizmos(TextureHandle color, TextureHandle depth, GizmoSubset gizmoSubset, ref RenderingData renderingData)
+        {
+            RenderGraph graph = renderingData.renderGraph;
+
+            using (var builder = graph.AddRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
+                new ProfilingSampler("Draw Gizmos Profiler")))
+            {
+                builder.UseColorBuffer(color, 0);
+                builder.UseDepthBuffer(depth, DepthAccess.Read);
+
+                passData.renderingData = renderingData;
+                passData.renderer = this;
+                passData.gizmoSubset = gizmoSubset;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((DrawGizmosPassData data, RenderGraphContext rgContext) =>
+                {
+                    Camera camera = data.renderingData.cameraData.camera;
+                    data.renderer.DrawGizmos(rgContext.renderContext, camera, data.gizmoSubset, data.renderingData);
+                });
+            }
         }
 
         class BeginXRPassData
@@ -915,8 +953,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         public void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            AddRenderPasses(ref renderingData);
-
             using (new ProfilingScope(null, Profiling.sortRenderPasses))
             {
                 // Sort the render pass queue
@@ -931,8 +967,26 @@ namespace UnityEngine.Rendering.Universal
             RecordRenderGraphInternal(context, ref renderingData);
 
             EndRenderGraphXRRendering(ref renderingData);
+        }
 
-            m_ActiveRenderPassQueue.Clear();
+        /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
+        internal void FinishRenderGraphRendering(ScriptableRenderContext context, RenderingData renderingData)
+        {
+            FinishRenderGraphRenderingInternal(context, renderingData);
+            InternalFinishRendering(renderingData.cameraData.resolveFinalTarget, renderingData);
+        }
+
+        /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
+        protected virtual void FinishRenderGraphRenderingInternal(ScriptableRenderContext context, RenderingData renderingData)
+        {
         }
 
         /// <summary>
@@ -1903,7 +1957,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.commandBuffer.Clear();
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
+        void InternalFinishRendering(bool resolveFinalTarget, RenderingData renderingData)
         {
             using (new ProfilingScope(null, Profiling.internalFinishRendering))
             {
@@ -1923,6 +1977,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 m_ActiveRenderPassQueue.Clear();
             }
+        }
+
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
+        {
+            InternalFinishRendering(resolveFinalTarget, renderingData);
 
             ResetNativeRenderPassFrameData();
 
