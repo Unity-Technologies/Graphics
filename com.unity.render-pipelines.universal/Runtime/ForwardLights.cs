@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseStructuredBuffer;
 
         bool m_UseClusteredRendering;
-        bool m_UseImprovedTiling;
         int m_DirectionalLightCount;
         int m_ActualTileWidth;
         int2 m_TileResolution;
@@ -71,7 +70,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public LightCookieManager lightCookieManager;
             public bool clusteredRendering;
-            public bool improvedTiling;
             public int tileSize;
 
             static internal InitParams GetDefault()
@@ -88,7 +86,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     p.lightCookieManager = new LightCookieManager(ref settings);
                     p.clusteredRendering = false;
-                    p.improvedTiling = false;
                     p.tileSize = 32;
                 }
                 return p;
@@ -102,7 +99,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (initParams.clusteredRendering) Assert.IsTrue(math.ispow2(initParams.tileSize));
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseClusteredRendering = initParams.clusteredRendering;
-            m_UseImprovedTiling = initParams.improvedTiling;
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
@@ -250,105 +246,37 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 m_TileLightMasks = new NativeArray<uint>(((m_TileResolution.x * m_TileResolution.y * (m_WordsPerTile) + 3) / 4) * 4, Allocator.TempJob);
 
-                JobHandle tilingHandle;
-                if (m_UseImprovedTiling)
+                // Each light needs 1 range for Y, and a range per row. Align to 128-bytes to avoid false sharing.
+                var itemsPerLight = AlignByteCount((1 + m_TileResolution.y) * UnsafeUtility.SizeOf<InclusiveRange>(), 128) / UnsafeUtility.SizeOf<InclusiveRange>();
+                var tileRanges = new NativeArray<InclusiveRange>(itemsPerLight * lightCount, Allocator.TempJob);
+                var tilingJob = new TilingJob
                 {
-                    // Each light needs 1 range for Y, and a range per row. Align to 128-bytes to avoid false sharing.
-                    var itemsPerLight = AlignByteCount((1 + m_TileResolution.y) * UnsafeUtility.SizeOf<InclusiveRange>(), 128) / UnsafeUtility.SizeOf<InclusiveRange>();
-                    var tileRanges = new NativeArray<InclusiveRange>(itemsPerLight * lightCount, Allocator.TempJob);
-                    var tilingJob = new TilingJob
-                    {
-                        lights = reorderedLights,
-                        tileRanges = tileRanges,
-                        itemsPerLight = itemsPerLight,
-                        worldToViewMatrix = worldToViewMatrix,
-                        tileScale = (float2)screenResolution / m_ActualTileWidth,
-                        tileScaleInv = m_ActualTileWidth / (float2)screenResolution,
-                        viewPlaneHalfSize = fovHalfHeight * math.float2(camera.aspect, 1),
-                        viewPlaneHalfSizeInv = math.rcp(fovHalfHeight * math.float2(camera.aspect, 1)),
-                        tileCount = m_TileResolution,
-                        near = camera.nearClipPlane,
-                    };
+                    lights = reorderedLights,
+                    tileRanges = tileRanges,
+                    itemsPerLight = itemsPerLight,
+                    worldToViewMatrix = worldToViewMatrix,
+                    tileScale = (float2)screenResolution / m_ActualTileWidth,
+                    tileScaleInv = m_ActualTileWidth / (float2)screenResolution,
+                    viewPlaneHalfSize = fovHalfHeight * math.float2(camera.aspect, 1),
+                    viewPlaneHalfSizeInv = math.rcp(fovHalfHeight * math.float2(camera.aspect, 1)),
+                    tileCount = m_TileResolution,
+                    near = camera.nearClipPlane,
+                };
 
-                    var tileRangeHandle = tilingJob.ScheduleParallel(lightCount, 1, reorderHandle);
+                var tileRangeHandle = tilingJob.ScheduleParallel(lightCount, 1, reorderHandle);
 
-                    var expansionJob = new TileRangeExpansionJob
-                    {
-                        tileRanges = tileRanges,
-                        lightMasks = m_TileLightMasks,
-                        itemsPerLight = itemsPerLight,
-                        lightCount = lightCount,
-                        wordsPerTile = m_WordsPerTile,
-                        tileResolution = m_TileResolution,
-                    };
-
-                    tilingHandle = expansionJob.ScheduleParallel(m_TileResolution.y, 1, tileRangeHandle);
-
-                    tileRanges.Dispose(tilingHandle);
-                }
-                else
+                var expansionJob = new TileRangeExpansionJob
                 {
-                    LightExtractionJob lightExtractionJob;
-                    lightExtractionJob.lights = reorderedLights;
-                    var lightTypes = lightExtractionJob.lightTypes = new NativeArray<LightType>(lightCount, Allocator.TempJob);
-                    var radiuses = lightExtractionJob.radiuses = new NativeArray<float>(lightCount, Allocator.TempJob);
-                    var directions = lightExtractionJob.directions = new NativeArray<float3>(lightCount, Allocator.TempJob);
-                    var positions = lightExtractionJob.positions = new NativeArray<float3>(lightCount, Allocator.TempJob);
-                    var coneRadiuses = lightExtractionJob.coneRadiuses = new NativeArray<float>(lightCount, Allocator.TempJob);
-                    var lightExtractionHandle = lightExtractionJob.ScheduleParallel(lightCount, 32, reorderHandle);
+                    tileRanges = tileRanges,
+                    lightMasks = m_TileLightMasks,
+                    itemsPerLight = itemsPerLight,
+                    lightCount = lightCount,
+                    wordsPerTile = m_WordsPerTile,
+                    tileResolution = m_TileResolution,
+                };
 
-                    // Must be a multiple of 4 to be able to alias to vec4
-                    var lightMasksLength = (((m_WordsPerTile) * m_TileResolution + 3) / 4) * 4;
-                    var horizontalLightMasks = new NativeArray<uint>(lightMasksLength.y, Allocator.TempJob);
-                    var verticalLightMasks = new NativeArray<uint>(lightMasksLength.x, Allocator.TempJob);
-
-                    // Vertical slices along the x-axis
-                    var verticalJob = new SliceCullingJob
-                    {
-                        scale = (float)m_ActualTileWidth / (float)screenResolution.x,
-                        viewOrigin = camera.transform.position,
-                        viewForward = camera.transform.forward,
-                        viewRight = camera.transform.right * fovHalfWidth,
-                        viewUp = camera.transform.up * fovHalfHeight,
-                        lightTypes = lightTypes,
-                        radiuses = radiuses,
-                        directions = directions,
-                        positions = positions,
-                        coneRadiuses = coneRadiuses,
-                        lightsPerTile = lightsPerTile,
-                        sliceLightMasks = verticalLightMasks
-                    };
-                    var verticalHandle = verticalJob.ScheduleParallel(m_TileResolution.x, 1, lightExtractionHandle);
-
-                    // Horizontal slices along the y-axis
-                    var horizontalJob = verticalJob;
-                    horizontalJob.scale = (float)m_ActualTileWidth / (float)screenResolution.y;
-                    horizontalJob.viewRight = camera.transform.up * fovHalfHeight;
-                    horizontalJob.viewUp = -camera.transform.right * fovHalfWidth;
-                    horizontalJob.sliceLightMasks = horizontalLightMasks;
-                    var horizontalHandle = horizontalJob.ScheduleParallel(m_TileResolution.y, 1, lightExtractionHandle);
-
-                    var slicesHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle);
-
-                    var sliceCombineJob = new SliceCombineJob
-                    {
-                        tileResolution = m_TileResolution,
-                        wordsPerTile = m_WordsPerTile,
-                        sliceLightMasksH = horizontalLightMasks,
-                        sliceLightMasksV = verticalLightMasks,
-                        lightMasks = m_TileLightMasks
-                    };
-                    tilingHandle = sliceCombineJob.ScheduleParallel(m_TileResolution.y, 1, slicesHandle);
-
-                    lightTypes.Dispose(tilingHandle);
-                    radiuses.Dispose(tilingHandle);
-                    directions.Dispose(tilingHandle);
-                    positions.Dispose(tilingHandle);
-                    coneRadiuses.Dispose(tilingHandle);
-                    horizontalLightMasks.Dispose(tilingHandle);
-                    verticalLightMasks.Dispose(tilingHandle);
-                }
-
+                var tilingHandle = expansionJob.ScheduleParallel(m_TileResolution.y, 1, tileRangeHandle);
+                tileRanges.Dispose(tilingHandle);
 
                 m_CullingHandle = JobHandle.CombineDependencies(tilingHandle, zBinningHandle);
 
