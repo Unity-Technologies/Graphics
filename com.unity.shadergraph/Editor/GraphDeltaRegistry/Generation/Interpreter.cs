@@ -22,17 +22,18 @@ namespace UnityEditor.ShaderGraph.Generation
         public static string GetBlockCode(INodeReader node, GraphHandler graph, Registry.Registry registry)
         {
             var builder = new ShaderBuilder();
-            var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
+            var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry, out _);
             foreach (var func in block.Functions)
                 builder.AddDeclarationString(func);
             return builder.ConvertToString();
         }
 
-        public static string GetShaderForNode(INodeReader node, GraphHandler graph, Registry.Registry registry)
+        public static string GetShaderForNode(INodeReader node, GraphHandler graph, Registry.Registry registry, out List<(string, Texture)> defaultTextures)
         {
+            List<(string, Texture)> defaults = new();
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
-                var block = EvaluateGraphAndPopulateDescriptors(node, graph, container, registry);
+                var block = EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, out defaults);
                 vertexCPDesc = CustomizationPointInstance.Invalid;
 
                 var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
@@ -44,10 +45,12 @@ namespace UnityEditor.ShaderGraph.Generation
 
             var builder = new ShaderBuilder();
             SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock, builder);
+
+            defaultTextures = defaults;
             return builder.ToString();
         }
 
-        internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
+        internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry, out List<(string, Texture)> defaultTextures)
         {
             const string BlockName = "ShaderGraphBlock";
             var blockBuilder = new Block.Builder(container, BlockName);
@@ -86,10 +89,11 @@ namespace UnityEditor.ShaderGraph.Generation
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.GetName()}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
+            defaultTextures = new();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
                 if(!isContext || (isContext && node != rootNode))
-                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
+                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, ref defaultTextures, registry);
             }
 
             foreach(var func in shaderFunctions)
@@ -208,6 +212,7 @@ namespace UnityEditor.ShaderGraph.Generation
             ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
             ref List<ShaderFunction> shaderFuncitons,
+            ref List<(string, Texture)> defaultTextures,
             Registry.Registry registry)
         {
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
@@ -231,6 +236,10 @@ namespace UnityEditor.ShaderGraph.Generation
                     string argument = "";
                     if (!port.IsHorizontal())
                         continue;
+
+                    // This question should be abstracted to ITypeDefinitionBuilder.
+                    bool shouldPromote = port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name;
+
                     if (port.IsInput())
                     {
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
@@ -238,6 +247,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         {
                             var connectedNode = connectedPort.GetNode();
                             argument = $"SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}";
+                            shouldPromote = false;
                         }
                         else // not connected.
                         {
@@ -247,10 +257,18 @@ namespace UnityEditor.ShaderGraph.Generation
                     }
                     else // this is an output port.
                     {
-                        argument = $"SYNTAX_{node.GetName()}_{port.GetName()}"; // add to the arguments for the function call.
-                        // default initialize this before our function call.
-                        var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
-                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
+                        argument = $"SYNTAX_{node.GetName()}_{port.GetName()}";
+                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument};");
+                        shouldPromote = false;
+                    }
+                    if (shouldPromote)
+                    {
+                        foreach (var blockVar in Registry.Types.Texture2DHelpers.UniformPromotion((IFieldReader)port, container))
+                            inputVariables.Add(blockVar);
+                        foreach (var blockVar in Registry.Types.Texture2DHelpers.PropertyPromotion((IFieldReader)port, container))
+                            blockBuilder.AddProperty(blockVar);
+
+                        defaultTextures.Add(Registry.Types.Texture2DHelpers.GetShaderDefault((IFieldReader)port));
                     }
                     arguments += argument + ", ";
                 }

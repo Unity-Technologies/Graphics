@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Unity.ShaderGraph.GraphDeltaRegistry",
-        "GtfPlayground"
+        "GtfPlayground",
+        "Unity.ShaderGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"
