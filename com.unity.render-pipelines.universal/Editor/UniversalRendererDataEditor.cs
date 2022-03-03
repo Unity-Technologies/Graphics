@@ -46,7 +46,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_CopyDepthMode;
         SerializedProperty m_AccurateGbufferNormals;
         SerializedProperty m_ClusteredRendering;
-        SerializedProperty m_TileSize;
         SerializedProperty m_UseNativeRenderPass;
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
@@ -68,7 +67,6 @@ namespace UnityEditor.Rendering.Universal
             m_CopyDepthMode = serializedObject.FindProperty("m_CopyDepthMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
-            m_TileSize = serializedObject.FindProperty("m_TileSize");
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
@@ -107,7 +105,6 @@ namespace UnityEditor.Rendering.Universal
                 {
                     EditorGUILayout.PropertyField(m_ClusteredRendering, Styles.clusteredRenderingLabel);
                     EditorGUI.BeginDisabledGroup(!m_ClusteredRendering.boolValue);
-                    EditorGUILayout.PropertyField(m_TileSize);
                     EditorGUI.EndDisabledGroup();
                 }
 

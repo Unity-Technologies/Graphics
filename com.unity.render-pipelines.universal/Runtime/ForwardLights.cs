@@ -52,7 +52,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_DirectionalLightCount;
         int m_ActualTileWidth;
         int2 m_TileResolution;
-        int m_RequestedTileWidth;
 
         JobHandle m_CullingHandle;
         NativeArray<uint> m_ZBins;
@@ -70,7 +69,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public LightCookieManager lightCookieManager;
             public bool clusteredRendering;
-            public int tileSize;
 
             static internal InitParams GetDefault()
             {
@@ -86,7 +84,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     p.lightCookieManager = new LightCookieManager(ref settings);
                     p.clusteredRendering = false;
-                    p.tileSize = 32;
                 }
                 return p;
             }
@@ -96,7 +93,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal ForwardLights(InitParams initParams)
         {
-            if (initParams.clusteredRendering) Assert.IsTrue(math.ispow2(initParams.tileSize));
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseClusteredRendering = initParams.clusteredRendering;
 
@@ -135,7 +131,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_ZBinBuffer = new ComputeBuffer(UniversalRenderPipeline.maxZBins / 4, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
                 m_TileBuffer = new ComputeBuffer(UniversalRenderPipeline.maxTileVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
-                m_RequestedTileWidth = initParams.tileSize;
             }
         }
 
@@ -166,7 +161,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var lightsPerTile = visibleLights.Length;
                 m_WordsPerTile = (lightsPerTile + 31) / 32;
 
-                m_ActualTileWidth = m_RequestedTileWidth >> 1;
+                m_ActualTileWidth = 8 >> 1;
                 do
                 {
                     m_ActualTileWidth <<= 1;

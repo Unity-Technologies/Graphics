@@ -101,8 +101,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         [SerializeField] bool m_ClusteredRendering = false;
-        const TileSize k_DefaultTileSize = TileSize._8;
-        [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
 
         protected override ScriptableRenderer Create()
         {
@@ -222,26 +220,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_ClusteredRendering = value;
-            }
-        }
-
-        internal TileSize tileSize
-        {
-            get => m_TileSize;
-            set
-            {
-                Assert.IsTrue(value.IsValid());
-                SetDirty();
-                m_TileSize = value;
-            }
-        }
-
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-            if (!m_TileSize.IsValid())
-            {
-                m_TileSize = k_DefaultTileSize;
             }
         }
 

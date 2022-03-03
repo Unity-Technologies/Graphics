@@ -170,7 +170,6 @@ namespace UnityEngine.Rendering.Universal
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             forwardInitParams.clusteredRendering = data.clusteredRendering;
             clusteredRendering = data.clusteredRendering;
-            forwardInitParams.tileSize = (int)data.tileSize;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
