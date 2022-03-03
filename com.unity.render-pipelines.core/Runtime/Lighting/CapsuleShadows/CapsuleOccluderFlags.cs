@@ -16,10 +16,12 @@ namespace UnityEngine.Rendering
         ClipToCone = (1 << 2),
         /// <summary>Clip the capsule to the plane from the surface to the light source center.</summary>
         ClipToPlane = (1 << 3),
+        /// <summary>Ray traced reference (for comparison purposes only, too slow to ship with).</summary>
+        RayTracedReference = (1 << 4),
         /// <summary>Consider the (clipped) capsule as an ellipsoid, scale down everything along the capsule axis to form a sphere for occlusion.</summary>
-        CapsuleAxisScale = (1 << 4),
+        CapsuleAxisScale = (1 << 5),
         /// <summary>Scale down everything along the light axis as the capsule axis and light axis align, to smooth the penumbra.</summary>
-        LightAxisScale = (1 << 5),
+        LightAxisScale = (1 << 6),
     }
 
     [GenerateHLSL]

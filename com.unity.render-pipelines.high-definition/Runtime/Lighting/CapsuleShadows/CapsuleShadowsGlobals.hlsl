@@ -33,8 +33,17 @@ uint GetCapsuleDirectOcclusionFlags()
     case CAPSULESHADOWMETHOD_ELLIPSOID:
         flags |= CAPSULEOCCLUSIONFLAGS_CAPSULE_AXIS_SCALE;
         break;
+    case CAPSULESHADOWMETHOD_CLIP_THEN_ELLIPSOID:
+        flags |= CAPSULEOCCLUSIONFLAGS_CLIP_TO_CONE | CAPSULEOCCLUSIONFLAGS_CAPSULE_AXIS_SCALE;
+        break;
+    case CAPSULESHADOWMETHOD_CLOSEST_SPHERE:
+        // no additional flags needed
+        break;
     case CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE:
         flags |= CAPSULEOCCLUSIONFLAGS_LIGHT_AXIS_SCALE;
+        break;
+    case CAPSULESHADOWMETHOD_RAY_TRACED_REFERENCE:
+        flags |= CAPSULEOCCLUSIONFLAGS_RAY_TRACED_REFERENCE;
         break;
     }
     if (_CapsuleFadeDirectSelfShadow) {

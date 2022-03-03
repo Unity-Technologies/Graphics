@@ -2,6 +2,7 @@
 #define CORE_CAPSULE_SHADOWS_COMMON_DEF
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/CapsuleOccluderFlags.cs.hlsl"
 
 // ref: https://developer.amd.com/wordpress/media/2012/10/Oat-AmbientApetureLighting.pdf
@@ -32,9 +33,140 @@ float2 RayVsRayClosestPoints(float3 p1, float3 d1, float3 p2, float3 d2)
     return float2(t1, t2);
 }
 
+float MatchingSinCos(float sinOrCosTheta)
+{
+    return sqrt(max(0.f, 1.f - Sq(sinOrCosTheta)));
+}
+
 float RayClosestPoint(float3 ro, float3 rd, float3 p)
 {
     return dot(rd, p - ro)/dot(rd, rd);
+}
+
+bool IntersectRayCapsule(
+    float3 capsuleCenter,
+    float3 capsuleAxisDir,
+    float capsuleOffset,
+    float capsuleRadius,
+    float3 rayOrigin,
+    float3 rayDir,
+    float rayMaxT)
+{
+    float3 p = rayOrigin - capsuleCenter;
+    float3 d = rayDir;
+    float3 n = capsuleAxisDir;
+    float r = capsuleRadius;
+
+    float pn = dot(p, n);
+    float dn = dot(d, n);
+
+    float qa = dot(d, d) - dn*dn;
+    float qb = dot(d, p) - dn*pn;
+    float qc = dot(p, p) - pn*pn - r*r;
+
+    // check if we hit the infinite cylinder
+    float qs = qb*qb - qa*qc;
+    if (qs < 0.f)
+        return false;
+
+    // check if we hit the cylinder between the caps
+    float t = (-qb - sqrt(qs))/qa;
+    float k = pn + t*dn;
+    if (abs(k) > capsuleOffset)
+    {
+        // check the spherical cap nearest the cylinder hit
+        p -= capsuleAxisDir*CopySign(capsuleOffset, k, false);
+
+        pn = dot(p, n);
+        qb = dot(d, p);
+        qc = dot(p, p) - r*r;
+
+        qs = qb*qb - qc;
+        if (qs < 0.f)
+            return false;
+        t = -qb - sqrt(qs);
+    }
+
+    // check hit distance
+    return (0.f < t && t < rayMaxT);
+}
+
+/*
+    Solving:
+
+        ray:    v = p + d*t
+        cone:   |v - n(v.n)| <= a(v.n)    where     a = tan(theta)
+
+    Squaring
+
+        v.v - (v.n)^2 <= a^2 (v.n)^2
+
+    So:
+            
+        v.v - (1 + a^2)(v.n)^2 <= 0
+
+    Let s = (1 + a^2) = (1 + tan^2(theta)) = 1/cos^2(theta)
+
+        v.v - s(v.n)^2 <= 0
+
+    Substitute in v = p + d*t, gather terms of t:
+
+        (d.d - s(d.n)^2)t^2 + 2(d.p - s(d.n)(p.n))t + (p.p - s(p.n^2)) <= 0
+
+    To solve for cone surface hits, use equality and solve quadratic.
+
+    Returns the line segment within the cone. The line segment can be (half-)infinite,
+    in which case either result.x=(-FLT_MAX) or result.y=FLT_MAX.  In all cases,
+    result.x <= result.y for a hit, result.x > result.y for a miss.
+ */
+float2 IntersectCylinderCone(
+    float3 coneApex,
+    float3 coneAxisDir,
+    float coneCosTheta,
+    float coneSinTheta,
+    float3 cylinderOrigin,
+    float3 cylinderAxisDir,
+    float cylinderRadius)
+{
+    float2 result = float2(1.f, 0.f); // miss
+
+    float coneCosThetaRsq = 1.f/Sq(coneCosTheta);
+    float3 cylinderOffsetForRadius = (cylinderRadius/coneSinTheta)*coneAxisDir;
+
+    float3 p = cylinderOrigin + cylinderOffsetForRadius - coneApex;
+    float3 d = cylinderAxisDir;
+    float3 n = coneAxisDir;
+    float s = coneCosThetaRsq;
+
+    float pn = dot(p, n);
+    float dn = dot(d, n);
+
+    float qa = 1.f - s*dn*dn;
+    float qb = dot(d, p) - s*dn*pn;
+    float qc = dot(p, p) - s*pn*pn;
+
+    float qs = qb*qb - qa*qc;
+    if (qs > 0.f)
+    {
+        float tmp0 = -qb/qa;
+        float tmp1 = sqrt(qs)/qa;
+        float ta = tmp0 - tmp1;
+        float tb = tmp0 + tmp1;
+
+        if (tmp1 > 0.f)
+        {
+            if (dot(p, n) > 0.f)
+                result = float2(ta, tb);
+        }
+        else
+        {
+            if (dot(d, n) > 0.f)
+                result = float2(ta, FLT_MAX);
+            else
+                result = float2(-FLT_MAX, tb);
+        }
+    }
+    return result;
 }
 
 float CapsuleSignedDistance(
@@ -62,7 +194,7 @@ float ApproximateSphereOcclusion(
     float intersectionCosTheta = 1.f;
     if (sphereDistance < maxDistance) {
         float sphereSinTheta = saturate(sphereRadius/sphereDistance);
-        float sphereCosTheta = sqrt(max(1.f - sphereSinTheta*sphereSinTheta, 0.f));
+        float sphereCosTheta = MatchingSinCos(sphereSinTheta);
 
         float cosBetweenAxes = min(dot(coneAxis, sphereCenter)/sphereDistance, 1.f);
 
@@ -125,12 +257,73 @@ float EvaluateCapsuleOcclusion(
             occlusion *= smoothstep(0.f, 0.25f*capsuleRadius, heightAboveSurface);
         }
     }
+
     // early out before more intersection tests
     if (occlusion == 0.f)
         return 0.f;
 
+    // handle clipping
+    if ((flags & (CAPSULEOCCLUSIONFLAGS_CLIP_TO_CONE | CAPSULEOCCLUSIONFLAGS_CLIP_TO_PLANE)) != 0)
+    {
+        float3 surfaceToLightDir = lightIsPunctual ? normalize(surfaceToLightVec) : surfaceToLightVec;
+        float minT = -capsuleOffset;
+        float maxT = capsuleOffset;
+        if ((flags & CAPSULEOCCLUSIONFLAGS_CLIP_TO_CONE) != 0)
+        {
+            float lightSinTheta = MatchingSinCos(lightCosTheta);
+            float2 segmentT = IntersectCylinderCone(0.f, surfaceToLightDir, lightCosTheta, lightSinTheta, surfaceToCapsuleVec, capsuleAxisDirWS, capsuleRadius);
+            if (segmentT.x > segmentT.y)
+                return 0.f;
+
+            minT = clamp(segmentT.x, -capsuleOffset, capsuleOffset);
+            maxT = clamp(segmentT.y, -capsuleOffset, capsuleOffset);
+        }
+        else // if ((flags & CAPSULEOCCLUSIONFLAGS_CLIP_TO_PLANE) != 0)
+        {
+            // clip capsule to be towards the light from the surface point
+            float lightDotAxis = dot(surfaceToLightDir, capsuleAxisDirWS);
+            float intersectT = clamp(-dot(surfaceToCapsuleVec, surfaceToLightDir)/lightDotAxis, minT, maxT);
+            if (lightDotAxis < 0.f) {
+                maxT = intersectT;
+            } else {
+                minT = intersectT;
+            }
+        }
+        surfaceToCapsuleVec += capsuleAxisDirWS * .5f*(maxT + minT);
+        capsuleOffset = .5f*(maxT - minT);
+    }
+
     // test the occluder shape vs the light
-    if ((flags & CAPSULEOCCLUSIONFLAGS_CAPSULE_AXIS_SCALE) != 0) {
+    if ((flags & CAPSULEOCCLUSIONFLAGS_RAY_TRACED_REFERENCE) != 0)
+    {
+        // brute force ray traced for reference
+        int sampleCount = 64;
+        uint hitCount = 0;
+        float3x3 basis = GetLocalFrame(normalize(surfaceToLightVec));
+        float goldenAngle = PI*(3.f - sqrt(5.f));
+        for (int i = 0; i < sampleCount; ++i)
+        {
+            float t = (float)(i + .5f)/(float)sampleCount;
+            float cosTheta = lerp(1.f, lightCosTheta, t);
+            float sinTheta = MatchingSinCos(cosTheta);
+            float phi = (float)i * goldenAngle;
+            float3 dir = float3(sinTheta*cos(phi), sinTheta*sin(phi), cosTheta);
+            if (IntersectRayCapsule(
+                surfaceToCapsuleVec,
+                capsuleAxisDirWS,
+                capsuleOffset,
+                capsuleRadius,
+                0.f,
+                normalize(mul(dir, basis)),
+                shadowRange))
+            {
+                hitCount++;
+            }
+        }
+        occlusion *= (float)hitCount/(float)sampleCount;
+    }
+    else if ((flags & CAPSULEOCCLUSIONFLAGS_CAPSULE_AXIS_SCALE) != 0)
+    {
         // scale down along the capsule axis to approximate the capsule with a sphere
         float3 zAxisDir = capsuleAxisDirWS;
         float zOffsetFactor = capsuleOffset/(capsuleRadius + capsuleOffset);
@@ -172,30 +365,15 @@ float EvaluateCapsuleOcclusion(
             maxDistance = FLT_MAX;
         }
 
-        float lightDotAxis = dot(capsuleAxisDirWS, surfaceToLightDir);
-
-        float clippedOffset = capsuleOffset;
-        if ((flags & CAPSULEOCCLUSIONFLAGS_CLIP_TO_PLANE) != 0) {
-            // clip capsule to be towards the light from the surface point
-            float clipMaxT = capsuleOffset;
-            float clipMinT = -clipMaxT;
-            float clipIntersectT = clamp(-dot(surfaceToCapsuleVec, surfaceToLightDir)/lightDotAxis, clipMinT, clipMaxT);
-            if (lightDotAxis < 0.f) {
-                clipMaxT = clipIntersectT;
-            } else {
-                clipMinT = clipIntersectT;
-            }
-            float clippedBias = 0.5f*(clipMaxT + clipMinT);
-            float clippedOffset = 0.5f*(clipMaxT - clipMinT);
-            surfaceToCapsuleVec += capsuleAxisDirWS * clippedBias;
-        }
-        float3 capOffsetVec = capsuleAxisDirWS * clippedOffset;
-
+        float3 capOffsetVec = capsuleAxisDirWS * capsuleOffset;
         float shearCosTheta = lightCosTheta;
-        if ((flags & CAPSULEOCCLUSIONFLAGS_LIGHT_AXIS_SCALE) != 0) {
+        if ((flags & CAPSULEOCCLUSIONFLAGS_LIGHT_AXIS_SCALE) != 0)
+        {
+            float lightDotAxis = dot(capsuleAxisDirWS, surfaceToLightDir);
+
             // shear the capsule along the light direction, to flatten when shadowing along length
             float3 zAxisDir = surfaceToLightDir;
-            float capsuleOffsetZ = lightDotAxis*clippedOffset;
+            float capsuleOffsetZ = lightDotAxis*capsuleOffset;
             float radiusOffsetZ = (lightDotAxis < 0.f) ? (-capsuleRadius) : capsuleRadius;
             float edgeOffsetZ = radiusOffsetZ + capsuleOffsetZ;
             float shearAmount = lightDotAxis*lightDotAxis; // could also use abs(lightDotAxis)

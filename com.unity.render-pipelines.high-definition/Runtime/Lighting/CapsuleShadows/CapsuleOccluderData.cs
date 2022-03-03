@@ -24,9 +24,11 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     public enum CapsuleShadowMethod
     {
-        FlattenThenClosestSphere,
+        Ellipsoid,
+        ClipThenEllipsoid,
         ClosestSphere,
-        Ellipsoid
+        FlattenThenClosestSphere,
+        RayTracedReference,
     }
 
     [GenerateHLSL]

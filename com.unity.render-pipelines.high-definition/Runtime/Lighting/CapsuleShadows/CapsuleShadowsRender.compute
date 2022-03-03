@@ -49,7 +49,7 @@ struct CasterCullingData
 {
     float3 tileToLightDir;
     float tileToLightDistance;
-    float penumbraCosTheta;
+    float penumbraTanTheta;
 };
 
 #define MAX_SLICE_COUNT                                             MAX_CAPSULE_SHADOW_CASTER_COUNT
@@ -76,11 +76,6 @@ float MaxElement(float2 v)
 float3 ViewspaceFromXY(float2 posVS_XY, float linearDepth)
 {
     return float3(posVS_XY * abs(linearDepth), linearDepth);
-}
-
-float MatchingSinCos(float sinOrCosTheta)
-{
-    return sqrt(max(0.f, 1.f - Sq(sinOrCosTheta)));
 }
 
 bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
@@ -115,7 +110,9 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
 
                 cullingData.tileToLightDir = caster.directionWS;
                 cullingData.tileToLightDistance = FLT_MAX;
-                cullingData.penumbraCosTheta = caster.maxCosTheta;
+
+                float penumbraCosTheta = caster.maxCosTheta;
+                cullingData.penumbraTanTheta = MatchingSinCos(penumbraCosTheta)/penumbraCosTheta;
 
                 // TODO: are there any ways to cull the tile outside of the directional light volume?
                 isValid = true;
@@ -131,7 +128,8 @@ bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
                 cullingData.tileToLightDistance = tileToLightDistance;
 
                 float sinTheta = max(0.f, caster.radiusWS/(tileToLightDistance - tileRadiusWS));
-                cullingData.penumbraCosTheta = min(caster.maxCosTheta, MatchingSinCos(sinTheta));
+                float penumbraCosTheta = min(caster.maxCosTheta, MatchingSinCos(sinTheta));
+                cullingData.penumbraTanTheta = MatchingSinCos(penumbraCosTheta)/penumbraCosTheta;
 
                 // check the tile is within the volume of the light
                 isValid = (tileToLightDistance < caster.lightRange);
@@ -189,22 +187,37 @@ bool CapsuleIntersectsTile(CapsuleOccluderData capsuleData, uint depthRangeIndex
             intersectsTile = (capsuleSignedDistanceFromTile < renderData.shadowRange);
 
             // check penumbra
-            if (cullingData.penumbraCosTheta != 0.f)
+            if (cullingData.penumbraTanTheta != 0.f)
             {
-                // check the smallest between the light axis and the capsule, from points in the tile
+                // check the smallest angle between the light axis and the capsule, from points in the tile
                 bool intersectsPenumbra = (capsuleSignedDistanceFromTile < 0.f);
                 if (capsuleSignedDistanceFromTile < cullingData.tileToLightDistance)
                 {
-                    float closestT = RayVsRayClosestPoints(tileToCapsuleVec, capsuleData.axisDirWS, 0.f, cullingData.tileToLightDir).x;
-                    float3 tileToCheckPos = tileToCapsuleVec + capsuleData.axisDirWS*clamp(closestT, -capsuleData.offset, capsuleData.offset);
+                    float closestT = clamp(
+                        RayVsRayClosestPoints(tileToCapsuleVec, capsuleData.axisDirWS, 0.f, cullingData.tileToLightDir).x,
+                        -capsuleData.offset, capsuleData.offset);
+                    
+                    // check closest point
+                    {
+                        float3 tileToCheckPos = tileToCapsuleVec + capsuleData.axisDirWS*closestT;
 
-                    float distanceAlongAxis = dot(tileToCheckPos, cullingData.tileToLightDir);
-                    float distanceFromAxis = length(tileToCheckPos - distanceAlongAxis*cullingData.tileToLightDir);
+                        float distanceAlongAxis = dot(cullingData.tileToLightDir, tileToCheckPos);
+                        float distanceFromAxis = length(tileToCheckPos - distanceAlongAxis*cullingData.tileToLightDir);
+                        distanceFromAxis = max(0.f, distanceFromAxis - capsuleData.radius - tileRadiusWS);
 
-                    distanceFromAxis = max(0.f, distanceFromAxis - capsuleData.radius - tileRadiusWS);
+                        intersectsPenumbra = intersectsPenumbra || (distanceFromAxis < distanceAlongAxis*cullingData.penumbraTanTheta);
+                    }
+                    // check other end
+                    if (0.f != closestT && abs(closestT) == capsuleData.offset)
+                    {
+                        float3 tileToCheckPos = tileToCapsuleVec - capsuleData.axisDirWS*closestT;
 
-                    float cosTheta = distanceAlongAxis/sqrt(Sq(distanceFromAxis) + Sq(distanceAlongAxis));
-                    intersectsPenumbra = intersectsPenumbra || (cosTheta > cullingData.penumbraCosTheta);
+                        float distanceAlongAxis = dot(cullingData.tileToLightDir, tileToCheckPos);
+                        float distanceFromAxis = length(tileToCheckPos - distanceAlongAxis*cullingData.tileToLightDir);
+                        distanceFromAxis = max(0.f, distanceFromAxis - capsuleData.radius - tileRadiusWS);
+
+                        intersectsPenumbra = intersectsPenumbra || (distanceFromAxis < distanceAlongAxis*cullingData.penumbraTanTheta);
+                    }
                 }
                 intersectsTile = intersectsTile && intersectsPenumbra;
             }

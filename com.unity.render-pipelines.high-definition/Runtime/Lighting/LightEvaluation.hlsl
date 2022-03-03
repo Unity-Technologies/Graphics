@@ -529,7 +529,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     {
         float radius = light.size.x;
         float sinTheta = radius/length(posInput.positionWS - light.positionRWS);
-        float cosTheta = min(light.capsuleShadowMaxCosTheta, sqrt(max(1.f - sinTheta*sinTheta, 0.f)));
+        float cosTheta = min(light.capsuleShadowMaxCosTheta, MatchingSinCos(sinTheta));
         float capsuleShadow = EvaluateCapsuleDirectShadowLightLoop(light.positionRWS, true, cosTheta, light.capsuleShadowRange, posInput, N, builtinData.renderingLayers);
         shadow *= capsuleShadow;
     }
