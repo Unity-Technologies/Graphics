@@ -73,7 +73,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 
-                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, Color.black, mip, depthSlice: targetSlice * 6 + face);
+                        if (target.dimension == TextureDimension.CubeArray)
+                            CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, depthSlice: targetSlice * 6 + face);
+                        else
+                            CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
                         CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
                     }
                 }

@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering
         /// <param name="powerOfTwoPadding">Power of two padding.</param>
         /// <param name="name">Name of the atlas</param>
         /// <param name="useMipMap">Use mip maps</param>
-        public Texture2DAtlas(int width, int height, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false, string name = "", bool useMipMap = true, int arraySize = 1)
+        public Texture2DAtlas(int width, int height, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false, string name = "", bool useMipMap = true, int arraySize = 0)
         {
             m_Width = width;
             m_Height = height;
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering
                 width: m_Width,
                 height: m_Height,
                 slices: m_ArraySize,
-                dimension: m_ArraySize > 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
+                dimension: m_ArraySize >= 1 ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
                 filterMode: filterMode,
                 colorFormat: m_Format,
                 wrapMode: TextureWrapMode.Clamp,

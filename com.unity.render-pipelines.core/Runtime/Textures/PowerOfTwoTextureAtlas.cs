@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
         /// <param name="filterMode">Atlas texture filter mode.</param>
         /// <param name="name">Name of the atlas</param>
         /// <param name="useMipMap">Use mip maps</param>
-        public PowerOfTwoTextureAtlas(int size, int mipPadding, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, string name = "", bool useMipMap = true, int arraySize = 1)
+        public PowerOfTwoTextureAtlas(int size, int mipPadding, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, string name = "", bool useMipMap = true, int arraySize = 0)
             : base(size, size, format, filterMode, true, name, useMipMap, arraySize)
         {
             this.m_MipPadding = mipPadding;
