@@ -1105,7 +1105,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 var props = new MaterialPropertyBlock();
                                 var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
-                                if (aabb.Contains(cameraPosition))
+                                if (aabb.Contains(cameraPosition)) // TODO: OBB check instead for accuracy
                                     viewSpaceBounds = new Vector4(-1, -1, 2, 2);
                                 props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
                                 props.SetInteger("_SliceOffset", startSlice);

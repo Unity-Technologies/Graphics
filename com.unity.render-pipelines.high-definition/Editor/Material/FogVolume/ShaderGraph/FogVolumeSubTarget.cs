@@ -31,6 +31,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportRaytracing => false;
         protected override bool supportPathtracing => false;
 
+        static readonly string k_SrcBlendUniform = "[_SrcBlend]";
+        static readonly string k_DstBlendUniform = "[_DstBlend]";
+
         // Material Data
         FogVolumeData m_FogVolumeData;
 
