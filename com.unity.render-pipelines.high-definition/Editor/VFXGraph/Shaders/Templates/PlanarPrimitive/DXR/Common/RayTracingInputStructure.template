@@ -34,12 +34,12 @@
             #define VFX_VARYING_NORMAL normal
             #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE invSoftParticleFadeDistance
             #define VFX_VARYING_MOTIONVECTORSCALE mvScale.xy
-
-			${VFXHDRPLitVaryingsMacros}
-
             #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
                 #define VFX_VARYING_TANGENT tangent
             #endif
             #if USE_NORMAL_BENDING
                 #define VFX_VARYING_BENTFACTORS bentFactors
             #endif
+			${VFXHDRPLitVaryingsMacros}
+
+
