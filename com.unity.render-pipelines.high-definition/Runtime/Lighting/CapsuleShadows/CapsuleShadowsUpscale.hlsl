@@ -1,7 +1,7 @@
 #ifndef CAPSULE_SHADOWS_UPSCALE_DEF
 #define CAPSULE_SHADOWS_UPSCALE_DEF
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsGlobals.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleShadowsGlobals.hlsl"
 
 #define CAPSULE_UPSCALE_DEPTH_TOLERANCE_IN_PIXELS   8.f
 

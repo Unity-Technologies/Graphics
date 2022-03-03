@@ -262,15 +262,15 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
             public ComputeShader screenSpaceGlobalIlluminationCS;
 
-            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsBuildOccluderList.compute")]
+            [Reload("Runtime/Lighting/CapsuleShadows/CapsuleShadowsBuildOccluderList.compute")]
             public ComputeShader capsuleShadowsBuildOccluderListCS;
-            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsRender.compute")]
+            [Reload("Runtime/Lighting/CapsuleShadows/CapsuleShadowsRender.compute")]
             public ComputeShader capsuleShadowsRenderCS;
-            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsBuildTileList.compute")]
+            [Reload("Runtime/Lighting/CapsuleShadows/CapsuleShadowsBuildTileList.compute")]
             public ComputeShader capsuleShadowsBuildTileListCS;
-            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsUpscale.compute")]
+            [Reload("Runtime/Lighting/CapsuleShadows/CapsuleShadowsUpscale.compute")]
             public ComputeShader capsuleShadowsUpscaleCS;
-            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowsDebugCopy.compute")]
+            [Reload("Runtime/Lighting/CapsuleShadows/CapsuleShadowsDebugCopy.compute")]
             public ComputeShader capsuleShadowsDebugCopyCS;
 
             // MSAA Shaders
