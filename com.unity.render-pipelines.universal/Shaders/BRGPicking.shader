@@ -30,15 +30,6 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
 
             float4x4 unity_BRGPickingViewMatrix;
             float4x4 unity_BRGPickingProjMatrix;
-            float4 unity_BRGPickingSelectionID;
-
-            float4 ComputeEntityPickingValue(uint entityID)
-            {
-                // Add 1 to the ID, so the entity ID 0 gets a value that is not equal
-                // to the clear value.
-                uint pickingValue = (entityID + 1);// | (1 << 31);
-                return PackId32ToRGBA8888(pickingValue);
-            }
 
             struct Attributes
             {
@@ -68,7 +59,11 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             half4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                return ComputeEntityPickingValue(unity_EntityId.x);
+
+                // Add 1 to the ID, so the entity ID 0 gets a value that is not equal
+                // to the clear value.
+                uint pickingValue = (unity_EntityId.x + 1) | 0x80000000;
+                return PackId32ToRGBA8888(pickingValue);
             }
 
             ENDHLSL
