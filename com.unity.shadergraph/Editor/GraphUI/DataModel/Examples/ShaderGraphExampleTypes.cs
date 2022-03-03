@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public Type Type => typeof(Texture2D);
 
-        public object DefaultValue => Activator.CreateInstance(Type);
+        public object DefaultValue => Texture2D.whiteTexture;
     }
 
     //[GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
