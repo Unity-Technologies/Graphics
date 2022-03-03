@@ -1,5 +1,6 @@
 #if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {

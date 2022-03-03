@@ -192,6 +192,12 @@ namespace UnityEngine.Rendering.Universal
                     m_DepthPrepass.Render(out frameResources.cameraDepthTexture, ref renderingData);
                 }
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (renderingData.cameraData.xr.hasValidOcclusionMesh)
+            m_XROcclusionMeshPass.Render(frameResources.cameraDepth, ref renderingData);
+#endif
+
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);

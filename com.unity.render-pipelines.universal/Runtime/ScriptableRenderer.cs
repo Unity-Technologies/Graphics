@@ -912,8 +912,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             RenderGraph graph = renderingData.renderGraph;
 
-            using (var builder = graph.AddRenderPass<EndXRPassData>("BeginXRRendering", out var passData,
-                new ProfilingSampler("BeginXRRendering Profiler")))
+            using (var builder = graph.AddRenderPass<EndXRPassData>("EndXRRendering", out var passData,
+                new ProfilingSampler("EndXRRendering Profiler")))
             {
                 passData.renderingData = renderingData;
                 passData.cameraData = renderingData.cameraData;
