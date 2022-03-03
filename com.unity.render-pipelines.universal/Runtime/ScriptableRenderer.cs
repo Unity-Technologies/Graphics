@@ -874,8 +874,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         public void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            AddRenderPasses(ref renderingData);
-
             using (new ProfilingScope(null, Profiling.sortRenderPasses))
             {
                 // Sort the render pass queue
@@ -886,8 +884,12 @@ namespace UnityEngine.Rendering.Universal
             SetupRenderGraphCameraProperties(ref renderingData);
 
             RecordRenderGraphInternal(context, ref renderingData);
+        }
 
-            m_ActiveRenderPassQueue.Clear();
+
+        internal void FinishRenderGraphRendering(ScriptableRenderContext context, RenderingData renderingData)
+        {
+            InternalFinishRendering(renderingData.cameraData.resolveFinalTarget, renderingData);
         }
 
         /// <summary>
@@ -1858,7 +1860,7 @@ namespace UnityEngine.Rendering.Universal
             renderingData.commandBuffer.Clear();
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
+        void InternalFinishRendering(bool resolveFinalTarget, RenderingData renderingData)
         {
             using (new ProfilingScope(null, Profiling.internalFinishRendering))
             {
@@ -1878,6 +1880,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 m_ActiveRenderPassQueue.Clear();
             }
+        }
+
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
+        {
+            InternalFinishRendering(resolveFinalTarget, renderingData);
 
             ResetNativeRenderPassFrameData();
 

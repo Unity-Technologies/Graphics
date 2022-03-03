@@ -458,6 +458,7 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderGraph)
                 {
                     RecordAndExecuteRenderGraph(context, ref renderingData);
+                    renderer.FinishRenderGraphRendering(context, renderingData);
                 }
                 else
                 {
