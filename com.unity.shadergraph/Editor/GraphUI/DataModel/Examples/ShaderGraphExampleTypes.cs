@@ -21,6 +21,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
         {
+            if(reader.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name)
+            {
+                return Texture2DTypeHandle;
+            }
+
             reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len);
             switch ((int)len)
             {
@@ -41,7 +46,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
         public static readonly TypeHandle AnimationClip = typeof(AnimationClip).GenerateTypeHandle();
         public static readonly TypeHandle Mesh = typeof(Mesh).GenerateTypeHandle();
-        public static readonly TypeHandle Texture2D = typeof(Texture2D).GenerateTypeHandle();
+        public static readonly TypeHandle Texture2DTypeHandle = typeof(Texture2D).GenerateTypeHandle();
         public static readonly TypeHandle Texture3D = typeof(Texture3D).GenerateTypeHandle();
         public static readonly TypeHandle DayOfWeek = typeof(DayOfWeek).GenerateTypeHandle();
 
@@ -69,7 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             { "Color", Color },
             { "AnimationClip", AnimationClip },
             { "Mesh", Mesh },
-            { "Texture2D", Texture2D },
+            { "Texture2D", Texture2DTypeHandle },
             { "Texture3D", Texture3D },
             { "DayOfWeek", DayOfWeek },
         };
@@ -144,7 +149,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public object DefaultValue => default(T);
     }
 
-    public class GraphTypeConstant : IConstant
+    interface ICLDSConstant
+    {
+        void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName);
+    }
+
+    public class GraphTypeConstant : IConstant, ICLDSConstant
     {
         public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName;
@@ -250,7 +260,63 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public object DefaultValue => Activator.CreateInstance(Type);
     }
+    public class Texture2DTypeConstant : IConstant, ICLDSConstant
+    {
+        // Most of this should be genericized, as it'll be identical across types.
+        public GraphDelta.GraphHandler graphHandler;
+        public string nodeName, portName;
+
+        bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
+
+        private GraphDelta.IFieldReader GetFieldReader()
+        {
+            if (!IsInitialized) return null;
+            var nodeReader = graphHandler.GetNodeReader(nodeName);
+            nodeReader.TryGetPort(portName, out var portReader);
+            return (GraphDelta.IFieldReader)portReader;
+        }
+
+        private GraphDelta.IFieldWriter GetFieldWriter()
+        {
+            if (!IsInitialized) return null;
+            var nodeWriter = graphHandler.GetNodeWriter(nodeName);
+            return (GraphDelta.IFieldWriter)nodeWriter.GetPort(portName);
+        }
+
+        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
+        {
+            graphHandler = handler;
+            this.nodeName = nodeName;
+            this.portName = portName;
+        }
+
+        public object ObjectValue
+        {
+            get => IsInitialized ? Registry.Types.Texture2DHelpers.GetTextureAsset(GetFieldReader()) : DefaultValue;
+            set
+            {
+                if (IsInitialized)
+                    Registry.Types.Texture2DHelpers.SetTextureAsset(GetFieldWriter(), (Texture2D)value);
+            }
+        }
+
+        public Type Type => typeof(Texture2D);
+
+        public object DefaultValue => Activator.CreateInstance(Type);
+    }
+
+    //[GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
+    //static class GDSExt
+    //{
+    //    // TODO: This should return the Port/Blackboard inline editor for the Gradient field (eg. small gradient preview, on-click to popup).
+    //    public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, Texture2DTypeConstant constant)
+    //    {
+    //        // return ConstantEditorExtensions.BuildInlineValueEditor(constant.ObjectValue, new FloatField(), builder.OnValueChanged);
+    //        return new Label("TODO: Inline Texture 2D Editor");
+    //    }
+    //}
 }
+
 
 //    [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
 //    static class GDSExt

@@ -634,21 +634,15 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
 
             // let's round trip a red texture onto the Texture2D node
-            var texAsset = new Internal.SerializableTexture();
-            texAsset.texture = Texture2D.redTexture;
             var port = textureNode.GetPort(Types.Texture2DNode.kInlineStatic);
-            Types.Texture2DHelpers.SetTextureAsset((IFieldWriter)port, texAsset);
+            Types.Texture2DHelpers.SetTextureAsset((IFieldWriter)port, Texture2D.redTexture);
             graphHandler.GetNodeReader("Texture2D").TryGetPort(Types.Texture2DNode.kInlineStatic, out var portReader);
-            var texture = Types.Texture2DHelpers.GetTextureAsset((IFieldReader)portReader).texture;
+            var texture = Types.Texture2DHelpers.GetTextureAsset((IFieldReader)portReader);
 
             // upon changing the referenced texture, the shader should be updated the next time we ask for it.
+            previewMgr.NotifyNodeFlowChanged("SampleTexture2D");
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleTexture2D");
             Assert.AreEqual(new Color(1, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
         }
     }
 }
-
-//EditorMaterialUtility.SetShaderDefaults(
-//    shader,
-//    configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-//    configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());

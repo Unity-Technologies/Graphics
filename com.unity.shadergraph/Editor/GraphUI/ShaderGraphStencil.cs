@@ -35,6 +35,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return typeof(GraphTypeConstant);
             }
 
+            if (typeHandle == ShaderGraphExampleTypes.Texture2DTypeHandle)
+                return typeof(Texture2DTypeConstant);
+
             return typeHandle == ShaderGraphExampleTypes.DayOfWeek
                 ? typeof(DayOfWeekConstant)
                 : TypeToConstantMapper.GetConstantNodeType(typeHandle);

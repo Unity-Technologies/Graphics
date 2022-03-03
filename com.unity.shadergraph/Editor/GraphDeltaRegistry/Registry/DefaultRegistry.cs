@@ -46,6 +46,12 @@ namespace UnityEditor.ShaderGraph.Registry.Default
             reg.Register<Types.GraphType>();
             reg.Register<Types.GraphTypeAssignment>();
             reg.Register<DefaultContext>();
+
+            reg.Register<Texture2DType>();
+            reg.Register<Texture2DAssignment>();
+            reg.Register<Texture2DNode>();
+            reg.Register<Types.SampleTexture2DNode>();
+
             //RegistryInstance.Register<Registry.Types.AddNode>();
 
             // Register nodes from FunctionDescriptors in IStandardNode classes.

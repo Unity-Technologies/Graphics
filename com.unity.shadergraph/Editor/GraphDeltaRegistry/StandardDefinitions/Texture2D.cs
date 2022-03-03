@@ -88,21 +88,23 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
     public static class Texture2DHelpers
     {
-        public static UnityEditor.ShaderGraph.Internal.SerializableTexture GetTextureAsset(IFieldReader data)
+        public static Texture2D GetTextureAsset(IFieldReader data)
         {
             if (data.GetField<UnityEditor.ShaderGraph.Internal.SerializableTexture>(Texture2DType.KAsset, out var asset))
-                return asset;
+                return (Texture2D)asset.texture;
             else return null;
         }
 
-        public static void SetTextureAsset(IFieldWriter data, UnityEditor.ShaderGraph.Internal.SerializableTexture tex)
+        public static void SetTextureAsset(IFieldWriter data, Texture2D tex)
         {
-            data.SetField(Texture2DType.KAsset, tex);
+            var stex = new UnityEditor.ShaderGraph.Internal.SerializableTexture();
+            stex.texture = tex;
+            data.SetField(Texture2DType.KAsset, stex);
         }
 
         public static string GetUniquePropertyName(IFieldReader data) => data.GetFullPath().Replace('.', '_') + "_Tex";
 
-        public static (string, Texture) GetShaderDefault(IFieldReader data) => (GetUniquePropertyName(data), GetTextureAsset(data).texture);
+        public static (string, Texture) GetShaderDefault(IFieldReader data) => (GetUniquePropertyName(data), GetTextureAsset(data));
 
         // Should move this into the ITypeDefinitionBuilder, which should probably be abstract
         internal static IEnumerable<BlockVariable> UniformPromotion(IFieldReader field, ShaderContainer container)
@@ -186,10 +188,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
         {
-            // Not confident about this.
-            var texAsset = new Internal.SerializableTexture();
-            texAsset.texture = Texture2D.whiteTexture;
-            Texture2DHelpers.SetTextureAsset(typeWriter, texAsset);
+            Texture2DHelpers.SetTextureAsset(typeWriter, Texture2D.whiteTexture);
         }
 
         string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)

@@ -168,10 +168,9 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             var actualName = Types.Texture2DHelpers.GetUniquePropertyName(fieldReader);
             var actualTex = Types.Texture2DHelpers.GetTextureAsset(fieldReader);
             Assert.AreEqual("Texture2D_InlineStatic_Tex", actualName);
-            Assert.AreSame(UnityEngine.Texture2D.whiteTexture, actualTex.texture);
+            Assert.AreSame(UnityEngine.Texture2D.whiteTexture, actualTex);
 
-            var expectedTex = new Internal.SerializableTexture();
-            expectedTex.texture = new UnityEngine.Texture2D(800, 600);
+            var expectedTex = new UnityEngine.Texture2D(800, 600);
 
             var nodeWriter = graph.GetNodeWriter("Texture2D");
             var fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.Texture2DNode.kInlineStatic);
@@ -182,8 +181,8 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             fieldReader = (IFieldReader)portReader;
             actualTex = Types.Texture2DHelpers.GetTextureAsset(fieldReader);
 
-            Assert.AreEqual(800, actualTex.texture.width);
-            Assert.AreEqual(600, actualTex.texture.height);
+            Assert.AreEqual(800, actualTex.width);
+            Assert.AreEqual(600, actualTex.height);
         }
     }
 }

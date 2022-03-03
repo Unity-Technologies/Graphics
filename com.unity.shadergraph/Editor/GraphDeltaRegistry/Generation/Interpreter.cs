@@ -237,7 +237,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (!port.IsHorizontal())
                         continue;
 
-                    // This question should be abstracted to ITypeDefinitionBuilder.
+                    // TODO(esme): This question should be abstracted to ITypeDefinitionBuilder.
                     bool shouldPromote = port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name;
 
                     if (port.IsInput())
@@ -263,6 +263,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     }
                     if (shouldPromote)
                     {
+                        // TODO(esme): This should be abstracted to ITypeDefinitionBuilder.
                         foreach (var blockVar in Registry.Types.Texture2DHelpers.UniformPromotion((IFieldReader)port, container))
                             inputVariables.Add(blockVar);
                         foreach (var blockVar in Registry.Types.Texture2DHelpers.PropertyPromotion((IFieldReader)port, container))
