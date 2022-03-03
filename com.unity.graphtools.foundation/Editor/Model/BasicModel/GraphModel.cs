@@ -18,7 +18,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     [MovedFrom(false, sourceAssembly: "Unity.GraphTools.Foundation.Overdrive.Editor")]
     public abstract class GraphModel : IGraphModel, ISerializationCallbackReceiver
     {
-        [SerializeReference]
+        //[SerializeReference]
         GraphAssetModel m_AssetModel;
 
         [SerializeReference]

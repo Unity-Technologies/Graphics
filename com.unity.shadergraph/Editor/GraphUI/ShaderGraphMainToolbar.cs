@@ -110,6 +110,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
                 var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
                 GraphUtil.SaveGraph(shaderGraphModel.GraphHandler, assetModel, assetPath, true);
+                AssetDatabase.ImportAsset(assetPath);
             }
         }
 

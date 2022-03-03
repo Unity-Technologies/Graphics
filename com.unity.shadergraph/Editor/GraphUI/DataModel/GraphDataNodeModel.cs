@@ -158,6 +158,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
+            if(existsInGraphData)
+                graphHandler.ReconcretizeNode(graphDataName, registry);
+
             if (!TryGetNodeReader(out var nodeReader))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);

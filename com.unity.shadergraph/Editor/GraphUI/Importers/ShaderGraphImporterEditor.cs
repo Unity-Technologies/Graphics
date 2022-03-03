@@ -1,8 +1,11 @@
 using System;
+using System.Text;
+using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -44,11 +47,21 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
+            string fileText = File.ReadAllText(path, Encoding.UTF8);
+            ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
+            EditorJsonUtility.FromJsonOverwrite(fileText, helper);
+
+            GraphHandler graphHandler = new GraphHandler(helper.GraphDeltaJSON);
+
             var assetModel = AssetDatabase.LoadAssetAtPath(path, typeof(ShaderGraphAssetModel)) as ShaderGraphAssetModel;
             if(assetModel == null)
             {
                 return false;
             }
+
+            var shaderGraphModel = assetModel.GraphModel as ShaderGraphModel;
+            shaderGraphModel.GraphHandler = graphHandler;
+
             return ShowWindow(path, assetModel);
         }
 
