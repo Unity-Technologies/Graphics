@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             functionBuilder.AddLine($"StackInfo info = PrepareVT({propName}.vtProperty, vtParams);");
             functionBuilder.AddLine($"{layerOutName} = SampleVTLayerWithTextureType({propName}, vtParams, info, {layer});");
             functionBuilder.AddLine("return GetResolveOutput(info);");
-            
+
             var result = functionBuilder.Build();
             blockBuilder.AddFunction(result);
             return result;

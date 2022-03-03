@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderFoundry
             AttributeParsing.Parse(attribute, AttributeSignature, result);
             // Error on 'index' not existing.
             // TODO @ SHADERS: Ideally make require parameters part of the AttributeParsing utility.
-            if(result.Index == int.MinValue)
+            if (result.Index == int.MinValue)
                 AttributeParsing.ReportRequiredParameterIsMissing(AttributeName, IndexParamName);
 
             return result;

@@ -330,7 +330,7 @@ namespace UnityEditor.ShaderFoundry
                     continue;
 
                 // The layer's specified index was out of bounds
-                if(layerAttribute.Index < 0 || layerCount <= layerAttribute.Index)
+                if (layerAttribute.Index < 0 || layerCount <= layerAttribute.Index)
                 {
                     ErrorHandling.ReportError($"Parameter {VirtualTextureLayerAttribute.IndexParamName} must be in the range of [{0}, {layerCount}).");
                     continue;
@@ -368,7 +368,7 @@ namespace UnityEditor.ShaderFoundry
 
                 // Declare a property and two uniforms (texture + sampler) per layer
                 var slAttributes = new List<string> { $"[TextureStack._VirtualTexture({layer})]", "[NoScaleOffset]" };
-                result.MaterialPropertyDeclarations.Add(new MaterialPropertyDeclarationData { UniformName = layerUniformName, DisplayName = layerDisplayName, DisplayType = "2D", DefaultValueExpression = layerDefaultTextureName, Attributes = slAttributes } );
+                result.MaterialPropertyDeclarations.Add(new MaterialPropertyDeclarationData { UniformName = layerUniformName, DisplayName = layerDisplayName, DisplayType = "2D", DefaultValueExpression = layerDefaultTextureName, Attributes = slAttributes });
                 result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = UniformDataSource.Global, Name = layerTextureName, Type = container._Texture2D });
                 result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = UniformDataSource.Global, Name = layerSamplerName, Type = container._SamplerState });
 
