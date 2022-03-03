@@ -886,10 +886,24 @@ namespace UnityEngine.Rendering.Universal
             RecordRenderGraphInternal(context, ref renderingData);
         }
 
-
+        /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
         internal void FinishRenderGraphRendering(ScriptableRenderContext context, RenderingData renderingData)
         {
+            FinishRenderGraphRenderingInternal(context, renderingData);
             InternalFinishRendering(renderingData.cameraData.resolveFinalTarget, renderingData);
+        }
+
+        /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="renderingData"></param>
+        protected virtual void FinishRenderGraphRenderingInternal(ScriptableRenderContext context, RenderingData renderingData)
+        {
         }
 
         /// <summary>
