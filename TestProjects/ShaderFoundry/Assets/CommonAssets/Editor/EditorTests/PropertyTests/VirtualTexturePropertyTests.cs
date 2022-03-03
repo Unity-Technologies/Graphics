@@ -11,10 +11,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
     {
         VirtualTexturePropertyBlockBuilder BuildWithNoOverrides(int layerCount, int layerToSample)
         {
-            var propBuilder = new VirtualTexturePropertyBlockBuilder
+            var propBuilder = new VirtualTexturePropertyBlockBuilder(layerCount)
             {
-                PropertyAttribute = new PropertyAttributeData(),
-                LayerCount = layerCount,
                 LayerToSample = layerToSample,
             };
             return propBuilder;
@@ -27,7 +25,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
         static string GetTextureDefaultName(VirtualTexturePropertyBlockBuilder propBuilder, int layerIndex)
         {
-            var defaultValueExpression = propBuilder.GetTextureDefault(layerIndex);
+            var defaultValueExpression = propBuilder.CachedLayers[layerIndex].TextureName;
             if (defaultValueExpression == null)
                 return null;
 
@@ -69,7 +67,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         {
             for (var i = 0; i < layerCount; ++i)
             {
-                var uniformName = propBuilder.GetUniformName(i);
+                var uniformName = propBuilder.CachedLayers[i].UniformName;
                 material.SetTexture(uniformName, textures[i]);
             }
         }
@@ -149,8 +147,11 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var propBuilder = BuildWithNoOverrides(layerCount, layerToSample);
             for (var i = 0; i < layerCount; ++i)
             {
-                propBuilder.Layers[i].UniformName = $"_Layer{i}";
-                propBuilder.Layers[i].DisplayName = $"Layer{i}";
+                propBuilder.Layers[i] = new VirtualTextureLayerData
+                {
+                    UniformName = $"_Layer{i}",
+                    DisplayName = $"Layer{i}",
+                };
             }
 
             VirtualTextureProperty_SampleTextureAtLayer_IsExpectedColor(propBuilder, layerColors, expectedColor, errorThreshold: 1);
@@ -198,6 +199,25 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             UnityEngine.Object.DestroyImmediate(shader);
         }
 
+        [Test]
+        public void VirtualTexture_NoLayerCountSpecified_ResultIsTwoLayers()
+        {
+            var layerCount = 5;
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, null));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+
+            var shader = BuildSimpleSurfaceBlockShaderObject(container, propBuilder.BlockName, block);
+            Assert.NotNull(shader);
+            var propertyCount = ShaderUtil.GetPropertyCount(shader);
+            Assert.AreEqual(2, propertyCount);
+            UnityEngine.Object.DestroyImmediate(shader);
+        }
+
         [TestCase("_MyProperty", "MyProperty", "white")]
         [TestCase("_MyProperty", null, null)]
         [TestCase(null, "MyProperty", null)]
@@ -218,8 +238,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             for (var layerIndex = 0; layerIndex < layerCount; ++layerIndex)
             {
-                var expectedUniformName = propBuilder.GetUniformName(layerIndex);
-                var expectedDisplayName = propBuilder.GetDisplayName(layerIndex);
+                var expectedUniformName = propBuilder.CachedLayers[layerIndex].UniformName;
+                var expectedDisplayName = propBuilder.CachedLayers[layerIndex].DisplayName;
                 var expectedTextureDefaultName = GetTextureDefaultName(propBuilder, layerIndex);
                 ValidateLayerTextureProperty(shader, layerIndex, expectedUniformName, expectedDisplayName, expectedTextureDefaultName);
             }
@@ -236,8 +256,13 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             string defaultTextureName = "red";
             var propBuilder = BuildWithNoOverrides(4, layerIndex);
             propBuilder.PropertyAttribute.DefaultValue = BuildTextureDefaultValueString(defaultTextureName);
-            propBuilder.Layers[layerIndex].UniformName = uniformName;
-            propBuilder.Layers[layerIndex].DisplayName = displayName;
+            // Set the layer override values
+            propBuilder.Layers[layerIndex] = new VirtualTextureLayerData
+            {
+                UniformName = uniformName,
+                DisplayName = displayName,
+                TextureName = BuildTextureDefaultValueString(textureName),
+            };
 
             var container = CreateContainer();
             var block = propBuilder.Build(container);
@@ -247,8 +272,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             for (var i = 0; i < propBuilder.LayerCount; ++i)
             {
                 // Only the specified layer should be different. All other layers should have default declarations.
-                var expectedUniformName = propBuilder.GetUniformName(i);
-                var expectedDisplayName = propBuilder.GetDisplayName(i);
+                var expectedUniformName = propBuilder.CachedLayers[i].UniformName;
+                var expectedDisplayName = propBuilder.CachedLayers[i].DisplayName;
                 var expectedTextureDefaultName = GetTextureDefaultName(propBuilder, i);
 
                 ValidateLayerTextureProperty(shader, i, expectedUniformName, expectedDisplayName, expectedTextureDefaultName);
@@ -271,6 +296,142 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var propertyAttributes = shader.GetPropertyAttributes(propIndex).ToList();
             foreach (var expectedAttribute in expectedAttributes)
                 Assert.AreNotEqual(-1, propertyAttributes.IndexOf(expectedAttribute), $"Layer {layerIndex}: Expected attribute '{expectedAttribute}` not found property.");
+        }
+
+        [Test]
+        public void VirtualTexture_LayerCountTooLarge_ErrorIsReported()
+        {
+            var layerCount = 5;
+            var expectedError = $"Parameter {VirtualTextureAttribute.LayerCountParamName} at position {0} must be in the range of [0, {VirtualTextureAttribute.MaxLayerCount}).";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, layerCount.ToString()));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        [Test]
+        public void VirtualTexture_LayerCountIsNegative_ErrorIsReported()
+        {
+            var layerCount = -1;
+            var expectedError = $"Parameter {VirtualTextureAttribute.LayerCountParamName} at position {0} must be in the range of [0, {VirtualTextureAttribute.MaxLayerCount}).";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, layerCount.ToString()));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        [Test]
+        public void VirtualTexture_LayerAttributeIndexIsNegative_IsError()
+        {
+            var layerCount = 2;
+            var expectedError = $"Parameter {VirtualTextureLayerAttribute.IndexParamName} must be in the range of [{0}, {layerCount}).";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, layerCount.ToString()));
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildLayerAttribute(container, "-1", null, null, null, null));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        [Test]
+        public void VirtualTexture_LayerAttributeIndexIsTooLarge_IsError()
+        {
+            var layerCount = 2;
+            var expectedError = $"Parameter {VirtualTextureLayerAttribute.IndexParamName} must be in the range of [{0}, {layerCount}).";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, layerCount.ToString()));
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildLayerAttribute(container, layerCount.ToString(), null, null, null, null));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        [Test]
+        public void VirtualTexture_LayerAttributeIndexNotSpecified_IsError()
+        {
+            var layerCount = 2;
+            var expectedError = $"{VirtualTextureLayerAttribute.AttributeName}: Required parameter {VirtualTextureLayerAttribute.IndexParamName} was not found.";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, null));
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildLayerAttribute(container, null, null, null, null, null));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        [Test]
+        public void VirtualTexture_LayerDefinedMultipleTimes_IsError()
+        {
+            var layerCount = 2;
+            var layerIndex = 0;
+            var expectedError = $"Multiple {VirtualTextureLayerAttribute.AttributeName} attributes with {VirtualTextureLayerAttribute.IndexParamName} of {layerIndex} cannot be specified.";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, null));
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildLayerAttribute(container, layerIndex.ToString(), null, null, null, null));
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildLayerAttribute(container, layerIndex.ToString(), null, null, null, null));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        [Test]
+        public void VirtualTexture_LayerAttributeIndexNotInteger_IsError()
+        {
+            var layerCount = 2;
+            var expectedError = $"Parameter {VirtualTextureLayerAttribute.IndexParamName} at position 0 must be an integer.";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, null));
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildLayerAttribute(container, "Foo", null, null, null, null));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        [Test]
+        public void VirtualTexture_LayerAttributeTextureTypeNotValidEnum_IsError()
+        {
+            const string textureType = "SomeFakeType";
+            var layerCount = 2;
+            var expectedError = $"Parameter {VirtualTextureLayerAttribute.TextureTypeParamName} at index 1 with value {textureType} must be a valid {typeof(LayerTextureType).Name} enum value.";
+            var container = CreateContainer();
+
+            var shaderAttributes = new List<ShaderAttribute>();
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildVirtualTextureAttribute(container, null));
+            shaderAttributes.Add(VirtualTexturePropertyBlockBuilder.BuildLayerAttribute(container, "0", null, null, null, textureType));
+
+            var propBuilder = BuildWithNoOverrides(layerCount, 0);
+            var block = propBuilder.BuildWithAttributeOverrides(container, shaderAttributes);
+            BuildAndExpectException(container, block, propBuilder.BlockName, expectedError);
+        }
+
+        public void BuildAndExpectException(ShaderContainer container, Block block, string shaderName, string expectedExceptionMessage)
+        {
+            TestDelegate testDelegate = () => BuildSimpleSurfaceBlockShader(container, shaderName, block);
+            var exception = Assert.Throws<System.Exception>(testDelegate);
+            Assert.AreEqual(expectedExceptionMessage, exception.Message);
         }
     }
 }

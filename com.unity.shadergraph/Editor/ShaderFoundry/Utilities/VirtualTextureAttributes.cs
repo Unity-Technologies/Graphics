@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderFoundry
 {
     internal class VirtualTextureAttribute
     {
-        const string AttributeName = "VirtualTexture";
-        const string LayerCountParamName = "layerCount";
+        internal const string AttributeName = "VirtualTexture";
+        internal const string LayerCountParamName = "layerCount";
 
         internal const int MaxLayerCount = 4;
         internal int LayerCount = 2;
@@ -53,12 +53,12 @@ namespace UnityEditor.ShaderFoundry
 
     internal class VirtualTextureLayerAttribute
     {
-        const string AttributeName = "VirtualTextureLayer";
-        const string IndexParamName = "index";
-        const string UniformNameParamName = "uniformName";
-        const string DisplayNameParamName = "displayName";
-        const string TextureNameParamName = "textureName";
-        const string TextureTypeParamName = "textureType";
+        internal const string AttributeName = "VirtualTextureLayer";
+        internal const string IndexParamName = "index";
+        internal const string UniformNameParamName = "uniformName";
+        internal const string DisplayNameParamName = "displayName";
+        internal const string TextureNameParamName = "textureName";
+        internal const string TextureTypeParamName = "textureType";
 
         internal enum LayerTextureType { Default, NormalTangentSpace, NormalObjectSpace };
         internal int Index = 0;
@@ -108,7 +108,13 @@ namespace UnityEditor.ShaderFoundry
                 return null;
 
             var result = new VirtualTextureLayerAttribute();
+            result.Index = int.MinValue;
             AttributeParsing.Parse(attribute, AttributeSignature, result);
+            // Error on 'index' not existing.
+            // TODO @ SHADERS: Ideally make require parameters part of the AttributeParsing utility.
+            if(result.Index == int.MinValue)
+                AttributeParsing.ReportRequiredParameterIsMissing(AttributeName, IndexParamName);
+
             return result;
         }
     }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderFoundry;
 using static UnityEditor.ShaderFoundry.VirtualTextureLayerAttribute;
 
 namespace UnityEditor.ShaderFoundry.UnitTests
@@ -11,80 +10,49 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             internal string UniformName;
             internal string DisplayName;
             internal string TextureName;
-            internal LayerTextureType? TextureType = null;
+            internal LayerTextureType? TextureType;
+        }
+
+        public class CachedLayerData
+        {
+            internal string UniformName;
+            internal string DisplayName;
+            internal string TextureName;
+            internal LayerTextureType TextureType;
         }
 
         const string VirtualTexturePropertyTypeName = "VTPropertyWithTextureType";
-        public int LayerCount = 2;
+        readonly public int LayerCount;
         public int LayerToSample = 0;
-        
-        public List<LayerData> Layers = new List<LayerData>
-        {
-            new LayerData(),
-            new LayerData(),
-            new LayerData(),
-            new LayerData(),
-        };
 
-        public static string GetName(int layerIndex, string layerValue, string propertyValue, string fieldName)
-        {
-            // Uniform and Display names follow a fallback scheme. It will use in order:
-            // - The layer specific value
-            // - The property attribute value
-            // - A default generated from the field name
-            var name = layerValue;
-            if (string.IsNullOrEmpty(name))
-            {
-                var backupName = propertyValue;
-                if (string.IsNullOrEmpty(backupName))
-                    backupName = fieldName;
-                name = $"{backupName}_Layer{layerIndex}";
-            }
-            return name;
-        }
+        // The data used to build layers. If a layer is null, then there is no override (no attribute) for the layer.
+        public List<LayerData> Layers = new List<LayerData>();
+        // The cached data of what each layer's values should be
+        public List<CachedLayerData> CachedLayers = new List<CachedLayerData>();
 
-        public string GetUniformName(int layerIndex)
+        public VirtualTexturePropertyBlockBuilder(int layerCount)
         {
-            return GetName(layerIndex, Layers[layerIndex]?.UniformName, PropertyAttribute?.UniformName, FieldName);
-        }
-
-        public string GetDisplayName(int layerIndex)
-        {
-            return GetName(layerIndex, Layers[layerIndex]?.DisplayName, PropertyAttribute?.DisplayName, FieldName);
-        }
-
-        public string GetTextureDefault(int layerIndex)
-        {
-            return Layers[layerIndex]?.TextureName ?? PropertyAttribute?.DefaultValue ?? "\"\" {}";
-        }
-
-        public VirtualTexturePropertyBlockBuilder()
-        {
+            LayerCount = layerCount;
             BlockName = "VirtualTextureProperty";
             FieldName = "FieldVirtualTexture";
-            //PropertyAttribute = new PropertyAttributeData() { DefaultValue = "\"\" {}" };
+            PropertyAttribute = new PropertyAttributeData();
+            for (var i = 0; i < layerCount; ++i)
+                Layers.Add(null);
         }
 
         public Block Build(ShaderContainer container)
         {
-            var attributeBuilder = new VirtualTextureAttribute { LayerCount = LayerCount };
-            var attribute = attributeBuilder.Build(container);
-            var attributes = new List<ShaderAttribute>();
-            attributes.Add(attribute);
-            for(var i = 0; i < Layers.Count; ++i)
-            {
-                var layerData = Layers[i];
-                var layerAttribute = new VirtualTextureLayerAttribute
-                {
-                    Index = i,
-                    UniformName = layerData.UniformName,
-                    DisplayName = layerData.DisplayName,
-                    TextureName = layerData.TextureName,
-                    TextureType = layerData?.TextureType ?? LayerTextureType.Default,
-                };
+            BuildCache();
 
-                attributes.Add(layerAttribute.Build(container));
-            }
+            var attributes = BuildAttributes(container);
+            return BuildWithAttributeOverrides(container, attributes);
+        }
+
+        // Builds with the provided attributes instead of building up the relevant virtual texture attributes.
+        // This primarily used for unit testing invalid attribute cases.
+        public Block BuildWithAttributeOverrides(ShaderContainer container, List<ShaderAttribute> attributes)
+        {
+            BuildCache();
 
             ShaderFunction sampleFunction = ShaderFunction.Invalid;
             var propData = new BlockBuilderUtilities.PropertyDeclarationData
@@ -107,7 +75,56 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return builder.Build();
         }
 
-        static ShaderType GetVirtualTextureType(ShaderContainer container)
+        internal List<ShaderAttribute> BuildAttributes(ShaderContainer container)
+        {
+            var attributes = new List<ShaderAttribute>();
+            var vtAttribute = BuildVirtualTextureAttribute(container, LayerCount.ToString());
+            attributes.Add(vtAttribute);
+
+            for (var i = 0; i < Layers.Count; ++i)
+            {
+                var layerData = Layers[i];
+                // This layer didn't have an override
+                if (layerData == null)
+                    continue;
+
+                var layerAttribute = BuildLayerAttribute(container, i, layerData);
+                attributes.Add(layerAttribute);
+            }
+            return attributes;
+        }
+
+        static internal ShaderAttribute BuildVirtualTextureAttribute(ShaderContainer container, string layerCount)
+        {
+            var attributeBuilder = new ShaderAttribute.Builder(container, VirtualTextureAttribute.AttributeName);
+            // LayerCount might be null so we can test the error case of it not being specified
+            if (!string.IsNullOrEmpty(layerCount))
+                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, VirtualTextureAttribute.LayerCountParamName, layerCount).Build());
+            return attributeBuilder.Build();
+        }
+
+        static internal ShaderAttribute BuildLayerAttribute(ShaderContainer container, int layerIndex, LayerData layerData)
+        {
+            return BuildLayerAttribute(container, layerIndex.ToString(), layerData.UniformName, layerData.DisplayName, layerData.TextureName, layerData.TextureType.ToString());
+        }
+
+        static internal ShaderAttribute BuildLayerAttribute(ShaderContainer container, string layerIndex, string uniformName, string displayName, string textureName, string textureType)
+        {
+            var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
+            if (!string.IsNullOrEmpty(layerIndex))
+                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, IndexParamName, layerIndex).Build());
+            if (!string.IsNullOrEmpty(uniformName))
+                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, UniformNameParamName, uniformName).Build());
+            if (!string.IsNullOrEmpty(displayName))
+                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, DisplayNameParamName, displayName).Build());
+            if (!string.IsNullOrEmpty(textureName))
+                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, TextureNameParamName, textureName).Build());
+            if (!string.IsNullOrEmpty(textureType))
+                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, TextureTypeParamName, textureType).Build());
+            return attributeBuilder.Build();
+        }
+
+        public static ShaderType GetVirtualTextureType(ShaderContainer container)
         {
             return container.GetType(VirtualTexturePropertyTypeName);
         }
@@ -137,8 +154,10 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             functionBuilder.AddLine("#if defined(SHADER_STAGE_RAY_TRACING)");
             functionBuilder.AddLine("if (vtParams.levelMode == VtLevel_Automatic || vtParams.levelMode == VtLevel_Bias)");
             functionBuilder.AddLine("{");
+            functionBuilder.Indentation();
             functionBuilder.AddLine("vtParams.levelMode = VtLevel_Lod;");
             functionBuilder.AddLine("vtParams.lodOrOffset = 0.0f;");
+            functionBuilder.Deindent();
             functionBuilder.AddLine("}");
             functionBuilder.AddLine("#endif");
             functionBuilder.AddLine($"StackInfo info = PrepareVT({propName}.vtProperty, vtParams);");
@@ -148,6 +167,38 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var result = functionBuilder.Build();
             blockBuilder.AddFunction(result);
             return result;
+        }
+
+        void BuildCache()
+        {
+            for (var i = 0; i < LayerCount; ++i)
+            {
+                var cachedLayerData = new CachedLayerData();
+                var layerData = Layers[i];
+
+                cachedLayerData.UniformName = GetName(i, layerData?.UniformName, PropertyAttribute?.UniformName, FieldName);
+                cachedLayerData.DisplayName = GetName(i, layerData?.DisplayName, PropertyAttribute?.DisplayName, FieldName);
+                cachedLayerData.TextureName = layerData?.TextureName ?? PropertyAttribute?.DefaultValue ?? "\"\" {}";
+                cachedLayerData.TextureType = layerData?.TextureType ?? LayerTextureType.Default;
+                CachedLayers.Add(cachedLayerData);
+            }
+        }
+
+        static string GetName(int layerIndex, string layerValue, string propertyValue, string fieldName)
+        {
+            // Uniform and Display names follow a fallback scheme. It will use in order:
+            // - The layer specific value
+            // - The property attribute value
+            // - A default generated from the field name
+            var name = layerValue;
+            if (string.IsNullOrEmpty(name))
+            {
+                var backupName = propertyValue;
+                if (string.IsNullOrEmpty(backupName))
+                    backupName = fieldName;
+                name = $"{backupName}_Layer{layerIndex}";
+            }
+            return name;
         }
     }
 }
