@@ -17,7 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         PowerOfTwoTextureAtlas m_TextureAtlas;
 
-        int m_FrameProbeIndex;
+        int m_FrameFetchIndex;
+        //@ Is this dictionary required at all?
         Dictionary<int, uint> m_TextureHashes = new Dictionary<int, uint>();
         Dictionary<int, uint> m_TextureLRU = new Dictionary<int, uint>();
 
@@ -89,11 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (GraphicsFormatUtility.GetGraphicsFormat(cubemap.format, false) != m_Format || cubemap.mipmapCount == 1)
                 {
-                    //@ We can get rid of most of conversions if we replace CopyTexture.
-                    //@ Inside FilterCubemap with Blit.
-
-                    //@ Replace with cmb.GetTemporaryRT
-                    convertedTextureTemp = RenderTexture.GetTemporary(texture.width, texture.height, 1, m_Format);
+                    convertedTextureTemp = RenderTexture.GetTemporary(texture.width, texture.height, 0, m_Format);
                     convertedTextureTemp.hideFlags = HideFlags.HideAndDontSave;
                     convertedTextureTemp.dimension = TextureDimension.Cube;
                     convertedTextureTemp.useMipMap = true;
@@ -172,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_TextureAtlas.ReserveSpace(textureId, width, height);
 
-            Debug.LogWarning("Reflection probe atlas relayout. Try to increase the size of the Reflection Probe Atlas in the HDRP settings for better performance.");
+            Debug.LogWarning("Reflection probe atlas re-layout. Try to increase the size of the Reflection Probe Atlas in the HDRP settings for better performance.");
 
             if(m_TextureAtlas.RelayoutEntries())
             {
@@ -203,7 +200,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    if (TryAllocateTextureWithoutBlit(textureId, convolvedTextureArrayTemp.width, convolvedTextureArrayTemp.height, ref scaleOffset))
+                    // In theory we should multiply by sqrt(6) to match the area.
+                    int octahedralWidth = convolvedTextureArrayTemp.width * 2;
+                    int octahedralHeight = convolvedTextureArrayTemp.height * 2;
+
+                    if (TryAllocateTextureWithoutBlit(textureId, octahedralWidth, octahedralHeight, ref scaleOffset))
                         m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
                     else
                         success = false;
@@ -259,14 +260,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_TextureLRU[textureId] = k_CurrentFrameLRUIndex;
 
-            fetchIndex = m_FrameProbeIndex++;
+            fetchIndex = m_FrameFetchIndex++;
 
             return scaleOffset;
         }
 
         public void NewFrame()
         {
-            m_FrameProbeIndex = 0;
+            m_FrameFetchIndex = 0;
 
             m_TextureLRU.Keys.ToList().ForEach(key =>
             {
