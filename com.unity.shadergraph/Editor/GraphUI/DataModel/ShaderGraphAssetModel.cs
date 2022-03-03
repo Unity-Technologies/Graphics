@@ -16,6 +16,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnEnable()
         {
+            if (GraphModel != null)
+                GraphModel.AssetModel = this;
+
             base.OnEnable();
             Name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this));
         }

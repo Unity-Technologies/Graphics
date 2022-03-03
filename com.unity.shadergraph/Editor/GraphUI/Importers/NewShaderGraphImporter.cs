@@ -79,6 +79,7 @@ Shader ""Hidden/GraphErrorShader2""
             model.name = "View";
             model.CreateGraph("foo", typeof(ShaderGraphStencil));
             EditorJsonUtility.FromJsonOverwrite(helper.GTFJSON, model);
+            ((ShaderGraphModel)model.GraphModel).GraphHandler = graph;
             model.Init();
 
             var shader = GetShader(ctx, graph);

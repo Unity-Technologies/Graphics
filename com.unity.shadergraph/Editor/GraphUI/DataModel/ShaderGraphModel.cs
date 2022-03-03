@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // TODO: This will eventually delegate to real serialized data. For now, it's kept here ephemerally. Until
         //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
-        public GraphHandler GraphHandler => m_GraphHandler ??= GraphUtil.OpenGraph(AssetModel.GetPath());
+        public GraphHandler GraphHandler { get => m_GraphHandler; set => m_GraphHandler = value; }// => m_GraphHandler ??= GraphUtil.OpenGraph(AssetModel.GetPath());
 
         public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 
