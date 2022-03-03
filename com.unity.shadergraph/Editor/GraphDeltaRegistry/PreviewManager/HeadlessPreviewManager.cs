@@ -524,9 +524,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_CachedPreviewData[nodeReader.GetName()].shaderString = shaderOutput;
             m_CachedPreviewData[nodeReader.GetName()].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance);
             m_CachedPreviewData[nodeReader.GetName()].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
+
             var shader = MakeShader(shaderOutput);
             EditorMaterialUtility.SetShaderDefaults(shader, defaultTextures.Select(e => e.Item1).ToArray(), defaultTextures.Select(e => e.Item2).ToArray());
-            return shader;
+            var tmpShader = Object.Instantiate(shader);
+            Object.DestroyImmediate(shader);
+            return tmpShader;
         }
 
         Shader GetMasterPreviewShaderObject()
@@ -535,9 +538,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var contextNodeReader = m_GraphHandle.GetNodeReader(k_MasterPreviewName);
             string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out var defaultTextures);
             m_MasterPreviewData.shaderString = shaderOutput;
+
             var shader = MakeShader(shaderOutput);
             EditorMaterialUtility.SetShaderDefaults(shader, defaultTextures.Select(e => e.Item1).ToArray(), defaultTextures.Select(e => e.Item2).ToArray());
-            return shader;
+            var tmpShader = Object.Instantiate(shader);
+            Object.DestroyImmediate(shader);
+            return tmpShader;
         }
 
         PreviewData AddNodePreviewData(string nodeName)

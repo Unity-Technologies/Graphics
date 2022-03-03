@@ -66,7 +66,9 @@ Shader ""Hidden/GraphErrorShader2""
             var shaderCode = Interpreter.GetShaderForNode(node, graph, reg, out var defaultTextures);
             var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
             EditorMaterialUtility.SetShaderDefaults(shader, defaultTextures.Select(e => e.Item1).ToArray(), defaultTextures.Select(e => e.Item2).ToArray());
-            return shader;
+            var tmpShader = Object.Instantiate(shader);
+            Object.DestroyImmediate(shader);
+            return tmpShader;
         }
 
         public override void OnImportAsset(AssetImportContext ctx)
