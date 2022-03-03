@@ -214,35 +214,32 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum TileClusterCategoryDebug : int
     {
         /// <summary>Punctual lights.</summary>
-        Punctual = 1,
+        Punctual = (1 << LightCategory.Punctual),
         /// <summary>Area lights.</summary>
-        Area = 2,
+        Area = (1 << LightCategory.Area),
         /// <summary>Area and punctual lights.</summary>
         [InspectorName("Area and Punctual")]
-        AreaAndPunctual = 3,
+        AreaAndPunctual = Area | Punctual,
         /// <summary>Environment lights.</summary>
         [InspectorName("Reflection Probes")]
-        Environment = 4,
+        Environment = (1 << LightCategory.Env),
         /// <summary>Environment and punctual lights.</summary>
         [InspectorName("Reflection Probes and Punctual")]
-        EnvironmentAndPunctual = 5,
+        EnvironmentAndPunctual = Environment | Punctual,
         /// <summary>Environment and area lights.</summary>
         [InspectorName("Reflection Probes and Area")]
-        EnvironmentAndArea = 6,
+        EnvironmentAndArea = Environment | Area,
         /// <summary>All lights.</summary>
         [InspectorName("Reflection Probes, Area and Punctual")]
-        EnvironmentAndAreaAndPunctual = 7,
-        /// <summary>Probe Volumes.</summary>
-        [InspectorName("Probe Volumes")]
-        ProbeVolumes = 8,
+        EnvironmentAndAreaAndPunctual = Environment | Area | Punctual,
         /// <summary>Decals.</summary>
-        Decal = 16,
+        Decal = (1 << LightCategory.Decal),
         /// <summary>Local Volumetric Fog.</summary>
-        LocalVolumetricFog = 32,
+        LocalVolumetricFog = (1 << LightCategory.LocalVolumetricFog),
         /// <summary>Local Volumetric Fog.</summary>
         [Obsolete("Use LocalVolumetricFog", false)]
         [InspectorName("Local Volumetric Fog")]
-        DensityVolumes = 32
+        DensityVolumes = LocalVolumetricFog
     };
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -606,6 +603,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Directional light
         Light m_CurrentSunLight;
+        int m_CurrentSunLightDataIndex = -1;
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         HDProcessedVisibleLightsBuilder.ShadowMapFlags m_CurrentSunShadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None;
@@ -1578,8 +1576,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Sunlight is the directional casting shadows
                             // Fallback to the first non shadow casting directional light.
-                            if ((processedLightEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0 || m_CurrentSunLight == null)
+                            if (additionalLightData.ShadowsEnabled() || m_CurrentSunLight == null)
+                            {
+                                m_CurrentSunLightDataIndex = i;
                                 m_CurrentSunLight = additionalLightData.legacyLight;
+                            }
                         }
 
                         ReserveCookieAtlasTexture(additionalLightData, additionalLightData.legacyLight, processedLightEntity.lightType);
@@ -1840,6 +1841,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
+                m_CurrentSunLightDataIndex = -1;
                 m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;

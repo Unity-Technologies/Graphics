@@ -137,6 +137,21 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
+    /// <summary>
+    /// Defines the upscaling filter selected by the user the universal render pipeline asset.
+    /// </summary>
+    public enum UpscalingFilterSelection
+    {
+        [InspectorName("Automatic")]
+        Auto,
+        [InspectorName("Bilinear")]
+        Linear,
+        [InspectorName("Nearest-Neighbor")]
+        Point,
+        [InspectorName("FidelityFX Super Resolution 1.0")]
+        FSR
+    }
+
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
@@ -167,6 +182,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
+        [SerializeField] bool m_FsrOverrideSharpness = false;
+        [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -658,6 +676,39 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        /// <summary>
+        /// Returns the upscaling filter desired by the user
+        /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
+        ///       "Automatic" which resolve to an actual filter at a later time.
+        /// </summary>
+        public UpscalingFilterSelection upscalingFilter
+        {
+            get { return m_UpscalingFilter; }
+            set { m_UpscalingFilter = value; }
+        }
+
+        /// <summary>
+        /// If this property is set to true, the value from the fsrSharpness property will control the intensity of the
+        /// sharpening filter associated with FidelityFX Super Resolution.
+        /// </summary>
+        public bool fsrOverrideSharpness
+        {
+            get { return m_FsrOverrideSharpness; }
+            set { m_FsrOverrideSharpness = value; }
+        }
+
+        /// <summary>
+        /// Controls the intensity of the sharpening filter associated with FidelityFX Super Resolution.
+        /// A value of 1.0 produces maximum sharpness while a value of 0.0 disables the sharpening filter entirely.
+        ///
+        /// Note: This value only has an effect when the fsrOverrideSharpness property is set to true.
+        /// </summary>
+        public float fsrSharpness
+        {
+            get { return m_FsrSharpness; }
+            set { m_FsrSharpness = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode

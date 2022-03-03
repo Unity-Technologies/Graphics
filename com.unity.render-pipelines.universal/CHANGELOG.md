@@ -4,14 +4,53 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.3] - 2021-11-17
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+## [12.1.6] - 2022-02-09
 
 ### Fixed
-- Fixed broken soft shadow filtering. [case 1374960](https://issuetracker.unity3d.com/product/unity/issues/guid/1374960/)
+- Fixed incorrect shadow batching and shadow length [case 1387859](https://issuetracker.unity3d.com/issues/shadow-caster-2d-casts-artifacted-shadows)
+- Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
+- Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
+- Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
+
+## [12.1.5] - 2022-01-14
+
+### Fixed
+- Fixed FXAA quality issues when render scale is not 1.0.
+- Fixed an issue in where the _ScreenParams is not setup correctly.
+
+### Added
+- Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
+- Added support for FidelityFX Super Resolution 1.0 upscaling filter.
+
+### Changed
+- Re-added the menu button to be able to convert selected materials.
+
+### Fixed
+- Fixed incorrect blending of ParticleUnlit. [case 1373188](https://issuetracker.unity3d.com/product/unity/issues/guid/1373188/)
+- Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
+- Fixed single channel compressed (BC4) cookies on main light.
+- Fixed an issue with too many variants being included in ShaderGraph shaders used in URP. [[case 1378545](https://issuetracker.unity3d.com/issues/some-lit-shaders-are-having-huge-count-of-variants-which-leads-to-project-build-prevention)]
+- Fixed several Native RenderPass issues regarding input attachments, DepthOnly pass, Decals.
+
+## [12.1.4] - 2021-12-07
+
+### Added
+- Added Adaptive Performance Decals scaler access.
+
+### Fixed
+- Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
 - Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+- Fixed Lens Flare not accounting Render Scale setting. [case 1376820](https://issuetracker.unity3d.com/issues/urp-lens-flare-do-not-account-for-render-scale-setting)
+- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
+- Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233](https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
+- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
+- Fixed decal compilation issue on mac.
+- Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
+
+## [12.1.3] - 2021-11-17
+
+## Fixed
+- Fixed broken soft shadow filtering. [case 1374960](https://issuetracker.unity3d.com/product/unity/issues/guid/1374960/)
 
 ## [12.1.2] - 2021-10-22
 
@@ -25,9 +64,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
 
 ## [12.1.1] - 2021-10-04
-
-### Added
-- Added Adaptive Performance Decals scaler access.
 
 ### Fixed
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]

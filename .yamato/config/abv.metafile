@@ -23,12 +23,12 @@ jobs:
       - .yamato/all-lightmapping.yml#Lightmapping_<TRACK>
       - .yamato/_templates.yml#all_template_ci_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
-    triggers:
-        recurring:
-          -  branch: 2021.2/staging
-             frequency: 1 * * ?
-        allow_on:
-          - 2021.2
+    # triggers:
+    #     recurring:
+    #       -  branch: 2021.2/staging
+    #          frequency: 1 * * ?
+    #     allow_on:
+    #       - 2021.2
 
   - name: General Checks
     # triggers:

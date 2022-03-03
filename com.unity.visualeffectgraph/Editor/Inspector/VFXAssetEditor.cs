@@ -526,17 +526,37 @@ class VisualEffectAssetEditor : Editor
                 }
             }
         }
+        VisualEffectAsset asset = (VisualEffectAsset)target;
+        VisualEffectResource resource = asset.GetResource();
 
-        EditorGUILayout.BeginHorizontal();
-        EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen."));
-        EditorGUI.BeginChangeCheck();
-        int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
-        if (EditorGUI.EndChangeCheck())
+        //The following should be working, and works for newly created systems, but fails for old systems,
+        //due probably to incorrectly pasting the VFXData when creating them.
+        // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+        //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
+
+        bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+        using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
-            cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
-            resourceObject.ApplyModifiedProperties();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
+            string forceSimulateTooltip = hasAutomaticBoundsSystems
+                ? " When using systems with Bounds Mode set to Automatic, this has to be set to Always recompute bounds and simulate."
+                : "";
+            EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip));
+            EditorGUI.BeginChangeCheck();
+
+            int newOption =
+                EditorGUILayout.Popup(
+                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
+                    k_CullingOptionsContents);
+            if (EditorGUI.EndChangeCheck())
+            {
+                cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
+                resourceObject.ApplyModifiedProperties();
+            }
         }
+
         EditorGUILayout.EndHorizontal();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
@@ -643,8 +663,8 @@ class VisualEffectAssetEditor : Editor
 
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VisualEffectAsset asset = (VisualEffectAsset)target;
-            VisualEffectResource resource = asset.GetResource();
+            asset = (VisualEffectAsset)target;
+            resource = asset.GetResource();
 
             m_OutputContexts.Clear();
             m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));

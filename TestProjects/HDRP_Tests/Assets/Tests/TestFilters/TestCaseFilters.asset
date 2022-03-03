@@ -72,6 +72,15 @@ MonoBehaviour:
     - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: fail on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
@@ -94,6 +103,15 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Vulkan hardware DRS broken on render backend
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: db1e613f72b7a5b4188402e98ca17cd4, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: metal  hardware DRS broken on render backend
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 4dee1c4da3598c24f9fdd58a675d6547, type: 3}
@@ -121,6 +139,42 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with cache server
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using UnityEditor.VFX;
@@ -66,13 +66,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public virtual string identifier => GetType().Name;
 
-        public virtual ScriptableObject GetMetadataObject()
+        public virtual ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
             hdMetadata.subTargetGuid = subTargetGuid;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
             hdMetadata.hdSubTargetVersion = systemData.version;
+            hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation || graph.AnyVertexAnimationActive();
             return hdMetadata;
         }
 

@@ -585,7 +585,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool SupportsMotionVectorPerVertex(out uint vertsCount)
+        public virtual bool SupportsMotionVectorPerVertex(out uint vertsCount)
         {
             switch (taskType)
             {
@@ -617,7 +617,7 @@ namespace UnityEditor.VFX
             base.GenerateErrors(manager);
             var dataParticle = GetData() as VFXDataParticle;
 
-            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+            if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
             {
                 var modifiedBounds = children
                     .SelectMany(b =>

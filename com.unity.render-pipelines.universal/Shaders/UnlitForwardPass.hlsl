@@ -101,6 +101,10 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
 
     AlphaDiscard(alpha, _Cutoff);
 
+    #if defined(_ALPHAPREMULTIPLY_ON)
+    color *= alpha;
+    #endif
+
     InputData inputData;
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);

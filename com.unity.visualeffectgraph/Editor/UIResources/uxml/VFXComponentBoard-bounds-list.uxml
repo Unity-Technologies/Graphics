@@ -4,6 +4,6 @@
       <ui:Button name="system-button"/>
     </vfx:VFXBoundsRecorderField>
     <ui:VisualElement name="divider" class="horizontal"/>
-    <ui:Button name="bounds-mode"  class="MiniDropDown"/>
+<!--    <vfx:VFXEnumField name="bounds-mode"/>-->
   </vfx:VFXComponentBoardBoundsSystemUI>
 </UXML>

@@ -727,6 +727,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 graphicDevice == GraphicsDeviceType.Direct3D12 ||
                 graphicDevice == GraphicsDeviceType.PlayStation4 ||
                 graphicDevice == GraphicsDeviceType.PlayStation5 ||
+                graphicDevice == GraphicsDeviceType.PlayStation5NGGC ||
                 graphicDevice == GraphicsDeviceType.XboxOne ||
                 graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                 graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
@@ -759,12 +760,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)
         {
-            foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
+            bool editor = false;
+#if UNITY_EDITOR
+            editor = !UnityEditor.BuildPipeline.isBuildingPlayer;
+#endif
+
+            if (editor)  // In the editor we use the current graphics device instead of the list to avoid blocking the rendering if an invalid API is added but not enabled.
             {
-                if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                return HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType);
+            }
+            else
+            {
+                foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
                 {
-                    unsupportedGraphicDevice = graphicAPI;
-                    return false;
+                    if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
+                    {
+                        unsupportedGraphicDevice = graphicAPI;
+                        return false;
+                    }
                 }
             }
             return true;

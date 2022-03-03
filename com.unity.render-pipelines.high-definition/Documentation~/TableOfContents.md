@@ -132,6 +132,7 @@
       * [Planar Reflection Probe](Planar-Reflection-Probe.md)
       * [Reflection Proxy Volume](Reflection-Proxy-Volume.md)
   * [Light](Light-Component.md)
+  * [Light Anchor](light-anchor.md)
   * [Environment Lighting](Environment-Lighting.md)
   * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
@@ -163,7 +164,7 @@
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve.md)
   * [Propagating NaNs](Post-Processing-Propagating-NaNs.md)
 * UI
-  * [UI Best Pratices](UI-Best-Practices.md)
+  * [UI Best Practices](UI-Best-Practices.md)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started.md)
   * Effects and Volume Overrides

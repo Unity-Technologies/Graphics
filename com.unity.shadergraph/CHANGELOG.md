@@ -4,22 +4,40 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.4]
+## [12.1.6] - 2022-02-09
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.5] - 2022-01-14
 
 ### Fixed
- - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+  - Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
+
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.4] - 2021-12-07
+
+### Fixed
+  - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
+  - Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
+  - Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
+  - Fixed the behavior of checkerboard node with raytracing
+  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+  - Fixed a validation error in ShaderGraph when using the SimpleNoise node both inside and outside a subgraph [1383046] (https://issuetracker.unity3d.com/issues/validation-error-is-usually-thrown-when-simple-noise-node-is-both-in-a-shadergraph-and-in-a-sub-graph)
+  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
 
 ## [12.1.3] - 2021-11-17
 
-### Fixed
-
- - Fixed the behavior of checkerboard node with raytracing
- - Fixed a validation error in ShaderGraph when using the SimpleNoise node both inside and outside a subgraph [1383046] (https://issuetracker.unity3d.com/issues/validation-error-is-usually-thrown-when-simple-noise-node-is-both-in-a-shadergraph-and-in-a-sub-graph)
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.2] - 2021-10-22
 
-### Fixed
- - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.1] - 2021-10-04
 
@@ -87,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 - ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
 - Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
+- GatherTexture2D and TexelSize nodes now support all shader stages.
 
 ### Fixed
  - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
