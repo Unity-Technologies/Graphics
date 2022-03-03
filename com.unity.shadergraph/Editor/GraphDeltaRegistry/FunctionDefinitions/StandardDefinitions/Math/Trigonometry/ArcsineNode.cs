@@ -8,7 +8,7 @@ namespace com.unity.shadergraph.defs
     {
         public static FunctionDescriptor FunctionDescriptor => new(
             1,
-            "ArcsineNode",
+            "Arcsine",
             "Out = asin(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
