@@ -828,6 +828,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool InitializePropagationBuffers(ProbeVolumeHandle probeVolume)
         {
+            // TODO: Detect baked data changes better. Currently we won't update propagation buffers if the length of a new data is the same.
+            
             probeVolume.EnsureVolumeBuffers();
             
             var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;

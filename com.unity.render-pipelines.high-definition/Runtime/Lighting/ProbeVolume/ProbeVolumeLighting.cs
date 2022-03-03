@@ -670,11 +670,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (isUploadNeeded || volume.IsDataUpdated())
                 {
-                    volume.SetDataUpdated(false);
-
                     if (!volume.IsDataAssigned() || !volume.IsAssetCompatible())
                     {
                         ReleaseProbeVolumeFromAtlas(volume);
+                        return false;
+                    }
+
+                    if (size > s_MaxProbeVolumeProbeCount)
+                    {
+                        Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
                         return false;
                     }
 
@@ -687,12 +691,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
                     {
                         Debug.AssertFormat(volume.DataSHL2Length == sizeSHCoefficientsL2, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", volume.DataSHL2Length, sizeSHCoefficientsL2);
-                    }
-
-                    if (size > s_MaxProbeVolumeProbeCount)
-                    {
-                        Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
-                        return false;
                     }
 
                     // Ready to upload: prepare parameters and buffers
@@ -746,6 +744,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             volumeBuffers,
                             m_ProbeVolumeAtlasSHRTHandle);
                     }
+
+                    volume.SetDataUpdated(false);
 
                     return true;
                 }

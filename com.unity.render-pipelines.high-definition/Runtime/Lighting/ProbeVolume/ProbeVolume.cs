@@ -977,7 +977,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EnsureVolumeBuffers()
         {
-            bool changed = false;
+            bool changed = dataUpdated;
 
             changed |= EnsureBuffer<float>(ref m_VolumeBuffers.SHL01Buffer, probeVolumeAsset.payload.dataSHL01.Length);
 
