@@ -170,10 +170,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 while ((m_TileResolution.x * m_TileResolution.y * m_WordsPerTile) > (UniversalRenderPipeline.maxTileVec4s * 4));
 
                 var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
-                // TODO: Make this work with VR
-                var fovHalfWidth = fovHalfHeight * (float)screenResolution.x / (float)screenResolution.y;
-
-                var maxZFactor = (float)UniversalRenderPipeline.maxZBins / (math.sqrt(camera.farClipPlane) - math.sqrt(camera.nearClipPlane));
                 // binIndex = log2(z) * zBinMul + zBinAdd
                 m_ZBinMul = 1f / math.log2(1f + 2f * fovHalfHeight / m_TileResolution.y);
                 m_ZBinAdd = -math.log2(camera.nearClipPlane) * m_ZBinMul;
