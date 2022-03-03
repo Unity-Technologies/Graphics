@@ -30,6 +30,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
 
             float4x4 unity_BRGPickingViewMatrix;
             float4x4 unity_BRGPickingProjMatrix;
+            int unity_BRGPickingSubmeshIndex;
 
             struct Attributes
             {
@@ -60,10 +61,23 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                // Add 1 to the ID, so the entity ID 0 gets a value that is not equal
-                // to the clear value.
-                uint pickingValue = (unity_EntityId.x + 1) | 0x80000000;
-                return PackId32ToRGBA8888(pickingValue);
+                static const uint SubmeshIndexBitCount = 5;
+                static const uint EntityIndexBitCount = 26;
+
+                static const uint SubmeshIndexBitsAndMask = (1 << SubmeshIndexBitCount) - 1;
+                static const uint EntityIndexBitsAndMask = (1 << EntityIndexBitCount) - 1;
+
+                // Add 1 to the ID, so the entity ID 0 gets a value that is not equal to the clear value.
+                uint submeshIndex = (uint)unity_BRGPickingSubmeshIndex;
+                uint entityIndex = unity_EntityId.x + 1;
+
+                uint highBitMask = 1 << 31;
+                uint submeshMask = (submeshIndex & SubmeshIndexBitsAndMask) << EntityIndexBitCount;
+                uint entityIndexMask = entityIndex & EntityIndexBitsAndMask;
+
+                uint pickingID = highBitMask | submeshMask | entityIndexMask;
+
+                return PackId32ToRGBA8888(pickingID);
             }
 
             ENDHLSL
