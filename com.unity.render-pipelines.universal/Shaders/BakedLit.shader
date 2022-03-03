@@ -181,6 +181,35 @@ Shader "Universal Render Pipeline/Baked Lit"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "Data Extraction"
+            Tags{"LightMode" = "DataExtraction"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma editor_sync_compilation
+
+            #pragma vertex ExtractionVertex
+            #pragma fragment ExtractionFragment
+
+            #define INITIALIZE_DATA_EXTRACTION_SURFACE_DATA(a, b)
+            //#define INITIALIZE_DATA_EXTRACTION_SURFACE_DATA InitializeStandardLitSurfaceData
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DataExtractionPass.hlsl"
+            ENDHLSL
+        }
+
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {

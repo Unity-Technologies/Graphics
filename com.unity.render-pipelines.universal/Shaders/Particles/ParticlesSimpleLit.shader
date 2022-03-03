@@ -261,6 +261,40 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthNormalsPass.hlsl"
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "Data Extraction"
+            Tags{"LightMode" = "DataExtraction"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _ALPHATEST_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
+            #pragma editor_sync_compilation
+
+            #pragma vertex ExtractionVertex
+            #pragma fragment ExtractionFragment
+
+            #define INITIALIZE_DATA_EXTRACTION_SURFACE_DATA(a, b)
+            //#define INITIALIZE_DATA_EXTRACTION_SURFACE_DATA InitializeStandardLitSurfaceData
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DataExtractionPass.hlsl"
+
+            ENDHLSL
+        }
+
         // ------------------------------------------------------------------
         //  Scene view outline pass.
         Pass

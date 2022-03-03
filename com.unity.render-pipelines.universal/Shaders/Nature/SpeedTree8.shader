@@ -116,6 +116,36 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
 
         Pass
         {
+            Name "Data Extraction"
+            Tags{"LightMode" = "DataExtraction"}
+
+            HLSLPROGRAM
+
+            #pragma enable_d3d11_debug_symbols
+
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
+            #pragma shader_feature_local EFFECT_BILLBOARD
+
+            #define ENABLE_WIND
+
+            #pragma vertex ExtractionVertex
+            #pragma fragment ExtractionFragment
+
+
+            #include "SpeedTree8Input.hlsl"
+            #include "SpeedTree8Passes.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DataExtractionPass.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 

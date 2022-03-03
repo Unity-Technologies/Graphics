@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_LIT_EXTRACTION_PASS_INCLUDED
-#define UNIVERSAL_LIT_EXTRACTION_PASS_INCLUDED
+#ifndef UNIVERSAL_DATA_EXTRACTION_PASS_INCLUDED
+#define UNIVERSAL_DATA_EXTRACTION_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DataExtraction.hlsl"
@@ -21,6 +21,10 @@ struct Attributes
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
+#if defined(UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED) || defined(UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED)
+#define UNIVERSAL_DATA_EXTRACTION_SPEEDTREE
+#endif
+
 struct Varyings
 {
     float2 uv                       : TEXCOORD0;
@@ -31,6 +35,22 @@ struct Varyings
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
+
+#ifdef UNIVERSAL_DATA_EXTRACTION_SPEEDTREE
+#define VertexAttributes SpeedTreeVertexInput
+
+Attributes DataExtractionVertexAttributesSpeedTree(SpeedTreeVertexInput vertexAttributes)
+{
+    Attributes a = (Attributes)0;
+    a.positionOS = vertexAttributes.vertex;
+    a.normalOS   = vertexAttributes.normal;
+    a.tangentOS  = vertexAttributes.tangent;
+    a.texcoord   = vertexAttributes.texcoord;
+    return a;
+}
+#else
+#define VertexAttributes Attributes
+#endif
 
 void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
@@ -50,8 +70,15 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.normalizedScreenSpaceUV = input.positionCS.xy;
 }
 
-Varyings ExtractionVertex(Attributes input)
+Varyings ExtractionVertex(VertexAttributes vertexAttributes)
 {
+    Attributes input = (Attributes)0;
+#ifdef UNIVERSAL_DATA_EXTRACTION_SPEEDTREE
+    input = DataExtractionVertexAttributesSpeedTree(vertexAttributes);
+#else
+    input = vertexAttributes;
+#endif
+
     Varyings output = (Varyings)0;
 
     UNITY_SETUP_INSTANCE_ID(input);
@@ -65,8 +92,6 @@ Varyings ExtractionVertex(Attributes input)
     // also required for per-vertex lighting and SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
-    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
     real sign = input.tangentOS.w * GetOddNegativeScale();
@@ -75,22 +100,24 @@ Varyings ExtractionVertex(Attributes input)
     output.positionWS = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
-    if (UNITY_DataExtraction_Space == 0)
-        output.positionCS = float4(input.texcoord, 0.0F, 1.0f);
-    else if (UNITY_DataExtraction_Space == 1)
-        output.positionCS = float4(input.uv1.xy, 0.0F, 1.0f);
-    else if (UNITY_DataExtraction_Space == 2)
-        output.positionCS = float4(input.uv2, 0.0F, 1.0f);
-    else if (UNITY_DataExtraction_Space == 3)
-        output.positionCS = float4(input.uv3, 0.0F, 1.0f);
-    else if (UNITY_DataExtraction_Space == 4)
-        output.positionCS = float4(input.uv4, 0.0F, 1.0f);
-    else if (UNITY_DataExtraction_Space == 5)
-        output.positionCS = float4(input.uv5, 0.0F, 1.0f);
-    else if (UNITY_DataExtraction_Space == 6)
-        output.positionCS = float4(input.uv6, 0.0F, 1.0f);
-    else if (UNITY_DataExtraction_Space == 7)
-        output.positionCS = float4(input.uv7, 0.0F, 1.0f);
+    // if (UNITY_DataExtraction_Space == 0)
+    //     output.positionCS = float4(input.texcoord, 0.0F, 1.0f);
+    // else if (UNITY_DataExtraction_Space == 1)
+    //     output.positionCS = float4(input.uv1.xy, 0.0F, 1.0f);
+    // else if (UNITY_DataExtraction_Space == 2)
+    //     output.positionCS = float4(input.uv2, 0.0F, 1.0f);
+    // else if (UNITY_DataExtraction_Space == 3)
+    //     output.positionCS = float4(input.uv3, 0.0F, 1.0f);
+    // else if (UNITY_DataExtraction_Space == 4)
+    //     output.positionCS = float4(input.uv4, 0.0F, 1.0f);
+    // else if (UNITY_DataExtraction_Space == 5)
+    //     output.positionCS = float4(input.uv5, 0.0F, 1.0f);
+    // else if (UNITY_DataExtraction_Space == 6)
+    //     output.positionCS = float4(input.uv6, 0.0F, 1.0f);
+    // else if (UNITY_DataExtraction_Space == 7)
+    //     output.positionCS = float4(input.uv7, 0.0F, 1.0f);
+    //
+    // output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
     return output;
 }
@@ -101,13 +128,15 @@ float4 ExtractionFragment(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     SurfaceData surfaceData = (SurfaceData)0;
-    INITIALIZE_DATA_EXTRACTION_SURFACE_DATA(input.uv, surfaceData);
+    // INITIALIZE_DATA_EXTRACTION_SURFACE_DATA(input.uv, surfaceData);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
+    #if defined(_ALPHATEST_ON) && !defined(UNIVERSAL_DATA_EXTRACTION_SPEEDTREE)
     #if _ALPHATEST_ON
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
+    #endif
     #endif
 
     ExtractionInputs extraction = (ExtractionInputs)0;
@@ -130,5 +159,43 @@ float4 ExtractionFragment(Varyings input) : SV_Target
 
     return OutputExtraction(extraction);
 }
+#if 0
+float4 ExtractionFragmentSpeedTree(SpeedTreeFragmentInput input) : SV_Target
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.interpolated.uv;
+    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
+
+    half alpha = diffuse.a * input.interpolated.color.a;
+    AlphaDiscard(alpha, 0.3333);
+
+    half3 normalTs = half3(0, 0, 1);
+
+    InputData inputData;
+    InitializeInputData(input, normalTs, inputData);
+
+    ExtractionInputs extraction = (ExtractionInputs)0;
+    extraction.vertexNormalWS = input.interpolated.normalWS;
+    extraction.pixelNormalWS = inputData.normalWS;
+    extraction.positionWS = inputData.positionWS;
+    extraction.deviceDepth = input.interpolated.clipPos.z;
+
+    // TODO: Implement these when DataExtraction is intended to support all material properties
+    // extraction.baseColor = surfaceData.albedo;
+    // extraction.alpha = OutputAlpha(UniversalFragmentPBR(inputData, surfaceData).a);
+    // #ifdef _SPECULAR_SETUP
+    // extraction.specular = surfaceData.specular;
+    // #else
+    // extraction.metallic = surfaceData.metallic;
+    // #endif
+    // extraction.smoothness = surfaceData.smoothness;
+    // extraction.occlusion = surfaceData.occlusion;
+    // extraction.emission = surfaceData.emission;
+
+    return OutputExtraction(extraction);
+}
+#endif
 
 #endif
