@@ -13,7 +13,6 @@
 		            #endif
 		        #endif
 		        #if USE_SOFT_PARTICLE
-		            // x: inverse soft particles fade distance
 		            VFX_OPTIONAL_INTERPOLATION float invSoftParticleFadeDistance;
 		        #endif
 		        #if USE_FLIPBOOK_MOTIONVECTORS
