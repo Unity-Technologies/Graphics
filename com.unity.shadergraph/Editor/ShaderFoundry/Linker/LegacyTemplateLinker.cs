@@ -496,6 +496,31 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
+        void AddPerInstanceMacros(ShaderUniformCollection shaderUniforms, ShaderBuilder propertyBuilder)
+        {
+            // Handle per instance properties.
+            // TODO @ SHADERS: This should ideally get refactored later to be part of building uniforms.
+            bool hasPerInstanceProperties = shaderUniforms.HasPerInstanceProperties;
+            if (hasPerInstanceProperties)
+            {
+                propertyBuilder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
+
+                propertyBuilder.AppendLine("// DOTS instancing definitions");
+                propertyBuilder.AppendLine("UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)");
+                foreach (var uniform in shaderUniforms.Uniforms.Where(u => u.DataSource == UniformDataSource.PerInstance))
+                {
+                    propertyBuilder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({uniform.Type.Name}, {uniform.Name})");
+                }
+                propertyBuilder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
+
+                propertyBuilder.AppendLine("// DOTS instancing usage macros");
+                propertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var)");
+                propertyBuilder.AppendLine("#else");
+                propertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
+                propertyBuilder.AppendLine("#endif");
+            }
+        }
+
         ShaderValueType ShaderValueTypeFrom(int width)
         {
             switch (width)
@@ -837,12 +862,12 @@ namespace UnityEditor.ShaderFoundry
             // Graph Properties
 
             {
-                var uniformCollection = new UniformBufferCollection();
-                foreach (var uniformDeclaration in shaderUniforms.Uniforms)
-                    uniformDeclaration.Declare(uniformCollection);
+                var uniformBufferCollection = new UniformBufferCollection();
+                uniformBufferCollection.Add(shaderUniforms);
 
                 var propertyBuilder = new ShaderBuilder();
-                uniformCollection.AddDeclarations(propertyBuilder);
+                uniformBufferCollection.AddDeclarations(propertyBuilder);
+                AddPerInstanceMacros(shaderUniforms, propertyBuilder);
 
                 //if (m_Mode == GenerationMode.VFX)
                 //{
@@ -862,77 +887,6 @@ namespace UnityEditor.ShaderFoundry
                 if (string.IsNullOrEmpty(propertiesStr))
                     propertiesStr = "// GraphProperties: <None>";
                 spliceCommands.Add("GraphProperties", propertiesStr);
-            }
-
-            // --------------------------------------------------
-            // Dots Instanced Graph Properties
-
-            bool hasDotsProperties = shaderUniforms.HasDotsProperties;
-
-            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
-            {
-                if (hasDotsProperties)
-                {
-                    if (hasDotsProperties)
-                    {
-                        dotsInstancedPropertyBuilder.AppendLine("#if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED)");
-                        dotsInstancedPropertyBuilder.AppendLine("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
-
-                        int count = 0;
-                        foreach (var uniformDeclaration in shaderUniforms.Uniforms)
-                        {
-                            if (uniformDeclaration.DataSource == UniformDataSource.PerInstance)
-                                continue;
-
-                            // Combine multiple UNITY_DEFINE_INSTANCED_PROP lines with \ so the generated
-                            // macro expands into multiple definitions if there are more than one.
-                            if (count > 0)
-                            {
-                                dotsInstancedPropertyBuilder.Append("\\");
-                                dotsInstancedPropertyBuilder.AppendNewLine();
-                            }
-                            dotsInstancedPropertyBuilder.Append("UNITY_DEFINE_INSTANCED_PROP(");
-                            dotsInstancedPropertyBuilder.Append(uniformDeclaration.Type.Name);
-                            dotsInstancedPropertyBuilder.Append(", ");
-                            dotsInstancedPropertyBuilder.Append(uniformDeclaration.Name);
-                            dotsInstancedPropertyBuilder.Append(")");
-                            count++;
-                        }
-                        dotsInstancedPropertyBuilder.AppendNewLine();
-                    }
-                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, var)");
-                    dotsInstancedPropertyBuilder.AppendLine("#else");
-                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
-                    dotsInstancedPropertyBuilder.AppendLine("#endif");
-                }
-                else
-                    dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
-                spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Dots Instancing Options
-
-            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder())
-            {
-                // Hybrid Renderer V1 requires some magic defines to work, which we enable
-                // if the shader graph has a nonzero amount of DOTS instanced properties.
-                // This can be removed once Hybrid V1 is removed.
-    #if !ENABLE_HYBRID_RENDERER_V2
-                if (hasDotsProperties)
-                {
-                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                    dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                }
-    #endif
-
-                if (dotsInstancingOptionsBuilder.length == 0)
-                    dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
-                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------

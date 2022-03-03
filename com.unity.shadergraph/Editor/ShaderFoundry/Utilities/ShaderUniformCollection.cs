@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderFoundry
         List<UniformDeclarationData> shaderUniforms = new List<UniformDeclarationData>();
 
         public bool ReadOnly { get; private set; }
-        public bool HasDotsProperties { get; private set; }
+        public bool HasPerInstanceProperties { get; private set; }
         public IEnumerable<UniformDeclarationData> Uniforms => shaderUniforms;
 
         public void Add(UniformDeclarationData uniform)
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderFoundry
             shaderUniforms.Add(uniform);
 
             if (uniform.DataSource == UniformDataSource.PerInstance)
-                HasDotsProperties = true;
+                HasPerInstanceProperties = true;
         }
 
         public void AddRange(IEnumerable<UniformDeclarationData> uniforms)

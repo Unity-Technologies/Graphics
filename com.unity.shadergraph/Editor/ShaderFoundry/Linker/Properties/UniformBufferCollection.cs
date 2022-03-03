@@ -50,6 +50,17 @@ namespace UnityEditor.ShaderFoundry
             return buffer;
         }
 
+        public void Add(UniformDeclarationData uniformData)
+        {
+            uniformData.Declare(this);
+        }
+
+        public void Add(ShaderUniformCollection uniforms)
+        {
+            foreach (var uniform in uniforms.Uniforms)
+                Add(uniform);
+        }
+
         string GetBufferName(ref UniformDataSource dataSource, string customBufferName)
         {
             switch (dataSource)

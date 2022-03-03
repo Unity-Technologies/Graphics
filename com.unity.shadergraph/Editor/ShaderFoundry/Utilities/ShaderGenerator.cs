@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderFoundry
 
         static void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            ShaderPropertyCollection shaderProperties = new ShaderPropertyCollection();
+            ShaderPropertyCollection exposedShaderProperties = new ShaderPropertyCollection();
 
             void CollectUniqueProperties(BlockInstance blockInstance)
             {
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderFoundry
                         if (propertyAttribute != null && !propertyAttribute.Exposed)
                             continue;
 
-                        shaderProperties.Add(prop);
+                        exposedShaderProperties.Add(prop);
                     }
                 }
             }
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderFoundry
             builder.AddLine("Properties");
             using (builder.BlockScope())
             {
-                foreach (var prop in shaderProperties.Properties)
+                foreach (var prop in exposedShaderProperties.Properties)
                 {
                     MaterialPropertyDeclaration.Declare(builder, prop);
                 }

@@ -61,6 +61,7 @@ namespace UnityEditor.ShaderFoundry
             }
             // TODO @ SHADERS: This will need to check more, mainly in the attributes.
             // This probably needs to check the [Property] attribute as well as the extra shaderlab attributes such as [Gamma].
+            // We may consider merging close enough properties (combining SL attributes) or this may be an error that forces users to fix this with an isolated property block.
             return true;
         }
     }
