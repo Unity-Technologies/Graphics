@@ -9,13 +9,16 @@
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
+TEXTURE2D_X(_BlueNoiseTexture);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_BlueNoiseTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
 half4 _BlurOffset;
+float4 _BlueNoiseTexture_TexelSize;
 
 half _KawaseBlurIteration;
 int _LastKawasePass;
@@ -23,11 +26,11 @@ half4 _SSAOParams;
 half4 _CameraViewTopLeftCorner[2];
 half4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
 
-float4 _SourceSize;
-float4 _ProjectionParams2;
-float4 _CameraViewXExtent[2];
-float4 _CameraViewYExtent[2];
-float4 _CameraViewZExtent[2];
+half4 _SourceSize;
+half4 _ProjectionParams2;
+half4 _CameraViewXExtent[2];
+half4 _CameraViewYExtent[2];
+half4 _CameraViewZExtent[2];
 
 // Hardcoded random UV values that improves performance.
 // The values were taken from this function:
@@ -81,7 +84,11 @@ static half SSAORandomUV[40] =
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
-#define RADIUS _SSAOParams.y
+#if defined(_NEW) || defined(_BLUE_NOISE)
+    #define RADIUS _SSAOParams.y * half(1.5)
+#else
+    #define RADIUS _SSAOParams.y
+#endif
 #define DOWNSAMPLE _SSAOParams.z
 #define FALLOFF _SSAOParams.w
 
@@ -101,8 +108,10 @@ static half SSAORandomUV[40] =
 
 // Function defines
 #define SCREEN_PARAMS        GetScaledScreenParams()
-#define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
-#define SAMPLE_BASEMAP_R(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
+#define SAMPLE_BASEMAP(uv)   half4(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
+#define SAMPLE_BASEMAP_R(uv)   half(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r);
+//#define SAMPLE_BLUE_NOISE(uv) normalize(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)) * 2.0 - 1.0);
+#define SAMPLE_BLUE_NOISE(uv) UnpackNormal(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)));
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
@@ -127,9 +136,23 @@ static const half kEpsilon = half(0.0001);
     #define unity_eyeIndex 0
 #endif
 
+static const half2 HALF2_RAND = half2(12.9898, 78.233);
+static const half HALF2_RAND1 = half(12.9898);
+static const half HALF2_RAND2 = half(78.233);
+static const half HALF_RAND = half(43758.5453);
+static const half MIN_DIST_ADJUSTMENT = half(0.2);
+static const half HALF_MINUS_ONE = half(-1.0);
+static const half HALF_ZERO = half(0.0);
+static const half HALF_HALF = half(0.5);
+static const half HALF_ONE = half(1.0);
+static const half HALF_TWO = half(2.0);
+static const half HALF_TWO_PI = half(6.28318530717958647693);
+
 half4 PackAONormal(half ao, half3 n)
 {
-    return half4(ao, n * half(0.5) + half(0.5));
+    n *= HALF_HALF;
+    n += HALF_HALF;
+    return half4(ao, n);
 }
 
 half3 GetPackedNormal(half4 p)
@@ -164,73 +187,131 @@ half2 CosSin(half theta)
     return half2(cs, sn);
 }
 
-// Pseudo random number generator with 2D coordinates
-half GetRandomUVForSSAO(float u, int sampleIndex)
-{
-    return SSAORandomUV[u * 20 + sampleIndex];
-}
-
-half GetRandomUVForSSAO(float2 uv, float dx, float dy)
-{
-    uv += float2(dx, dy);
-    return half(frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453));
-}
-
 float2 GetScreenSpacePosition(float2 uv)
 {
     return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
 }
 
+
 // Sample point picker
+
+/*
+ * OLD
+ */
+
+// Pseudo random number generator with 2D coordinates
+half GetRandomUVForSSAO(half u, int sampleIndex)
+{
+    return SSAORandomUV[u * 20 + sampleIndex];
+}
+
+// OLD!
 half3 PickSamplePoint(float2 uv, int sampleIndex)
 {
-    #if defined(_NEW)
-        const half index = half(sampleIndex);
-        const half u = GetRandomUVForSSAO(uv, 0.0, index) * half(2.0) - half(1.0);
-        const half theta = GetRandomUVForSSAO(uv, 1.0, index) * half(TWO_PI);
-    #else
-        const float2 positionSS = GetScreenSpacePosition(uv);
-        const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
-        const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
-        const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
-    #endif
-
+    const float2 positionSS = GetScreenSpacePosition(uv);
+    const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
+    const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
+    const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
     const half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
     return v;
 }
 
-float SampleAndGetLinearEyeDepth(float2 uv)
+/*
+ * NEW
+ */
+
+half GetRandomUVForSSAONew(float2 uv, float dx)
 {
-    const float rawDepth = SampleSceneDepth(uv.xy);
+    uv.x = uv.x + dx;
+    float dotSomething = float(dot(uv, float2(12.9898, 78.233)));
+    //half dotSomething = dot(uv, HALF2_RAND); // Using this makes the AO just shift to the right...
+    half sinSomething = half(sin(dotSomething) * HALF_RAND);
+    half fracSomething = frac(sinSomething);
+    return half(fracSomething);
+
+    //uv += float2(dx, dy + _Time.x);
+    //return half(frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453));
+}
+
+half3 PickSamplePointNew(float2 uv, half l)
+{
+    const half u = GetRandomUVForSSAONew(uv, 0.0) * HALF_TWO - HALF_ONE;
+    const half theta = GetRandomUVForSSAONew(uv, 1.0) * HALF_TWO_PI;
+    const half u2 = half(sqrt(HALF_ONE - u * u));
+    half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
+
+    // Adjustment for distance distribution.
+    v *= lerp(MIN_DIST_ADJUSTMENT, HALF_ONE, l * l);
+
+    return v;
+}
+
+/*
+ * BLUE NOISE
+ */
+
+//
+half3 PickSamplePointBlueNoise(float2 uv, int sampleIndex, half l)
+{
+    const half gn = SAMPLE_BLUE_NOISE(uv * DOWNSAMPLE);
+    const half u = frac(GetRandomUVForSSAO(0.0, sampleIndex).x + gn) * half(2.0) - half(1.0);
+    const half theta = (GetRandomUVForSSAO(1.0, sampleIndex).x + gn) * half(TWO_PI);
+    half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+
+    // Adjustment for distance distribution.
+    v *= lerp(0.1, 1.0, l * l);
+
+    return v;
+}
+
+
+
+// Z buffer to linear depth.
+// Does NOT correctly handle oblique view frustums.
+// Does NOT work with orthographic projection.
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
+half LinearEyeDepth2(half depth, half4 zBufferParam)
+{
+    return half(half(1.0) * rcp(zBufferParam.z * depth + zBufferParam.w));
+}
+
+half SampleAndGetLinearEyeDepth(float2 uv)
+{
+    const half rawDepth = SampleSceneDepth(uv.xy);
     #if defined(_ORTHOGRAPHIC)
         return LinearDepthToEyeDepth(rawDepth);
     #else
-        return LinearEyeDepth(rawDepth, _ZBufferParams);
+        return LinearEyeDepth2(rawDepth, _ZBufferParams);
     #endif
 }
 
 // This returns a vector in world unit (not a position), from camera to the given point described by uv screen coordinate and depth (in absolute world unit).
-half3 ReconstructViewPos(float2 uv, float depth)
+half3 ReconstructViewPos(float2 uv, half depth)
 {
     // Screen is y-inverted.
     uv.y = 1.0 - uv.y;
 
     // view pos in world space
     #if defined(_ORTHOGRAPHIC)
-        float zScale = depth * _ProjectionParams.w; // divide by far plane
-        float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
+        half zScale = depth * _ProjectionParams.w; // divide by far plane
+        half3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
                             + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
                             + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y
                             + _CameraViewZExtent[unity_eyeIndex].xyz * zScale;
     #else
-        float zScale = depth * _ProjectionParams2.x; // divide by near plane
-        float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
+        half zScale = depth * half(_ProjectionParams2.x); // divide by near plane
+        half3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
                             + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
                             + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y;
         viewPos *= zScale;
     #endif
 
     return half3(viewPos);
+}
+
+half3 ReconstructViewPos(float2 uv)
+{
+    return ReconstructViewPos(uv, SampleAndGetLinearEyeDepth(uv));
 }
 
 // Try reconstructing normal accurately from depth buffer.
@@ -306,21 +387,19 @@ half3 SampleNormal(float2 uv)
     #if defined(_SOURCE_DEPTH_NORMALS)
         return half3(SampleSceneNormals(uv));
     #else
-        float depth = SampleAndGetLinearEyeDepth(uv);
+        half depth = SampleAndGetLinearEyeDepth(uv);
         half3 vpos = ReconstructViewPos(uv, depth);
         return ReconstructNormal(uv, depth, vpos);
     #endif
 }
 
-void SampleDepthNormalView(float2 uv, out float depth, out half3 normal, out half3 vpos)
+half3 SampleNormal(float2 uv, half depth)
 {
-    depth  = SampleAndGetLinearEyeDepth(uv);
-    vpos   = ReconstructViewPos(uv, depth);
-
     #if defined(_SOURCE_DEPTH_NORMALS)
-        normal = half3(SampleSceneNormals(uv));
+        return half3(SampleSceneNormals(uv));
     #else
-        normal = ReconstructNormal(uv, depth, vpos);
+        half3 vpos = ReconstructViewPos(uv, depth);
+        return ReconstructNormal(uv, depth, vpos);
     #endif
 }
 
@@ -333,65 +412,83 @@ half4 SSAO(Varyings input) : SV_Target
     float2 uv = input.uv;
 
     // Parameters used in coordinate conversion
-    half3x3 camTransform = (half3x3)_CameraViewProjections[unity_eyeIndex]; // camera viewProjection matrix
+    half3 camTransform000102 = half3(_CameraViewProjections[unity_eyeIndex]._m00, _CameraViewProjections[unity_eyeIndex]._m01, _CameraViewProjections[unity_eyeIndex]._m02);
+    half3 camTransform101112 = half3(_CameraViewProjections[unity_eyeIndex]._m10, _CameraViewProjections[unity_eyeIndex]._m11, _CameraViewProjections[unity_eyeIndex]._m12);
 
-    // Get the depth, normal and view position for this fragment
-    float depth_o;
-    half3 norm_o;
-    half3 vpos_o;
-    SampleDepthNormalView(uv, depth_o, norm_o, vpos_o);
-
+    // Get the depth and normal for this fragment
+    half depth_o = SampleAndGetLinearEyeDepth(uv);
+    half3 norm_o = SampleNormal(uv, depth_o);
     #if defined(_NEW)
-        if (depth_o > FALLOFF)
+        if (half(depth_o) > half(FALLOFF))
         {
             #if defined(_ONLY_AO)
-                return half(1.0);
+                return HALF_ONE;
             #else
-                return PackAONormal(0.0, norm_o);
+                return PackAONormal(HALF_ZERO, norm_o);
             #endif
         }
     #endif
 
+    // Get the view position for this fragment
+    half3 vpos_o = ReconstructViewPos(uv, depth_o);
+
     // This was added to avoid a NVIDIA driver issue.
     const half rcpSampleCount = half(rcp(SAMPLE_COUNT));
     half ao = 0.0;
+    half sHalf = HALF_MINUS_ONE;
     for (int s = 0; s < SAMPLE_COUNT; s++)
     {
-        // Sample point
-        half3 v_s1 = PickSamplePoint(uv, s);
+        sHalf += HALF_ONE;
 
         // Make it distributed between [0, _Radius]
-        v_s1 *= sqrt((half(s) + half(1.0)) * rcpSampleCount) * RADIUS;
-        v_s1 = faceforward(v_s1, -norm_o, v_s1);
+        #if defined(_NEW)
+            // Sample point
+            const half l = sHalf * rcpSampleCount;
+            half3 v_s1 = PickSamplePointNew(float2(uv.x, uv.y + sHalf + _Time.x), l);
+            v_s1 *= (dot(norm_o, v_s1) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
+        #elif defined(_BLUE_NOISE)
+            // Sample point
+            const half l = sHalf * rcpSampleCount;
+            half3 v_s1 = PickSamplePointBlueNoise(float2(uv.x, uv.y), s, l);
 
-        half3 vpos_s1 = vpos_o + v_s1;
+            v_s1 *= sqrt((sHalf + HALF_ONE) * rcpSampleCount);
+            v_s1 = faceforward(v_s1, -norm_o, v_s1);
+        #else
+            // Sample point
+            half3 v_s1 = PickSamplePoint(uv, s);
+
+            v_s1 *= sqrt((sHalf + HALF_ONE) * rcpSampleCount);
+            v_s1 = faceforward(v_s1, -norm_o, v_s1);
+        #endif
+
+        half3 vpos_s1 = vpos_o + v_s1 * RADIUS;
 
         // Reproject the sample point
-        half3 spos_s1 = mul(camTransform, vpos_s1);
+        half2 spos_s1 = half2(
+            camTransform000102.x * vpos_s1.x + camTransform000102.y * vpos_s1.y + camTransform000102.z * vpos_s1.z,
+            camTransform101112.x * vpos_s1.x + camTransform101112.y * vpos_s1.y + camTransform101112.z * vpos_s1.z
+        );
 
         #if defined(_ORTHOGRAPHIC)
-            float2 uv_s1_01 = clamp((spos_s1.xy + float(1.0)) * float(0.5), float(0.0), float(1.0));
+            half2 uv_s1_01 = clamp((spos_s1 + half(1.0)) * half(0.5), half(0.0), half(1.0));
         #else
-            float zdist = -dot(UNITY_MATRIX_V[2].xyz, vpos_s1);
-            float2 uv_s1_01 = clamp((spos_s1.xy * rcp(zdist) + float(1.0)) * float(0.5), float(0.0), float(1.0));
+            half zdist = half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1));
+            //half2 uv_s1_01 = clamp((spos_s1 * rcp(zdist) + half(1.0)) * half(0.5), half(0.0), half(1.0));
+            half2 uv_s1_01 = (spos_s1 * rcp(zdist) + HALF_ONE) * HALF_HALF;
         #endif
-
-        // Depth at the sample point
-        float depth_s1 = SampleAndGetLinearEyeDepth(uv_s1_01);
 
         // Relative position of the sample point
-        half3 vpos_s2 = ReconstructViewPos(uv_s1_01, depth_s1);
-        half3 v_s2 = vpos_s2 - vpos_o;
+        half v_d2 = SampleAndGetLinearEyeDepth(uv_s1_01);
+        half3 v_s2 = ReconstructViewPos(uv_s1_01, v_d2) - vpos_o;
 
         // Estimate the obscurance value
-        half dotVal = dot(v_s2, norm_o);
         #if defined(_ORTHOGRAPHIC)
-            dotVal -= half(2.0 * kBeta * depth_o);
+            half dotVal = dot(v_s2, norm_o) - half(HALF_TWO * kBeta * depth_o);
         #else
-            dotVal -= half(kBeta * depth_o);
+            half dotVal = dot(v_s2, norm_o) - half(kBeta * depth_o);
         #endif
 
-        half a1 = max(dotVal, half(0.0));
+        half a1 = max(dotVal, HALF_ZERO);
         half a2 = dot(v_s2, v_s2) + kEpsilon;
         ao += a1 * rcp(a2);
     }
@@ -401,13 +498,13 @@ half4 SSAO(Varyings input) : SV_Target
 
     // Calculate falloff...
     const half rcpFalloff = half(rcp(FALLOFF));
-    float falloff = 1.0 - depth_o * rcpFalloff;
+    half falloff = HALF_ONE - half(depth_o) * rcpFalloff;
 
     // Apply contrast + intensity + falloff
     ao = PositivePow(saturate(ao * INTENSITY * falloff * rcpSampleCount), kContrast);
 
     #if defined(_ONLY_AO)
-        return half(1.0) - ao;
+        return HALF_ONE - ao;
     #else
         return PackAONormal(ao, norm_o);
     #endif
@@ -507,20 +604,13 @@ half4 HorizontalVerticalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-   half2 uv = input.uv;
+    half2 uv = input.uv;
+    half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+    half4 blurH = Blur(uv, delta);
 
-   half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
-
-   half4 blurH = Blur(uv, delta);
-
-   delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
-   half4 blurV = Blur(uv, delta);
-
-
-
+    delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+    half4 blurV = Blur(uv, delta);
     delta = _SourceSize.zw * rcp(DOWNSAMPLE);
-
-
 
     return lerp(1.0 - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5);
 }

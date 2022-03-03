@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal UpsampleTypes FinalUpsample = UpsampleTypes.None;
         [SerializeField] internal BlurTypes BlurType = BlurTypes.Bilateral;
         [SerializeField] internal float Falloff = 100f;
+        [SerializeField] internal Texture2D BlueNoiseTexture;
 
         // Enums
         internal enum DepthSource
@@ -50,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         {
             New,
             Old,
+            BlueNoise,
         }
 
         internal enum BlurTypes
@@ -89,6 +91,7 @@ namespace UnityEngine.Rendering.Universal
         private const string k_BlitShaderName = "Hidden/Universal Render Pipeline/Blit";
         private const string k_AONewKeyword = "_NEW";
         private const string k_AOOldKeyword = "_OLD";
+        private const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
         private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
         private const string k_NormalReconstructionLowKeyword = "_RECONSTRUCT_NORMAL_LOW";
         private const string k_NormalReconstructionMediumKeyword = "_RECONSTRUCT_NORMAL_MEDIUM";
@@ -141,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material, m_BlitMaterial);
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material, m_BlitMaterial, m_Settings.BlueNoiseTexture);
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_SSAOPass);
@@ -202,6 +205,7 @@ namespace UnityEngine.Rendering.Universal
             private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
             private Material m_Material;
             private Material m_BlitMaterial;
+            private Texture2D m_BlueNoise;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
             private Vector4[] m_CameraXExtent = new Vector4[2];
             private Vector4[] m_CameraYExtent = new Vector4[2];
@@ -223,6 +227,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
+            private static readonly int s_BlueNoiseTextureID = Shader.PropertyToID("_BlueNoiseTexture");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
             private static readonly int s_KawaseBlurIterationID = Shader.PropertyToID("_KawaseBlurIteration");
             private static readonly int s_LastKawasePass = Shader.PropertyToID("_LastKawasePass");
@@ -275,8 +280,9 @@ namespace UnityEngine.Rendering.Universal
                 m_SSAOTexture5.Release();
             }
 
-            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Material blitMaterial)
+            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Material blitMaterial, Texture2D blueNoiseTexture)
             {
+                m_BlueNoise = blueNoiseTexture;
                 m_Material = material;
                 m_BlitMaterial = blitMaterial;
                 m_Renderer = renderer;
@@ -285,7 +291,7 @@ namespace UnityEngine.Rendering.Universal
                 ScreenSpaceAmbientOcclusionSettings.DepthSource source;
                 if (isRendererDeferred)
                 {
-                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+                    renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
                     source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
                 }
                 else
@@ -293,10 +299,9 @@ namespace UnityEngine.Rendering.Universal
                     // Rendering after PrePasses is usually correct except when depth priming is in play:
                     // then we rely on a depth resolve taking place after the PrePasses in order to have it ready for SSAO.
                     // Hence we set the event to RenderPassEvent.AfterRenderingPrePasses + 1 at the earliest.
-                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1;
+                    renderPassEvent = m_CurrentSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1;
                     source = m_CurrentSettings.Source;
                 }
-
 
                 switch (source)
                 {
@@ -363,14 +368,18 @@ namespace UnityEngine.Rendering.Universal
                 m_Material.SetVectorArray(s_CameraViewXExtentID, m_CameraXExtent);
                 m_Material.SetVectorArray(s_CameraViewYExtentID, m_CameraYExtent);
                 m_Material.SetVectorArray(s_CameraViewZExtentID, m_CameraZExtent);
-
+                m_Material.SetTexture(s_BlueNoiseTextureID, m_BlueNoise);
 
                 // Update keywords
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
+                CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, false);
                 CoreUtils.SetKeyword(m_Material, k_AONewKeyword, false);
                 CoreUtils.SetKeyword(m_Material, k_AOOldKeyword, false);
                 switch (m_CurrentSettings.AOAlgorithm)
                 {
+                    case ScreenSpaceAmbientOcclusionSettings.AOMethod.BlueNoise:
+                        CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, true);
+                        break;
                     case ScreenSpaceAmbientOcclusionSettings.AOMethod.New:
                         CoreUtils.SetKeyword(m_Material, k_AONewKeyword, true);
                         break;
