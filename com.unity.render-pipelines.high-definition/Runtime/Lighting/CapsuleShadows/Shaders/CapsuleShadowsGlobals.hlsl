@@ -1,7 +1,7 @@
 #ifndef CAPSULE_SHADOWS_GLOBALS_DEF
 #define CAPSULE_SHADOWS_GLOBALS_DEF
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/CapsuleShadowsCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.cs.hlsl"
 
 #define _CapsuleDirectShadowCount           (_CapsuleDirectShadowCountAndFlags & CAPSULESHADOWFLAGS_COUNT_MASK)
@@ -26,19 +26,19 @@
 uint GetCapsuleDirectOcclusionFlags()
 {
 #if 0
-    return CAPSULE_SHADOW_FLAG_FLATTEN | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
+    return CAPSULEOCCLUSIONFLAGS_LIGHT_AXIS_SCALE | CAPSULEOCCLUSIONFLAGS_FADE_SELF_SHADOW;
 #else
     uint flags = 0;
     switch (_CapsuleDirectShadowMethod) {
     case CAPSULESHADOWMETHOD_ELLIPSOID:
-        flags |= CAPSULE_SHADOW_FLAG_ELLIPSOID;
+        flags |= CAPSULEOCCLUSIONFLAGS_CAPSULE_AXIS_SCALE;
         break;
     case CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE:
-        flags |= CAPSULE_SHADOW_FLAG_FLATTEN;
+        flags |= CAPSULEOCCLUSIONFLAGS_LIGHT_AXIS_SCALE;
         break;
     }
     if (_CapsuleFadeDirectSelfShadow) {
-        flags |= CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
+        flags |= CAPSULEOCCLUSIONFLAGS_FADE_SELF_SHADOW;
     }
     return flags;
 #endif
@@ -51,7 +51,7 @@ uint GetCapsuleAmbientOcclusionFlags()
 #else
     uint flags = 0;
     if (_CapsuleIndirectShadowExtra == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_AND_CLOSEST_SPHERE)
-        flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE;
+        flags |= CAPSULEAMBIENTOCCLUSIONFLAGS_INCLUDE_AXIS;
     return flags;
 #endif
 }
@@ -59,7 +59,7 @@ uint GetCapsuleAmbientOcclusionFlags()
 uint GetCapsuleIndirectOcclusionFlags()
 {
     // hardcoded (probably cheapest) shadow function
-    return CAPSULE_SHADOW_FLAG_ELLIPSOID | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW | CAPSULE_SHADOW_FLAG_HORIZON_FADE;
+    return CAPSULEOCCLUSIONFLAGS_CAPSULE_AXIS_SCALE | CAPSULEOCCLUSIONFLAGS_FADE_SELF_SHADOW | CAPSULEOCCLUSIONFLAGS_FADE_AT_HORIZON;
 }
 
 struct CapsuleShadowsUpscaleTile
