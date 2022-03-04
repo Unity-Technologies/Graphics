@@ -133,6 +133,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader downsampleDepthPS;
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]
             public Shader upsampleTransparentPS;
+            [Reload("Runtime/ShaderLibrary/RevealStencil.shader")]
+            public Shader revealStencilPS;
 
             [Reload("Runtime/ShaderLibrary/ResolveStencilBuffer.compute")]
             public ComputeShader resolveStencilCS;

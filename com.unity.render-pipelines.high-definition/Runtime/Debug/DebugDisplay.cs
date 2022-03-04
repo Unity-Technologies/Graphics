@@ -113,6 +113,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
+        /// <summary>Display pixels excluded from TAA</summary>
+        TAAExclusions,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 

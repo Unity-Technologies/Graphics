@@ -1018,6 +1018,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
+            m_HDInstance.RenderTAAExclusions(renderGraph, colorBuffer, depthBuffer);
+
             var source = colorBuffer;
             TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
 

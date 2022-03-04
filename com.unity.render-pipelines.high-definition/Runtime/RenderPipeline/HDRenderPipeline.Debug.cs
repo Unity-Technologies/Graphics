@@ -53,6 +53,41 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class TAAExclusionsPassData
+        {
+            public TextureHandle color;
+            public TextureHandle output;
+            public TextureHandle depthBuffer;
+        }
+
+        internal void RenderTAAExclusions(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TAAExclusions)
+            {
+                TextureHandle taaExclusionsOutput = TextureHandle.nullHandle;
+                using (var builder = renderGraph.AddRenderPass<TAAExclusionsPassData>("TAA Exclusions", out var passData))
+                {
+                    passData.color = builder.ReadTexture(colorBuffer);
+                    passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat() }));
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
+
+                    builder.SetRenderFunc(
+                    (TAAExclusionsPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderTAAExclusions(data.color,
+                                            data.depthBuffer,
+                                            data.output,
+                                            m_RevealStencil,
+                                            ctx.cmd);
+                    });
+
+                    taaExclusionsOutput = passData.output;
+                }
+
+                PushFullScreenDebugTexture(renderGraph, taaExclusionsOutput, FullScreenDebugMode.TAAExclusions);
+            }
+        }
+
         class FullScreenDebugPassData
         {
             public FullScreenDebugParameters parameters;
