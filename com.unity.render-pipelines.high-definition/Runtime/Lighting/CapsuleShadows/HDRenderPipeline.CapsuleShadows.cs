@@ -552,6 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public CapsuleTileDebugMode tileDebugMode;
             public TextureHandle tileDebugOutput;
 
+            public CapsuleShadowMethod compiledDirectMethod;
             public int shadowCasterCount;
             public bool skipEmptyTiles;
             public ComputeBufferHandle shadowCasters;
@@ -617,6 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     capsuleTileDebugTexture = passData.tileDebugOutput;
                 }
 
+                passData.compiledDirectMethod = parameters.compiledDirectMethod;
                 passData.shadowCasterCount = m_CapsuleShadowAllocator.m_Casters.Count;
                 passData.skipEmptyTiles = parameters.skipEmptyTiles;
                 passData.shadowCasters = builder.ReadComputeBuffer(buildOutput.shadowCasters);
@@ -672,6 +674,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (useTileDebug)
                             ctx.cmd.SetComputeTextureParam(data.cs, data.kernel, HDShaderIDs._CapsuleTileDebug, data.tileDebugOutput);
                         CoreUtils.SetKeyword(data.cs, "CAPSULE_TILE_DEBUG", useTileDebug);
+                        CoreUtils.SetKeyword(data.cs, "DCSM_ELLIPSOID", data.compiledDirectMethod == CapsuleShadowMethod.Ellipsoid);
+                        CoreUtils.SetKeyword(data.cs, "DCSM_CLIP_THEN_ELLIPSOID", data.compiledDirectMethod == CapsuleShadowMethod.ClipThenEllipsoid);
+                        CoreUtils.SetKeyword(data.cs, "DCSM_CLOSEST_SPHERE", data.compiledDirectMethod == CapsuleShadowMethod.ClosestSphere);
+                        CoreUtils.SetKeyword(data.cs, "DCSM_FLATTEN_THEN_CLOSEST_SPHERE", data.compiledDirectMethod == CapsuleShadowMethod.FlattenThenClosestSphere);
 
                         ctx.cmd.DispatchCompute(data.cs, data.kernel, data.renderSizeInTiles.x, data.renderSizeInTiles.y, data.viewCount);
                     });
@@ -859,6 +865,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int upscaledSizeInTiles;
             public Vector2Int renderSize;
             public Vector2Int renderSizeInTiles;
+            public CapsuleShadowMethod compiledDirectMethod;
             public CapsuleTileDebugMode tileDebugMode;
         }
 
@@ -888,6 +895,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     renderSize = upscaledSize;
 
+                CapsuleShadowMethod compiledDirectMethod = (CapsuleShadowMethod)(-1);
+                if (capsuleShadows.fadeDirectSelfShadow.value && capsuleShadows.adjustEllipsoidConeAngle.value && capsuleShadows.useSoftPartialOcclusion.value)
+                    compiledDirectMethod = capsuleShadows.directShadowMethod.value;
+
                 int casterCount = m_CapsuleShadowAllocator.m_Casters.Count;
                 int viewCount = hdCamera.viewCount;
                 CapsuleShadowParameters parameters = new CapsuleShadowParameters()
@@ -902,6 +913,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     upscaledSizeInTiles = HDUtils.DivRoundUp(upscaledSize, 8),
                     renderSize = renderSize,
                     renderSizeInTiles = HDUtils.DivRoundUp(renderSize, 8),
+                    compiledDirectMethod = compiledDirectMethod,
                     tileDebugMode = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode,
                 };
 

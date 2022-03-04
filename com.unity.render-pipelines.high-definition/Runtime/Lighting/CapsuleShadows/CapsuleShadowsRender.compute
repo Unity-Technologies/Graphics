@@ -2,7 +2,7 @@
 //#pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile_local _ CAPSULE_TILE_DEBUG
-#pragma multi_compile_local _ CAPSULE_DIRECT_SHADOW_0 CAPSULE_DIRECT_SHADOW_1 CAPSULE_DIRECT_SHADOW_2 CAPSULE_DIRECT_SHADOW_3
+#pragma multi_compile_local _ DCSM_ELLIPSOID DCSM_CLIP_THEN_ELLIPSOID DCSM_CLOSEST_SPHERE DCSM_FLATTEN_THEN_CLOSEST_SPHERE
 
 #pragma kernel Main
 

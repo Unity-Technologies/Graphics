@@ -24,20 +24,20 @@
 #define _CapsuleRenderSizeInTiles           uint2(_CapsuleRenderSizeInTilesX, _CapsuleRenderSizeInTilesY)
 #define _CapsuleUpscaledSizeInTiles         uint2(_CapsuleUpscaledSizeInTilesX, _CapsuleUpscaledSizeInTilesY)
 
-#if defined(CAPSULE_DIRECT_SHADOW_0)
-#define CAPSULE_DIRECT_SHADOW_FIXED_METHOD 0
-#elif defined(CAPSULE_DIRECT_SHADOW_1)
-#define CAPSULE_DIRECT_SHADOW_FIXED_METHOD 1
-#elif defined(CAPSULE_DIRECT_SHADOW_2)
-#define CAPSULE_DIRECT_SHADOW_FIXED_METHOD 2
-#elif defined(CAPSULE_DIRECT_SHADOW_3)
-#define CAPSULE_DIRECT_SHADOW_FIXED_METHOD 3
+#if defined(DCSM_ELLIPSOID)
+#define DCSM_VALUE CAPSULESHADOWMETHOD_ELLIPSOID
+#elif defined(DCSM_CLIP_THEN_ELLIPSOID)
+#define DCSM_VALUE CAPSULESHADOWMETHOD_CLIP_THEN_ELLIPSOID
+#elif defined(DCSM_CLOSEST_SPHERE)
+#define DCSM_VALUE CAPSULESHADOWMETHOD_CLOSEST_SPHERE
+#elif defined(DCSM_FLATTEN_THEN_CLOSEST_SPHERE)
+#define DCSM_VALUE CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE
 #endif
 
 uint GetCapsuleDirectOcclusionFlags()
 {
-#if defined(CAPSULE_DIRECT_SHADOW_FIXED_METHOD)
-    uint method = CAPSULE_DIRECT_SHADOW_FIXED_METHOD;
+#if defined(DCSM_VALUE)
+    uint method = DCSM_VALUE;
     bool fadeSelfShadow = true;
     bool adjustEllipsoidCone = true;
     bool softPartialOcclusion = true;
