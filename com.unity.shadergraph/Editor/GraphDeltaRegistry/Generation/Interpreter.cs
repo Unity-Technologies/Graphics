@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.Generation
@@ -84,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
 
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
-            var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.ToString()}Main", outputType);
+            var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.FullPath}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
@@ -109,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if(port.IsHorizontal && port.IsInput)
                     {
                         var entry = port.GetMetadata<IContextDescriptor.ContextEntry>(Registry.Types.GraphType.kEntry);
-                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                        var connectedPort = port.GetConnectedPorts().First();
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNodePath = port.ID.FullPath.Replace("." + port.ID.LocalPath, "");
@@ -120,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         {
                             var field = port.GetTypeField();
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList(field, registry)};");
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(field, registry)};");
                         }
                     }
                 }
@@ -130,7 +131,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 var port = rootNode.GetPorts().Where(e => !e.IsInput).First(); // get the first output node
                 var field = port.GetTypeField();
-                var outType = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType(field, container, registry);
+                var outType = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(field, container, registry);
                 string assignment = ConvertToFloat3(outType, $"SYNTAX_{rootNode.ID.LocalPath}_{port.ID.LocalPath}");
                 mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = {assignment};");
             }
@@ -214,7 +215,7 @@ namespace UnityEditor.ShaderGraph.Generation
             ref List<ShaderFunction> shaderFuncitons,
             Registry.Registry registry)
         {
-            /*
+            
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
             bool shouldAdd = true;
             foreach(var existing in shaderFuncitons)
@@ -231,30 +232,31 @@ namespace UnityEditor.ShaderGraph.Generation
             string arguments = "";
             foreach (var param in func.Parameters)
             {
-                if (node.TryGetPort(param.Name, out var port))
+                var port = node.GetPort(param.Name);
+                if (port != null)
                 {
                     string argument = "";
-                    if (!port.IsHorizontal())
+                    if (!port.IsHorizontal)
                         continue;
-                    if (port.IsInput())
+                    if (port.IsInput)
                     {
-                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                        var connectedPort = port.GetConnectedPorts().First();
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
-                            argument = $"SYNTAX_{connectedNode.ID.ToString()}_{connectedPort.ID.ToString()}";
+                            argument = $"SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
                         }
                         else // not connected.
                         {
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList(port, registry);
+                            argument = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
                         }
                     }
                     else // this is an output port.
                     {
-                        argument = $"SYNTAX_{node.ID.ToString()}_{port.ID.ToString()}"; // add to the arguments for the function call.
+                        argument = $"SYNTAX_{node.ID.LocalPath}_{port.ID.LocalPath}"; // add to the arguments for the function call.
                         // default initialize this before our function call.
-                        var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList(port, registry);
+                        var initValue = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
                         mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
                     }
                     arguments += argument + ", ";
@@ -263,7 +265,7 @@ namespace UnityEditor.ShaderGraph.Generation
             if (arguments.Length != 0)
                 arguments = arguments.Remove(arguments.Length - 2, 2); // trim the trailing ", "
             mainBodyFunctionBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
-            */
+            
 
         }
 

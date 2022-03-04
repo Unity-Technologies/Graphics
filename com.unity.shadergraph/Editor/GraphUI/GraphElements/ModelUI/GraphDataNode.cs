@@ -3,6 +3,7 @@ using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Types;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -38,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 bool isStatic = staticField != null && staticField.GetData();
 
                 if (!isStatic) continue;
-                if (portReader.GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
+                if (portReader.GetTypeField().GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
                 var portName = portReader.LocalID;
 
                 var typeField = portReader.GetTypeField();

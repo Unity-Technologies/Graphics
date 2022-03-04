@@ -1,6 +1,7 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -42,7 +43,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 ? PortOrientation.Horizontal
                 : PortOrientation.Vertical;
 
-            var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
+            var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetTypeField().GetRegistryKey());
 
             if (isInput)
                 this.AddDataInputPort(portReader.LocalID, type, orientation: orientation);

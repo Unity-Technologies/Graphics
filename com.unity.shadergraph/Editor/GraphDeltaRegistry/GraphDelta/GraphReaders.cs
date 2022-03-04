@@ -1,9 +1,10 @@
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEngine;
 using CLDS = UnityEditor.ContextLayeredDataStorage.ContextLayeredDataStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    internal sealed partial class GraphStorage : CLDS
+    internal sealed partial class GraphStorage : CLDS, ISerializationCallbackReceiver
     {
         public class NodeReader : DataReader
         {

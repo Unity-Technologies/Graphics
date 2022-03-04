@@ -1,9 +1,10 @@
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEngine;
 using CLDS = UnityEditor.ContextLayeredDataStorage.ContextLayeredDataStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    internal sealed partial class GraphStorage : CLDS
+    internal sealed partial class GraphStorage : CLDS, ISerializationCallbackReceiver
     {
         public class NodeHeader : DataHeader
         {
@@ -20,16 +21,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public class PortHeader : DataHeader
         {
+            public const string kInput = "_isInput";
+            public const string kHorizontal = "_isHorizontal";
             public PortHeader() : base()
             {
-                SetMetadata("_isInput", true);
-                SetMetadata("_isHorizontal", true);
+                SetMetadata(kInput, true);
+                SetMetadata(kHorizontal, true);
             }
 
             public PortHeader(bool isInput, bool isHorizontal) : this()
             {
-                SetMetadata("_isInput", isInput);
-                SetMetadata("_isHorizontal", isHorizontal);
+                SetMetadata(kInput, isInput);
+                SetMetadata(kHorizontal, isHorizontal);
             }
 
             public override DataReader GetReader(Element element)
@@ -57,5 +60,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
         }
+
+        public class FieldHeader<T> : FieldHeader
+        {
+        }
+
     }
 }

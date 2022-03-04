@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             // all common math operations can probably use the same resolver.
             //public static void MathNodeDynamicResolver(
-            public static void MathNodeDynamicResolver(NodeHandler node)
+            public static void MathNodeDynamicResolver(NodeHandler node, Registry registry)
             {
                 int operands = 0;
                 Length resolvedLength = Length.Four;
@@ -35,24 +35,25 @@ namespace UnityEditor.ShaderGraph.Registry
                 {
                     if (!port.IsInput) continue;
                     operands++;
+                    FieldHandler typeField = port.GetTypeField();
                     // UserData is allowed to have holes, so we should ignore what's missing.
-                    FieldHandler field = port.GetField(kLength);
+                    FieldHandler field = typeField.GetSubField(kLength);
                     if (field != null)
                     {
                         resolvedLength = (Length)Mathf.Min((int)resolvedLength, (int)field.GetData<Length>());
                     }
-                    field = port.GetField(kHeight);
+                    field = typeField.GetSubField(kHeight);
                     if (field != null)
                     {
                         resolvedHeight = (Height)Mathf.Min((int)resolvedHeight, (int)field.GetData<Height>());
                     }
-                    field = port.GetField(kPrecision);
+                    field = typeField.GetSubField(kPrecision);
                     if (field != null)
                     {
                         Precision precision = field.GetData<Precision>();
                         resolvedPrecision = (Precision)Mathf.Min((int)resolvedPrecision, (int)precision);
                     }
-                    field = port.GetField(kPrimitive);
+                    field = typeField.GetSubField(kPrimitive);
                     {
                         Primitive primitive = field.GetData<Primitive>();
                         resolvedPrimitive = (Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive);
@@ -67,14 +68,14 @@ namespace UnityEditor.ShaderGraph.Registry
                 {
                     // Output port gets constrained the same way.
                     var port = i == 0
-                        ? node.AddPort("Out", false, true)
-                        : node.AddPort($"In{i}", true, true);
+                        ? node.AddPort<GraphType>("Out", false, registry)
+                        : node.AddPort<GraphType>($"In{i}", true, registry);
 
                     // Then constrain them so that type conversion in code gen can resolve the values properly.
-                    port.AddField(kLength, resolvedLength);
-                    port.AddField(kHeight, resolvedHeight);
-                    port.AddField(kPrimitive, resolvedPrimitive);
-                    port.AddField(kPrecision, resolvedPrecision);
+                    port.GetTypeField().GetSubField<Length>(kLength).SetData(resolvedLength);
+                    port.GetTypeField().GetSubField<Height>(kHeight).SetData(resolvedHeight);
+                    port.GetTypeField().GetSubField<Primitive>(kPrimitive).SetData(resolvedPrimitive);
+                    port.GetTypeField().GetSubField<Precision>(kPrecision).SetData(resolvedPrecision);
                 }
             }
 
@@ -126,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
             public void BuildNode(NodeHandler node, Registry registry)
             {
-                NodeHelpers.MathNodeDynamicResolver(node);
+                NodeHelpers.MathNodeDynamicResolver(node, registry);
             }
 
             public ShaderFunction GetShaderFunction(

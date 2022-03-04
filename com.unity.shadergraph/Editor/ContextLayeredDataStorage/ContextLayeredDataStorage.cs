@@ -106,6 +106,20 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
+        protected Element<T> AddElementToLayer<T>(string layerName, ElementID id, T data)
+        {
+            Element root = GetLayerRoot(layerName);
+            if (root == null)
+            {
+                return null;
+            }
+            else
+            {
+                AddData(root, id, data, out Element<T> element);
+                return element;
+            }
+        }
+
 
         //AddData with no specified layer gets added to the topmost layer
         internal void AddData<T>(ElementID id, T data, out Element<T> elem)
@@ -424,7 +438,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         }
 
-        public void OnBeforeSerialize()
+        public virtual void OnBeforeSerialize()
         {
             m_serializedData = new List<SerializedLayerData>();
             foreach(var layer in m_layerList)
@@ -443,7 +457,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        public void OnAfterDeserialize()
+        public virtual void OnAfterDeserialize()
         {
             foreach(var serializedLayer in m_serializedData)
             {

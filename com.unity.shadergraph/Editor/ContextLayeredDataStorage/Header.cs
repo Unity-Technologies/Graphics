@@ -10,7 +10,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             public T data;
         }
 
-        private Dictionary<string, ValueType> m_data;
+        private Dictionary<string, ValueType> m_data = new Dictionary<string, ValueType>();
 
         public bool TryGetMetaData<T>(string lookup, out T data)
         {

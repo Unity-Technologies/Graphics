@@ -8,24 +8,32 @@ using CLDS = UnityEditor.ContextLayeredDataStorage.ContextLayeredDataStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    public interface IEdgeHandler
+    [Serializable]
+    public class EdgeHandler
     {
-        public PortHandler InputPort { get; }
-        public PortHandler OuptutPort { get; }
+        internal EdgeHandler(ElementID output, ElementID input, GraphStorage owner)
+        {
+            OutputID = output;
+            InputID  = input;
+            Owner    = owner;
+        }
+
+        [SerializeField]
+        public ElementID OutputID { get; internal set; }
+        [SerializeField]
+        public ElementID InputID  { get; internal set; }
+        internal GraphStorage Owner { get; set; }
+
+        public PortHandler OuptutPort => Owner.GetHandler(OutputID).ToPortHandler();
+        public PortHandler InputPort  => Owner.GetHandler(InputID).ToPortHandler();
     }
 
-    internal struct EdgeHandler : IEdgeHandler
+    [Serializable]
+    internal sealed partial class GraphStorage : CLDS, ISerializationCallbackReceiver
     {
-        public ElementID input;
-        public ElementID output;
-        public GraphStorage owner;
+        [SerializeField]
+        internal List<(ElementID output, ElementID input)> edges = new List<(ElementID output, ElementID input)>();
 
-        public PortHandler InputPort => owner.GetHandler(input) as PortHandler;
-        public PortHandler OuptutPort => owner.GetHandler(output) as PortHandler;
-    }
-
-    internal sealed partial class GraphStorage : CLDS
-    {
         protected override void AddDefaultLayers()
         {
             AddLayer(0, GraphDelta.k_concrete, false);
@@ -53,9 +61,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        internal NodeHandler AddNodeHandler(string layer, ElementID elementId)
+        internal void RemoveHandler(ElementID elementID)
         {
-            return AddHandler(layer, elementId, new NodeHeader()) as NodeHandler;
+            foreach(var (_,root) in LayerList)
+            {
+                var elem = SearchRelative(root, elementID);
+                if(elem != null)
+                {
+                    RemoveDataBranch(elem);
+                }
+            }
+        }
+
+        internal NodeHandler AddNodeHandler(string layer, ElementID elementID)
+        {
+            var output = new NodeHandler(elementID, this);
+            output.GetWriter(layer).SetHeader(new NodeHeader());
+            return output;
         }
 
         new internal Element GetLayerRoot(string layer)
@@ -71,6 +93,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         new internal Element AddElementToLayer(string layer, ElementID elementID)
         {
             return base.AddElementToLayer(layer, elementID);
+        }
+
+        new internal Element AddElementToLayer<T>(string layer, ElementID elementID, T data)
+        {
+            return base.AddElementToLayer(layer, elementID, data);
         }
 
         new internal void SetHeader(Element element, DataHeader header)

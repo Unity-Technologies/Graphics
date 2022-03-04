@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderFoundry;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
+using UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.Registry.Defs
 {
@@ -89,18 +90,12 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             var context = registry.GetContextDescriptor(contextKey);
             foreach (var entry in context.GetEntries())
             {
-                var port = node.AddPort(entry.fieldName, true, false);
-                port.SetMetadata("_RegistryKey", Registry.ResolveKey<Types.GraphType>());
-                var pw = port.GetWriter("Concrete");
-                pw.AddChild(Types.GraphType.kHeight, entry.height).SetHeader(new FieldHeader());
-                pw.AddChild(Types.GraphType.kLength, entry.length).SetHeader(new FieldHeader());
-                pw.AddChild(Types.GraphType.kPrecision, entry.precision).SetHeader(new FieldHeader());
-                pw.AddChild(Types.GraphType.kPrimitive, entry.primitive).SetHeader(new FieldHeader());
-                pw.AddChild(Types.GraphType.kEntry, entry).SetHeader(new FieldHeader());
+                var port = node.AddPort<GraphType>(entry.fieldName, true, registry);
+                port.GetTypeField().AddSubField(GraphType.kEntry, entry);
                 for (int i = 0; i < (int)entry.length * (int)entry.height; ++i)
-                    pw.AddChild($"c{i}", entry.initialValue[i]).SetHeader(new FieldHeader());
+                    port.GetTypeField().GetSubField<float>($"c{i}").SetData(entry.initialValue[i]);
                 if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
-                    pw.AddChild("semantic", entry.interpolationSemantic).SetHeader(new FieldHeader());
+                    port.GetTypeField().AddSubField("semantic", entry.interpolationSemantic);
             }
             // We could "enfield" all of our ContextEntries into our output port, which would consequently make them accessible
             // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.

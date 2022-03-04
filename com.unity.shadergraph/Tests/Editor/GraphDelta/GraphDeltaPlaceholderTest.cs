@@ -2,8 +2,10 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -12,87 +14,138 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
         [TestFixture]
         class GraphUtilFixture
         {
+            class TestNode : Registry.Defs.INodeDefinitionBuilder
+            {
+                public void BuildNode(NodeHandler node, Registry.Registry registry)
+                {
+
+                }
+
+                public RegistryFlags GetRegistryFlags()
+                {
+                    return RegistryFlags.Type;
+                }
+
+                public RegistryKey GetRegistryKey()
+                {
+                    return new RegistryKey() { Name = "TestNode", Version = 1 };
+                }
+
+                public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry.Registry registry)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+
+            private Registry.Registry registry = null;
+            private GraphHandler graphHandler = null;
+
+            [SetUp]
+            public void Setup()
+            {
+                registry = new Registry.Registry();
+                registry.Register<TestNode>();
+                registry.Register<GraphType>();
+                registry.Register<AddNode>();
+                graphHandler = new GraphHandler();
+            }
+
             [Test]
             public void CanCreateEmptyGraph()
             {
-                GraphHandler graphHandler = new GraphHandler();
                 Assert.NotNull(graphHandler);
             }
 
             [Test]
             public void CanAddEmptyNode()
             {
-                GraphDelta graphHandler = new GraphHandler().graphDelta;
-                using (INodeWriter node = graphHandler.AddNode("foo"))
-                {
-                    Assert.NotNull(node);
-                }
+                graphHandler.AddNode<TestNode>("foo", registry);
             }
 
             [Test]
             public void CanAddAndGetNode()
             {
-                GraphDelta graphHandler = new GraphHandler().graphDelta;
-                graphHandler.AddNode("foo");
-                Assert.NotNull(graphHandler.GetNodeReader("foo"));
+                graphHandler.AddNode<TestNode>("foo", registry);
+                Assert.NotNull(graphHandler.GetNode("foo"));
             }
 
             [Test]
             public void CanAddAndRemoveNode()
             {
-                GraphDelta graphHandler = new GraphHandler().graphDelta;
-                graphHandler.AddNode("foo");
-                Assert.NotNull(graphHandler.GetNodeReader("foo"));
+                graphHandler.AddNode<TestNode>("foo", registry);
+                Assert.NotNull(graphHandler.GetNode("foo"));
                 graphHandler.RemoveNode("foo");
             }
 
             [Test]
             public void CanAddNodeAndPorts()
             {
-                GraphDelta graphHandler = new GraphHandler().graphDelta;
-                using (INodeWriter node = graphHandler.AddNode("Add"))
-                {
-                    node.TryAddPort("A", true, true, out IPortWriter _);
-                    node.TryAddPort("B", true, true, out IPortWriter _);
-                    node.TryAddPort("Out", false, true, out IPortWriter _);
-                }
+                var fooNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "foo", registry);
+                fooNode.AddPort("A",   true,  true);
+                fooNode.AddPort("B",   true,  true);
+                fooNode.AddPort("Out", false, true);
 
-                var nodeRef = graphHandler.GetNodeReader("Add");
-                Assert.NotNull(nodeRef);
-                Assert.IsTrue(nodeRef.TryGetPort("A", out IPortReader portReader));
-                Assert.NotNull(portReader);
-                Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
-                Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
-                Assert.NotNull(portReader);
-                Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
-                Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
-                Assert.NotNull(portReader);
-                Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                PortHandler port = fooNode.GetPort("A");
+                Assert.NotNull(port);
+                Assert.NotNull(port.GetNode());
+                Assert.AreEqual(port.GetNode().ID.FullPath, "foo");
+                port = fooNode.GetPort("B");
+                Assert.NotNull(port);
+                Assert.NotNull(port.GetNode());
+                Assert.AreEqual(port.GetNode().ID.FullPath, "foo");
+                port = fooNode.GetPort("Out");
+                Assert.NotNull(port);
+                Assert.NotNull(port.GetNode());
+                Assert.AreEqual(port.GetNode().ID.FullPath, "foo");
             }
 
             [Test]
             public void CanAddTwoNodesAndConnect()
             {
-                GraphDelta graphHandler = new GraphHandler().graphDelta;
-                using (INodeWriter foo = graphHandler.AddNode("Foo"))
-                using (INodeWriter bar = graphHandler.AddNode("Bar"))
-                {
-                    Assert.IsTrue(foo.TryAddPort("A", true, true, out IPortWriter _));
-                    Assert.IsTrue(foo.TryAddPort("B", true, true, out IPortWriter _));
-                    Assert.IsTrue(foo.TryAddPort("Out", false, true, out IPortWriter output));
-                    Assert.IsTrue(bar.TryAddPort("A", true, true, out IPortWriter input));
-                    Assert.IsNotNull(output);
-                    Assert.IsNotNull(input);
-                    Assert.IsTrue(output.TryAddConnection(input));
-                }
-                var thruEdge = (graphHandler.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
-                var normSearch = graphHandler.m_data.Search("Bar.A");
-                Assert.NotNull(thruEdge);
-                Assert.NotNull(normSearch);
-                Assert.AreEqual(thruEdge, normSearch);
+                var fooNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "foo", registry);
+                fooNode.AddPort("A",   true,  true);
+                fooNode.AddPort("B",   true,  true);
+                fooNode.AddPort("Out", false, true);
+
+                var barNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "bar", registry);
+                barNode.AddPort("A",   true,  true);
+                barNode.AddPort("B",   true,  true);
+                barNode.AddPort("Out", false, true);
+
+                var edge = graphHandler.AddEdge("foo.Out", "bar.A");
+                Assert.NotNull(edge);
+            }
+
+            [Test]
+            public void ConcretizationTest()
+            {
+                graphHandler.AddNode<AddNode>("AddNodeRef", registry);
+                GraphStorage storage = graphHandler.graphDelta.m_data;
+                var concreteLayer = storage.GetLayerRoot(GraphDelta.k_concrete);
+
+                var userLayer = storage.GetLayerRoot(GraphDelta.k_user);
+                Assert.NotNull(userLayer);
+                Assert.IsTrue(userLayer.Children.Count == 1);
+                var userAdd = userLayer.Children[0];
+                Assert.NotNull(userAdd);
+                Assert.AreEqual(userAdd.ID.FullPath, "AddNodeRef");
+                Assert.IsTrue(userAdd.Children.Count == 0);
+                var addRegKey = userAdd.Header.GetMetadata<RegistryKey>(GraphDelta.kRegistryKeyName);
+                Assert.NotNull(addRegKey);
+                Assert.IsFalse(string.IsNullOrEmpty(addRegKey.ToString()));
+
+
+                Assert.NotNull(concreteLayer);
+                Assert.IsTrue(concreteLayer.Children.Count == 1);
+                var concreteAdd = concreteLayer.Children[0];
+                Assert.NotNull(concreteAdd);
+                Assert.IsTrue(concreteAdd.Children.Count == 3);
+                var concreteAddPort = concreteAdd.Children[0];
+                Assert.NotNull(concreteAddPort);
+                Assert.IsTrue(concreteAddPort.Children.Count == 1);
+                var concretePortTypeField = concreteAddPort.Children[0];
+                Assert.NotNull(concretePortTypeField);
+                Assert.IsTrue(concretePortTypeField.Children.Count == 8);
             }
 
             public class TestDescriptor : Registry.Defs.IContextDescriptor
@@ -127,14 +180,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanSetupContext()
             {
-                GraphDelta graphHandler = new GraphHandler().graphDelta;
-                var registry = new Registry.Registry();
                 registry.Register<TestDescriptor>();
                 registry.Register<Registry.Types.GraphType>();
-                graphHandler.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, registry);
-                var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
+                //graphHandler.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, registry);
+                graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), registry);
+                var contextNode = graphHandler.GetNode("TestContextDescriptor");
                 Assert.NotNull(contextNode);
-                Assert.IsTrue(contextNode.TryGetPort("Foo", out var fooReader));
+                var fooReader = contextNode.GetPort("Foo");
                 Assert.NotNull(fooReader);
             }
         }

@@ -2,52 +2,73 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Registry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class PortHandler : GraphDataHandler
     {
+        internal string kTypeField = "TypeField";
         public string LocalID { get; private set; }
         public bool IsInput { get; }
         public bool IsHorizontal { get; }
-        public FieldHandler GetTypeField() => GetField("TypeField");
+        public FieldHandler GetTypeField() => GetField(kTypeField);
+        public FieldHandler AddTypeField() => AddField(kTypeField);
 
         [Obsolete]
         public RegistryKey GetRegistryKey() { return GetTypeField().GetRegistryKey(); }
 
         public IEnumerable<PortHandler> GetConnectedPorts()
         {
-            throw new System.Exception();
+            bool input = GetMetadata<bool>(PortHeader.kInput);
+            foreach(var edge in Owner.edges)
+            {
+                if(input && edge.input.Equals(ID))
+                {
+                    yield return new PortHandler(edge.output, Owner, DefaultLayer);
+                }
+                else if(!input && edge.output.Equals(ID))
+                {
+                    yield return new PortHandler(edge.input, Owner, DefaultLayer);
+                }
+
+            }
         }
 
-        internal PortHandler(ElementID elementID, GraphStorage owner)
-            : base(elementID, owner)
+        internal PortHandler(ElementID elementID, GraphStorage owner, string defaultLayer = GraphDelta.k_user)
+            : base(elementID, owner, defaultLayer)
         {
         }
 
+        public NodeHandler GetNode()
+        {
+            return new NodeHandler(ID.FullPath.Replace($".{ID.LocalPath}",""), Owner, DefaultLayer);
+        }
         public IEnumerable<FieldHandler> GetFields()
         {
             throw new System.Exception();
         }
         public FieldHandler GetField(string localID)
         {
-            throw new System.Exception();
+            return GetHandler(localID)?.ToFieldHandler();
         }
         public FieldHandler<T> GetField<T>(string localID)
         {
-            throw new System.Exception();
+            return GetHandler(localID)?.ToFieldHandler<T>();
         }
         public FieldHandler AddField(string localID)
         {
-            throw new System.Exception();
+            Writer.AddChild(localID).SetHeader(new FieldHeader());
+            return new FieldHandler(ID.FullPath + $".{localID}", Owner, DefaultLayer) ;
         }
-        public FieldHandler<T> AddField<T>(string localID, T value)
+        public FieldHandler<T> AddField<T>(string localID, T value = default)
         {
-            throw new System.Exception();
+            Writer.AddChild(localID, value).SetHeader(new FieldHeader());
+            return new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, DefaultLayer);
         }
         public void RemoveField(string localID)
         {
-            throw new System.Exception();
+            Writer.RemoveChild(localID);
         }
     }
 }

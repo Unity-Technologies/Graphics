@@ -17,12 +17,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 foreach(var id in contextNodes)
                 {
-                    yield return m_data.GetHandler(id) as NodeHandler;
+                    yield return m_data.GetHandler(id).ToNodeHandler();
                 }
             }
         }
 
-        private const string kRegistryKeyName = "_RegistryKey";
+        internal const string kRegistryKeyName = "_RegistryKey";
         public GraphDelta()
         {
             m_data = new GraphStorage();
@@ -64,7 +64,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 portHandler.SetMetadata(kRegistryKeyName, key);
             }
 
+            nodeHandler.DefaultLayer = k_concrete;
             builder.BuildNode(nodeHandler, registry);
+            nodeHandler.DefaultLayer = k_user;
 
             return nodeHandler;
         }
@@ -85,7 +87,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodeHandler.AddPort("Out", false, true).SetMetadata(kRegistryKeyName, contextKey);
             }
 
+            nodeHandler.DefaultLayer = k_concrete;
             builder.BuildNode(nodeHandler, registry);
+            nodeHandler.DefaultLayer = k_user;
 
             return nodeHandler;
 
@@ -128,6 +132,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
             nodeHandler.ClearLayerData(k_concrete);
+            nodeHandler.DefaultLayer = k_concrete;
             builder.BuildNode(nodeHandler, registry);
             return builder != null;
         }
@@ -139,7 +144,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public NodeHandler GetNode(ElementID id)
         {
-            return m_data.GetHandler(id) as NodeHandler;
+            return m_data.GetHandler(id).ToNodeHandler();
         }
 
         public void RemoveNode(ElementID id)
@@ -147,14 +152,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data.RemoveHandler(k_user, id);
         }
 
-        public IEdgeHandler AddEdge(ElementID portA, ElementID portB)
+        public EdgeHandler AddEdge(ElementID output, ElementID input)
         {
-            throw new System.NotImplementedException();
+            m_data.edges.Add((output, input));
+            return new EdgeHandler(output, input, m_data);
         }
 
-        public void RemoveEdge(ElementID portA, ElementID portB)
+        public void RemoveEdge(ElementID output, ElementID input)
         {
-            throw new System.NotImplementedException();
+            m_data.edges.Remove((output, input));
         }
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID node)
@@ -169,7 +175,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void RemoveNode(string id)
         {
-            throw new System.NotImplementedException();
+            m_data.RemoveHandler(id);
         }
 
     }

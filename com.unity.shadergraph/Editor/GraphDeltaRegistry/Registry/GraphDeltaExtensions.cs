@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static RegistryKey GetRegistryKey(this PortHandler port)
         {
-            return port.GetMetadata<RegistryKey>(kRegistryKeyName);
+            return port.GetTypeField().GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
         public static RegistryKey GetRegistryKey(this FieldHandler field)
@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var dstNodeHandler = handler.GetNode(dstNode);
             var dstPortHandler = dstNodeHandler.GetPort(dstPort);
             var srcPortHandler = handler.GetNode(srcNode).GetPort(srcPort);
-            return registry.CastExists(dstPortHandler.GetRegistryKey(), srcPortHandler.GetRegistryKey());
+            return registry.CastExists(dstPortHandler.GetTypeField().GetRegistryKey(), srcPortHandler.GetTypeField().GetRegistryKey());
         }
 
         public static bool TryConnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry.Registry registry)
@@ -296,10 +296,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             var builder = registry.GetTypeBuilder(key);
 
-            // TODO (Liz) Building the type with the port's localID doesn't seem
-            // like the right thing here. What is the right field to use for building
-            // the type?
-            builder.BuildType(port.GetField(name), registry);
+            builder.BuildType(port.AddTypeField(), registry);
             return port;
         }
     }
