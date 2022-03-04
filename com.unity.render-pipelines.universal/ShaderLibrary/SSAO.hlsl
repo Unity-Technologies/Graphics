@@ -84,7 +84,9 @@ static half SSAORandomUV[40] =
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
-#if defined(_NEW) || defined(_BLUE_NOISE)
+#if defined(_NEW)
+    #define RADIUS _SSAOParams.y * half(1.5)
+#elif defined(_BLUE_NOISE)
     #define RADIUS _SSAOParams.y * half(1.5)
 #else
     #define RADIUS _SSAOParams.y
@@ -179,14 +181,6 @@ half CompareNormal(half3 d1, half3 d2)
     return smoothstep(kGeometryCoeff, half(1.0), dot(d1, d2));
 }
 
-// Trigonometric function utility
-half2 CosSin(half theta)
-{
-    half sn, cs;
-    sincos(theta, sn, cs);
-    return half2(cs, sn);
-}
-
 float2 GetScreenSpacePosition(float2 uv)
 {
     return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
@@ -200,7 +194,7 @@ float2 GetScreenSpacePosition(float2 uv)
  */
 
 // Pseudo random number generator with 2D coordinates
-half GetRandomUVForSSAO(half u, int sampleIndex)
+half GetRandomUVForSSAO(int u, int sampleIndex)
 {
     return SSAORandomUV[u * 20 + sampleIndex];
 }
@@ -212,7 +206,8 @@ half3 PickSamplePoint(float2 uv, int sampleIndex)
     const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
     const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
     const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
-    const half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+    const half u2 = half(sqrt(HALF_ONE - u * u));
+    half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
     return v;
 }
 
@@ -223,6 +218,8 @@ half3 PickSamplePoint(float2 uv, int sampleIndex)
 half GetRandomUVForSSAONew(float2 uv, float dx)
 {
     uv.x = uv.x + dx;
+    return half(frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453));
+
     float dotSomething = float(dot(uv, float2(12.9898, 78.233)));
     //half dotSomething = dot(uv, HALF2_RAND); // Using this makes the AO just shift to the right...
     half sinSomething = half(sin(dotSomething) * HALF_RAND);
@@ -233,15 +230,15 @@ half GetRandomUVForSSAONew(float2 uv, float dx)
     //return half(frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453));
 }
 
-half3 PickSamplePointNew(float2 uv, half l)
+float3 PickSamplePointNew(float2 uv, float l)
 {
-    const half u = GetRandomUVForSSAONew(uv, 0.0) * HALF_TWO - HALF_ONE;
-    const half theta = GetRandomUVForSSAONew(uv, 1.0) * HALF_TWO_PI;
-    const half u2 = half(sqrt(HALF_ONE - u * u));
-    half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
+    const float u = GetRandomUVForSSAONew(uv, 0.0) * 2.0 - 1.0;
+    const float theta = GetRandomUVForSSAONew(uv, 1.0) * TWO_PI;
+    const float u2 = (sqrt(1.0 - u * u));
+    float3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
 
     // Adjustment for distance distribution.
-    v *= lerp(MIN_DIST_ADJUSTMENT, HALF_ONE, l * l);
+    v *= lerp(0.1, 1.0, l * l);
 
     return v;
 }
@@ -253,35 +250,26 @@ half3 PickSamplePointNew(float2 uv, half l)
 //
 half3 PickSamplePointBlueNoise(float2 uv, int sampleIndex, half l)
 {
-    const half gn = SAMPLE_BLUE_NOISE(uv * DOWNSAMPLE);
-    const half u = frac(GetRandomUVForSSAO(0.0, sampleIndex).x + gn) * half(2.0) - half(1.0);
-    const half theta = (GetRandomUVForSSAO(1.0, sampleIndex).x + gn) * half(TWO_PI);
-    half3 v = half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+    const float2 noise = frac(float2(sampleIndex + _Time.x * 100.0, sampleIndex + _Time.y * 100.0));
+    const half gn = SAMPLE_BLUE_NOISE(uv + noise);
+    const half u = frac(GetRandomUVForSSAO(0, sampleIndex).x + gn) * HALF_TWO - HALF_ONE;
+    const half theta = (GetRandomUVForSSAO(1, sampleIndex).x + gn * 100);
+    const half u2 = half(sqrt(HALF_ONE - u * u));
+    half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
 
     // Adjustment for distance distribution.
-    v *= lerp(0.1, 1.0, l * l);
+    v *= lerp(MIN_DIST_ADJUSTMENT, HALF_ONE, l * l);
 
     return v;
 }
 
-
-
-// Z buffer to linear depth.
-// Does NOT correctly handle oblique view frustums.
-// Does NOT work with orthographic projection.
-// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
-half LinearEyeDepth2(half depth, half4 zBufferParam)
+float SampleAndGetLinearEyeDepth(float2 uv)
 {
-    return half(half(1.0) * rcp(zBufferParam.z * depth + zBufferParam.w));
-}
-
-half SampleAndGetLinearEyeDepth(float2 uv)
-{
-    const half rawDepth = SampleSceneDepth(uv.xy);
+    const float rawDepth = SampleSceneDepth(uv.xy);
     #if defined(_ORTHOGRAPHIC)
         return LinearDepthToEyeDepth(rawDepth);
     #else
-        return LinearEyeDepth2(rawDepth, _ZBufferParams);
+        return LinearEyeDepth(rawDepth, _ZBufferParams);
     #endif
 }
 
@@ -387,13 +375,13 @@ half3 SampleNormal(float2 uv)
     #if defined(_SOURCE_DEPTH_NORMALS)
         return half3(SampleSceneNormals(uv));
     #else
-        half depth = SampleAndGetLinearEyeDepth(uv);
+        float depth = SampleAndGetLinearEyeDepth(uv);
         half3 vpos = ReconstructViewPos(uv, depth);
         return ReconstructNormal(uv, depth, vpos);
     #endif
 }
 
-half3 SampleNormal(float2 uv, half depth)
+half3 SampleNormal(float2 uv, float depth)
 {
     #if defined(_SOURCE_DEPTH_NORMALS)
         return half3(SampleSceneNormals(uv));
@@ -416,9 +404,9 @@ half4 SSAO(Varyings input) : SV_Target
     half3 camTransform101112 = half3(_CameraViewProjections[unity_eyeIndex]._m10, _CameraViewProjections[unity_eyeIndex]._m11, _CameraViewProjections[unity_eyeIndex]._m12);
 
     // Get the depth and normal for this fragment
-    half depth_o = SampleAndGetLinearEyeDepth(uv);
+    float depth_o = SampleAndGetLinearEyeDepth(uv);
     half3 norm_o = SampleNormal(uv, depth_o);
-    #if defined(_NEW)
+    #if defined(_NEW) || defined(_BLUE_NOISE)
         if (half(depth_o) > half(FALLOFF))
         {
             #if defined(_ONLY_AO)
@@ -443,16 +431,14 @@ half4 SSAO(Varyings input) : SV_Target
         // Make it distributed between [0, _Radius]
         #if defined(_NEW)
             // Sample point
-            const half l = sHalf * rcpSampleCount;
-            half3 v_s1 = PickSamplePointNew(float2(uv.x, uv.y + sHalf + _Time.x), l);
-            v_s1 *= (dot(norm_o, v_s1) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
+            const float l = sHalf * rcpSampleCount;
+            float3 v_s1 = PickSamplePointNew(float2(uv.x, uv.y + float(sHalf) + _Time.x), l);
+            v_s1 *= (dot(norm_o, v_s1) >= 0.0) * 2.0 - 1.0;
         #elif defined(_BLUE_NOISE)
             // Sample point
             const half l = sHalf * rcpSampleCount;
-            half3 v_s1 = PickSamplePointBlueNoise(float2(uv.x, uv.y), s, l);
-
-            v_s1 *= sqrt((sHalf + HALF_ONE) * rcpSampleCount);
-            v_s1 = faceforward(v_s1, -norm_o, v_s1);
+            half3 v_s1 = PickSamplePointBlueNoise(uv, s, l);
+            v_s1 *= (dot(norm_o, v_s1) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
         #else
             // Sample point
             half3 v_s1 = PickSamplePoint(uv, s);
