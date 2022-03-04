@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderFoundry
             context.ExtraAttributes = new List<string> { "[Toggle]" };
 
             UniformReadingData.BuildSimple(context, result);
-            UniformDeclarationData.BuildSimple(uniformType, context.UniformName, context.DataSource, result);
+            UniformDeclarationData.Build(uniformType, context.UniformName, context.DataSource, context.CustomBufferName, result);
             MaterialPropertyDeclarationData.BuildSimple(context, displayType, defaultValue, result);
 
             return true;
@@ -293,12 +293,12 @@ namespace UnityEditor.ShaderFoundry
             var container = context.Container;
             var uniformName = context.UniformName;
             result.UniformReadingData = new UniformReadingData { Rhs = $"{buildingData.AssignmentFunctionName}({uniformName})" };
-            result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = context.DataSource, Name = $"{uniformName}", Type = buildingData.TextureUniformType });
-            result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = context.DataSource, Name = $"sampler{uniformName}", Type = container._SamplerState });
+            UniformDeclarationData.BuildFromFieldWithOverrides(context, buildingData.TextureUniformType, $"{uniformName}", result);
+            UniformDeclarationData.BuildFromFieldWithOverrides(context, container._SamplerState, $"sampler{uniformName}", result);
             if (buildingData.HasTexelSize)
-                result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = context.DataSource, Name = $"{uniformName}_TexelSize", Type = container._float4 });
+                UniformDeclarationData.BuildFromFieldWithOverrides(context, container._float4, $"{uniformName}_TexelSize", result);
             if (buildingData.HasScaleOffset)
-                result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = context.DataSource, Name = $"{uniformName}_ST", Type = container._float4 });
+                UniformDeclarationData.BuildFromFieldWithOverrides(context, container._float4, $"{uniformName}_ST", result);
             MaterialPropertyDeclarationData.BuildSimple(context, buildingData.MaterialPropertyType, buildingData.MaterialPropertyDefaultValue, result);
             return true;
         }
@@ -313,6 +313,10 @@ namespace UnityEditor.ShaderFoundry
             var container = context.Container;
             var uniformName = context.UniformName;
             var displayName = context.DisplayName;
+            // These need valid names due to how uniform deduplication works, however the name isn't particularly important.
+            // These names were roughly taken from the macros for virtual textures.
+            var stackCBUniformName = $"{uniformName}_atlasparams";
+            var stackUniformName = $"{uniformName}_transtab";
 
             // Process all layers into a list. If a layer is not specified then it is left as null.
             var layerCount = virtualTextureAttribute.LayerCount;
@@ -337,7 +341,7 @@ namespace UnityEditor.ShaderFoundry
             readUniformBuilder.Add($"AddTextureType(BuildVTProperties_{uniformName}()");
 
             // First, virtual textures always declare the "root" uniform via a macro
-            result.UniformDeclarations.Add(new UniformDeclarationData { DeclarationOverride = $"DECLARE_STACK_CB({uniformName})", dataSource = UniformDataSource.PerMaterial });
+            UniformDeclarationData.BuildWithCustomDeclaration(stackCBUniformName, $"DECLARE_STACK_CB({uniformName})", UniformDataSource.PerMaterial, null, result);
             // Iterate through each layer, building up the material declaration, uniform declarations, and uniform reading assignments.
             for (var layer = 0; layer < layerCount; ++layer)
             {
@@ -350,8 +354,8 @@ namespace UnityEditor.ShaderFoundry
 
                 // Declare a property and two uniforms (texture + sampler) per layer
                 result.MaterialPropertyDeclarations.Add(new MaterialPropertyDeclarationData { UniformName = layerUniformName, DisplayName = layerDisplayName, DisplayType = "2D", DefaultValueExpression = layerDefaultName });
-                result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = UniformDataSource.Global, Name = layerTextureName, Type = container._Texture2D });
-                result.UniformDeclarations.Add(new UniformDeclarationData { dataSource = UniformDataSource.Global, Name = layerSamplerName, Type = container._SamplerState });
+                UniformDeclarationData.Build(container._Texture2D, layerTextureName, UniformDataSource.Global, null, result);
+                UniformDeclarationData.Build(container._SamplerState, layerSamplerName, UniformDataSource.Global, null, result);
 
                 // The stack builder is used to declare the stack uniform
                 declareStackBuilder.Add(", ", layerUniformName);
@@ -365,7 +369,7 @@ namespace UnityEditor.ShaderFoundry
             }
             declareStackBuilder.Add(")");
             readUniformBuilder.Add(");");
-            result.UniformDeclarations.Add(new UniformDeclarationData { DeclarationOverride = declareStackBuilder.ToString(), dataSource = UniformDataSource.Global });
+            UniformDeclarationData.BuildWithCustomDeclaration(stackUniformName, declareStackBuilder.ToString(), UniformDataSource.Global, null, result);
             result.UniformReadingData = new UniformReadingData { Rhs = readUniformBuilder.ToString() };
 
             return true;
@@ -374,7 +378,7 @@ namespace UnityEditor.ShaderFoundry
         static void BuildSimpleProperty(FieldPropertyContext context, string displayType, string defaultValue, FieldPropertyData resultProperty)
         {
             UniformReadingData.BuildSimple(context, resultProperty);
-            UniformDeclarationData.BuildSimple(context, resultProperty);
+            UniformDeclarationData.BuildFromField(context, resultProperty);
             MaterialPropertyDeclarationData.BuildSimple(context, displayType, defaultValue, resultProperty);
         }
 

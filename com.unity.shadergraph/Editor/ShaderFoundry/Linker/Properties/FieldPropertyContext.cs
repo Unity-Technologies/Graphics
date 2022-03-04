@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderFoundry
         readonly internal string DisplayName;
         internal bool Exposed => propertyAttribute.Exposed;
         internal UniformDataSource DataSource => propertyAttribute.DataSource;
+        internal string CustomBufferName => propertyAttribute.CustomBufferName;
         internal string DefaultValue => propertyAttribute.DefaultValue;
 
         // Not all attributes on a field are valid ShaderLab attributes.

@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -134,50 +132,6 @@ namespace UnityEditor.ShaderFoundry
                 }
                 builder.Append(")]");
             }
-        }
-
-        internal static HLSLDeclaration GetDeclaration(this ShaderAttribute attribute)
-        {
-            var decl = HLSLDeclaration.DoNotDeclare;
-            if (attribute.Name == "Property")
-                decl = HLSLDeclaration.UnityPerMaterial;
-            else if (attribute.Name == "Global")
-                decl = HLSLDeclaration.Global;
-            else if (attribute.Name == "PerMaterial")
-                decl = HLSLDeclaration.UnityPerMaterial;
-            else if (attribute.Name == "Hybrid")
-                decl = HLSLDeclaration.HybridPerInstance;
-            return decl;
-        }
-
-        internal static HLSLDeclaration GetDeclaration(this IEnumerable<ShaderAttribute> attributes)
-        {
-            var result = HLSLDeclaration.DoNotDeclare;
-            foreach (var attribute in attributes)
-            {
-                var decl = attribute.GetDeclaration();
-                if (decl != HLSLDeclaration.DoNotDeclare)
-                {
-                    result = attribute.GetDeclaration();
-                    break;
-                }
-            }
-            return result;
-        }
-
-        internal static bool GetDeclaration(this IEnumerable<ShaderAttribute> attributes, out HLSLDeclaration declaration)
-        {
-            declaration = HLSLDeclaration.DoNotDeclare;
-            foreach (var attribute in attributes)
-            {
-                var decl = attribute.GetDeclaration();
-                if (decl != HLSLDeclaration.DoNotDeclare)
-                {
-                    declaration = decl;
-                    return true;
-                }
-            }
-            return false;
         }
     }
 
