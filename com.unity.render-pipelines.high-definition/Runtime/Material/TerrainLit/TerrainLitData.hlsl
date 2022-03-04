@@ -17,7 +17,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
-#define ENABLE_TERRAIN_PERPIXEL_NORMAL
+    #define ENABLE_TERRAIN_PERPIXEL_NORMAL
 #endif
 
 #ifndef UNITY_TERRAIN_CB_VARS
