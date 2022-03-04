@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 size;
         /// <summary>The world space position to use as projection origin.</summary>
         public Vector3 position;
+        internal HDCamera hdCamera;
     }
 
     /// <summary>

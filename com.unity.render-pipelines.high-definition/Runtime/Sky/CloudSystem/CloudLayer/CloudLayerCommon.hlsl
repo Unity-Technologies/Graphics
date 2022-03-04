@@ -163,7 +163,7 @@ float4 RenderClouds(float3 dir)
     return clouds;
 }
 
-// For shadows
+// For skybox
 float4 RenderClouds(float2 positionCS)
 {
     return RenderClouds(-GetSkyViewDirWS(positionCS));

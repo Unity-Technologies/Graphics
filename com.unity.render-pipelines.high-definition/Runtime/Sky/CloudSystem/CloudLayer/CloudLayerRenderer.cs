@@ -72,11 +72,31 @@ namespace UnityEngine.Rendering.HighDefinition
             var cloudLayer = (CloudLayer)settings;
             if (cloudLayer.CastShadows)
             {
+                var sunLight = HDRenderPipeline.currentPipeline.GetMainLight();
                 if (m_PrecomputedData == null || m_PrecomputedData.cloudShadowsRT == null)
-                    UpdateCache(cloudLayer, HDRenderPipeline.currentPipeline.GetMainLight());
+                    UpdateCache(cloudLayer, sunLight);
 
                 cookieParams.texture = m_PrecomputedData.cloudShadowsRT;
-                cookieParams.size = new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
+                if (cookieParams.hdCamera != null)
+                {
+                    float shadowDistance = cloudLayer.shadowSize.value;
+                    VolumetricClouds volumetric = cookieParams.hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+                    if (HDRenderPipeline.currentPipeline.HasVolumetricCloudsShadows_IgnoreSun(cookieParams.hdCamera, volumetric))
+                    {
+                        shadowDistance = volumetric.shadowDistance.value;
+                    }
+
+                    // TODO: share code
+                    float groundShadowSize = shadowDistance * 2.0f;
+                    float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
+                    float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
+                    Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
+
+                    cookieParams.position = cookieParams.hdCamera.mainViewConstants.worldSpaceCameraPos;
+                    cookieParams.position.y = 0;
+
+                    cookieParams.size = shadowSize;//new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
+                }
                 return true;
             }
             return false;
@@ -259,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cloudShadowsResolution = (int)cloudLayer.shadowResolution.value;
                 if (cloudLayer.CastShadows && !cloudShadowsCache.TryGet(cloudShadowsResolution, cloudShadowsResolution, ref cloudShadowsRT))
                     cloudShadowsRT = RTHandles.Alloc(cloudShadowsResolution, cloudShadowsResolution,
-                        colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, dimension: TextureDimension.Tex2D,
+                        colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, dimension: TextureDimension.Tex2D, wrapMode: TextureWrapMode.Clamp,
                         enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Shadows");
             }
 
@@ -317,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 InitIfNeeded(cloudLayer, sunLight, cmd);
                 Vector4 _Params = cloudLayer.shadowTint.value;
-                _Params.w = cloudLayer.shadowMultiplier.value * 8.0f;
+                _Params.w = cloudLayer.shadowMultiplier.value;
 
                 // Parameters
                 cmd.SetComputeFloatParam(s_BakeCloudShadowsCS, HDShaderIDs._Resolution, 1.0f / cloudShadowsResolution);

@@ -284,7 +284,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 texture = lightComponent?.cookie,
                 size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight),
-                position = light.GetPosition()
+                position = light.GetPosition(),
+                hdCamera = hdCamera,
             };
 
             if (lightComponent == HDRenderPipeline.currentPipeline.GetMainLight())

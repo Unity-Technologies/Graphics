@@ -14,6 +14,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudSystem/CloudLayer/CloudLayerCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
+
 RW_TEXTURE2D(float3, _CloudShadows);
 
 float _Resolution;
@@ -29,15 +30,71 @@ float ComputeCloudShadow(float2 uv)
     const float width = 0.2;
     float3 dir = _SunDirection + uv.x * width * _SunRight - uv.y * width * _SunUp;
 
-    return RenderClouds(normalize(dir)).a;
+    return 1.0f - RenderClouds(normalize(dir)).a;
 }
+
+    /*
+#define _EarthRadius            6378100.0
+bool IntersectPlane(float3 ray_originWS, float3 ray_dir, float3 pos, float3 normal, out float t)
+{
+    float3 ray_originPS = ray_originWS + float3(0, _EarthRadius, 0);
+    float denom = dot(normal, ray_dir);
+    bool flag = false;
+    t = -1.0f;
+    if (abs(denom) > 1e-6)
+    {
+        float3 d = pos - ray_originPS;
+        t = dot(d, normal) / denom;
+        flag = (t >= 0);
+    }
+    return flag;
+}
+float ComputeCloudShadow(uint2 currentCoords)
+{
+#define _Thickness 800
+    float _HighestCloudAltitude = (2000+_Thickness);
+#define groundShadowSize 4000
+
+    // C#
+    float scaleX = abs(dot(_SunRight, normalize(float3(_SunRight.x, 0.0f, _SunRight.z))));
+    float scaleY = abs(dot(_SunUp,    normalize(float3(_SunUp.x,    0.0f, _SunUp.z))));
+    float2 _ShadowRegionSize = float2(groundShadowSize * scaleX, groundShadowSize * scaleY);
+
+    float3 shadowPlaneOrigin = _SunDirection.xyz * (_HighestCloudAltitude + _EarthRadius);
+    float3 shadowPlaneNormal = -_SunDirection.xyz;
+
+    // Here the plane is guaranteed to intersect, we don't need to test the result
+    float t;
+    IntersectPlane(0, _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
+
+    // Compute the position of the shadow plane
+    //float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.z) + t * _SunDirection.xyz;
+    float3 shadowCookieCenterWS = t * _SunDirection.xyz;
+    //shadowCookieCenterWS.xz = fmod(shadowCookieCenterWS.xz, _ShadowRegionSize);
+
+    // Compute the normalized coordinate on the shadow plane
+    //float2 uv = float2(dispatchThreadId.x * _Resolution, 1.0 - dispatchThreadId.y * _Resolution) * 2.0 - 1.0;
+    float2 normalizedCoord = currentCoords.xy * _Resolution * 2.0f - 1.0f;
+
+    // Compute the origin of the ray properties  in the planet space
+    float3 rayOriginWS = (normalizedCoord.x * _SunRight.xyz * _ShadowRegionSize.x + normalizedCoord.y * _SunUp.xyz * _ShadowRegionSize.y) + shadowCookieCenterWS;
+    return RenderClouds(normalize(rayOriginWS)).a;
+}
+    */
 
 [numthreads(8, 8, 1)]
 void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
+    if (dispatchThreadId.x == 0 || dispatchThreadId.y == 0 || dispatchThreadId.x == (uint)(rcp(_Resolution) - 1) || dispatchThreadId.y == (uint)(rcp(_Resolution) - 1))
+    {
+        _CloudShadows[dispatchThreadId.xy] = 0;
+        return;
+    }
+
     float2 uv = float2(dispatchThreadId.x * _Resolution, 1.0 - dispatchThreadId.y * _Resolution) * 2.0 - 1.0;
     float shadow = ComputeCloudShadow(uv);
 
+    /*
     // Blend with the other borders to make the texture tileable
     const float tiling = 0.5;
     float2 uv2 = uv - (1.0 - tiling);
@@ -56,6 +113,7 @@ void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
 
         shadow = lerp(shadow, shadow2, weights.y);
     }
+    */
 
-    _CloudShadows[dispatchThreadId] = lerp(float3(1.0, 1.0, 1.0), _ShadowTint, saturate(shadow * _ShadowOpacity));
+    _CloudShadows[dispatchThreadId] = lerp(1.0 - _ShadowOpacity, 1.0f, shadow);
 }

@@ -103,10 +103,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudLayerEnumParameter<CloudResolution> resolution = new CloudLayerEnumParameter<CloudResolution>(CloudResolution.CloudResolution1024);
 
 
+        /// <summary>
+        /// Controls the opacity of the volumetric clouds shadow.
+        /// </summary>
+        [Tooltip("Controls the opacity of the volumetric clouds shadow.")]
+        [AdditionalProperty]
+        public ClampedFloatParameter shadowMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        /*
         /// <summary>Controls the opacity of the cloud shadows.</summary>
         [Header("Cloud Shadows")]
         [Tooltip("Controls the opacity of the cloud shadows.")]
         public MinFloatParameter shadowMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        */
         /// <summary>Controls the tint of the cloud shadows.</summary>
         [Tooltip("Controls the tint of the cloud shadows.")]
         public ColorParameter shadowTint = new ColorParameter(Color.black, false, false, true);
@@ -116,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
         /// <summary>Specifies the size of the projected shadows.</summary>
         [Tooltip("Specifies the size of the projected shadows.")]
-        public MinFloatParameter shadowSize = new MinFloatParameter(500f, 0.0f);
+        public MinFloatParameter shadowSize = new MinFloatParameter(800f, 1000.0f);
 
 
         /// <summary>
