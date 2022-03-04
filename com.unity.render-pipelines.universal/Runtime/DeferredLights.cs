@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             );
 
             {
-                CommandBuffer cmd = CommandBufferPool.Get();
+                var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
                     // Shared uniform constants for all lights.
@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.Clear();
             }
 
             Profiler.EndSample();
@@ -515,7 +515,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_StencilDeferredPasses[0] < 0)
                 InitStencilDeferredMaterial();
 
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
             {
                 // This does 2 things:
@@ -542,9 +542,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, renderingData.shadowData.isKeywordSoftShadowsEnabled);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, m_LightCookieManager.IsKeywordLightCookieEnabled);
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         // adapted from ForwardLights.SetupShaderLightConstants
