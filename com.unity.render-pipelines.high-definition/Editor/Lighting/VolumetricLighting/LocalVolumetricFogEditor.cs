@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         internal const EditMode.SceneViewEditMode k_EditBlend = EditMode.SceneViewEditMode.GridBox;
+        Editor m_MaterialEditor;
 
         static HierarchicalBox s_ShapeBox;
         internal static HierarchicalBox s_BlendBox;
@@ -32,6 +34,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        void OnDisable()
+        {
+            CoreUtils.Destroy(m_MaterialEditor);
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -39,6 +46,21 @@ namespace UnityEditor.Rendering.HighDefinition
             LocalVolumetricFogUI.Inspector.Draw(m_SerializedLocalVolumetricFog, this);
 
             m_SerializedLocalVolumetricFog.Apply();
+
+            if ((LocalVolumetricFogMaskMode)m_SerializedLocalVolumetricFog.maskMode.intValue == LocalVolumetricFogMaskMode.Material
+                && m_SerializedLocalVolumetricFog.materialMask.objectReferenceValue is Material mat)
+            {
+                // Update material target
+                if (m_MaterialEditor == null || m_MaterialEditor.target != mat)
+                    Editor.CreateCachedEditor(mat, typeof(MaterialEditor), ref m_MaterialEditor);
+                
+                // Draw material UI
+                using (new EditorGUI.DisabledScope((mat.hideFlags & HideFlags.NotEditable) != 0))
+                {
+                    m_MaterialEditor.DrawHeader();
+                    m_MaterialEditor.OnInspectorGUI();
+                }
+            }
         }
 
         static Vector3 CenterBlendLocalPosition(LocalVolumetricFog localVolumetricFog)
