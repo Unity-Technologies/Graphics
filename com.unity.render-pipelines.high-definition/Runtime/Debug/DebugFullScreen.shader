@@ -413,6 +413,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                 }
 
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_TAAEXCLUSIONS)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    return color;
+                }
+
                 return float4(0.0, 0.0, 0.0, 0.0);
             }
 
