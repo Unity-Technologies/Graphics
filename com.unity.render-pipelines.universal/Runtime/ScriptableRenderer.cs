@@ -918,7 +918,7 @@ namespace UnityEngine.Rendering.Universal
             foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
             {
                 if (pass.renderPassEvent == injectionPoint)
-                    pass.RecordRenderGraph(context, ref renderingData);
+                    pass.RecordRenderGraph(ref renderingData);
             }
         }
 
