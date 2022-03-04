@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
 
+        PassData m_PassData;
         bool m_UseDepthPriming;
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
@@ -44,7 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawObjectsPass));
-
+            m_PassData = new PassData();
             m_ProfilerTag = profilerTag;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             foreach (ShaderTagId sid in shaderTagIds)
@@ -91,29 +92,27 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.m_RenderingData = renderingData;
-            passData.m_IsOpaque = m_IsOpaque;
-            passData.m_RenderStateBlock = m_RenderStateBlock;
-            passData.m_FilteringSettings = m_FilteringSettings;
-            passData.m_ShaderTagIdList = m_ShaderTagIdList;
-            passData.m_ProfilingSampler = m_ProfilingSampler;
+            m_PassData.m_RenderingData = renderingData;
+            m_PassData.m_IsOpaque = m_IsOpaque;
+            m_PassData.m_RenderStateBlock = m_RenderStateBlock;
+            m_PassData.m_FilteringSettings = m_FilteringSettings;
+            m_PassData.m_ShaderTagIdList = m_ShaderTagIdList;
+            m_PassData.m_ProfilingSampler = m_ProfilingSampler;
 
-            CameraSetup(cmd, passData);
+            CameraSetup(cmd, m_PassData);
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.m_RenderingData = renderingData;
-            passData.m_IsOpaque = m_IsOpaque;
-            passData.m_RenderStateBlock = m_RenderStateBlock;
-            passData.m_FilteringSettings = m_FilteringSettings;
-            passData.m_ShaderTagIdList = m_ShaderTagIdList;
-            passData.m_ProfilingSampler = m_ProfilingSampler;
+            m_PassData.m_RenderingData = renderingData;
+            m_PassData.m_IsOpaque = m_IsOpaque;
+            m_PassData.m_RenderStateBlock = m_RenderStateBlock;
+            m_PassData.m_FilteringSettings = m_FilteringSettings;
+            m_PassData.m_ShaderTagIdList = m_ShaderTagIdList;
+            m_PassData.m_ProfilingSampler = m_ProfilingSampler;
 
-            ExecutePass(context, passData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+            ExecutePass(context, m_PassData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
         }
 
         private static void CameraSetup(CommandBuffer cmd, PassData data)
@@ -210,7 +209,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Camera camera = renderingData.cameraData.camera;
 
             using (var builder = graph.AddRenderPass<PassData>("Draw Objects Pass", out var passData,
-                new ProfilingSampler("Draw Objects Pass Profiler")))
+                m_ProfilingSampler))
             {
                 passData.m_Albedo = builder.UseColorBuffer(colorTarget, 0);
                 passData.m_Depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Write);

@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
             var graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<PassData>("OnRenderObject Callback Pass", out var passData,
-                new ProfilingSampler("OnRenderObject Callback Profiler")))
+                base.profilingSampler))
             {
                 passData.colorTarget = builder.UseColorBuffer(colorTarget, 0);
                 passData.depthTarget = builder.UseDepthBuffer(depthTarget, DepthAccess.ReadWrite);

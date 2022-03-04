@@ -27,11 +27,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
+        private PassData m_PassData;
 
         public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, DeferredLights deferredLights)
         {
             base.profilingSampler = new ProfilingSampler(nameof(GBufferPass));
             base.renderPassEvent = evt;
+            m_PassData = new PassData();
 
             m_DeferredLights = deferredLights;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
@@ -116,16 +118,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
 
-            PassData data = new PassData();
-            data.renderingData = renderingData;
+            m_PassData.renderingData = renderingData;
             var cmd = renderingData.commandBuffer;
-            data.filteringSettings = m_FilteringSettings;
+            m_PassData.filteringSettings = m_FilteringSettings;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                data.deferredLights = m_DeferredLights;
+                m_PassData.deferredLights = m_DeferredLights;
 
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
                 // If we detect we are in such case (camera is in overlay mode), we clear the highest bits of stencil we have control of and use them to
@@ -134,9 +135,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 ShaderTagId lightModeTag = s_ShaderTagUniversalGBuffer;
-                data.drawingSettings = CreateDrawingSettings(lightModeTag, ref data.renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
+                m_PassData.drawingSettings = CreateDrawingSettings(lightModeTag, ref m_PassData.renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
 
-                ExecutePass(context, data);
+                ExecutePass(context, m_PassData);
             }
         }
 

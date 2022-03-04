@@ -741,7 +741,7 @@ namespace UnityEngine.Rendering.Universal
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<PassData>("InitFrame", out var passData,
-                new ProfilingSampler("InitFrame Profiler")))
+                Profiling.setupFrameData)) //TODO rendergraph maybe add a new profiling scope?
             {
                 passData.renderingData = renderingData;
                 passData.renderer = this;
@@ -772,7 +772,7 @@ namespace UnityEngine.Rendering.Universal
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<PassData>("SetupCameraProperties", out var passData,
-                new ProfilingSampler("SetupCameraProperties Profiler")))
+                Profiling.setupCamera))
             {
                 passData.renderingData = renderingData;
                 passData.cameraData = renderingData.cameraData;
@@ -840,7 +840,7 @@ namespace UnityEngine.Rendering.Universal
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
-                new ProfilingSampler("Draw Gizmos Profiler")))
+                Profiling.drawGizmos))
             {
                 builder.UseColorBuffer(color, 0);
                 builder.UseDepthBuffer(depth, DepthAccess.Read);

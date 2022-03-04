@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private GraphicsFormat depthStencilFormat;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
+        private PassData m_PassData;
         FilteringSettings m_FilteringSettings;
 
         /// <summary>
@@ -32,6 +33,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
+            m_PassData = new PassData();
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
             useNativeRenderPass = false;
@@ -98,11 +100,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.renderingData = renderingData;
-            passData.shaderTagId = this.shaderTagId;
-            passData.filteringSettings = m_FilteringSettings;
-            ExecutePass(context, passData);
+            m_PassData.renderingData = renderingData;
+            m_PassData.shaderTagId = this.shaderTagId;
+            m_PassData.filteringSettings = m_FilteringSettings;
+            ExecutePass(context, m_PassData);
         }
 
         public class PassData
@@ -119,7 +120,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
             const int k_DepthBufferBits = 32;
 
-            using (var builder = graph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, new ProfilingSampler("DepthOnly Prepass")))
+            using (var builder = graph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
             {
                 passData.renderingData = renderingData;
                 var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;

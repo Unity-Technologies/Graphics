@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal bool m_CopyResolvedDepth;
         internal bool m_ShouldClear;
+        private PassData m_PassData;
 
         /// <summary>
         /// Creates a new <c>CopyDepthPass</c> instance.
@@ -36,6 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
+            m_PassData = new PassData();
             CopyToDepth = false;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
@@ -85,20 +87,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int msaaSamples;
             public bool copyResolvedDepth;
             public bool copyToDepth;
-            public string passName;
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.renderingData = renderingData;
-            passData.copyDepthMaterial = m_CopyDepthMaterial;
-            passData.msaaSamples = MssaSamples;
-            passData.copyResolvedDepth = m_CopyResolvedDepth;
-            passData.copyToDepth = CopyToDepth;
-            passData.passName = GetType().Name;
-            ExecutePass(context, passData, source, destination, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+            m_PassData.renderingData = renderingData;
+            m_PassData.copyDepthMaterial = m_CopyDepthMaterial;
+            m_PassData.msaaSamples = MssaSamples;
+            m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
+            m_PassData.copyToDepth = CopyToDepth;
+            ExecutePass(context, m_PassData, source, destination, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
         }
 
         private static void ExecutePass(ScriptableRenderContext context, PassData passData, RTHandle source, RTHandle destination, bool isSourceYflipped)
@@ -109,11 +108,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             var msaaSamples = passData.msaaSamples;
             var copyResolvedDepth = passData.copyResolvedDepth;
             var copyToDepth = passData.copyToDepth;
-            var passName = passData.passName;
 
             if (copyDepthMaterial == null)
             {
-                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", copyDepthMaterial, passName);
+                Debug.LogErrorFormat("Missing {0}. Copy Depth render pass will not execute. Check for missing reference in the renderer resources.", copyDepthMaterial);
                 return;
             }
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
@@ -232,7 +230,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RenderGraph graph = renderingData.renderGraph;
 
-            using (var builder = graph.AddRenderPass<PassData>("Copy Depth", out var passData, new ProfilingSampler("Copy Depth Pass")))
+            using (var builder = graph.AddRenderPass<PassData>("Copy Depth", out var passData, base.profilingSampler))
             {
                 var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
@@ -248,7 +246,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.copyToDepth = CopyToDepth;
                 passData.source = builder.ReadTexture(source);
                 passData.destination = builder.UseColorBuffer(destination, 0);
-                passData.passName = GetType().Name;
 
                 // TODO RENDERGRAPH: culling? force culluing off for testing
                 builder.AllowPassCulling(false);

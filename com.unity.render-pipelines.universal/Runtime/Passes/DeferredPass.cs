@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Render(TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData)
         {
             using (var builder = renderingData.renderGraph.AddRenderPass<PassData>("Deferred Lighting Pass", out var passData,
-                new ProfilingSampler("Deferred Lighting Pass")))
+                base.profilingSampler))
             {
                 passData.color = builder.UseColorBuffer(color, 0);
                 passData.depth = builder.UseDepthBuffer(depth, DepthAccess.ReadWrite);

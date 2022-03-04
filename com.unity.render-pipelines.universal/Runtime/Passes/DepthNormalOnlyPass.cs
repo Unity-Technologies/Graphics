@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RTHandle depthHandle { get; set; }
         private RTHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
-
+        private PassData m_PassData;
         // Constants
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
 
@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public DepthNormalOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DepthNormalOnlyPass));
+            m_PassData = new PassData();
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
             useNativeRenderPass = false;
@@ -89,11 +90,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.renderingData = renderingData;
-            passData.shaderTagIds = this.shaderTagIds;
-            passData.filteringSettings = m_FilteringSettings;
-            ExecutePass(context, passData);
+            m_PassData.renderingData = renderingData;
+            m_PassData.shaderTagIds = this.shaderTagIds;
+            m_PassData.filteringSettings = m_FilteringSettings;
+            ExecutePass(context, m_PassData);
         }
 
         /// <inheritdoc/>
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
             const int k_DepthBufferBits = 32;
 
-            using (var builder = graph.AddRenderPass<PassData>("DepthNormals Prepass", out var passData, new ProfilingSampler("DepthNormals Prepass")))
+            using (var builder = graph.AddRenderPass<PassData>("DepthNormals Prepass", out var passData, base.profilingSampler))
             {
                 passData.renderingData = renderingData;
 
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(graph, depthDescriptor, "_CameraDepthTexture", true);
 
-                // TODO RENDERGRAPH: Handle Deferred case, see _CameraNormalsTexture logic in UniversalRenderer.cs 
+                // TODO RENDERGRAPH: Handle Deferred case, see _CameraNormalsTexture logic in UniversalRenderer.cs
                 var normalDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 normalDescriptor.depthBufferBits = 0;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                                     // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                                                     // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
                                                     // TODO: deferred
-     
+
                 normalDescriptor.graphicsFormat = GetGraphicsFormat();
                 cameraNormalsTexture = UniversalRenderer.CreateRenderGraphTexture(graph, normalDescriptor, "_CameraNormalsTexture", true);
 
