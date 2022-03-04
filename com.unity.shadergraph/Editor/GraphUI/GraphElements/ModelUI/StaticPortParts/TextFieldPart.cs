@@ -1,18 +1,42 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine.UIElements;
 
-public class TextFieldPart : MonoBehaviour
+namespace UnityEditor.ShaderGraph.GraphUI
 {
-    // Start is called before the first frame update
-    void Start()
+    public class TextFieldPart : SingleFieldPart<TextField, string>
     {
-        
-    }
+        protected override string UXMLTemplateName => "StaticPortParts/DropdownPart";
+        protected override string FieldName => "sg-dropdown";
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public TextFieldPart(
+            string name,
+            IGraphElementModel model,
+            IModelUI ownerElement,
+            string parentClassName,
+            string portName
+        ) : base(name, model, ownerElement, parentClassName, portName)
+        {
+        }
+
+        protected override void OnFieldValueChanged(ChangeEvent<string> change)
+        {
+            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            // TODO (Brett) Figure out how / when we store strings
+            // ---
+            //m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+            //    m_PortName,
+            //    GraphType.Length.One,
+            //    GraphType.Height.One,
+            //    change.newValue));
+        }
+
+        protected override void UpdatePartFromPortReader(IPortReader reader)
+        {
+            // TODO (Brett) Figure out how / when we store strings
+            // ----
+            //if (!reader.GetField("c0", out float value)) value = "";
+            //m_Field.SetValueWithoutNotify(value);
+        }
     }
 }

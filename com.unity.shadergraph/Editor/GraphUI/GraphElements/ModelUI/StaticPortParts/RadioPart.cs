@@ -1,18 +1,40 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Types;
+using UnityEngine.UIElements;
 
-public class RadioPart : MonoBehaviour
+namespace UnityEditor.ShaderGraph.GraphUI
 {
-    // Start is called before the first frame update
-    void Start()
+    public class RadioPart : SingleFieldPart<RadioButtonGroup, int>
     {
-        
-    }
+        protected override string UXMLTemplateName => "StaticPortParts/SliderPart";
+        protected override string FieldName => "sg-slider";
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public RadioPart(
+            string name,
+            IGraphElementModel model,
+            IModelUI ownerElement,
+            string parentClassName,
+            string portName
+        ) : base(name, model, ownerElement, parentClassName, portName)
+        {
+        }
+
+        protected override void OnFieldValueChanged(ChangeEvent<int> change)
+        {
+            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+                m_PortName,
+                GraphType.Length.One,
+                GraphType.Height.One,
+                change.newValue));
+        }
+
+        protected override void UpdatePartFromPortReader(IPortReader reader)
+        {
+            if (!reader.GetField("c0", out int value)) value = 0;
+            m_Field.SetValueWithoutNotify(value);
+        }
     }
 }
