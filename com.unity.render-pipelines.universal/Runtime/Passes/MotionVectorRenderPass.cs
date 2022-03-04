@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         PreviousFrameData m_MotionData;
         ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
+        private PassData m_PassData;
         #endregion
 
         #region Constructors
@@ -30,6 +31,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
+            m_PassData = new PassData();
+            base.profilingSampler = new ProfilingSampler("Motion Vector Pass");
+
         }
 
         #endregion
@@ -100,13 +104,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.renderingData = renderingData;
-            passData.cameraMaterial = m_CameraMaterial;
-            passData.objectMaterial = m_ObjectMaterial;
-            passData.motionData = m_MotionData;
+            m_PassData.renderingData = renderingData;
+            m_PassData.cameraMaterial = m_CameraMaterial;
+            m_PassData.objectMaterial = m_ObjectMaterial;
+            m_PassData.motionData = m_MotionData;
 
-            ExecutePass(context, passData);
+            ExecutePass(context, m_PassData);
         }
 
         private static DrawingSettings GetDrawingSettings(ref RenderingData renderingData, Material objectMaterial)
@@ -164,7 +167,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             RenderGraph graph = renderingData.renderGraph;
 
-            using (var builder = graph.AddRenderPass<PassData>("Motion Vector Pass", out var passData, new ProfilingSampler("Motion Vector Pass")))
+            using (var builder = graph.AddRenderPass<PassData>("Motion Vector Pass", out var passData, base.profilingSampler))
             {
                 //  TODO RENDERGRAPH: culling? force culluing off for testing
                 builder.AllowPassCulling(false);
