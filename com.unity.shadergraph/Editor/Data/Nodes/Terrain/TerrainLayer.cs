@@ -112,18 +112,16 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("#if defined(HD_TERRAIN_ENABLED) && defined(_TERRAIN_8_LAYERS)");
             }
             sb.IncreaseIndent();
-            sb.AppendLine("#ifndef LAYER_ELEMENTS");
-            sb.AppendLine("#define LAYER_ELEMENTS");
+            sb.AppendLine("#ifndef SPLAT_PREREQUISITES");
+            sb.AppendLine("#define SPLAT_PREREQUISITES");
             sb.AppendLine("float4 albedo[_LAYER_COUNT];");
             sb.AppendLine("float3 normal[_LAYER_COUNT];");
             sb.AppendLine("float4 masks[_LAYER_COUNT];");
-            sb.AppendLine("#endif // LAYER_ELEMENTS");
-            sb.AppendLine("#ifndef SPLAT_DXDY");
-            sb.AppendLine("#define SPLAT_DXDY");
             sb.AppendLine("float2 dxuv = ddx(IN.uv0.xy);");
             sb.AppendLine("float2 dyuv = ddy(IN.uv0.xy);");
-            sb.AppendLine("#endif // SPLAT_DXDY");
+            sb.AppendLine("#endif // SPLAT_PREREQUISITES");
             sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
+            sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
             sb.AppendLine("float2 splat{0}uv = IN.uv0.xy * _Splat{0}_ST.xy + _Splat{0}_ST.zw;", inputLayerIndexValue);
             sb.AppendLine("float2 splat{0}dxuv = dxuv * _Splat{0}_ST.x;", inputLayerIndexValue);
             sb.AppendLine("float2 splat{0}dyuv = dyuv * _Splat{0}_ST.x;", inputLayerIndexValue);
