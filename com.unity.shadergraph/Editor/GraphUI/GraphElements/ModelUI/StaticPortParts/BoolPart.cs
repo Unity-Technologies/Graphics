@@ -1,8 +1,8 @@
-using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Types;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdatePartFromPortReader(IPortReader reader)
         {
             if (!reader.GetField("c0", out float value)) value = 0;
-            bool v = (int)Math.Round(Math.Clamp(value, 0, 1), 0) == 1;
+            bool v = !Mathf.Approximately(value, 0F);
             m_Field.SetValueWithoutNotify(v);
         }
     }
