@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
-    /// SingleFieldPart is a static port part that wraps interaction with a UIElements field. The field, of type F, has
-    /// to support a value changed callback of type T.
+    /// SingleFieldPart is a static port part that wraps interaction with a UIElements field.
+    /// The field, of type F, has to support a value changed callback of type T.
     ///
     /// This simplifies implementation of parts that correspond directly to existing UIElements field controls, like
     /// UnityEngine.UIElements.IntegerField and UnityEditor.UIElements.ColorField.
