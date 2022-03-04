@@ -16,3 +16,7 @@ $RefractionThin:                    #define _REFRACTION_THIN 1
 
 // This shader support recursive rendering for raytracing
 //#define HAVE_RECURSIVE_RENDERING
+
+#if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
+#define ENABLE_TERRAIN_PERPIXEL_NORMAL
+#endif

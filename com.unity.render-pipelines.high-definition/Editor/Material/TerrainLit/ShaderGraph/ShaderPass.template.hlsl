@@ -16,7 +16,7 @@ float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS
 #endif
 }
 
-void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData, out float3 bentNormalWS)
+void BuildSurfaceData(inout FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData, out float3 bentNormalWS)
 {
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
@@ -24,7 +24,8 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #ifdef TERRAIN_PERPIXEL_NORMAL_OVERRIDE
         float3 normalWS = surfaceDescription.normalWS;
     #else
-        float2 terrainNormalMapUV = (fragInputs.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
+        float2 texCoord0 = fragInputs.texCoord0.xy / _TerrainHeightmapRecipSize.zw;
+        float2 terrainNormalMapUV = (texCoord0 + 0.5f) * _TerrainHeightmapRecipSize.xy;
         float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2.0 - 1.0;
         float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
     #endif
