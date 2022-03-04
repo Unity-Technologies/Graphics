@@ -628,6 +628,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         public virtual void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
         }
 
         /// <summary>

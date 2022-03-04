@@ -112,6 +112,8 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = renderingData.cameraData.camera;
 
+            CreateRenderGraphCameraRenderTargets(context, ref renderingData);
+
             OnBeforeRendering(context, ref renderingData);
 
             OnMainRendering(context, ref renderingData);
@@ -119,10 +121,16 @@ namespace UnityEngine.Rendering.Universal
             OnAfterRendering(context, ref renderingData);
         }
 
+        protected override void FinishRenderGraphRenderingInternal(ScriptableRenderContext context, RenderingData renderingData)
+        {
+            if (this.renderingModeActual == RenderingMode.Deferred)
+                m_DeferredPass.OnCameraCleanup(renderingData.commandBuffer);
+
+            m_CopyDepthPass.OnCameraCleanup(renderingData.commandBuffer);
+        }
+
         private void OnBeforeRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CreateRenderGraphCameraRenderTargets(context, ref renderingData);
-
             bool renderShadows = false;
 
             if (m_MainLightShadowCasterPass.Setup(ref renderingData))
