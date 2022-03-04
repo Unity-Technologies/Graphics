@@ -11,7 +11,7 @@ using UnityEditor.Callbacks;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
+
 using UnityObject = UnityEngine.Object;
 
 
@@ -207,6 +207,8 @@ class VisualEffectAssetEditor : Editor
 
         if (m_VisualEffectGO == null)
         {
+            m_PreviewUtility?.Cleanup();
+
             m_PreviewUtility = new PreviewRenderUtility();
             m_PreviewUtility.camera.fieldOfView = 60.0f;
             m_PreviewUtility.camera.allowHDR = true;
@@ -223,7 +225,7 @@ class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.hideFlags = HideFlags.DontSave;
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
             m_VisualEffect.pause = true;
-            m_NeedsRender = true;
+            m_RemainingFramesToRender = 2;
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
 
             m_VisualEffectGO.transform.localPosition = Vector3.zero;
@@ -233,8 +235,7 @@ class VisualEffectAssetEditor : Editor
             m_VisualEffect.visualEffectAsset = target;
 
             m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
-            m_FrameCount = 0;
-            m_Distance = 0;
+            m_Distance = null;
             m_Angles = Vector2.zero;
 
             if (s_CubeWireFrame == null)
@@ -297,11 +298,9 @@ class VisualEffectAssetEditor : Editor
     GameObject m_VisualEffectGO;
     VisualEffect m_VisualEffect;
     Vector2 m_Angles;
-    float m_Distance;
-    bool m_NeedsRender;
+    float? m_Distance;
+    int m_RemainingFramesToRender;
     Bounds m_CurrentBounds;
-
-    int m_FrameCount = 0;
 
     const int kSafeFrame = 2;
 
@@ -310,14 +309,14 @@ class VisualEffectAssetEditor : Editor
         return !serializedObject.isEditingMultipleObjects;
     }
 
-    void ComputeFarNear()
+    void ComputeFarNear(float distance)
     {
         if (m_CurrentBounds.size != Vector3.zero)
         {
             float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x + m_CurrentBounds.size.y * m_CurrentBounds.size.y + m_CurrentBounds.size.z * m_CurrentBounds.size.z);
-            m_PreviewUtility.camera.farClipPlane = m_Distance + maxBounds * 1.1f;
-            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds));
-            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds));
+            m_PreviewUtility.camera.farClipPlane = distance + maxBounds * 1.1f;
+            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (distance - maxBounds));
+            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (distance - maxBounds));
         }
     }
 
@@ -329,6 +328,14 @@ class VisualEffectAssetEditor : Editor
         if (EditorGUI.EndChangeCheck())
         {
             m_VisualEffect.pause = !m_IsAnimated;
+
+            if (m_IsAnimated)
+            {
+                DestroyImmediate(m_PreviewTexture);
+                m_PreviewTexture = null;
+            }
+            else
+                CopyRenderedFrame();
         }
 
         GUI.enabled = m_IsAnimated;
@@ -357,9 +364,10 @@ class VisualEffectAssetEditor : Editor
             return;
 
         if (isRepaint && r != m_LastArea)
-            m_NeedsRender = true;
+            RequestNewFrame();
 
-        m_NeedsRender |= VFXPreviewGUI.TryDrag2D(ref m_Angles, r);
+        if (VFXPreviewGUI.TryDrag2D(ref m_Angles, m_LastArea))
+            RequestNewFrame();
 
         if (renderer.bounds.size != Vector3.zero)
         {
@@ -388,77 +396,74 @@ class VisualEffectAssetEditor : Editor
             }
         }
 
-        if (m_FrameCount <= kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
+        if (!m_Distance.HasValue && m_RemainingFramesToRender == 1)
         {
             float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x +
                                          m_CurrentBounds.size.y * m_CurrentBounds.size.y +
                                          m_CurrentBounds.size.z * m_CurrentBounds.size.z);
             m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
-            m_NeedsRender = true;
-            ComputeFarNear();
+            ComputeFarNear(0f);
         }
         else
         {
-            ComputeFarNear();
+            ComputeFarNear(m_Distance.GetValueOrDefault(0f));
         }
 
         if (Event.current.isScrollWheel)
         {
             m_Distance *= 1 + Event.current.delta.y * .015f;
-            m_NeedsRender = true;
+            RequestNewFrame();
         }
 
         if (m_Mat == null)
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
 
-        m_NeedsRender |= m_FrameCount < kSafeFrame;
-
         if (!isRepaint)
         {
-            if (m_NeedsRender)
+            if (m_RemainingFramesToRender > 0)
                 Repaint();
             return;
         }
 
-        m_LastArea = r;
-        m_FrameCount++;
-        bool needsRender = m_IsAnimated || m_NeedsRender;
+        if (r.width > 50 && r.height > 50)
+            m_LastArea = r;
 
-        if (m_PreviewTexture == null || needsRender)
-        {
-            m_NeedsRender = false;
-            m_PreviewUtility.BeginPreview(r, background);
-
-            Quaternion rot = Quaternion.Euler(0, m_Angles.x, 0) * Quaternion.Euler(m_Angles.y, 0, 0);
-            m_PreviewUtility.camera.transform.position = m_CurrentBounds.center + rot * new Vector3(0, 0, -m_Distance);
-            m_PreviewUtility.camera.transform.localRotation = rot;
-            m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), m_Mat, 0);
-            m_PreviewUtility.Render(true);
-            var tmpPreview = m_PreviewUtility.EndPreview();
-            if (needsRender)
-            {
-                m_PreviewTexture = tmpPreview;
-            }
-            else
-            {
-                m_PreviewTexture = new Texture2D(tmpPreview.width, tmpPreview.height, tmpPreview.graphicsFormat, TextureCreationFlags.DontInitializePixels);
-                Graphics.CopyTexture(tmpPreview, m_PreviewTexture);
-                m_PreviewUtility.Cleanup();
-                m_PreviewUtility = null;
-            }
-        }
+        bool needsRender = m_IsAnimated || m_RemainingFramesToRender > 0;
 
         if (needsRender)
         {
-            PreviewRenderUtility.DrawPreview(r, m_PreviewTexture);
+            m_RemainingFramesToRender--;
+            m_PreviewUtility.BeginPreview(m_LastArea, background);
+
+            Quaternion rot = Quaternion.Euler(0, m_Angles.x, 0) * Quaternion.Euler(m_Angles.y, 0, 0);
+            m_PreviewUtility.camera.transform.position = m_CurrentBounds.center + rot * new Vector3(0, 0, -m_Distance.GetValueOrDefault(0));
+            m_PreviewUtility.camera.transform.localRotation = rot;
+            if (m_Distance != 0)
+                m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), m_Mat, 0);
+            m_PreviewUtility.Render(true);
+            m_PreviewUtility.EndAndDrawPreview(m_LastArea);
         }
-        else
-        {
-            EditorGUI.DrawPreviewTexture(r, m_PreviewTexture, null, ScaleMode.StretchToFill, 0, 0, ColorWriteMask.All, 0);
-        }
+
+        if (!m_IsAnimated && m_RemainingFramesToRender == 0)
+            CopyRenderedFrame();
 
         if (m_IsAnimated)
             Repaint();
+        else if (m_PreviewTexture != null)
+            EditorGUI.DrawPreviewTexture(m_LastArea, m_PreviewTexture);
+    }
+
+    void RequestNewFrame()
+    {
+        if (m_RemainingFramesToRender < 0)
+            m_RemainingFramesToRender = 2;
+    }
+
+    void CopyRenderedFrame()
+    {
+        m_RemainingFramesToRender = -1;
+        m_PreviewTexture = new Texture2D(m_PreviewUtility.renderTexture.width, m_PreviewUtility.renderTexture.height, m_PreviewUtility.renderTexture.graphicsFormat, TextureCreationFlags.DontInitializePixels);
+        Graphics.CopyTexture(m_PreviewUtility.renderTexture, m_PreviewTexture);
     }
 
     Material m_Mat;
