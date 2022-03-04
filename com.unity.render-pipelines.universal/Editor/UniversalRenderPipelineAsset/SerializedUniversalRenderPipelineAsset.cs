@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty storeActionsOptimizationProperty { get; }
 
         public SerializedProperty hdr { get; }
+        public SerializedProperty hdrColorBufferPrecisionProp { get; }
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
@@ -86,6 +87,7 @@ namespace UnityEditor.Rendering.Universal
             lodCrossFadeDitheringTypeProp = serializedObject.FindProperty("m_LODCrossFadeDitheringType");
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
+            hdrColorBufferPrecisionProp = serializedObject.FindProperty("m_HDRColorBufferPrecision");
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");

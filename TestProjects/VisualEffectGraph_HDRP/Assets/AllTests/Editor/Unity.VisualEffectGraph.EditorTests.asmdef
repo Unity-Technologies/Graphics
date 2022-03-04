@@ -3,11 +3,13 @@
     "references": [
         "Unity.VisualEffectGraph.Editor",
         "Unity.VisualEffectGraph.Runtime",
+        "Unity.ShaderGraph.Editor",
         "UnityEditor.TestTools.Graphics",
-        "UnityEngine.TestTools.Graphics"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "UnityEngine.TestTools.Graphics",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.Timeline",
+        "Unity.Timeline.Editor"
     ],
     "includePlatforms": [
         "Editor"

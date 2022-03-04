@@ -9,13 +9,16 @@ using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 using System.IO;
+using UnityEngine.Playables;
+using UnityEngine.Timeline;
 
 namespace UnityEditor.VFX.Test
 {
     class VFXTestCommon
     {
-        static readonly string tempBasePath = "Assets/TmpTests/";
+        public static readonly string tempBasePath = "Assets/TmpTests/";
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
+        static readonly string tempFileFormatPlayable = tempBasePath + "vfx_{0}.playable";
 
         public static VFXGraph CopyTemporaryGraph(string path)
         {
@@ -29,6 +32,18 @@ namespace UnityEditor.VFX.Test
             VisualEffectResource resource = asset.GetResource();
             var graph = resource.GetOrCreateGraph();
             return graph;
+        }
+
+        public static TimelineAsset CopyTemporaryTimeline(string path)
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            string tempFilePath = string.Format(tempFileFormatPlayable, guid);
+            System.IO.Directory.CreateDirectory(tempBasePath);
+            File.Copy(path, tempFilePath);
+
+            AssetDatabase.ImportAsset(tempFilePath);
+            var asset = AssetDatabase.LoadAssetAtPath<TimelineAsset>(tempFilePath);
+            return asset;
         }
 
         public static VFXGraph MakeTemporaryGraph()
@@ -45,14 +60,17 @@ namespace UnityEditor.VFX.Test
 
         public static void DeleteAllTemporaryGraph()
         {
-            foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
+            if (Directory.Exists(tempBasePath))
             {
-                try
+                foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
                 {
-                    AssetDatabase.DeleteAsset(file);
-                }
-                catch (System.Exception) // Don't stop if we fail to delete one asset
-                {
+                    try
+                    {
+                        AssetDatabase.DeleteAsset(file);
+                    }
+                    catch (System.Exception) // Don't stop if we fail to delete one asset
+                    {
+                    }
                 }
             }
         }

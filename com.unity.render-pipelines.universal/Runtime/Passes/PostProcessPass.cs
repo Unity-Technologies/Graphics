@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 
@@ -19,12 +18,12 @@ namespace UnityEngine.Rendering.Universal
     }
 }
 
-namespace UnityEngine.Rendering.Universal.Internal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Renders the post-processing effect stack.
     /// </summary>
-    public class PostProcessPass : ScriptableRenderPass
+    internal class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
         RTHandle m_Source;
@@ -114,31 +113,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="data">The <c>PostProcessData</c> resources to use.</param>
-        /// <param name="blitMaterial">The <c>Material</c> to use when blitting.</param>
+        /// <param name="postProcessParams">The <c>PostProcessParams</c> run-time params to use.</param>
         /// <seealso cref="RenderPassEvent"/>
         /// <seealso cref="PostProcessData"/>
-        /// <seealso cref="Material"/>
-        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
+        /// <seealso cref="PostProcessParams"/>
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data, ref PostProcessParams postProcessParams)
         {
             base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
             renderPassEvent = evt;
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
-            m_BlitMaterial = blitMaterial;
-
-            // Texture format pre-lookup
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
-            {
-                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                m_UseRGBM = false;
-            }
-            else
-            {
-                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
-                    ? GraphicsFormat.R8G8B8A8_SRGB
-                    : GraphicsFormat.R8G8B8A8_UNorm;
-                m_UseRGBM = true;
-            }
 
             // Only two components are needed for edge render texture, but on some vendors four components may be faster.
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, FormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
@@ -167,6 +151,28 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
             base.useNativeRenderPass = false;
+
+            m_BlitMaterial = postProcessParams.blitMaterial;
+
+            // Texture format pre-lookup
+            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
+            if (SystemInfo.IsFormatSupported(postProcessParams.requestHDRFormat, usage))
+            {
+                m_DefaultHDRFormat = postProcessParams.requestHDRFormat;
+                m_UseRGBM = false;
+            }
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage)) // HDR fallback
+            {
+                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                m_UseRGBM = false;
+            }
+            else
+            {
+                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
+                    ? GraphicsFormat.R8G8B8A8_SRGB
+                    : GraphicsFormat.R8G8B8A8_UNorm;
+                m_UseRGBM = true;
+            }
         }
 
         /// <summary>
@@ -261,12 +267,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             overrideCameraTarget = true;
         }
 
-        private void ResetHistory()
+        public void ResetHistory()
         {
             m_ResetHistory = true;
         }
 
-        private bool CanRunOnTile()
+        public bool CanRunOnTile()
         {
             // Check builtin & user effects here
             return false;
@@ -292,16 +298,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_UseDrawProcedural = renderingData.cameraData.xr.enabled;
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
+            var cmd = renderingData.commandBuffer;
             if (m_IsFinalPass)
             {
-                var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingRenderFinalPostProcessing))
                 {
                     RenderFinalPass(cmd, ref renderingData);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
             else if (CanRunOnTile())
             {
@@ -312,14 +315,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Regular render path (not on-tile) - we do everything in a single command buffer as it
                 // makes it easier to manage temporary targets' lifetime
-                var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingRenderPostProcessing))
                 {
                     Render(cmd, ref renderingData);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
             m_ResetHistory = false;
@@ -385,7 +384,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             //Check amount of swaps we have to do
-            //We blit back and forth without msaa untill the last blit.
+            //We blit back and forth without msaa until the last blit.
             bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
             bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
@@ -626,7 +625,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                         colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
                     if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
@@ -1185,7 +1184,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     downres = 2;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new System.ArgumentOutOfRangeException();
             }
             int tw = m_Descriptor.width >> downres;
             int th = m_Descriptor.height >> downres;
@@ -1602,7 +1601,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTargetIdentifier cameraTarget = cameraData.xr.renderTarget;
 
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
-                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
                 // We y-flip if
                 // 1) we are bliting from render texture to back buffer and
                 // 2) renderTexture starts UV at top

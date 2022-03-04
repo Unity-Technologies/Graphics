@@ -104,9 +104,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.viewDirectionWS = input.viewDirWS;
     #endif
 
-    #if SHADER_HINT_NICE_QUALITY
-        inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
-    #endif
+    inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         inputData.shadowCoord = input.shadowCoord;

@@ -192,6 +192,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_UseSharedTexture)
             {
                 Debug.Assert(m_Output.IsValid());
+                var requestedDesc = GetAtlasDesc();
+                // We check if we need to refresh the desc. It is needed for directional lights.
+                if (renderGraph.GetTextureDesc(m_Output).width != requestedDesc.width)
+                {
+                    renderGraph.RefreshSharedTextureDesc(m_Output, requestedDesc);
+                }
+
                 return m_Output; // Should always be valid.
             }
             else

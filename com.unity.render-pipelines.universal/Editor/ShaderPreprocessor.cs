@@ -78,7 +78,6 @@ namespace UnityEditor.Rendering.Universal
         // Event callback to report shader stripping info. Form:
         // ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
         internal static event Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
-        private static readonly System.Diagnostics.Stopwatch m_stripTimer = new System.Diagnostics.Stopwatch();
 
         LocalKeyword m_MainLightShadows;
         LocalKeyword m_MainLightShadowsCascades;
@@ -690,51 +689,47 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
-            m_stripTimer.Start();
-
-            InitializeLocalShaderKeywords(shader);
-
             int prevVariantCount = compilerDataList.Count;
-            var inputShaderVariantCount = compilerDataList.Count;
-            for (int i = 0; i < inputShaderVariantCount;)
-            {
-                bool removeInput = true;
 
-                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+            double stripTimeMs = 0;
+            using (TimedScope.FromRef(ref stripTimeMs))
+            {
+                InitializeLocalShaderKeywords(shader);
+
+                var inputShaderVariantCount = compilerDataList.Count;
+                for (int i = 0; i < inputShaderVariantCount;)
                 {
-                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                    bool removeInput = true;
+
+                    foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
                     {
-                        removeInput = false;
-                        break;
+                        if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                        {
+                            removeInput = false;
+                            break;
+                        }
                     }
+
+                    if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
+                    {
+                        if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader,
+                            snippetData, compilerDataList[i]))
+                        {
+                            removeInput = true;
+                        }
+                    }
+
+                    // Remove at swap back
+                    if (removeInput)
+                        compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                    else
+                        ++i;
                 }
 
-                if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
-                {
-                    if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, compilerDataList[i]))
-                    {
-                        removeInput = true;
-                    }
-                }
+                if (!compilerDataList.TryRemoveElementsInRange(inputShaderVariantCount, compilerDataList.Count - inputShaderVariantCount, out var error))
+                    Debug.LogException(error);
 
-                // Remove at swap back
-                if (removeInput)
-                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
-                else
-                    ++i;
             }
-
-            if (compilerDataList is List<ShaderCompilerData> inputDataList)
-                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-            else
-            {
-                for (int i = compilerDataList.Count - 1; i >= inputShaderVariantCount; --i)
-                    compilerDataList.RemoveAt(i);
-            }
-
-            m_stripTimer.Stop();
-            double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
-            m_stripTimer.Reset();
 
             LogShaderVariants(shader, snippetData, prevVariantCount, compilerDataList.Count, stripTimeMs);
 

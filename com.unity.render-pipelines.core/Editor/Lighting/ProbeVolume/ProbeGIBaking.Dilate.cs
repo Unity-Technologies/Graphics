@@ -1,15 +1,16 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     partial class ProbeGIBaking
     {
         static ComputeShader dilationShader;
         static int dilationKernel = -1;
+        static internal Dictionary<int, float> s_CustomDilationThresh = new Dictionary<int, float>();
 
         static void InitDilationShaders()
         {
@@ -87,34 +88,38 @@ namespace UnityEngine.Experimental.Rendering
 
         struct DataForDilation
         {
-            public ComputeBuffer validityBuffer { get; }
             public ComputeBuffer positionBuffer { get; }
             public ComputeBuffer outputProbes { get; }
+            public ComputeBuffer needDilatingBuffer { get; }
 
             DilatedProbe[] dilatedProbes;
 
             ProbeReferenceVolume.Cell cell;
 
-            public DataForDilation(ProbeReferenceVolume.Cell cell)
+            public DataForDilation(ProbeReferenceVolume.Cell cell, float defaultThreshold)
             {
                 this.cell = cell;
 
                 int probeCount = cell.probePositions.Length;
 
-                validityBuffer = new ComputeBuffer(probeCount, sizeof(float));
                 positionBuffer = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<Vector3>());
                 outputProbes = new ComputeBuffer(probeCount, System.Runtime.InteropServices.Marshal.SizeOf<DilatedProbe>());
+                needDilatingBuffer = new ComputeBuffer(probeCount, sizeof(int));
 
                 // Init with pre-dilated SH so we don't need to re-fill from sampled data from texture (that might be less precise).
                 dilatedProbes = new DilatedProbe[probeCount];
+                int[] needDilating = new int[probeCount];
+
                 for (int i = 0; i < probeCount; ++i)
                 {
-                    dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
+                    dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
+                    needDilating[i] = s_CustomDilationThresh.ContainsKey(i) ?
+                        (cell.GetValidity(i) > s_CustomDilationThresh[i] ? 1 : 0) : (cell.GetValidity(i) > defaultThreshold ? 1 : 0);
                 }
 
                 outputProbes.SetData(dilatedProbes);
-                validityBuffer.SetData(cell.validity);
                 positionBuffer.SetData(cell.probePositions);
+                needDilatingBuffer.SetData(needDilating);
             }
 
             public void ExtractDilatedProbes()
@@ -124,20 +129,21 @@ namespace UnityEngine.Experimental.Rendering
                 int probeCount = cell.probePositions.Length;
                 for (int i = 0; i < probeCount; ++i)
                 {
-                    dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
+                    dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
                 }
             }
 
             public void Dispose()
             {
-                validityBuffer.Dispose();
                 positionBuffer.Dispose();
                 outputProbes.Dispose();
+                needDilatingBuffer.Dispose();
             }
         }
 
         static readonly int _ValidityBuffer = Shader.PropertyToID("_ValidityBuffer");
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
+        static readonly int _NeedDilating = Shader.PropertyToID("_NeedDilating");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
         static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
@@ -155,13 +161,14 @@ namespace UnityEngine.Experimental.Rendering
         {
             InitDilationShaders();
 
-            DataForDilation data = new DataForDilation(cell);
+            DataForDilation data = new DataForDilation(cell, settings.dilationValidityThreshold);
 
             var cmd = CommandBufferPool.Get("Cell Dilation");
 
-            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ValidityBuffer, data.validityBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _ProbePositionsBuffer, data.positionBuffer);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _OutputProbes, data.outputProbes);
+            cmd.SetComputeBufferParam(dilationShader, dilationKernel, _NeedDilating, data.needDilatingBuffer);
+
 
             int probeCount = cell.probePositions.Length;
 
@@ -197,6 +204,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.leakReductionMode = APVLeakReductionMode.None;
             parameters.occlusionWeightContribution = 0.0f;
             parameters.minValidNormalWeight = 0.0f;
+            parameters.frameIndexForNoise = 0;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

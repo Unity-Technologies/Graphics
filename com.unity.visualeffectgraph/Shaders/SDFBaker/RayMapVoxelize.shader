@@ -173,6 +173,7 @@ Shader "Hidden/VoxelizeShader"
                 int3 depthStep, coord;
                 bool stepMinus, stepPlus;
                 GetCellCoordinatesData(input, coord, depthStep, stepMinus, stepPlus);
+                stepPlus = stepMinus = true; //TODO : Now we're conservative about how we share triangle data across neighbouring cells, to fix visible artefacts
 
                 float3 voxelUV = ((float3(coord)+float3(0.5f, 0.5f, 0.5f)) / Max3(dimX, dimY, dimZ));
                 voxels[id3(coord)] = float4(voxelUV, 1.0f);
@@ -210,6 +211,7 @@ Shader "Hidden/VoxelizeShader"
                 int3 depthStep, coord;
                 bool stepMinus, stepPlus;
                 GetCellCoordinatesData(input, coord, depthStep, stepMinus, stepPlus);
+                stepPlus = stepMinus = true; //TODO : Now we're conservative about how we share triangle data across neighbouring cells, to fix visible artefacts
 
                 uint indexTri = 0u;
 

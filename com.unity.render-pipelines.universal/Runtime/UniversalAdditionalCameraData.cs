@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.
-        /// Overlay cameras have no stack and will return null.
+        /// Will return null if it is not a Base camera.
         /// <seealso cref="CameraRenderType"/>.
         /// </summary>
         public List<Camera> cameraStack
@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
                     return null;
                 }
 
-                if (scriptableRenderer.supportedRenderingFeatures.cameraStacking == false)
+                if (!scriptableRenderer.SupportsCameraStackingType(CameraRenderType.Base))
                 {
                     var camera = gameObject.GetComponent<Camera>();
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
@@ -432,35 +432,6 @@ namespace UnityEngine.Rendering.Universal
             if (removedCamsCount != 0)
             {
                 Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
-            }
-        }
-
-        void OnEnable()
-        {
-            RegisterDebug();
-        }
-
-        void OnDisable()
-        {
-            UnRegisterDebug();
-        }
-
-        bool m_IsDebugRegistered = false;
-        void RegisterDebug()
-        {
-            if (!m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.RegisterCamera(this);
-                m_IsDebugRegistered = true;
-            }
-        }
-
-        void UnRegisterDebug()
-        {
-            if (m_IsDebugRegistered)
-            {
-                UniversalRenderPipelineVolumeDebugSettings.UnRegisterCamera(this);
-                m_IsDebugRegistered = false;
             }
         }
 
