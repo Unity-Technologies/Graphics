@@ -231,6 +231,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
+                    // TODO RENDERGRAPH figure out where to put XR proj flip logic so that it can be auto handled in render graph
 #if ENABLE_VR && ENABLE_XR_MODULE
                     var renderingData = data.m_RenderingData;
                     if (renderingData.cameraData.xr.enabled)
