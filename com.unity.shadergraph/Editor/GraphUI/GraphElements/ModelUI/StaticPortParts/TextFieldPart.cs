@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class TextFieldPart : SingleFieldPart<TextField, string>
     {
-        protected override string UXMLTemplateName => "StaticPortParts/DropdownPart";
-        protected override string FieldName => "sg-dropdown";
+        protected override string UXMLTemplateName => "StaticPortParts/TextFieldPart";
+        protected override string FieldName => "sg-textfield";
 
         public TextFieldPart(
             string name,

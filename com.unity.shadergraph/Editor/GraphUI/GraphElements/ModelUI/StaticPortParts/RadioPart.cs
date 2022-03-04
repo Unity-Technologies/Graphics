@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class RadioPart : SingleFieldPart<RadioButtonGroup, int>
     {
-        protected override string UXMLTemplateName => "StaticPortParts/SliderPart";
-        protected override string FieldName => "sg-slider";
+        protected override string UXMLTemplateName => "StaticPortParts/RadioPart";
+        protected override string FieldName => "sg-radio";
 
         public RadioPart(
             string name,
