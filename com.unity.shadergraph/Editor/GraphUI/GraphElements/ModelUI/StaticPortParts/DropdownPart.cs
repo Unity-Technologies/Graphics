@@ -2,6 +2,12 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
+// TODO (Brett) Refactor this. Implement the 3-tiered combo box strat.
+// TODO (Brett) 3-tiered Combo Box Strat
+// TODO (Brett) - UIHint for combo boxes to allow default value selection for fields
+// TODO (Brett) - Multiple FunctionDescriptors allowed in a node (with keys)
+// TODO (Brett) - Expose enum types with Enum Visual Element (See: Enum).
+
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class DropdownPart : SingleFieldPart<DropdownField, string>

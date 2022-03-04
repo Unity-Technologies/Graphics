@@ -2,6 +2,11 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
+// TODO (Brett) Remove this. Implement the dynamic topology for Swizzle.
+// TODO (Brett) This field type was added specifically for a Swizzle implementation.
+// TODO (Brett) However, a generic UI or field type should not be supported here.
+// TODO (Brett) Instead, Swizzle should be given a specific treatment.
+
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class TextFieldPart : SingleFieldPart<TextField, string>
