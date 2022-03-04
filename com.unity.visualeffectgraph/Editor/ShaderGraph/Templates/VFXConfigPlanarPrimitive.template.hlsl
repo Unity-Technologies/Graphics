@@ -188,31 +188,4 @@ float GetVFXVertexDisplacement(int index, float3 currentWS, float3 inputVertexPo
 
     }
 
-    void BuildFragInputsFromIntersection(float2 uv, RayTracingProceduralData rtData, out FragInputs output)
-    {
-        InternalAttributesElement attributes = rtData.attributes;
-        float3 rayDirection = WorldRayDirection();
-        output.positionSS = float4(0.0, 0.0, 0.0, 0.0);
-        output.positionRWS = WorldRayOrigin() + rayDirection * RayTCurrent();
-        output.texCoord0 = float4(uv,0,0);
-        output.texCoord1 = float4(uv,0,0);
-        output.texCoord2 = float4(uv,0,0);
-        output.texCoord3 = float4(uv,0,0);
-        output.color = float4(attributes.color,attributes.alpha);
-
-        // Compute the world space normal
-        float3 normalWS = normalize(mul(rtData.objectToPrimitive[2].xyz, (float3x3)WorldToObject3x4()));
-        float3 tangentWS = normalize(mul(rtData.objectToPrimitive[0].xyz, (float3x3)WorldToObject3x4()));
-        output.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(/*sign(currentVertex.tangentOS.w)*/1));
-
-        output.isFrontFace = dot(rayDirection, output.tangentToWorld[2]) < 0.0f;
-        VFX_SRP_VARYINGS input;
-        ZERO_INITIALIZE(VFX_SRP_VARYINGS, input);
-
-        $splice(VFXInterpolantsGenerationRT)
-        $splice(VFXSetFragInputs)
-
-    }
-
-
 #endif
