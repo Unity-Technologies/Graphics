@@ -59,10 +59,13 @@ namespace UnityEngine.Rendering.HighDefinition
         DirectEnabledBit = 0x00100000,
         IndirectEnabledBit = 0x00200000,
         FadeSelfShadowBit = 0x00400000,
-        LightLoopBit = 0x00800000,
-        SplitDepthRangeBit = 0x01000000,
-        HalfResBit = 0x02000000,
-        NeedsTileCheckBit = 0x04000000,
+        AdjustEllipsoidConeBit = 0x00800000,
+        SoftPartialOcclusionBit = 0x01000000,
+
+        LightLoopBit = 0x02000000,
+        SplitDepthRangeBit = 0x04000000,
+        HalfResBit = 0x08000000,
+        NeedsTileCheckBit = 0x10000000,
     }
 
     [GenerateHLSL(needAccessors = false)]

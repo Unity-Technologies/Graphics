@@ -404,7 +404,9 @@ namespace UnityEngine.Rendering.HighDefinition
             uint directCountAndFlags
                 = (uint)m_CapsuleOccluders.directCount
                 | ((uint)capsuleShadows.directShadowMethod.value << (int)CapsuleShadowFlags.MethodShift)
-                | (capsuleShadows.fadeDirectSelfShadow.value ? (uint)CapsuleShadowFlags.FadeSelfShadowBit : 0);
+                | (capsuleShadows.fadeDirectSelfShadow.value ? (uint)CapsuleShadowFlags.FadeSelfShadowBit : 0)
+                | (capsuleShadows.adjustEllipsoidConeAngle.value ? (uint)CapsuleShadowFlags.AdjustEllipsoidConeBit : 0)
+                | (capsuleShadows.useSoftPartialOcclusion.value ? (uint)CapsuleShadowFlags.SoftPartialOcclusionBit : 0);
 
             uint indirectCountAndExtra
                 = (uint)m_CapsuleOccluders.indirectCount

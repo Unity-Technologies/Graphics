@@ -9,13 +9,14 @@
 float ApproximateSphericalCapIntersectionCosTheta(
     float cosThetaA,
     float cosThetaB,
-    float cosBetweenAxes)
+    float cosBetweenAxes,
+    bool softPartialOcclusion)
 {
     float thetaA = FastACos(cosThetaA);
     float thetaB = FastACos(cosThetaB);
     float angleBetweenAxes = FastACos(cosBetweenAxes);
 
-    float angleDiff = abs(thetaA - thetaB);
+    float angleDiff = softPartialOcclusion ? max(thetaB - thetaA, 0.f) : abs(thetaB - thetaA);
     float angleSum = thetaA + thetaB;
 
     float t = smoothstep(angleSum, angleDiff, angleBetweenAxes);
@@ -185,7 +186,8 @@ float ApproximateSphereOcclusion(
     float coneCosTheta,
     float maxDistance,
     float3 sphereCenter,
-    float sphereRadius)
+    float sphereRadius,
+    bool softPartialOcclusion)
 {
     float sphereDistance = length(sphereCenter);
 
@@ -198,7 +200,7 @@ float ApproximateSphereOcclusion(
 
         float cosBetweenAxes = min(dot(coneAxis, sphereCenter)/sphereDistance, 1.f);
 
-        intersectionCosTheta = ApproximateSphericalCapIntersectionCosTheta(coneCosTheta, sphereCosTheta, cosBetweenAxes);
+        intersectionCosTheta = ApproximateSphericalCapIntersectionCosTheta(coneCosTheta, sphereCosTheta, cosBetweenAxes, softPartialOcclusion);
     }
 
     // return the amount the intersection occludes the cone
@@ -211,14 +213,15 @@ float ApproximateCapsuleOcclusion(
     float maxDistance,
     float3 capsuleStart,
     float3 capsuleVec,
-    float capsuleRadius)
+    float capsuleRadius,
+    bool softPartialOcclusion)
 {
     // find the point on the capsule axis that is closest to the ray
     float t = saturate(RayVsRayClosestPoints(0.f, coneAxis, capsuleStart, capsuleVec).y);
 
     // occlude using a sphere at this point
     float3 sphereCenter = capsuleStart + t*capsuleVec;
-    return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius);
+    return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius, softPartialOcclusion);
 }
 
 float EvaluateCapsuleOcclusion(
@@ -294,6 +297,7 @@ float EvaluateCapsuleOcclusion(
     }
 
     // test the occluder shape vs the light
+    bool softPartialOcclusion = ((flags & CAPSULEOCCLUSIONFLAGS_SOFT_PARTIAL_OCCLUSION) != 0);
     if ((flags & CAPSULEOCCLUSIONFLAGS_RAY_TRACED_REFERENCE) != 0)
     {
         // brute force ray traced for reference
@@ -330,16 +334,18 @@ float EvaluateCapsuleOcclusion(
         surfaceToLightVec -= zAxisDir*(dot(surfaceToLightVec, zAxisDir)*zOffsetFactor);
         surfaceToCapsuleVec -= zAxisDir*(dot(surfaceToCapsuleVec, zAxisDir)*zOffsetFactor);
 
-        // consider sphere occlusion of the light cone
-        float3 surfaceToLightDir;
-        float maxDistance = FLT_MAX;
-        if (lightIsPunctual)
+        // normalize after adjustment
+        float3 surfaceToLightDir = normalize(surfaceToLightVec);
+        float maxDistance = lightIsPunctual ? length(surfaceToLightVec) : FLT_MAX;
+
+        // adjust cone angle after scaling
+        if ((flags & CAPSULEOCCLUSIONFLAGS_ADJUST_LIGHT_CONE_DURING_CAPSULE_AXIS_SCALE) != 0)
         {
-            maxDistance = length(surfaceToLightVec);
-            surfaceToLightDir = surfaceToLightVec/maxDistance;
+            float absDotAxes = abs(dot(surfaceToLightDir, zAxisDir));
+            float lightSin2Theta = max(1.f - Sq(lightCosTheta), 0.f);
+            lightCosTheta -= lightCosTheta*absDotAxes*zOffsetFactor;
+            lightCosTheta /= sqrt(lightSin2Theta + Sq(lightCosTheta));
         }
-        else
-            surfaceToLightDir = normalize(surfaceToLightVec);
 
         // consider sphere occlusion of the light cone
         occlusion *= ApproximateSphereOcclusion(
@@ -347,7 +353,8 @@ float EvaluateCapsuleOcclusion(
             lightCosTheta,
             maxDistance,
             surfaceToCapsuleVec,
-            capsuleRadius);
+            capsuleRadius,
+            softPartialOcclusion);
     }
     else
     {
@@ -384,7 +391,7 @@ float EvaluateCapsuleOcclusion(
                 maxDistance *= (1.f - zOffsetFactor);
 
             // shear the light cone an equivalent amount
-            float lightSinTheta2 = 1.f - lightCosTheta*lightCosTheta;
+            float lightSinTheta2 = 1.f - Sq(lightCosTheta);
             shearCosTheta = lightCosTheta*(1.f - zOffsetFactor);
             shearCosTheta /= sqrt(shearCosTheta*shearCosTheta + lightSinTheta2);
         }
@@ -396,7 +403,8 @@ float EvaluateCapsuleOcclusion(
             maxDistance,
             surfaceToCapsuleVec - capOffsetVec,
             2.f*capOffsetVec,
-            capsuleRadius);
+            capsuleRadius,
+            softPartialOcclusion);
     }
 
     return occlusion;

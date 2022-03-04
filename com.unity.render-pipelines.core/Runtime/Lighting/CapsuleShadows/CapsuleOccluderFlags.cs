@@ -22,6 +22,10 @@ namespace UnityEngine.Rendering
         CapsuleAxisScale = (1 << 5),
         /// <summary>Scale down everything along the light axis as the capsule axis and light axis align, to smooth the penumbra.</summary>
         LightAxisScale = (1 << 6),
+        /// <summary>Adjust the light cone when scaling along the capsule axis.</summary>
+        AdjustLightConeDuringCapsuleAxisScale = (1 << 7),
+        /// <summary>When the capsule cannot fully occlude the light source, make the penumbra as soft as possible.</summary>
+        SoftPartialOcclusion = (1 << 8),
     }
 
     [GenerateHLSL]

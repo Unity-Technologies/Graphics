@@ -84,6 +84,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter fadeDirectSelfShadow = new BoolParameter(true);
 
         /// <summary>
+        /// Whether to adjust the cone angle when scaling along the capsule axis.
+        /// </summary>
+        public BoolParameter adjustEllipsoidConeAngle = new BoolParameter(true);
+
+        /// <summary>
+        /// When the capsule cannot fully occlude the light source, make the penumbra as soft as possible.
+        /// </summary>
+        public BoolParameter useSoftPartialOcclusion = new BoolParameter(true);
+
+        /// <summary>
         /// When enabled, capsules produce indirect shadows or ambient occlusion.
         /// </summary>
         public BoolParameter enableIndirectShadows = new BoolParameter(true);
