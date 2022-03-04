@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Render Graph object pools are now cleared with render graph cleanup to avoid stale pass data.
 - Fixed sky jittering when TAA is enabled.
 - Fixed Normal Map assiignation when importing FBX Materials.
-- Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
 - Fixed an issue where sometimes full screen debug would cause render graph errors.
 - Fixed a nullref exception when creating a new scene while LightExplorer is open.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
