@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The cached camera if the key was found,
         /// otherwise a new camera that was inserted in the cache during the call.
         /// </returns>
-        public Camera GetOrCreate(K key, int frameCount, CameraType cameraType = CameraType.Game)
+        public Camera GetOrCreate(K key, int frameCount, CameraType cameraType = CameraType.Game, string nameOnCreate = "")
         {
             if (m_Cache == null)
                 throw new ObjectDisposedException(nameof(CameraCache<K>));
@@ -37,6 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 camera = (new GameObject().AddComponent<Camera>(), frameCount);
                 camera.camera.cameraType = cameraType;
+                if (nameOnCreate != "")
+                    camera.camera.name = nameOnCreate;
                 m_Cache[key] = camera;
             }
             else

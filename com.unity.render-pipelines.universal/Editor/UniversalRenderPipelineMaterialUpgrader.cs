@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Rendering.Universal.Converters;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -46,7 +46,27 @@ namespace UnityEditor.Rendering.Universal
             AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
-        private static void UpgradeSelectedMaterials()
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", true)]
+        static bool MaterialValidate(MenuCommand command)
+        {
+            foreach (var obj in Selection.objects)
+            {
+                if (obj is not Material) return false;
+            }
+
+            return true;
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
+        private static void UpgradeSelectedMaterialsMenuItem()
+        {
+            UpgradeSelectedMaterials(false);
+        }
+
+        // Added bool variable in case this method was used by anyone.
+        // Doing this, since the menuitem should behave as it did before,
+        // and then we didn't have the Animation clips upgrader
+        private static void UpgradeSelectedMaterials(bool UpgradeAnimationClips = true)
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
             GetUpgraders(ref upgraders);
@@ -55,8 +75,11 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref shaderNamesToIgnore);
 
             MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
-            // TODO: return upgrade paths and pass to AnimationClipUpgrader
-            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders, "Upgrade Animation Clips to URP Materials");
+            if (UpgradeAnimationClips)
+            {
+                // TODO: return upgrade paths and pass to AnimationClipUpgrader
+                AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders, "Upgrade Animation Clips to URP Materials");
+            }
         }
 
         private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)
@@ -257,9 +280,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal static class SupportedUpgradeParams
+    public static class SupportedUpgradeParams
     {
-        internal static UpgradeParams diffuseOpaque = new UpgradeParams()
+        public static UpgradeParams diffuseOpaque = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -268,7 +291,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        internal static UpgradeParams specularOpaque = new UpgradeParams()
+        public static UpgradeParams specularOpaque = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -277,7 +300,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        internal static UpgradeParams diffuseAlpha = new UpgradeParams()
+        public static UpgradeParams diffuseAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -286,7 +309,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        internal static UpgradeParams specularAlpha = new UpgradeParams()
+        public static UpgradeParams specularAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -295,7 +318,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        internal static UpgradeParams diffuseAlphaCutout = new UpgradeParams()
+        public static UpgradeParams diffuseAlphaCutout = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -304,7 +327,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        internal static UpgradeParams specularAlphaCutout = new UpgradeParams()
+        public static UpgradeParams specularAlphaCutout = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -313,7 +336,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        internal static UpgradeParams diffuseCubemap = new UpgradeParams()
+        public static UpgradeParams diffuseCubemap = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -322,7 +345,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        internal static UpgradeParams specularCubemap = new UpgradeParams()
+        public static UpgradeParams specularCubemap = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -331,7 +354,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        internal static UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
+        public static UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -340,7 +363,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        internal static UpgradeParams specularCubemapAlpha = new UpgradeParams()
+        public static UpgradeParams specularCubemapAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -360,7 +383,7 @@ namespace UnityEditor.Rendering.Universal
             Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
         }
 
-        internal static void UpdateStandardMaterialKeywords(Material material)
+        public static void UpdateStandardMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -383,7 +406,7 @@ namespace UnityEditor.Rendering.Universal
             BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
-        internal static void UpdateStandardSpecularMaterialKeywords(Material material)
+        public static void UpdateStandardSpecularMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -440,7 +463,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        internal StandardUpgrader(string oldShaderName)
+        public StandardUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
@@ -528,9 +551,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class TerrainUpgrader : MaterialUpgrader
+    public class TerrainUpgrader : MaterialUpgrader
     {
-        internal TerrainUpgrader(string oldShaderName)
+        public TerrainUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
         }
@@ -551,9 +574,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class ParticleUpgrader : MaterialUpgrader
+    public class ParticleUpgrader : MaterialUpgrader
     {
-        internal ParticleUpgrader(string oldShaderName)
+        public ParticleUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
@@ -576,17 +599,17 @@ namespace UnityEditor.Rendering.Universal
             RenameFloat("_FlipbookMode", "_FlipbookBlending");
         }
 
-        internal static void UpdateStandardSurface(Material material)
+        public static void UpdateStandardSurface(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
-        internal static void UpdateUnlit(Material material)
+        public static void UpdateUnlit(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
-        internal static void UpdateSurfaceBlendModes(Material material)
+        public static void UpdateSurfaceBlendModes(Material material)
         {
             switch (material.GetFloat("_Mode"))
             {
@@ -625,9 +648,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class AutodeskInteractiveUpgrader : MaterialUpgrader
+    public class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
-        internal AutodeskInteractiveUpgrader(string oldShaderName)
+        public AutodeskInteractiveUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/Autodesk Interactive");
         }

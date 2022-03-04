@@ -107,6 +107,11 @@ void Frag(  PackedVaryingsToPS packedInput
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
 
+    //Motion vector is enabled in SG but not active in VFX
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+    forceNoMotion = true;
+#endif
+
     // Setting the motionVector to a value more than 2 set as a flag for "force no motion". This is valid because, given that the velocities are in NDC,
     // a value of >1 can never happen naturally, unless explicitely set.
     if (forceNoMotion)
@@ -117,10 +122,8 @@ void Frag(  PackedVaryingsToPS packedInput
     // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
     depthColor = packedInput.vmesh.positionCS.z;
 
-    #ifdef _ALPHATOMASK_ON
     // Alpha channel is used for alpha to coverage
     depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-    #endif
 #endif
 
 // Normal Buffer Processing

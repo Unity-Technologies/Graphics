@@ -50,7 +50,8 @@ namespace UnityEngine.VFX.SDF
         private bool m_OwnsCommandBuffer = true;
         private bool m_IsDisposed = false;
 
-        internal static uint kMaxGridSize = 1 << 24;
+        internal static uint kMaxRecommandedGridSize = 1 << 24;
+        internal static uint kMaxAbsoluteGridSize = 1 << 27;
 
         //TODO: Use PLATFORM_UAVS_SEPARATE_TO_RTS (or equivalent) when it will be available
 #if (UNITY_PS4 || UNITY_PS5) && (!UNITY_EDITOR)
@@ -143,10 +144,10 @@ namespace UnityEngine.VFX.SDF
                 m_MaxExtent = m_SizeBox.z;
             }
 
-            if (m_dimX * m_dimY * m_dimZ > kMaxGridSize)
+            if (m_dimX * m_dimY * m_dimZ > kMaxAbsoluteGridSize)
             {
                 throw new ArgumentException(
-                    $"The size of the voxel grid is too big (>2^{Mathf.Log(kMaxGridSize, 2)}), reduce the resolution, or provide a thinner bounding box.");
+                    $"The size of the voxel grid is too big (>2^{Mathf.Log(kMaxAbsoluteGridSize, 2)}), reduce the resolution, or provide a thinner bounding box.");
             }
         }
 
@@ -457,6 +458,15 @@ namespace UnityEngine.VFX.SDF
             return (a % b != 0) ? (a / b + 1) : (a / b);
         }
 
+        Vector2Int GetThreadGroupsCount(int nbThreads, int threadCountPerGroup)
+        {
+            Vector2Int r = Vector2Int.zero;
+            int nbGroupNeeded = (nbThreads + threadCountPerGroup - 1) / threadCountPerGroup;
+            r.y = 1 + (nbGroupNeeded / 0xffff); //0xffff is maximal number of group of DX11 : D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION
+            r.x = nbGroupNeeded / r.y;
+            return r;
+        }
+
         void PrefixSumCount()
         {
             int nVoxels = m_dimX * m_dimY * m_dimZ;
@@ -466,8 +476,10 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.SetComputeIntParam(m_computeShader, ShaderProperties.numElem, nVoxels);
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.inBucketSum, ShaderProperties.inputBuffer, m_CounterBuffer);
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.inBucketSum, ShaderProperties.resultBuffer, m_TmpBuffer);
+            Vector2Int dispatchSize = GetThreadGroupsCount(nVoxels, m_ThreadGroupSize);
+            m_Cmd.SetComputeIntParam(m_computeShader, "dispatchWidth", dispatchSize.x);
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.inBucketSum,
-                Mathf.CeilToInt((float)nVoxels / m_ThreadGroupSize), 1, 1);
+                dispatchSize.x, dispatchSize.y, 1);
 
 
             int nBlocks = iDivUp(nVoxels, m_ThreadGroupSize);
@@ -514,7 +526,7 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.finalSum, ShaderProperties.inputCounter, m_CounterBuffer);
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.finalSum, ShaderProperties.resultBuffer, m_AccumCounterBuffer);
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.finalSum,
-                Mathf.CeilToInt((float)nVoxels / m_ThreadGroupSize), 1, 1);
+                dispatchSize.x, dispatchSize.y, 1);
             m_Cmd.EndSample("BakeSDF.PrefixSum");
         }
 
@@ -527,7 +539,7 @@ namespace UnityEngine.VFX.SDF
             }
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.threshold, m_InOutThreshold);
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.surfaceClosing, ShaderProperties.signMap, GetSignMapPrincipal(m_SignPassesCount));
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.surfaceClosing, ShaderProperties.voxelsTexture, GetTextureVoxelPrincipal(1));
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.surfaceClosing, ShaderProperties.voxelsTexture, GetTextureVoxelPrincipal(0));
 
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.surfaceClosing, iDivUp(m_dimX, 4), iDivUp(m_dimY, 4), iDivUp(m_dimZ, 4));
             m_Cmd.EndSample("BakeSDF.SurfaceClosing");
@@ -705,7 +717,7 @@ namespace UnityEngine.VFX.SDF
             nTriangles = indices.Length / 3;
             // upper bound of length of triangle list
             //TODO : Need to find a better way to either estimate, or use a readback (slow? how slow ? not always really possible)
-            int upperBoundCount = Mathf.Min(Mathf.Max(m_dimX * m_dimY * m_dimZ, nTriangles) * 30, 1536 / 4 * 1 << 20);
+            int upperBoundCount = (int)Mathf.Min(Mathf.Max(m_dimX * m_dimY * m_dimZ, nTriangles) * 30L, 1536 / 4 * 1 << 20);
             m_Cmd.SetComputeIntParam(m_computeShader, ShaderProperties.upperBoundCount, upperBoundCount);
             ClearRenderTexturesAndBuffers();
 
@@ -925,7 +937,6 @@ namespace UnityEngine.VFX.SDF
             ReleaseGraphicsBuffer(ref m_SumBlocksBuffer);
             ReleaseGraphicsBuffer(ref m_InSumBlocksBuffer);
             ReleaseGraphicsBuffer(ref m_SumBlocksAdditional);
-            ReleaseGraphicsBuffer(ref m_bufferVoxel);
             ReleaseGraphicsBuffer(ref m_CounterBuffer);
             ReleaseGraphicsBuffer(ref m_AccumCounterBuffer);
         }

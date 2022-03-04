@@ -1,0 +1,25 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma kernel KMain
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+// Input
+TEXTURE2D_X(_InputTexture);
+
+// Output
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+[numthreads(8, 8, 1)]
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 currentPixelCoord = dispatchThreadId.xy;
+
+    float4 exposureMultiplier = 1.0;
+    exposureMultiplier.xyz = GetCurrentExposureMultiplier();
+
+    _OutputTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = _InputTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * exposureMultiplier;
+}

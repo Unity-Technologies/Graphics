@@ -148,6 +148,8 @@ MonoBehaviour:
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
       profile: {fileID: 11400000, guid: c5b7fcbfc6aa87e458cb1c1893973b7c, type: 2}
+      lightingScenarios:
+      - Default
     - name: Test
       sceneGUIDs:
       - 5028fc98db6fe304c90852113dca5b00
@@ -163,4 +165,7 @@ MonoBehaviour:
           outOfGeoOffset: 0.01
           searchMultiplier: 0.2
       profile: {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+      lightingScenarios:
+      - Scenario 1
+      - Scenario 2
   m_Version: 3

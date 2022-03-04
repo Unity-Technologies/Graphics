@@ -117,9 +117,9 @@ namespace UnityEngine.Rendering
 
             Vector4 constants;
 
-            ushort sharpnessAsHalf = Mathf.FloatToHalf(sharpnessLinear);
-            uint packedSharpness = (uint)(sharpnessAsHalf | (sharpnessAsHalf << 16));
-            float packedSharpnessAsFloat = BitConverter.ToSingle(BitConverter.GetBytes(packedSharpness));
+            uint sharpnessAsHalf = Mathf.FloatToHalf(sharpnessLinear);
+            int packedSharpness = (int)(sharpnessAsHalf | (sharpnessAsHalf << 16));
+            float packedSharpnessAsFloat = BitConverter.Int32BitsToSingle(packedSharpness);
 
             constants.x = sharpnessLinear;
             constants.y = packedSharpnessAsFloat;

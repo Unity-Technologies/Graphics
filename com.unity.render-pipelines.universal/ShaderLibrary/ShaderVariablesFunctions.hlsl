@@ -169,7 +169,7 @@ half3 AlphaModulate(half3 albedo, half alpha)
     // would be painting whiter pixels in the texture.
     // This emulates that procedure in shader, so it should be applied to the base/source color.
 #if defined(_ALPHAMODULATE_ON)
-    return lerp(1, albedo, alpha);
+    return lerp(half3(1.0, 1.0, 1.0), albedo, alpha);
 #else
     return albedo;
 #endif
@@ -187,36 +187,17 @@ half3 AlphaPremultiply(half3 albedo, half alpha)
     return albedo;
 }
 
-// A word on normalization of normals:
-// For better quality normals should be normalized before and after
-// interpolation.
-// 1) In vertex, skinning or blend shapes might vary significantly the lenght of normal.
-// 2) In fragment, because even outputting unit-length normals interpolation can make it non-unit.
-// 3) In fragment when using normal map, because mikktspace sets up non orthonormal basis.
-// However we will try to balance performance vs quality here as also let users configure that as
-// shader quality tiers.
-// Low Quality Tier: Don't normalize per-vertex.
-// Medium Quality Tier: Always normalize per-vertex.
-// High Quality Tier: Always normalize per-vertex.
-//
-// Always normalize per-pixel.
-// Too many bug like lighting quality issues otherwise.
+// Normalization used to depend on SHADER_QUALITY
+// Currently we always normalize to avoid lighting issues
+// and platform inconsistencies.
 half3 NormalizeNormalPerVertex(half3 normalWS)
 {
-    #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
-        return normalWS;
-    #else
-        return normalize(normalWS);
-    #endif
+    return normalize(normalWS);
 }
 
 float3 NormalizeNormalPerVertex(float3 normalWS)
 {
-    #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
-        return normalWS;
-    #else
-        return normalize(normalWS);
-    #endif
+    return normalize(normalWS);
 }
 
 half3 NormalizeNormalPerPixel(half3 normalWS)

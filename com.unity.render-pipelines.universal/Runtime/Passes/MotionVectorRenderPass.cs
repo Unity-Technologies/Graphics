@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             // Profiling command
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 ExecuteCommand(context, cmd);
@@ -90,8 +90,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 DrawCameraMotionVectors(context, cmd, camera);
                 DrawObjectMotionVectors(context, ref renderingData, camera);
             }
-            ExecuteCommand(context, cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         DrawingSettings GetDrawingSettings(ref RenderingData renderingData)

@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// A <see cref="VolumeParameter"/> that holds a <see cref="RTASMode"/> value.
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="RTASBuildMode"/> value.
     /// </summary>
     [Serializable]
     public sealed class RTASBuildModeParameter : VolumeParameter<RTASBuildMode>
@@ -26,6 +26,33 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public RTASBuildModeParameter(RTASBuildMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// Controls the culling mode for the ray tracing acceleration structure.
+    /// </summary>
+    public enum RTASCullingMode
+    {
+        /// <summary>HDRP automatically extends the camera's frustum when culling for the ray tracing acceleration structure.</summary>
+        ExtendedFrustum,
+        /// <summary>The user provides the radius of the sphere used to cull objects out of the ray tracing acceleration structure.</summary>
+        Sphere,
+        /// <summary>HDRP does not perform any culling step on the ray tracing acceleration structure.</summary>
+        None
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="RTASCullingMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class RTASCullingModeParameter : VolumeParameter<RTASCullingMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="RTASCullingModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public RTASCullingModeParameter(RTASCullingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -71,6 +98,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [AdditionalProperty]
         public RTASBuildModeParameter buildMode = new RTASBuildModeParameter(RTASBuildMode.Automatic);
+
+        /// <summary>
+        /// Controls how the maximum distance for the ray tracing culling is defined.
+        /// </summary>
+        [AdditionalProperty]
+        public RTASCullingModeParameter cullingMode = new RTASCullingModeParameter(RTASCullingMode.ExtendedFrustum);
+
+        /// <summary>
+        /// Controls the manual culling distance.
+        /// </summary>
+        [Tooltip("Controls the manual culling distance.")]
+        public MinFloatParameter cullingDistance = new MinFloatParameter(1000.0f, 0.01f);
 
         /// <summary>
         /// Default constructor for the ray tracing settings volume component.

@@ -28,6 +28,7 @@ namespace UnityEditor.VFX
 
         void UpdateOutputExpressions();
 
+        bool ResyncSlots(bool notify);
         void Invalidate(VFXModel.InvalidationCause cause);
         void Invalidate(VFXModel model, VFXModel.InvalidationCause cause);
 
