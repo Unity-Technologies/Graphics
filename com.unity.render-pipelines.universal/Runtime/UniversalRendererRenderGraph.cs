@@ -1,5 +1,6 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -29,6 +30,10 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle cameraOpaqueTexture;
             public TextureHandle cameraDepthTexture;
             public TextureHandle cameraNormalsTexture;
+
+            // motion vector
+            public TextureHandle motionVectorColor;
+            public TextureHandle motionVectorDepth;
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
@@ -59,7 +64,13 @@ namespace UnityEngine.Rendering.Universal
             CameraData cameraData = renderingData.cameraData;
             RenderGraph renderGraph = renderingData.renderGraph;
 
-            frameResources.backBufferColor = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
+
+            RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+                targetId = cameraData.xr.renderTarget;
+#endif
+            frameResources.backBufferColor = renderGraph.ImportBackbuffer(targetId);
             //frameResources.backBufferDepth = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
 
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
@@ -106,6 +117,25 @@ namespace UnityEngine.Rendering.Universal
                 frameResources.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle);
             }
             #endregion
+
+            #region MotionVector Color/Depth
+            // TODO RENDERGRAPH: check the condition for create motionvector frame resources
+            //if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
+            {
+                SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
+
+                var colorDesc = cameraData.cameraTargetDescriptor;
+                colorDesc.graphicsFormat = GraphicsFormat.R16G16_SFloat;
+                colorDesc.depthBufferBits = (int)DepthBits.None;
+                frameResources.motionVectorColor = CreateRenderGraphTexture(renderGraph, colorDesc, "_MotionVectorTexture", true);
+
+                var depthDescriptor = cameraData.cameraTargetDescriptor;
+                depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
+                frameResources.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_MotionVectorDepthTexture", true);
+            }
+            #endregion
+
         }
 
         protected override void RecordRenderGraphInternal(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -187,6 +217,12 @@ namespace UnityEngine.Rendering.Universal
                     m_DepthPrepass.Render(out frameResources.cameraDepthTexture, ref renderingData);
                 }
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (renderingData.cameraData.xr.hasValidOcclusionMesh)
+            m_XROcclusionMeshPass.Render(frameResources.cameraDepth, ref renderingData);
+#endif
+
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
@@ -219,6 +255,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Render(out frameResources.cameraOpaqueTexture, in frameResources.cameraColor, downsamplingMethod, ref renderingData);
+            }
+
+            // if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
+            {
+                var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera, renderingData.cameraData);
+                m_MotionVectorPass.Render(in frameResources.motionVectorColor, in frameResources.motionVectorDepth, data, ref renderingData);
             }
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?

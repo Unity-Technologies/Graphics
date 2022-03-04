@@ -231,6 +231,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
+                    // TODO RENDERGRAPH figure out where to put XR proj flip logic so that it can be auto handled in render graph
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    var renderingData = data.m_RenderingData;
+                    if (renderingData.cameraData.xr.enabled)
+                    {
+                        // SetRenderTarget might alter the internal device state(winding order).
+                        // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+                        bool renderIntoTexture = data.m_Albedo != renderingData.cameraData.xr.renderTarget;
+                        XRBuiltinShaderConstants.Update(renderingData.cameraData.xr, renderingData.commandBuffer, renderIntoTexture);
+                        XRSystemUniversal.MarkShaderProperties(renderingData.commandBuffer, renderingData.cameraData.xrUniversal, renderIntoTexture);
+                    }
+#endif
                     // TODO RENDERGRAPH add proper yFlip logic
                     bool renderToBackbuffer = false;
 
