@@ -111,6 +111,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void RecordRenderGraphInternal(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
+            useRenderPassEnabled = false;
 
             CreateRenderGraphCameraRenderTargets(context, ref renderingData);
 
@@ -191,6 +192,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
                 if (m_DeferredLights != null)
                 {
+                    m_DeferredLights.UseRenderPass = false;
                     m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
                     m_DeferredLights.IsOverlay = renderingData.cameraData.renderType == CameraRenderType.Overlay;
                 }
