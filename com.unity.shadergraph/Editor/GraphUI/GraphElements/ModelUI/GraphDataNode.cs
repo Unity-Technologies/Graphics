@@ -9,6 +9,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphDataNode : CollapsibleInOutNode
     {
+        private const string COLOR_HINT = ".UseColor";
+        private const string SLIDER_HINT = ".UseSlider";
+
         NodePreviewPart m_NodePreviewPart;
         public NodePreviewPart NodePreview => m_NodePreviewPart;
 
@@ -46,7 +49,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     continue;
                 }
 
-                const string colorHint = ".UseColor";
                 switch (length)
                 {
                     case GraphType.Length.One:
@@ -67,10 +69,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 );
                                 break;
                             case GraphType.Primitive.Float:
-                                PartList.InsertPartAfter(
-                                    portContainerPartName,
-                                    new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName())
-                                );
+                                if (uiHints.ContainsKey(portName + SLIDER_HINT))
+                                {
+                                    PartList.InsertPartAfter(portContainerPartName, new SliderPart("sg-slider", Model, this, ussClassName, portReader.GetName()));
+                                }
+                                else
+                                {
+                                    PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
+                                }
                                 break;
                             case GraphType.Primitive.Any:
                             default:
@@ -86,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         );
                         break;
                     case GraphType.Length.Three:
-                        if (uiHints.ContainsKey(portName + colorHint))
+                        if (uiHints.ContainsKey(portName + COLOR_HINT))
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
@@ -104,7 +110,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                         break;
                     case GraphType.Length.Four:
-                        if (uiHints.ContainsKey(portName + colorHint))
+                        if (uiHints.ContainsKey(portName + COLOR_HINT))
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
