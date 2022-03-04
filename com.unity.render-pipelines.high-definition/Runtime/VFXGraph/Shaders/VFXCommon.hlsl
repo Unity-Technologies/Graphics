@@ -99,17 +99,17 @@ float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
 
 float4x4 VFXGetObjectToWorldMatrix()
 {
-// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
-#ifdef HAVE_VFX_MODIFICATION
-    return ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld());
+#if defined(SHADER_STAGE_RAY_TRACING)
+    float4x4 objToWorld = float4x4(
+            ObjectToWorld3x4()[0],
+            ObjectToWorld3x4()[1],
+            ObjectToWorld3x4()[2],
+            float4(0,0,0,1));
+    return objToWorld;
 #else
-    #if defined(SHADER_STAGE_RAY_TRACING)
-        float4x4 objToWorld = float4x4(
-                ObjectToWorld3x4()[0],
-                ObjectToWorld3x4()[1],
-                ObjectToWorld3x4()[2],
-                float4(0,0,0,1));
-        return objToWorld;
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+    #ifdef HAVE_VFX_MODIFICATION
+        return ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld());
     #else
         return GetObjectToWorldMatrix();
     #endif
