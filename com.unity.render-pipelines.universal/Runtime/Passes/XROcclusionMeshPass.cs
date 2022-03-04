@@ -9,10 +9,14 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class XROcclusionMeshPass : ScriptableRenderPass
     {
+        PassData m_PassData;
+
         public XROcclusionMeshPass(RenderPassEvent evt)
         {
             base.profilingSampler = new ProfilingSampler(nameof(XROcclusionMeshPass));
             renderPassEvent = evt;
+            m_PassData = new PassData();
+            base.profilingSampler = new ProfilingSampler("XR Occlusion Pass");
         }
 
         private static void ExecutePass(ScriptableRenderContext context, PassData passData)
@@ -31,9 +35,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.renderingData = renderingData;
-            ExecutePass(context, passData);
+            m_PassData.renderingData = renderingData;
+            ExecutePass(context, m_PassData);
         }
 
         public class PassData
@@ -46,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
         {
             RenderGraph graph = renderingData.renderGraph;
 
-            using (var builder = graph.AddRenderPass<PassData>("XR Occlusion Pass", out var passData, new ProfilingSampler("XR Occlusion Pass")))
+            using (var builder = graph.AddRenderPass<PassData>("XR Occlusion Pass", out var passData, base.profilingSampler))
             {
                 passData.renderingData = renderingData;
                 passData.cameraDepthAttachment = builder.UseDepthBuffer(cameraDepthAttachment, DepthAccess.Write);

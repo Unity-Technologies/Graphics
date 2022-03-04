@@ -37,6 +37,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
             public static readonly ProfilingSampler internalFinishRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
+            public static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
+            public static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
 
             public static class RenderBlock
             {
@@ -873,7 +875,7 @@ namespace UnityEngine.Rendering.Universal
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<BeginXRPassData>("BeginXRRendering", out var passData,
-                new ProfilingSampler("BeginXRRendering Profiler")))
+                Profiling.beginXRRendering))
             {
                 passData.renderingData = renderingData;
                 passData.cameraData = renderingData.cameraData;
@@ -913,7 +915,7 @@ namespace UnityEngine.Rendering.Universal
             RenderGraph graph = renderingData.renderGraph;
 
             using (var builder = graph.AddRenderPass<EndXRPassData>("EndXRRendering", out var passData,
-                new ProfilingSampler("EndXRRendering Profiler")))
+                Profiling.endXRRendering))
             {
                 passData.renderingData = renderingData;
                 passData.cameraData = renderingData.cameraData;

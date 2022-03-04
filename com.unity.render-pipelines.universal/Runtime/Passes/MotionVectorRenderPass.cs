@@ -181,6 +181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     ExecutePass(context.renderContext, data);
+                    data.renderingData.commandBuffer.SetGlobalTexture("_MotionVectorTexture", data.motionVectorColor);
                 });
 
                 return;
