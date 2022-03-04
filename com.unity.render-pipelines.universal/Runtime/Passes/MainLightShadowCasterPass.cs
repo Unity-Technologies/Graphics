@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public TextureHandle Render(RenderGraph graph, ref RenderingData renderingData)
         {
-            using (var builder = graph.AddRenderPass<PassData>("Main Light Shadowmap", out var passData, new ProfilingSampler("Main Light Shadowmap")))
+            using (var builder = graph.AddRenderPass<PassData>("Main Light Shadowmap", out var passData, base.profilingSampler))
             {
                 passData.pass = this;
                 passData.graph = graph;

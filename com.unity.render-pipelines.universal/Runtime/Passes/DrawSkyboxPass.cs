@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
 
             using (var builder = graph.AddRenderPass<PassData>("Draw Skybox Pass", out var passData,
-                new ProfilingSampler("Draw Skybox Pass Profiler")))
+                base.profilingSampler))
             {
                 passData.color = builder.UseColorBuffer(colorTarget, 0);
                 passData.depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Read);

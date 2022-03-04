@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // TODO: Remove when Obsolete Setup is removed
         private int destinationID { get; set; }
+        private PassData m_PassData;
 
         /// <summary>
         /// Creates a new <c>CopyColorPass</c> instance.
@@ -35,6 +36,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material copyColorMaterial = null)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyColorPass));
+            m_PassData = new PassData();
 
             m_SamplingMaterial = samplingMaterial;
             m_CopyColorMaterial = copyColorMaterial;
@@ -130,17 +132,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            PassData passData = new PassData();
-            passData.renderingData = renderingData;
-            passData.passName = GetType().Name;
-            passData.samplingMaterial = m_SamplingMaterial;
-            passData.copyColorMaterial = m_CopyColorMaterial;
-            passData.downsamplingMethod = m_DownsamplingMethod;
-            passData.clearFlag = clearFlag;
-            passData.clearColor = clearColor;
-            passData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
+            m_PassData.renderingData = renderingData;
+            m_PassData.samplingMaterial = m_SamplingMaterial;
+            m_PassData.copyColorMaterial = m_CopyColorMaterial;
+            m_PassData.downsamplingMethod = m_DownsamplingMethod;
+            m_PassData.clearFlag = clearFlag;
+            m_PassData.clearColor = clearColor;
+            m_PassData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
 
-            ExecutePass(passData, source, destination);
+            ExecutePass(m_PassData, source, destination);
         }
 
         private static void ExecutePass(PassData passData, RTHandle source, RTHandle destination)
@@ -151,7 +151,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var samplingMaterial = passData.samplingMaterial;
             var copyColorMaterial = passData.copyColorMaterial;
             var downsamplingMethod = passData.downsamplingMethod;
-            var passName = passData.passName;
             var clearFlag = passData.clearFlag;
             var clearColor = passData.clearColor;
             var sampleOffsetShaderHandle = passData.sampleOffsetShaderHandle;
@@ -159,8 +158,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (samplingMaterial == null)
             {
                 Debug.LogErrorFormat(
-                    "Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.",
-                    samplingMaterial, passName);
+                    "Missing {0}. Copy Color render pass will not execute. Check for missing reference in the renderer resources.",
+                    samplingMaterial);
                 return;
             }
 
@@ -207,7 +206,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public RenderingData renderingData;
             public Material samplingMaterial;
             public Material copyColorMaterial;
-            public string passName;
             public Downsampling downsamplingMethod;
             public ClearFlag clearFlag;
             public Color clearColor;
@@ -219,7 +217,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
 
             RenderGraph graph = renderingData.renderGraph;
-            using (var builder = graph.AddRenderPass<PassData>("Copy Color", out var passData, new ProfilingSampler("Copy Color Pass")))
+            using (var builder = graph.AddRenderPass<PassData>("Copy Color", out var passData, base.profilingSampler))
             {
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                 ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
@@ -228,7 +226,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.destination = builder.UseColorBuffer(destination, 0);
                 passData.source = builder.ReadTexture(source);
                 passData.renderingData = renderingData;
-                passData.passName = GetType().Name;
                 passData.samplingMaterial = m_SamplingMaterial;
                 passData.copyColorMaterial = m_CopyColorMaterial;
                 passData.downsamplingMethod = m_DownsamplingMethod;

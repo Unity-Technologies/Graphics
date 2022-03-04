@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Render(ref RenderingData renderingData, TextureHandle src, TextureHandle dest)
         {
-            using (var builder = renderingData.renderGraph.AddRenderPass<PassData>("Final Blit", out var passData, new ProfilingSampler("Final Blit")))
+            using (var builder = renderingData.renderGraph.AddRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {
                 passData.source = src;
                 passData.destination = dest;

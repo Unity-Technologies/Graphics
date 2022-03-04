@@ -141,6 +141,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void RecordRenderGraphInternal(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
+            useRenderPassEnabled = false;
 
             CreateRenderGraphCameraRenderTargets(context, ref renderingData);
 
@@ -227,6 +228,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.Setup(m_AdditionalLightsShadowCasterPass);
                 if (m_DeferredLights != null)
                 {
+                    m_DeferredLights.UseRenderPass = false;
                     m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
                     m_DeferredLights.IsOverlay = renderingData.cameraData.renderType == CameraRenderType.Overlay;
                 }
@@ -289,25 +291,29 @@ namespace UnityEngine.Rendering.Universal
 
     class ClearTargetsPass
     {
+        static private ProfilingSampler s_ClearProfilingSampler = new ProfilingSampler("Clear Targets");
+
         public class PassData
         {
             public TextureHandle color;
             public TextureHandle depth;
+
+            public RTClearFlags clearFlags;
         }
 
         static public PassData Render(RenderGraph graph, UniversalRenderer renderer, RTClearFlags clearFlags)
         {
-            using (var builder = graph.AddRenderPass<PassData>("Clear Targets Pass", out var passData, new ProfilingSampler("Clear Targets")))
+            using (var builder = graph.AddRenderPass<PassData>("Clear Targets Pass", out var passData, s_ClearProfilingSampler))
             {
                 TextureHandle color = renderer.frameResources.cameraColor;
                 passData.color = builder.UseColorBuffer(color, 0);
                 passData.depth = builder.UseDepthBuffer(renderer.frameResources.cameraDepth, DepthAccess.Write);
-
+                passData.clearFlags = clearFlags;
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    context.cmd.ClearRenderTarget(clearFlags, Color.black, 1, 0);
+                    context.cmd.ClearRenderTarget(data.clearFlags, Color.black, 1, 0);
                 });
 
                 return passData;

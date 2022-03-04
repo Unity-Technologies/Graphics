@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
 
             RenderGraphParameters rgParams = new RenderGraphParameters()
             {
-                executionName = camera.name,
+                executionName = "URP RenderGraph",
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
                 currentFrameIndex = Time.frameCount,

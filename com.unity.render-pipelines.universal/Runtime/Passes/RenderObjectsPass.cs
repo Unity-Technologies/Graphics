@@ -151,7 +151,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public RenderingData renderingData;
         }
 
-        public override void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void RecordRenderGraph(ref RenderingData renderingData)
         {
             RenderGraph graph = renderingData.renderGraph;
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;

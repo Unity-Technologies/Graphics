@@ -624,9 +624,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// TODO RENDERGRAPH
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        public virtual void RecordRenderGraph(ScriptableRenderContext context, ref RenderingData renderingData)
+        public virtual void RecordRenderGraph(ref RenderingData renderingData)
         {
             Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
         }
