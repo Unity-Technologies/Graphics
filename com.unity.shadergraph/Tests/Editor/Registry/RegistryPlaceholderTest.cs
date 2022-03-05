@@ -145,5 +145,44 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             nodeReader.GetField("In.c3", out v);
             Assert.That(v, Is.EqualTo(1F).Using(comparer));
         }
+        [Test]
+        public void Texture2DTest()
+        {
+            var registry = new Registry();
+            registry.Register<Types.GraphType>();
+            registry.Register<Types.GraphTypeAssignment>();
+
+            registry.Register<Types.Texture2DType>();
+            registry.Register<Types.Texture2DAssignment>();
+            registry.Register<Types.Texture2DNode>();
+            registry.Register<Types.SampleTexture2DNode>();
+
+
+            var graph = new GraphHandler();
+
+            graph.AddNode<Types.Texture2DNode>("Texture2D", registry);
+            var nodeReader = graph.GetNodeReader("Texture2D");
+            nodeReader.TryGetPort(Types.Texture2DNode.kInlineStatic, out var portReader);
+            var fieldReader = (IFieldReader)portReader;
+
+            var actualName = Types.Texture2DHelpers.GetUniquePropertyName(fieldReader);
+            var actualTex = Types.Texture2DHelpers.GetTextureAsset(fieldReader);
+            Assert.AreEqual("Texture2D_InlineStatic_Tex", actualName);
+            Assert.AreSame(UnityEngine.Texture2D.whiteTexture, actualTex);
+
+            var expectedTex = new UnityEngine.Texture2D(800, 600);
+
+            var nodeWriter = graph.GetNodeWriter("Texture2D");
+            var fieldWriter = (IFieldWriter)nodeWriter.GetPort(Types.Texture2DNode.kInlineStatic);
+            Types.Texture2DHelpers.SetTextureAsset(fieldWriter, expectedTex);
+
+            nodeReader = graph.GetNodeReader("Texture2D");
+            nodeReader.TryGetPort(Types.Texture2DNode.kInlineStatic, out portReader);
+            fieldReader = (IFieldReader)portReader;
+            actualTex = Types.Texture2DHelpers.GetTextureAsset(fieldReader);
+
+            Assert.AreEqual(800, actualTex.width);
+            Assert.AreEqual(600, actualTex.height);
+        }
     }
 }

@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Utils;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -519,20 +520,30 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Shader GetNodeShaderObject(INodeReader nodeReader)
         {
-            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out var defaultTextures);
             m_CachedPreviewData[nodeReader.GetName()].shaderString = shaderOutput;
             m_CachedPreviewData[nodeReader.GetName()].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance);
             m_CachedPreviewData[nodeReader.GetName()].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
-            return MakeShader(shaderOutput);
+
+            var shader = MakeShader(shaderOutput);
+            EditorMaterialUtility.SetShaderDefaults(shader, defaultTextures.Select(e => e.Item1).ToArray(), defaultTextures.Select(e => e.Item2).ToArray());
+            var tmpShader = Object.Instantiate(shader);
+            Object.DestroyImmediate(shader);
+            return tmpShader;
         }
 
         Shader GetMasterPreviewShaderObject()
         {
             // TODO: Need a way to query the main context node without having a hard name dependence, from GraphDelta
             var contextNodeReader = m_GraphHandle.GetNodeReader(k_MasterPreviewName);
-            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance);
+            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out var defaultTextures);
             m_MasterPreviewData.shaderString = shaderOutput;
-            return MakeShader(shaderOutput);
+
+            var shader = MakeShader(shaderOutput);
+            EditorMaterialUtility.SetShaderDefaults(shader, defaultTextures.Select(e => e.Item1).ToArray(), defaultTextures.Select(e => e.Item2).ToArray());
+            var tmpShader = Object.Instantiate(shader);
+            Object.DestroyImmediate(shader);
+            return tmpShader;
         }
 
         PreviewData AddNodePreviewData(string nodeName)

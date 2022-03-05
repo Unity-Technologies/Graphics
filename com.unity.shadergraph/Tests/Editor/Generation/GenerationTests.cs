@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         [TestCaseSource("testAsIsSource")]
         public static void TestGraphAsIs((string nodeToCompile, Color expectedColor) input)
         {
-            var shader = MakeShader(Interpreter.GetShaderForNode(graph.GetNodeReader(input.nodeToCompile), graph, registry));
+            var shader = MakeShader(Interpreter.GetShaderForNode(graph.GetNodeReader(input.nodeToCompile), graph, registry, out _));
             var rt = DrawToTex(shader);
             try
             {
