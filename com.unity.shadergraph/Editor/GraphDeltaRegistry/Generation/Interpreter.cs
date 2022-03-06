@@ -92,6 +92,12 @@ namespace UnityEditor.ShaderGraph.Generation
                     ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
             }
 
+            // Should get us every uniquely defined parameter-- not sure how this handles intrinsics- ehh...
+            var shaderTypes = shaderFunctions.SelectMany(e => e.Parameters).Select(p => p.Type).ToHashSet();
+            foreach(var type in shaderTypes)
+            {
+                blockBuilder.AddType(type);
+            }
             foreach(var func in shaderFunctions)
             {
                 blockBuilder.AddFunction(func);
@@ -204,15 +210,17 @@ namespace UnityEditor.ShaderGraph.Generation
         }
 
         private static void ProcessNode(INodeReader node,
-            ref ShaderContainer container, ref List<BlockVariable> inputVariables,
-            ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder,
+            ref ShaderContainer container,
+            ref List<BlockVariable> inputVariables,
+            ref List<BlockVariable> outputVariables,
+            ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
-            ref List<ShaderFunction> shaderFuncitons,
+            ref List<ShaderFunction> shaderFunctions,
             Registry.Registry registry)
         {
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
             bool shouldAdd = true;
-            foreach(var existing in shaderFuncitons)
+            foreach(var existing in shaderFunctions)
             {
                 if(FunctionsAreEqual(existing, func))
                 {
@@ -221,7 +229,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             if(shouldAdd)
             {
-                shaderFuncitons.Add(func);
+                shaderFunctions.Add(func);
             }
             string arguments = "";
             foreach (var param in func.Parameters)
@@ -231,6 +239,8 @@ namespace UnityEditor.ShaderGraph.Generation
                     string argument = "";
                     if (!port.IsHorizontal())
                         continue;
+
+                    bool shouldPromote = port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name;
                     if (port.IsInput())
                     {
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
@@ -238,21 +248,35 @@ namespace UnityEditor.ShaderGraph.Generation
                         {
                             var connectedNode = connectedPort.GetNode();
                             argument = $"SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}";
+                            shouldPromote = false;
                         }
                         else // not connected.
                         {
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((IFieldReader)port, registry);
                         }
                     }
                     else // this is an output port.
                     {
+
                         argument = $"SYNTAX_{node.GetName()}_{port.GetName()}"; // add to the arguments for the function call.
                         // default initialize this before our function call.
-                        var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
-                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
+                        // var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                        // mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
+
+                        // TEMP: We probably don't need initializers for output ports-- simplifies property promotion requirements.
+                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument};");
+                        shouldPromote = false;
                     }
                     arguments += argument + ", ";
+
+                    if (shouldPromote)
+                    {
+                        if (port.GetRegistryKey().Name == Registry.Types.Texture2DType.kRegistryKey.Name)
+                            Registry.Types.Texture2DHelpers.PropertyPromotion((IFieldReader)port, container, inputVariables);
+                        //if (port.GetRegistryKey().Name == Registry.Types.SamplerStateType.kRegistryKey.Name)
+                        //    Registry.Types.SamplerStateHelper.PropertyPromotion((IFieldReader)port, container, inputVariables);
+                    }
                 }
             }
             if (arguments.Length != 0)
