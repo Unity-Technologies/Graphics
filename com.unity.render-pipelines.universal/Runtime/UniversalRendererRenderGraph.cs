@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         private RTHandle m_RenderGraphCameraColorHandle;
         private RTHandle m_RenderGraphCameraDepthHandle;
 
-        internal class RenderGraphFrameResources
+        public class RenderGraphFrameResources
         {
             // backbuffer
             public TextureHandle backBufferColor;
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle motionVectorColor;
             public TextureHandle motionVectorDepth;
         };
-        internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
+        public RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
         private void CleanupRenderGraphResources()
         {
@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
                 clearFlags = RTClearFlags.Depth;
 
             if (clearFlags != RTClearFlags.None)
-                ClearTargetsPass.Render(renderingData.renderGraph, this, clearFlags);
+                ClearTargetsPass.Render(renderingData.renderGraph, this, clearFlags, renderingData.cameraData.backgroundColor);
 
             RecordCustomRenderGraphPasses(context, ref renderingData, RenderPassEvent.BeforeRenderingPrePasses);
 
@@ -299,9 +299,10 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle depth;
 
             public RTClearFlags clearFlags;
+            public Color clearColor;
         }
 
-        static public PassData Render(RenderGraph graph, UniversalRenderer renderer, RTClearFlags clearFlags)
+        static public PassData Render(RenderGraph graph, UniversalRenderer renderer, RTClearFlags clearFlags, Color clearColor)
         {
             using (var builder = graph.AddRenderPass<PassData>("Clear Targets Pass", out var passData, s_ClearProfilingSampler))
             {
@@ -309,11 +310,13 @@ namespace UnityEngine.Rendering.Universal
                 passData.color = builder.UseColorBuffer(color, 0);
                 passData.depth = builder.UseDepthBuffer(renderer.frameResources.cameraDepth, DepthAccess.Write);
                 passData.clearFlags = clearFlags;
+                passData.clearColor = clearColor;
+
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    context.cmd.ClearRenderTarget(data.clearFlags, Color.black, 1, 0);
+                    context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor, 1, 0);
                 });
 
                 return passData;
