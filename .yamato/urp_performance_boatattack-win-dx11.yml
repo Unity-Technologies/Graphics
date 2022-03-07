@@ -11,7 +11,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_tru
     name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -23,7 +23,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_tru
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -58,7 +57,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
     name: Build URP_Performance_BoatAttack on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -72,15 +71,15 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -93,10 +92,9 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -133,7 +131,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trun
     name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -148,15 +146,15 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trun
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -169,10 +167,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trun
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -206,7 +203,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_trunk
     name: URP_Performance_BoatAttack on Win_DX11_performance_build_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -220,15 +217,15 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_trunk
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -241,10 +238,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_trunk
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -278,7 +274,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUS
     name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -290,7 +286,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -325,7 +320,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
     name: Build URP_Performance_BoatAttack on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -339,15 +334,15 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -360,10 +355,9 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -400,7 +394,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUST
     name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -415,15 +409,15 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUST
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -436,10 +430,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUST
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -473,7 +466,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTO
     name: URP_Performance_BoatAttack on Win_DX11_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -487,15 +480,15 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTO
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
       -  unity-config project add dependency com.unity.addressables@1.16.7
       -  unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
-      -  unity-config project add dependency com.unity.test-framework@1.1.29
+      -  unity-config project add dependency com.unity.test-framework@1.1.30
       -  unity-config project add dependency com.unity.test-framework.performance@2.4.0
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
@@ -508,10 +501,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTO
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2

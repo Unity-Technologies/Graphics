@@ -268,7 +268,10 @@ class VFXSlotContainerEditor : Editor
         public static GUIStyle header;
         public static GUIStyle cell;
         public static GUIStyle foldout;
-        public static GUIStyle letter;
+        public static GUIStyle spawnStyle;
+        public static GUIStyle particleStyle;
+        public static GUIStyle particleStripeStyle;
+        public static GUIStyle meshStyle;
         public static GUIStyle warningStyle;
         public static GUIStyle frameButtonStyle;
         static Styles()
@@ -308,8 +311,22 @@ class VFXSlotContainerEditor : Editor
             foldout = new GUIStyle(EditorStyles.foldout);
             foldout.fontStyle = FontStyle.Bold;
 
-            letter = new GUIStyle(GUI.skin.label);
-            letter.fontSize = 36;
+            spawnStyle = new GUIStyle(GUI.skin.label);
+            spawnStyle.fontSize = 20;
+            spawnStyle.normal.textColor = new Color(0f, 1f, 0.5607843f);
+            spawnStyle.hover.textColor = spawnStyle.normal.textColor;
+
+            particleStyle = new GUIStyle(spawnStyle);
+            particleStyle.normal.textColor = new Color(1f, 0.7372549f, 0.1294118f);
+            particleStyle.hover.textColor = particleStyle.normal.textColor;
+
+            particleStripeStyle = new GUIStyle(spawnStyle);
+            particleStripeStyle.normal.textColor = new Color(1f, 0.6666667f, 0.4196078f);
+            particleStripeStyle.hover.textColor = particleStripeStyle.normal.textColor;
+
+            meshStyle = new GUIStyle(spawnStyle);
+            meshStyle.normal.textColor = new Color(0.231f, 0.369f, 0.573f);
+            meshStyle.hover.textColor = meshStyle.normal.textColor;
         }
 
         static Dictionary<VFXValueType, Color> valueTypeColors = new Dictionary<VFXValueType, Color>()

@@ -17,6 +17,8 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
@@ -45,6 +47,8 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             ZTest Always
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma target 5.0
             #pragma vertex vert
@@ -75,6 +79,8 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
@@ -104,6 +110,8 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
@@ -130,6 +138,8 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             ZTest Always
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma target 5.0
             #pragma vertex vertOcclusion

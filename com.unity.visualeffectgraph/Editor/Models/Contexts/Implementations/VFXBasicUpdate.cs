@@ -72,8 +72,8 @@ namespace UnityEditor.VFX
             var resource = referenceContext.GetResource();
             GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
 
-            DisplaySpace();
             DisplayName();
+            DisplaySpace();
 
             EditorGUILayout.LabelField(UpdateStyles.header, EditorStyles.boldLabel);
 

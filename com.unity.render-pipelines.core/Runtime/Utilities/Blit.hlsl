@@ -89,7 +89,7 @@ Varyings VertQuadPadding(Attributes input)
     float2 offsetPaddding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
 
 #if SHADER_API_GLES
-    float4 pos = input.positionCS;
+    float4 pos = input.positionOS;
     float2 uv  = input.uv;
 #else
     float4 pos = GetQuadVertexPosition(input.vertexID);
