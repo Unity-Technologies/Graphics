@@ -158,8 +158,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            if(existsInGraphData)
-                graphHandler.ReconcretizeNode(graphDataName, registry);
+            if (existsInGraphData)
+            {
+                if(!graphHandler.ReconcretizeNode(graphDataName, registry))
+                    Debug.LogErrorFormat("Failed to reconcretize Node \"{0}", graphDataName);
+            }
 
             if (!TryGetNodeReader(out var nodeReader))
             {

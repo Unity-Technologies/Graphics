@@ -102,6 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnSaveButton()
         {
+            AssetDatabase.StartAssetEditing();
             // If no currently opened graph, early out
             if (GraphTool.ToolState.AssetModel == null)
                 return;
@@ -131,6 +132,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return;
                 var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
                 GraphUtil.CopyGraph(shaderGraphModel.GraphHandler, assetModel, sourcePath, destinationPath);
+                AssetDatabase.ImportAsset(destinationPath);
             }
         }
 

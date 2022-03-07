@@ -26,13 +26,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public static class GraphUtil
     {
 
-        [MenuItem("Assets/Create/Shader Graph 2/Blank Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        public static void CreateGraph()
-        {
-            var endEdit = ScriptableObject.CreateInstance<NewGraphAction>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, endEdit, $"New Shader Graph.{NewShaderGraphImporter.Extension}", null, null);
-        }
-
         public static GraphHandler OpenGraph(string assetPath)
         {
             string fileText = File.ReadAllText(assetPath, Encoding.UTF8);
