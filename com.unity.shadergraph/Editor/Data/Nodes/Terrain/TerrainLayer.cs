@@ -84,6 +84,7 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("#if defined(UNIVERSAL_TERRAIN_ENABLED)");
                 sb.IncreaseIndent();
                 sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
+                sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", inputLayerIndexValue);
                 sb.AppendLine("half2 splat{0}uv = GetSplat{0}UV(IN);", inputLayerIndex);
                 sb.AppendLine("half4 albedoSmoothness{0} = SampleLayerAlbedo({0});", inputLayerIndexValue);
                 sb.AppendLine("half3 normal{0} = SampleLayerNormal({0});", inputLayerIndexValue);
