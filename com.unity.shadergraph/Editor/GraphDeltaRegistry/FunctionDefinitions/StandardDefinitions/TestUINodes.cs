@@ -134,4 +134,20 @@ namespace com.unity.shadergraph.defs
             {"In.UseColor", 1} // Use color picker for In (float value is ignored)
         };
     }
+
+    internal class TestUISliderNode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUISlider", // Name
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "In.UseSlider", 1 } // Use a slider for In (float value is ignored)
+        };
+    }
 }

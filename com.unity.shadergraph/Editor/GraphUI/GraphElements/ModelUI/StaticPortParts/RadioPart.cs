@@ -6,13 +6,20 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class IntPart : SingleFieldPart<IntegerField, int>
+    public class RadioPart : SingleFieldPart<RadioButtonGroup, int>
     {
-        protected override string UXMLTemplateName => "StaticPortParts/IntPart";
-        protected override string FieldName => "sg-int-field";
+        protected override string UXMLTemplateName => "StaticPortParts/RadioPart";
+        protected override string FieldName => "sg-radio";
 
-        public IntPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName)
-            : base(name, model, ownerElement, parentClassName, portName) { }
+        public RadioPart(
+            string name,
+            IGraphElementModel model,
+            IModelUI ownerElement,
+            string parentClassName,
+            string portName
+        ) : base(name, model, ownerElement, parentClassName, portName)
+        {
+        }
 
         protected override void OnFieldValueChanged(ChangeEvent<int> change)
         {
@@ -26,8 +33,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromPortReader(IPortReader reader)
         {
-            if (!reader.GetField("c0", out float value)) value = 0;
-            m_Field.SetValueWithoutNotify((int) value);
+            if (!reader.GetField("c0", out int value)) value = 0;
+            m_Field.SetValueWithoutNotify(value);
         }
     }
 }

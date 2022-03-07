@@ -9,6 +9,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphDataNode : CollapsibleInOutNode
     {
+        private const string COLOR_HINT = ".UseColor";
+        private const string SLIDER_HINT = ".UseSlider";
+
         NodePreviewPart m_NodePreviewPart;
         public NodePreviewPart NodePreview => m_NodePreviewPart;
 
@@ -54,7 +57,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     continue;
                 }
 
-                const string colorHint = ".UseColor";
                 switch (length)
                 {
                     case GraphType.Length.One:
@@ -63,13 +65,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         switch (primitive)
                         {
                             case GraphType.Primitive.Bool:
-                                // TODO: Checkbox
+                                PartList.InsertPartAfter(
+                                    portContainerPartName,
+                                    new BoolPart("sg-bool", Model, this, ussClassName, portReader.GetName())
+                                );
                                 break;
                             case GraphType.Primitive.Int:
-                                PartList.InsertPartAfter(portContainerPartName, new IntPart("sg-int", Model, this, ussClassName, portReader.GetName()));
+                                PartList.InsertPartAfter(
+                                    portContainerPartName,
+                                    new IntPart("sg-int", Model, this, ussClassName, portReader.GetName())
+                                );
                                 break;
                             case GraphType.Primitive.Float:
-                                PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
+                                if (uiHints.ContainsKey(portName + SLIDER_HINT))
+                                {
+                                    PartList.InsertPartAfter(portContainerPartName, new SliderPart("sg-slider", Model, this, ussClassName, portReader.GetName()));
+                                }
+                                else
+                                {
+                                    PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", Model, this, ussClassName, portReader.GetName()));
+                                }
                                 break;
                             case GraphType.Primitive.Any:
                             default:
@@ -79,27 +94,44 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         break;
                     }
                     case GraphType.Length.Two:
-                        PartList.InsertPartAfter(portContainerPartName, new Vector2Part("sg-vector2", Model, this, ussClassName, portReader.GetName()));
+                        PartList.InsertPartAfter(
+                            portContainerPartName,
+                            new Vector2Part("sg-vector2", Model, this, ussClassName, portReader.GetName())
+                        );
                         break;
                     case GraphType.Length.Three:
-                        if (uiHints.ContainsKey(portName + colorHint))
+                        if (uiHints.ContainsKey(portName + COLOR_HINT))
                         {
-                            PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: false));
+                            PartList.InsertPartAfter(
+                                portContainerPartName,
+                                new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(),
+                                includeAlpha: false)
+                            );
                         }
                         else
                         {
-                            PartList.InsertPartAfter(portContainerPartName, new Vector3Part("sg-vector3", Model, this, ussClassName, portReader.GetName()));
+                            PartList.InsertPartAfter(
+                                portContainerPartName,
+                                new Vector3Part("sg-vector3", Model, this, ussClassName, portReader.GetName())
+                            );
                         }
 
                         break;
                     case GraphType.Length.Four:
-                        if (uiHints.ContainsKey(portName + colorHint))
+                        if (uiHints.ContainsKey(portName + COLOR_HINT))
                         {
-                            PartList.InsertPartAfter(portContainerPartName, new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(), includeAlpha: true));
+                            PartList.InsertPartAfter(
+                                portContainerPartName,
+                                new ColorPart("sg-color", Model, this, ussClassName, portReader.GetName(),
+                                includeAlpha: true)
+                            );
                         }
                         else
                         {
-                            PartList.InsertPartAfter(portContainerPartName, new Vector4Part("sg-vector4", Model, this, ussClassName, portReader.GetName()));
+                            PartList.InsertPartAfter(
+                                portContainerPartName,
+                                new Vector4Part("sg-vector4", Model, this, ussClassName, portReader.GetName())
+                            );
                         }
 
                         break;
