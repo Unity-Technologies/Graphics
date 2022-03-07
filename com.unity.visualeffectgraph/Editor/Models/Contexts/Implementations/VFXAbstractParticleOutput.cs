@@ -657,7 +657,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool SupportsMotionVectorPerVertex(out uint vertsCount)
+        public virtual bool SupportsMotionVectorPerVertex(out uint vertsCount)
         {
             switch (taskType)
             {

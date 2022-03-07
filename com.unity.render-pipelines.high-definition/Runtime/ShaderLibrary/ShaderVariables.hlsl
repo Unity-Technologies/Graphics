@@ -76,6 +76,10 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_SHBb;
     float4 unity_SHC;
 
+    // Renderer bounding box.
+    float4 unity_RendererBounds_Min;
+    float4 unity_RendererBounds_Max;
+
     // x = Disabled(0)/Enabled(1)
     // y = Computation are done in global space(0) or local space(1)
     // z = Texel size on U texture coordinate
@@ -285,6 +289,17 @@ float SampleCustomDepth(float2 uv)
     return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
 }
 
+bool IsSky(uint2 pixelCoord)
+{
+    float deviceDepth = LoadCameraDepth(pixelCoord);
+    return deviceDepth == UNITY_RAW_FAR_CLIP_VALUE; // We assume the sky is the part of the depth buffer that haven't been written.
+}
+
+bool IsSky(float2 uv)
+{
+    return IsSky(uint2(uv * _ScreenSize.xy));
+}
+
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {
     // Matrix format (x = non-constant value).
@@ -301,6 +316,14 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
 }
 
 // Helper to handle camera relative space
+
+float3 GetCameraPositionWS()
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return 0;
+#endif
+    return _WorldSpaceCameraPos;
+}
 
 float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
 {
@@ -465,6 +488,29 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 
 // There is no UnityPerDraw cbuffer with BatchRendererGroup. Those matrices don't exist, so don't try to access them
 #ifndef DOTS_INSTANCING_ON
+
+void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    minBounds = unity_RendererBounds_Min.xyz;
+    maxBounds = unity_RendererBounds_Max.xyz;
+}
+
+void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    GetAbsoluteWorldRendererBounds(minBounds, maxBounds);
+
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    minBounds -= _WorldSpaceCameraPos.xyz;
+    maxBounds -= _WorldSpaceCameraPos.xyz;
+#endif
+}
+
+float3 GetRendererExtents()
+{
+    float3 minBounds, maxBounds;
+    GetRendererBounds(minBounds, maxBounds);
+    return (maxBounds - minBounds) * 0.5;
+}
 
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI

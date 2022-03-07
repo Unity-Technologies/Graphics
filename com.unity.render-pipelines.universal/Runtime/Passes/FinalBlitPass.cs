@@ -14,6 +14,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         RTHandle m_Source;
         Material m_BlitMaterial;
 
+        /// <summary>
+        /// Creates a new <c>FinalBlitPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="blitMaterial">The <c>Material</c> to use for copying the executing the final blit.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
@@ -60,7 +66,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
 
             if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
             {
@@ -96,7 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
                     // 2) renderTexture starts UV at top
-                    bool yflip = !cameraData.xr.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
+                    bool yflip = SystemInfo.graphicsUVStartsAtTop;
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
 
@@ -135,9 +141,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
 #pragma warning restore 0618
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }

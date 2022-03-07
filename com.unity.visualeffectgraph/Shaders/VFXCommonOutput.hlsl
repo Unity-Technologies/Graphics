@@ -1,3 +1,5 @@
+
+#if defined(VFX_VARYING_PS_INPUTS)
 float4 GetFlipbookMotionVectors(VFX_VARYING_PS_INPUTS i, float4 uvs, float blend)
 {
     float4 mvs = (float4)0;
@@ -95,6 +97,7 @@ float4 VFXGetParticleColor(VFX_VARYING_PS_INPUTS i)
     #endif
     return color;
 }
+#endif
 
 float VFXLinearEyeDepth(float depth)
 {
@@ -110,6 +113,7 @@ float VFXLinearEyeDepthOrthographic(float depth)
 #endif
 }
 
+#if defined(VFX_VARYING_PS_INPUTS)
 float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
 {
     float fade = 1.0f;
@@ -161,6 +165,7 @@ float4 VFXGetTextureColorWithProceduralUV(VFXSampler2DArray s, VFX_VARYING_PS_IN
 {
     return SampleTexture(s, GetUVData(i, uv));
 }
+#endif
 
 float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
 {
@@ -172,6 +177,7 @@ float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
     return normal;
 }
 
+#if defined(VFX_VARYING_PS_INPUTS)
 float4 VFXGetFragmentColor(VFX_VARYING_PS_INPUTS i)
 {
     float4 color = VFXGetParticleColor(i);
@@ -189,6 +195,7 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
     #endif
     #endif
 }
+#endif
 
 float3 VFXGetPositionRWS(float3 posWS)
 {
@@ -208,6 +215,7 @@ float3 VFXGetPositionAWS(float3 posWS)
 #endif
 }
 
+#if defined(VFX_VARYING_PS_INPUTS)
 float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 {
     #if USE_FOG && defined(VFX_VARYING_POSCS)
@@ -219,4 +227,61 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
     #else
         return color;
     #endif
+}
+#endif
+
+bool TryGetElementToVFXBaseIndex(uint elementIndex, out uint elementToVFXBaseIndex)
+{
+    elementToVFXBaseIndex = ~0u;
+#if defined(VFX_FEATURE_MOTION_VECTORS)
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+    uint viewTotal = asuint(cameraXRSettings.x);
+    uint viewCount = asuint(cameraXRSettings.y);
+    uint viewOffset = asuint(cameraXRSettings.z);
+    elementToVFXBaseIndex = elementIndex * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
+#else
+    elementToVFXBaseIndex = elementIndex * 13;
+#endif
+    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
+    return asuint(currentFrameIndex) - previousFrameIndex == 1u;
+#endif
+    return false;
+}
+
+float4 VFXGetPreviousClipPosition(uint elementToVFXBaseIndex, uint vertexIndex)
+{
+    float4 previousClipPos = float4(0.0f, 0.0f, 0.0f, 1.0f);
+#if VFX_FEATURE_MOTION_VECTORS && defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+    uint viewTotal = asuint(cameraXRSettings.x);
+    uint viewCount = asuint(cameraXRSettings.y);
+    uint viewOffset = asuint(cameraXRSettings.z);
+
+#if HAS_STRIPS
+    vertexIndex = (vertexIndex / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#else
+    vertexIndex = vertexIndex % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#endif
+    uint elementToVFXIndex = elementToVFXBaseIndex + vertexIndex * viewCount * 2;
+    elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
+    elementToVFXIndex += unity_StereoEyeIndex * 2;
+    uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
+    previousClipPos.xy = asfloat(read);
+
+#endif
+    return previousClipPos;
+}
+
+float4x4 VFXGetPreviousElementToVFX(uint elementToVFXBaseIndex)
+{
+    float4x4 previousElementToVFX = (float4x4)0;
+    previousElementToVFX[3] = float4(0, 0, 0, 1);
+#if VFX_FEATURE_MOTION_VECTORS && !defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+    UNITY_UNROLL
+    for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+    {
+        uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
+        previousElementToVFX[itIndexMatrixRow] = asfloat(read);
+    }
+#endif
+    return previousElementToVFX;
 }

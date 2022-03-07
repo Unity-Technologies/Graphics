@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDLightRenderEntity lightRenderEntity = lightEntities.lightEntities[lightIdx];
                 HDAdditionalLightData hdLight = lightEntities.hdAdditionalLightData[lightIdx];
-                if (hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
+                if (hdLight != null && hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
                 {
                     // Flag that needs to be overriden by the light and tells us if the light will need the RTAS
                     bool hasRayTracedShadows = false;
@@ -455,7 +455,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
                 // Add it to the list if enabled
                 // Skip the probe if the probe has never rendered (in real time cases) or if texture is null
-                if (reflectionProbe.enabled
+                if (reflectionProbe != null
+                    && reflectionProbe.enabled
                     && reflectionProbe.ReflectionProbeIsEnabled()
                     && reflectionProbe.gameObject.activeSelf
                     && reflectionProbe.HasValidRenderedData())

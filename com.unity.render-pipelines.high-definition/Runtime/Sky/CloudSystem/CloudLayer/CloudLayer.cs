@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>No distortion.</summary>
         None,
         /// <summary>Procedural distortion.</summary>
+        [InspectorName("Horizontal")]
         Procedural,
         /// <summary>Distortion from a flowmap.</summary>
         Flowmap,
@@ -85,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenuForRenderPipeline("Sky/Cloud Layer", typeof(HDRenderPipeline))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
     [HDRPHelpURLAttribute("Override-Cloud-Layer")]
-    public class CloudLayer : CloudSettings
+    public partial class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
         [Tooltip("Controls the global opacity of the cloud layer.")]
@@ -143,6 +144,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Opacity multiplier for the alpha channel.")]
             public ClampedFloatParameter opacityA = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
+            /// <summary>Altitude of the bottom of the cloud layer in meters.</summary>
+            [Tooltip("Altitude of the bottom of the cloud layer in meters.")]
+            public MinFloatParameter altitude = new MinFloatParameter(2000.0f, 0.0f);
             /// <summary>Rotation of the clouds.</summary>
             [Tooltip("Sets the rotation of the clouds (in degrees).")]
             public ClampedFloatParameter rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
@@ -150,29 +154,37 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Specifies the color HDRP uses to tint the clouds.")]
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
             /// <summary>Relative exposure of the clouds.</summary>
-            [Tooltip("Sets the exposure of the clouds in EV relative to the sun light intensity.")]
+            [InspectorName("Exposure Compensation")]
+            [Tooltip("Sets the exposure compensation of the clouds in EV.")]
             public FloatParameter exposure = new FloatParameter(0.0f);
 
             /// <summary>Distortion mode.</summary>
+            [InspectorName("Wind")]
             [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
-            /// <summary>Direction of the distortion. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
+            /// <summary>Direction of the wind relative to the X world vector. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
+            [InspectorName("Orientation")]
+            [Tooltip("Controls the orientation of the wind relative to the X world vector.\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.")]
             public WindOrientationParameter scrollOrientation = new WindOrientationParameter();
-            /// <summary>Speed of the distortion. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
+            /// <summary>Sets the wind speed in kilometers per hour. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
+            [InspectorName("Speed")]
+            [Tooltip("Sets the wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.")]
             public WindSpeedParameter scrollSpeed = new WindSpeedParameter();
             /// <summary>Texture used to distort the UVs for the cloud layer.</summary>
             [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]
             public Texture2DParameter flowmap = new Texture2DParameter(null);
 
             /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
+            [InspectorName("Raymarching")]
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
-            public BoolParameter lighting = new BoolParameter(false);
+            public BoolParameter lighting = new BoolParameter(true);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
-            public ClampedIntParameter steps = new ClampedIntParameter(4, 1, 10);
-            /// <summary>Thickness of the clouds.</summary>
-            [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
+            public ClampedIntParameter steps = new ClampedIntParameter(6, 2, 32);
+            /// <summary>Density of the cloud layer.</summary>
+            [InspectorName("Density")]
+            [Tooltip("Density of the cloud layer.")]
+            public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -182,29 +194,28 @@ namespace UnityEngine.Rendering.HighDefinition
             internal float scrollFactor = 0.0f;
             internal int NumSteps => lighting.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
+            internal Color Color => tint.value * ColorUtils.ConvertEV100ToExposure(-exposure.value);
 
-            internal (Vector4, Vector4) GetRenderingParameters(HDCamera camera, float intensity)
+            internal Vector4 GetRenderingParameters(HDCamera camera)
             {
                 float angle = Mathf.Deg2Rad * scrollOrientation.GetValue(camera);
-                Vector4 params1 = new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
-                Vector4 params2 = tint.value * (ColorUtils.ConvertEV100ToExposure(-exposure.value) * intensity);
-                return (params1, params2);
+                return new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor);
             }
 
             internal (Vector4, Vector4) GetBakingParameters()
             {
-                Vector4 parameters = new Vector4(
+                Vector4 params2 = new Vector4(
                     -rotation.value / 360.0f,
                     NumSteps,
-                    thickness.value,
-                    0
+                    thickness.value * (0.1f - 0.005f) + 0.005f, // [0.005, 0.1]
+                    altitude.value
                 );
-                return (Opacities, parameters);
+                return (Opacities, params2);
             }
 
             internal int GetBakingHashCode()
             {
-                int hash = 0;
+                int hash = 17;
 
                 unchecked
                 {
@@ -221,14 +232,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         hash = hash * 23 + lighting.GetHashCode();
                         hash = hash * 23 + steps.GetHashCode();
+                        hash = hash * 23 + altitude.GetHashCode();
                         hash = hash * 23 + thickness.GetHashCode();
                     }
-
-#if UNITY_EDITOR
-                    // In the editor, we want to rebake the texture if the texture content is modified
-                    if (cloudMap.value != null)
-                        hash = hash * 23 + cloudMap.value.imageContentsHash.GetHashCode();
-#endif
                 }
 
                 return hash;
@@ -240,10 +246,18 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <returns>The hash code of the CloudMap parameters.</returns>
             public override int GetHashCode()
             {
-                int hash = GetBakingHashCode();
+                int hash = 17;
 
                 unchecked
                 {
+                    hash = hash * 23 + cloudMap.GetHashCode();
+                    hash = hash * 23 + opacityR.GetHashCode();
+                    hash = hash * 23 + opacityG.GetHashCode();
+                    hash = hash * 23 + opacityB.GetHashCode();
+                    hash = hash * 23 + opacityA.GetHashCode();
+
+                    hash = hash * 23 + altitude.GetHashCode();
+                    hash = hash * 23 + rotation.GetHashCode();
                     hash = hash * 23 + tint.GetHashCode();
                     hash = hash * 23 + exposure.GetHashCode();
 
@@ -252,13 +266,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + scrollSpeed.GetHashCode();
                     hash = hash * 23 + flowmap.GetHashCode();
 
-                    hash = hash * 23 + distortionMode.GetHashCode();
+                    hash = hash * 23 + lighting.GetHashCode();
+                    hash = hash * 23 + steps.GetHashCode();
+                    hash = hash * 23 + thickness.GetHashCode();
 
-#if UNITY_EDITOR
-                    // In the editor, we want to rebake the texture if the texture content is modified
-                    if (flowmap.value != null)
-                        hash = hash * 23 + flowmap.value.imageContentsHash.GetHashCode();
-#endif
+                    hash = hash * 23 + castShadows.GetHashCode();
                 }
 
                 return hash;
@@ -272,6 +284,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int NumLayers => (layers == CloudMapMode.Single) ? 1 : 2;
         internal bool CastShadows => layerA.castShadows.value || (layers == CloudMapMode.Double && layerB.castShadows.value);
+
+        Vector3Int CastToInt3(Vector3 vec) => new Vector3Int((int)vec.x, (int)vec.y, (int)vec.z);
 
         internal int GetBakingHashCode(Light sunLight)
         {
@@ -293,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (lighting && sunLight != null)
-                    hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
+                    hash = hash * 23 + CastToInt3(sunLight.transform.rotation.eulerAngles).GetHashCode();
                 if (shadows)
                     hash = hash * 23 + shadowResolution.GetHashCode();
             }

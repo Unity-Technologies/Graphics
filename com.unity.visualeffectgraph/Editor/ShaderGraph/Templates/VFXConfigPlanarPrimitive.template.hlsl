@@ -106,8 +106,8 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         // Here we have to explicitly splice in the crop factor.
         $splice(VFXLoadCropFactorParameter)
 
-        cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
-        const float2 vOffsets = kUvs[id & 7] * cropFactor;
+        const float correctedCropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
+        const float2 vOffsets = kUvs[id & 7] * correctedCropFactor;
         uv.xy = vOffsets + 0.5f;
     #endif
 

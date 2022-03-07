@@ -4,9 +4,19 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
+    /// <summary>
+    /// The queue type for the objects to render.
+    /// </summary>
     public enum RenderQueueType
     {
+        /// <summary>
+        /// Use this for opaque objects.
+        /// </summary>
         Opaque,
+
+        /// <summary>
+        /// Use this for transparent objects.
+        /// </summary>
         Transparent,
     }
 
@@ -63,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         RenderObjectsPass renderObjectsPass;
 
+        /// <inheritdoc/>
         public override void Create()
         {
             FilterSettings filter = settings.filterSettings;
@@ -90,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     settings.stencilSettings.failOperation, settings.stencilSettings.zFailOperation);
         }
 
+        /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             renderer.EnqueuePass(renderObjectsPass);

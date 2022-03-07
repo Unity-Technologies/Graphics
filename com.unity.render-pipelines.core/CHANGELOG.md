@@ -4,10 +4,26 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.2] - 2021-02-04
+
+### Added
+- Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
+- Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
+- Added Screen Coordinates Override shader utilities.
+- Added API to blend between baking states for Probe Volumes.
+- Aded explicit control over scenario blending factor and a debug mode for visualization.
+
+### Fixed
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
+- Fixed regression on ResourceReloader due to change for supporting built-in resources.
+- Fixed issue with debug markers in Unity Profiler in deep profiler mode
+
 ## [14.0.1] - 2021-12-07
 
 ### Added
 - Linear version of function that sets FSR RCAS shader constants
+- `DebugUI.ObjectPopupField` to render a list of `UnityEngine.Objects` as a popup on the Rendering Debugger.
 - Add probe volume influence weight parameter
 - Added support for multiple Baking States to Prove Volumes.
 - Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
@@ -16,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
 
 ### Fixed
+- The Volume Panel on the Rendering Debugger was not corretly showing cameras when they were added or deleted.
 - Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
 - Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
 - Fixed `DebugUI.Enum` fields collapsing their parent `DebugUI.Foldout`

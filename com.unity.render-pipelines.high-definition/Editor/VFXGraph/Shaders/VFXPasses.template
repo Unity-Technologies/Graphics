@@ -3,7 +3,17 @@ ${VFXBegin:VFXPassForward}"ForwardOnly"${VFXEnd}
 ${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
 ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 
-${VFXBegin:VFXPassDepthDefine}#define SHADERPASS SHADERPASS_DEPTH_ONLY${VFXEnd}
+${VFXBegin:VFXPassDepthDefine}
+#define SHADERPASS SHADERPASS_DEPTH_ONLY
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+#define SCENESELECTIONPASS
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+#define SCENEPICKINGPASS
+#endif
+
+${VFXEnd}
+
 ${VFXBegin:VFXPassForwardDefine}#define SHADERPASS SHADERPASS_FORWARD_UNLIT${VFXEnd}
 ${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
 ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
@@ -40,6 +50,8 @@ ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+float4 _SelectionID;
 #endif
 
 #pragma fragment frag
@@ -72,7 +84,7 @@ void frag(ps_input i
 	#elif defined(WRITE_NORMAL_BUFFER)
 	, out float4 outNormalBuffer : SV_Target0
 	#endif
-#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION || VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
     , out float4 outColor : SV_Target0
 #endif
 )
@@ -122,6 +134,8 @@ void frag(ps_input i
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 		// We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
 		outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+		outColor = _SelectionID;
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		//void
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
