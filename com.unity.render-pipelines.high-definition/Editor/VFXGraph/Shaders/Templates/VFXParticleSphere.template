@@ -3,7 +3,7 @@
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 		Cull Off
-
+		
 		${VFXInclude("Shaders/VFXParticleHeader.template")}
 		${VFXIncludeRP("Templates/Sphere/PassSelection.template")}
 		${VFXIncludeRP("Templates/Sphere/PassDepth.template")}

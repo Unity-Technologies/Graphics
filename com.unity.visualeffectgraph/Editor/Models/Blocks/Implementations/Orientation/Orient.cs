@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
-                if (mode != Mode.Advanced && (mode != Mode.FaceCameraPlane))
+                if (mode != Mode.Advanced && mode != Mode.FaceCameraPlane)
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 if (mode == Mode.AlongVelocity)
                     yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Read);

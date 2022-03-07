@@ -526,8 +526,7 @@ namespace UnityEditor.VFX
                 if (contexts[index].contextType == VFXContextType.Update)
                 {
                     updateIndex = index;
-                    (contexts[index] as VFXBasicUpdate).rayTracingDecimationFactor =
-                        UInt32.MaxValue; //Is it needed ? Isn't reset to its default when recompiled ?
+                    ((VFXBasicUpdate)contexts[index]).rayTracingDecimationFactor = UInt32.MaxValue;
                 }
                 if (contexts[index].contextType == VFXContextType.Output)
                     break;
@@ -578,7 +577,7 @@ namespace UnityEditor.VFX
             if (outputsWithoutAabbModifs.Count > 0 && hasMainUpdate)
             {
                 uint sharedDecimationFactor = outputsWithoutAabbModifs[0].GetRaytracingDecimationFactor();
-                (contexts[updateIndex] as VFXBasicUpdate).rayTracingDecimationFactor = sharedDecimationFactor;
+                ((VFXBasicUpdate)contexts[updateIndex]).rayTracingDecimationFactor = sharedDecimationFactor;
                 for (int i = 1; i < outputsWithoutAabbModifs.Count; i++)
                 {
                     if (outputsWithoutAabbModifs[i].GetRaytracingDecimationFactor() != sharedDecimationFactor)

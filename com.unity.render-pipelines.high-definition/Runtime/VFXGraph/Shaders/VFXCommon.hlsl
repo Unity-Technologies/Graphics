@@ -119,17 +119,17 @@ float4x4 VFXGetObjectToWorldMatrix()
 
 float4x4 VFXGetWorldToObjectMatrix()
 {
-// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
-#ifdef HAVE_VFX_MODIFICATION
-    return ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject());
+#if defined(SHADER_STAGE_RAY_TRACING)
+    float4x4 worldToObj = float4x4(
+        WorldToObject3x4()[0],
+        WorldToObject3x4()[1],
+        WorldToObject3x4()[2],
+        float4(0,0,0,1));
+    return worldToObj;
 #else
-    #if defined(SHADER_STAGE_RAY_TRACING)
-        float4x4 worldToObj = float4x4(
-            WorldToObject3x4()[0],
-            WorldToObject3x4()[1],
-            WorldToObject3x4()[2],
-            float4(0,0,0,1));
-        return worldToObj;
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+    #ifdef HAVE_VFX_MODIFICATION
+        return ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject());
     #else
         return GetWorldToObjectMatrix();
     #endif

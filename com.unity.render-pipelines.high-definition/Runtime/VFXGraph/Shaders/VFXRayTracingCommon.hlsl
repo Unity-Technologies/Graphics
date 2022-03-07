@@ -9,11 +9,7 @@ float4x4 ObjectToPrimitive(VFXAttributes attributes, float3 size3)
         float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
         size3, attributes.position);
     #if VFX_WORLD_SPACE
-        float4x4 objToWorld = float4x4(
-            ObjectToWorld3x4()[0],
-            ObjectToWorld3x4()[1],
-            ObjectToWorld3x4()[2],
-            float4(0,0,0,1));
+        float4x4 objToWorld = VFXGetObjectToWorldMatrix();
         objToWorld._m03_m13_m23 += GetAbsolutePositionWS(float3(0,0,0));
         return mul(vfxToElement, objToWorld);
     #else
@@ -28,11 +24,7 @@ float4x4 PrimitiveToObject(VFXAttributes attributes, float3 size3)
         float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
         size3, attributes.position);
     #if VFX_WORLD_SPACE
-        float4x4 worldToObj = float4x4(
-            WorldToObject3x4()[0],
-            WorldToObject3x4()[1],
-            WorldToObject3x4()[2],
-            float4(0,0,0,1));
+        float4x4 worldToObj = VFXGetWorldToObjectMatrix();
         worldToObj = RevertCameraTranslationFromInverseMatrix(worldToObj);
         return mul(worldToObj, elementToVFX);
     #else
