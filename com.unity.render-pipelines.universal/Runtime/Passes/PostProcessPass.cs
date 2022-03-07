@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -374,6 +375,59 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
+            }
+        }
+
+        public class StopNaNsPassData
+        {
+            public TextureHandle targeTexture;
+            public TextureHandle sourceTexture;
+            public RenderingData renderingData;
+            public Material stopNaN;
+        }
+
+        public void RenderStopNaN(in TextureHandle activeCameraColor, out TextureHandle tempA, ref RenderingData renderingData)
+        {
+            var cameraData = renderingData.cameraData;
+            var graph = renderingData.renderGraph;
+
+            var cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
+                cameraTargetDescriptor.width,
+                cameraTargetDescriptor.height,
+                cameraTargetDescriptor.graphicsFormat,
+                DepthBits.None);
+
+            tempA = UniversalRenderer.CreateRenderGraphTexture(graph, desc, "_PostFXTempA", true);
+
+            bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
+            // Optional NaN killer before post-processing kicks in
+            // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
+            if (useStopNan)
+            {
+                using (var builder = graph.AddRenderPass<StopNaNsPassData>("Stop NaNs", out var passData, ProfilingSampler.Get(URPProfileId.StopNaNs)))
+                {
+                   
+
+                    passData.targeTexture = builder.UseColorBuffer(tempA, 0);
+                    passData.sourceTexture = builder.ReadTexture(activeCameraColor);
+                    passData.renderingData = renderingData;
+                    passData.stopNaN = m_Materials.stopNaN;
+
+                    //  TODO RENDERGRAPH: culling? force culluing off for testing
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((StopNaNsPassData data, RenderGraphContext context) =>
+                    {
+                        var cmd = data.renderingData.commandBuffer;
+                        RenderingUtils.Blit(
+                            cmd, data.sourceTexture, data.targeTexture, data.stopNaN, 0, data.renderingData.cameraData.xr.enabled,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    });
+
+                    return;
+                }
             }
         }
 
