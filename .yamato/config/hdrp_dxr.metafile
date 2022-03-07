@@ -4,6 +4,8 @@ project:
 test_platforms:
   - type: Standalone
   - type: playmode
+    utr_flags:
+      - [all]: --timeout=2400
   - type: playmode
     name: playmode_XR
     utr_flags:
@@ -20,7 +22,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
 

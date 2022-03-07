@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(null, m_ProfilingSampler))
             {
                 var useClusteredRendering = m_UseClusteredRendering;
@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
             }
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
         }
 
         internal void Cleanup()

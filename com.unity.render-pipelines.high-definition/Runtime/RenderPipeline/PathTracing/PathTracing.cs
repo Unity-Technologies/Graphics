@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif // UNITY_EDITOR
 
+#if ENABLE_UNITY_DENOISING_PLUGIN
+using UnityEngine.Rendering.Denoising;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>

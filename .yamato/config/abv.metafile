@@ -26,12 +26,12 @@ jobs:
       - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
       - .yamato/all-batchrenderergroup.yml#BatchRendererGroup_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 1 * * ?
-        allow_on:
-          - trunk
+#    triggers:
+#        recurring:
+#          -  branch: master
+#             frequency: 1 * * ?
+#        allow_on:
+#          - trunk
 
   - name: General Checks
     # triggers:

@@ -112,20 +112,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer gbufferCommands = CommandBufferPool.Get();
-            using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
+            var cmd = renderingData.commandBuffer;
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                context.ExecuteCommandBuffer(gbufferCommands);
-                gbufferCommands.Clear();
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
                 // If we detect we are in such case (camera is in overlay mode), we clear the highest bits of stencil we have control of and use them to
                 // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
                 if (m_DeferredLights.IsOverlay)
                 {
-                    m_DeferredLights.ClearStencilPartial(gbufferCommands);
-                    context.ExecuteCommandBuffer(gbufferCommands);
-                    gbufferCommands.Clear();
+                    m_DeferredLights.ClearStencilPartial(cmd);
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
                 }
 
                 ref CameraData cameraData = ref renderingData.cameraData;
@@ -148,11 +148,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // If any sub-system needs camera normal texture, make it available.
                 // Input attachments will only be used when this is not needed so safe to skip in that case
                 if (!m_DeferredLights.UseRenderPass)
-                    gbufferCommands.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex]);
+                    cmd.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex]);
             }
-
-            context.ExecuteCommandBuffer(gbufferCommands);
-            CommandBufferPool.Release(gbufferCommands);
         }
     }
 }
