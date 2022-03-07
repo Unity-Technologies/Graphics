@@ -56,8 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Path-traced motion vector AOV.</summary>
         MotionVectorAOV,
         /// <summary>Denoised path-traced frame history.</summary>
-        DenoiseHistory,
-        /// <summary>Number of history buffers.</summary>
-        Count // TODO: Obsolete
+        DenoiseHistory
     }
 }

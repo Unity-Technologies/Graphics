@@ -45,7 +45,7 @@ To configure post-processing in a new Scene:
     ![Create new Profile.](Images/post-proc/volume-new-scene-new-profile.png)
 
 
-3. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md#volume-add-override) to the Volume component.
+4. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md#volume-add-override) to the Volume component.
 
     ![Add post-processing effects to the Camera by adding Volume Overrides to the Volume component.](Images/post-proc/volume-new-scene-add-override.png)
 

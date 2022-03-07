@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
 
             if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
             {
@@ -141,9 +141,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
 #pragma warning restore 0618
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }
