@@ -122,7 +122,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = graph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
             {
-                passData.renderingData = renderingData;
                 var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 depthDescriptor.depthStencilFormat = k_DepthStencilFormat;

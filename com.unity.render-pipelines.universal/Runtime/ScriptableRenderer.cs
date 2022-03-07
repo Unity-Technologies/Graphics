@@ -37,6 +37,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
             public static readonly ProfilingSampler internalFinishRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
+            public static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
+            public static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
 
             public static class RenderBlock
             {
@@ -816,6 +818,8 @@ namespace UnityEngine.Rendering.Universal
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(context.cmd, time, deltaTime, smoothDeltaTime);
 
+                    // Setup XR camera properties
+                    // XRBuiltinShaderConstants.Update(cameraData.xr, cmd, true);
                 });
             }
         }
@@ -859,6 +863,83 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        class BeginXRPassData
+        {
+            public RenderingData renderingData;
+            public CameraData cameraData;
+        };
+
+        protected void BeginRenderGraphXRRendering(ref RenderingData renderingData)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            RenderGraph graph = renderingData.renderGraph;
+
+            using (var builder = graph.AddRenderPass<BeginXRPassData>("BeginXRRendering", out var passData,
+                Profiling.beginXRRendering))
+            {
+                passData.renderingData = renderingData;
+                passData.cameraData = renderingData.cameraData;
+
+                builder.AllowPassCulling(false);
+
+
+                builder.SetRenderFunc((BeginXRPassData data, RenderGraphContext context) =>
+                {
+                    var cameraData = data.cameraData;
+                    var renderingData = data.renderingData;
+                    var cmd = data.renderingData.commandBuffer;
+                    if (cameraData.xr.enabled)
+                    {
+                        if (cameraData.xrUniversal.isLateLatchEnabled)
+                            cameraData.xrUniversal.canMarkLateLatch = true;
+
+                        cameraData.xr.StartSinglePass(cmd);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                        context.renderContext.ExecuteCommandBuffer(cmd);
+                        cmd.Clear();
+                    }
+                });
+            }            
+#endif
+        }
+
+        class EndXRPassData
+        {
+            public RenderingData renderingData;
+            public CameraData cameraData;
+        };
+
+        protected void EndRenderGraphXRRendering(ref RenderingData renderingData)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            RenderGraph graph = renderingData.renderGraph;
+
+            using (var builder = graph.AddRenderPass<EndXRPassData>("EndXRRendering", out var passData,
+                Profiling.endXRRendering))
+            {
+                passData.renderingData = renderingData;
+                passData.cameraData = renderingData.cameraData;
+
+                builder.AllowPassCulling(false);
+
+
+                builder.SetRenderFunc((EndXRPassData data, RenderGraphContext context) =>
+                {
+                    var cameraData = data.cameraData;
+                    var renderingData = data.renderingData;
+                    var cmd = data.renderingData.commandBuffer;
+                    if (cameraData.xr.enabled)
+                    {
+                        cameraData.xr.StopSinglePass(cmd);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                        context.renderContext.ExecuteCommandBuffer(cmd);
+                        cmd.Clear();
+                    }
+                });
+            }
+#endif
+        }
+
         class PassData
         {
             public RenderingData renderingData;
@@ -883,7 +964,11 @@ namespace UnityEngine.Rendering.Universal
             InitRenderGraphFrame(ref renderingData);
             SetupRenderGraphCameraProperties(ref renderingData);
 
+            BeginRenderGraphXRRendering(ref renderingData);
+
             RecordRenderGraphInternal(context, ref renderingData);
+
+            EndRenderGraphXRRendering(ref renderingData);
         }
 
         /// <summary>
