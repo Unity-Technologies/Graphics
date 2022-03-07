@@ -438,7 +438,7 @@ class VisualEffectAssetEditor : Editor
             Quaternion rot = Quaternion.Euler(0, m_Angles.x, 0) * Quaternion.Euler(m_Angles.y, 0, 0);
             m_PreviewUtility.camera.transform.position = m_CurrentBounds.center + rot * new Vector3(0, 0, -m_Distance.GetValueOrDefault(0));
             m_PreviewUtility.camera.transform.localRotation = rot;
-            if (m_Distance != 0)
+            if (m_Distance.HasValue)
                 m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), m_Mat, 0);
             m_PreviewUtility.Render(true);
             m_PreviewUtility.EndAndDrawPreview(m_LastArea);
