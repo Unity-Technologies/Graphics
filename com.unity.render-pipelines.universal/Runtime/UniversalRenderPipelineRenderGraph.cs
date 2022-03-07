@@ -17,10 +17,10 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = renderingData.commandBuffer;
             Camera camera = renderingData.cameraData.camera;
             RenderGraph renderGraph = renderingData.renderGraph;
-
             RenderGraphParameters rgParams = new RenderGraphParameters()
             {
-                executionName = "URP RenderGraph",
+                // TODO Rendergraph - we are reusing the sampler name, as camera.name does an alloc. we could probably cache this as the current string we get is a bit too informative
+                executionName = Profiling.TryGetOrAddCameraSampler(camera).name,
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
                 currentFrameIndex = Time.frameCount,
