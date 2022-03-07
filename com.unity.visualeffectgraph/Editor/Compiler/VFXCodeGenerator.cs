@@ -586,7 +586,6 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_MOTION_VECTOR (1)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SHADOW (3)");
-            globalIncludeContent.WriteLine("#pragma enable_d3d11_debug_symbols");
 
             foreach (var attribute in allCurrentAttributes)
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "CURRENT");
@@ -629,7 +628,7 @@ namespace UnityEditor.VFX
                 defines = defines.Concat(block.defines);
             var uniqueDefines = new HashSet<string>(defines);
             foreach (var define in uniqueDefines)
-                perPassIncludeContent.WriteLineFormat("#define {0}{1}", define, define.Contains(' ') ? "" : " 1");
+                globalIncludeContent.WriteLineFormat("#define {0}{1}", define, define.Contains(' ') ? "" : " 1");
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();
