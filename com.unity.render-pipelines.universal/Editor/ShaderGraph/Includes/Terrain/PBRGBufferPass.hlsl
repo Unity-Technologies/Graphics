@@ -66,7 +66,7 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET
+FragmentOutput frag(PackedVaryings packedInput)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -77,6 +77,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
+
+    half alpha = 1.0;
 
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
@@ -115,13 +117,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
+    InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);
 
     // Baked lighting.
     half4 color;
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
+    color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
     color.a = alpha;
     SplatmapFinalColor(color, inputData.fogCoord);
 
@@ -133,7 +135,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     brdfData.specular.rgb *= alpha;
     brdfData.reflectivity *= alpha;
     inputData.normalWS = inputData.normalWS * alpha;
-    smoothness *= alpha;
+    surfaceDescription.Smoothness *= alpha;
 
-    return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb, occlusion);
+    return BRDFDataToGbuffer(brdfData, inputData, surfaceDescription.Smoothness, color.rgb, surfaceDescription.Occlusion);
 }
