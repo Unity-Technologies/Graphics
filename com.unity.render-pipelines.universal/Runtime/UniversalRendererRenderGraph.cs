@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         private RTHandle m_RenderGraphCameraColorHandle;
         private RTHandle m_RenderGraphCameraDepthHandle;
 
-        internal class RenderGraphFrameResources
+        public class RenderGraphFrameResources
         {
             // backbuffer
             public TextureHandle backBufferColor;
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
             public TextureHandle motionVectorColor;
             public TextureHandle motionVectorDepth;
         };
-        internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
+        public RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
         private void CleanupRenderGraphResources()
         {
