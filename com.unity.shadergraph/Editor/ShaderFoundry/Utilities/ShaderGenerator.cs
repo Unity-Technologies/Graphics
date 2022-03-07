@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
-
 namespace UnityEditor.ShaderFoundry
 {
     internal struct GeneratedShader
@@ -40,8 +37,7 @@ namespace UnityEditor.ShaderFoundry
 
         static void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            var propertiesMap = new Dictionary<string, BlockProperty>();
-            var propertiesList = new List<BlockProperty>();
+            ShaderPropertyCollection exposedShaderProperties = new ShaderPropertyCollection();
 
             void CollectUniqueProperties(BlockInstance blockInstance)
             {
@@ -53,15 +49,11 @@ namespace UnityEditor.ShaderFoundry
                 {
                     foreach (var prop in properties)
                     {
-                        var decl = prop.Attributes.GetDeclaration();
-                        if (decl == UnityEditor.ShaderGraph.Internal.HLSLDeclaration.DoNotDeclare)
+                        var propertyAttribute = PropertyAttribute.FindFirst(prop.Attributes);
+                        if (propertyAttribute != null && !propertyAttribute.Exposed)
                             continue;
 
-                        if (!propertiesMap.ContainsKey(prop.Name))
-                        {
-                            propertiesMap.Add(prop.Name, prop);
-                            propertiesList.Add(prop);
-                        }
+                        exposedShaderProperties.Add(prop);
                     }
                 }
             }
@@ -94,7 +86,7 @@ namespace UnityEditor.ShaderFoundry
             builder.AddLine("Properties");
             using (builder.BlockScope())
             {
-                foreach (var prop in propertiesList)
+                foreach (var prop in exposedShaderProperties.Properties)
                 {
                     MaterialPropertyDeclaration.Declare(builder, prop);
                 }
