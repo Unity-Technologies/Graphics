@@ -102,7 +102,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnSaveButton()
         {
-            AssetDatabase.StartAssetEditing();
             // If no currently opened graph, early out
             if (GraphTool.ToolState.AssetModel == null)
                 return;
