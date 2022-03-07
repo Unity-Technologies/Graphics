@@ -115,6 +115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public Material lutBuilderLdr;
             public Material lutBuilderHdr;
             public bool allowColorGradingACESHDR;
+            public TextureHandle internalLut;
         }
 
         private static void ExecutePass(ScriptableRenderContext context, PassData passData, RTHandle internalLutTarget)
@@ -235,9 +236,33 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public void Render(ref RenderingData renderingData, TextureHandle src, TextureHandle dest)
+        public void Render(out TextureHandle internalColorLut, ref RenderingData renderingData)
         {
+            RenderGraph graph = renderingData.renderGraph;
+            const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
+            const int k_DepthBufferBits = 32;
 
+            using (var builder = graph.AddRenderPass<PassData>("Color Lut Pass", out var passData, base.profilingSampler))
+            {
+                this.ConfigureDescriptor(in renderingData.postProcessingData, out var lutDesc, out var filterMode);
+                internalColorLut = UniversalRenderer.CreateRenderGraphTexture(graph, lutDesc, "_InternalGradingLut", true);
+
+                passData.internalLut = builder.UseColorBuffer(internalColorLut, 0);
+                passData.lutBuilderLdr = m_LutBuilderLdr;
+                passData.lutBuilderHdr = m_LutBuilderHdr;
+                passData.renderingData = renderingData;
+                passData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;
+
+                //  TODO RENDERGRAPH: culling? force culluing off for testing
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    ExecutePass(context.renderContext, data, data.internalLut);
+                });
+
+                return;
+            }
         }
 
         /// <summary>

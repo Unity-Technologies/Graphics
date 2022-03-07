@@ -34,6 +34,9 @@ namespace UnityEngine.Rendering.Universal
             // motion vector
             public TextureHandle motionVectorColor;
             public TextureHandle motionVectorDepth;
+
+            // postFx
+            public TextureHandle internalColorLut;
         };
         public RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
@@ -216,6 +219,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_DepthPrepass.Render(out frameResources.cameraDepthTexture, ref renderingData);
                 }
+            }
+
+            //if (generateColorGradingLUT)
+            if (m_PostProcessPasses.isCreated)
+            {
+                m_PostProcessPasses.colorGradingLutPass.Render(out frameResources.internalColorLut, ref renderingData);
             }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
