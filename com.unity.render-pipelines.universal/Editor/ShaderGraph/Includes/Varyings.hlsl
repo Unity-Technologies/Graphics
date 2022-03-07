@@ -56,11 +56,11 @@ Varyings BuildVaryings(Attributes input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if defined(FEATURES_GRAPH_VERTEX)
-
 #if defined(UNIVERSAL_TERRAIN_ENABLED)
     TerrainFunc(input, output);
 #endif
+
+#if defined(FEATURES_GRAPH_VERTEX)
 
 #if defined(HAVE_VFX_MODIFICATION)
     VertexDescription vertexDescription = BuildVertexDescription(input, element);
