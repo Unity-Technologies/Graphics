@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             functionBuilder.AddLine("#if defined(SHADER_STAGE_RAY_TRACING)");
             functionBuilder.AddLine("if (vtParams.levelMode == VtLevel_Automatic || vtParams.levelMode == VtLevel_Bias)");
             functionBuilder.AddLine("{");
-            functionBuilder.Indentation();
+            functionBuilder.Indent();
             functionBuilder.AddLine("vtParams.levelMode = VtLevel_Lod;");
             functionBuilder.AddLine("vtParams.lodOrOffset = 0.0f;");
             functionBuilder.Deindent();
