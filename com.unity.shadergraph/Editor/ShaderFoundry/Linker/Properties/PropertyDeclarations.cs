@@ -313,6 +313,9 @@ namespace UnityEditor.ShaderFoundry
             var container = context.Container;
             var uniformName = context.UniformName;
             var displayName = context.DisplayName;
+            var defaultValue = context.DefaultValue;
+            if (defaultValue == null)
+                defaultValue = "\"\" {}";
             // These need valid names due to how uniform deduplication works, however the name isn't particularly important.
             // These names were roughly taken from the macros for virtual textures.
             var stackCBUniformName = $"{uniformName}_atlasparams";
@@ -326,8 +329,23 @@ namespace UnityEditor.ShaderFoundry
             foreach (var attribute in attributes)
             {
                 var layerAttribute = VirtualTextureLayerAttribute.TryParse(attribute);
-                if (layerAttribute != null && layerAttribute.Index < layerCount)
-                    layerInfo[layerAttribute.Index] = layerAttribute;
+                // Some unrelated attribute, skip it
+                if (layerAttribute == null)
+                    continue;
+
+                // The layer's specified index was out of bounds
+                if (layerAttribute.Index < 0 || layerCount <= layerAttribute.Index)
+                {
+                    ErrorHandling.ReportError($"Parameter {VirtualTextureLayerAttribute.IndexParamName} must be in the range of [{0}, {layerCount}).");
+                    continue;
+                }
+                // Multiple occurrences of a layer attribute found for the same index
+                if (layerInfo[layerAttribute.Index] != null)
+                {
+                    ErrorHandling.ReportError($"Multiple {VirtualTextureLayerAttribute.AttributeName} attributes with {VirtualTextureLayerAttribute.IndexParamName} of {layerAttribute.Index} cannot be specified.");
+                    continue;
+                }
+                layerInfo[layerAttribute.Index] = layerAttribute;
             }
 
             // The stack is built by calling a macro with each layer name
@@ -350,10 +368,11 @@ namespace UnityEditor.ShaderFoundry
                 var layerTextureName = layerUniformName;
                 var layerSamplerName = $"sampler{layerTextureName}";
                 var layerTextureType = layerInfo[layer]?.TextureType ?? VirtualTextureLayerAttribute.LayerTextureType.Default;
-                var layerDefaultName = layerInfo[layer]?.TextureName ?? "\"\" {}";
+                var layerDefaultTextureName = layerInfo[layer]?.TextureName ?? defaultValue;
 
                 // Declare a property and two uniforms (texture + sampler) per layer
-                result.MaterialPropertyDeclarations.Add(new MaterialPropertyDeclarationData { UniformName = layerUniformName, DisplayName = layerDisplayName, DisplayType = "2D", DefaultValueExpression = layerDefaultName });
+                var slAttributes = new List<string> { $"[TextureStack._VirtualTexture({layer})]", "[NoScaleOffset]" };
+                result.MaterialPropertyDeclarations.Add(new MaterialPropertyDeclarationData { UniformName = layerUniformName, DisplayName = layerDisplayName, DisplayType = "2D", DefaultValueExpression = layerDefaultTextureName, Attributes = slAttributes });
                 UniformDeclarationData.Build(container._Texture2D, layerTextureName, UniformDataSource.Global, null, result);
                 UniformDeclarationData.Build(container._SamplerState, layerSamplerName, UniformDataSource.Global, null, result);
 

@@ -41,6 +41,10 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             internal string FieldName;
             internal delegate void OutputsAssignmentDelegate(ShaderFunction.Builder builder, PropertyDeclarationData propData);
             internal OutputsAssignmentDelegate OutputsAssignmentCallback = null;
+
+            // Allows creating extra data in the block, such as helper functions.
+            internal delegate void ExtraBlockGenerationDelegate(Block.Builder blockBuilder, PropertyDeclarationData propData);
+            internal ExtraBlockGenerationDelegate ExtraBlockGenerationCallback = null;
         }
 
         internal static Block.Builder CreateSimplePropertyBlockBuilder(ShaderContainer container, string blockName, PropertyDeclarationData propertyData)
@@ -71,6 +75,9 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var outputAlphaBuilder = new StructField.Builder(container, "Alpha", container._float);
             outputTypeBuilder.AddField(outputAlphaBuilder.Build());
             var outputType = outputTypeBuilder.Build();
+
+            if (propertyData.ExtraBlockGenerationCallback != null)
+                propertyData.ExtraBlockGenerationCallback(blockBuilder, propertyData);
 
             // Build the entry point
             var entryPointFnBuilder = new ShaderFunction.Builder(blockBuilder, "Apply", outputType);

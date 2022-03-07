@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderFoundry
 
         internal class ParameterDescription<TargetType>
         {
-            public string ParamName;
-            public ParseDelegate<TargetType> ParseCallback;
+            readonly public string ParamName;
+            readonly public ParseDelegate<TargetType> ParseCallback;
 
             public ParameterDescription() {}
             public ParameterDescription(string paramName, ParseDelegate<TargetType> parseCallback)
@@ -35,7 +35,6 @@ namespace UnityEditor.ShaderFoundry
                 if (paramDesc != null)
                 {
                     paramDesc.ParseCallback(attributeParam, index, target);
-                    continue;
                 }
                 else
                 {
@@ -72,7 +71,7 @@ namespace UnityEditor.ShaderFoundry
             if (!int.TryParse(attributeParam.Value, out int value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
             if (value < rangeMin || rangeMax < value)
-                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be in the range of [{rangeMin}, {rangeMax}].");
+                ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be in the range of [{rangeMin}, {rangeMax}).");
             result = value;
         }
 
@@ -81,6 +80,11 @@ namespace UnityEditor.ShaderFoundry
             if (!Enum.TryParse(attributeParam.Value, out EnumType value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at index {parameterIndex} with value {attributeParam.Value} must be a valid {typeof(EnumType).Name} enum value.");
             result = value;
+        }
+
+        public static void ReportRequiredParameterIsMissing(string attributeName, string parameterName)
+        {
+            ErrorHandling.ReportError($"{attributeName}: Required parameter {parameterName} was not found.");
         }
     }
 }
