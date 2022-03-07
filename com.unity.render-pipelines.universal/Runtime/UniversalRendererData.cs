@@ -272,17 +272,12 @@ namespace UnityEngine.Rendering.Universal
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            m_AssetVersion = k_LatestAssetVersion;
+
         }
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            if (m_AssetVersion <= 0)
-            {
-                m_IntermediateTextureMode = IntermediateTextureMode.Always;
-            }
-
-            m_AssetVersion = k_LatestAssetVersion;
+           
         }
     }
 }
