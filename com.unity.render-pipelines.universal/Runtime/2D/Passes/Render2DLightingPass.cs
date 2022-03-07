@@ -371,36 +371,39 @@ namespace UnityEngine.Rendering.Universal
         {
             // TODO: This will need to take into account on screen lights as shadows can be cast from offscreen.
 
-            const int k_Corners = 4;
-            NativeArray<Vector3> nearCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            NativeArray<Vector3> farCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            //const int k_Corners = 4;
+            //NativeArray<Vector3> nearCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            //NativeArray<Vector3> farCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            if (camera.orthographic)
-            {
-                CalculateFrustumCornersOrthographic(camera, camera.nearClipPlane, nearCorners);
-                CalculateFrustumCornersOrthographic(camera, camera.farClipPlane, farCorners);
-            }
-            else
-            {
-                CalculateFrustumCornersPerspective(camera, camera.nearClipPlane, nearCorners);
-                CalculateFrustumCornersPerspective(camera, camera.farClipPlane, farCorners);
-            }
+            //if (camera.orthographic)
+            //{
+            //    CalculateFrustumCornersOrthographic(camera, camera.nearClipPlane, nearCorners);
+            //    CalculateFrustumCornersOrthographic(camera, camera.farClipPlane, farCorners);
+            //}
+            //else
+            //{
+            //    CalculateFrustumCornersPerspective(camera, camera.nearClipPlane, nearCorners);
+            //    CalculateFrustumCornersPerspective(camera, camera.farClipPlane, farCorners);
+            //}
 
-            Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-            Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
-            for (int i = 0; i < k_Corners; i++)
-            {
-                maxCorner = Vector3.Max(maxCorner, nearCorners[i]);
-                maxCorner = Vector3.Max(maxCorner, farCorners[i]);
-                minCorner = Vector3.Max(minCorner, nearCorners[i]);
-                minCorner = Vector3.Max(minCorner, farCorners[i]);
-            }
+            //Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            //Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            //for (int i = 0; i < k_Corners; i++)
+            //{
+            //    maxCorner = Vector3.Max(maxCorner, nearCorners[i]);
+            //    maxCorner = Vector3.Max(maxCorner, farCorners[i]);
+            //    minCorner = Vector3.Min(minCorner, nearCorners[i]);
+            //    minCorner = Vector3.Min(minCorner, farCorners[i]);
+            //}
 
-            nearCorners.Dispose();
-            farCorners.Dispose();
+            //nearCorners.Dispose();
+            //farCorners.Dispose();
 
-            Vector3 center = 0.5f * (minCorner + maxCorner);
-            Vector3 size = maxCorner - minCorner;
+            //Vector3 center = 0.5f * (minCorner + maxCorner);
+            //Vector3 size = maxCorner - minCorner;
+
+            Vector3 center = Vector3.zero;
+            Vector3 size = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 
             return new Bounds(center, size); ;
         }
