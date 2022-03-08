@@ -9,9 +9,11 @@ namespace UnityEngine.Rendering.Universal
     {
         static public void CallOnBeforeRender(Component component, ShadowMesh2D shadowMesh, Bounds bounds)
         {
-            if (component != null  && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
+            if (component != null)
             {
-                shapeProvider.OnBeforeRender(shadowMesh, bounds);
+                IShadowShape2DProvider shapeProvider = component as IShadowShape2DProvider;
+                if (shapeProvider != null)
+                    shapeProvider.OnBeforeRender(shadowMesh, bounds);
             }
             else if (shadowMesh != null && shadowMesh.mesh != null)
             {
@@ -21,9 +23,11 @@ namespace UnityEngine.Rendering.Universal
 
         static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)
         {
-            if (component != null && component.TryGetComponent<IShadowShape2DProvider>(out var shapeProvider))
+            if (component != null)
             {
-                shapeProvider.OnPersistantDataCreated(shadowMesh);
+                IShadowShape2DProvider shapeProvider = component as IShadowShape2DProvider;
+                if(shapeProvider != null)
+                    shapeProvider.OnPersistantDataCreated(shadowMesh);
             }
         }
 
