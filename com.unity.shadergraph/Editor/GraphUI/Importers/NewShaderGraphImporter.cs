@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
     [ScriptedImporter(1, Extension, -902)]
     class NewShaderGraphImporter : ScriptedImporter
     {
-        public const string Extension = "sg2";
+        public const string Extension = ShaderGraphStencil.Extension;
 
         public const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
