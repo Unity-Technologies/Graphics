@@ -1,5 +1,3 @@
-using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     interface IProbeVolumeList
@@ -13,25 +11,19 @@ namespace UnityEngine.Rendering.HighDefinition
         void SetDataUpdated(int i, bool value);
 
         Vector3 GetPosition(int i);
-        Quaternion GetRotation(int i);
 
-        ref ProbeVolumeArtistParameters GetParameters(int i);
+        ProbeVolumeArtistParameters GetParameters(int i);
 
-        VolumeGlobalUniqueID GetAtlasID(int i);
         ProbeVolume.ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(int i);
-        ProbeVolume.ProbeVolumeAtlasKey GetProbeVolumeAtlasKeyPrevious(int i);
-        void SetProbeVolumeAtlasKeyPrevious(int i, ProbeVolume.ProbeVolumeAtlasKey key);
 
         int GetDataSHL01Length(int i);
         int GetDataSHL2Length(int i);
-        int GetDataValidityLength(int i);
         int GetDataOctahedralDepthLength(int i);
 
         void SetDataOctahedralDepth(int i, ComputeBuffer buffer);
 
         public void EnsureVolumeBuffers(int i);
-        public void SetVolumeBuffers(int i);
-        public ProbeVolumeBuffers GetVolumeBuffers(int i);
+        public ref ProbeVolumePipelineData GetPipelineData(int i);
 
         // Dynamic GI
         int GetProbeVolumeEngineDataIndex(int i);

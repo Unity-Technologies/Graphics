@@ -781,8 +781,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 1.0f / (float) probeVolume.parameters.resolutionZ
             ));
 
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasScale, probeVolume.parameters.scale);
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasBias, probeVolume.parameters.bias);
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, shaderGlobals._ProbeVolumeAtlasResolutionAndSliceCount);
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCountInverse, shaderGlobals._ProbeVolumeAtlasResolutionAndSliceCountInverse);
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateRight, key.rotation * new Vector3(1.0f, 0.0f, 0.0f));
@@ -791,11 +789,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeIntParam(shader, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, numProbes);
 
-            var volumeBuffers = probeVolume.GetVolumeBuffers();
-            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL01Buffer, volumeBuffers.SHL01Buffer);
-            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL2Buffer, volumeBuffers.SHL2Buffer);
+            var pipelineData = probeVolume.GetPipelineData();
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasScale, pipelineData.Scale);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasBias, pipelineData.Bias);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL01Buffer, pipelineData.SHL01Buffer);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL2Buffer, pipelineData.SHL2Buffer);
 
-            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadValidityBuffer, volumeBuffers.ValidityBuffer);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadValidityBuffer, pipelineData.ValidityBuffer);
             cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasWriteTextureSH, probeVolumeAtlasSHRTHandle);
 
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", probeVolume.propagationBuffers.GetWriteRadianceCacheAxis());

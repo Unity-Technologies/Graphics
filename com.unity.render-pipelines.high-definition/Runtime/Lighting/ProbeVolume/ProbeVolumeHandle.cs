@@ -1,5 +1,4 @@
 using System;
-using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -20,23 +19,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetDataUpdated(bool value) => m_List.SetDataUpdated(m_Index, value);
 
         public Vector3 position => m_List.GetPosition(m_Index);
-        public Quaternion rotation => m_List.GetRotation(m_Index);
 
-        public ref ProbeVolumeArtistParameters parameters => ref m_List.GetParameters(m_Index);
+        public ProbeVolumeArtistParameters parameters => m_List.GetParameters(m_Index);
 
-        public VolumeGlobalUniqueID GetAtlasID() => m_List.GetAtlasID(m_Index);
         public ProbeVolume.ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey() => m_List.ComputeProbeVolumeAtlasKey(m_Index);
-        public ProbeVolume.ProbeVolumeAtlasKey GetProbeVolumeAtlasKeyPrevious() => m_List.GetProbeVolumeAtlasKeyPrevious(m_Index);
-        public void SetProbeVolumeAtlasKeyPrevious(ProbeVolume.ProbeVolumeAtlasKey key) => m_List.SetProbeVolumeAtlasKeyPrevious(m_Index, key);
 
         public int DataSHL01Length => m_List.GetDataSHL01Length(m_Index);
         public int DataSHL2Length => m_List.GetDataSHL2Length(m_Index);
-        public int DataValidityLength => m_List.GetDataValidityLength(m_Index);
         public int DataOctahedralDepthLength  => m_List.GetDataOctahedralDepthLength(m_Index);
         public void SetDataOctahedralDepth(ComputeBuffer buffer) => m_List.SetDataOctahedralDepth(m_Index, buffer);
         public void EnsureVolumeBuffers() => m_List.EnsureVolumeBuffers(m_Index);
-        public void SetVolumeBuffers() => m_List.SetVolumeBuffers(m_Index);
-        public ProbeVolumeBuffers GetVolumeBuffers() => m_List.GetVolumeBuffers(m_Index);
+        public ref ProbeVolumePipelineData GetPipelineData() => ref m_List.GetPipelineData(m_Index);
 
         // Dynamic GI
         public int GetProbeVolumeEngineDataIndex() => m_List.GetProbeVolumeEngineDataIndex(m_Index);

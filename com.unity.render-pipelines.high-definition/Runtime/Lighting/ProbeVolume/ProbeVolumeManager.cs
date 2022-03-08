@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -218,20 +217,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void IProbeVolumeList.SetDataUpdated(int i, bool value) => m_Volumes[i].SetDataIsUpdated(value);
 
         Vector3 IProbeVolumeList.GetPosition(int i) => m_Volumes[i].transform.position;
-        Quaternion IProbeVolumeList.GetRotation(int i) => m_Volumes[i].transform.rotation;
-        ref ProbeVolumeArtistParameters IProbeVolumeList.GetParameters(int i) => ref m_Volumes[i].parameters;
-        VolumeGlobalUniqueID IProbeVolumeList.GetAtlasID(int i) => m_Volumes[i].GetAtlasID();
+        ProbeVolumeArtistParameters IProbeVolumeList.GetParameters(int i) => m_Volumes[i].parameters;
         ProbeVolume.ProbeVolumeAtlasKey IProbeVolumeList.ComputeProbeVolumeAtlasKey(int i) => m_Volumes[i].ComputeProbeVolumeAtlasKey();
-        ProbeVolume.ProbeVolumeAtlasKey IProbeVolumeList.GetProbeVolumeAtlasKeyPrevious(int i) => m_Volumes[i].GetProbeVolumeAtlasKeyPrevious();
-        void IProbeVolumeList.SetProbeVolumeAtlasKeyPrevious(int i, ProbeVolume.ProbeVolumeAtlasKey key) => m_Volumes[i].SetProbeVolumeAtlasKeyPrevious(key);
         int IProbeVolumeList.GetDataSHL01Length(int i) => m_Volumes[i].GetPayload().dataSHL01.Length;
         int IProbeVolumeList.GetDataSHL2Length(int i) => m_Volumes[i].GetPayload().dataSHL2.Length;
-        int IProbeVolumeList.GetDataValidityLength(int i) => m_Volumes[i].GetPayload().dataValidity.Length;
         int IProbeVolumeList.GetDataOctahedralDepthLength(int i) => m_Volumes[i].GetPayload().dataOctahedralDepth.Length;
         void IProbeVolumeList.SetDataOctahedralDepth(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataOctahedralDepth);
         void IProbeVolumeList.EnsureVolumeBuffers(int i) => m_Volumes[i].EnsureVolumeBuffers();
-        void IProbeVolumeList.SetVolumeBuffers(int i) => m_Volumes[i].SetVolumeBuffers();
-        ProbeVolumeBuffers IProbeVolumeList.GetVolumeBuffers(int i) => m_Volumes[i].m_VolumeBuffers;
+        ref ProbeVolumePipelineData IProbeVolumeList.GetPipelineData(int i) => ref m_Volumes[i].pipelineData;
 
         // Dynamic GI
         int IProbeVolumeList.GetProbeVolumeEngineDataIndex(int i) => m_Volumes[i].m_ProbeVolumeEngineDataIndex;

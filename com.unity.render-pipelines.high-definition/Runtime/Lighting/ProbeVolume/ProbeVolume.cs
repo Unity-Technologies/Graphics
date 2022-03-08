@@ -436,10 +436,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceFadeStart;
         public float distanceFadeEnd;
 
-        [System.NonSerialized] public Vector3 scale;
-        [System.NonSerialized] public Vector3 bias;
-        [System.NonSerialized] public Vector4 octahedralDepthScaleBias;
-
         public ProbeSpacingMode probeSpacingMode;
 
         public float densityX;
@@ -518,9 +514,6 @@ namespace UnityEngine.Rendering.HighDefinition
             this.advancedFade = false;
             this.distanceFadeStart = 10000.0f;
             this.distanceFadeEnd = 10000.0f;
-            this.scale = Vector3.zero;
-            this.bias = Vector3.zero;
-            this.octahedralDepthScaleBias = Vector4.zero;
             this.probeSpacingMode = ProbeSpacingMode.Density;
             this.resolutionX = 4;
             this.resolutionY = 4;
@@ -579,7 +572,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal ProbeVolumeEngineData ConvertToEngineData(int probeVolumeAtlasSHRTDepthSliceCount, float globalDistanceFadeStart, float globalDistanceFadeEnd)
+        internal ProbeVolumeEngineData ConvertToEngineData(ProbeVolumePipelineData pipelineData, int probeVolumeAtlasSHRTDepthSliceCount, float globalDistanceFadeStart, float globalDistanceFadeEnd)
         {
             ProbeVolumeEngineData data = new ProbeVolumeEngineData();
 
@@ -613,9 +606,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpDistFadeLen = 1.0f / distFadeLen;
             data.endTimesRcpDistFadeLen = distanceFadeEnd * data.rcpDistFadeLen;
 
-            data.scale = this.scale;
-            data.bias = this.bias;
-            data.octahedralDepthScaleBias = this.octahedralDepthScaleBias;
+            data.scale = pipelineData.Scale;
+            data.bias = pipelineData.Bias;
+            data.octahedralDepthScaleBias = pipelineData.OctahedralDepthScaleBias;
 
             data.resolution = new Vector3(this.resolutionX, this.resolutionY, this.resolutionZ);
             data.resolutionInverse = new Vector3(1.0f / (float)this.resolutionX, 1.0f / (float)this.resolutionY, 1.0f / (float)this.resolutionZ);
@@ -635,11 +628,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
     } // class ProbeVolumeArtistParameters
 
-    internal struct ProbeVolumeBuffers
+    internal struct ProbeVolumePipelineData
     {
         public ComputeBuffer SHL01Buffer;
         public ComputeBuffer SHL2Buffer;
         public ComputeBuffer ValidityBuffer;
+        
+        public Vector3 Scale;
+        public Vector3 Bias;
+        public Vector4 OctahedralDepthScaleBias;
+        
+        public ProbeVolume.ProbeVolumeAtlasKey UsedAtlasKey;
     }
 
     [ExecuteAlways]
@@ -774,8 +773,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
+        internal ProbeVolumePipelineData pipelineData;
         internal ProbePropagationBuffers m_PropagationBuffers;
-        internal ProbeVolumeBuffers m_VolumeBuffers;
 
         // custom-begin:
         [System.NonSerialized] private static List<ProbeVolume> s_Instances = new List<ProbeVolume>();
@@ -842,25 +841,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     position = position,
                     rotation = sphericalHarmonicWSFromOS
                 };
-        }
-
-        private ProbeVolumeAtlasKey probeVolumeAtlasKeyPrevious;
-
-        internal ProbeVolumeAtlasKey GetProbeVolumeAtlasKeyPrevious()
-        {
-            return probeVolumeAtlasKeyPrevious;
-        }
-
-        internal void SetProbeVolumeAtlasKeyPrevious(ProbeVolumeAtlasKey key)
-        {
-            probeVolumeAtlasKeyPrevious = key;
-        }
-
-        public VolumeGlobalUniqueID GetAtlasID()
-        {
-            // Use the payloadID, rather than the probe volume ID to uniquely identify data in the atlas.
-            // This ensures that if 2 probe volume exist that point to the same data, that data will only be uploaded once.
-            return GetPayloadID();
         }
 
         private void BakeKeyClear()
@@ -979,12 +959,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool changed = dataUpdated;
 
-            changed |= EnsureBuffer<float>(ref m_VolumeBuffers.SHL01Buffer, probeVolumeAsset.payload.dataSHL01.Length);
+            changed |= EnsureBuffer<float>(ref pipelineData.SHL01Buffer, probeVolumeAsset.payload.dataSHL01.Length);
 
             if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
-                changed |= EnsureBuffer<float>(ref m_VolumeBuffers.SHL2Buffer, probeVolumeAsset.payload.dataSHL2.Length);
+                changed |= EnsureBuffer<float>(ref pipelineData.SHL2Buffer, probeVolumeAsset.payload.dataSHL2.Length);
 
-            changed |= EnsureBuffer<float>(ref m_VolumeBuffers.ValidityBuffer, probeVolumeAsset.payload.dataValidity.Length);
+            changed |= EnsureBuffer<float>(ref pipelineData.ValidityBuffer, probeVolumeAsset.payload.dataValidity.Length);
 
             if (changed)
             {
@@ -994,17 +974,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void SetVolumeBuffers()
         {
-            SetBuffer(m_VolumeBuffers.SHL01Buffer, probeVolumeAsset.payload.dataSHL01);
+            SetBuffer(pipelineData.SHL01Buffer, probeVolumeAsset.payload.dataSHL01);
 
             if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
-                SetBuffer(m_VolumeBuffers.SHL2Buffer, probeVolumeAsset.payload.dataSHL2);
+                SetBuffer(pipelineData.SHL2Buffer, probeVolumeAsset.payload.dataSHL2);
             
-            SetBuffer(m_VolumeBuffers.ValidityBuffer, probeVolumeAsset.payload.dataValidity);
+            SetBuffer(pipelineData.ValidityBuffer, probeVolumeAsset.payload.dataValidity);
         }
 
         internal void CleanupBuffers()
         {
-            CleanupBuffers(m_VolumeBuffers);
+            CleanupBuffers(pipelineData);
         }
 
         internal void SetLastSimulatedFrame(int simulationFrameTick)
@@ -1017,11 +997,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_simulationFrameTick;
         }
 
-        public static void CleanupBuffers(ProbeVolumeBuffers buffers)
+        public static void CleanupBuffers(ProbeVolumePipelineData pipelineData)
         {
-            CleanupBuffer(buffers.SHL01Buffer);
-            CleanupBuffer(buffers.SHL2Buffer);
-            CleanupBuffer(buffers.ValidityBuffer);
+            CleanupBuffer(pipelineData.SHL01Buffer);
+            CleanupBuffer(pipelineData.SHL2Buffer);
+            CleanupBuffer(pipelineData.ValidityBuffer);
         }
 
         // returns true if released it
