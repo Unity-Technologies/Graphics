@@ -23,10 +23,10 @@ namespace UnityEditor.Rendering.Foundry
             context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue)));
         }
 
-        public override void ProcessPreviewMaterial(Material material) {}
-        public override void GetFields(ref TargetFieldContext context) {}
-        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) {}
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo) {}
+        public override void ProcessPreviewMaterial(Material material) { }
+        public override void GetFields(ref TargetFieldContext context) { }
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) { }
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo) { }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {

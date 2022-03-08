@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderFoundry
             readonly public string ParamName;
             readonly public ParseDelegate<TargetType> ParseCallback;
 
-            public ParameterDescription() {}
+            public ParameterDescription() { }
             public ParameterDescription(string paramName, ParseDelegate<TargetType> parseCallback)
             {
                 ParamName = paramName;

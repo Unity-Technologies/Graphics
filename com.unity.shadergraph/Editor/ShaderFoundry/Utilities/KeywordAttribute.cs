@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderFoundry
 
         public void AddEnum(string name, int value)
         {
-            enumPairs.Add(new EnumPair {Name = name, Value = value });
+            enumPairs.Add(new EnumPair { Name = name, Value = value });
         }
 
         public EnumPair GetEnum(int index) => enumPairs[index];

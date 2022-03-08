@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderFoundry
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
             var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName, additionalShaderID);
-            
+
             foreach (var template in provider.GetTemplates(container))
             {
                 if (template.AdditionalShaderID != additionalShaderID)

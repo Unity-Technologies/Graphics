@@ -49,8 +49,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         {
             var expectedColor = new Color(0.1f, 0.2f, 0.3f, 0.4f);
             var inputTexture = new Texture2DArray(1, 1, 2, TextureFormat.ARGB32, false);
-            inputTexture.SetPixels(new Color[] {new Color(0.1f, 0.2f, 0.3f, 0.4f) }, 0);
-            inputTexture.SetPixels(new Color[] {new Color(0.5f, 0.6f, 0.7f, 0.8f) }, 1);
+            inputTexture.SetPixels(new Color[] { new Color(0.1f, 0.2f, 0.3f, 0.4f) }, 0);
+            inputTexture.SetPixels(new Color[] { new Color(0.5f, 0.6f, 0.7f, 0.8f) }, 1);
             inputTexture.Apply();
 
             var container = CreateContainer();

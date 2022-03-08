@@ -290,7 +290,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void BuildTypeAndFunctionGroups(Block block,  VisitedRegistry visitedRegistry, out List<(Block Block, List<ShaderType> Types)> typeGroups, out List<(Block Block, List<ShaderFunction> Functions)> functionGroups)
+        void BuildTypeAndFunctionGroups(Block block, VisitedRegistry visitedRegistry, out List<(Block Block, List<ShaderType> Types)> typeGroups, out List<(Block Block, List<ShaderFunction> Functions)> functionGroups)
         {
             List<ShaderType> allTypes = new List<ShaderType>();
             List<ShaderFunction> allFunctions = new List<ShaderFunction>();

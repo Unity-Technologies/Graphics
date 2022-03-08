@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderFoundry
             return legacyEntryPoints;
         }
 
-        void FindVaryings(Block block0, Block block1, IEnumerable<BlockVariable> existingOutputs,  IEnumerable<BlockVariable> existingInputs, List<VaryingVariable> customInterpolants)
+        void FindVaryings(Block block0, Block block1, IEnumerable<BlockVariable> existingOutputs, IEnumerable<BlockVariable> existingInputs, List<VaryingVariable> customInterpolants)
         {
             var existingOutputNames = new HashSet<string>();
             foreach (var output in existingOutputs)

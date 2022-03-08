@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             };
             var block = propBuilder.Build(container);
 
-            SetupMaterialDelegate materialSetupDelegate =  m => { m.EnableKeyword(propBuilder.KeywordName); };
+            SetupMaterialDelegate materialSetupDelegate = m => { m.EnableKeyword(propBuilder.KeywordName); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);
             yield break;
         }
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             };
             var block = propBuilder.Build(container);
 
-            SetupMaterialDelegate materialSetupDelegate =  m => { m.DisableKeyword(propBuilder.KeywordName); };
+            SetupMaterialDelegate materialSetupDelegate = m => { m.DisableKeyword(propBuilder.KeywordName); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate);
             yield break;
         }
