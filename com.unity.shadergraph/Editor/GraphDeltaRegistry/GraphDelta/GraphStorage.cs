@@ -98,9 +98,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             private bool TryGetSubReader(string searchKey, out GraphReader graphReader, bool thruConnection = true)
             {
-                if(thruConnection && storageReference.m_flatStructureLookup.TryGetValue($"{path}._Input", out Element element) && element is Element<Element> conneciton)
+                if(thruConnection && storageReference.m_flatStructureLookup.TryGetValue($"{path}._Input", out Element element) && element is Element<string> connection)
                 {
-                    if(storageReference.m_flatStructureLookup.TryGetValue($"{conneciton.data.GetFullPath()}.{searchKey}", out Element connected))
+                    if(storageReference.m_flatStructureLookup.TryGetValue($"{connection.data}.{searchKey}", out Element connected))
                     {
                         graphReader = new GraphReader(connected, this.storageReference);
                         return true;
@@ -225,7 +225,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 {
                     if (TryGetField("_Input", out var fieldReader))
                     {
-                        fieldReader.TryGetValue<Element>(out var elementReference);
+                        fieldReader.TryGetValue<string>(out var elementReferenceName);
+                        storageReference.m_flatStructureLookup.TryGetValue(elementReferenceName, out Element elementReference);
                         yield return new GraphReader(elementReference, storageReference);
                     }
                 }
@@ -233,10 +234,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 {
                     if (TryGetField("_Output", out var fieldReader))
                     {
-                        fieldReader.TryGetValue<List<Element>>(out var elementReference);
-                        foreach (var elem in elementReference)
+                        fieldReader.TryGetValue<List<string>>(out var elementReferenceNames);
+                        foreach (var name in elementReferenceNames)
                         {
-                            yield return new GraphReader(elem, storageReference);
+                            storageReference.m_flatStructureLookup.TryGetValue(name, out Element elementReference);
+                            yield return new GraphReader(elementReference, storageReference);
                         }
                     }
                 }
@@ -357,9 +359,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (elementReference.TryGetTarget(out Element element))
                 {
                     var connection = storageReference.SearchRelative(element, "_Input");
-                    if(connection != null && connection is Element<Element> link)
+                    if(connection != null && connection is Element<string> link)
                     {
-                        element = link.data;
+                        storageReference.m_flatStructureLookup.TryGetValue(link.data, out element);
                     }
                     var subElement = storageReference.SearchRelative(element, key);
                     if (subElement != null && subElement is Element<T> typedSubElement)
@@ -400,19 +402,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 input.elementReference.TryGetTarget(out Element inputElem);
                 output.elementReference.TryGetTarget(out Element outputElem);
 
-                if(!output.TryGetSubWriter("_Output", out GraphWriter<List<Element>> outputWriter))
+                if(!output.TryGetSubWriter("_Output", out GraphWriter<List<string>> outputWriter))
                 {
                     output.TryAddSubWriter("_Output", out outputWriter);
-                    outputWriter.TryWriteData(new List<Element>());
+                    outputWriter.TryWriteData(new List<string>());
                 }
                 outputWriter.elementReference.TryGetTarget(out Element listElem);
-                (listElem as Element<List<Element>>).data.Add(inputElem);
+                (listElem as Element<List<string>>).data.Add(inputElem.GetFullPath());
 
-                if(!input.TryGetSubWriter("_Input", out GraphWriter<Element> inputWriter))
+                if(!input.TryGetSubWriter("_Input", out GraphWriter<string> inputWriter))
                 {
                     input.TryAddSubWriter("_Input", out inputWriter);
                 }
-                inputWriter.TryWriteData(outputElem);
+                inputWriter.TryWriteData(outputElem.GetFullPath());
             }
 
             private void DisconnectPorts(GraphWriter output, GraphWriter input)
@@ -420,16 +422,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 input.elementReference.TryGetTarget(out Element inputElem);
                 output.elementReference.TryGetTarget(out Element outputElem);
 
-                output.TryGetSubWriter("_Output", out GraphWriter<List<Element>> outputWriter);
+                output.TryGetSubWriter("_Output", out GraphWriter<List<string>> outputWriter);
+
                 outputWriter.elementReference.TryGetTarget(out Element elem);
-                var listElem = (elem as Element<List<Element>>);
-                listElem.data.Remove(inputElem);
+                var listElem = (elem as Element<List<string>>);
+                listElem.data.Remove(inputElem.GetFullPath());
                 if(listElem.data.Count == 0)
                 {
                     storageReference.RemoveData(elem);
                 }
 
-                input.TryGetSubWriter("_Input", out GraphWriter<Element> inputWriter);
+                input.TryGetSubWriter("_Input", out GraphWriter<string> inputWriter);
                 inputWriter.elementReference.TryGetTarget(out Element elem2);
                 storageReference.RemoveData(elem2);
             }

@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -88,7 +89,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     Assert.IsNotNull(input);
                     Assert.IsTrue(output.TryAddConnection(input));
                 }
-                var thruEdge = (graphHandler.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
+                var thruEdgeName = (graphHandler.m_data.Search("Foo.Out._Output") as Element<List<string>>).data[0];
+                var thruEdge = graphHandler.m_data.Search(thruEdgeName);
                 var normSearch = graphHandler.m_data.Search("Bar.A");
                 Assert.NotNull(thruEdge);
                 Assert.NotNull(normSearch);
@@ -202,7 +204,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     Assert.IsNotNull(input);
                     Assert.IsTrue(output.TryAddConnection(input));
                 }
-                var thruEdge = (graphDelta.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
+                var thruEdgeName = (graphDelta.m_data.Search("Foo.Out._Output") as Element<List<string>>).data[0];
+                var thruEdge = graphDelta.m_data.Search(thruEdgeName);
                 var normSearch = graphDelta.m_data.Search("Bar.A");
                 Assert.NotNull(thruEdge);
                 Assert.NotNull(normSearch);
@@ -215,7 +218,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 // rerun tests on the serialized version
                 try
                 {
-                    thruEdge = (deserializedHandler.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
+                    thruEdgeName = (deserializedHandler.m_data.Search("Foo.Out._Output") as Element<List<string>>).data[0];
+                    thruEdge = deserializedHandler.m_data.Search(thruEdgeName);
                     normSearch = deserializedHandler.m_data.Search("Bar.A");
                 }
                 catch(System.Exception)
