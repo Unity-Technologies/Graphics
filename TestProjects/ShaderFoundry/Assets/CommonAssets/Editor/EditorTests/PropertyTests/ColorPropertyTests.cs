@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var propBuilder = BuildWithNameOverrides("(1, 1, 1, 1)");
             var block = propBuilder.Build(container);
 
-            SetupMaterialDelegate materialSetupDelegate = m => {  m.SetColor(propBuilder.PropertyAttribute.UniformName, expectedColor); };
+            SetupMaterialDelegate materialSetupDelegate = m => { m.SetColor(propBuilder.PropertyAttribute.UniformName, expectedColor); };
             TestSurfaceBlockIsConstantColor(container, propBuilder.BlockName, block, expectedColor, materialSetupDelegate, errorThreshold: 1);
             yield break;
         }

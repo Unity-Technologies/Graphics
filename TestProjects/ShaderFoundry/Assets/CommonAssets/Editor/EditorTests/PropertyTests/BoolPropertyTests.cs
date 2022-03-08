@@ -114,7 +114,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var propBuilder = BuildBoolWithNameOverrides("0");
             var block = propBuilder.Build(container);
 
-            SetupMaterialDelegate materialSetupDelegate = m => {
+            SetupMaterialDelegate materialSetupDelegate = m =>
+            {
                 m.SetInteger(propBuilder.PropertyAttribute.UniformName, inputValue);
                 var propIndex = m.shader.FindPropertyIndex(propBuilder.FieldName);
                 Assert.AreEqual(-1, propIndex);
