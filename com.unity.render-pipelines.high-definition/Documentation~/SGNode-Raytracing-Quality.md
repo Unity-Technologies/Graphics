@@ -1,17 +1,19 @@
 # Raytracing Quality Keyword
 
-The Raytracing Quality Keyword allows you to provide a fast implementation of your Shader Graph to be use with ray-traced effects to tradeoff accuracy for speed, with the exception of [Path-Traced effect](Ray-Tracing-Path-Tracing.md) which will not be affected and use the default path.
+The **Raytracing Quality** Keyword allows you to provide a fast implementation of your Shader Graph to be use with ray-traced effects to tradeoff accuracy for speed, except for [Path-Traced effect](Ray-Tracing-Path-Tracing.md) which won't be affected and use the default path.
 
 ## Adding the Raytracing Quality Keyword
 
 The Raytracing Quality Keyword is a [Built-in Keyword](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Keywords.html#built-in-keywords).
-To add the Raytracing  Quality Keyword to the graph:
-1. In the [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Blackboard.html), click the plus (\**+**) button.
-2. Select **Keyword > Raytracing Quality**. This creates the keyword and makes it visible on the Blackboard.
+
+To add the Raytracing Quality Keyword to the graph:
+
+1. In the [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Blackboard.html), click plus (**+**).
+2. Go to **Keyword** > **Raytracing Quality**. This creates the keyword and makes it visible on the Blackboard.
 
 ## Using the Raytracing Quality Keyword
 
-To use this keyword in the graph, create a [Keyword Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Keyword-Node.html) by dragging the Raytracing Quality Keyword from the Blackboard to the graph or opening the Create Node Menu and searching for **Raytracing Quality** .
+To use this keyword in the graph, you need to create a [Keyword Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Keyword-Node.html). To do this, drag the **Raytracing Quality** Keyword from the Blackboard to the graph or open the Create Node Menu and search for **Raytracing Quality** .
 
 ![](Images/RaytracingQualityNode.png)
 

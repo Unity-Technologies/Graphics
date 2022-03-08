@@ -15,9 +15,12 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty storeActionsOptimizationProperty { get; }
 
         public SerializedProperty hdr { get; }
+        public SerializedProperty hdrColorBufferPrecisionProp { get; }
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
+        public SerializedProperty fsrOverrideSharpness { get; }
+        public SerializedProperty fsrSharpness { get; }
 
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
@@ -80,9 +83,12 @@ namespace UnityEditor.Rendering.Universal
             supportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
+            hdrColorBufferPrecisionProp = serializedObject.FindProperty("m_HDRColorBufferPrecision");
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
+            fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");
+            fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
 
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");

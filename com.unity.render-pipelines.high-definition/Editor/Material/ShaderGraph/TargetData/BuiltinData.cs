@@ -47,14 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AlphaToMask = false;
-        public bool alphaToMask
-        {
-            get => m_AlphaToMask;
-            set => m_AlphaToMask = value;
-        }
-
-        [SerializeField]
         bool m_DepthOffset;
         public bool depthOffset
         {

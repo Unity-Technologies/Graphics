@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 using URPRendering = UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     public class VignetteConverter : PostProcessEffectSettingsConverter
     {

@@ -3,21 +3,21 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    internal static class LitGUI
+    public static class LitGUI
     {
-        internal enum WorkflowMode
+        public enum WorkflowMode
         {
             Specular = 0,
             Metallic
         }
 
-        internal enum SmoothnessMapChannel
+        public enum SmoothnessMapChannel
         {
             SpecularMetallicAlpha,
             AlbedoAlpha,
         }
 
-        internal static class Styles
+        public static class Styles
         {
             public static GUIContent workflowModeText = EditorGUIUtility.TrTextContent("Workflow Mode",
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");
@@ -65,35 +65,35 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "\nActs as a multiplier of the clear coat map smoothness value or as a direct smoothness value if no map is specified.");
         }
 
-        internal struct LitProperties
+        public struct LitProperties
         {
             // Surface Option Props
-            internal MaterialProperty workflowMode;
+            public MaterialProperty workflowMode;
 
             // Surface Input Props
-            internal MaterialProperty metallic;
-            internal MaterialProperty specColor;
-            internal MaterialProperty metallicGlossMap;
-            internal MaterialProperty specGlossMap;
-            internal MaterialProperty smoothness;
-            internal MaterialProperty smoothnessMapChannel;
-            internal MaterialProperty bumpMapProp;
-            internal MaterialProperty bumpScaleProp;
-            internal MaterialProperty parallaxMapProp;
-            internal MaterialProperty parallaxScaleProp;
-            internal MaterialProperty occlusionStrength;
-            internal MaterialProperty occlusionMap;
+            public MaterialProperty metallic;
+            public MaterialProperty specColor;
+            public MaterialProperty metallicGlossMap;
+            public MaterialProperty specGlossMap;
+            public MaterialProperty smoothness;
+            public MaterialProperty smoothnessMapChannel;
+            public MaterialProperty bumpMapProp;
+            public MaterialProperty bumpScaleProp;
+            public MaterialProperty parallaxMapProp;
+            public MaterialProperty parallaxScaleProp;
+            public MaterialProperty occlusionStrength;
+            public MaterialProperty occlusionMap;
 
             // Advanced Props
-            internal MaterialProperty highlights;
-            internal MaterialProperty reflections;
+            public MaterialProperty highlights;
+            public MaterialProperty reflections;
 
-            internal MaterialProperty clearCoat;  // Enable/Disable dummy property
-            internal MaterialProperty clearCoatMap;
-            internal MaterialProperty clearCoatMask;
-            internal MaterialProperty clearCoatSmoothness;
+            public MaterialProperty clearCoat;  // Enable/Disable dummy property
+            public MaterialProperty clearCoatMap;
+            public MaterialProperty clearCoatMask;
+            public MaterialProperty clearCoatSmoothness;
 
-            internal LitProperties(MaterialProperty[] properties)
+            public LitProperties(MaterialProperty[] properties)
             {
                 // Surface Option Props
                 workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        internal static void Inputs(LitProperties properties, MaterialEditor materialEditor, Material material)
+        public static void Inputs(LitProperties properties, MaterialEditor materialEditor, Material material)
         {
             DoMetallicSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return material.HasProperty("_ClearCoat") && material.GetFloat("_ClearCoat") > 0.0;
         }
 
-        internal static void DoClearCoat(LitProperties properties, MaterialEditor materialEditor, Material material)
+        public static void DoClearCoat(LitProperties properties, MaterialEditor materialEditor, Material material)
         {
             materialEditor.ShaderProperty(properties.clearCoat, Styles.clearCoatText);
             var coatEnabled = material.GetFloat("_ClearCoat") > 0.0;
@@ -184,7 +184,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.EndDisabledGroup();
         }
 
-        internal static void DoMetallicSpecularArea(LitProperties properties, MaterialEditor materialEditor, Material material)
+        public static void DoMetallicSpecularArea(LitProperties properties, MaterialEditor materialEditor, Material material)
         {
             string[] smoothnessChannelNames;
             bool hasGlossMap = false;
@@ -214,7 +214,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return opaque;
         }
 
-        internal static void DoSmoothness(MaterialEditor materialEditor, Material material, MaterialProperty smoothness, MaterialProperty smoothnessMapChannel, string[] smoothnessChannelNames)
+        public static void DoSmoothness(MaterialEditor materialEditor, Material material, MaterialProperty smoothness, MaterialProperty smoothnessMapChannel, string[] smoothnessChannelNames)
         {
             EditorGUI.indentLevel += 2;
 
@@ -247,7 +247,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.indentLevel -= 2;
         }
 
-        internal static SmoothnessMapChannel GetSmoothnessMapChannel(Material material)
+        public static SmoothnessMapChannel GetSmoothnessMapChannel(Material material)
         {
             int ch = (int)material.GetFloat("_SmoothnessTextureChannel");
             if (ch == (int)SmoothnessMapChannel.AlbedoAlpha)
@@ -266,7 +266,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         }
 
         // setup keywords for Lit.shader
-        internal static void SetMaterialKeywords(Material material)
+        public static void SetMaterialKeywords(Material material)
         {
             SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkFlow);
 

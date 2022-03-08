@@ -196,10 +196,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ConvolutionTargetTextureArray;
         }
 
-        public int FetchSlice(CommandBuffer cmd, Texture texture)
+        public int FetchSlice(CommandBuffer cmd, Texture texture, uint textureHash)
         {
             bool needUpdate;
-            var sliceIndex = m_TextureCache.ReserveSlice(texture, out needUpdate);
+            var sliceIndex = m_TextureCache.ReserveSlice(texture, textureHash, out needUpdate);
             if (sliceIndex != -1)
             {
                 if (needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
@@ -218,11 +218,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmd.BC6HEncodeFastCubemap(
                                 result[0], m_ProbeSize, m_TextureCache.GetTexCache(),
                                 0, int.MaxValue, sliceIndex);
-                            m_TextureCache.SetSliceHash(sliceIndex, m_TextureCache.GetTextureHash(texture));
+                            m_TextureCache.SetSliceHash(sliceIndex, textureHash);
                         }
                         else
                         {
-                            m_TextureCache.UpdateSlice(cmd, sliceIndex, result, m_TextureCache.GetTextureHash(texture)); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
+                            m_TextureCache.UpdateSlice(cmd, sliceIndex, result, textureHash); // Be careful to provide the update count from the input texture, not the temporary one used for convolving.
                         }
 
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Ready;

@@ -2,7 +2,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
-        #pragma multi_compile_local_fragment _ _POINT_SAMPLING
+        #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
@@ -26,6 +26,13 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         float4 _Grain_TilingParams;
         float4 _Dithering_Params;
 
+        #if SHADER_TARGET >= 45
+            #define FSR_INPUT_TEXTURE _SourceTex
+            #define FSR_INPUT_SAMPLER sampler_LinearClamp
+
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
+        #endif
+
         #define GrainIntensity          _Grain_Params.x
         #define GrainResponse           _Grain_Params.y
         #define GrainScale              _Grain_TilingParams.xy
@@ -44,6 +51,13 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _POINT_SAMPLING
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, uv).xyz;
+            #elif _RCAS && SHADER_TARGET >= 45
+            half3 color = ApplyRCAS(positionSS);
+            // When Unity is configured to use gamma color encoding, we must convert back from linear after RCAS is performed.
+            // (The input color data for this shader variant is always linearly encoded because RCAS requires it)
+            #if UNITY_COLORSPACE_GAMMA
+            color = GetLinearToSRGB(color);
+            #endif
             #else
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
             #endif
@@ -88,6 +102,27 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
     ENDHLSL
 
+    /// Standard FinalPost shader variant with support for FSR
+    /// Note: FSR requires shader target 4.5 because it relies on texture gather instructions
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+        LOD 100
+        ZTest Always ZWrite Off Cull Off
+
+        Pass
+        {
+            Name "FinalPost"
+
+            HLSLPROGRAM
+                #pragma vertex FullscreenVert
+                #pragma fragment Frag
+                #pragma target 4.5
+            ENDHLSL
+        }
+    }
+
+    /// Fallback version of FinalPost shader which lacks support for FSR
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
