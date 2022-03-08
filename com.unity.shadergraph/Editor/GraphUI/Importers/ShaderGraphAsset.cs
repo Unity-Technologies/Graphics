@@ -50,15 +50,7 @@ namespace UnityEditor.ShaderGraph
             graph.AddContextNode(contextKey, defaultRegistry);
             return graph;
         }
-        public class CreateAssetAction : EndNameEditAction
-        {
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                HandleCreate(pathName);
-                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(pathName);
-                Selection.activeObject = obj;
-            }
-        }
+
 
         public static void HandleSave(string path, ShaderGraphAssetModel model)
         {

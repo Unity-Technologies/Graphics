@@ -6,10 +6,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public static class GraphAssetUtils
     {
-        [MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        public class CreateAssetAction : ProjectWindowCallback.EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                ShaderGraphAsset.HandleCreate(pathName);
+                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(pathName);
+                Selection.activeObject = obj;
+            }
+        }
+
+        [MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
         public static void CreateBlankGraphInProjectWindow()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<ShaderGraphAsset.CreateAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<CreateAssetAction>();
 
             var path = "";
             var obj = Selection.activeObject;
