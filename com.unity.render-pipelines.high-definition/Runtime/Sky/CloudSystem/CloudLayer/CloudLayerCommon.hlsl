@@ -151,9 +151,7 @@ float4 RenderClouds(float3 dir)
 
     if (dir.y >= 0 || !_UpperHemisphere)
     {
-#ifndef DISABLE_MAIN_LAYER
         clouds = GetCloudLayerColor(dir, 0);
-#endif
 
 #ifdef USE_SECOND_CLOUD_LAYER
         float4 cloudsB = GetCloudLayerColor(dir, 1);

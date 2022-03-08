@@ -1,6 +1,6 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-//#pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 #pragma multi_compile_local _ DISABLE_MAIN_LAYER
 #pragma multi_compile_local _ USE_CLOUD_MOTION
 #pragma multi_compile_local _ USE_FLOWMAP
@@ -17,20 +17,58 @@
 
 RW_TEXTURE2D(float3, _CloudShadows);
 
-float _Resolution;
 float4 _Params;
+float4 _Params2;
 
 #define _ShadowTint     _Params.rgb
 #define _ShadowOpacity  _Params.a
 #define _SunRight       _Params1[0].xyz
 #define _SunUp          _Params1[1].xyz
+#define _ShadowSize     _Params2.xy
+#define _Resolution     _Params2.z
+
+#define EARTH_RADIUS            6378100.0
+
+float GetCloudVolumeDistance(float altitude, float3 originWS, float3 dir)
+{
+    float3 startPS = originWS + float3(0, EARTH_RADIUS, 0);
+    float lenStartPS = length(startPS), rcpLenStartPS = rcp(lenStartPS);
+    float cosChi = dot(-dir, startPS * rcpLenStartPS);
+    return -IntersectSphere(altitude + EARTH_RADIUS, cosChi, lenStartPS, rcpLenStartPS).x;
+}
 
 float ComputeCloudShadow(float2 uv)
 {
+    /*
     const float width = 0.2;
     float3 dir = _SunDirection + uv.x * width * _SunRight - uv.y * width * _SunUp;
 
     return 1.0f - RenderClouds(normalize(dir)).a;
+*/
+
+    float4 clouds = 0;
+    float3 offset = uv.x * _ShadowSize.x * _SunRight - uv.y * _ShadowSize.y * _SunUp;
+    offset = 10*float3(uv.x * _ShadowSize.x, _Altitude(0), uv.y * _ShadowSize.y);
+
+    float3 dir1 = offset + GetCloudVolumeDistance(_Altitude(0), offset, _SunDirection) * _SunDirection;
+    float3 dir2 = offset + GetCloudVolumeDistance(_Altitude(1), offset, _SunDirection) * _SunDirection;
+
+    dir1 = normalize(offset);
+
+    //float3 dir1 = _SunDirection * _Altitude(0) + offset;
+    //float3 dir2 = _SunDirection * _Altitude(1) + offset;
+
+#ifndef DISABLE_MAIN_LAYER
+    if (dir1.y >= 0 || !_UpperHemisphere)
+        clouds = GetCloudLayerColor(normalize(dir1), 0);
+#endif
+
+#ifdef USE_SECOND_CLOUD_LAYER
+    if (dir2.y >= 0 || !_UpperHemisphere)
+        clouds += GetCloudLayerColor(normalize(dir2), 1) * (1-clouds.a);
+#endif
+
+    return 1.0f - clouds.a;
 }
 
     /*

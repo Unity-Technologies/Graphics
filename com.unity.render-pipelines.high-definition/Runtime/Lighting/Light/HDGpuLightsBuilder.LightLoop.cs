@@ -290,11 +290,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (lightComponent == HDRenderPipeline.currentPipeline.GetMainLight())
             {
+                Texture shadow = null;
                 //TODO: move out of rendering pipeline locals.
                 // If this is the current sun light and volumetric cloud shadows are enabled we need to render the shadows
-                if (HDRenderPipeline.currentPipeline.HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
-                    cookieParams = HDRenderPipeline.currentPipeline.RenderVolumetricCloudsShadows(cmd, hdCamera);
-                else if (HDRenderPipeline.currentPipeline.skyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
+                if (HDRenderPipeline.currentPipeline.skyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
                 {
                     if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
                     {
@@ -306,8 +305,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             commandBuffer = cmd
                         };
                         cloudRenderer.RenderSunLightCookie(builtinParams);
+                        shadow = cookieParams.texture;
                     }
                 }
+                if (HDRenderPipeline.currentPipeline.HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
+                    cookieParams = HDRenderPipeline.currentPipeline.RenderVolumetricCloudsShadows(cmd, hdCamera, shadow);
             }
 
             if (cookieParams.texture)

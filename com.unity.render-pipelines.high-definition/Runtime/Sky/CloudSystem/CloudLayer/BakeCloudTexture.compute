@@ -187,6 +187,9 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
             finalColor.x = luminance - luminance * currentStepExtinction;
             finalColor.y = 1 - currentStepExtinction;
         }
+
+    //if (dir.x > 0 && dir.x < 0.1 && dir.z < 0.1)
+    //    finalColor = 1;
     }
 
     return finalColor;

@@ -64,6 +64,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        static Vector2 GetShadowSize(CloudLayer cloudLayer, Light sunLight, HDCamera hdCamera)
+        {
+            float shadowDistance = cloudLayer.shadowSize.value;
+            VolumetricClouds volumetric = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+            if (HDRenderPipeline.currentPipeline.HasVolumetricCloudsShadows_IgnoreSun(hdCamera, volumetric))
+                shadowDistance = volumetric.shadowDistance.value;
+
+            // TODO: share code
+            float groundShadowSize = shadowDistance * 2.0f;
+            float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
+            float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
+            Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
+            return shadowSize;
+        }
+
         protected override bool Update(BuiltinSkyParameters builtinParams)
             => UpdateCache(builtinParams.cloudSettings as CloudLayer, builtinParams.sunLight);
 
@@ -79,23 +94,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cookieParams.texture = m_PrecomputedData.cloudShadowsRT;
                 if (cookieParams.hdCamera != null)
                 {
-                    float shadowDistance = cloudLayer.shadowSize.value;
-                    VolumetricClouds volumetric = cookieParams.hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-                    if (HDRenderPipeline.currentPipeline.HasVolumetricCloudsShadows_IgnoreSun(cookieParams.hdCamera, volumetric))
-                    {
-                        shadowDistance = volumetric.shadowDistance.value;
-                    }
-
-                    // TODO: share code
-                    float groundShadowSize = shadowDistance * 2.0f;
-                    float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
-                    float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
-                    Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
 
                     cookieParams.position = cookieParams.hdCamera.mainViewConstants.worldSpaceCameraPos;
                     cookieParams.position.y = 0;
 
-                    cookieParams.size = shadowSize;//new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
+                    cookieParams.size = GetShadowSize(cloudLayer, sunLight, cookieParams.hdCamera);
+                    //new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
                 }
                 return true;
             }
@@ -340,8 +344,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 _Params.w = cloudLayer.shadowMultiplier.value;
 
                 // Parameters
-                cmd.SetComputeFloatParam(s_BakeCloudShadowsCS, HDShaderIDs._Resolution, 1.0f / cloudShadowsResolution);
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params, _Params);
+
+                Vector4 _Params2 = GetShadowSize(cloudLayer, sunLight, hdCamera);
+                _Params2.z = 1.0f / cloudShadowsResolution;
+                cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params2, _Params2);
 
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudTexture, cloudTextureRT);
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudShadows, cloudShadowsRT);

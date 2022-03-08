@@ -839,6 +839,7 @@ void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
 }
 
 RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
+TEXTURE2D(_BaseShadow);
 
 [numthreads(8, 8, 1)]
 void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -913,7 +914,9 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
         }
     }
 
-    _VolumetricCloudsShadowRW[currentCoords.xy] = lerp(1.0 - _ShadowIntensity, 1.0, transmittance);
+    float3 shadowValue = lerp(1.0 - _ShadowIntensity, 1.0, transmittance);
+    shadowValue = min(shadowValue, _BaseShadow[currentCoords.xy].xyz);
+    _VolumetricCloudsShadowRW[currentCoords.xy] = shadowValue;
 }
 
 // LDS used to pre-fetch the neighborhood data a 8x8 region with a one pixel border (10x10)

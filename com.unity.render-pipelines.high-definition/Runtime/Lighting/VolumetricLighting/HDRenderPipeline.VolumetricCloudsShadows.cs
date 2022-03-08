@@ -56,11 +56,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Data common to all volumetric cloud passes
             public VolumetricCloudCommonData commonData;
+            public Texture baseShadow;
             public int shadowsKernel;
             public int filterShadowsKernel;
         }
 
-        VolumetricCloudsShadowsParameters PrepareVolumetricCloudsShadowsParameters(HDCamera hdCamera, VolumetricClouds settings)
+        VolumetricCloudsShadowsParameters PrepareVolumetricCloudsShadowsParameters(HDCamera hdCamera, VolumetricClouds settings, Texture baseShadow)
         {
             VolumetricCloudsShadowsParameters parameters = new VolumetricCloudsShadowsParameters();
 
@@ -70,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fill the common data
             FillVolumetricCloudsCommonData(false, settings, TVolumetricCloudsCameraType.Default, in cloudModelData, ref parameters.commonData);
 
+            parameters.baseShadow = baseShadow;
             parameters.shadowsKernel = m_ComputeShadowCloudsKernel;
             parameters.filterShadowsKernel = m_FilterShadowCloudsKernel;
 
@@ -111,6 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output texture
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, "_BaseShadow", parameters.baseShadow);
 
                 // Evaluate the shadow
                 cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, 1);
@@ -175,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_VolumetricCloudsShadowTexture[shadowResIndex];
         }
 
-        internal CookieParameters RenderVolumetricCloudsShadows(CommandBuffer cmd, HDCamera hdCamera)
+        internal CookieParameters RenderVolumetricCloudsShadows(CommandBuffer cmd, HDCamera hdCamera, Texture baseShadow)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
@@ -197,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Evaluate and return the shadow
-            var parameters = PrepareVolumetricCloudsShadowsParameters(hdCamera, settings);
+            var parameters = PrepareVolumetricCloudsShadowsParameters(hdCamera, settings, baseShadow);
             TraceVolumetricCloudShadow(cmd, parameters, m_VolumetricCloudsIntermediateShadowTexture, currentHandle);
 
             // Grab the current sun light
