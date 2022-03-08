@@ -26,7 +26,6 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Line
          retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -55,7 +54,7 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
     name: Build VikingVillage_BuiltIn on Android_OpenGLES3_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -69,8 +68,8 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -88,10 +87,9 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
@@ -117,7 +115,7 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear
     name: VikingVillage_BuiltIn on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -131,8 +129,8 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -150,10 +148,9 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
@@ -194,7 +191,6 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Line
          retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -223,7 +219,7 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
     name: Build VikingVillage_BuiltIn on Android_OpenGLES3_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -237,8 +233,8 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -256,10 +252,9 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
@@ -285,7 +280,7 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear
     name: VikingVillage_BuiltIn on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -299,8 +294,8 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -318,10 +313,9 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear
       -  unity-config project add testable com.unity.render-pipelines.core
       -  unity-config project add testable unity.graphictests.performance.universal
       -  unity-config project set project-update false
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2

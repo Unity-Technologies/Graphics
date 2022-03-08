@@ -317,16 +317,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.useDLSSCustomProjectId.boolValue)
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
-
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    // If we are running HDRP, we need to make sure the RP is reinitialized
-                    if (HDRenderPipeline.currentPipeline != null)
-                        s_CleanupRenderPipelineMethod?.Invoke(null, null);
-                }
-
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
             }
             EditorGUIUtility.labelWidth = oldWidth;

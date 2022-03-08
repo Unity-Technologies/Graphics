@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
                 hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
 
+                // Bind the depth pyramid offset info for the HDSceneDepth node in ShaderGraph. This can be used by users in custom passes.
+                commandBuffer.SetGlobalBuffer(HDShaderIDs._DepthPyramidMipLevelOffsets, hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
+
 #if UNITY_EDITOR
                 var showGizmos = camera.cameraType == CameraType.Game
                     || camera.cameraType == CameraType.SceneView;
@@ -289,7 +292,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, cullingResults, prepassOutput);
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, sunOcclusionTexture, cullingResults, hdCamera);
+                var postProcessTargetFace = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.face : CubemapFace.Unknown;
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, sunOcclusionTexture, cullingResults, hdCamera, postProcessTargetFace);
 
                 var xyMapping = GenerateDebugHDRxyMapping(m_RenderGraph, hdCamera, postProcessDest);
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
@@ -325,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputIsActive());
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputIsActive(), target.face);
                     }
 
                     if (aovRequest.isValid)
@@ -338,13 +342,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (target.targetDepth != null)
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), uiBuffer, afterPostProcessBuffer, viewIndex, outputsToHDR: false);
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), uiBuffer, afterPostProcessBuffer, viewIndex, outputsToHDR: false, cubemapFace: target.face);
                     }
                 }
 
                 SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
-                SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
+                SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer, target.face);
 
                 RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
 
@@ -395,6 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material blitMaterial;
             public Vector4 hdrOutputParmeters;
             public bool applyAfterPP;
+            public CubemapFace cubemapFace;
 
             public TextureHandle uiTexture;
             public TextureHandle afterPostProcessTexture;
@@ -402,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
         }
 
-        void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle destination, TextureHandle uiTexture, TextureHandle afterPostProcessTexture, int viewIndex, bool outputsToHDR)
+        void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle destination, TextureHandle uiTexture, TextureHandle afterPostProcessTexture, int viewIndex, bool outputsToHDR, CubemapFace cubemapFace)
         {
             using (var builder = renderGraph.AddRenderPass<FinalBlitPassData>("Final Blit (Dev Build Only)", out var passData))
             {
@@ -424,6 +429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
                 passData.destination = builder.WriteTexture(destination);
                 passData.applyAfterPP = false;
+                passData.cubemapFace = cubemapFace;
 
                 if (outputsToHDR)
                 {
@@ -485,9 +491,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             propertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
                             propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
                             propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, data.srcTexArraySlice);
-
                         }
-                        HDUtils.DrawFullScreen(context.cmd, data.viewport, data.blitMaterial, data.destination, propertyBlock, 0, data.dstTexArraySlice);
+                        HDUtils.DrawFullScreen(context.cmd, data.viewport, data.blitMaterial, data.destination, data.cubemapFace, propertyBlock, 0, data.dstTexArraySlice);
                     });
             }
         }
@@ -577,12 +582,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool copyDepth;
             public Material copyDepthMaterial;
             public TextureHandle finalTarget;
+            public CubemapFace finalTargetFace;
             public Rect finalViewport;
             public TextureHandle depthBuffer;
             public bool flipY;
         }
 
-        void SetFinalTarget(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle finalTarget)
+        void SetFinalTarget(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle finalTarget, CubemapFace finalTargetFace)
         {
             using (var builder = renderGraph.AddRenderPass<SetFinalTargetPassData>("Set Final Target", out var passData))
             {
@@ -599,12 +605,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 passData.copyDepth = passData.copyDepth && !hdCamera.xr.enabled;
                 passData.finalTarget = builder.WriteTexture(finalTarget);
+                passData.finalTargetFace = finalTargetFace;
                 passData.finalViewport = hdCamera.finalViewport;
 
                 if (passData.copyDepth)
                 {
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                    passData.flipY = hdCamera.isMainGameView;
+                    passData.flipY = hdCamera.isMainGameView || hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY;
                     passData.copyDepthMaterial = m_CopyDepth;
                 }
 
@@ -612,7 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (SetFinalTargetPassData data, RenderGraphContext ctx) =>
                     {
                         // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
-                        ctx.cmd.SetRenderTarget(data.finalTarget);
+                        ctx.cmd.SetRenderTarget(data.finalTarget, 0, data.finalTargetFace);
                         ctx.cmd.SetViewport(data.finalViewport);
 
                         if (data.copyDepth)
@@ -904,7 +911,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.clear, msaaSamples = msaaSamples, name = "UI Buffer" });
+                { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.clear, msaaSamples = msaaSamples, name = "UI Buffer" });
         }
 
         TextureHandle RenderTransparentUI(RenderGraph renderGraph,
@@ -1072,7 +1079,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent
                     // Create a new target here should reuse existing already released one
                     builder.UseColorBuffer(builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Transparency Velocity Dummy" }), index++);
+                        { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Transparency Velocity Dummy" }), index++);
                 }
                 builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
 
@@ -1173,7 +1180,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseDepthBuffer(downsampledDepth, DepthAccess.ReadWrite);
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
                 var output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black, name = "Low res transparent" }), 0);
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black, name = "Low res transparent" }), 0);
 
                 builder.SetRenderFunc(
                     (RenderLowResTransparentPassData data, RenderGraphContext context) =>
@@ -1356,6 +1363,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ResetCameraMipBias(hdCamera);
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
+
+            // Render the under water if necessary
+            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer);
 
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);

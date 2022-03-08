@@ -37,6 +37,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// The available Probe system used.
+        /// </summary>
+        public enum LightProbeSystem
+        {
+            /// <summary>The legacy light probe system.</summary>
+            LegacyLightProbes = 0,
+            /// <summary>Probe Volume system.</summary>
+            ProbeVolumes = 1,
+        }
+
+
+        /// <summary>
         /// Color Buffer format.
         /// </summary>
         public enum ColorBufferFormat
@@ -106,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportTerrainHole = false,
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
+                waterCPUSimulation = false,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
@@ -124,8 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
-                supportProbeVolume = false,
+                lightProbeSystem = LightProbeSystem.LegacyLightProbes,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                probeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
@@ -190,6 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWater;
         /// <summary>Water simulation resolution</summary>
         public WaterSimulationResolution waterSimulationResolution;
+        /// <summary>Enable water CPU simulation.</summary>
+        public bool waterCPUSimulation;
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0
@@ -336,16 +352,21 @@ namespace UnityEngine.Rendering.HighDefinition
             get => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
             set => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay = value;
         }
+
+        internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.ProbeVolumes);
+
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
-        /// <summary>Support Probe Volumes.</summary>
-        public bool supportProbeVolume;
-        /// <summary>Support Probe Volumes.</summary>
+        /// <summary>Determines what system to use.</summary>
+        public LightProbeSystem lightProbeSystem;
+        /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Probe Volume Memory Budget for scenario blending.</summary>
+        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget;
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>

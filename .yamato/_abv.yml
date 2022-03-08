@@ -32,10 +32,6 @@ all_project_ci_nightly_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 1 * * ?
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on_new_revision
@@ -84,8 +80,6 @@ Safety_net_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match [".yamato/**/*", "com.unity.*/**/*", "TestProjects/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision

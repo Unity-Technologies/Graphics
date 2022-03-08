@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     /// <example>
     /// double duration = 0;
-    /// using (TimedScope.FromPtr(&duration))
+    /// using (TimedScope.FromPtr(&amp;duration))
     /// {
     ///     // something to get the time
     /// }
@@ -29,6 +29,9 @@ namespace UnityEditor.Rendering
             s_StopWatch.Value.Start();
         }
 
+        /// <summary>
+        /// Dispose method to retrieve the time
+        /// </summary>
         void IDisposable.Dispose()
         {
             s_StopWatch.Value.Stop();

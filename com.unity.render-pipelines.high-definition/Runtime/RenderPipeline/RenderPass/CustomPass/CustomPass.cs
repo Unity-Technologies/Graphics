@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (targets.normalBufferRG.IsValid())
                 output.normalBufferRG = builder.ReadWriteTexture(targets.normalBufferRG);
             if (targets.motionVectorBufferRG.IsValid())
-                output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
+                output.motionVectorBufferRG = builder.ReadWriteTexture(targets.motionVectorBufferRG);
 
             return output;
         }
