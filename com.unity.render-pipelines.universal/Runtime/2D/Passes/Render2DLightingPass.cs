@@ -350,10 +350,6 @@ namespace UnityEngine.Rendering.Universal
             corners[1] = new Vector3( halfWidth, -halfHeight, distance);
             corners[2] = new Vector3(-halfWidth,  halfHeight, distance);
             corners[3] = new Vector3(-halfWidth, -halfHeight, distance);
-
-            // Transform the relative corners to world space
-            for(int i=0;i<corners.Length;i++)
-                corners[i] = camera.transform.TransformPoint(corners[i]);
         }
 
         void CalculateFrustumCornersOrthographic(Camera camera, float distance, NativeArray<Vector3> corners )
@@ -367,43 +363,85 @@ namespace UnityEngine.Rendering.Universal
             corners[3] = new Vector3(-halfWidth, -halfHeight, distance);
         }
 
+        void DrawDebugBox(Vector3 minCorner, Vector3 maxCorner, Color color)
+        {
+            // Draw the front face
+            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y ,minCorner.z), new Vector3(maxCorner.x, minCorner.y, minCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, minCorner.z), new Vector3(maxCorner.x, maxCorner.y, minCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, minCorner.z), new Vector3(minCorner.x, maxCorner.y, minCorner.z), color);
+            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, minCorner.z), new Vector3(minCorner.x, minCorner.y, minCorner.z), color);
+
+            // Draw the back face
+            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y, maxCorner.z), new Vector3(maxCorner.x, minCorner.y, maxCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, maxCorner.z), new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, maxCorner.y, maxCorner.z), color);
+            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, minCorner.y, maxCorner.z), color);
+
+            // Draw the top face
+            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y, minCorner.z), new Vector3(maxCorner.x, minCorner.y, minCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, minCorner.z), new Vector3(maxCorner.x, minCorner.y, maxCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, maxCorner.z), new Vector3(minCorner.x, minCorner.y, maxCorner.z), color);
+            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y, maxCorner.z), new Vector3(minCorner.x, minCorner.y, minCorner.z), color);
+
+            // Draw the bottom face
+            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, minCorner.z), new Vector3(maxCorner.x, maxCorner.y, minCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, minCorner.z), new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), color);
+            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, maxCorner.y, maxCorner.z), color);
+            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, maxCorner.y, minCorner.z), color);
+        }
+
         private Bounds CalculateWorldSpaceBounds(Camera camera, ILight2DCullResult cullResult)
         {
             // TODO: This will need to take into account on screen lights as shadows can be cast from offscreen.
 
-            //const int k_Corners = 4;
-            //NativeArray<Vector3> nearCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            //NativeArray<Vector3> farCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            const int k_Corners = 4;
+            NativeArray<Vector3> nearCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Vector3> farCorners = new NativeArray<Vector3>(k_Corners, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            //if (camera.orthographic)
-            //{
-            //    CalculateFrustumCornersOrthographic(camera, camera.nearClipPlane, nearCorners);
-            //    CalculateFrustumCornersOrthographic(camera, camera.farClipPlane, farCorners);
-            //}
-            //else
-            //{
-            //    CalculateFrustumCornersPerspective(camera, camera.nearClipPlane, nearCorners);
-            //    CalculateFrustumCornersPerspective(camera, camera.farClipPlane, farCorners);
-            //}
+            if (camera.orthographic)
+            {
+                CalculateFrustumCornersOrthographic(camera, camera.nearClipPlane, nearCorners);
+                CalculateFrustumCornersOrthographic(camera, camera.farClipPlane, farCorners);
+            }
+            else
+            {
+                CalculateFrustumCornersPerspective(camera, camera.nearClipPlane, nearCorners);
+                CalculateFrustumCornersPerspective(camera, camera.farClipPlane, farCorners);
+            }
 
-            //Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-            //Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
-            //for (int i = 0; i < k_Corners; i++)
-            //{
-            //    maxCorner = Vector3.Max(maxCorner, nearCorners[i]);
-            //    maxCorner = Vector3.Max(maxCorner, farCorners[i]);
-            //    minCorner = Vector3.Min(minCorner, nearCorners[i]);
-            //    minCorner = Vector3.Min(minCorner, farCorners[i]);
-            //}
+            Vector3 minCorner = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 maxCorner = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            for (int i = 0; i < k_Corners; i++)
+            {
+                maxCorner = Vector3.Max(maxCorner, nearCorners[i]);
+                maxCorner = Vector3.Max(maxCorner, farCorners[i]);
+                minCorner = Vector3.Min(minCorner, nearCorners[i]);
+                minCorner = Vector3.Min(minCorner, farCorners[i]);
+            }
 
-            //nearCorners.Dispose();
-            //farCorners.Dispose();
+            nearCorners.Dispose();
+            farCorners.Dispose();
 
-            //Vector3 center = 0.5f * (minCorner + maxCorner);
-            //Vector3 size = maxCorner - minCorner;
+            // Transform the point from camera space to world space
+            maxCorner = camera.transform.TransformPoint(maxCorner);
+            minCorner = camera.transform.TransformPoint(minCorner);
 
-            Vector3 center = Vector3.zero;
-            Vector3 size = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            // TODO: Iterate through the lights
+            for (int i = 0; i < cullResult.visibleLights.Count; i++)
+            {
+                Vector3 lightPos = cullResult.visibleLights[i].transform.position;
+                maxCorner = Vector3.Max(maxCorner, lightPos);
+                minCorner = Vector3.Min(minCorner, lightPos);
+            }
+
+            if (camera == Camera.main)
+                DrawDebugBox(minCorner, maxCorner, Color.red);
+
+            Vector3 center = 0.5f * (minCorner + maxCorner);
+            Vector3 size = maxCorner - minCorner;
+
+            //Vector3 center = Vector3.zero;
+            //Vector3 size = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 
             return new Bounds(center, size); ;
         }
