@@ -1,11 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using System.Linq;
+
 using UnityEngine;
 using UnityEngine.VFX;
-using System.Linq;
-using System.Reflection;
+
 using Type = System.Type;
-using Delegate = System.Delegate;
 
 namespace UnityEditor.VFX
 {
@@ -364,7 +363,7 @@ namespace UnityEditor.VFX
 
         public virtual bool needsComponent { get { return false; } }
 
-        public int GetCombinedHashCode(int hashCode) => (currentHashCode + hashCode) % int.MaxValue;
+        public int GetCombinedHashCode(int hashCode) => HashCode.Combine(currentHashCode, hashCode);
     }
 
     abstract class VFXGizmo<T> : VFXGizmo
