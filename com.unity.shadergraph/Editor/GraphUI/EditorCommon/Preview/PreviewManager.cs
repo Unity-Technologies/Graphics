@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -11,6 +11,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class PreviewManager
     {
+        bool m_isInitialized = false;
+
+        public bool IsInitialized => m_isInitialized;
+
         HeadlessPreviewManager m_PreviewHandlerInstance;
 
         GraphViewStateComponent m_GraphViewStateComponent;
@@ -37,6 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if(graphModel == null)
                 return;
 
+            m_isInitialized = true;
             m_GraphModel = graphModel;
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
