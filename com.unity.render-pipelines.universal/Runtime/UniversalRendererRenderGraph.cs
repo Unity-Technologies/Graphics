@@ -6,8 +6,8 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderer
     {
-        private RTHandle m_RenderGraphCameraColorHandle;
-        private RTHandle m_RenderGraphCameraDepthHandle;
+        private static RTHandle m_RenderGraphCameraColorHandle;
+        private static RTHandle m_RenderGraphCameraDepthHandle;
 
         public class RenderGraphFrameResources
         {
