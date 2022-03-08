@@ -39,14 +39,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<INodeReader> GetNodes() => graphDelta.GetNodes();
         public void ReconcretizeAll(Registry.Registry registry)
         {
-            foreach (var node in GetNodes())
+            foreach (var name in GetNodes().Select(e => e.GetName()).ToList())
             {
-                var builder = registry.GetNodeBuilder(node.GetRegistryKey());
-                if (builder != null)
+                var node = GetNodeReader(name);
+                if (node != null)
                 {
-                    if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                    var builder = registry.GetNodeBuilder(node.GetRegistryKey());
+                    if (builder != null)
                     {
-                        ReconcretizeNode(node.GetName(), registry);
+                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                        {
+                            ReconcretizeNode(node.GetName(), registry);
+                        }
                     }
                 }
             }
