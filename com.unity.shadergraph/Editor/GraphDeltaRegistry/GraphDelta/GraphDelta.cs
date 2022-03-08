@@ -181,10 +181,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return m_data.GetNodeWriterFromLayer(GraphStorage.k_user, id);
         }
 
-        public IEnumerable<INodeReader> GetNodes()
-        {
-            throw new System.Exception();
-        }
+        public IEnumerable<INodeReader> GetNodes() => m_data.GetAllChildReaders();
 
         public void RemoveNode(string id)
         {

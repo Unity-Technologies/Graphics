@@ -665,6 +665,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return nodeWriter;
         }
 
+        internal IEnumerable<INodeReader> GetAllChildReaders()
+        {
+            foreach (var data in m_flatStructureLookup.Values)
+            {
+                // For now, we'll just... assume that all immediate children of the graph are nodes.
+                // Ouch.
+                var reader = new GraphReader(data, this);
+                yield return reader;
+            }
+        }
+
         internal INodeReader  GetNodeReader(string id) => GetReader(id);
         internal INodeWriter  GetNodeWriterFromLayer( string layerName, string id) => GetWriterFromLayer(layerName, id);
 

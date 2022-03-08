@@ -226,6 +226,32 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.NotNull(normSearch);
                 Assert.AreEqual(thruEdge, normSearch);
             }
+
+            [Test]
+            public void ReconcretizeGraph()
+            {
+                var graph = new GraphHandler();
+                var registry = new Registry.Registry();
+                registry.Register<Registry.Types.GraphType>();
+                registry.Register<Registry.Types.AddNode>();
+                registry.Register<Registry.Types.GraphTypeAssignment>();
+
+                // should default concretize length to 4.
+                graph.AddNode<Registry.Types.AddNode>("Add1", registry);
+                var reader = graph.GetNodeReader("Add1");
+                reader.GetField("In1.Length", out Registry.Types.GraphType.Length len);
+                Assert.AreEqual(4, (int)len);
+
+                var roundTrip = graph.ToSerializedFormat();
+                var deserializedHandler = new GraphHandler(roundTrip);
+                deserializedHandler.ReconcretizeAll(registry);
+
+                reader = deserializedHandler.GetNodeReader("Add1");
+                reader.GetField("In2.Length", out len);
+
+                Assert.AreEqual(4, (int)len);
+            }
+
         }
     }
 
