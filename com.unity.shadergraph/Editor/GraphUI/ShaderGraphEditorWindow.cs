@@ -84,11 +84,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphMainToolbar(GraphTool, GraphView);
         }
 
+
+        static bool logOnceTemp = true;
         protected override void Update()
         {
             base.Update();
 
-            m_PreviewManager.Update();
+            if (m_PreviewManager != null)
+            {
+                m_PreviewManager.Update();
+            }
+            else if(logOnceTemp)
+            {
+                Debug.LogError("Preview Manager was not initialized by Onboarding Provider.");
+                logOnceTemp = false;
+            }
         }
 
         // ----------
