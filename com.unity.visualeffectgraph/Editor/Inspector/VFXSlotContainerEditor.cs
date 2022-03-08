@@ -111,7 +111,7 @@ class VFXSlotContainerEditor : Editor
                     modifiedSetting = prop.Value;
                 }
 
-                return modifiedSetting;
+                continue;
             }
             else
             {
