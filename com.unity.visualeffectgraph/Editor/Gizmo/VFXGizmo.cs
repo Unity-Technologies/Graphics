@@ -203,7 +203,7 @@ namespace UnityEditor.VFX
             var isRepaint = evt.type == EventType.Repaint;
             var camForward = Handles.inverseMatrix.MultiplyVector(Camera.current != null ? Camera.current.transform.forward : Vector3.forward);
             var size = HandleUtility.GetHandleSize(position);
-            var isHot = s_AxisId.Any(id => id == GUIUtility.hotControl);
+            var isHot = s_AxisId.Any(id => GetCombinedHashCode(id) == GUIUtility.hotControl);
 
             var previousColor = Handles.color;
             for (var i = onlyCameraAxis ? 3 : 0; i < 4; ++i)
@@ -241,7 +241,7 @@ namespace UnityEditor.VFX
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
-                bool usingFreeRotation = GUIUtility.hotControl == s_FreeRotationID;
+                bool usingFreeRotation = GUIUtility.hotControl == GetCombinedHashCode(s_FreeRotationID);
                 var handleRotation = GetHandleRotation(rotation);
 
                 EditorGUI.BeginChangeCheck();
