@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
+#if ENABLE_UNITY_DENOISING_PLUGIN
+using UnityEngine.Rendering.Denoising;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline

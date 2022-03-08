@@ -96,24 +96,62 @@ namespace UnityEngine.Rendering
         internal List<BakingSet> bakingSets;
 
         [SerializeField] string m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
+        string m_OtherScenario = null;
+        float m_ScenarioBlendingFactor = 0.0f;
+
         internal string lightingScenario => m_LightingScenario;
+        internal string otherScenario => m_OtherScenario;
+        internal float scenarioBlendingFactor => m_ScenarioBlendingFactor;
 
-        internal string previousScenario;
-
-        internal bool SetLightingScenario(string scenario, float transitionTime)
+        internal void SetActiveScenario(string scenario)
         {
-            if (scenario == lightingScenario)
-                return false;
+            if (m_LightingScenario == scenario && m_ScenarioBlendingFactor == 0.0f)
+                return;
 
-            if (lightingScenario == null)
-                transitionTime = 0.0f;
-            previousScenario = (transitionTime == 0.0f) ? null : lightingScenario;
             m_LightingScenario = scenario;
+            m_OtherScenario = null;
+            m_ScenarioBlendingFactor = 0.0f;
 
-            ProbeReferenceVolume.instance.transitionTime = transitionTime;
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                data.UpdateActiveScenario(lightingScenario, previousScenario);
-            return true;
+                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+
+            if (ProbeBrickBlendingPool.isInitialized)
+            {
+                // Trigger blending system to replace old cells with the one from the new active scenario.
+                // Although we technically don't need blending for that, it is better than unloading all cells
+                // because it will replace them progressively. There is no real performance cost to using blending
+                // rather than regular load thanks to the bypassBlending branch in AddBlendingBricks.
+                ProbeReferenceVolume.instance.ScenarioBlendingChanged(true);
+            }
+            else
+                ProbeReferenceVolume.instance.UnloadAllCells();
+        }
+
+        internal void BlendLightingScenario(string otherScenario, float blendingFactor)
+        {
+            if (!ProbeBrickBlendingPool.isInitialized)
+            {
+                Debug.LogError("Blending between lighting scenarios is not supported by this render pipeline.");
+                return;
+            }
+
+            blendingFactor = Mathf.Clamp01(blendingFactor);
+
+            if (otherScenario == m_LightingScenario)
+                otherScenario = null;
+            if (otherScenario == null)
+                blendingFactor = 0.0f;
+            if (otherScenario == m_OtherScenario && Mathf.Approximately(blendingFactor, m_ScenarioBlendingFactor))
+                return;
+
+            bool requestUnloading = otherScenario != m_OtherScenario;
+            m_OtherScenario = otherScenario;
+            m_ScenarioBlendingFactor = blendingFactor;
+
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+
+            ProbeReferenceVolume.instance.ScenarioBlendingChanged(requestUnloading);
         }
 
         /// <summary>

@@ -459,6 +459,10 @@ namespace UnityEngine.Rendering.Universal
 
                 renderPass.Execute(context, ref renderingData);
 
+                // Need to execute it immediately to avoid sync issues between context and cmd buffer
+                context.ExecuteCommandBuffer(renderingData.commandBuffer);
+                renderingData.commandBuffer.Clear();
+
                 if (validPassCount == 1 || currentMergeablePasses[validPassCount - 1] == currentPassIndex) // Check if it's the last pass
                 {
                     context.EndSubPass();
