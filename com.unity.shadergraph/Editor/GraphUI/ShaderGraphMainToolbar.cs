@@ -109,8 +109,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
                 var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
-                GraphUtil.SaveGraph(shaderGraphModel.GraphHandler, assetModel, assetPath, true);
-                AssetDatabase.ImportAsset(assetPath);
+                ShaderGraphAsset.HandleSave(assetPath, assetModel);
             }
         }
 
@@ -129,9 +128,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // If User cancelled operation or provided an invalid path
                 if (destinationPath == String.Empty)
                     return;
+
                 var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
-                GraphUtil.CopyGraph(shaderGraphModel.GraphHandler, assetModel, sourcePath, destinationPath);
-                AssetDatabase.ImportAsset(destinationPath);
+                ShaderGraphAsset.HandleSave(destinationPath, assetModel);
             }
         }
 

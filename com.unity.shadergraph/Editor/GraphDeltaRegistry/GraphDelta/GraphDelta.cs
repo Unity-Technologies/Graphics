@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Contexts;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -181,7 +182,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return m_data.GetNodeWriterFromLayer(GraphStorage.k_user, id);
         }
 
-        public IEnumerable<INodeReader> GetNodes() => m_data.GetAllChildReaders();
+        public IEnumerable<INodeReader> GetNodes()
+        {
+            return m_data.GetAllChildReaders().Where(e => e != null && m_data.GetNodeReader(e.GetName()) != null);
+        }
 
         public void RemoveNode(string id)
         {

@@ -19,6 +19,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             graphDelta = new GraphDelta(serializedData);
         }
 
+        static public GraphHandler FromSerializedFormat(string json)
+        {
+            return new GraphHandler(json);
+        }
+
         public string ToSerializedFormat()
         {
             return EditorJsonUtility.ToJson(graphDelta.m_data, true);
@@ -34,21 +39,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<INodeReader> GetNodes() => graphDelta.GetNodes();
         public void ReconcretizeAll(Registry.Registry registry)
         {
-            ;
-            foreach (var name in GetNodes().Select(e => e.GetName()).ToList())
+            foreach (var node in GetNodes())
             {
-                var node = GetNodeReader(name);
-                if (node != null)
+                var builder = registry.GetNodeBuilder(node.GetRegistryKey());
+                if (builder != null)
                 {
-                    var builder = registry.GetNodeBuilder(node.GetRegistryKey());
-                    if (builder != null)
+                    if (builder.GetRegistryFlags() == RegistryFlags.Func)
                     {
-                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
-                        {
-                            ReconcretizeNode(node.GetName(), registry);
-                        }
+                        ReconcretizeNode(node.GetName(), registry);
                     }
-                 }
+                }
             }
         }
 

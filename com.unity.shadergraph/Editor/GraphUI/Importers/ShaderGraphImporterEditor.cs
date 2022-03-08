@@ -35,7 +35,6 @@ namespace UnityEditor.ShaderGraph
             if (material)
                 materialEditor = (MaterialEditor)CreateEditor(material);
         }
-
         public override void OnDisable()
         {
             base.OnDisable();
@@ -47,21 +46,7 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
-            string fileText = File.ReadAllText(path, Encoding.UTF8);
-            ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
-            EditorJsonUtility.FromJsonOverwrite(fileText, helper);
-
-            GraphHandler graphHandler = new GraphHandler(helper.GraphDeltaJSON);
-
-            var assetModel = AssetDatabase.LoadAssetAtPath(path, typeof(ShaderGraphAssetModel)) as ShaderGraphAssetModel;
-            if(assetModel == null)
-            {
-                return false;
-            }
-
-            var shaderGraphModel = assetModel.GraphModel as ShaderGraphModel;
-            shaderGraphModel.GraphHandler = graphHandler;
-
+            var assetModel = ShaderGraphAsset.HandleLoad(path);
             return ShowWindow(path, assetModel);
         }
 

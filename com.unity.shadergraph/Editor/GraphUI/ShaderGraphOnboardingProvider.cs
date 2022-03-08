@@ -5,6 +5,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -45,21 +46,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (path.Length != 0)
             {
                 string fileName = Path.GetFileNameWithoutExtension(path);
-                NewGraphAction action = new NewGraphAction();
+                var action = new ShaderGraphAsset.CreateAssetAction();
                 action.Action(-1, path, null);
-                var assetModel = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(path);
-
-                string fileText = File.ReadAllText(path, Encoding.UTF8);
-                ShaderGraphAssetHelper helper = ScriptableObject.CreateInstance<ShaderGraphAssetHelper>();
-                EditorJsonUtility.FromJsonOverwrite(fileText, helper);
-
-                GraphHandler graphHandler = new GraphHandler(helper.GraphDeltaJSON);
-                if (assetModel.GraphModel is ShaderGraphModel shaderGraphModel)
-                    shaderGraphModel.GraphHandler = graphHandler;
-
-                return assetModel;
+                return ShaderGraphAsset.HandleLoad(path);
             }
-
             return null;
         }
     }
