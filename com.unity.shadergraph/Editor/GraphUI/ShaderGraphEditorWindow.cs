@@ -24,7 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [MenuItem("Window/Shaders/ShaderGraph", false)]
         public static void ShowWindow()
         {
-            GetWindow<ShaderGraphEditorWindow>();
+            Type sceneView = typeof(SceneView);
+            GetWindow<ShaderGraphEditorWindow>(sceneView);
         }
 
         protected override void OnEnable()
@@ -85,7 +86,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
 
-        static bool logOnceTemp = true;
         protected override void Update()
         {
             base.Update();

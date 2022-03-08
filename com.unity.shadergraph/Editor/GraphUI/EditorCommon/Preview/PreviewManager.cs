@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -53,11 +54,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if(nodeModel is GraphDataNodeModel graphDataNodeModel)
                     OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
             }
+
+            // Call update once at graph load in order to handle updating all existing nodes
+            Update();
+
+            // Mark dirty state as cleared afterwards to clear modification state from editor window tab
+            m_GraphModel.AssetModel.Dirty = false;
         }
 
         public void Update()
         {
             var updatedNodes = new List<string>();
+
             foreach (string nodeName in m_DirtyNodes)
             {
                 var nodeGuid = m_NodeLookupTable[nodeName];
@@ -95,6 +103,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Clean up any nodes that were successfully updated from the dirty list
             foreach (var updatedNode in updatedNodes)
                 m_DirtyNodes.Remove(updatedNode);
+
         }
 
         public void OnPreviewExpansionChanged(string nodeName, bool newExpansionState) { }

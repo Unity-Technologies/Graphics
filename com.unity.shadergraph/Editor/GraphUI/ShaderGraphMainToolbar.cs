@@ -110,6 +110,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
                 var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
                 ShaderGraphAsset.HandleSave(assetPath, assetModel);
+                // Set to false after saving to clear modification state from editor window tab
+                assetModel.Dirty = false;
             }
         }
 
