@@ -68,8 +68,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
                 #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS
                 #pragma multi_compile_local _RECONSTRUCT_NORMAL_LOW _RECONSTRUCT_NORMAL_MEDIUM _RECONSTRUCT_NORMAL_HIGH
-                #pragma multi_compile_local _OLD _NEW _BLUE_NOISE
-                #pragma multi_compile_local _ _ONLY_AO
+                #pragma multi_compile_local _ORIGINAL _BLUE_NOISE
                 #pragma multi_compile_local _ _ORTHOGRAPHIC
                 #pragma multi_compile_local _SAMPLE_COUNT4 _SAMPLE_COUNT6 _SAMPLE_COUNT8 _SAMPLE_COUNT10 _SAMPLE_COUNT12
 
