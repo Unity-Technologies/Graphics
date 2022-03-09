@@ -635,9 +635,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enable);
                     cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
-                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Off);
 
                     //TODO: Implement swapbuffer in 2DRenderer so we can remove this
                     // For now, when render post - processing in the middle of the camera stack(not resolving to screen)
@@ -1616,9 +1614,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enable);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
-                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Off);
             }
             else
 #endif
