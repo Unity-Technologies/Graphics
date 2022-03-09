@@ -203,7 +203,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     newPortModel = this.AddDataInputPort(portReader.GetName(), type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
-                    ((GraphTypeConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.GetName(), portReader.GetName());
+                    if (newPortModel != null)
+                        ((ICLDSConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.GetName(), portReader.GetName());
                 }
                 else
                     newPortModel = this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);

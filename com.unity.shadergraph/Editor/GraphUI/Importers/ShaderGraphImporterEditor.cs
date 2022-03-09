@@ -22,7 +22,10 @@ namespace UnityEditor.ShaderGraph
             if (GUILayout.Button("View Generated Shader"))
             {
                 AssetImporter importer = target as AssetImporter;
-                var graph = GraphUtil.OpenGraph(importer.assetPath);
+                var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
+                var graph = asset.ResolveGraph();
+
+
                 var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
                 var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
                 var node = graph.GetNodeReader(key.Name);
