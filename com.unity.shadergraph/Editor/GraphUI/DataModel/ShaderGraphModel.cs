@@ -26,6 +26,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 
+        protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
+        {
+            return typeof(GraphDataEdgeModel);
+        }
+
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.
         /// </summary>

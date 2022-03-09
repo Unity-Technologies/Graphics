@@ -28,7 +28,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // We got deserialized unexpectedly, which means we'll need to find our graphHandler...
             if(GraphHandler == null)
             {
-                Debug.LogWarning($"OnEnable called unexpectedly {this.Name}, @{this.GetPath()}- GraphHandler was not initialized normally.");
                 try // to get the AssetHelper that was imported with the asset
                 {
                     var assetModel = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(AssetDatabase.GetAssetPath(this));
@@ -38,7 +37,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     try
                     {
-                        Debug.LogWarning($"Could not resolve a GraphHandler from the 'LoadAssetAtPath,' trying to load file from path directly...");
                         string json = File.ReadAllText(this.GetPath(), Encoding.UTF8);
                         var asset = CreateInstance<ShaderGraphAsset>();
                         EditorJsonUtility.FromJsonOverwrite(json, asset);
@@ -46,7 +44,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                     catch
                     {
-                        Debug.LogWarning("Guess it was a new graph! We're probably fine...");
                         GraphHandler = ShaderGraphAsset.CreateBlankGraphHandler();
                     }
                 }

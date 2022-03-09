@@ -1325,7 +1325,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                     continue;
                 model.AssetModel = AssetModel;
             }
-
+            foreach (var edgeModel in m_GraphEdgeModels.Select(e => e as EdgeModel))
+            {
+                edgeModel?.InitAssetModel(AssetModel);
+            }
             foreach (var nodeModel in NodeModels)
             {
                 (nodeModel as NodeModel)?.DefineNode();

@@ -90,11 +90,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.Update();
 
-            if (!m_PreviewManager.IsInitialized)
-            {
-                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel);
-            }
-            m_PreviewManager.Update();
+            //if (!m_PreviewManager.IsInitialized)
+            //{
+            //    m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel);
+            //}
+            //m_PreviewManager.Update();
         }
 
         // ----------

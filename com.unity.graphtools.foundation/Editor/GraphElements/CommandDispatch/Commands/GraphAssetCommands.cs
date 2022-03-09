@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -159,6 +160,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 {
                     ((Stencil)graphModel.Stencil)?.PreProcessGraph(graphModel);
 
+                    foreach (var edgeModel in graphModel.EdgeModels.Select(e => e as EdgeModel))
+                        edgeModel?.InitAssetModel(asset);
                     foreach (var nodeModel in graphModel.NodeModels)
                         nodeModel?.DefineNode();
                 }
