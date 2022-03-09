@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // scaleBias.y = scale
                 // scaleBias.z = bias
                 // scaleBias.w = unused
-                float flipSign = yFlip ? -1.0f : 1.0f; ; //(renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                float flipSign = yFlip ? -1.0f : 1.0f;
                 Vector4 scaleBias = (flipSign < 0.0f)
                     ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
@@ -243,11 +243,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                         XRSystemUniversal.MarkShaderProperties(renderingData.commandBuffer, renderingData.cameraData.xrUniversal, renderIntoTexture);
                     }
 #endif
-                    // TODO RENDERGRAPH add proper yFlip logic
-                    bool renderToBackbuffer = false;
-
+                    bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.m_Albedo, data.m_Depth);
                     CameraSetup(context.cmd, data);
-                    ExecutePass(context.renderContext, data, !renderToBackbuffer);
+                    ExecutePass(context.renderContext, data, yFlip);
                 });
 
             }
