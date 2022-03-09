@@ -364,9 +364,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex)
+        private void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex, bool useDrawProcedural)
         {
-            if (m_UseDrawProcedural)
+            if (useDrawProcedural)
             {
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
@@ -374,60 +374,8 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
-            }
-        }
-
-        public class StopNaNsPassData
-        {
-            public TextureHandle targeTexture;
-            public TextureHandle sourceTexture;
-            public RenderingData renderingData;
-            public Material stopNaN;
-        }
-
-        public void RenderStopNaN(in TextureHandle activeCameraColor, out TextureHandle tempA, ref RenderingData renderingData)
-        {
-            var cameraData = renderingData.cameraData;
-            var graph = renderingData.renderGraph;
-
-            var cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-            var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
-                cameraTargetDescriptor.width,
-                cameraTargetDescriptor.height,
-                cameraTargetDescriptor.graphicsFormat,
-                DepthBits.None);
-
-            tempA = UniversalRenderer.CreateRenderGraphTexture(graph, desc, "_PostFXTempA", true);
-
-            bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
-            // Optional NaN killer before post-processing kicks in
-            // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
-            if (useStopNan)
-            {
-                using (var builder = graph.AddRenderPass<StopNaNsPassData>("Stop NaNs", out var passData, ProfilingSampler.Get(URPProfileId.StopNaNs)))
-                {
-                   
-
-                    passData.targeTexture = builder.UseColorBuffer(tempA, 0);
-                    passData.sourceTexture = builder.ReadTexture(activeCameraColor);
-                    passData.renderingData = renderingData;
-                    passData.stopNaN = m_Materials.stopNaN;
-
-                    //  TODO RENDERGRAPH: culling? force culluing off for testing
-                    builder.AllowPassCulling(false);
-
-                    builder.SetRenderFunc((StopNaNsPassData data, RenderGraphContext context) =>
-                    {
-                        var cmd = data.renderingData.commandBuffer;
-                        RenderingUtils.Blit(
-                            cmd, data.sourceTexture, data.targeTexture, data.stopNaN, 0, data.renderingData.cameraData.xr.enabled,
-                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                    });
-
-                    return;
-                }
             }
         }
 
@@ -821,7 +769,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            DrawFullscreenMesh(cmd, material, 0);
+            DrawFullscreenMesh(cmd, material, 0, m_UseDrawProcedural);
 
             // Pass 2: Blend weights
             cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._BlendTexture, 0, CubemapFace.Unknown, -1),
@@ -829,7 +777,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
             cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
-            DrawFullscreenMesh(cmd, material, 1);
+            DrawFullscreenMesh(cmd, material, 1, m_UseDrawProcedural);
 
             // Pass 3: Neighborhood blending
             cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
@@ -837,7 +785,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
-            DrawFullscreenMesh(cmd, material, 2);
+            DrawFullscreenMesh(cmd, material, 2, m_UseDrawProcedural);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
@@ -899,7 +847,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
             cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture, 0, CubemapFace.Unknown, -1);
-            DrawFullscreenMesh(cmd, material, 1);
+            DrawFullscreenMesh(cmd, material, 1, m_UseDrawProcedural);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
@@ -1815,6 +1763,215 @@ namespace UnityEngine.Rendering.Universal
             public static int[] _BloomMipDown;
         }
 
+        #endregion
+
+        #region RenderGraph
+        public class StopNaNsPassData
+        {
+            public TextureHandle targeTexture;
+            public TextureHandle sourceTexture;
+            public RenderingData renderingData;
+            public Material stopNaN;
+        }
+
+        public void RenderStopNaN(in TextureHandle activeCameraColor, out TextureHandle destination, ref RenderingData renderingData)
+        {
+            var cameraData = renderingData.cameraData;
+            var graph = renderingData.renderGraph;
+
+            var cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
+                cameraTargetDescriptor.width,
+                cameraTargetDescriptor.height,
+                cameraTargetDescriptor.graphicsFormat,
+                DepthBits.None);
+
+            destination = UniversalRenderer.CreateRenderGraphTexture(graph, desc, "_StopNaNsTarget", true);
+
+            bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
+            // Optional NaN killer before post-processing kicks in
+            // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
+            if (useStopNan)
+            {
+                using (var builder = graph.AddRenderPass<StopNaNsPassData>("Stop NaNs", out var passData, ProfilingSampler.Get(URPProfileId.StopNaNs)))
+                {
+
+
+                    passData.targeTexture = builder.UseColorBuffer(destination, 0);
+                    passData.sourceTexture = builder.ReadTexture(activeCameraColor);
+                    passData.renderingData = renderingData;
+                    passData.stopNaN = m_Materials.stopNaN;
+
+                    //  TODO RENDERGRAPH: culling? force culluing off for testing
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((StopNaNsPassData data, RenderGraphContext context) =>
+                    {
+                        var cmd = data.renderingData.commandBuffer;
+                        RenderingUtils.Blit(
+                            cmd, data.sourceTexture, data.targeTexture, data.stopNaN, 0, data.renderingData.cameraData.xr.enabled,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    });
+
+                    return;
+                }
+            }
+        }
+
+        public class SMAAPassData
+        {
+            public TextureHandle destinationTexture;
+            public TextureHandle sourceTexture;
+            public TextureHandle blendTexture;
+            public RenderingData renderingData;
+            public Material material;
+        }
+
+        public void RenderSMAA(in TextureHandle source, out TextureHandle destination, ref RenderingData renderingData)
+        {
+            var cameraData = renderingData.cameraData;
+            var graph = renderingData.renderGraph;
+
+            var cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            cameraTargetDescriptor.useMipMap = false;
+            cameraTargetDescriptor.autoGenerateMips = false;
+
+            var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
+                cameraTargetDescriptor.width,
+                cameraTargetDescriptor.height,
+                cameraTargetDescriptor.graphicsFormat,
+                DepthBits.None);
+            destination = UniversalRenderer.CreateRenderGraphTexture(graph, desc, "_SMAATarget", true);
+
+            var edgeTextureDesc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
+                cameraTargetDescriptor.width,
+                cameraTargetDescriptor.height,
+                m_SMAAEdgeFormat,
+                tempDepthBits);
+            var edgeTexture = UniversalRenderer.CreateRenderGraphTexture(graph, edgeTextureDesc, "_EdgeTexture", true);
+
+            var blendTextureDesc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
+                cameraTargetDescriptor.width,
+                cameraTargetDescriptor.height,
+                GraphicsFormat.R8G8B8A8_UNorm,
+                DepthBits.None);
+            var blendTexture = UniversalRenderer.CreateRenderGraphTexture(graph, blendTextureDesc, "_BlendTexture", true);
+
+            bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+
+            // Anti-aliasing
+            if (useSubPixeMorpAA)
+            {
+                var material = m_Materials.subpixelMorphologicalAntialiasing;
+                const int kStencilBit = 64;
+
+                // Globals
+                material.SetVector(ShaderConstants._Metrics, new Vector4(1f / cameraTargetDescriptor.width, 1f / cameraTargetDescriptor.height, cameraTargetDescriptor.width, cameraTargetDescriptor.height));
+                material.SetTexture(ShaderConstants._AreaTexture, m_Data.textures.smaaAreaTex);
+                material.SetTexture(ShaderConstants._SearchTexture, m_Data.textures.smaaSearchTex);
+                material.SetFloat(ShaderConstants._StencilRef, (float)kStencilBit);
+                material.SetFloat(ShaderConstants._StencilMask, (float)kStencilBit);
+
+                // Quality presets
+                material.shaderKeywords = null;
+
+                switch (cameraData.antialiasingQuality)
+                {
+                    case AntialiasingQuality.Low:
+                        material.EnableKeyword(ShaderKeywordStrings.SmaaLow);
+                        break;
+                    case AntialiasingQuality.Medium:
+                        material.EnableKeyword(ShaderKeywordStrings.SmaaMedium);
+                        break;
+                    case AntialiasingQuality.High:
+                        material.EnableKeyword(ShaderKeywordStrings.SmaaHigh);
+                        break;
+                }
+
+                using (var builder = graph.AddRenderPass<SMAAPassData>("SMAA Edge Detection", out var passData, ProfilingSampler.Get(URPProfileId.SMAA)))
+                {
+                    passData.destinationTexture = builder.UseColorBuffer(edgeTexture, 0);
+                    passData.sourceTexture = builder.ReadTexture(source);
+                    passData.renderingData = renderingData;
+                    passData.material = material;
+
+                    //  TODO RENDERGRAPH: culling? force culluing off for testing
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((SMAAPassData data, RenderGraphContext context) =>
+                    {
+                        var pixelRect = data.renderingData.cameraData.pixelRect;
+                        var material = data.smaaMaterial;
+
+                        var cmd = data.renderingData.commandBuffer;
+
+                        // Prepare for manual blit
+                        cmd.SetViewport(pixelRect);
+
+                        // Pass 1: Edge detection
+                        cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
+                        cmd.SetGlobalTexture(ShaderConstants._ColorTexture, passData.sourceTexture);
+                        DrawFullscreenMesh(cmd, material, 0, data.renderingData.cameraData.xr.enabled);
+                    });
+                }
+
+                using (var builder = graph.AddRenderPass<SMAAPassData>("SMAA Blend weights", out var passData, ProfilingSampler.Get(URPProfileId.SMAA)))
+                {
+                    passData.destinationTexture = builder.UseColorBuffer(blendTexture, 0);
+                    passData.sourceTexture = builder.ReadTexture(edgeTexture);
+                    passData.renderingData = renderingData;
+                    passData.material = material;
+
+                    //  TODO RENDERGRAPH: culling? force culluing off for testing
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((SMAAPassData data, RenderGraphContext context) =>
+                    {
+                        var pixelRect = data.renderingData.cameraData.pixelRect;
+                        var material = data.smaaMaterial;
+
+                        var cmd = data.renderingData.commandBuffer;
+
+                        // Prepare for manual blit
+                        cmd.SetViewport(pixelRect);
+
+                        // Pass 2: Blend weights
+                        cmd.ClearRenderTarget(false, true, Color.clear);
+                        cmd.SetGlobalTexture(ShaderConstants._ColorTexture, passData.sourceTexture);
+                        DrawFullscreenMesh(cmd, material, 1, data.renderingData.cameraData.xr.enabled);
+                    });
+                }
+
+                using (var builder = graph.AddRenderPass<SMAAPassData>("SMAA Neighborhood blending", out var passData, ProfilingSampler.Get(URPProfileId.SMAA)))
+                {
+                    passData.destinationTexture = builder.UseColorBuffer(destination, 0);
+                    passData.sourceTexture = builder.ReadTexture(source);
+                    passData.blendTexture = builder.ReadTexture(blendTexture);
+                    passData.renderingData = renderingData;
+                    passData.material = material;
+
+                    //  TODO RENDERGRAPH: culling? force culluing off for testing
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((SMAAPassData data, RenderGraphContext context) =>
+                    {
+                        var pixelRect = data.renderingData.cameraData.pixelRect;
+                        var material = data.smaaMaterial;
+                        var cmd = data.renderingData.commandBuffer;
+
+                        // Prepare for manual blit
+                        cmd.SetViewport(pixelRect);
+
+                        // Pass 3: Neighborhood blending
+                        cmd.ClearRenderTarget(false, true, Color.clear);
+                        cmd.SetGlobalTexture(ShaderConstants._ColorTexture, passData.sourceTexture);
+                        cmd.SetGlobalTexture(ShaderConstants._BlendTexture, passData.blendTexture);
+                        DrawFullscreenMesh(cmd, material, 2, data.renderingData.cameraData.xr.enabled);
+                    });
+                }
+            }
+        }
         #endregion
     }
 }
