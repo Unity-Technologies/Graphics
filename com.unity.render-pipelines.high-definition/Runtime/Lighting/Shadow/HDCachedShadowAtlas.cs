@@ -500,7 +500,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!lightData.isActiveAndEnabled) return;
 
             int lightIdx = lightData.lightIdxForCachedShadows;
-            Debug.Assert(lightIdx >= 0);
 
             if (!m_PlacedShadows.ContainsKey(lightIdx))
             {

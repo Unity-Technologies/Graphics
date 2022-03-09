@@ -1582,7 +1582,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugImageHistogramCS = m_Resources.shaders.debugImageHistogramCS;
             parameters.debugImageHistogramKernel = parameters.debugImageHistogramCS.FindKernel("KHistogramGen");
 
-            ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins * 4, sizeof(uint));
+            ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins, 4 * sizeof(uint));
             m_DebugImageHistogramBuffer.SetData(m_EmptyDebugImageHistogram);    // Clear the histogram
 
             parameters.imageHistogram = m_DebugImageHistogramBuffer;

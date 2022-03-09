@@ -132,7 +132,21 @@ The default values in either mode make it so the planet's surface is at **0** on
 
 ## Warmup cost
 
-This sky type requires heavy precomputation to be rendered. Because of this, the first few frames (depending on the *Number of bounces* parameter) are going to take much longer. This needs to be taken into consideration when switching from another sky type to the Physically Based Sky for example as it might produce a noticeable drop in framerate.
+When you switch to or from a Physically Based Sky, it might cause a noticeable drop in framerate. This is because HDRP performs a large amount of precomputations to render a Physically Based Sky, so the first few frames (depending on the Number of bounces parameter) takes more time to render than other HDRP sky types.
+This also applies when HDRP uses the volume system to interpolate between two different Physically Based Skies with different sets of parameters. To do this, HDRP restarts the precomputation every frame in which it performs interpolation. This causes a noticeable drop in framerate. To avoid this, use a single set of Physically Based Sky parameters for a scene and change the sun light direction and intensity to achieve the result you want.
+
+HDRP restarts precomputation when you change the following parameters:
+- Type
+- Planetary Radius
+- Ground Tint
+- Air Maximum Altitude
+- Air Density
+- Air Tint
+- Aerosol Maximum Altitude
+- Aerosol Density
+- Aerosol Tint
+- Aerosol Anisotropy
+- Number of Bounces
 
 ### Reference list
 

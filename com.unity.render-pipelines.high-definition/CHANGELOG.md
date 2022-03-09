@@ -8,7 +8,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Render Graph object pools are now cleared with render graph cleanup to avoid stale pass data.
- 
+- Fixed sky jittering when TAA is enabled.
+- Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
+- Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
+
 ## [10.8.0] - 2021-09-20
 
 ### Fixed
@@ -35,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed error thrown when layered lit material has an invalid material type.
 - Fixed a nullref when enabling raycount without ray tracing.
+- Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
 
 ## [10.7.0] - 2021-07-02
 

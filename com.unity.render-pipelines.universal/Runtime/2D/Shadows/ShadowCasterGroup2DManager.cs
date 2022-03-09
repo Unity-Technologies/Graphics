@@ -2,14 +2,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Experimental.Rendering.Universal
 {
+#if UNITY_EDITOR
+    [InitializeOnLoadAttribute]
+#endif
     internal class ShadowCasterGroup2DManager
     {
         static List<ShadowCasterGroup2D> s_ShadowCasterGroups = null;
 
         public static List<ShadowCasterGroup2D> shadowCasterGroups { get { return s_ShadowCasterGroups; } }
 
+
+#if UNITY_EDITOR
+        static ShadowCasterGroup2DManager()
+        {
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (s_ShadowCasterGroups != null && (state == PlayModeStateChange.ExitingEditMode || state == PlayModeStateChange.ExitingPlayMode))
+                s_ShadowCasterGroups.Clear();
+        }
+
+#endif
 
         public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
         {

@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Fixed an issue where ShadowCaster2Ds were sometimes being rendered twice in the editor while in playmode.
+
+
 ## [10.9.0] - 2021-12-06
 
 ### Fixed
@@ -23,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
+- Fixed depth of field pass usage on unsupported devices. [case 1327076]
 
 ## [10.7.0] - 2021-07-02
 

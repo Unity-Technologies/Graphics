@@ -65,7 +65,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
             float3 normalWS = normalData.normalWS;
 
             // Note: we use shading normal here and not GetNormalForShadowBias() as it is not available
-            return GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionSS.xy, posInput.positionWS, normalWS, _DirectionalShadowIndex, L);
+            return GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionSS.xy, posInput.positionWS, normalWS, light.shadowIndex, L);
         }
     ENDHLSL
 

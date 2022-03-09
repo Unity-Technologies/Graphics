@@ -3,7 +3,8 @@
 	{	
 		${VFXInclude("Shaders/VFXParticleHeader.template")}
 		${VFXIncludeRP("Templates/Mesh/PassSelection.template")}
-		${VFXIncludeRP("Templates/Mesh/PassDepth.template"),IS_OPAQUE_PARTICLE}
+		${VFXIncludeRP("Templates/Mesh/PassDepth.template"),IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE}
+		${VFXIncludeRP("Templates/Mesh/PassDepthForwardOnly.template"),HDRP_MATERIAL_TYPE_SIMPLELIT}
 		${VFXIncludeRP("Templates/Mesh/PassVelocity.template"),USE_MOTION_VECTORS_PASS}
 		${VFXIncludeRP("Templates/Mesh/PassGBuffer.template"),IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE}
 		${VFXIncludeRP("Templates/Mesh/PassForward.template")}
