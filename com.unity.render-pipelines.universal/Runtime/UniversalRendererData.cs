@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-           
+            m_AssetVersion = k_LatestAssetVersion;
         }
     }
 }
