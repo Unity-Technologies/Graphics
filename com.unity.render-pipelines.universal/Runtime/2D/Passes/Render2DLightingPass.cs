@@ -440,9 +440,6 @@ namespace UnityEngine.Rendering.Universal
             Vector3 center = 0.5f * (minCorner + maxCorner);
             Vector3 size = maxCorner - minCorner;
 
-            //Vector3 center = Vector3.zero;
-            //Vector3 size = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-
             return new Bounds(center, size); ;
         }
 

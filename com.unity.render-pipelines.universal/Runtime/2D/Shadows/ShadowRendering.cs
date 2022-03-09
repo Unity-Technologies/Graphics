@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var shadowCaster = shadowCasters[i];
 
-                if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.Self && shadowCaster.IsLit(light))
+                if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.SelfShadow && shadowCaster.IsLit(light))
                 {
                     if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                     {
@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
 
                         if (renderer != null)
                         {
-                            if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.Cast)
+                            if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.CastShadow)
                             {
                                 int numberOfMaterials = shadowCaster.spriteMaterialCount;
                                 for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.Universal
                         else
                         {
                             var meshMat = shadowCaster.transform.localToWorldMatrix;
-                            if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.Cast)
+                            if (shadowCaster.castingOption != ShadowCaster2D.ShadowCastingOptions.CastShadow)
                                 cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, selfShadowMaterial);
                             else
                                 cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, unshadowMaterial);

@@ -39,8 +39,8 @@ namespace UnityEngine.Rendering.Universal
 
         public enum ShadowCastingOptions
         {
-            Self,
-            Cast,
+            SelfShadow,
+            CastShadow,
             Both
         }
 
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = (ShadowCastingSources)(-1);
 
         [SerializeField] internal ShadowMesh2D   m_ShadowMesh;
-        [SerializeField] ShadowCastingOptions    m_CastingOption = ShadowCastingOptions.Cast;
+        [SerializeField] ShadowCastingOptions    m_CastingOption = ShadowCastingOptions.CastShadow;
 
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
@@ -420,9 +420,9 @@ namespace UnityEngine.Rendering.Universal
                 if (m_SelfShadows && m_CastsShadows)
                     m_CastingOption = ShadowCastingOptions.Both;
                 else if (m_SelfShadows)
-                    m_CastingOption = ShadowCastingOptions.Self;
+                    m_CastingOption = ShadowCastingOptions.SelfShadow;
                 else
-                    m_CastingOption = ShadowCastingOptions.Cast;
+                    m_CastingOption = ShadowCastingOptions.CastShadow;
             }
         }
 

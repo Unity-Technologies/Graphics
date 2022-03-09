@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.Universal
             if (!HasRenderer())
             {
                 using (new EditorGUI.DisabledScope(true))  // Done to support multiedit
-                    EditorGUILayout.EnumPopup(Styles.castingOption, ShadowCaster2D.ShadowCastingOptions.Cast);
+                    EditorGUILayout.EnumPopup(Styles.castingOption, ShadowCaster2D.ShadowCastingOptions.CastShadow);
             }
             else
             {
