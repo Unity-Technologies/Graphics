@@ -349,6 +349,21 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
+        {
+
+#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
+            var targetId = color?.nameID ?? depth?.nameID;
+#pragma warning restore 0618
+            bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                renderingToBackBufferTarget |= targetId == xr.renderTarget;
+#endif
+            bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
+            return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
+        }
+
         /// <summary>
         /// The sorting criteria used when drawing opaque objects by the internal URP render passes.
         /// When a GPU supports hidden surface removal, URP will rely on that information to avoid sorting opaque objects front to back and

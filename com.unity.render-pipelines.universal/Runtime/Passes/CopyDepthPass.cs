@@ -252,9 +252,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    // TODO RENDERGRAPH: Fix warning "You can only call cameraColorTarget inside the scope of a ScriptableRenderPass."
-                    //bool isSourceYflipped = data.renderingData.cameraData.IsCameraProjectionMatrixFlipped();
-                    bool isSourceYflipped = true;
+                    bool isSourceYflipped = data.renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.source);
                     ExecutePass(context.renderContext, data, data.source, data.destination, isSourceYflipped);
                     data.renderingData.commandBuffer.SetGlobalTexture("_CameraDepthTexture", data.destination);
                 });
