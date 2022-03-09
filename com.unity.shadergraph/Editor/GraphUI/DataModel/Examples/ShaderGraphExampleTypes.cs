@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -177,7 +178,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
 
-        private int GetLength()
+        internal int GetLength()
         {
             if (!IsInitialized) return -1;
             var nodeReader = graphHandler.GetNodeReader(nodeName);
@@ -326,10 +327,54 @@ namespace UnityEditor.ShaderGraph.GraphUI
     static class GDSExt
     {
         // TODO: This should return the Port/Blackboard inline editor for the Gradient field (eg. small gradient preview, on-click to popup).
-        public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
+        public static VisualElement BuildGradientTypeConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
         {
-            // return ConstantEditorExtensions.BuildInlineValueEditor(constant.ObjectValue, new FloatField(), builder.OnValueChanged);
-            return new Label("TODO: Inline Gradient Editor");
+            var editor = new GradientField();
+            editor.AddToClassList("sg-gradient-constant-field");
+            editor.AddStylesheet("ConstantEditors.uss");
+            editor.RegisterValueChangedCallback(change => builder.OnValueChanged(change));
+
+            return editor;
+        }
+
+        public static VisualElement BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
+        {
+            var length = constant.GetLength();
+            if (length == 3 && builder.PortModel is GraphDataPortModel graphDataPort)
+            {
+                var stencil = (ShaderGraphStencil)builder.PortModel.GraphModel.Stencil;
+                var uiHints = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+                if (uiHints.ContainsKey(constant.portName + ".UseColor"))  // TODO: repeated string constant
+                {
+                    // TODO: this works, now figure out the fine details, like:
+                    //  - Color field is extra long (stretches out any node)
+                    //  - Why instantiate directly here and use templates in SingleFieldPart?
+                    //  - Can any logic reasonably be factored out w/ static parts?
+                    //      - and for other port editors?
+                    //      - the inspector has fields too, are we going to need more repeated controls?
+                    var editor = new ColorField();
+
+                    editor.AddToClassList("sg-color-constant-field");
+                    editor.AddStylesheet("ConstantEditors.uss");
+                    editor.RegisterValueChangedCallback(change =>
+                    {
+                        var oldColor = change.previousValue;
+                        var oldVector = new Vector3(oldColor.r, oldColor.g, oldColor.b);
+
+                        var newColor = change.newValue;
+                        var newVector = new Vector3(newColor.r, newColor.g, newColor.a);
+
+                        // builder.OnValueChanged wants a ChangeEvent that matches the underlying type, so do a
+                        // conversion here.
+                        using var newChange = ChangeEvent<Vector3>.GetPooled(oldVector, newVector);
+                        builder.OnValueChanged(newChange);
+                    });
+
+                    return editor;
+                }
+            }
+
+            return builder.BuildDefaultConstantEditor(constant);
         }
     }
 }
