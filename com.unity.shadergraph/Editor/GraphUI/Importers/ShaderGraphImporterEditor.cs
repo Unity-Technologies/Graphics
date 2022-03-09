@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
 
         private static bool ShowWindow(string path, ShaderGraphAssetModel model)
         {
-            var shaderGraphEditorWindow = GraphViewEditorWindow.FindOrCreateGraphWindow<ShaderGraphEditorWindow>();
+            var shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             if(shaderGraphEditorWindow == null)
             {
                 return false;
