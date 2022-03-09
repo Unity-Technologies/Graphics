@@ -38,6 +38,9 @@ namespace UnityEngine.Rendering.Universal
             // motion vector
             public TextureHandle motionVectorColor;
             public TextureHandle motionVectorDepth;
+
+            // postFx
+            public TextureHandle internalColorLut;
         };
         public RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
@@ -209,7 +212,6 @@ namespace UnityEngine.Rendering.Universal
 
                 var depthDescriptor = cameraData.cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
                 frameResources.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_MotionVectorDepthTexture", true);
             }
             #endregion
@@ -300,6 +302,12 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            //if (generateColorGradingLUT)
+            if (m_PostProcessPasses.isCreated)
+            {
+                m_PostProcessPasses.colorGradingLutPass.Render(out frameResources.internalColorLut, ref renderingData);
+            }
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (renderingData.cameraData.xr.hasValidOcclusionMesh)
             m_XROcclusionMeshPass.Render(frameResources.cameraDepth, ref renderingData);
@@ -361,6 +369,9 @@ namespace UnityEngine.Rendering.Universal
                 DrawRenderGraphGizmos(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, GizmoSubset.PreImageEffects, ref renderingData);
 
             // TODO RENDERGRAPH: postprocessing passes
+            //postProcessPass.RenderStopNaN(in frameResources.cameraOpaqueTexture, out var PoFXTarget, ref renderingData);
+            //postProcessPass.RenderSMAA(in frameResources.cameraOpaqueTexture, out var SMAATarget, ref renderingData);
+
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth,GizmoSubset.PostImageEffects, ref renderingData);
