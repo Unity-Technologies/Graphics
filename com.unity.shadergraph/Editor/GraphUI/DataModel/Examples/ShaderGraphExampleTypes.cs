@@ -19,23 +19,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
     }
     public static class ShaderGraphExampleTypes
     {
+
+        // This is a sister function used with ShaderGraphStencil.GetConstantNodeValueType--
+        // TypeHandles are primarily used to setup the icon that GTF will use,
+        // but the TypeHandle then gets routed through GetConstantNodeValueType where a type handle is
+        // mapped to an IConstant type-- it's a bit round about, but for SG's purposes, we only care about
+        // having an IConstant impl for the type if it has an inline editor for the port.
+        // If the IConstant return type doesn't have one setup by default,
+        // It can be expressed such as:
+        //    [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
+        //    static class GDSExt
+        //    {
+        //        public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
+        //
         public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
         {
-            reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len);
-            switch ((int)len)
+            if (reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len))
             {
-                case 1:
-                    reader.GetField(Registry.Types.GraphType.kPrimitive, out Registry.Types.GraphType.Primitive prim);
-                    switch(prim)
-                    {
-                        case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
-                        case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
-                        default: return TypeHandle.Float;
-                    }
-                case 2: return TypeHandle.Vector2;
-                case 3: return TypeHandle.Vector3;
-                default: return TypeHandle.Vector4;
+                switch ((int)len)
+                {
+                    case 1:
+                        reader.GetField(Registry.Types.GraphType.kPrimitive, out Registry.Types.GraphType.Primitive prim);
+                        switch(prim)
+                        {
+                            case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
+                            case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
+                            default: return TypeHandle.Float;
+                        }
+                    case 2: return TypeHandle.Vector2;
+                    case 3: return TypeHandle.Vector3;
+                    case 4: return TypeHandle.Vector4;
+                }
             }
+
+
+            return GradientTypeHandle;
         }
 
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
@@ -44,6 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle Texture2D = typeof(Texture2D).GenerateTypeHandle();
         public static readonly TypeHandle Texture3D = typeof(Texture3D).GenerateTypeHandle();
         public static readonly TypeHandle DayOfWeek = typeof(DayOfWeek).GenerateTypeHandle();
+        public static readonly TypeHandle GradientTypeHandle = typeof(Gradient).GenerateTypeHandle();
 
         public static readonly Dictionary<string, TypeHandle> TypeHandlesByName = new()
         {
@@ -72,6 +91,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             { "Texture2D", Texture2D },
             { "Texture3D", Texture3D },
             { "DayOfWeek", DayOfWeek },
+            { "Gradient", GradientTypeHandle }
         };
 
         public static IEnumerable<string> TypeHandleNames => TypeHandlesByName.Keys;
@@ -86,65 +106,71 @@ namespace UnityEditor.ShaderGraph.GraphUI
     //    public Type Type => throw new NotImplementedException();
     //}
 
-    public class FieldConstant<T> : IConstant
+    //public class FieldConstant<T> : IConstant
+    //{
+    //    public GraphDelta.GraphHandler graphHandler;
+    //    public string nodeName, portName, fieldPath;
+
+    //    private GraphDelta.IFieldReader ResolveReader()
+    //    {
+    //        var nodeReader = graphHandler.GetNodeReader(nodeName);
+    //        if (nodeReader.TryGetPort(portName, out var portReader))
+    //        {
+    //            portReader.TryGetField(fieldPath, out var fieldReader);
+    //            return fieldReader;
+    //        }
+    //        else
+    //        {
+    //            nodeReader.TryGetField(fieldPath, out var FieldReader);
+    //            return FieldReader;
+    //        }
+    //    }
+
+    //    bool IsInitialized => graphHandler != null;
+
+    //    public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName, string fieldPath)
+    //    {
+    //        graphHandler = handler;
+    //        this.nodeName = nodeName;
+    //        this.portName = portName;
+    //        this.fieldPath = fieldPath;
+    //    }
+
+    //    public Type Type
+    //    {
+    //        get
+    //        {
+    //            if (!IsInitialized) return typeof(T);
+    //            ResolveReader().TryGetValue(out T value);
+    //            return value.GetType();
+    //        }
+    //    }
+
+    //    public object ObjectValue
+    //    {
+    //        get
+    //        {
+    //            if (!IsInitialized) return default(T);
+    //            ResolveReader().TryGetValue(out T value);
+    //            return value;
+    //        }
+    //        set
+    //        {
+    //            if (!IsInitialized) return;
+    //            graphHandler.GetNodeWriter(nodeName).SetPortField<T>(portName, fieldPath, (T)value);
+    //        }
+    //    }
+
+    //    public object DefaultValue => default(T);
+    //}
+
+
+    interface ICLDSConstant
     {
-        public GraphDelta.GraphHandler graphHandler;
-        public string nodeName, portName, fieldPath;
-
-        private GraphDelta.IFieldReader ResolveReader()
-        {
-            var nodeReader = graphHandler.GetNodeReader(nodeName);
-            if (nodeReader.TryGetPort(portName, out var portReader))
-            {
-                portReader.TryGetField(fieldPath, out var fieldReader);
-                return fieldReader;
-            }
-            else
-            {
-                nodeReader.TryGetField(fieldPath, out var FieldReader);
-                return FieldReader;
-            }
-        }
-
-        bool IsInitialized => graphHandler != null;
-
-        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName, string fieldPath)
-        {
-            graphHandler = handler;
-            this.nodeName = nodeName;
-            this.portName = portName;
-            this.fieldPath = fieldPath;
-        }
-
-        public Type Type
-        {
-            get
-            {
-                if (!IsInitialized) return typeof(T);
-                ResolveReader().TryGetValue(out T value);
-                return value.GetType();
-            }
-        }
-
-        public object ObjectValue
-        {
-            get
-            {
-                if (!IsInitialized) return default(T);
-                ResolveReader().TryGetValue(out T value);
-                return value;
-            }
-            set
-            {
-                if (!IsInitialized) return;
-                graphHandler.GetNodeWriter(nodeName).SetPortField<T>(portName, fieldPath, (T)value);
-            }
-        }
-
-        public object DefaultValue => default(T);
+        void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName);
     }
 
-    public class GraphTypeConstant : IConstant
+    public class GraphTypeConstant : IConstant, ICLDSConstant
     {
         public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName;
@@ -250,6 +276,62 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public object DefaultValue => Activator.CreateInstance(Type);
+    }
+
+    public class GradientTypeConstant : IConstant, ICLDSConstant
+    {
+        // Most of this should be genericized, as it'll be identical across types.
+        public GraphDelta.GraphHandler graphHandler;
+        public string nodeName, portName;
+
+        bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
+
+        private GraphDelta.IFieldReader GetFieldReader()
+        {
+            if (!IsInitialized) return null;
+            var nodeReader = graphHandler.GetNodeReader(nodeName);
+            nodeReader.TryGetPort(portName, out var portReader);
+            return (GraphDelta.IFieldReader)portReader;
+        }
+
+        private GraphDelta.IFieldWriter GetFieldWriter()
+        {
+            if (!IsInitialized) return null;
+            var nodeWriter = graphHandler.GetNodeWriter(nodeName);
+            return (GraphDelta.IFieldWriter)nodeWriter.GetPort(portName);
+        }
+
+        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
+        {
+            graphHandler = handler;
+            this.nodeName = nodeName;
+            this.portName = portName;
+        }
+
+        public object ObjectValue
+        {
+            get => IsInitialized ? Registry.Types.GradientTypeHelpers.GetGradient(GetFieldReader()) : DefaultValue;
+            set
+            {
+                if (IsInitialized)
+                    Registry.Types.GradientTypeHelpers.SetGradient(GetFieldWriter(), (Gradient)value);
+            }
+        }
+
+        public Type Type => typeof(Gradient);
+
+        public object DefaultValue => Activator.CreateInstance(Type);
+    }
+
+    [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
+    static class GDSExt
+    {
+        // TODO: This should return the Port/Blackboard inline editor for the Gradient field (eg. small gradient preview, on-click to popup).
+        public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
+        {
+            // return ConstantEditorExtensions.BuildInlineValueEditor(constant.ObjectValue, new FloatField(), builder.OnValueChanged);
+            return new Label("TODO: Inline Gradient Editor");
+        }
     }
 }
 

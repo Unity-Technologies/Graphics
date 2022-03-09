@@ -92,6 +92,12 @@ namespace UnityEditor.ShaderGraph.Generation
                     ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
             }
 
+            // Should get us every uniquely defined parameter-- not sure how this handles intrinsics- ehh...
+            var shaderTypes = shaderFunctions.SelectMany(e => e.Parameters).Select(p => p.Type).ToHashSet();
+            foreach(var type in shaderTypes)
+            {
+                blockBuilder.AddType(type);
+            }
             foreach(var func in shaderFunctions)
             {
                 blockBuilder.AddFunction(func);
@@ -204,16 +210,18 @@ namespace UnityEditor.ShaderGraph.Generation
         }
 
         private static void ProcessNode(INodeReader node,
-            ref ShaderContainer container, ref List<BlockVariable> inputVariables,
-            ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder,
+            ref ShaderContainer container,
+            ref List<BlockVariable> inputVariables,
+            ref List<BlockVariable> outputVariables,
+            ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
-            ref List<ShaderFunction> shaderFuncitons,
+            ref List<ShaderFunction> shaderFunctions,
             Registry.Registry registry)
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
             var func = nodeBuilder.GetShaderFunction(node, container, registry);
             bool shouldAdd = true;
-            foreach(var existing in shaderFuncitons)
+            foreach(var existing in shaderFunctions)
             {
                 if(FunctionsAreEqual(existing, func))
                 {
@@ -222,7 +230,7 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             if(shouldAdd)
             {
-                shaderFuncitons.Add(func);
+                shaderFunctions.Add(func);
             }
             string arguments = "";
             foreach (var param in func.Parameters)

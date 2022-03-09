@@ -1,8 +1,8 @@
 using System;
-using System.Linq;
-using com.unity.shadergraph.defs;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -18,8 +18,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public string ToolName => Name;
 
+        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
+
+        public ShaderGraphStencil()
+        {
+            m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
+        }
+
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
+
+        // See ShaderGraphExampleTypes.GetGraphType for more details
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
         {
             if (typeHandle == TypeHandle.Vector2
@@ -32,9 +41,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return typeof(GraphTypeConstant);
             }
 
-            return typeHandle == ShaderGraphExampleTypes.DayOfWeek
-                ? typeof(DayOfWeekConstant)
-                : TypeToConstantMapper.GetConstantNodeType(typeHandle);
+            if (typeHandle == ShaderGraphExampleTypes.GradientTypeHandle)
+            {
+                return typeof(GradientTypeConstant);
+            }
+
+            // There is no inline editor for this port type, so there is no need for CLDS access.
+            return typeof(AnyConstant);
         }
 
         public override ISearcherDatabaseProvider GetSearcherDatabaseProvider()
@@ -48,20 +61,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         private Registry.Registry RegistryInstance = null;
+
         public Registry.Registry GetRegistry()
         {
             if (RegistryInstance == null)
             {
-                RegistryInstance = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+                m_NodeUIHints.Clear();
+
+                void ReadUIInfo(RegistryKey key, Type type)
+                {
+                    const string uiHintsGetterName = "get_UIHints";
+
+                    var getUiHints = type.GetMethod(uiHintsGetterName);
+                    if (getUiHints != null)
+                    {
+                        m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
+                    }
+
+                    // TODO: Get and use UI strings
+                }
+
+                RegistryInstance = Registry.Default.DefaultRegistry.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
             }
+
             return RegistryInstance;
+        }
+
+        public IReadOnlyDictionary<string, float> GetUIHints(RegistryKey nodeKey)
+        {
+            return m_NodeUIHints.GetValueOrDefault(nodeKey, new Dictionary<string, float>());
         }
 
         public override IGraphProcessor CreateGraphProcessor()
         {
             return new ShaderGraphProcessor();
         }
-
 
         public override void PopulateBlackboardCreateMenu(string sectionName, GenericMenu menu, IModelView view, IGraphModel graphModel, IGroupModel selectedGroup = null)
         {

@@ -40,11 +40,15 @@ namespace UnityEditor.ShaderGraph.Registry.Default
 
     public static class DefaultRegistry
     {
-        public static Registry CreateDefaultRegistry()
+        public static Registry CreateDefaultRegistry(Action<RegistryKey, Type> afterNodeRegistered = null)
         {
             var reg = new Registry();
             reg.Register<Types.GraphType>();
             reg.Register<Types.GraphTypeAssignment>();
+            reg.Register<Types.GradientType>();
+            reg.Register<Types.GradientTypeAssignment>();
+            reg.Register<Types.GradientNode>();
+            reg.Register<Types.SampleGradientNode>();
             reg.Register<DefaultContext>();
             //RegistryInstance.Register<Registry.Types.AddNode>();
 
@@ -60,7 +64,8 @@ namespace UnityEditor.ShaderGraph.Registry.Default
                 if (t != interfaceType && fdMethod != null)
                 {
                     var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
-                    reg.Register(fd);
+                    var key = reg.Register(fd);
+                    afterNodeRegistered?.Invoke(key, t);
                 }
             }
             return reg;

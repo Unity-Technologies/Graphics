@@ -4,6 +4,9 @@ using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Generation;
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.GraphDelta.Utils;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -16,7 +19,19 @@ namespace UnityEditor.ShaderGraph
         MaterialEditor materialEditor = null;
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("WIP", MessageType.Info);
+            if (GUILayout.Button("View Generated Shader"))
+            {
+                AssetImporter importer = target as AssetImporter;
+                var graph = GraphUtil.OpenGraph(importer.assetPath);
+                var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+                var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
+                var node = graph.GetNodeReader(key.Name);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
+                string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
+                string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
+                if (FileHelpers.WriteToFile(path, shaderCode))
+                    FileHelpers.OpenFile(path);
+            }
 
             ApplyRevertGUI();
             if (materialEditor != null)
