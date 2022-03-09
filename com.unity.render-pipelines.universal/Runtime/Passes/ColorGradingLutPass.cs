@@ -239,8 +239,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Render(out TextureHandle internalColorLut, ref RenderingData renderingData)
         {
             RenderGraph graph = renderingData.renderGraph;
-            const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
-            const int k_DepthBufferBits = 32;
 
             using (var builder = graph.AddRenderPass<PassData>("Color Lut Pass", out var passData, base.profilingSampler))
             {

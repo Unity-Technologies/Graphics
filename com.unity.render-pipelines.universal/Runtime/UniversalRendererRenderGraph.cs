@@ -212,7 +212,6 @@ namespace UnityEngine.Rendering.Universal
 
                 var depthDescriptor = cameraData.cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorDepthTexture");
                 frameResources.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_MotionVectorDepthTexture", true);
             }
             #endregion
@@ -370,6 +369,9 @@ namespace UnityEngine.Rendering.Universal
                 DrawRenderGraphGizmos(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, GizmoSubset.PreImageEffects, ref renderingData);
 
             // TODO RENDERGRAPH: postprocessing passes
+            //postProcessPass.RenderStopNaN(in frameResources.cameraOpaqueTexture, out var PoFXTarget, ref renderingData);
+            //postProcessPass.RenderSMAA(in frameResources.cameraOpaqueTexture, out var SMAATarget, ref renderingData);
+
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth,GizmoSubset.PostImageEffects, ref renderingData);

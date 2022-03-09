@@ -1844,11 +1844,12 @@ namespace UnityEngine.Rendering.Universal
                 DepthBits.None);
             destination = UniversalRenderer.CreateRenderGraphTexture(graph, desc, "_SMAATarget", true);
 
+            // TODO RENDERGRAPH: look into depth target as stencil buffer case, in RenderGraph, it is not passible to use same RT as both color and depth. That is not supported.
             var edgeTextureDesc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
                 cameraTargetDescriptor.width,
                 cameraTargetDescriptor.height,
                 m_SMAAEdgeFormat,
-                tempDepthBits);
+                DepthBits.None);
             var edgeTexture = UniversalRenderer.CreateRenderGraphTexture(graph, edgeTextureDesc, "_EdgeTexture", true);
 
             var blendTextureDesc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
@@ -1858,10 +1859,10 @@ namespace UnityEngine.Rendering.Universal
                 DepthBits.None);
             var blendTexture = UniversalRenderer.CreateRenderGraphTexture(graph, blendTextureDesc, "_BlendTexture", true);
 
-            bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            bool useSubPixelMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // Anti-aliasing
-            if (useSubPixeMorpAA)
+            if (useSubPixelMorpAA)
             {
                 var material = m_Materials.subpixelMorphologicalAntialiasing;
                 const int kStencilBit = 64;
@@ -1891,7 +1892,9 @@ namespace UnityEngine.Rendering.Universal
 
                 using (var builder = graph.AddRenderPass<SMAAPassData>("SMAA Edge Detection", out var passData, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
+                    //passData.destinationTexture = builder.UseDepthBuffer(edgeTexture, DepthAccess.Write);
                     passData.destinationTexture = builder.UseColorBuffer(edgeTexture, 0);
+
                     passData.sourceTexture = builder.ReadTexture(source);
                     passData.renderingData = renderingData;
                     passData.material = material;
@@ -1902,7 +1905,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((SMAAPassData data, RenderGraphContext context) =>
                     {
                         var pixelRect = data.renderingData.cameraData.pixelRect;
-                        var material = data.smaaMaterial;
+                        var material = data.material;
 
                         var cmd = data.renderingData.commandBuffer;
 
@@ -1919,6 +1922,7 @@ namespace UnityEngine.Rendering.Universal
                 using (var builder = graph.AddRenderPass<SMAAPassData>("SMAA Blend weights", out var passData, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
                     passData.destinationTexture = builder.UseColorBuffer(blendTexture, 0);
+                    //passData.destinationTexture = builder.UseDepthBuffer(edgeTexture, DepthAccess.Read);
                     passData.sourceTexture = builder.ReadTexture(edgeTexture);
                     passData.renderingData = renderingData;
                     passData.material = material;
@@ -1929,7 +1933,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((SMAAPassData data, RenderGraphContext context) =>
                     {
                         var pixelRect = data.renderingData.cameraData.pixelRect;
-                        var material = data.smaaMaterial;
+                        var material = data.material;
 
                         var cmd = data.renderingData.commandBuffer;
 
@@ -1957,7 +1961,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderFunc((SMAAPassData data, RenderGraphContext context) =>
                     {
                         var pixelRect = data.renderingData.cameraData.pixelRect;
-                        var material = data.smaaMaterial;
+                        var material = data.material;
                         var cmd = data.renderingData.commandBuffer;
 
                         // Prepare for manual blit
@@ -1972,6 +1976,58 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
+
+        public class DoFPassData
+        {
+            public TextureHandle destinationTexture;
+            public TextureHandle sourceTexture;
+            public RenderingData renderingData;
+            public Material material;
+        }
+
+        public void RenderDoF(in TextureHandle source, out TextureHandle destination, ref RenderingData renderingData)
+        {
+            var cameraData = renderingData.cameraData;
+            var graph = renderingData.renderGraph;
+
+            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
+            bool useDepthOfField = m_DepthOfField.IsActive() && !renderingData.cameraData.isSceneViewCamera && dofMaterial != null;
+
+            var cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            cameraTargetDescriptor.useMipMap = false;
+            cameraTargetDescriptor.autoGenerateMips = false;
+
+            var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor,
+                cameraTargetDescriptor.width,
+                cameraTargetDescriptor.height,
+                cameraTargetDescriptor.graphicsFormat,
+                DepthBits.None);
+            destination = UniversalRenderer.CreateRenderGraphTexture(graph, desc, "_DoFTarget", true);
+
+            // Depth of Field
+            // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
+            // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
+            if (useDepthOfField)
+            {
+                var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
+                    ? URPProfileId.GaussianDepthOfField
+                    : URPProfileId.BokehDepthOfField;
+
+                if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
+                {
+                    // DoGaussianDepthOfField(camera, cmd, source, destination, pixelRect);
+                    using (var builder = graph.AddRenderPass<DoFPassData>("Depth of Field", out var passData, ProfilingSampler.Get(markerName)))
+                    {
+                        
+                    }
+                }
+                else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
+                {
+                    // DoBokehDepthOfField(cmd, source, destination, pixelRect);
+                }
+            }
+        }
+
         #endregion
     }
 }
