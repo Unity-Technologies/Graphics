@@ -98,11 +98,14 @@ namespace UnityEngine.Rendering
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
             var positionsByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
-            var offsetByteStart = AlignUp16(positionsByteCount);
+            var touchupInteractionStart = AlignUp16(positionsByteCount);
+            var touchupInteractionByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            var offsetByteStart = AlignUp16(positionsByteCount) + AlignUp16(touchupInteractionByteCount);
             var offsetByteCount = totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
             if (hasSupportData && offsetByteStart + offsetByteCount != cellSupportData.Length)
                 return false;
             var positionsData = hasSupportData ? cellSupportData.GetSubArray(0, positionsByteCount).Reinterpret<Vector3>(1) : default;
+            var touchupInteractionData = hasSupportData ? cellSupportData.GetSubArray(touchupInteractionStart, touchupInteractionByteCount).Reinterpret<float>(1) : default;
             var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
 
             var startCounts = new CellCounts();
@@ -118,6 +121,7 @@ namespace UnityEngine.Rendering
                 {
                     cell.probePositions = positionsData.GetSubArray(startCounts.probesCount, counts.probesCount);
                     cell.offsetVectors = offsetsData.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
+                    cell.touchupVolumeInteraction = touchupInteractionData.GetSubArray(startCounts.probesCount, counts.probesCount);
                 }
 
                 startCounts.Add(counts);
@@ -126,7 +130,7 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        internal bool ResolvePerStateCellData(TextAsset cellDataAsset, TextAsset cellOptionalDataAsset)
+        internal bool ResolvePerScenarioCellData(TextAsset cellDataAsset, TextAsset cellOptionalDataAsset, int stateIndex)
         {
             if (cellDataAsset == null)
                 return false;
@@ -147,13 +151,15 @@ namespace UnityEngine.Rendering
             var startCounts = new CellCounts();
             for (var i = 0; i < cells.Length; ++i)
             {
-                var cell = cells[i];
                 var counts = cellCounts[i];
+                var cellState = new ProbeReferenceVolume.Cell.PerScenarioData();
 
-                cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
-
+                cellState.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
                 if (hasOptionalData)
-                    cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+                    cellState.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+
+                if (stateIndex == 0) cells[i].scenario0 = cellState;
+                else cells[i].scenario1 = cellState;
 
                 startCounts.Add(counts);
             }

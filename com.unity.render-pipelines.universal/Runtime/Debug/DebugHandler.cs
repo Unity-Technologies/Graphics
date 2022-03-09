@@ -252,9 +252,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Setup(ScriptableRenderContext context, ref CameraData cameraData)
+        internal void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get("");
+            var cmd = renderingData.commandBuffer;
+            var cameraData = renderingData.cameraData;
 
             if (IsActiveForCamera(ref cameraData))
             {
@@ -288,7 +289,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
         }
 
         #region DebugRenderPasses

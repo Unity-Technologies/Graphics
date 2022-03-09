@@ -1,14 +1,14 @@
 # Renderer and Material Priority
 
-A render pipeline must sort objects before rendering them to make sure that they appear on the screen in the correct order. The render pipeline must draw objects that are far away from the Camera first, so that it can draw closer objects over the top of them later. If the order is not correct, objects further away from the Camera can appear in front of closer objects.
+A render pipeline must sort objects before rendering them to make sure that they appear on the screen in the correct order. The render pipeline must draw objects that are far away from the Camera first, so that it can draw closer objects over the top of them later. If the order isn't correct, objects further away from the Camera can appear in front of closer objects.
 
-The built-it Unity render pipeline sorts GameObjects according to their [Rendering Mode](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html) and [renderQueue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html). HDRP uses the render queue in a different way, in that HDRP Materials do not expose the render queue directly. Instead, HDRP introduces two methods of control. Sorting by [Material](#SortingByMaterial) and sorting by [Renderer](#SortingByRenderer).
+The built-it Unity render pipeline sorts GameObjects according to their [Rendering Mode](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html) and [renderQueue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html). HDRP uses the render queue in a different way, in that HDRP Materials don't expose the render queue directly. Instead, HDRP introduces two methods of control. Sorting by [Material](#SortingByMaterial) and sorting by [Renderer](#SortingByRenderer).
 
 HDRP uses these two sorting methods together to control the render queue. To calculate the order of the render queue, HDRP:
 
 1. Sorts Meshes into groups that share Materials
 2. Uses each Materials’ **Priority** to calculate the rendering order of these Material groups
-3.  Sorts the Material groups using each Mesh Renderer’s **Priority** property.
+3. Sorts the Material groups using each Mesh Renderer’s **Priority** property.
 
 The resulting queue is a list of GameObjects that are first sorted by their Material’s **Priority**, then by their individual Mesh Renderer’s **Priority**.
 
@@ -33,11 +33,11 @@ When the **Sort Priority** of each Material is the same, HDRP treats them with e
 
 ![](Images/RendererAndMaterialPriority3.png)
 
-When the **Sort Priority** properties of different Materials are not the same, HDRP displays Meshes using Materials with a higher priority in front of those using Materials with a lower priority. To achieve this, HDRP draws Meshes using lower priority Materials first and draws Meshes using the higher priority Materials later, on top of the Meshes it’s already drawn. In the example, setting the **Sort Priority** of **Sphere 2** to **1** means that HDRP renders **Sphere 1** first, then renders **Sphere 2** (drawing it over **Sphere 1**). This makes **Sphere 2** appear in front of **Sphere 1**, despite **Sphere 1** being closer to the **Camera**.
+When the **Sort Priority** properties of different Materials aren't the same, HDRP displays Meshes using Materials with a higher priority in front of those using Materials with a lower priority. To achieve this, HDRP draws Meshes using lower priority Materials first and draws Meshes using the higher priority Materials later, on top of the Meshes it’s already drawn. In the example, setting the **Sort Priority** of **Sphere 2** to **1** means that HDRP renders **Sphere 1** first, then renders **Sphere 2** (drawing it over **Sphere 1**). This makes **Sphere 2** appear in front of **Sphere 1**, despite **Sphere 1** being closer to the **Camera**.
 
 ![](Images/RendererAndMaterialPriority4.png)
 
-**⚠ Note that when the Depth Write is enabled on the material, the Sort Priority is ignored.** This is because the **Depth Test** performed in the Shader overwrites the **Sort Priority** of the material.
+**Note**: When you enable **Depth Write** on the material, the **Sort Priority** is ignored. This is because the **Depth Test** performed in the Shader overwrites the **Sort Priority** of the material.
 
 <a name="SortingByRenderer"></a>
 
@@ -47,7 +47,7 @@ Mesh Renderers have a **Priority** property to sort Renderers using the same Mat
 
 ![](Images/RendererAndMaterialPriority5.png)
 
-When you want to modify the render order for GameObjects using the same Material, use the **Priority** property in the Mesh Renderer’s Inspector. The **Priority** is a per-Renderer property that allows you to influence the rendering order for Renderers in your Scene.
+To modify the render order for GameObjects using the same Material, use the **Priority** property in the Mesh Renderer’s Inspector. The **Priority** is a per-Renderer property that allows you to influence the rendering order for Renderers in your Scene.
 
 HDRP displays Renderers with higher **Priority** values in front of those with lower **Priority** values.
 
@@ -64,6 +64,6 @@ When the Renderer **Priority** of each Mesh Renderer is the same, HDRP treats th
 
 ![](Images/RendererAndMaterialPriority7.png)
 
-When the **Renderer Priority** properties of different Mesh Renderers are not the same, HDRP displays Mesh Renderers with a higher priority in front of those with a lower Priority. To achieve this, HDRP draws lower priority Meshes first and then draws higher priority Meshes on top of the Meshes it’s already drawn. In the example, setting the **Renderer Priority** of **Sphere 2** to **1** means that HDRP renders **Sphere 1** first, then renders **Sphere 2** (drawing it over **Sphere 1**). This makes **Sphere 2** appear in front of **Sphere 1** despite **Sphere 1** being closer to the **Camera**.
+When the **Renderer Priority** properties of different Mesh Renderers aren't the same, HDRP displays Mesh Renderers with a higher priority in front of those with a lower priority. To achieve this, HDRP draws lower priority Meshes first and then draws higher priority Meshes on top of the Meshes it’s already drawn. In the example, setting the **Renderer Priority** of **Sphere 2** to **1** means that HDRP renders **Sphere 1** first, then renders **Sphere 2** (drawing it over **Sphere 1**). This makes **Sphere 2** appear in front of **Sphere 1** despite **Sphere 1** being closer to the **Camera**.
 
 ![](Images/RendererAndMaterialPriority8.png)

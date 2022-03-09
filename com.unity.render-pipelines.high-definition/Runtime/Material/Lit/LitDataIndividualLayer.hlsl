@@ -125,7 +125,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #ifdef SURFACE_GRADIENT
         normalTS += detailNormalTS * detailMask;
         #else
-        normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
+        normalTS = lerp(normalTS, BlendNormalRNM(normalTS, normalize(detailNormalTS)), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
         #endif
     #endif
 #else
