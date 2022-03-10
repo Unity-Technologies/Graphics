@@ -1,0 +1,8 @@
+.unity-base-field__label {
+    min-width: 70px;
+}
+
+/* Some fields, like vectors, contain descendant labels. Don't apply the above min-width to them. */
+.unity-composite-field__field > .unity-base-field__label {
+    min-width: unset;
+}
