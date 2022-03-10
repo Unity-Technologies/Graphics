@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.Universal
     {
         #region Serialized Properties
         private SerializedProperty m_BlueNoiseTexture;
-        private SerializedProperty m_AOAlgorithm;
+        private SerializedProperty m_AONoise;
         private SerializedProperty m_Downsample;
         private SerializedProperty m_AfterOpaque;
         private SerializedProperty m_Source;
@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Universal
         // Structs
         private struct Styles
         {
-            public static GUIContent AOAlgorithm = EditorGUIUtility.TrTextContent("AO Algorithm", "");
+            public static GUIContent AONoise = EditorGUIUtility.TrTextContent("AO Noise", "");
             public static GUIContent BlueNoiseTexture = EditorGUIUtility.TrTextContent("Blue Noise Texture", "");
             public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
             public static GUIContent AfterOpaque = EditorGUIUtility.TrTextContent("After Opaque", "With this option enabled, Unity calculates and apply SSAO after the opaque pass to improve performance on mobile platforms with tiled-based GPU architectures. This is not physically correct.");
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
             m_BlueNoiseTexture = settings.FindPropertyRelative("BlueNoiseTexture");
             m_Source = settings.FindPropertyRelative("Source");
-            m_AOAlgorithm = settings.FindPropertyRelative("AOAlgorithm");
+            m_AONoise = settings.FindPropertyRelative("AONoise");
             m_Downsample = settings.FindPropertyRelative("Downsample");
             m_AfterOpaque = settings.FindPropertyRelative("AfterOpaque");
             m_NormalQuality = settings.FindPropertyRelative("NormalSamples");
@@ -77,8 +77,7 @@ namespace UnityEditor.Rendering.Universal
             bool isDeferredRenderingMode = RendererIsDeferred();
 
             EditorGUILayout.PropertyField(m_BlueNoiseTexture, Styles.BlueNoiseTexture);
-
-            EditorGUILayout.PropertyField(m_AOAlgorithm, Styles.AOAlgorithm);
+            EditorGUILayout.PropertyField(m_AONoise, Styles.AONoise);
 
             EditorGUILayout.Space();
 
@@ -104,7 +103,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
 
-            //GUI.enabled = m_AOAlgorithm.enumValueIndex == (int) ScreenSpaceAmbientOcclusionSettings.AOAlgorithmOptions.BlueNoise;
+            GUI.enabled = m_AONoise.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.BlueNoise;
             EditorGUILayout.PropertyField(m_Scattering, Styles.Scattering);
             EditorGUILayout.PropertyField(m_TimeMultiplier, Styles.TimeMultiplier);
             GUI.enabled = true;

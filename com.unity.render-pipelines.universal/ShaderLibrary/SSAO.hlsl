@@ -8,9 +8,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
 // Textures & Samplers
-TEXTURE2D_X(_BaseMap);
-TEXTURE2D_X(_BlueNoiseTexture);
-TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
+TEXTURE2D_X_HALF(_BaseMap);
+TEXTURE2D_X_HALF(_BlueNoiseTexture);
+TEXTURE2D_X_HALF(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
 SAMPLER(sampler_BlueNoiseTexture);
@@ -82,9 +82,24 @@ static half SSAORandomUV[40] =
     0.56862750,  // 39
 };
 
+// Some constants to not bloat the code with half(...)
+static const half  HALF_MINUS_ONE   = half(-1.0);
+static const half  HALF_ZERO        = half(0.0);
+static const half  HALF_HALF        = half(0.5);
+static const half  HALF_ONE         = half(1.0);
+static const half4 HALF4_ONE        = half4(1.0, 1.0, 1.0, 1.0);
+static const half  HALF_TWO         = half(2.0);
+static const half  HALF_TWO_PI      = half(6.28318530717958647693);
+static const half  HALF_FOUR        = half(4.0);
+static const half  HALF_HUNDRED     = half(100.0);
+
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
-#define RADIUS _SSAOParams.y
+#if defined(_BLUE_NOISE)
+    #define RADIUS _SSAOParams.y * HALF_TWO
+#else
+    #define RADIUS _SSAOParams.y
+#endif
 #define DOWNSAMPLE _SSAOParams.z
 #define FALLOFF _SSAOParams.w
 
@@ -107,10 +122,10 @@ static half SSAORandomUV[40] =
 #endif
 
 // Function defines
-#define SCREEN_PARAMS        GetScaledScreenParams()
-#define SAMPLE_BASEMAP(uv)   half4(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
-#define SAMPLE_BASEMAP_R(uv)   half(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r);
-#define SAMPLE_BLUE_NOISE(uv) UnpackNormal(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)));
+#define SCREEN_PARAMS           GetScaledScreenParams()
+#define SAMPLE_BASEMAP(uv)      half4(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
+#define SAMPLE_BASEMAP_R(uv)    half(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r);
+#define SAMPLE_BLUE_NOISE_R(uv) UnpackNormal(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv))).r * HALF_TWO_PI;
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
@@ -135,13 +150,6 @@ static const half kEpsilon = half(0.0001);
     #define unity_eyeIndex 0
 #endif
 
-static const half HALF_MINUS_ONE = half(-1.0);
-static const half HALF_ZERO = half(0.0);
-static const half HALF_HALF = half(0.5);
-static const half HALF_ONE = half(1.0);
-static const half4 HALF4_ONE = half4(1.0, 1.0, 1.0, 1.0);
-static const half HALF_TWO = half(2.0);
-static const half HALF_TWO_PI = half(6.28318530717958647693);
 
 half4 PackAONormal(half ao, half3 n)
 {
@@ -152,7 +160,7 @@ half4 PackAONormal(half ao, half3 n)
 
 half3 GetPackedNormal(half4 p)
 {
-    return p.gba * half(2.0) - half(1.0);
+    return p.gba * HALF_TWO - HALF_ONE;
 }
 
 half GetPackedAO(half4 p)
@@ -171,7 +179,7 @@ half EncodeAO(half x)
 
 half CompareNormal(half3 d1, half3 d2)
 {
-    return smoothstep(kGeometryCoeff, half(1.0), dot(d1, d2));
+    return smoothstep(kGeometryCoeff, HALF_ONE, dot(d1, d2));
 }
 
 float2 GetScreenSpacePosition(float2 uv)
@@ -179,50 +187,41 @@ float2 GetScreenSpacePosition(float2 uv)
     return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
 }
 
-
-// Sample point picker
-
-/*
- * OLD
- */
-
 // Pseudo random number generator with 2D coordinates
-half GetRandomUVForSSAO(half u, half sampleIndex)
+half GetRandomUV(half u, half sampleIndex)
 {
     return SSAORandomUV[u * 20 + sampleIndex];
 }
 
-
-half3 PickSamplePoint(float2 uv, int sampleIndex, half sHalf, half rcpSampleCount, half3 norm_o)
+// Sample point picker
+half3 PickSamplePoint(float2 uv, int sampleIndex, half sHalf, half rcpSampleCount, half3 normal_o)
 {
     #if defined(_BLUE_NOISE)
         const half lerpVal = sHalf * rcpSampleCount;
-        const float2 noise = frac(float2(sHalf + _Time.x * TIME_MULTIPLIER, sHalf + _Time.y * TIME_MULTIPLIER));
-        //const float2 noise = frac(float2(sHalf , sHalf ));
-        half3 gn = SAMPLE_BLUE_NOISE(uv + noise);
-        gn *= HALF_TWO_PI;
-        const half u = frac(GetRandomUVForSSAO(HALF_ZERO, sampleIndex).x + gn.r) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomUVForSSAO(HALF_ONE, sampleIndex).x + gn.r) * HALF_TWO_PI * half(100.0);
+        const float2 uvAddon = frac(float2(sHalf + _Time.x * TIME_MULTIPLIER, sHalf + _Time.y * TIME_MULTIPLIER));
+        const half noise = SAMPLE_BLUE_NOISE_R(uv + uvAddon);
+        const half u = frac(GetRandomUV(HALF_ZERO, sampleIndex).x + noise) * HALF_TWO - HALF_ONE;
+        const half theta = (GetRandomUV(HALF_ONE, sampleIndex).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
         const half u2 = half(sqrt(HALF_ONE - u * u));
+
         half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
+        v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
 
         // Adjustment for distance distribution.
-        v *= lerp(RADIUS, SPREAD_MAX, lerpVal * lerpVal);
-
-        v *= (dot(norm_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
+        v *= lerp(SPREAD_MIN, SPREAD_MAX, lerpVal * lerpVal);
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
-        const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
-        const half u = frac(GetRandomUVForSSAO(HALF_ZERO, sampleIndex) + gn) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomUVForSSAO(HALF_ONE, sampleIndex) + gn) * HALF_TWO_PI;
+        const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));
+        const half u = frac(GetRandomUV(HALF_ZERO, sampleIndex) + noise) * HALF_TWO - HALF_ONE;
+        const half theta = (GetRandomUV(HALF_ONE, sampleIndex) + noise) * HALF_TWO_PI;
         const half u2 = half(sqrt(HALF_ONE - u * u));
 
         half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
         v *= sqrt((sHalf + HALF_ONE) * rcpSampleCount);
-        v = faceforward(v, -norm_o, v) * RADIUS;
+        v = faceforward(v, -normal_o, v);
     #endif
 
-    return v;
+    return v * RADIUS;
 }
 
 float SampleAndGetLinearEyeDepth(float2 uv)
@@ -236,20 +235,20 @@ float SampleAndGetLinearEyeDepth(float2 uv)
 }
 
 // This returns a vector in world unit (not a position), from camera to the given point described by uv screen coordinate and depth (in absolute world unit).
-half3 ReconstructViewPos(float2 uv, float depth)
+half3 ReconstructViewPos(float2 uv, float linearDepth)
 {
     // Screen is y-inverted.
     uv.y = 1.0 - uv.y;
 
     // view pos in world space
     #if defined(_ORTHOGRAPHIC)
-        float zScale = depth * _ProjectionParams.w; // divide by far plane
+        float zScale = linearDepth * _ProjectionParams.w; // divide by far plane
         float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
                             + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
                             + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y
                             + _CameraViewZExtent[unity_eyeIndex].xyz * zScale;
     #else
-        float zScale = depth * _ProjectionParams2.x; // divide by near plane
+        float zScale = linearDepth * _ProjectionParams2.x; // divide by near plane
         float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
                             + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
                             + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y;
@@ -265,7 +264,7 @@ half3 ReconstructViewPos(float2 uv, float depth)
 // High:   5 taps on each direction: | z | x | * | y | w |
 // https://atyuwen.github.io/posts/normal-reconstruction/
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-half3 ReconstructNormal(float2 uv, float depth, float3 vpos)
+half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos)
 {
     #if defined(_RECONSTRUCT_NORMAL_LOW)
         return half3(normalize(cross(ddy(vpos), ddx(vpos))));
@@ -295,8 +294,8 @@ half3 ReconstructNormal(float2 uv, float depth, float3 vpos)
             float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = SampleAndGetLinearEyeDepth(u2.xy); // Up2
             float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = SampleAndGetLinearEyeDepth(d2.xy); // Down2
 
-            const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - depth) < abs( (2.0 * r1.z - r2.z) - depth) ? 0 : 1;
-            const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - depth) < abs( (2.0 * u1.z - u2.z) - depth) ? 0 : 1;
+            const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - linearDepth) < abs( (2.0 * r1.z - r2.z) - linearDepth) ? 0 : 1;
+            const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - linearDepth) < abs( (2.0 * u1.z - u2.z) - linearDepth) ? 0 : 1;
         #endif
 
         // Calculate the triangle, in a counter-clockwize order, to
@@ -324,13 +323,13 @@ half3 ReconstructNormal(float2 uv, float depth, float3 vpos)
     #endif
 }
 
-half3 SampleNormal(float2 uv, float depth)
+half3 SampleNormal(float2 uv, float linearDepth)
 {
     #if defined(_SOURCE_DEPTH_NORMALS)
         return half3(SampleSceneNormals(uv));
     #else
-        float3 vpos = ReconstructViewPos(uv, depth);
-        return ReconstructNormal(uv, depth, vpos);
+        float3 vpos = ReconstructViewPos(uv, linearDepth);
+        return ReconstructNormal(uv, linearDepth, vpos);
     #endif
 }
 
@@ -343,22 +342,23 @@ half4 SSAO(Varyings input) : SV_Target
     float2 uv = input.uv;
 
     // Get the depth and normal for this fragment
-    float depth_o = SampleAndGetLinearEyeDepth(uv);
-    half3 norm_o = SampleNormal(uv, depth_o);
+    float linearDepth_o = SampleAndGetLinearEyeDepth(uv);
+    half halfLinearDepth_o = half(linearDepth_o);
+    half3 normal_o = SampleNormal(uv, linearDepth_o);
 
     // Check if we can early out based on the falloff and depth
-    if (half(depth_o) > half(FALLOFF))
-        return PackAONormal(HALF_ZERO, norm_o);
+    if (halfLinearDepth_o > FALLOFF)
+        return PackAONormal(HALF_ZERO, normal_o);
 
     // Get the view position for this fragment
-    float3 vpos_o = ReconstructViewPos(uv, depth_o);
+    float3 vpos_o = ReconstructViewPos(uv, linearDepth_o);
 
     // Parameters used in coordinate conversion
     half3 camTransform000102 = half3(_CameraViewProjections[unity_eyeIndex]._m00, _CameraViewProjections[unity_eyeIndex]._m01, _CameraViewProjections[unity_eyeIndex]._m02);
     half3 camTransform101112 = half3(_CameraViewProjections[unity_eyeIndex]._m10, _CameraViewProjections[unity_eyeIndex]._m11, _CameraViewProjections[unity_eyeIndex]._m12);
 
     const half rcpSampleCount = half(rcp(SAMPLE_COUNT));
-    half ao = 0.0;
+    half ao = HALF_ZERO;
     half sHalf = HALF_MINUS_ONE;
     UNITY_UNROLL
     for (int s = 0; s < SAMPLE_COUNT; s++)
@@ -366,7 +366,7 @@ half4 SSAO(Varyings input) : SV_Target
         sHalf += HALF_ONE;
 
         // Sample point
-        half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, norm_o);
+        half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, normal_o);
 
         half3 vpos_s1 = half3(vpos_o + v_s1);
 
@@ -388,9 +388,9 @@ half4 SSAO(Varyings input) : SV_Target
 
         // Estimate the obscurance value
         #if defined(_ORTHOGRAPHIC)
-            half dotVal = dot(v_s2, norm_o) - half(HALF_TWO * kBeta * depth_o);
+            half dotVal = dot(v_s2, normal_o) - half(HALF_TWO * kBeta * linearDepth_o);
         #else
-            half dotVal = dot(v_s2, norm_o) - half(kBeta * depth_o);
+            half dotVal = dot(v_s2, normal_o) - half(kBeta * linearDepth_o);
         #endif
 
         half a1 = max(dotVal, HALF_ZERO);
@@ -402,20 +402,19 @@ half4 SSAO(Varyings input) : SV_Target
     ao *= RADIUS;
 
     // Calculate falloff...
-    const half rcpFalloff = half(rcp(FALLOFF));
-    half falloff = HALF_ONE - half(depth_o) * rcpFalloff;
+    const half falloff = HALF_ONE - halfLinearDepth_o * half(rcp(FALLOFF));
 
     // Apply contrast + intensity + falloff
     ao = PositivePow(saturate(ao * INTENSITY * falloff * rcpSampleCount), kContrast);
 
     // Return the packed ao + normals
-    return PackAONormal(ao, norm_o);
+    return PackAONormal(ao, normal_o);
 }
 
 // Geometry-aware separable bilateral filter
 half4 Blur(const float2 uv, const float2 delta) : SV_Target
 {
-    half4 p0 =  SAMPLE_BASEMAP(uv                 );
+    half4 p0 =  SAMPLE_BASEMAP(uv                       );
     half4 p1a = SAMPLE_BASEMAP(uv - delta * 1.3846153846);
     half4 p1b = SAMPLE_BASEMAP(uv + delta * 1.3846153846);
     half4 p2a = SAMPLE_BASEMAP(uv - delta * 3.2307692308);
@@ -451,13 +450,13 @@ half BlurSmall(const float2 uv, const float2 delta)
 
     half3 n0 = GetPackedNormal(p0);
 
-    half w0 = half(1.0);
+    half w0 = HALF_ONE;
     half w1 = CompareNormal(n0, GetPackedNormal(p1));
     half w2 = CompareNormal(n0, GetPackedNormal(p2));
     half w3 = CompareNormal(n0, GetPackedNormal(p3));
     half w4 = CompareNormal(n0, GetPackedNormal(p4));
 
-    half s = half(0.0);
+    half s = HALF_ZERO;
     s += GetPackedAO(p0) * w0;
     s += GetPackedAO(p1) * w1;
     s += GetPackedAO(p2) * w2;
@@ -650,7 +649,6 @@ half KawaseBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uv;
-
     half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
 
     half col = KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration);
@@ -666,11 +664,9 @@ half DualKawaseBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uv;
-
     half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
 
     half col = KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration);
-
     col += KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration * HALF_TWO + HALF_ONE);
     col *= HALF_HALF;
 
@@ -691,7 +687,7 @@ half DualFilteringDownsample(Varyings input) : SV_Target
     half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
     half2 halfPixel = pixelSize * HALF_HALF;
 
-    half col = half(4.0) * SAMPLE_BASEMAP_R(uv);
+    half col = HALF_FOUR * SAMPLE_BASEMAP_R(uv);
     col += SAMPLE_BASEMAP_R(uv - halfPixel);
     col += SAMPLE_BASEMAP_R(uv + halfPixel);
     col += SAMPLE_BASEMAP_R(uv + half2(halfPixel.x, -halfPixel.y));
@@ -706,7 +702,7 @@ half DualFilteringUpsample(Varyings input) : SV_Target
 
     half2 uv = input.uv;
     half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE) * HALF_HALF;
-    half2 halfPixel = pixelSize * 0.5h;
+    half2 halfPixel = pixelSize * HALF_HALF;
 
     half col = SAMPLE_BASEMAP_R(uv + half2(-pixelSize.x, HALF_ZERO));
     col += HALF_TWO * SAMPLE_BASEMAP_R(uv + half2(-halfPixel.x, halfPixel.y));

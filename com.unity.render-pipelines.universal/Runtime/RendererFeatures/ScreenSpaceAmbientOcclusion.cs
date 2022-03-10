@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionSettings
     {
         // Parameters
-        [SerializeField] internal AOAlgorithmOptions AOAlgorithm = AOAlgorithmOptions.Original;
+        [SerializeField] internal AONoiseOptions AONoise = AONoiseOptions.InterleavedGradient;
         [SerializeField] internal bool Downsample = false;
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal BlurQualityOptions BlurQuality = BlurQualityOptions.High;
         [SerializeField] internal float Falloff = 100f;
-        [SerializeField] internal float Scattering = 0.1f;
+        [SerializeField] internal float Scattering = 0.50f;
         [SerializeField] internal float TimeMultiplier = 100f;
         [SerializeField] internal Texture2D BlueNoiseTexture;
 
@@ -46,9 +46,9 @@ namespace UnityEngine.Rendering.Universal
             _12
         }
 
-        internal enum AOAlgorithmOptions
+        internal enum AONoiseOptions
         {
-            Original,
+            InterleavedGradient,
             BlueNoise,
         }
 
@@ -404,12 +404,12 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
                 CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, false);
                 CoreUtils.SetKeyword(m_Material, k_AOOriginalKeyword, false);
-                switch (m_CurrentSettings.AOAlgorithm)
+                switch (m_CurrentSettings.AONoise)
                 {
-                    case ScreenSpaceAmbientOcclusionSettings.AOAlgorithmOptions.BlueNoise:
+                    case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.BlueNoise:
                         CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, true);
                         break;
-                    case ScreenSpaceAmbientOcclusionSettings.AOAlgorithmOptions.Original:
+                    case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.InterleavedGradient:
                         CoreUtils.SetKeyword(m_Material, k_AOOriginalKeyword, true);
                         break;
                     default:
