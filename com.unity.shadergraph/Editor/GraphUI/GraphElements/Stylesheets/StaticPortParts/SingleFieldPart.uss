@@ -1,5 +1,5 @@
 .unity-base-field__label {
-    min-width: 70px;
+    min-width: 60px;
 }
 
 /* Some fields, like vectors, contain descendant labels. Don't apply the above min-width to them. */
