@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public TextureHandle internalLut;
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, PassData passData, RTHandle internalLutTarget)
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData, RTHandle internalLutTarget, bool usingRenderGraph = false)
         {
             var renderingData = passData.renderingData;
             var cmd = renderingData.commandBuffer;
@@ -228,7 +228,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, internalLutTarget);
-                CoreUtils.SetRenderTarget(cmd, internalLutTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
+                if (!usingRenderGraph)
+                    CoreUtils.SetRenderTarget(cmd, internalLutTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
                 // Render the lut
                 cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, material, 0);
 
@@ -256,7 +257,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    ExecutePass(context.renderContext, data, data.internalLut);
+                    ExecutePass(context.renderContext, data, data.internalLut, true);
                 });
 
                 return;
