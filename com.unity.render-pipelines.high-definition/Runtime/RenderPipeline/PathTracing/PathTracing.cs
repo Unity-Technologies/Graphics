@@ -304,6 +304,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        bool IsCameraMoving(HDCamera hdCamera)
+        {
+            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
+            {
+                ResetPathTracing(hdCamera);
+                return true;
+            }
+            else
+                return false;
+        }
+
 #if UNITY_EDITOR
 
         private void InitPathTracingSettingsCache()
@@ -420,9 +431,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check camera matrix dirtiness
-            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
+            if (IsCameraMoving(hdCamera))
             {
-                return ResetPathTracing(camID, camData);
+                return camData;
             }
 
             // If nothing but the camera has changed, re-render the sky texture
