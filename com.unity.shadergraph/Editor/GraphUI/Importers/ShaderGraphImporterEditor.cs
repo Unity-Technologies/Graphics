@@ -8,7 +8,6 @@ using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphDelta.Utils;
 using UnityEditor.ShaderGraph.GraphUI;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -70,6 +69,14 @@ namespace UnityEditor.ShaderGraph
 
         private static bool ShowWindow(string path, ShaderGraphAssetModel model)
         {
+            // Prevents the same graph asset from being opened in two separate editor windows
+            var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
+            foreach (var existingEditorWindow in existingEditorWindows)
+            {
+                if (existingEditorWindow.GraphTool.ToolState.AssetModel == model)
+                    return true;
+            }
+
             var shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             if(shaderGraphEditorWindow == null)
             {

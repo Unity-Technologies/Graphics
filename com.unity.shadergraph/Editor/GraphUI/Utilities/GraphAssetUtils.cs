@@ -21,10 +21,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var newGraphAction = ScriptableObject.CreateInstance<CreateAssetAction>();
 
-            var path = "";
-            var obj = Selection.activeObject;
-            path = obj == null ? "Assets" : AssetDatabase.GetAssetPath(obj.GetInstanceID());
-
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,

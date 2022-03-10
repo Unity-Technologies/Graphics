@@ -36,10 +36,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
         }
 
-        public void Initialize(ShaderGraphModel graphModel)
+        public void Initialize(ShaderGraphModel graphModel, bool wasWindowCloseCancelled)
         {
             // Can be null when the editor window is opened to the onboarding page
-            if(graphModel == null)
+            if (graphModel == null)
                 return;
 
             m_isInitialized = true;
@@ -51,15 +51,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)
             {
-                if(nodeModel is GraphDataNodeModel graphDataNodeModel)
+                if (nodeModel is GraphDataNodeModel graphDataNodeModel)
                     OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
             }
 
             // Call update once at graph load in order to handle updating all existing nodes
             Update();
 
-            // Mark dirty state as cleared afterwards to clear modification state from editor window tab
-            m_GraphModel.AssetModel.Dirty = false;
+            // Don't clear dirty state if the window close was cancelled with the graph in dirty state
+            if (!wasWindowCloseCancelled)
+            {
+                // Mark dirty state as cleared afterwards to clear modification state from editor window tab
+                m_GraphModel.AssetModel.Dirty = false;
+            }
         }
 
         public void Update()

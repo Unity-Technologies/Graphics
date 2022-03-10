@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
@@ -14,6 +15,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         PreviewManager m_PreviewManager;
 
         GraphViewStateObserver m_GraphViewStateObserver;
+
+        // This Flag gets set when the editor window is closed with the graph still in a dirty state,
+        // letting various sub-systems and the user know on window re-open that the graph is still dirty
+        bool wasWindowCloseCancelledInDirtyState;
+
+        ShaderGraphMainToolbar Toolbar => m_MainToolbar as ShaderGraphMainToolbar;
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -39,6 +46,121 @@ namespace UnityEditor.ShaderGraph.GraphUI
             rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
         }
 
+        protected override void OnDisable()
+        {
+            if (!PromptSaveIfDirtyOnQuit())
+            {
+                // User does not want to close the window.
+                // We can't stop the close from this code path though..
+                // All we can do is open a new window and transfer our data to the new one to avoid losing it
+
+                var shaderGraphEditorWindow = CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
+                if(shaderGraphEditorWindow == null)
+                {
+                    return;
+                }
+                shaderGraphEditorWindow.Show();
+                shaderGraphEditorWindow.Focus();
+                shaderGraphEditorWindow.SetCurrentSelection(m_GraphTool.ToolState.AssetModel, OpenMode.OpenAndFocus);
+                // Set this flag in order to let anything that would clear the dirty state know that graph is still dirty
+                shaderGraphEditorWindow.wasWindowCloseCancelledInDirtyState = true;
+            }
+
+            base.OnDisable();
+        }
+
+        // returns true when the user is OK with closing the window or application (either they've saved dirty content, or are ok with losing it)
+        // returns false when the user wants to cancel closing the window or application
+        bool PromptSaveIfDirtyOnQuit()
+        {
+            if (m_GraphTool.ToolState.AssetModel == null)
+                return true;
+
+            if (isAssetDirty)
+            {
+                // TODO (Sai): Implement checking for whether the asset file has been deleted on disk and if so provide feedback to user and allow them to save state of current graph/discard etc
+                // Work item for this: https://jira.unity3d.com/browse/GSG-933
+                //if (!DoesAssetFileExist())
+                //    return DisplayDeletedFromDiskDialog();
+
+                // If there are unsaved modifications, ask the user what to do.
+                // If the editor has already handled this check we'll no longer have unsaved changes
+                // (either they saved or they discarded, both of which will set hasUnsavedChanges to false).
+                if (isAssetDirty)
+                {
+                    int option = EditorUtility.DisplayDialogComplex(
+                        "Shader Graph Has Been Modified",
+                        GetSaveChangesMessage(),
+                        "Save", "Cancel", "Discard Changes");
+
+                    if (option == 0) // save
+                    {
+                        Toolbar.SaveImplementation();
+                        return true;
+                    }
+                    else if (option == 1) // cancel (or escape/close dialog)
+                    {
+                        // Should cancel save the current state of graph before closing out? cause we can't halt the window close
+                        return false;
+                    }
+                    else if (option == 2) // discard
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        bool isAssetDirty => m_GraphTool.ToolState.AssetModel.Dirty;
+
+        private string GetSaveChangesMessage()
+        {
+            return "Do you want to save the changes you made in the Shader Graph?\n\n" +
+                m_GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath() +
+                "\n\nYour changes will be lost if you don't save them.";
+        }
+
+        bool DisplayDeletedFromDiskDialog()
+        {
+            bool saved = false;
+            bool okToClose = false;
+
+            var originalAssetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+            int option = EditorUtility.DisplayDialogComplex(
+                "Graph removed from project",
+                "The file has been deleted or removed from the project folder.\n\n" +
+                originalAssetPath +
+                "\n\nWould you like to save your Graph Asset?",
+                "Save As...", "Cancel", "Discard Graph and Close Window");
+
+            if (option == 0)
+            {
+                var savedPath = Toolbar.SaveAsImplementation();
+                if (savedPath != null)
+                {
+                    saved = true;
+                }
+            }
+            else if (option == 2)
+            {
+                okToClose = true;
+            }
+            else if (option == 1)
+            {
+                // continue in deleted state...
+            }
+
+            return (saved || okToClose);
+        }
+
+        bool DoesAssetFileExist()
+        {
+            var assetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+            return File.Exists(assetPath);
+        }
+
         protected override BaseGraphTool CreateGraphTool()
         {
             m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>();
@@ -52,13 +174,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
             m_PreviewManager = new PreviewManager(shaderGraphView.GraphViewState);
             m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewState, m_PreviewManager);
-
-            shaderGraphView.schedule.Execute(() =>
-            {
-                var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
-                m_PreviewManager.Initialize(shaderGraphModel);
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
-            }).ExecuteLater(0);
 
             GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
 
@@ -92,7 +207,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (!m_PreviewManager.IsInitialized)
             {
-                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel);
+                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, wasWindowCloseCancelledInDirtyState);
+                var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
             }
             m_PreviewManager.Update();
         }

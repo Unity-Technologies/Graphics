@@ -102,6 +102,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnSaveButton()
         {
+            SaveImplementation();
+        }
+
+        void OnSaveAsButton()
+        {
+            SaveAsImplementation();
+        }
+
+        public void SaveImplementation()
+        {
             // If no currently opened graph, early out
             if (GraphTool.ToolState.AssetModel == null)
                 return;
@@ -115,25 +125,32 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        // TODO (Sai): What to do if the source graph has currently unsaved changes? Do we save first?
-        // Need to reference old sg behavior for parity
-        void OnSaveAsButton()
+        public string SaveAsImplementation()
         {
             // If no currently opened graph, early out
             if (GraphTool.ToolState.AssetModel == null)
-                return;
+                return String.Empty;
 
             if (GraphTool.ToolState.GraphModel is ShaderGraphModel shaderGraphModel)
             {
-                var sourcePath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
-                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", "", GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2");
+                // Get folder of current shader graph asset
+                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                path = path.Remove(path.LastIndexOf('/'));
+
+                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2");
                 // If User cancelled operation or provided an invalid path
                 if (destinationPath == String.Empty)
-                    return;
+                    return String.Empty;
 
                 var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
                 ShaderGraphAsset.HandleSave(destinationPath, assetModel);
+                // Refresh asset database so newly saved asset shows up
+                AssetDatabase.Refresh();
+
+                return destinationPath;
             }
+
+            return String.Empty;
         }
 
         void OnShowInProjectButton()
