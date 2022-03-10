@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void IncrementDataVersion(int i);
 
         Vector3 GetPosition(int i);
+        Quaternion GetRotation(int i);
 
         ProbeVolumeArtistParameters GetParameters(int i);
 
@@ -26,7 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref ProbeVolumePipelineData GetPipelineData(int i);
 
         // Dynamic GI
-        OrientedBBox ConstructOBBEngineData(int i, Vector3 camOffset);
         ref ProbeVolumePropagationPipelineData GetPropagationPipelineData(int i);
         bool HasNeighbors(int i);
         int GetHitNeighborAxisLength(int i);

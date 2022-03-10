@@ -645,6 +645,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public int EngineDataIndex;
         public OrientedBBox BoundingBox;
         public ProbeVolumeEngineData EngineData;
+        
+        public static ProbeVolumePipelineData Empty => new ProbeVolumePipelineData
+        {
+            BuffersDataVersion = -1,
+            UsedAtlasKey = ProbeVolume.ProbeVolumeAtlasKey.empty,
+            EngineDataIndex = -1,
+        };
     }
 
     [ExecuteAlways]
@@ -654,9 +661,6 @@ namespace UnityEngine.Rendering.HighDefinition
         , IVolumeGlobalUniqueIDOwnerEditorOnly
 #endif
     {
-        internal Vector3[] m_ProbePositions;
-        internal int m_simulationFrameTick = -1;
-
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
         {
             id = VolumeGlobalUniqueID.zero,
@@ -680,7 +684,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int height;
             public int depth;
 
-            public static readonly ProbeVolumeAtlasKey zero = new ProbeVolumeAtlasKey
+            public static readonly ProbeVolumeAtlasKey empty = new ProbeVolumeAtlasKey
             {
                 id = VolumeGlobalUniqueID.zero,
                 dataVersion = -1,
@@ -771,15 +775,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        internal Vector3[] m_ProbePositions;
         private bool bakingEnabled = false;
         private bool dataNeedsDilation = false;
 #endif
+
         [SerializeField] private VolumeGlobalUniqueID globalUniqueID = VolumeGlobalUniqueID.zero;
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
-        internal ProbeVolumePipelineData pipelineData = new ProbeVolumePipelineData { BuffersDataVersion = -1, EngineDataIndex = -1 };
-        internal ProbeVolumePropagationPipelineData propagationPipelineData = new ProbeVolumePropagationPipelineData { buffersDataVersion = -1 };
+        internal ProbeVolumePipelineData pipelineData = ProbeVolumePipelineData.Empty;
+        internal ProbeVolumePropagationPipelineData propagationPipelineData = ProbeVolumePropagationPipelineData.Empty;
 
         // custom-begin:
         [System.NonSerialized] private static List<ProbeVolume> s_Instances = new List<ProbeVolume>();
@@ -818,7 +824,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey()
         {
             if (probeVolumeAsset == null)
-                return ProbeVolumeAtlasKey.zero;
+                return ProbeVolumeAtlasKey.empty;
 
             Quaternion assetRotation = GetAssetRotation();
             Quaternion volumeRotation = transform.rotation;
@@ -936,16 +942,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        internal OrientedBBox ConstructOBBEngineData(Vector3 cameraOffset)
-        {
-            var obb = new OrientedBBox(Matrix4x4.TRS(transform.position, transform.rotation, parameters.size));
-
-            // Handle camera-relative rendering.
-            obb.center -= cameraOffset;
-
-            return obb;
-        }
-
         internal void EnsureVolumeBuffers()
         {
             if (pipelineData.BuffersDataVersion == probeVolumeAsset.dataVersion)
@@ -969,16 +965,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void CleanupBuffers()
         {
             CleanupBuffers(pipelineData);
-        }
-
-        internal void SetLastSimulatedFrame(int simulationFrameTick)
-        {
-            m_simulationFrameTick = simulationFrameTick;
-        }
-
-        internal int GetLastSimulatedFrame()
-        {
-            return m_simulationFrameTick;
         }
 
         public static void CleanupBuffers(ProbeVolumePipelineData pipelineData)

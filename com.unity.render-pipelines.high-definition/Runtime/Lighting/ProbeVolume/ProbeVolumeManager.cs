@@ -217,6 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void IProbeVolumeList.IncrementDataVersion(int i) => m_Volumes[i].IncrementDataVersion();
 
         Vector3 IProbeVolumeList.GetPosition(int i) => m_Volumes[i].transform.position;
+        Quaternion IProbeVolumeList.GetRotation(int i) => m_Volumes[i].transform.rotation;
         ProbeVolumeArtistParameters IProbeVolumeList.GetParameters(int i) => m_Volumes[i].parameters;
         ProbeVolume.ProbeVolumeAtlasKey IProbeVolumeList.ComputeProbeVolumeAtlasKey(int i) => m_Volumes[i].ComputeProbeVolumeAtlasKey();
         int IProbeVolumeList.GetDataSHL01Length(int i) => m_Volumes[i].GetPayload().dataSHL01.Length;
@@ -227,7 +228,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ref ProbeVolumePipelineData IProbeVolumeList.GetPipelineData(int i) => ref m_Volumes[i].pipelineData;
 
         // Dynamic GI
-        OrientedBBox IProbeVolumeList.ConstructOBBEngineData(int i, Vector3 camOffset)  => m_Volumes[i].ConstructOBBEngineData(camOffset);
         ref ProbeVolumePropagationPipelineData IProbeVolumeList.GetPropagationPipelineData(int i) => ref m_Volumes[i].propagationPipelineData;
 
         bool IProbeVolumeList.HasNeighbors(int i)

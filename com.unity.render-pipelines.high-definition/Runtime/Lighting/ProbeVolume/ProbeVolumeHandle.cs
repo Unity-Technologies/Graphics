@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void IncrementDataVersion() => m_List.IncrementDataVersion(m_Index);
 
         public Vector3 position => m_List.GetPosition(m_Index);
+        public Quaternion rotation => m_List.GetRotation(m_Index);
 
         public ProbeVolumeArtistParameters parameters => m_List.GetParameters(m_Index);
 
@@ -32,7 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref ProbeVolumePipelineData GetPipelineData() => ref m_List.GetPipelineData(m_Index);
 
         // Dynamic GI
-        public OrientedBBox ConstructOBBEngineData(Vector3 camOffset) => m_List.ConstructOBBEngineData(m_Index, camOffset);
         public ref ProbeVolumePropagationPipelineData GetPropagationPipelineData() => ref m_List.GetPropagationPipelineData(m_Index);
         public bool HasNeighbors() => m_List.HasNeighbors(m_Index);
 
@@ -47,6 +47,16 @@ namespace UnityEngine.Rendering.HighDefinition
                    && IsDataAssigned()
                    && HasNeighbors()
                    && GetPipelineData().EngineDataIndex >= 0;
+        }
+
+        public OrientedBBox ConstructOBBEngineData(Vector3 cameraOffset)
+        {
+            var obb = new OrientedBBox(Matrix4x4.TRS(position, rotation, parameters.size));
+
+            // Handle camera-relative rendering.
+            obb.center -= cameraOffset;
+
+            return obb;
         }
 
 #if UNITY_EDITOR

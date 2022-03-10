@@ -1,9 +1,7 @@
 using System;
-using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -628,13 +626,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (probeVolumeAtlasOctahedralDepth.IsTextureSlotAllocated(usedKey)) { probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(usedKey); }
             }
             
-            usedKey = ProbeVolume.ProbeVolumeAtlasKey.zero;
+            usedKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
         }
 
         internal void EnsureStaleDataIsFlushedFromAtlases(ProbeVolumeHandle volume, bool isOctahedralDepthAtlasEnabled)
         {
             ProbeVolume.ProbeVolumeAtlasKey key = volume.ComputeProbeVolumeAtlasKey();
-            ref ProbeVolume.ProbeVolumeAtlasKey usedKey = ref volume.GetPipelineData().UsedAtlasKey;
+            ref var usedKey = ref volume.GetPipelineData().UsedAtlasKey;
             if (!key.Equals(usedKey))
             {
                 if (probeVolumeAtlas.IsTextureSlotAllocated(usedKey))
@@ -647,7 +645,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(usedKey);
                 }
                 
-                usedKey = ProbeVolume.ProbeVolumeAtlasKey.zero;
+                usedKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
             }
         }
 

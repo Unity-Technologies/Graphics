@@ -1,14 +1,6 @@
 using System;
-using System.Collections;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
-using UnityEditor.Experimental;
-using Unity.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using UnityEditor;
-using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 
 using static UnityEngine.Rendering.HighDefinition.ProbePropagationBasis;
@@ -60,6 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             radianceReadIndex = (radianceReadIndex + 1) % 2;
         }
+
+        public static ProbeVolumePropagationPipelineData Empty => new ProbeVolumePropagationPipelineData
+        {
+            buffersDataVersion = -1,
+            simulationFrameTick = -1,
+        };
     }
 
     public partial class ProbeVolumeDynamicGI
