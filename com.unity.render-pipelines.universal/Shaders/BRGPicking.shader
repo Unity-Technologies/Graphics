@@ -38,6 +38,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
 
             float4x4 unity_BRGPickingViewMatrix;
             float4x4 unity_BRGPickingProjMatrix;
+            float4 _SelectionID;
             int unity_SubmeshIndex;
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -70,7 +71,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             half4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                outColor = UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex);
+                return UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex);
             }
 
             ENDHLSL
@@ -101,12 +102,12 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
 
             #define SCENESELECTIONPASS
 
+            int _ObjectId;
+            int _PassValue;
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-
-            int _ObjectId;
-            int _PassValue;
 
             struct Attributes
             {
