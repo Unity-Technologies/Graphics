@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             ExecutePass(m_PassData, source, destination);
         }
 
-        private static void ExecutePass(PassData passData, RTHandle source, RTHandle destination)
+        private static void ExecutePass(PassData passData, RTHandle source, RTHandle destination, bool usingRenderGraph = false)
         {
             var renderingData = passData.renderingData;
             bool useDrawProceduralBlit = renderingData.cameraData.xr.enabled;
@@ -173,8 +173,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // TODO RENDERGRAPH: cmd.Blit is not compatible with RG but RenderingUtils.Blits would still call into it in some cases
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
-                ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag,
-                    clearColor);
+                if (!usingRenderGraph)
+                    ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
 
                 switch (downsamplingMethod)
                 {
@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
-                    ExecutePass(data, data.source, data.destination);
+                    ExecutePass(data, data.source, data.destination, true);
                     data.renderingData.commandBuffer.SetGlobalTexture("_CameraOpaqueTexture", data.destination);
                 });
 
