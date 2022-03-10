@@ -1,5 +1,15 @@
 Shader "Hidden/HDRP/BRGPicking"
 {
+    HLSLINCLUDE
+
+    #pragma target 4.5
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    #pragma editor_sync_compilation
+    #pragma multi_compile DOTS_INSTANCING_ON
+    //#pragma enable_d3d11_debug_symbols
+
+    ENDHLSL
+
     SubShader
     {
         // This tags allow to use the shader replacement features
@@ -14,12 +24,6 @@ Shader "Hidden/HDRP/BRGPicking"
 
             HLSLPROGRAM
 
-            #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-
-            #pragma editor_sync_compilation
-            #pragma multi_compile DOTS_INSTANCING_ON
-
             #pragma vertex Vert
             #pragma fragment Frag
 
@@ -32,6 +36,8 @@ Shader "Hidden/HDRP/BRGPicking"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
             struct PickingAttributesMesh
             {
@@ -67,6 +73,50 @@ Shader "Hidden/HDRP/BRGPicking"
                 UNITY_SETUP_INSTANCE_ID(input);
                 outColor = UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex);
             }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SceneSelectionPass"
+            Tags { "LightMode" = "SceneSelectionPass" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            int _ObjectId;
+            int _PassValue;
+
+            struct SurfaceData
+            {
+            };
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+            //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+
+            void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
+            {
+                builtinData = (BuiltinData)0;
+            }
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             ENDHLSL
         }
