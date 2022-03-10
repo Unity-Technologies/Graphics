@@ -15,8 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool IsAssetCompatible() => m_List.IsAssetCompatible(m_Index);
         public bool IsDataAssigned() => m_List.IsDataAssigned(m_Index);
-        public bool IsDataUpdated() => m_List.IsDataUpdated(m_Index);
-        public void SetDataUpdated(bool value) => m_List.SetDataUpdated(m_Index, value);
+        public int GetDataVersion() => m_List.GetDataVersion(m_Index);
+        public void IncrementDataVersion() => m_List.IncrementDataVersion(m_Index);
 
         public Vector3 position => m_List.GetPosition(m_Index);
 
@@ -32,13 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref ProbeVolumePipelineData GetPipelineData() => ref m_List.GetPipelineData(m_Index);
 
         // Dynamic GI
-        public int GetProbeVolumeEngineDataIndex() => m_List.GetProbeVolumeEngineDataIndex(m_Index);
-        public OrientedBBox GetProbeVolumeEngineDataBoundingBox() => m_List.GetProbeVolumeEngineDataBoundingBox(m_Index);
-        public ProbeVolumeEngineData GetProbeVolumeEngineData() => m_List.GetProbeVolumeEngineData(m_Index);
-        public void ClearProbeVolumeEngineData() => m_List.ClearProbeVolumeEngineData(m_Index);
-        public void SetProbeVolumeEngineData(int dataIndex, in OrientedBBox box, in ProbeVolumeEngineData data) => m_List.SetProbeVolumeEngineData(m_Index, dataIndex, in box, in data);
         public OrientedBBox ConstructOBBEngineData(Vector3 camOffset) => m_List.ConstructOBBEngineData(m_Index, camOffset);
-        public ref ProbePropagationBuffers propagationBuffers => ref m_List.GetPropagationBuffers(m_Index);
+        public ref ProbeVolumePropagationPipelineData GetPropagationPipelineData() => ref m_List.GetPropagationPipelineData(m_Index);
         public bool HasNeighbors() => m_List.HasNeighbors(m_Index);
 
         public int HitNeighborAxisLength => m_List.GetHitNeighborAxisLength(m_Index);
@@ -46,15 +41,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetHitNeighborAxis(ComputeBuffer buffer) => m_List.SetHitNeighborAxis(m_Index, buffer);
         public void SetNeighborAxis(ComputeBuffer buffer) => m_List.SetNeighborAxis(m_Index, buffer);
 
-        public void SetLastSimulatedFrame(int simulationFrameTick) => m_List.SetLastSimulatedFrame(m_Index, simulationFrameTick);
-        public int GetLastSimulatedFrame() => m_List.GetLastSimulatedFrame(m_Index);
-
         public bool AbleToSimulateDynamicGI()
         {
             return parameters.supportDynamicGI
                    && IsDataAssigned()
                    && HasNeighbors()
-                   && GetProbeVolumeEngineDataIndex() >= 0;
+                   && GetPipelineData().EngineDataIndex >= 0;
         }
 
 #if UNITY_EDITOR

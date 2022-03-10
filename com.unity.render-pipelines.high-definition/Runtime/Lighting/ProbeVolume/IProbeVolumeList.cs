@@ -7,8 +7,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool IsAssetCompatible(int i);
         bool IsDataAssigned(int i);
-        bool IsDataUpdated(int i);
-        void SetDataUpdated(int i, bool value);
+        int GetDataVersion(int i);
+        void IncrementDataVersion(int i);
 
         Vector3 GetPosition(int i);
 
@@ -26,20 +26,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref ProbeVolumePipelineData GetPipelineData(int i);
 
         // Dynamic GI
-        int GetProbeVolumeEngineDataIndex(int i);
-        OrientedBBox GetProbeVolumeEngineDataBoundingBox(int i);
-        ProbeVolumeEngineData GetProbeVolumeEngineData(int i);
-        void ClearProbeVolumeEngineData(int i);
-        void SetProbeVolumeEngineData(int i, int dataIndex, in OrientedBBox box, in ProbeVolumeEngineData data);
         OrientedBBox ConstructOBBEngineData(int i, Vector3 camOffset);
-        ref ProbePropagationBuffers GetPropagationBuffers(int i);
+        ref ProbeVolumePropagationPipelineData GetPropagationPipelineData(int i);
         bool HasNeighbors(int i);
         int GetHitNeighborAxisLength(int i);
         int GetNeighborAxisLength(int i);
         void SetHitNeighborAxis(int i, ComputeBuffer buffer);
         void SetNeighborAxis(int i, ComputeBuffer buffer);
-        void SetLastSimulatedFrame(int i, int simulationFrameTick);
-        int GetLastSimulatedFrame(int i);
 
 #if UNITY_EDITOR
         public bool IsHiddenInScene(int i);

@@ -669,7 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (isSlotAllocated)
             {
-                if (isUploadNeeded || volume.IsDataUpdated())
+                if (isUploadNeeded)
                 {
                     if (!volume.IsDataAssigned() || !volume.IsAssetCompatible())
                     {
@@ -751,9 +751,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     pipelineData.UsedAtlasKey = key;
-
-                    // TODO: Remove it when data version is in the key
-                    volume.SetDataUpdated(false);
 
                     return true;
                 }
@@ -850,10 +847,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (isSlotAllocated)
             {
-                // TODO: FIXME: volume.GetDataIsUpdated() will return false after the standard SH atlas calls volume.GetPayload()
-                // This means that even though the octahedral depth data was updated, it will not be updated.
-                // Need to either add a second dirty flag specifically for octahedral depth data, or we need to switch over to a timestamp.
-                if (isUploadNeeded || volume.IsDataUpdated())
+                if (isUploadNeeded)
                 {
                     if (!volume.IsDataAssigned() || !volume.IsAssetCompatible())
                     {
@@ -1118,7 +1112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
 
                         // basic distance check
-                        var obb = volume.GetProbeVolumeEngineDataBoundingBox();
+                        var obb = volume.GetPipelineData().BoundingBox;
                         float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
                         if (obb.center.magnitude < (maxRange + maxExtent))
                         {
@@ -1207,7 +1201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < volumes.Count; ++i)
                 {
                     ProbeVolumeHandle volume = volumes[i];
-                    volume.ClearProbeVolumeEngineData();
+                    volume.GetPipelineData().EngineDataIndex = -1;
                 }
 
                 // Sort probe volumes smallest from smallest to largest volume.
@@ -1268,9 +1262,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ProbeVolumeHandle volume = volumes[probeVolumesIndex];
 
+                    ref var pipelineData = ref volume.GetPipelineData();
                     var obb = volume.ConstructOBBEngineData(camOffset);
-                    var data = volume.parameters.ConvertToEngineData(volume.GetPipelineData(), m_ProbeVolumeAtlasSHRTDepthSliceCount, globalDistanceFadeStart, globalDistanceFadeEnd);
-                    volume.SetProbeVolumeEngineData(m_VisibleProbeVolumeData.Count, in obb, in data);
+                    var data = volume.parameters.ConvertToEngineData(pipelineData, m_ProbeVolumeAtlasSHRTDepthSliceCount, globalDistanceFadeStart, globalDistanceFadeEnd);
+
+                    pipelineData.EngineDataIndex = m_VisibleProbeVolumeData.Count;
+                    pipelineData.BoundingBox = obb;
+                    pipelineData.EngineData = data;
 
                     m_VisibleProbeVolumeBounds.Add(obb);
                     m_VisibleProbeVolumeData.Add(data);

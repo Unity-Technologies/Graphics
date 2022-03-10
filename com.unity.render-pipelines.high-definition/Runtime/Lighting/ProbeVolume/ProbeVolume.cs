@@ -633,12 +633,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeBuffer SHL01Buffer;
         public ComputeBuffer SHL2Buffer;
         public ComputeBuffer ValidityBuffer;
-        
+
+        public int BuffersDataVersion;
+
         public Vector3 Scale;
         public Vector3 Bias;
         public Vector4 OctahedralDepthScaleBias;
         
         public ProbeVolume.ProbeVolumeAtlasKey UsedAtlasKey;
+        
+        public int EngineDataIndex;
+        public OrientedBBox BoundingBox;
+        public ProbeVolumeEngineData EngineData;
     }
 
     [ExecuteAlways]
@@ -649,9 +655,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
     {
         internal Vector3[] m_ProbePositions;
-        internal int m_ProbeVolumeEngineDataIndex = -1;
-        internal OrientedBBox m_BoundingBox;
-        internal ProbeVolumeEngineData m_EngineData;
         internal int m_simulationFrameTick = -1;
 
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
@@ -670,6 +673,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct ProbeVolumeAtlasKey : IEquatable<ProbeVolumeAtlasKey>
         {
             public VolumeGlobalUniqueID id;
+            public int dataVersion;
             public Vector3 position;
             public Quaternion rotation;
             public int width;
@@ -679,17 +683,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly ProbeVolumeAtlasKey zero = new ProbeVolumeAtlasKey
             {
                 id = VolumeGlobalUniqueID.zero,
+                dataVersion = -1,
                 position = Vector3.zero,
                 rotation = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f),
                 width = 0,
                 height = 0,
-                depth = 0
+                depth = 0,
             };
 
             // Override Equals to manually control when atlas keys are considered equivalent.
             public bool Equals(ProbeVolumeAtlasKey keyOther)
             {
                 return (this.id == keyOther.id)
+                    && (this.dataVersion == keyOther.dataVersion)
                     && (this.width == keyOther.width)
                     && (this.height == keyOther.height)
                     && (this.depth == keyOther.depth)
@@ -705,6 +711,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public override int GetHashCode()
             {
                 var hash = id.GetHashCode();
+                hash = hash * 23 + dataVersion.GetHashCode();
                 hash = hash * 23 + width.GetHashCode();
                 hash = hash * 23 + height.GetHashCode();
                 hash = hash * 23 + depth.GetHashCode();
@@ -763,8 +770,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private bool dataUpdated = false;
-
 #if UNITY_EDITOR
         private bool bakingEnabled = false;
         private bool dataNeedsDilation = false;
@@ -773,8 +778,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
-        internal ProbeVolumePipelineData pipelineData;
-        internal ProbePropagationBuffers m_PropagationBuffers;
+        internal ProbeVolumePipelineData pipelineData = new ProbeVolumePipelineData { BuffersDataVersion = -1, EngineDataIndex = -1 };
+        internal ProbeVolumePropagationPipelineData propagationPipelineData = new ProbeVolumePropagationPipelineData { buffersDataVersion = -1 };
 
         // custom-begin:
         [System.NonSerialized] private static List<ProbeVolume> s_Instances = new List<ProbeVolume>();
@@ -817,12 +822,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Quaternion assetRotation = GetAssetRotation();
             Quaternion volumeRotation = transform.rotation;
-            return ComputeProbeVolumeAtlasKey(GetPayloadID(),
+            return ComputeProbeVolumeAtlasKey(GetPayloadID(), probeVolumeAsset.dataVersion,
                 probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
                 volumeRotation, assetRotation, transform.position, parameters.supportDynamicGI);
         }
 
-        internal static ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(VolumeGlobalUniqueID id, int width, int height, int depth,
+        internal static ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(VolumeGlobalUniqueID id, int dataVersion, int width, int height, int depth,
             Quaternion volumeRotation, Quaternion assetRotation, Vector3 position, bool supportDynamicGI)
         {
             Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
@@ -835,6 +840,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new ProbeVolumeAtlasKey
                 {
                     id = id,
+                    dataVersion = dataVersion,
                     width = width,
                     height = height,
                     depth = depth,
@@ -848,14 +854,15 @@ namespace UnityEngine.Rendering.HighDefinition
             bakeKey = ProbeVolumeSettingsKey.zero;
         }
 
-        public bool GetDataIsUpdated()
+        public int GetDataVersion()
         {
-            return dataUpdated;
+            return probeVolumeAsset != null ? probeVolumeAsset.dataVersion : -1;
         }
 
-        public void SetDataIsUpdated(bool value)
+        public void IncrementDataVersion()
         {
-            dataUpdated = value;
+            if (probeVolumeAsset != null)
+                probeVolumeAsset.dataVersion++;
         }
 
         internal ProbeVolumePayload GetPayload()
@@ -882,8 +889,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Migrate();
 
-            dataUpdated = false;
-
 #if UNITY_EDITOR
             dataNeedsDilation = false;
             InitializeGlobalUniqueIDEditorOnly(this);
@@ -899,8 +904,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnDisable()
         {
-            dataUpdated = false;
-
 #if UNITY_EDITOR
             dataNeedsDilation = false;
 #endif
@@ -933,18 +936,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public void SetProbeVolumeEngineData(int index, in OrientedBBox box, in ProbeVolumeEngineData data)
-        {
-            m_ProbeVolumeEngineDataIndex = index;
-            m_EngineData = data;
-            m_BoundingBox = box;
-        }
-
-        public void ClearProbeVolumeEngineData()
-        {
-            m_ProbeVolumeEngineDataIndex = -1;
-        }
-
         internal OrientedBBox ConstructOBBEngineData(Vector3 cameraOffset)
         {
             var obb = new OrientedBBox(Matrix4x4.TRS(transform.position, transform.rotation, parameters.size));
@@ -957,29 +948,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EnsureVolumeBuffers()
         {
-            bool changed = dataUpdated;
+            if (pipelineData.BuffersDataVersion == probeVolumeAsset.dataVersion)
+                return;
 
-            changed |= EnsureBuffer<float>(ref pipelineData.SHL01Buffer, probeVolumeAsset.payload.dataSHL01.Length);
-
-            if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
-                changed |= EnsureBuffer<float>(ref pipelineData.SHL2Buffer, probeVolumeAsset.payload.dataSHL2.Length);
-
-            changed |= EnsureBuffer<float>(ref pipelineData.ValidityBuffer, probeVolumeAsset.payload.dataValidity.Length);
-
-            if (changed)
-            {
-                SetVolumeBuffers();
-            }
-        }
-
-        internal void SetVolumeBuffers()
-        {
+            EnsureBuffer<float>(ref pipelineData.SHL01Buffer, probeVolumeAsset.payload.dataSHL01.Length);
             SetBuffer(pipelineData.SHL01Buffer, probeVolumeAsset.payload.dataSHL01);
 
             if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+            {
+                EnsureBuffer<float>(ref pipelineData.SHL2Buffer, probeVolumeAsset.payload.dataSHL2.Length);
                 SetBuffer(pipelineData.SHL2Buffer, probeVolumeAsset.payload.dataSHL2);
-            
+            }
+
+            EnsureBuffer<float>(ref pipelineData.ValidityBuffer, probeVolumeAsset.payload.dataValidity.Length);
             SetBuffer(pipelineData.ValidityBuffer, probeVolumeAsset.payload.dataValidity);
+
+            pipelineData.BuffersDataVersion = probeVolumeAsset.dataVersion;
         }
 
         internal void CleanupBuffers()
@@ -1002,6 +986,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CleanupBuffer(pipelineData.SHL01Buffer);
             CleanupBuffer(pipelineData.SHL2Buffer);
             CleanupBuffer(pipelineData.ValidityBuffer);
+            pipelineData.BuffersDataVersion = -1;
         }
 
         // returns true if released it
@@ -1054,7 +1039,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetProbeVolumeAsset(ProbeVolumeAsset asset)
         {
             probeVolumeAsset = asset;
-            dataUpdated = true;
             bakeKey = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
 
             UnityEditor.EditorUtility.SetDirty(this);
@@ -1127,7 +1111,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
                 }
 
-                dataUpdated = true;
+                unchecked
+                {
+                    probeVolumeAsset.dataVersion++;
+                }
             }
 
             SetupProbePositions();
@@ -1142,7 +1129,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void OnLightingDataCleared()
         {
             probeVolumeAsset = null;
-            dataUpdated = true;
             BakeKeyClear();
         }
 
@@ -1243,7 +1229,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: Why do we need this? Let's try without it to speed baking up.
                 // UnityEditor.AssetDatabase.Refresh();
 
-                dataUpdated = true;
+                unchecked
+                {
+                    probeVolumeAsset.dataVersion++;
+                }
                 dataNeedsDilation = true;
             }
             else
@@ -1279,7 +1268,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
 
-            dataUpdated = true;
+            unchecked
+            {
+                probeVolumeAsset.dataVersion++;
+            }
             dataNeedsDilation = false;
         }
 
@@ -1322,7 +1314,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
 
-            dataUpdated = true;
+            unchecked
+            {
+                probeVolumeAsset.dataVersion++;
+            }
             dataNeedsDilation = false;
         }
 

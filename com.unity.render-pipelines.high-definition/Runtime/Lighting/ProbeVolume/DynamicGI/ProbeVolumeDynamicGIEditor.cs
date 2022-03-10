@@ -133,15 +133,17 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void DebugDrawNeighborhood(ProbeVolumeHandle probeVolume, Camera camera)
         {
             if (probeVolume.HitNeighborAxisLength != 0
-                && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
+                && probeVolume.GetPipelineData().EngineDataIndex >= 0)
             {
                 var material = GetDebugNeighborMaterial();
                 if (material != null)
                 {
                     InitializePropagationBuffers(probeVolume);
 
-                    Shader.SetGlobalBuffer("_ProbeVolumeDebugNeighborHits", probeVolume.propagationBuffers.neighborHits);
-                    Shader.SetGlobalInt("_ProbeVolumeDebugNeighborHitCount", probeVolume.propagationBuffers.neighborHits.count);
+                    ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
+                    
+                    Shader.SetGlobalBuffer("_ProbeVolumeDebugNeighborHits", propagationPipelineData.neighborHits);
+                    Shader.SetGlobalInt("_ProbeVolumeDebugNeighborHitCount", propagationPipelineData.neighborHits.count);
                     Shader.SetGlobalFloat("_ProbeVolumeDebugNeighborQuadScale", probeVolume.parameters.neighborsQuadScale);
                     Shader.SetGlobalInt("_ProbeVolumeDebugNeighborMode", probeVolume.parameters.drawEmission ? 1 : 0);
 
@@ -167,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         bounds.center = Vector3.zero;
                         bounds.Expand(10000000.0f);
 
-                        Graphics.DrawProcedural(material, bounds, MeshTopology.Triangles, numVerticesPerAxis, probeVolume.propagationBuffers.neighborHits.count, camera, null, ShadowCastingMode.Off, false);
+                        Graphics.DrawProcedural(material, bounds, MeshTopology.Triangles, numVerticesPerAxis, propagationPipelineData.neighborHits.count, camera, null, ShadowCastingMode.Off, false);
                     }
                 }
             }

@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal Quaternion rotation;
 
         [SerializeField] internal VolumeGlobalUniqueID globalUniqueID;
+        
+        // We are not saving it for now as it's only used when rebaking a loaded volume.
+        internal int dataVersion;
 
         internal bool IsDataAssigned()
         {
