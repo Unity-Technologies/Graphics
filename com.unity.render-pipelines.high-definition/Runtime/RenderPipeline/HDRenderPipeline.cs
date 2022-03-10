@@ -1904,6 +1904,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
                     }
+#if UNITY_EDITOR
+                    else if (camera.cameraType == CameraType.SceneView)
+                    {
+                        cameraRequestedDynamicRes = HDAdditionalSceneViewSettings.sceneDynamicResolutionEnable;
+                    }
+#endif
 
                     // We now setup DLSS if its enabled. DLSS can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
                     SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);

@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useMipBias;
         public SerializedProperty DLSSPerfQualitySetting;
         public SerializedProperty DLSSInjectionPoint;
+        public SerializedProperty forceControlJitter;
         public SerializedProperty DLSSUseOptimalSettings;
         public SerializedProperty DLSSSharpness;
         public SerializedProperty fsrOverrideSharpness;
@@ -34,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             useMipBias = root.Find((GlobalDynamicResolutionSettings s) => s.useMipBias);
             DLSSPerfQualitySetting = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSPerfQualitySetting);
             DLSSInjectionPoint = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSInjectionPoint);
+            forceControlJitter = root.Find((GlobalDynamicResolutionSettings s) => s.forceControlJitter);
             DLSSUseOptimalSettings = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSUseOptimalSettings);
             DLSSSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSSharpness);
             fsrOverrideSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrOverrideSharpness);

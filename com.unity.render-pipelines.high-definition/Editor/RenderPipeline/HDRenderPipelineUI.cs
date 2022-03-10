@@ -545,6 +545,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
 
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint, Styles.DLSSInjectionPoint);
+
+                    var q= EditorGUIUtility.TrTextContent("Force Control Jitter", "0 == always on, 1 = dynamic, 2 = always off..");
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forceControlJitter, q);
+
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
 
                     using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue))
