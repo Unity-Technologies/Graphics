@@ -375,8 +375,10 @@ namespace UnityEngine.Rendering.Universal
                 DrawRenderGraphGizmos(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, GizmoSubset.PreImageEffects, ref renderingData);
 
             // TODO RENDERGRAPH: postprocessing passes
-            //postProcessPass.RenderStopNaN(in frameResources.cameraOpaqueTexture, out var PoFXTarget, ref renderingData);
-            //postProcessPass.RenderSMAA(in frameResources.cameraOpaqueTexture, out var SMAATarget, ref renderingData);
+            // TODO RENDERGRAPH: postprocessing passes sampler name
+            //postProcessPass.RenderStopNaN(in m_ActiveRenderGraphColor, out var PoFXTarget, ref renderingData);
+            //postProcessPass.RenderSMAA(in m_ActiveRenderGraphColor, out var SMAATarget, ref renderingData);
+            //postProcessPass.RenderDoF(in m_ActiveRenderGraphColor, out var DoFTarget, ref renderingData);
 
 
             if (drawGizmos)
