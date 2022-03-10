@@ -422,16 +422,17 @@ namespace UnityEngine.Rendering.Universal
             // Gather render pass require rendering layers event and mask size
             bool requiresRenderingLayer = RenderingLayerUtils.RequireRenderingLayers(this, rendererFeatures,
                 out var renderingLayersEvent, out var renderingLayersSize);
-            bool renderingLayerProvidesByDepthNormalPass = requiresRenderingLayer && renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
-            bool renderingLayerProvidesRenderObjectPass = requiresRenderingLayer &&
-                this.renderingModeActual == RenderingMode.Forward && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
-            bool renderingLayerProvidesGBufferPass = requiresRenderingLayer &&
-                this.renderingModeActual == RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
 
             // All passes that use write to rendering layers are excluded from gl
             // So we disable it to avoid setting multiple render targets
             if (IsGLDevice())
                 requiresRenderingLayer = false;
+
+            bool renderingLayerProvidesByDepthNormalPass = requiresRenderingLayer && renderingLayersEvent == RenderingLayerUtils.Event.DepthNormalPrePass;
+            bool renderingLayerProvidesRenderObjectPass = requiresRenderingLayer &&
+                this.renderingModeActual == RenderingMode.Forward && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
+            bool renderingLayerProvidesGBufferPass = requiresRenderingLayer &&
+                this.renderingModeActual == RenderingMode.Deferred && renderingLayersEvent == RenderingLayerUtils.Event.Opaque;
 
             // Enable depth normal prepass
             if (renderingLayerProvidesByDepthNormalPass)

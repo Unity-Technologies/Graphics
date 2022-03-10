@@ -267,7 +267,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile_fargment _ _WRITE_RENDERING_LAYERS
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             //--------------------------------------
             // GPU Instancing
