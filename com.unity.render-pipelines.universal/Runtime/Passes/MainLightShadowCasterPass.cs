@@ -331,7 +331,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (!m_CreateEmptyShadowmap)
                 {
-                    passData.shadowmapTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "Main Shadowmap", true);
+                    passData.shadowmapTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "Main Shadowmap", true, !ShadowUtils.m_ForceShadowPointSampling);
                     builder.UseDepthBuffer(passData.shadowmapTexture, DepthAccess.Write);
                 }
 

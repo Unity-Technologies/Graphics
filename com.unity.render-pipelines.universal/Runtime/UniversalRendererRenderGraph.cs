@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderGraphCameraDepthHandle?.Release();
         }
 
-        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear)
+        internal static TextureHandle CreateRenderGraphTexture(RenderGraph renderGraph, RenderTextureDescriptor desc, string name, bool clear, bool bilinearSampling = false)
         {
             TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
             rgDesc.dimension = desc.dimension;
@@ -63,10 +63,14 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.name = name;
             rgDesc.enableRandomWrite = false;
 
+            // TODO RENDERGRAPH: what should we do about filtering?
+            if (bilinearSampling)
+                rgDesc.filterMode = FilterMode.Bilinear;
+
             return renderGraph.CreateTexture(rgDesc);
         }
 
-        bool RequiresColorAndDepthTextures(out bool createColorTexture, out bool createDepthTexture, ref RenderingData renderingData, RenderPassInputSummary renderPassInputs )
+        bool RequiresColorAndDepthTextures(out bool createColorTexture, out bool createDepthTexture, ref RenderingData renderingData, RenderPassInputSummary renderPassInputs)
         {
             bool isPreviewCamera = renderingData.cameraData.isPreviewCamera;
             bool requiresDepthTexture = renderingData.cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
@@ -374,7 +378,7 @@ namespace UnityEngine.Rendering.Universal
 
 
             if (drawGizmos)
-                DrawRenderGraphGizmos(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth,GizmoSubset.PostImageEffects, ref renderingData);
+                DrawRenderGraphGizmos(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, GizmoSubset.PostImageEffects, ref renderingData);
 
             if (!m_TargetIsBackbuffer && renderingData.cameraData.resolveFinalTarget)
                 m_FinalBlitPass.Render(ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);

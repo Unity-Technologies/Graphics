@@ -158,9 +158,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             using (var builder = graph.AddRenderPass<PassData>("Render Objects Pass", out var passData, m_ProfilingSampler))
             {
-                TextureHandle color = renderer.frameResources.cameraColor;
+                TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
                 builder.UseColorBuffer(color, 0);
-                builder.UseDepthBuffer(renderer.frameResources.cameraDepth, DepthAccess.Write);
+                builder.UseDepthBuffer(UniversalRenderer.m_ActiveRenderGraphDepth, DepthAccess.Write);
                 builder.ReadTexture(renderer.frameResources.mainShadowsTexture);
 
                 builder.AllowPassCulling(false);
