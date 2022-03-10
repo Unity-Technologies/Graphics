@@ -1,6 +1,3 @@
-/* TODO: Pending design pass. Copying the width of a text field for now because the gradient field is unusably thin if
- * we don't specify.
- */
-.sg-gradient-constant-field {
+.sg-gradient-constant-field, .sg-color-constant-field {
     width: 60px;
 }

@@ -326,7 +326,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
     static class GDSExt
     {
-        // TODO: This should return the Port/Blackboard inline editor for the Gradient field (eg. small gradient preview, on-click to popup).
         public static VisualElement BuildGradientTypeConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
         {
             var editor = new GradientField();
@@ -339,39 +338,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static VisualElement BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
         {
+            if (builder.PortModel is not GraphDataPortModel graphDataPort)
+                return builder.BuildDefaultConstantEditor(constant);
+
             var length = constant.GetLength();
-            if (length == 3 && builder.PortModel is GraphDataPortModel graphDataPort)
+            var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
+            var uiHints = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+
+            if (length >= 3 && uiHints.ContainsKey(constant.portName + ".UseColor"))
             {
-                var stencil = (ShaderGraphStencil)builder.PortModel.GraphModel.Stencil;
-                var uiHints = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
-                if (uiHints.ContainsKey(constant.portName + ".UseColor"))  // TODO: repeated string constant
+                var editor = new ColorField();
+                editor.showAlpha = length == 4;
+
+                editor.AddToClassList("sg-color-constant-field");
+                editor.AddStylesheet("ConstantEditors.uss");
+
+                // IConstantEditorBuilder will cast an incoming ChangeEvent's type to the constant's underlying type,
+                // so we have to supply it with the right ChangeEvent type.
+
+                void OnValueChangedVec4(ChangeEvent<Color> change)
                 {
-                    // TODO: this works, now figure out the fine details, like:
-                    //  - Color field is extra long (stretches out any node)
-                    //  - Why instantiate directly here and use templates in SingleFieldPart?
-                    //  - Can any logic reasonably be factored out w/ static parts?
-                    //      - and for other port editors?
-                    //      - the inspector has fields too, are we going to need more repeated controls?
-                    var editor = new ColorField();
-
-                    editor.AddToClassList("sg-color-constant-field");
-                    editor.AddStylesheet("ConstantEditors.uss");
-                    editor.RegisterValueChangedCallback(change =>
-                    {
-                        var oldColor = change.previousValue;
-                        var oldVector = new Vector3(oldColor.r, oldColor.g, oldColor.b);
-
-                        var newColor = change.newValue;
-                        var newVector = new Vector3(newColor.r, newColor.g, newColor.a);
-
-                        // builder.OnValueChanged wants a ChangeEvent that matches the underlying type, so do a
-                        // conversion here.
-                        using var newChange = ChangeEvent<Vector3>.GetPooled(oldVector, newVector);
-                        builder.OnValueChanged(newChange);
-                    });
-
-                    return editor;
+                    // Implicit conversion from Color to Vector4
+                    using var changeEvent = ChangeEvent<Vector4>.GetPooled(change.previousValue, change.newValue);
+                    builder.OnValueChanged(changeEvent);
                 }
+
+                void OnValueChangedVec3(ChangeEvent<Color> change)
+                {
+                    // Implicit conversion from Vector4 to Vector3
+                    using var changeEvent = ChangeEvent<Vector3>.GetPooled((Vector4)change.previousValue, (Vector4)change.newValue);
+                    builder.OnValueChanged(changeEvent);
+                }
+
+                editor.RegisterValueChangedCallback(length == 4 ? OnValueChangedVec4 : OnValueChangedVec3);
+
+                return editor;
             }
 
             return builder.BuildDefaultConstantEditor(constant);
