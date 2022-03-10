@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public static readonly GUIContent AAMode = EditorGUIUtility.TrTextContent("Camera Anti-aliasing", "The anti-alising mode that will be used in the scene view camera.");
             public static readonly GUIContent StopNaNs = EditorGUIUtility.TrTextContent("Camera Stop NaNs", "When enabled, any NaNs in the color buffer of the scene view camera will be suppressed.");
+            public static readonly GUIContent DynamicResolution = EditorGUIUtility.TrTextContent("Dynamic Resolution", "Enable dynamic resolution scaling support in scene view camera.");
             public static readonly GUIContent OverrideExposure = EditorGUIUtility.TrTextContent("Override Exposure", "When enabled, the scene exposure is overridden with the selected value.");
             public static readonly GUIContent OverriddenExposure = EditorGUIUtility.TrTextContent("Scene Exposure", "The value for the overridden exposure.");
 #if UNITY_2020_2_OR_NEWER
@@ -96,6 +97,14 @@ namespace UnityEngine.Rendering.HighDefinition
             set => s_SceneViewAntialiasing.value = value;
         }
 
+        static CachedEditorPref<bool> s_SceneViewDynamicResolutionEnable = new CachedEditorPref<bool>("HDRP:SceneViewCamera:DynamicResolutionEnable", false);
+
+        public static bool sceneDynamicResolutionEnable
+        {
+            get => s_SceneViewDynamicResolutionEnable.value;
+            set => s_SceneViewDynamicResolutionEnable.value = value;
+        }
+
         static CachedEditorPref<bool> s_SceneViewStopNaNs = new CachedEditorPref<bool>("HDRP:SceneViewCamera:StopNaNs", false);
 
         public static bool sceneViewStopNaNs
@@ -133,6 +142,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 EditorGUILayout.HelpBox(Styles.HelpBox, MessageType.Info);
 
             sceneViewStopNaNs = EditorGUILayout.Toggle(Styles.StopNaNs, sceneViewStopNaNs);
+
+            sceneDynamicResolutionEnable = EditorGUILayout.Toggle(Styles.DynamicResolution, sceneDynamicResolutionEnable);
 
             EditorGUI.BeginChangeCheck();
             sceneExposureOverriden = EditorGUILayout.Toggle(Styles.OverrideExposure, sceneExposureOverriden);
