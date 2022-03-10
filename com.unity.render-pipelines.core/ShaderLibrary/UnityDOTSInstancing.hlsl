@@ -1,6 +1,8 @@
 #ifndef UNITY_DOTS_INSTANCING_INCLUDED
 #define UNITY_DOTS_INSTANCING_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 
 #if UNITY_OLD_PREPROCESSOR
@@ -324,6 +326,42 @@ float4 LoadDOTSInstancedData_LODFade()
     crossfade *= 1.0 / 127;
     return crossfade;
 }
+
+#ifdef SCENEPICKINGPASS
+float4 LoadDOTSInstancedData_SelectionValue(uint metadata, uint submeshIndex)
+{
+    // If there is a DOTS instanced per-instance ID, get that.
+    // Typically, this ID would be a DOTS entity ID.
+    if (IsDOTSInstancedProperty(metadata))
+    {
+        static const uint SubmeshIndexBitCount = 5;
+        static const uint IDBitCount = 26;
+
+        static const uint SubmeshIndexBitsAndMask = (1 << SubmeshIndexBitCount) - 1;
+        static const uint IDBitsAndMask = (1 << IDBitCount) - 1;
+
+        // Add 1 to the ID, so the ID 0 gets a value that is not equal to the clear value.
+        uint selectionID = LoadDOTSInstancedData_uint2(metadata).x;
+        uint idValue = selectionID + 1;
+
+        static const uint HighBitMask = 1 << 31;
+        uint submeshBits = (submeshIndex & SubmeshIndexBitsAndMask) << IDBitCount;
+        uint idValueBits = idValue & IDBitsAndMask;
+
+        uint pickingID = HighBitMask | submeshBits | idValueBits;
+
+        return PackId32ToRGBA8888(pickingID);
+    }
+    else
+    {
+        return _SelectionID;
+    }
+}
+#define UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(name, submesh) \
+    LoadDOTSInstancedData_SelectionValue(UNITY_DOTS_INSTANCED_METADATA_NAME(uint2, name), submesh)
+#else
+#define UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(name, submesh) float4(0,0,0,0)
+#endif
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR

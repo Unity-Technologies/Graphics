@@ -23,6 +23,13 @@ Shader "Hidden/HDRP/BRGPicking"
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #define SCENEPICKINGPASS
+
+            float4x4 unity_BRGPickingViewMatrix;
+            float4x4 unity_BRGPickingProjMatrix;
+            float4 _SelectionID;
+            int unity_SubmeshIndex;
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
@@ -37,10 +44,6 @@ Shader "Hidden/HDRP/BRGPicking"
                 float4 positionCS : SV_Position;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
-
-            float4x4 unity_BRGPickingViewMatrix;
-            float4x4 unity_BRGPickingProjMatrix;
-            float4 unity_BRGPickingSelectionID;
 
             #undef unity_ObjectToWorld
 
@@ -62,7 +65,7 @@ Shader "Hidden/HDRP/BRGPicking"
             void Frag(PickingMeshToPS input, out float4 outColor : SV_Target0)
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                outColor = unity_BRGPickingSelectionID;
+                outColor = UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex);
             }
 
             ENDHLSL
