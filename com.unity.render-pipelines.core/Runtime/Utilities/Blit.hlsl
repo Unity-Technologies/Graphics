@@ -144,36 +144,7 @@ float4 FragOctahedralBilinearRepeat(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float u = input.texcoord.x;
     float v = input.texcoord.y;
-
-    float2 uv;
-    if (u < 0.0f)
-    {
-        if (v < 0.0f)
-            uv = float2(1.0f + u, 1.0f + v);
-        else if (v < 1.0f)
-            uv = float2(-u, 1.0f - v);
-        else
-            uv = float2(1.0f + u, v - 1.0f);
-    }
-    else if (u < 1.0f)
-    {
-        if (v < 0.0f)
-            uv = float2(1.0f - u, -v);
-        else if (v < 1.0f)
-            uv = float2(u, v);
-        else
-            uv = float2(1.0f - u, 2.0f - v);
-    }
-    else
-    {
-        if (v < 0.0f)
-            uv = float2(u - 1.0f, 1.0f + v);
-        else if (v < 1.0f)
-            uv = float2(2.0f - u, 1.0f - v);
-        else
-            uv = float2(u - 1.0f, v - 1.0f);
-    }
-
+    float2 uv = RepeatOctahedralUV(u, v);
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
 }
 
@@ -188,7 +159,7 @@ float4 FragOctahedralProject(Varyings input) : SV_Target
 float4 FragOctahedralProjectArraySlice(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 UV = saturate(input.texcoord);
+    float2 UV = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
     float3 dir = UnpackNormalOctQuadEncode(2.0f * UV - 1.0f);
     return float4(SAMPLE_TEXTURECUBE_ARRAY_LOD(_BlitCubeTextureArray, sampler_LinearRepeat, dir, _BlitTexArraySlice, _BlitMipLevel).rgb, 1);
 }

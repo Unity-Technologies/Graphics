@@ -459,13 +459,15 @@ namespace UnityEngine.Rendering
             DrawQuad(cmd, GetBlitMaterial(source.dimension), 14);
         }
 
-        public static void BlitCubeArraySliceToOctahedral2DQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasRT, int mipLevelTex, int slice)
+        public static void BlitCubeArraySliceOctahedralPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels, int slice)
         {
             s_PropertyBlock.SetTexture(BlitShaderIDs._BlitCubeTextureArray, source);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitTexArraySlice, slice);
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
             DrawQuad(cmd, GetBlitMaterial(source.dimension), 21);
         }
 

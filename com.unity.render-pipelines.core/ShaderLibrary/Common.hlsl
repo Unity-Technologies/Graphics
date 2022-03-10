@@ -1456,4 +1456,39 @@ TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 
+float2 RepeatOctahedralUV(float u, float v)
+{
+    float2 uv;
+
+    if (u < 0.0f)
+    {
+        if (v < 0.0f)
+            uv = float2(1.0f + u, 1.0f + v);
+        else if (v < 1.0f)
+            uv = float2(-u, 1.0f - v);
+        else
+            uv = float2(1.0f + u, v - 1.0f);
+    }
+    else if (u < 1.0f)
+    {
+        if (v < 0.0f)
+            uv = float2(1.0f - u, -v);
+        else if (v < 1.0f)
+            uv = float2(u, v);
+        else
+            uv = float2(1.0f - u, 2.0f - v);
+    }
+    else
+    {
+        if (v < 0.0f)
+            uv = float2(u - 1.0f, 1.0f + v);
+        else if (v < 1.0f)
+            uv = float2(2.0f - u, 1.0f - v);
+        else
+            uv = float2(u - 1.0f, v - 1.0f);
+    }
+
+    return uv;
+}
+
 #endif // UNITY_COMMON_INCLUDED

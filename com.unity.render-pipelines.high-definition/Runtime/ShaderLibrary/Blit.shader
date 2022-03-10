@@ -259,7 +259,7 @@ Shader "Hidden/HDRP/Blit"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-                #pragma vertex VertQuad
+                #pragma vertex VertQuadPadding
                 #pragma fragment FragOctahedralProjectArraySlice
             ENDHLSL
         }

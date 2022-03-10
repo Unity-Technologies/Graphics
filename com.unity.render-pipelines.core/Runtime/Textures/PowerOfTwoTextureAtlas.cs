@@ -83,6 +83,7 @@ namespace UnityEngine.Rendering
             PaddingMultiply,
             OctahedralPadding,
             OctahedralPaddingMultiply,
+            CubeArrayTo2DArrayOctahedralPadding,
         }
 
         private void Blit2DTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, BlitType blitType)
@@ -97,6 +98,21 @@ namespace UnityEngine.Rendering
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
+                if (blitType == BlitType.CubeArrayTo2DArrayOctahedralPadding)
+                {
+                    textureSize *= 2;
+
+                    //@ Make m_ArraySize a parameter like blitMips.
+                    for (int arrayIdx = 0; arrayIdx < m_ArraySize; ++arrayIdx)
+                    {
+                        for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                        {
+                            cmd.SetRenderTarget(m_AtlasTexture, mipLevel, CubemapFace.Unknown, arrayIdx);
+                            Vector2 mipSize = new Vector2((int)textureSize.x >> mipLevel, (int)textureSize.y >> mipLevel);
+                            Blitter.BlitCubeArraySliceOctahedralPadding(cmd, texture, mipSize, scaleOffset, mipLevel, bilinear, pixelPadding, arrayIdx);
+                        }
+                    }
+                }
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
@@ -184,6 +200,30 @@ namespace UnityEngine.Rendering
             {
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPaddingMultiply);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+            }
+        }
+
+        /// <summary>
+        /// Blit and project Cube texture into a 2D texture in the atlas.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
+        public void BlitCubeArrayTexture2DArray(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            Debug.Assert(texture.dimension == TextureDimension.CubeArray);
+
+            if (texture.dimension == TextureDimension.CubeArray)
+            {
+                BlitType blitType = BlitType.CubeArrayTo2DArrayOctahedralPadding;
+
+                // By default blit cube into a single octahedral 2D texture quad
+                Blit2DTexture(cmd, scaleOffset, texture, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), blitMips, blitType);
+
+                var instanceID = overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture);
+                MarkGPUTextureValid(instanceID, blitMips);
             }
         }
 

@@ -2098,6 +2098,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CookieAtlasSize = m_TextureCaches.lightCookieManager.GetCookieAtlasSize();
             cb._CookieAtlasData = m_TextureCaches.lightCookieManager.GetCookieAtlasDatas();
             cb._PlanarAtlasData = m_TextureCaches.reflectionPlanarProbeCache.GetAtlasDatas();
+            cb._EnvOctahedralAtlasData = m_TextureCaches.reflectionProbeCache2D.GetAtlasDatas();
             cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache.GetEnvSliceSize();
             cb._EnvSliceSize = m_TextureCaches.reflectionProbeCache2D.GetEnvSliceSize();
 
@@ -2177,7 +2178,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
             cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
-            cmd.SetGlobalTexture(HDShaderIDs._EnvOctahedralTextures, m_TextureCaches.reflectionProbeCache2D.GetTexCache());
+            cmd.SetGlobalTexture(HDShaderIDs._EnvOctahedralAtlas, m_TextureCaches.reflectionProbeCache2D.GetTexCache());
             cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache());
 
             cmd.SetGlobalBuffer(HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);

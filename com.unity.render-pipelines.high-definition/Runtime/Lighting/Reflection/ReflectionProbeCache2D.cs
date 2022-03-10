@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Resolution = resolution;
             m_Format = format;
 
-            //@ Real size must be larger as octahedral area must be equal to cube map area.
             int mipPadding = 0;
             m_TextureAtlas = new PowerOfTwoTextureAtlas(resolution, mipPadding, format, FilterMode.Trilinear, "ReflectionProbeCache2D Atlas", true, m_IBLFiltersBSDF.Length);
 
@@ -196,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_TextureAtlas.IsCached(out scaleOffset, textureId))
                 {
                     if (m_TextureAtlas.NeedsUpdate(texture, false))
-                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
+                        m_TextureAtlas.BlitCubeArrayTexture2DArray(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
                 }
                 else
                 {
@@ -205,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int octahedralHeight = convolvedTextureArrayTemp.height * 2;
 
                     if (TryAllocateTextureWithoutBlit(textureId, octahedralWidth, octahedralHeight, ref scaleOffset))
-                        m_TextureAtlas.BlitCubeTexture2D(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
+                        m_TextureAtlas.BlitCubeArrayTexture2DArray(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
                     else
                         success = false;
                 }
@@ -218,8 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 GetAtlasDatas()
         {
-            float padding = Mathf.Pow(2.0f, m_TextureAtlas.mipPadding) * 2.0f;
-            return new Vector4(m_Resolution, padding / m_Resolution, 0.0f, 0.0f);
+            return new Vector4(m_Resolution, 1.0f / m_Resolution, 0.0f, 0.0f);
         }
 
         public Texture GetTexCache()

@@ -154,13 +154,13 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         {
             #if defined(USE_OCTAHEDRAL_ENV_MAP) 
                 // Apply atlas scale and offset
-                float2 scale = _EnvOctAtlasScaleOffset[index].xy;
-                float2 offset = _EnvOctAtlasScaleOffset[index].zw;
+                float mipTexelSize = _EnvOctahedralAtlasData.y * pow(2.0, lod);
+                float2 scale = _EnvOctAtlasScaleOffset[index].xy - 2.0 * mipTexelSize;
+                float2 offset = _EnvOctAtlasScaleOffset[index].zw + mipTexelSize;
                 float2 texCoordOct = saturate(PackNormalOctQuadEncode(texCoord) * 0.5 + 0.5);
-                float2 atlasCoords = texCoordOct;// RemapUVForPlanarAtlas(texCoordOct, scale, lod);
-                atlasCoords = atlasCoords * scale + offset;
+                float2 atlasCoords = texCoordOct * scale + offset;
 
-                color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_EnvOctahedralTextures, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
+                color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_EnvOctahedralAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
             #else
                 //@ is _EnvSliceSize needed?
                 color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
