@@ -1,4 +1,4 @@
-Shader "Hidden/Test/OutputDepthNormalsTexture"
+Shader "Hidden/Test/OutputSSAOTexture"
 {
     SubShader
     {
