@@ -8,7 +8,7 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    internal class ShadowMesh2D : IShadowShape2DProvider.ShadowShapes2D
+    internal class ShadowMesh2D : ShadowShape2D
     {
         const int k_CapsuleCapSegments = 8;
 
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Universal
             return indexToProcess;
         }
 
-        public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, IShadowShape2DProvider.WindingOrder windingOrder = IShadowShape2DProvider.WindingOrder.Clockwise, bool allowContraction = true)        {
+        public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowContraction = true)        {
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
 
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool reverseWindingOrder = windingOrder == IShadowShape2DProvider.WindingOrder.CounterClockwise;
+            bool reverseWindingOrder = windingOrder == ShadowShape2D.WindingOrder.CounterClockwise;
 
 
             int circleCount = 0;
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.Universal
                 ShadowUtility.ClipEdges(generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, contractEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
                 if (clippedStartingIndices.Length > 0)
-                    m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, IShadowShape2DProvider.OutlineTopology.Lines);
+                    m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, ShadowShape2D.OutlineTopology.Lines);
                 else
                 {
                     m_BoundingSphere = new BoundingSphere();
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, true, IShadowShape2DProvider.OutlineTopology.Lines);
+                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, true, ShadowShape2D.OutlineTopology.Lines);
             }
 
             generatedVertices.Dispose();
@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
             calculatedStartingEdges.Dispose();
         }
 
-        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology, IShadowShape2DProvider.WindingOrder windingOrder = IShadowShape2DProvider.WindingOrder.Clockwise, bool allowContraction = true)
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowContraction = true)
         {
             NativeArray<ShadowEdge> edges;
             NativeArray<int> shapeStartingIndices;
@@ -275,16 +275,16 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
+            if (outlineTopology == ShadowShape2D.OutlineTopology.Triangles)
             {
                 ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
-            else // if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
+            else // if (outlineTopology == ShadowShape2D.OutlineTopology.Lines)
             {
                 ShadowUtility.CalculateEdgesFromLines(indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
 
-            if (windingOrder == IShadowShape2DProvider.WindingOrder.CounterClockwise)
+            if (windingOrder == ShadowShape2D.WindingOrder.CounterClockwise)
                 ShadowUtility.ReverseWindingOrder(shapeStartingIndices, edges);
 
             // It would be better if we don't have to rerun SetShape after a contractEdge change.
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void SetShapeWithLines(NativeArray<Vector3> vertices, NativeArray<int> indices, bool allowContraction)
         {
-            SetShape(vertices, indices, IShadowShape2DProvider.OutlineTopology.Lines, allowContraction: allowContraction);
+            SetShape(vertices, indices, ShadowShape2D.OutlineTopology.Lines, allowContraction: allowContraction);
         }
 
         public override void UpdateVertices(NativeArray<Vector3> vertices)
