@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+        public bool m_ShouldTransparentsReceiveShadows;
 
         PassData m_PassData;
         bool m_UseDepthPriming;
@@ -54,6 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
+            m_ShouldTransparentsReceiveShadows = false;
 
             if (stencilState.enabled)
             {
@@ -201,6 +203,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public FilteringSettings m_FilteringSettings;
             public List<ShaderTagId> m_ShaderTagIdList;
             public ProfilingSampler m_ProfilingSampler;
+
+            public bool m_ShouldTransparentsReceiveShadows;
         }
 
         public void Render(TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, ref RenderingData renderingData)
@@ -229,6 +233,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.m_ShaderTagIdList = m_ShaderTagIdList;
                 passData.m_ProfilingSampler = m_ProfilingSampler;
 
+                passData.m_ShouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
+
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     // TODO RENDERGRAPH figure out where to put XR proj flip logic so that it can be auto handled in render graph
@@ -243,6 +249,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                         XRSystemUniversal.MarkShaderProperties(renderingData.commandBuffer, renderingData.cameraData.xrUniversal, renderIntoTexture);
                     }
 #endif
+
+                    // Currently we only need to call this additional pass when the user
+                    // doesn't want transparent objects to receive shadows
+                    if (!data.m_IsOpaque && !data.m_ShouldTransparentsReceiveShadows)
+                        TransparentSettingsPass.ExecutePass(context.cmd, data.m_ShouldTransparentsReceiveShadows);
+
                     bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.m_Albedo, data.m_Depth);
                     CameraSetup(context.cmd, data);
                     ExecutePass(context.renderContext, data, yFlip);

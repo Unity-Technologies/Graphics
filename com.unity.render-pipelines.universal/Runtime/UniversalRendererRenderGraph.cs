@@ -359,6 +359,8 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
 
+            m_RenderTransparentForwardPass.m_ShouldTransparentsReceiveShadows = !m_TransparentSettingsPass.Setup(ref renderingData);
+
             m_RenderTransparentForwardPass.Render(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
 
             m_OnRenderObjectCallbackPass.Render(m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, ref renderingData);
