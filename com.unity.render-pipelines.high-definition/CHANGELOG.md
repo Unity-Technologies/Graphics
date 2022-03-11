@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'
 - Fixed issue with fading in SSR applying fade factor twice, resulting in darkening of the image in the transition areas.
 - Fixed error when disabling opaque objects on a camera with MSAA.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 
 ## [10.6.0] - 2021-04-29
 

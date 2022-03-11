@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureDesc m_DepthMomentsPyramidVSM32Desc;
         TextureDesc m_DepthMomentsPyramidVSM16Desc;
         TextureDesc m_DepthMomentsPyramidMoments16Desc;
-        TextureDesc m_DepthMomentsPyramidMomentsDesc;
+        TextureDesc m_DepthMomentsPyramidEVSM32Desc;
+        TextureDesc m_DepthMomentsPyramidEVSM16Desc;
         TextureDesc m_HierarchicalVarianceScreenSpaceShadowsDesc;
 
         
@@ -22,41 +23,59 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_DepthMomentsLinearizeVSM32Kernel;
         int m_DepthMomentsLinearizeVSM16Kernel;
         int m_DepthMomentsLinearizeMoments16Kernel;
+        int m_DepthMomentsLinearizeEVSM32Kernel;
+        int m_DepthMomentsLinearizeEVSM16Kernel;
 
         int m_DepthMomentsDownsampleVSM32Kernel;
         int m_DepthMomentsDownsampleVSM16Kernel;
         int m_DepthMomentsDownsampleMoments16Kernel;
+        int m_DepthMomentsDownsampleEVSM32Kernel;
+        int m_DepthMomentsDownsampleEVSM16Kernel;
 
         ComputeShader m_HierarchicalVarianceScreenSpaceShadowsCS { get { return defaultResources.shaders.hierarchicalVarianceScreenSpaceShadowsCS; } }
         int m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM32Kernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM16Kernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsRaymarchMoments16Kernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM32Kernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM16Kernel = -1;
 
         int m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM32TransmissionAccumulatorKernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM16TransmissionAccumulatorKernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsRaymarchMoments16TransmissionAccumulatorKernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM32TransmissionAccumulatorKernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM16TransmissionAccumulatorKernel = -1;
 
         int m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurVSM32Kernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurVSM16Kernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurMoments16Kernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurEVSM32Kernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurEVSM16Kernel = -1;
 
         int m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleVSM32Kernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleVSM16Kernel = -1;
         int m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleMoments16Kernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleEVSM32Kernel = -1;
+        int m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleEVSM16Kernel = -1;
 
         public static int s_HVSSSRaymarchLODSampleCount = 12;
         public static int s_HVSSSRaymarchLODMin = 1;
         public static int s_HVSSSRaymarchLODMax = 5;
         public static int s_HVSSSRaymarchLODBias = -2;
-        public static float s_HVSSSThicknessMin = 1.0f;
-        public static float s_HVSSSThicknessMax = 4.0f;
+        public static float s_HVSSSThicknessMin = 0.06f;
+        public static float s_HVSSSThicknessMax = 0.1f;
         public static int s_HVSSSDitherMode = 0;
+        public static int s_HVSSSUpsampleBlurRadiusPixels = 1;
+        public static float s_HVSSSBlackpoint = 0.5f;
+        public static float s_HVSSSContrast = 0.0f;
+        public static Vector2 s_HVSSSEVSMExponents = new Vector2(0.125f, 1.0f);
 
         public enum HVSSSMode : int
         {
             VSM32 = 0,
             VSM16,
-            Moments16
+            Moments16,
+            EVSM32,
+            EVSM16
         }
         public static HVSSSMode s_HVSSSMode = HVSSSMode.VSM16;
         public static bool s_HVSSSTransmissionAccumulatorEnabled = true;
@@ -72,6 +91,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthMomentsPyramidMoments16Desc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
             { colorFormat = GraphicsFormat.R16G16B16A16_UNorm, enableRandomWrite = true, name = "CameraDepthMomentsMipChain" };
 
+            m_DepthMomentsPyramidEVSM32Desc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
+            { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true, name = "CameraDepthMomentsMipChain" };
+
+            m_DepthMomentsPyramidEVSM16Desc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
+            { colorFormat = GraphicsFormat.R16G16B16A16_UNorm, enableRandomWrite = true, name = "CameraDepthMomentsMipChain" }; 
+
+
             m_HierarchicalVarianceScreenSpaceShadowsDesc = new TextureDesc(Vector2.one, true, true)
             { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "CameraHierarchicalVarianceScreenSpaceShadows" };
 
@@ -80,26 +106,38 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthMomentsLinearizeVSM32Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsLinearizeVSM32");
             m_DepthMomentsLinearizeVSM16Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsLinearizeVSM16");
             m_DepthMomentsLinearizeMoments16Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsLinearizeMoments16");
+            m_DepthMomentsLinearizeEVSM32Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsLinearizeEVSM32");
+            m_DepthMomentsLinearizeEVSM16Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsLinearizeEVSM16");
 
             m_DepthMomentsDownsampleVSM32Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsDownsampleVSM32");
             m_DepthMomentsDownsampleVSM16Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsDownsampleVSM16");
             m_DepthMomentsDownsampleMoments16Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsDownsampleMoments16");
+            m_DepthMomentsDownsampleEVSM32Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsDownsampleEVSM32");
+            m_DepthMomentsDownsampleEVSM16Kernel = m_DepthMomentsPyramidCS.FindKernel("DepthMomentsDownsampleEVSM16");
 
             m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM32Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsVSM32");
             m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsVSM16");
             m_HierarchicalVarianceScreenSpaceShadowsRaymarchMoments16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsMoments16");
+            m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM32Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsEVSM32");
+            m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsEVSM16");
 
             m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM32TransmissionAccumulatorKernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsVSM32TransmissionAccumulator");
             m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM16TransmissionAccumulatorKernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsVSM16TransmissionAccumulator");
             m_HierarchicalVarianceScreenSpaceShadowsRaymarchMoments16TransmissionAccumulatorKernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsMoments16TransmissionAccumulator");
+            m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM32TransmissionAccumulatorKernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsEVSM32TransmissionAccumulator");
+            m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM16TransmissionAccumulatorKernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("RaymarchScreenSpaceShadowsEVSM16TransmissionAccumulator");
 
             m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurVSM32Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("SeperableBilateralBlurVSM32");
             m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurVSM16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("SeperableBilateralBlurVSM16");
             m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurMoments16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("SeperableBilateralBlurMoments16");
+            m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurEVSM32Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("SeperableBilateralBlurEVSM32");
+            m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurEVSM16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("SeperableBilateralBlurEVSM16");
 
             m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleVSM32Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("BilateralUpsampleVSM32");
             m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleVSM16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("BilateralUpsampleVSM16");
             m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleMoments16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("BilateralUpsampleMoments16");
+            m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleEVSM32Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("BilateralUpsampleEVSM32");
+            m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleEVSM16Kernel = m_HierarchicalVarianceScreenSpaceShadowsCS.FindKernel("BilateralUpsampleEVSM16");
         }
 
         private TextureDesc GetDepthMomentsPyramidDesc()
@@ -109,6 +147,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HVSSSMode.Moments16: return m_DepthMomentsPyramidMoments16Desc;
                 case HVSSSMode.VSM16: return m_DepthMomentsPyramidVSM16Desc;
                 case HVSSSMode.VSM32: return m_DepthMomentsPyramidVSM32Desc;
+                case HVSSSMode.EVSM32: return m_DepthMomentsPyramidEVSM32Desc;
+                case HVSSSMode.EVSM16: return m_DepthMomentsPyramidEVSM16Desc;
                 default: Debug.Assert(false); return default(TextureDesc);
             }
         }
@@ -120,6 +160,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HVSSSMode.Moments16: return m_DepthMomentsLinearizeMoments16Kernel;
                 case HVSSSMode.VSM32: return m_DepthMomentsLinearizeVSM32Kernel;
                 case HVSSSMode.VSM16: return m_DepthMomentsLinearizeVSM16Kernel;
+                case HVSSSMode.EVSM32: return m_DepthMomentsLinearizeEVSM32Kernel;
+                case HVSSSMode.EVSM16: return m_DepthMomentsLinearizeEVSM16Kernel;
                 default: Debug.Assert(false); return -1;
             }
         }
@@ -131,6 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HVSSSMode.Moments16: return m_DepthMomentsDownsampleMoments16Kernel;
                 case HVSSSMode.VSM32: return m_DepthMomentsDownsampleVSM32Kernel;
                 case HVSSSMode.VSM16: return m_DepthMomentsDownsampleVSM16Kernel;
+                case HVSSSMode.EVSM32: return m_DepthMomentsDownsampleEVSM32Kernel;
+                case HVSSSMode.EVSM16: return m_DepthMomentsDownsampleEVSM16Kernel;
                 default: Debug.Assert(false); return -1;
             }
         }
@@ -144,6 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     case HVSSSMode.Moments16: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchMoments16TransmissionAccumulatorKernel;
                     case HVSSSMode.VSM32: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM32TransmissionAccumulatorKernel;
                     case HVSSSMode.VSM16: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM16TransmissionAccumulatorKernel;
+                    case HVSSSMode.EVSM32: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM32TransmissionAccumulatorKernel;
+                    case HVSSSMode.EVSM16: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM16TransmissionAccumulatorKernel;
                     default: Debug.Assert(false); return -1;
                 }
             }
@@ -154,6 +200,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     case HVSSSMode.Moments16: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchMoments16Kernel;
                     case HVSSSMode.VSM32: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM32Kernel;
                     case HVSSSMode.VSM16: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchVSM16Kernel;
+                    case HVSSSMode.EVSM32: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM32Kernel;
+                    case HVSSSMode.EVSM16: return m_HierarchicalVarianceScreenSpaceShadowsRaymarchEVSM16Kernel;
                     default: Debug.Assert(false); return -1;
                 }
             }
@@ -167,6 +215,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HVSSSMode.Moments16: return m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurMoments16Kernel;
                 case HVSSSMode.VSM32: return m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurVSM32Kernel;
                 case HVSSSMode.VSM16: return m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurVSM16Kernel;
+                case HVSSSMode.EVSM32: return m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurEVSM32Kernel;
+                case HVSSSMode.EVSM16: return m_HierarchicalVarianceScreenSpaceShadowsBilateralBlurEVSM16Kernel;
                 default: Debug.Assert(false); return -1;
             }
         }
@@ -178,6 +228,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HVSSSMode.Moments16: return m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleMoments16Kernel;
                 case HVSSSMode.VSM32: return m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleVSM32Kernel;
                 case HVSSSMode.VSM16: return m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleVSM16Kernel;
+                case HVSSSMode.EVSM32: return m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleEVSM32Kernel;
+                case HVSSSMode.EVSM16: return m_HierarchicalVarianceScreenSpaceShadowsBilateralUpsampleEVSM16Kernel;
                 default: Debug.Assert(false); return -1;
             }
         }
@@ -193,6 +245,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 zBufferParams;
             public float depthMin;
             public float depthMax;
+            public Vector2 evsmExponents;
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
             public ComputeShader depthMomentsPyramidCS;
             public int depthMomentsLinearizeKernel;
         }
@@ -218,6 +272,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.zBufferParams = hdCamera.zBufferParams;
                 passData.depthMin = m_HierarchicalVarianceScreenSpaceShadowsData.depthMin;
                 passData.depthMax = m_HierarchicalVarianceScreenSpaceShadowsData.depthMax;
+                passData.evsmExponents = s_HVSSSEVSMExponents;
+
+                BlueNoise blueNoise = GetBlueNoiseManager();
+                passData.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
+
                 passData.depthMomentsPyramidCS = m_DepthMomentsPyramidCS;
                 passData.depthMomentsLinearizeKernel = GetDepthMomentsLinearizeKernel();
 
@@ -226,12 +285,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (CopyDepthBufferToMomentsPyramidData data, RenderGraphContext context) =>
                 {
-                    RenderDepthMomentsLinearize(context.cmd, data.inputDepth, data.outputDepthMomentsPyramid, data.mipInfo, data.zBufferParams, data.depthMin, data.depthMax, data.depthMomentsPyramidCS, data.depthMomentsLinearizeKernel);
+                    RenderDepthMomentsLinearize(context.cmd, data.inputDepth, data.outputDepthMomentsPyramid, data.mipInfo, data.zBufferParams, data.depthMin, data.depthMax, data.evsmExponents, data.ditheredTextureSet, data.depthMomentsPyramidCS, data.depthMomentsLinearizeKernel);
                 });
             }
         }
 
-        private static void RenderDepthMomentsLinearize(CommandBuffer cmd, RenderTexture depthTexture, RenderTexture texture, HDUtils.PackedMipChainInfo info, Vector4 zBufferParams, float depthMin, float depthMax, ComputeShader depthMomentsPyramidCS, int depthMomentsLinearizeKernel)
+        private static void RenderDepthMomentsLinearize(CommandBuffer cmd, RenderTexture depthTexture, RenderTexture texture, HDUtils.PackedMipChainInfo info, Vector4 zBufferParams, float depthMin, float depthMax, Vector2 evsmExponents, BlueNoise.DitheredTextureSet ditheredTextureSet, ComputeShader depthMomentsPyramidCS, int depthMomentsLinearizeKernel)
         {
             HDUtils.CheckRTCreated(depthTexture);
             HDUtils.CheckRTCreated(texture);
@@ -251,8 +310,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(cs, HDShaderIDs._HVSSSDepthMinMax, new Vector4(depthMin, depthMax, 1.0f / depthMin, 1.0f / depthMax));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._HVSSSDepthScaleBias, new Vector4(1.0f / (depthMax - depthMin), -depthMin / (depthMax - depthMin), depthMax - depthMin, depthMin));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams, zBufferParams);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._HVSSSEVSMExponents, new Vector4(evsmExponents.x, evsmExponents.y, 1.0f / evsmExponents.x, 1.0f / evsmExponents.y));
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthTexture, depthTexture);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMomentsMipChain, texture);
+
+            BlueNoise.BindDitheredTextureSetCompute(cmd, ditheredTextureSet, cs, kernel);
 
             cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), texture.volumeDepth);
         }
@@ -262,11 +324,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthMomentsPyramidTexture;
             public HDUtils.PackedMipChainInfo mipInfo;
             public MipGenerator mipGenerator;
-
             public bool mip0AlreadyComputed;
+            public Vector2 evsmExponents;
 
             public ComputeShader depthMomentsPyramidCS;
             public int depthMomentsDownsampleKernel;
+
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
         }
 
         void GenerateDepthMomentsPyramid(RenderGraph renderGraph, HDCamera hdCamera, bool mip0AlreadyComputed, ref PrepassOutput output)
@@ -287,25 +351,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mipInfo = GetDepthBufferMipChainInfo();
                 passData.mipGenerator = m_MipGenerator;
                 passData.mip0AlreadyComputed = mip0AlreadyComputed;
+                passData.evsmExponents = s_HVSSSEVSMExponents;
                 passData.depthMomentsPyramidCS = m_DepthMomentsPyramidCS;
                 passData.depthMomentsDownsampleKernel = GetDepthMomentsDownsampleKernel();
+
+                BlueNoise blueNoise = GetBlueNoiseManager();
+                passData.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
 
                 builder.SetRenderFunc(
                 (GenerateDepthMomentsPyramidPassData data, RenderGraphContext context) =>
                 {
-                    RenderDepthMomentsPyramid(context, data.depthMomentsPyramidTexture, data.mipInfo, data.mip0AlreadyComputed, data.depthMomentsPyramidCS, data.depthMomentsDownsampleKernel);
+                    RenderDepthMomentsPyramid(context, data.depthMomentsPyramidTexture, data.mipInfo, data.mip0AlreadyComputed, data.evsmExponents, data.ditheredTextureSet, data.depthMomentsPyramidCS, data.depthMomentsDownsampleKernel);
                 });
 
                 output.depthMomentsPyramidTexture = passData.depthMomentsPyramidTexture;
             }
         }
 
-        private static void RenderDepthMomentsPyramid(RenderGraphContext context, RenderTexture texture, HDUtils.PackedMipChainInfo info, bool mip1AlreadyComputed, ComputeShader depthMomentsPyramidCS, int depthMomentsDownsampleKernel)
+        private static void RenderDepthMomentsPyramid(RenderGraphContext context, RenderTexture texture, HDUtils.PackedMipChainInfo info, bool mip1AlreadyComputed, Vector2 evsmExponents, BlueNoise.DitheredTextureSet ditheredTextureSet, ComputeShader depthMomentsPyramidCS, int depthMomentsDownsampleKernel)
         {
             HDUtils.CheckRTCreated(texture);
 
             var cs = depthMomentsPyramidCS;
             int kernel = depthMomentsDownsampleKernel;
+
+            BlueNoise.BindDitheredTextureSetCompute(context.cmd, ditheredTextureSet, cs, kernel);
 
             // TODO: Do it 1x MIP at a time for now. In the future, do 4x MIPs per pass, or even use a single pass.
             // Note: Gather() doesn't take a LOD parameter and we cannot bind an SRV of a MIP level,
@@ -323,6 +393,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 context.cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, new Vector4(srcOffset.x, srcOffset.y, srcLimit.x, srcLimit.y));
                 context.cmd.SetComputeVectorParam(cs, HDShaderIDs._DstOffsetAndLimit, new Vector4(dstOffset.x, dstOffset.y, dstLimit.x, dstLimit.y));
+                context.cmd.SetComputeVectorParam(cs, HDShaderIDs._HVSSSEVSMExponents, new Vector4(evsmExponents.x, evsmExponents.y, 1.0f / evsmExponents.x, 1.0f / evsmExponents.y));
                 context.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMomentsMipChain, texture);
 
                 context.cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), texture.volumeDepth);
@@ -354,6 +425,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public float thicknessMin;
             public float thicknessMax;
             public int ditherMode;
+            public int upsampleBlurRadiusPixels;
+            public float contrast;
+            public float blackpoint;
+            public Vector2 evsmExponents;
         }
 
         void ComputeHierarchicalVarianceScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -397,6 +472,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.ditherMode = s_HVSSSDitherMode;
 
+                passData.upsampleBlurRadiusPixels = s_HVSSSUpsampleBlurRadiusPixels;
+
+                passData.contrast = s_HVSSSContrast;
+                passData.blackpoint = s_HVSSSBlackpoint;
+                passData.evsmExponents = s_HVSSSEVSMExponents;
+
                 uint bufferSwapCount = (uint)passData.lodMax;
                 bufferSwapCount += (passData.lodRaymarchMin == 0) ? 1u : 0u;
                 bool bufferSwapCountIsOdd = (bufferSwapCount & 1u) > 0;
@@ -418,8 +499,13 @@ namespace UnityEngine.Rendering.HighDefinition
             context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSDepthMinMax, new Vector4(data.depthMin, data.depthMax, 1.0f / data.depthMin, 1.0f / data.depthMax));
             context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSDepthScaleBias, new Vector4(1.0f / (data.depthMax - data.depthMin), -data.depthMin / (data.depthMax - data.depthMin), data.depthMax - data.depthMin, data.depthMin));
             context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSThickness, new Vector4(data.thicknessMin, data.thicknessMax, 1.0f / data.thicknessMin, 1.0f / data.thicknessMax));
-            context.cmd.SetComputeIntParam(data.computeShader, HDShaderIDs._HVSSSDitherMode, data.ditherMode);
-            BlueNoise.BindDitheredTextureSet(context.cmd, data.ditheredTextureSet);
+            context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSUpsampleBlurRadiusPixelsAndInverseSquared, new Vector4(data.upsampleBlurRadiusPixels, 1.0f / (data.upsampleBlurRadiusPixels * data.upsampleBlurRadiusPixels), 0.0f, 0.0f));
+            context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSContrastAndBlackpointAndDitherMode, new Vector4(data.contrast, data.blackpoint, data.ditherMode, 0.0f));
+            context.cmd.SetComputeVectorParam(data.computeShader, HDShaderIDs._HVSSSEVSMExponents, new Vector4(data.evsmExponents.x, data.evsmExponents.y, 1.0f / data.evsmExponents.x, 1.0f / data.evsmExponents.y));
+            BlueNoise.BindDitheredTextureSetCompute(context.cmd, data.ditheredTextureSet, data.computeShader, data.raymarchScreenSpaceShadowsKernel);
+            BlueNoise.BindDitheredTextureSetCompute(context.cmd, data.ditheredTextureSet, data.computeShader, data.bilateralBlurKernel);
+            BlueNoise.BindDitheredTextureSetCompute(context.cmd, data.ditheredTextureSet, data.computeShader, data.bilateralUpsampleKernel);
+
 
             TextureHandle hvsssBufferSource = data.outputHVSSSBufferA;
             TextureHandle hvsssBufferDestination = data.outputHVSSSBufferB;
@@ -447,18 +533,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Max raymarch distance is the diagonal of our fullscreen buffer.
                         float surfaceToLightDistancePixelsMax = Mathf.Sqrt(data.width * data.width + data.height * data.height) * 1.0f;
 #if false
-                                // Partition max distance into log2 cascades
-                                // log2(x + 1) / log2(surfaceToLightDistancePixelsMax + 1) -> normalized [0, 1] log range across all cascades
-                                // log2(cascadeRaymarchDistanceStart + 1) / log2(surfaceToLightDistancePixelsMax + 1) = cascadeRaymarchDistanceStartLog2Normalized
-                                // log2(cascadeRaymarchDistanceStart + 1) = cascadeRaymarchDistanceStartLog2Normalized * log2(surfaceToLightDistancePixelsMax + 1)
-                                // cascadeRaymarchDistanceStart + 1 = exp2(cascadeRaymarchDistanceStartLog2Normalized * log2(surfaceToLightDistancePixelsMax + 1))
-                                // cascadeRaymarchDistanceStart = exp2(cascadeRaymarchDistanceStartLog2Normalized * log2(surfaceToLightDistancePixelsMax + 1)) - 1
+                        // Partition max distance into log2 cascades
+                        // log2(x + 1) / log2(surfaceToLightDistancePixelsMax + 1) -> normalized [0, 1] log range across all cascades
+                        // log2(cascadeRaymarchDistanceStart + 1) / log2(surfaceToLightDistancePixelsMax + 1) = cascadeRaymarchDistanceStartLog2Normalized
+                        // log2(cascadeRaymarchDistanceStart + 1) = cascadeRaymarchDistanceStartLog2Normalized * log2(surfaceToLightDistancePixelsMax + 1)
+                        // cascadeRaymarchDistanceStart + 1 = exp2(cascadeRaymarchDistanceStartLog2Normalized * log2(surfaceToLightDistancePixelsMax + 1))
+                        // cascadeRaymarchDistanceStart = exp2(cascadeRaymarchDistanceStartLog2Normalized * log2(surfaceToLightDistancePixelsMax + 1)) - 1
 
-                                // Closed form version.
-                                float cascadeRaymarchDistanceStartLog2Normalized = (float)(lod - data.lodRaymarchMin) / (float)((data.lodMax - data.lodRaymarchMin) + 1);
-                                float cascadeRaymarchDistanceEndLog2Normalized = (float)(lod - data.lodRaymarchMin + 1) / (float)((data.lodMax - data.lodRaymarchMin) + 1);
-                                float cascadeRaymarchDistanceStart = Mathf.Pow(2.0f, cascadeRaymarchDistanceStartLog2Normalized * Mathf.Log(surfaceToLightDistancePixelsMax + 1.0f, 2.0f)) - 1.0f;
-                                float cascadeRaymarchDistanceEnd = Mathf.Pow(2.0f, cascadeRaymarchDistanceEndLog2Normalized * Mathf.Log(surfaceToLightDistancePixelsMax + 1.0f, 2.0f)) - 1.0f;
+                        // Closed form version.
+                        float cascadeRaymarchDistanceStartLog2Normalized = (float)(lod - data.lodRaymarchMin) / (float)((data.lodMax - data.lodRaymarchMin) + 1);
+                        float cascadeRaymarchDistanceEndLog2Normalized = (float)(lod - data.lodRaymarchMin + 1) / (float)((data.lodMax - data.lodRaymarchMin) + 1);
+                        float cascadeRaymarchDistanceStart = Mathf.Pow(2.0f, cascadeRaymarchDistanceStartLog2Normalized * Mathf.Log(surfaceToLightDistancePixelsMax + 1.0f, 2.0f)) - 1.0f;
+                        float cascadeRaymarchDistanceEnd = Mathf.Pow(2.0f, cascadeRaymarchDistanceEndLog2Normalized * Mathf.Log(surfaceToLightDistancePixelsMax + 1.0f, 2.0f)) - 1.0f;
 #else
                         // Iterative calculation version. Supports cascade overlap.
                         float cascadeOverlapRatio = 0.25f;

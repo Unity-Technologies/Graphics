@@ -150,6 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CopyDepth;
         Material m_DownsampleDepthMaterial;
         Material m_UpsampleTransparency;
+        Material m_RevealStencil;
         GPUCopy m_GPUCopy;
         MipGenerator m_MipGenerator;
         BlueNoise m_BlueNoise;
@@ -512,6 +513,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
+            m_RevealStencil = CoreUtils.CreateEngineMaterial(defaultResources.shaders.revealStencilPS);
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
 
@@ -1202,6 +1204,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterial);
             CoreUtils.Destroy(m_UpsampleTransparency);
+            CoreUtils.Destroy(m_RevealStencil);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
 
@@ -4457,6 +4460,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static void RenderTAAExclusions( RTHandle      color,
+                                         RTHandle      depthBuffer,
+                                         RTHandle      output,
+                                         Material      revealStencil,
+                                         CommandBuffer cmd)
+        {
+            CoreUtils.SetRenderTarget(cmd, output, depthBuffer);
+
+            // First copy the color source if given one
+            if (color != null)
+            {
+                revealStencil.SetTexture(HDShaderIDs._ColorTexture, color);
+                cmd.DrawProcedural(Matrix4x4.identity, revealStencil, 0, MeshTopology.Triangles, 3, 1, null);
+            }
+
+            // Then highlight pixels that have the right value in the stencil buffer
+            revealStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
+            cmd.DrawProcedural(Matrix4x4.identity, revealStencil, 1, MeshTopology.Triangles, 3, 1, null);
+        }
+
         struct FullScreenDebugParameters
         {
             public RendererListDesc rendererList;
@@ -6062,6 +6085,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the depth buffer to the main one to avoid missing out on transparent depth for post process.
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+
+            if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TAAExclusions)
+            {
+                RenderTAAExclusions(null, m_SharedRTManager.GetDepthStencilBuffer(), m_CameraColorBuffer, m_RevealStencil, cmd);
+                PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.TAAExclusions);
+            }
 
             // Post-processes output straight to the backbuffer
             var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();

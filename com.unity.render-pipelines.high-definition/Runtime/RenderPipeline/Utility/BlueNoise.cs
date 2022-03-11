@@ -167,5 +167,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, ditheredTextureSet.scramblingTex);
         }
 
+        internal static void BindDitheredTextureSetCompute(CommandBuffer cmd, DitheredTextureSet ditheredTextureSet, ComputeShader cs, int kernel)
+        {
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OwenScrambledTexture, ditheredTextureSet.owenScrambled256Tex);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTileXSPP, ditheredTextureSet.scramblingTile);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RankingTileXSPP, ditheredTextureSet.rankingTile);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTexture, ditheredTextureSet.scramblingTex);
+        }
+
     }
 }

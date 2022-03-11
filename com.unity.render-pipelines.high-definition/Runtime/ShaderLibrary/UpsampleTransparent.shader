@@ -95,7 +95,9 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 #if DEBUG_EDGE
                 return float4(0.0, 10.0, 0.0, 1.0);
 #else
-                return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_point_clamp_sampler, ClampAndScaleUVForPoint(nearestUV), 0);
+                // Important note! The reason we need to do ClampAndScaleUVForBilinear is because the candidate for nearestUV are going to be the ones
+                // used for bilinear. We are using the same UVs used for bilinear -hence the uv clamp for bilinear- it is just the filtering that is different.
+                return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_point_clamp_sampler, ClampAndScaleUVForBilinear(nearestUV), 0);
 #endif
             }
         #else // BILINEAR
