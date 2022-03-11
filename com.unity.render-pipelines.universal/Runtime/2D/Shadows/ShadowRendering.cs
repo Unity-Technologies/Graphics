@@ -132,17 +132,18 @@ namespace UnityEngine.Rendering.Universal
 
         public static bool PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
         {
-            var colorChannel = shadowIndex % 4;
-            var textureIndex = shadowIndex / 4;
-
-            if (colorChannel == 0)
-                ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
-
-            bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
-
-            m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
-
-            return hadShadowsToRender;
+            // var colorChannel = shadowIndex % 4;
+            // var textureIndex = shadowIndex / 4;
+            //
+            // if (colorChannel == 0)
+            //     ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
+            //
+            // bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
+            //
+            // m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
+            //
+            // return hadShadowsToRender;
+            return false;
         }
 
         public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
