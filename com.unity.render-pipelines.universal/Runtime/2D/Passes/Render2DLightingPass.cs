@@ -10,7 +10,15 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
 
-        private static readonly int[] k_ShapeLightTextureIDs =
+        public static readonly string[] k_ShapeLightTextureNames =
+        {
+            "_ShapeLightTexture0",
+            "_ShapeLightTexture1",
+            "_ShapeLightTexture2",
+            "_ShapeLightTexture3"
+        };
+
+        public static readonly int[] k_ShapeLightTextureIDs =
         {
             Shader.PropertyToID("_ShapeLightTexture0"),
             Shader.PropertyToID("_ShapeLightTexture1"),
@@ -209,12 +217,12 @@ namespace UnityEngine.Rendering.Universal
 
                     batchesDrawn++;
 
-                    if (layerBatch.lightStats.totalNormalMapUsage > 0)
-                    {
-                        filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
-                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
-                    }
+                    // if (layerBatch.lightStats.totalNormalMapUsage > 0)
+                    // {
+                    //     filterSettings.sortingLayerRange = layerBatch.layerRange;
+                    //     var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
+                    //     this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, layerBatch.lightStats);
+                    // }
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))
                     {

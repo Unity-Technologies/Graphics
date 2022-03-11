@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
@@ -10,9 +11,14 @@ namespace UnityEngine.Rendering.Universal
         public LightStats lightStats;
         private unsafe fixed int renderTargetIds[4];
         private unsafe fixed bool renderTargetUsed[4];
+        private Color[] clearColorsByStyle;
+        private int index;
 
         public void InitRTIds(int index)
         {
+            m_lightsByStyle = new List<Light2D>[4];
+            clearColorsByStyle = new Color[4];
+            this.index = index;
             for (var i = 0; i < 4; i++)
             {
                 unsafe
@@ -20,7 +26,10 @@ namespace UnityEngine.Rendering.Universal
                     renderTargetUsed[i] = false;
                     renderTargetIds[i] = Shader.PropertyToID($"_LightTexture_{index}_{i}");
                 }
+
+                m_lightsByStyle[i] = new List<Light2D>();
             }
+
         }
 
         public RenderTargetIdentifier GetRTId(CommandBuffer cmd, RenderTextureDescriptor desc, int index)
@@ -36,6 +45,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        public RTHandle GetRTHandle(CommandBuffer cmd, RenderTextureDescriptor desc, int style)
+        {
+            RTHandle renderTarget = default;
+            RenderingUtils.ReAllocateIfNeeded(ref renderTarget, desc, FilterMode.Point, TextureWrapMode.Clamp, name: $"_LightTexture_{index}_{style}");
+            return renderTarget;
+        }
+
         public void ReleaseRT(CommandBuffer cmd)
         {
             for (var i = 0; i < 4; i++)
@@ -47,6 +63,38 @@ namespace UnityEngine.Rendering.Universal
 
                     cmd.ReleaseTemporaryRT(renderTargetIds[i]);
                     renderTargetUsed[i] = false;
+                }
+            }
+        }
+
+        private List<Light2D>[] m_lightsByStyle;
+
+        public List<Light2D> GetLights(int style) { return m_lightsByStyle[style]; }
+
+        public Color[] clearColors => clearColorsByStyle;
+
+        public void FilterLights(List<Light2D> visibleLights)
+        {
+            for (var i = 0; i < 4; i++)
+            {
+                m_lightsByStyle[i].Clear();
+                clearColorsByStyle[i] = Color.black;
+
+                foreach (var light in visibleLights)
+                {
+                    if (light.blendStyleIndex != i)
+                        continue;
+
+                    if (!light.IsLitLayer(this.startLayerID))
+                        continue;
+
+                    if (light.lightType == Light2D.LightType.Global)
+                    {
+                        clearColorsByStyle[i] = light.color * light.intensity;
+                        continue;
+                    }
+
+                    m_lightsByStyle[i].Add(light);
                 }
             }
         }

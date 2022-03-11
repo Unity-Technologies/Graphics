@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
         private static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
 
-        private static readonly string[] k_UseBlendStyleKeywords =
+        public static readonly string[] k_UseBlendStyleKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0", "USE_SHAPE_LIGHT_TYPE_1", "USE_SHAPE_LIGHT_TYPE_2", "USE_SHAPE_LIGHT_TYPE_3"
         };
@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering.Universal
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
-        private static void SetGeneralLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
+        public static void SetGeneralLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
         {
             float intensity = light.intensity * light.color.a;
             Color color = intensity * light.color;
@@ -467,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalFloat(k_VolumeOpacityID, volumeIntensity);
         }
 
-        private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
+        public static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
         {
             // This is used for the lookup texture
             GetScaledLightInvMatrix(light, out var lightInverseMatrix);
@@ -661,7 +661,7 @@ namespace UnityEngine.Rendering.Universal
             return material;
         }
 
-        private static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume)
+        public static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume)
         {
             var materialIndex = GetLightMaterialIndex(light, isVolume);
 

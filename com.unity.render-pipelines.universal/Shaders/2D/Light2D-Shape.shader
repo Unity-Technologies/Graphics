@@ -15,6 +15,7 @@ Shader "Hidden/Light2D-Shape"
             Blend[_SrcBlend][_DstBlend]
             ZWrite Off
             Cull Off
+            ZTest Always
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -22,6 +23,9 @@ Shader "Hidden/Light2D-Shape"
             #pragma multi_compile_local SPRITE_LIGHT __
             #pragma multi_compile_local USE_NORMAL_MAP __
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
+            #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_0 __
+            #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_1 __
+            #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_2 __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
@@ -86,7 +90,7 @@ Shader "Hidden/Light2D-Shape"
                 return o;
             }
 
-            half4 frag(Varyings i) : SV_Target
+            FragmentOutput frag(Varyings i)
             {
                 half4 color = i.color;
 #if SPRITE_LIGHT
@@ -107,7 +111,7 @@ Shader "Hidden/Light2D-Shape"
                 APPLY_NORMALS_LIGHTING(i, color);
                 APPLY_SHADOWS(i, color, _ShadowIntensity);
 
-                return color;
+                return ToFragmentOutput(color);
             }
             ENDHLSL
         }

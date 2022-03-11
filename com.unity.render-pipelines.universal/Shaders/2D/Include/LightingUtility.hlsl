@@ -84,3 +84,38 @@
     half2 _ShapeLightBlendFactors##index;\
     half4 _ShapeLightMaskFilter##index;\
     half4 _ShapeLightInvertedFilter##index;
+
+struct FragmentOutput
+{
+    half4 GLightBuffer0 : SV_Target0;
+    half4 GLightBuffer1 : SV_Target1;
+    half4 GLightBuffer2 : SV_Target2;
+};
+
+FragmentOutput ToFragmentOutput(half4 finalColor)
+{
+    FragmentOutput output = (FragmentOutput)0;
+    #if WRITE_SHAPE_LIGHT_TYPE_0
+    output.GLightBuffer0 = finalColor;
+    #else
+    output.GLightBuffer0 *= 1;
+    #endif
+    #if WRITE_SHAPE_LIGHT_TYPE_1
+    output.GLightBuffer1 = finalColor;
+    #else
+    output.GLightBuffer1 *= 1;
+    #endif
+    #if WRITE_SHAPE_LIGHT_TYPE_2
+    output.GLightBuffer2 = finalColor;
+    #else
+    output.GLightBuffer2 *= 1;
+    #endif
+    return output;
+}
+
+// FragmentOutput ToFragmentOutput(half4 finalColor)
+// {
+//     FragmentOutput output = (FragmentOutput)0;
+//     output.GLightBuffer0 = finalColor;
+//     return output;
+// }

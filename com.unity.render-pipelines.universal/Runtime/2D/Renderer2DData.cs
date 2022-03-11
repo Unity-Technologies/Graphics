@@ -88,6 +88,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
         Shader m_GeometryUnshadowShader = null;
 
+        [SerializeField, Reload("Shaders/2D/Clear2D.shader")]
+        Shader m_ClearShader = null;
+
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
 
@@ -120,6 +123,7 @@ namespace UnityEngine.Rendering.Universal
         internal Shader spriteShadowShader => m_SpriteShadowShader;
         internal Shader spriteUnshadowShader => m_SpriteUnshadowShader;
         internal Shader geometryUnshadowShader => m_GeometryUnshadowShader;
+        internal Shader clearShader => m_ClearShader;
 
         internal Shader projectedShadowShader => m_ProjectedShadowShader;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
@@ -142,7 +146,8 @@ namespace UnityEngine.Rendering.Universal
                 ReloadAllNullProperties();
             }
 #endif
-            return new Renderer2D(this);
+            // return new Renderer2D(this);
+            return new UniversalRenderer2D(this);
         }
 
         /// <summary>
