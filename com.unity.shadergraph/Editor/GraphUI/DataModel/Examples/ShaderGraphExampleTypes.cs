@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -177,7 +178,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
 
-        private int GetLength()
+        internal int GetLength()
         {
             if (!IsInitialized) return -1;
             var nodeReader = graphHandler.GetNodeReader(nodeName);
@@ -325,11 +326,56 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
     static class GDSExt
     {
-        // TODO: This should return the Port/Blackboard inline editor for the Gradient field (eg. small gradient preview, on-click to popup).
-        public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
+        public static VisualElement BuildGradientTypeConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
         {
-            // return ConstantEditorExtensions.BuildInlineValueEditor(constant.ObjectValue, new FloatField(), builder.OnValueChanged);
-            return new Label("TODO: Inline Gradient Editor");
+            var editor = new GradientField();
+            editor.AddToClassList("sg-gradient-constant-field");
+            editor.AddStylesheet("ConstantEditors.uss");
+            editor.RegisterValueChangedCallback(change => builder.OnValueChanged(change));
+
+            return editor;
+        }
+
+        public static VisualElement BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
+        {
+            if (builder.PortModel is not GraphDataPortModel graphDataPort)
+                return builder.BuildDefaultConstantEditor(constant);
+
+            var length = constant.GetLength();
+            var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
+            var uiHints = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+
+            if (length >= 3 && uiHints.ContainsKey(constant.portName + ".UseColor"))
+            {
+                var editor = new ColorField();
+                editor.showAlpha = length == 4;
+
+                editor.AddToClassList("sg-color-constant-field");
+                editor.AddStylesheet("ConstantEditors.uss");
+
+                // IConstantEditorBuilder will cast an incoming ChangeEvent's type to the constant's underlying type,
+                // so we have to supply it with the right ChangeEvent type.
+
+                void OnValueChangedVec4(ChangeEvent<Color> change)
+                {
+                    // Implicit conversion from Color to Vector4
+                    using var changeEvent = ChangeEvent<Vector4>.GetPooled(change.previousValue, change.newValue);
+                    builder.OnValueChanged(changeEvent);
+                }
+
+                void OnValueChangedVec3(ChangeEvent<Color> change)
+                {
+                    // Implicit conversion from Vector4 to Vector3
+                    using var changeEvent = ChangeEvent<Vector3>.GetPooled((Vector4)change.previousValue, (Vector4)change.newValue);
+                    builder.OnValueChanged(changeEvent);
+                }
+
+                editor.RegisterValueChangedCallback(length == 4 ? OnValueChangedVec4 : OnValueChangedVec3);
+
+                return editor;
+            }
+
+            return builder.BuildDefaultConstantEditor(constant);
         }
     }
 }
