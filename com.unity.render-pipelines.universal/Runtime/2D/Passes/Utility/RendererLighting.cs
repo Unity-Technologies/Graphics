@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Draw Normals");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
-        private static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+        public static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
         private static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
         private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";

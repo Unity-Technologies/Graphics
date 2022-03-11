@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal
         private Material m_Material;
         private RTHandle m_DepthHandle;
         private static string[] ColorNames = {"_Color0", "_Color1", "_Color2", "_Color3"};
-        private bool[] m_IsTransient;
 
         public DrawGlobalLight2DPass(Renderer2DData rendererData, Material material)
         {
@@ -43,17 +42,14 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            // if(useNativeRenderPass)
-            //     ConfigureInputAttachments(m_GBuffers, m_IsTransient);
             ConfigureTarget(m_GBuffers, m_DepthHandle);
         }
 
-        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, RTHandle depthHandle, bool[] isTransient)
+        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, RTHandle depthHandle)
         {
             this.m_LayerBatch = layerBatch;
             this.m_GBuffers = gbuffers;
             this.m_DepthHandle = depthHandle;
-            this.m_IsTransient = isTransient;
         }
     }
 }

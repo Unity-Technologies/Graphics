@@ -217,12 +217,12 @@ namespace UnityEngine.Rendering.Universal
 
                     batchesDrawn++;
 
-                    // if (layerBatch.lightStats.totalNormalMapUsage > 0)
-                    // {
-                    //     filterSettings.sortingLayerRange = layerBatch.layerRange;
-                    //     var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
-                    //     this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, layerBatch.lightStats);
-                    // }
+                    if (layerBatch.lightStats.totalNormalMapUsage > 0)
+                    {
+                        filterSettings.sortingLayerRange = layerBatch.layerRange;
+                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
+                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
+                    }
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))
                     {

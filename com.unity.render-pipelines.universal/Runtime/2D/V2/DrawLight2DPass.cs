@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
         private RTHandle[] gbuffers;
         private LayerBatch layerBatch;
         private RTHandle m_DepthHandle;
+        private RTHandle m_NormalAttachmentHandle;
 
         public DrawLight2DPass(Renderer2DData data)
         {
@@ -26,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / rendererData.hdrEmulationScale);
+                cmd.SetGlobalTexture("_NormalMap", m_NormalAttachmentHandle);
 
                 for (var blendStyleIndex = 0; blendStyleIndex < 4; blendStyleIndex++)
                 {
@@ -68,11 +70,12 @@ namespace UnityEngine.Rendering.Universal
 
         public Renderer2DData rendererData { get; }
 
-        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, RTHandle depthHandle)
+        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, RTHandle depthHandle, RTHandle normalAttachmentHandle)
         {
             this.layerBatch = layerBatch;
             this.gbuffers = gbuffers;
             this.m_DepthHandle = depthHandle;
+            this.m_NormalAttachmentHandle = normalAttachmentHandle;
         }
     }
 }
