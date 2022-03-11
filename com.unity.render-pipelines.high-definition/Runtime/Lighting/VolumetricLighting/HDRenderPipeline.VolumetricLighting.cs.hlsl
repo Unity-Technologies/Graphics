@@ -10,11 +10,6 @@
 #define LOCALVOLUMETRICFOGFALLOFFMODE_LINEAR (0)
 #define LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL (1)
 
-//
-// UnityEngine.Rendering.HighDefinition.LocalVolumetricFogConstants:  static fields
-//
-#define EXPONENTIAL_FALLOFF_EXPONENT (2.2)
-
 // Generated from UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData
 // PackingRules = Exact
 struct LocalVolumetricFogEngineData

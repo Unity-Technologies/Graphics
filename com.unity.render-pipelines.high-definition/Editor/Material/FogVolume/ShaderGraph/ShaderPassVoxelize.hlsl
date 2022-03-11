@@ -24,6 +24,8 @@ float _MinDepth;
 float _MaxDepth;
 uint _FalloffMode;
 float4x4 _WorldToLocal; // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
+float _RcpDistanceFadeLength;
+float _EndTimesRcpDistanceFadeLength;
 
 struct VertexToFragment
 {
@@ -109,22 +111,29 @@ FragInputs BuildFragInputs(VertexToFragment v2f)
     return output;
 }
 
-float ComputeFadeFactor(float3 positionOS)
+float ComputeFadeFactorPositionOS(float3 positionOS)
 {
-    float3 p = abs(positionOS) / _LocalDensityVolumeExtent;
-    float dstF = max(max(p.x, p.y), p.z);
-
     float3 coordNDC = (positionOS / _LocalDensityVolumeExtent) * 0.5 + 0.5;
-    float3 posF = Remap10(coordNDC, _RcpPositiveFade, _RcpPositiveFade);
-    float3 negF = Remap01(coordNDC, _RcpNegativeFade, 0);
-    float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
+    float distance = length(positionOS);
 
-    if (_FalloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
-        fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
+    return ComputeVolumeFadeFactor(
+        coordNDC, distance, _RcpPositiveFade, _RcpNegativeFade,
+        _InvertFade, _RcpDistanceFadeLength, _EndTimesRcpDistanceFadeLength, _FalloffMode
+    );
+    // float3 p = abs(positionOS) / _LocalDensityVolumeExtent;
+    // float dstF = ;
+    // float  dstF = Remap10(, _RcpDistFadeLen, endTimesRcpDistFadeLen);
 
-    fade = dstF * (_InvertFade ? (1 - fade) : fade);
+    // float3 posF = Remap10(coordNDC, _RcpPositiveFade, _RcpPositiveFade);
+    // float3 negF = Remap01(coordNDC, _RcpNegativeFade, 0);
+    // float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
-    return fade;
+    // if (_FalloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
+    //     fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
+
+    // fade = dstF * (_InvertFade ? (1 - fade) : fade);
+
+    // return saturate(fade);
 }
 
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
@@ -148,6 +157,6 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     GetVolumeData(fragInputs, v2f.viewDirectionWS, scatteringColor, density);
 
     // Apply volume blending
-    float fade = ComputeFadeFactor(v2f.positionOS);
+    float fade = ComputeFadeFactorPositionOS(v2f.positionOS);
     outColor = float4(scatteringColor, density * fade * _Extinction);
 }

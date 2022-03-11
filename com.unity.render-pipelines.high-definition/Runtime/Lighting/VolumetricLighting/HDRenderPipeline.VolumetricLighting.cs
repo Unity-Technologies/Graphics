@@ -93,12 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Exponential,
     }
 
-    [GenerateHLSL]
-    public static class LocalVolumetricFogConstants
-    {
-        public static readonly float k_ExponentialFalloffExponent = 2.2f;
-    }
-
     public enum LocalVolumetricFogMaskMode
     {
         /// <summary>Use a 3D texture as mask.</summary>
@@ -1125,6 +1119,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                 props.SetFloat("_MaxDepth", maxViewSpaceDepth);
                                 props.SetInteger("_FalloffMode", (int)volume.parameters.falloffMode);
                                 props.SetMatrix("_WorldToLocal", volume.transform.worldToLocalMatrix); // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
+                                float distFadeLen = Mathf.Max(volume.parameters.distanceFadeEnd - volume.parameters.distanceFadeStart, 0.00001526f);
+                                float rcpDistFadeLen = 1.0f / distFadeLen;
+                                props.SetFloat("_RcpDistanceFadeLength", rcpDistFadeLen);
+                                props.SetFloat("_EndTimesRcpDistanceFadeLength", volume.parameters.distanceFadeEnd * rcpDistFadeLen);
 
                                 CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
                                 ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));

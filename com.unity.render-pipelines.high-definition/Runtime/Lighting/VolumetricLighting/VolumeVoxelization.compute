@@ -59,24 +59,6 @@ struct JitteredRay
     float3 yDirDerivWS;
 };
 
-float ComputeFadeFactor(float3 coordNDC, float dist,
-                        float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
-                        float rcpDistFadeLen, float endTimesRcpDistFadeLen, int falloffMode)
-{
-    float3 posF = Remap10(coordNDC, rcpPosFaceFade, rcpPosFaceFade);
-    float3 negF = Remap01(coordNDC, rcpNegFaceFade, 0);
-    float  dstF = Remap10(dist, rcpDistFadeLen, endTimesRcpDistFadeLen);
-    float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
-
-    // We only apply exponential falloff on the Blend Distance and not Distance Fade
-    if (falloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
-        fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
-
-    fade = dstF * (invertFade ? (1 - fade) : fade);
-
-    return fade;
-}
-
 float4 SampleVolumeMask(LocalVolumetricFogEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
     float maxLod         = log2(volumeData.maskSize.w);
@@ -270,13 +252,14 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 // to the sample point. We ignore it for performance and simplicity.
                 float dist = t;
 
-                overlapFraction *= ComputeFadeFactor(voxelCenterNDC, dist,
+                bool exponential = _VolumeData[volumeIndex].falloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL;
+                overlapFraction *= ComputeVolumeFadeFactor(voxelCenterNDC, dist,
                                                      _VolumeData[volumeIndex].rcpPosFaceFade,
                                                      _VolumeData[volumeIndex].rcpNegFaceFade,
                                                      _VolumeData[volumeIndex].invertFade,
                                                      _VolumeData[volumeIndex].rcpDistFadeLen,
                                                      _VolumeData[volumeIndex].endTimesRcpDistFadeLen,
-                                                     _VolumeData[volumeIndex].falloffMode);
+                                                     exponential);
 
                 float3 scatteringMultiplier = 1;
                 // Sample the volume Mask + Scattering color.
