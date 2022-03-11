@@ -66,6 +66,7 @@ namespace UnityEngine.Rendering.Universal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             ConfigureTarget(gbuffers, m_DepthHandle);
+            ConfigureClear(ClearFlag.Color, Color.black);
         }
 
         public Renderer2DData rendererData { get; }

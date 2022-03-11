@@ -7,6 +7,10 @@
 half _HDREmulationScale;
 half _UseSceneLighting;
 half4 _RendererColor;
+half4 _GlobalLight0;
+half4 _GlobalLight1;
+half4 _GlobalLight2;
+half4 _GlobalLight3;
 
 half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inputData)
 {
@@ -30,7 +34,7 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
     color = color * _RendererColor; // This is needed for sprite shape
 
 #if USE_SHAPE_LIGHT_TYPE_0
-    half4 shapeLight0 = SAMPLE_TEXTURE2D(_ShapeLightTexture0, sampler_ShapeLightTexture0, lightingUV);
+    half4 shapeLight0 = SAMPLE_TEXTURE2D(_ShapeLightTexture0, sampler_ShapeLightTexture0, lightingUV) + _GlobalLight0;
 
     if (any(_ShapeLightMaskFilter0))
     {
@@ -46,7 +50,7 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
 #endif
 
 #if USE_SHAPE_LIGHT_TYPE_1
-    half4 shapeLight1 = SAMPLE_TEXTURE2D(_ShapeLightTexture1, sampler_ShapeLightTexture1, lightingUV);
+    half4 shapeLight1 = SAMPLE_TEXTURE2D(_ShapeLightTexture1, sampler_ShapeLightTexture1, lightingUV) + _GlobalLight1;
 
     if (any(_ShapeLightMaskFilter1))
     {
@@ -62,7 +66,7 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
 #endif
 
 #if USE_SHAPE_LIGHT_TYPE_2
-    half4 shapeLight2 = SAMPLE_TEXTURE2D(_ShapeLightTexture2, sampler_ShapeLightTexture2, lightingUV);
+    half4 shapeLight2 = SAMPLE_TEXTURE2D(_ShapeLightTexture2, sampler_ShapeLightTexture2, lightingUV) + _GlobalLight2;
 
     if (any(_ShapeLightMaskFilter2))
     {
@@ -78,7 +82,7 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
 #endif
 
 #if USE_SHAPE_LIGHT_TYPE_3
-    half4 shapeLight3 = SAMPLE_TEXTURE2D(_ShapeLightTexture3, sampler_ShapeLightTexture3, lightingUV);
+    half4 shapeLight3 = SAMPLE_TEXTURE2D(_ShapeLightTexture3, sampler_ShapeLightTexture3, lightingUV) + _GlobalLight3;
 
     if (any(_ShapeLightMaskFilter3))
     {

@@ -151,9 +151,9 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(normalPass);
                 }
 
-                var m_DrawGlobalLightPass = new DrawGlobalLight2DPass(m_RendererData, m_ClearMaterial);
-                m_DrawGlobalLightPass.Setup(layerBatch, m_GBuffers, m_DepthTextureHandle);
-                EnqueuePass(m_DrawGlobalLightPass);
+                // var m_DrawGlobalLightPass = new DrawGlobalLight2DPass(m_RendererData, m_ClearMaterial);
+                // m_DrawGlobalLightPass.Setup(layerBatch, m_GBuffers, m_DepthTextureHandle);
+                // EnqueuePass(m_DrawGlobalLightPass);
 
                 var m_DrawLightPass = new DrawLight2DPass(m_RendererData);
                 m_DrawLightPass.Setup(layerBatch, m_GBuffers, m_DepthTextureHandle, m_NormalAttachmentHandle);

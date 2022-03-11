@@ -68,6 +68,11 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            cmd.SetGlobalColor("_GlobalLight0", layerBatch.clearColors[0]);
+            cmd.SetGlobalColor("_GlobalLight1", layerBatch.clearColors[1]);
+            cmd.SetGlobalColor("_GlobalLight2", layerBatch.clearColors[2]);
+            cmd.SetGlobalColor("_GlobalLight3", layerBatch.clearColors[3]);
+
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
