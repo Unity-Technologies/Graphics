@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 capturePositionProxySpace = Vector3.zero,
                 captureRotationProxySpace = Quaternion.identity,
-                useInfluenceVolumeAsProxyVolume = false
+                useInfluenceVolumeAsProxyVolume = true
             };
 
             /// <summary>

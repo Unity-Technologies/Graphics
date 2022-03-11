@@ -204,7 +204,7 @@ void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
         // Compute the full res sampling coordinate
         int2 halfResCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
         uint2 maxScreenSize = GetClampSreenSizeHalf();
-        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, maxScreenSize.x), clamp(halfResCoord.y * 2, 0, maxScreenSize.y));
+        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, (int)maxScreenSize.x), clamp(halfResCoord.y * 2, 0, (int)maxScreenSize.y));
 
         // Read all the values for tap
         float3 lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoord).xyz;
@@ -248,7 +248,7 @@ NeighborTapData GetNeighborTapDataSample_HR_NOLDS(uint2 fulLResCoord, int2 offse
 {
     int2 tapCoord = (fulLResCoord / 2 + offset) * 2;
     uint2 maxScreenSize = GetClampSreenSizeHalf();
-    tapCoord = int2(clamp(tapCoord.x, 0, maxScreenSize.x), clamp(tapCoord.y, 0, maxScreenSize.y));
+    tapCoord = int2(clamp(tapCoord.x, 0, (int)maxScreenSize.x), clamp(tapCoord.y, 0, (int)maxScreenSize.y));
 
     NeighborTapData outVal;
     outVal.lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, tapCoord).xyz;
