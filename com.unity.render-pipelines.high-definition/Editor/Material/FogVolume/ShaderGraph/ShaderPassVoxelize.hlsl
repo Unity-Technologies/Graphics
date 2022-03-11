@@ -143,11 +143,11 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 
     GetVolumeData(fragInputs, v2f.viewDirectionWS, albedo, extinction);
 
-    // extinction *= _Extinction;
+    extinction *= _Extinction;
 
-    float3 scatteringColor = (albedo * _AlbedoMask);
+    float3 scatteringColor = (albedo * _AlbedoMask) * extinction;
 
     // Apply volume blending
     float fade = ComputeFadeFactorPositionOS(v2f.positionOS);
-    outColor = float4(scatteringColor, density * fade * _Extinction);
+    outColor = float4(scatteringColor, extinction * fade);
 }
