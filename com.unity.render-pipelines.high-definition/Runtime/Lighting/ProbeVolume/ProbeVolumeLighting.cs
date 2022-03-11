@@ -675,12 +675,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         return false;
                     }
 
-                    if (size > s_MaxProbeVolumeProbeCount)
-                    {
-                        Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
-                        return false;
-                    }
-
                     // Debug.Log("Uploading probe volume to atlas: " + volume.gameObject.name + ", because: " + (isUploadNeeded ? "atlas slot allocated." : "data was updated."));
 
                     int sizeSHCoefficientsL01 = size * ProbeVolumePayload.GetDataSHL01Stride();
@@ -690,6 +684,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
                     {
                         Debug.AssertFormat(volume.DataSHL2Length == sizeSHCoefficientsL2, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", volume.DataSHL2Length, sizeSHCoefficientsL2);
+                    }
+
+                    if (size > s_MaxProbeVolumeProbeCount)
+                    {
+                        Debug.LogWarningFormat("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxProbeVolumeProbeCount is {1}. Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.", size, s_MaxProbeVolumeProbeCount);
+                        return false;
                     }
 
                     // Ready to upload: prepare parameters and buffers

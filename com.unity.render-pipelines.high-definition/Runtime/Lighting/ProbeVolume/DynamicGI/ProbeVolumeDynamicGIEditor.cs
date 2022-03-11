@@ -101,8 +101,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ConstructNeighborData(Vector3[] probePositionsWS, Quaternion rotation, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters, bool overwriteValidity)
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(ConstructNeighborData)}");
-
             int numProbes = probePositionsWS.Length;
             Debug.Assert(numProbes == probeVolumeAsset.payload.dataValidity.Length);
             var neighborBakeDatas = new ProbeBakeNeighborData[numProbes];
@@ -126,8 +124,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GeneratePackedNeighborData(neighborBakeDatas, ref probeVolumeAsset, in parameters, hits);
             ClearContent();
-            
-            Profiling.Profiler.EndSample();
         }
 
         internal void DebugDrawNeighborhood(ProbeVolumeHandle probeVolume, Camera camera)
@@ -196,8 +192,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, ref float validity, bool overwriteValidity)
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(GenerateBakeNeighborData)}");
-            
             InitBakeNeighborData(ref neighborBakeData);
 
             int anyHits = 0;
@@ -235,8 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
             
             neighborBakeData.validity = validity;
             
-            Profiling.Profiler.EndSample();
-            
             return hitsWithMaterial;
         }
 
@@ -251,8 +243,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void GeneratePackedNeighborData(ProbeBakeNeighborData[] neighborBakeDatas, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters, int hits)
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(GeneratePackedNeighborData)}");
-            
             int totalAxis = neighborBakeDatas.Length * s_NeighborAxis.Length;
             int missedAxis = totalAxis - hits;
             EnsureNeighbors(ref probeVolumeAsset.payload, missedAxis, hits, totalAxis);
@@ -286,8 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-            
-            Profiling.Profiler.EndSample();
+
         }
 
         enum RaycastFaceSide
@@ -299,8 +288,6 @@ namespace UnityEngine.Rendering.HighDefinition
         
         private int GetRequestIndexForOccluder(Vector3 positionWS, Vector3 offsetVS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, out float distance, out Vector3 normalWS, out RaycastFaceSide faceSide)
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(GetRequestIndexForOccluder)}");
-            
             var offsetWS = voxelTransform.MultiplyVector(offsetVS);
             var neighborDistanceWS = offsetWS.magnitude;
             if (neighborDistanceWS == 0f)
@@ -308,8 +295,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 distance = 0f;
                 normalWS = Vector3.zero;
                 faceSide = RaycastFaceSide.None;
-
-                Profiling.Profiler.EndSample();
                 return -1;
             }
 
@@ -330,8 +315,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     distance = outDistance;
                     normalWS = inverseVoxelTransform.MultiplyVector(hit.normal).normalized;
                     faceSide = outDistance < inDistance ? RaycastFaceSide.Frontface : RaycastFaceSide.Backface;
-
-                    Profiling.Profiler.EndSample();
                     return requestIndex;
                 }
             }
@@ -339,15 +322,11 @@ namespace UnityEngine.Rendering.HighDefinition
             distance = 0f;
             normalWS = Vector3.zero;
             faceSide = hasInHit ? RaycastFaceSide.Backface : RaycastFaceSide.None;
-
-            Profiling.Profiler.EndSample();
             return -1;
         }
 
         private bool TryFindNearestHit(int hitCount, float maxDist, bool rayIsInverted, out float distance, out RaycastHit hit, out MeshCollider collider)
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(TryFindNearestHit)}");
-            
             hit = default;
             distance = maxDist;
             collider = null;
@@ -371,8 +350,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-            
-            Profiling.Profiler.EndSample();
 
             return hitFound;
         }
@@ -392,8 +369,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int EnqueueExtraDataRequest(Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, RaycastHit hit, MeshCollider collider, Vector3 hitPositionWS)
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(EnqueueExtraDataRequest)}");
-            
             int requestTicket = -1;
 
             Mesh mesh = collider.sharedMesh;
@@ -457,8 +432,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     hitPositionWS, hitPositionDdxWS, hitPositionDdyWS,
                     hitNormalWS);
             }
-            
-            Profiling.Profiler.EndSample();
 
             return requestTicket;
         }
@@ -482,8 +455,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 posWS, Vector3 posWSDdx, Vector3 posWSDdy,
             Vector3 normalWS)
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(EnqueueRequest)}");
-            
             int requestIndex = extraRequestsOutput.Count;
             extraRequestsOutput.Add(default);
 
@@ -504,8 +475,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             list.Add(request);
-            
-            Profiling.Profiler.EndSample();
 
             return requestIndex;
         }
@@ -603,15 +572,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void ExecutePendingRequests()
         {
-            Profiling.Profiler.BeginSample($"{nameof(ProbeVolumeDynamicGI)}.{nameof(ExecutePendingRequests)}");
-            
             List<SortedRequests> sortedRequests;
             List<int> subListSizes;
             int maxSubListSize = 0;
             sortedRequests = SortRequestsForExecution(out subListSizes, out maxSubListSize);
             if (maxSubListSize == 0)
             {
-                Profiling.Profiler.EndSample();
                 return;
             }
 
@@ -670,8 +636,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // We are done with GPU buffers.
             CoreUtils.SafeRelease(inputBuffer);
             CoreUtils.SafeRelease(readbackBuffer);
-            
-            Profiling.Profiler.EndSample();
         }
     }
 #endif
