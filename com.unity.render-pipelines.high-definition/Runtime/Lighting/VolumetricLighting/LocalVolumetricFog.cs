@@ -3,16 +3,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum LocalVolumetricFogBlendingModes
-    {
-        Overwrite,
-        Add,
-        Sub,
-        Mult,
-        Min,
-        Max
-    }
-
     /// <summary>Artist-friendly Local Volumetric Fog parametrization.</summary>
     [Serializable]
     public partial struct LocalVolumetricFogArtistParameters

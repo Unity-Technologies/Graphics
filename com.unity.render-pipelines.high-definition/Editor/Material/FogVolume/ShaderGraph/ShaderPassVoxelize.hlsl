@@ -26,6 +26,7 @@ uint _FalloffMode;
 float4x4 _WorldToLocal; // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
 float _RcpDistanceFadeLength;
 float _EndTimesRcpDistanceFadeLength;
+float4 _AlbedoMask;
 
 struct VertexToFragment
 {
@@ -37,19 +38,19 @@ struct VertexToFragment
     // TODO: figure out what to do for VR because UNITY_VERTEX_OUTPUT_STEREO uses SV_RenderTargetArrayIndex on some platforms
 };
 
-uint DepthToSlice(float depth)
-{
-    // float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
-    float vBufferNearPlane = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+// uint DepthToSlice(float depth)
+// {
+//     // float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
+//     float vBufferNearPlane = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
 
-    float t = depth;
-    float dt = t - vBufferNearPlane;
-    float e1 = EncodeLogarithmicDepthGeneralized(dt, _VBufferDistanceEncodingParams);
+//     float t = depth;
+//     float dt = t - vBufferNearPlane;
+//     float e1 = EncodeLogarithmicDepthGeneralized(dt, _VBufferDistanceEncodingParams);
 
-    float slice = (e1 - _VBufferRcpSliceCount) / _VBufferRcpSliceCount;
+//     float slice = (e1 - _VBufferRcpSliceCount) / _VBufferRcpSliceCount;
 
-    return uint(slice);
-}
+//     return uint(slice);
+// }
 
 float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
 {
@@ -120,20 +121,6 @@ float ComputeFadeFactorPositionOS(float3 positionOS)
         coordNDC, distance, _RcpPositiveFade, _RcpNegativeFade,
         _InvertFade, _RcpDistanceFadeLength, _EndTimesRcpDistanceFadeLength, _FalloffMode
     );
-    // float3 p = abs(positionOS) / _LocalDensityVolumeExtent;
-    // float dstF = ;
-    // float  dstF = Remap10(, _RcpDistFadeLen, endTimesRcpDistFadeLen);
-
-    // float3 posF = Remap10(coordNDC, _RcpPositiveFade, _RcpPositiveFade);
-    // float3 negF = Remap01(coordNDC, _RcpNegativeFade, 0);
-    // float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
-
-    // if (_FalloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
-    //     fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
-
-    // fade = dstF * (_InvertFade ? (1 - fade) : fade);
-
-    // return saturate(fade);
 }
 
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
@@ -143,8 +130,8 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 
     // Discard pixels outside of the volume bounds:
 
-    float3 scatteringColor;
-    float density;
+    float3 albedo;
+    float extinction;
     
     FragInputs fragInputs = BuildFragInputs(v2f);
 
@@ -154,7 +141,11 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     // outColor = float4(v2f.positionOS, 1);
     // return;
 
-    GetVolumeData(fragInputs, v2f.viewDirectionWS, scatteringColor, density);
+    GetVolumeData(fragInputs, v2f.viewDirectionWS, albedo, extinction);
+
+    // extinction *= _Extinction;
+
+    float3 scatteringColor = (albedo * _AlbedoMask);
 
     // Apply volume blending
     float fade = ComputeFadeFactorPositionOS(v2f.positionOS);

@@ -93,6 +93,17 @@ namespace UnityEngine.Rendering.HighDefinition
         Exponential,
     }
 
+    [GenerateHLSL]
+    public enum LocalVolumetricFogBlendingModes
+    {
+        Overwrite,
+        Add,
+        Sub,
+        Mult,
+        Min,
+        Max
+    }
+
     public enum LocalVolumetricFogMaskMode
     {
         /// <summary>Use a 3D texture as mask.</summary>
@@ -1107,13 +1118,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
                                 if (aabb.Contains(cameraPosition)) // TODO: OBB check instead for accuracy // TODO: remove that and fix the projection computation issue
                                     viewSpaceBounds = new Vector4(-1, -1, 2, 2);
+                                float extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath);
                                 props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
                                 props.SetInteger("_SliceOffset", startSlice);
                                 props.SetVector("_LocalDensityVolumeExtent", volume.parameters.size / 2.0f);
                                 props.SetVector("_RcpPositiveFade", rcpPosFade);
                                 props.SetVector("_RcpNegativeFade", rcpNegFade);
                                 props.SetFloat("_InvertFade", volume.parameters.invertFade ? 1 : 0);
-                                props.SetFloat("_Extinction", VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath));
+                                props.SetFloat("_Extinction", extinction);
                                 props.SetInteger("_SliceCount", Mathf.Abs(stopSlice - startSlice));
                                 props.SetFloat("_MinDepth", minViewSpaceDepth);
                                 props.SetFloat("_MaxDepth", maxViewSpaceDepth);
@@ -1123,6 +1135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 float rcpDistFadeLen = 1.0f / distFadeLen;
                                 props.SetFloat("_RcpDistanceFadeLength", rcpDistFadeLen);
                                 props.SetFloat("_EndTimesRcpDistanceFadeLength", volume.parameters.distanceFadeEnd * rcpDistFadeLen);
+                                props.SetVector("_AlbedoMask", (Vector4)volume.parameters.albedo);
 
                                 CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
                                 ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
