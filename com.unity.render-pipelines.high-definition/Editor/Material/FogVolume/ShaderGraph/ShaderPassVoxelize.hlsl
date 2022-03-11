@@ -32,7 +32,7 @@ struct VertexToFragment
     float3 positionOS : TEXCOORD1;
     float depth : TEXCOORD2; // TODO: packing
     uint depthSlice : SV_RenderTargetArrayIndex;
-    UNITY_VERTEX_OUTPUT_STEREO
+    // TODO: figure out what to do for VR because UNITY_VERTEX_OUTPUT_STEREO uses SV_RenderTargetArrayIndex on some platforms
 };
 
 uint DepthToSlice(float depth)
@@ -58,13 +58,13 @@ float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
 }
 
 // TODO: instance id and vertex id in Attributes
-VertexToFragment Vert(Attributes input, uint instanceId : SV_INSTANCEID, uint vertexId : SV_VERTEXID)
+VertexToFragment Vert(Attributes input, uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VERTEXID_SEMANTIC)
 {
     VertexToFragment output;
 
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    // UNITY_SETUP_INSTANCE_ID(input);
+    // UNITY_TRANSFER_INSTANCE_ID(input, output);
+    // UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     output.depthSlice = _SliceOffset + instanceId;
 
@@ -73,13 +73,17 @@ VertexToFragment Vert(Attributes input, uint instanceId : SV_INSTANCEID, uint ve
     float s = float(instanceId) / float(_SliceCount);
     float depthViewSpace = lerp(_MinDepth, _MaxDepth, s);
 
+    // float3 viewSpacevertex = float3(GetQuadVertexPosition(vertexId).xy * _ViewSpaceBounds.zw + _ViewSpaceBounds.xy, -depthViewSpace);
+
     output.positionCS.xy *= _ViewSpaceBounds.zw;
     output.positionCS.xy += _ViewSpaceBounds.xy;
     output.positionCS.z = EyeDepthToLinear(depthViewSpace, _ZBufferParams);
     output.positionCS.w = 1;
 
+    // float3 positionWS = TransformViewToWorld(viewSpacevertex);
     float3 positionWS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
     output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
+    // output.positionCS = TransformWorldToHClip(positionWS);
 
     output.positionOS = mul(_WorldToLocal, float4(GetAbsolutePositionWS(positionWS), 1));
 
@@ -125,8 +129,8 @@ float ComputeFadeFactor(float3 positionOS)
 
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 {
-    UNITY_SETUP_INSTANCE_ID(unpacked);
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
+    // UNITY_SETUP_INSTANCE_ID(v2f);
+    // UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v2f);
 
     // Discard pixels outside of the volume bounds:
 

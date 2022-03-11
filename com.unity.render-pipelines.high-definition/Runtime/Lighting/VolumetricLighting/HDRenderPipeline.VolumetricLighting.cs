@@ -1086,6 +1086,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                 float minViewSpaceY = (Mathf.Min(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
                                 float maxViewSpaceY = (Mathf.Max(j0.y, j1.y, j2.y, j3.y, j4.y, j5.y, j6.y, j7.y));
 
+                                minViewSpaceX = Mathf.Max(-1, minViewSpaceX);
+                                minViewSpaceY = Mathf.Max(-1, minViewSpaceY);
+                                maxViewSpaceX = Mathf.Max(1, maxViewSpaceX);
+                                maxViewSpaceY = Mathf.Max(1, maxViewSpaceY);
+
+
                                 var camDir = (volume.transform.position - cameraPosition).normalized;
 
                                 int startSlice = currParams.ComputeSliceIndexFromDistance(minViewSpaceDepth, fog.volumeSliceCount.value);
@@ -1105,7 +1111,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 var props = new MaterialPropertyBlock();
                                 var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
-                                if (aabb.Contains(cameraPosition)) // TODO: OBB check instead for accuracy
+                                if (aabb.Contains(cameraPosition)) // TODO: OBB check instead for accuracy // TODO: remove that and fix the projection computation issue
                                     viewSpaceBounds = new Vector4(-1, -1, 2, 2);
                                 props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
                                 props.SetInteger("_SliceOffset", startSlice);
