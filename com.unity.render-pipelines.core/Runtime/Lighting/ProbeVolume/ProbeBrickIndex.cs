@@ -437,7 +437,6 @@ namespace UnityEngine.Rendering
 
             // Since the index is spurious (not same resolution, but varying per cell) we need to bring to the output resolution the brick coordinates
             // Before finding the locations inside the Index for the current cell/chunk.
-
             brickMin /= ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
             brickMax /= ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
 
@@ -461,16 +460,24 @@ namespace UnityEngine.Rendering
 
             // Compute the span of the valid part
             var size = (cellMaxIndex - cellMinIndex);
+            // Cache values here, in editor this costs a lot in the inner loop.
+            var sizeX = size.x;
+            var sizeY = size.y;
 
             // Loop through all touched indices
             int chunkStart = cellInfo.firstChunkIndex * kIndexChunkSize;
+            // Analytically compute min and max because doing it in the inner loop with Math.Min/Max is costly (not inlined)
+            int newMin = chunkStart + brickMin.z * (sizeX * sizeY) + brickMin.x * sizeY + brickMin.y;
+            int newMax = chunkStart + Math.Max(0, (brickMax.z - 1)) * (sizeX * sizeY) + Math.Max(0, (brickMax.x - 1)) * sizeY + Math.Max(0, (brickMax.y - 1));
+            //m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
+            //m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, newMax);
             for (int x = brickMin.x; x < brickMax.x; ++x)
             {
                 for (int z = brickMin.z; z < brickMax.z; ++z)
                 {
                     for (int y = brickMin.y; y < brickMax.y; ++y)
                     {
-                        int localFlatIdx = z * (size.x * size.y) + x * size.y + y;
+                        int localFlatIdx = z * (sizeX * sizeY) + x * sizeY + y;
                         int actualIdx = chunkStart + localFlatIdx;
                         m_PhysicalIndexBufferData[actualIdx] = value;
 
