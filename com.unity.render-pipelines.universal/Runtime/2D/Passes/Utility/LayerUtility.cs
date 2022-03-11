@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
@@ -69,13 +70,30 @@ namespace UnityEngine.Rendering.Universal
         {
             var layerId1 = sortingLayers[layerIndex1].id;
             var layerId2 = sortingLayers[layerIndex2].id;
+
             foreach (var light in lightCullResult.visibleLights)
             {
                 // If the lit layers are different, or if they are lit but this is a shadow casting light then don't batch.
-                bool lightCastsShadows = (light.lightType != Light2D.LightType.Global && light.shadowsEnabled);
-                if ((light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2)) || (light.IsLitLayer(layerId1) && lightCastsShadows))
+                //bool lightCastsShadows = (light.lightType != Light2D.LightType.Global && light.shadowsEnabled);
+                if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
                     return false;
             }
+
+            if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
+            {
+                foreach (var group in ShadowCasterGroup2DManager.shadowCasterGroups)
+                {
+                    if (group != null)
+                    {
+                        foreach (var shadowCaster in group.GetShadowCasters())
+                        {
+                            if (shadowCaster.IsShadowedLayer(layerId1) != shadowCaster.IsShadowedLayer(layerId2))
+                                return false;
+                        }
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -154,6 +172,33 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return s_LayerBatches;
+        }
+
+        public static void SetTransparencySortingMode(Camera camera, Renderer2DData data, ref DrawingSettings drawingSettings)
+        {
+            var sortingSettings = drawingSettings.sortingSettings;
+            var mode = data.transparencySortMode;
+
+            if (mode == TransparencySortMode.Default)
+            {
+                mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
+            }
+
+            switch (mode)
+            {
+                case TransparencySortMode.Perspective:
+                    sortingSettings.distanceMetric = DistanceMetric.Perspective;
+                    break;
+                case TransparencySortMode.Orthographic:
+                    sortingSettings.distanceMetric = DistanceMetric.Orthographic;
+                    break;
+                default:
+                    sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
+                    sortingSettings.customAxis = data.transparencySortAxis;
+                    break;
+            }
+
+            drawingSettings.sortingSettings = sortingSettings;
         }
     }
 }

@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.Universal
         {
             public List<string> LayerNames = new List<string>();
             public List<Light2D> Lights = new List<Light2D>();
+            public List<ShadowCaster2D> Shadows = new List<ShadowCaster2D>();
             public int batchId;
             public int color;
         }
@@ -67,12 +68,25 @@ namespace UnityEditor.Rendering.Universal
                 };
 
                 var batch = batches[i];
+
                 // get the lights
                 foreach (var light in renderer.lightCullResult.visibleLights)
                 {
                     // If the lit layers are different, or if they are lit but this is a shadow casting light then don't batch.
                     if (light.IsLitLayer(batch.startLayerID))
+                    {
                         batchInfo.Lights.Add(light);
+                    }
+                }
+
+                if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
+                {
+                    var allShadows = ShadowCasterGroup2DManager.shadowCasterGroups.SelectMany(x => x.GetShadowCasters());
+                    foreach (var shadowCaster in allShadows)
+                    {
+                        if (shadowCaster.IsShadowedLayer(batch.startLayerID))
+                            batchInfo.Shadows.Add(shadowCaster);
+                    }
                 }
 
                 for (var batchIndex = batch.startIndex; batchIndex <= batch.endIndex; batchIndex++)
@@ -86,7 +100,7 @@ namespace UnityEditor.Rendering.Universal
             return true;
         }
 
-        private VisualElement MakeLightPill(Light2D light)
+        private VisualElement MakeLightPill(UnityEngine.Object light)
         {
             var bubble = new Button();
             bubble.AddToClassList("Pill");
@@ -149,6 +163,16 @@ namespace UnityEditor.Rendering.Universal
 
             var bubble2 = infoView.Query<VisualElement>("InfoBubble2").First();
             bubble2.Clear();
+
+            var label3 = infoView.Query<Label>("InfoLabel3").First();
+            label3.text = $"Shadows in <b>Batch {batch1.batchId}</b>";
+
+            var bubble3 = infoView.Query<VisualElement>("InfoBubble3").First();
+            bubble3.Clear();
+            foreach (var shadow in batch1.Shadows)
+            {
+                bubble3.Add(MakeLightPill(shadow));
+            }
         }
 
         private void CompareBatch(int index1, int index2)

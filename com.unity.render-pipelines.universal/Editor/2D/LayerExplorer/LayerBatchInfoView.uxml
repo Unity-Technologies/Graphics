@@ -6,6 +6,8 @@
         <ui:VisualElement name="InfoBubble1" class="InfoView Content PillContainer"/>
         <ui:Label name="InfoLabel2" class="InfoView Content"/>
         <ui:VisualElement name="InfoBubble2" class="InfoView Content PillContainer"/>
+        <ui:Label name="InfoLabel3" class="InfoView Content"/>
+        <ui:VisualElement name="InfoBubble3" class="InfoView Content PillContainer"/>
     </ui:ScrollView>
 
 </ui:UXML>

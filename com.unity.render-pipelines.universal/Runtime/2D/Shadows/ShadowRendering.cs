@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
@@ -130,7 +129,7 @@ namespace UnityEngine.Rendering.Universal
             CreateShadowRenderTexture(pass, m_RenderTargetIds[shadowIndex], renderingData, cmdBuffer);
         }
 
-        public static bool PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
+        public static bool PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, ref LayerBatch layerBatch, Light2D light, int shadowIndex, float shadowIntensity)
         {
             var colorChannel = shadowIndex % 4;
             var textureIndex = shadowIndex / 4;
@@ -138,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
             if (colorChannel == 0)
                 ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
 
-            bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
+            bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, ref layerBatch, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
 
             m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
 
@@ -195,138 +194,89 @@ namespace UnityEngine.Rendering.Universal
             cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowCaster.m_CachedInverseShadowMatrix);
         }
 
-        public static bool RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, int colorBit)
+        public static bool RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, ref LayerBatch layerBatch, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, int colorBit)
         {
             using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadows))
             {
-                bool hasShadow = false;
-                var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
-                if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
-                {
-                    // Before doing anything check to see if any of the shadow casters are visible to this light
-                    for (var group = 0; group < shadowCasterGroups.Count; group++)
-                    {
-                        var shadowCasterGroup = shadowCasterGroups[group];
-                        var shadowCasters = shadowCasterGroup.GetShadowCasters();
+                int layerToRender = layerBatch.startLayerID;
+                var shadowGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
+                bool hasShadow = layerBatch.lightStats.totalShadowCasters > 0;
 
-                        if (shadowCasters != null)
+                if (hasShadow && shadowGroups != null)
+                {
+                    cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+
+                    using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadowColorsLookup[colorBit]))
+                    {
+                        if (colorBit == 0)
+                            cmdBuffer.ClearRenderTarget(true, true, Color.clear);
+                        else
+                            cmdBuffer.ClearRenderTarget(true, false, Color.clear);
+
+                        var shadowRadius = light.boundingSphere.radius;
+
+                        cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
+                        cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
+                        cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
+                        var unshadowGeometryMaterial = pass.rendererData.GetGeometryUnshadowMaterial(colorBit);
+                        var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorBit);
+                        var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorBit);
+                        var unshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorBit);
+                        var setGlobalStencilMaterial = pass.rendererData.GetStencilOnlyShadowMaterial(colorBit);
+
+                        foreach (var shadowGroup in shadowGroups)
                         {
-                            // Draw the projected shadows for the shadow caster group. Writing into the group stencil buffer bit
-                            for (var i = 0; i < shadowCasters.Count; i++)
+                            var shadowCasters = shadowGroup.GetShadowCasters();
+
+                            foreach (var shadowCaster in shadowCasters)
                             {
-                                var shadowCaster = shadowCasters[i];
-                                if (shadowCaster != null && shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerToRender))
+                                if (projectedShadowsMaterial != null && shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
-                                    hasShadow = true;
-                                    break;
+                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
+
+                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, unshadowGeometryMaterial, 0, 0);
+                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, projectedShadowsMaterial, 0, 0);
+                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, unshadowGeometryMaterial, 0, 1);
                                 }
                             }
-                        }
-                    }
 
-                    if (hasShadow)
-                    {
-                        cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-
-                        using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadowColorsLookup[colorBit]))
-                        {
-                            if (colorBit == 0)
-                                cmdBuffer.ClearRenderTarget(true, true, Color.clear);
-                            else
-                                cmdBuffer.ClearRenderTarget(true, false, Color.clear);
-
-                            var shadowRadius = light.boundingSphere.radius;
-
-                            cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
-                            cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
-
-
-                            cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
-                            var unshadowGeometryMaterial = pass.rendererData.GetGeometryUnshadowMaterial(colorBit);
-                            var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorBit);
-                            var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorBit);
-                            var unshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorBit);
-                            var setGlobalStencilMaterial = pass.rendererData.GetStencilOnlyShadowMaterial(colorBit);
-
-                            for (var group = 0; group < shadowCasterGroups.Count; group++)
+                            // Draw the sprites, either as self shadowing or unshadowing
+                            foreach (var shadowCaster in shadowCasters)
                             {
-                                var shadowCasterGroup = shadowCasterGroups[group];
-                                var shadowCasters = shadowCasterGroup.GetShadowCasters();
-
-                                if (shadowCasters != null)
+                                if (shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
-                                    for (var i = 0; i < shadowCasters.Count; i++)
+                                    if (shadowCaster.useRendererSilhouette)
                                     {
-                                        var shadowCaster = shadowCasters[i];
+                                        // Draw using the sprite renderer
+                                        var renderer = (Renderer)null;
+                                        shadowCaster.TryGetComponent<Renderer>(out renderer);
 
-                                        if (shadowCaster.IsLit(light))
+                                        if (renderer != null)
                                         {
-                                            if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
-                                            {
-                                                if (shadowCaster.castsShadows)
-                                                {
-                                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
-
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, unshadowGeometryMaterial, 0, 0);
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, projectedShadowsMaterial, 0, 0);
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, unshadowGeometryMaterial, 0, 1);
-                                                }
-                                            }
+                                            var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
+                                            if (material != null)
+                                                cmdBuffer.DrawRenderer(renderer, material);
                                         }
                                     }
-
-                                    // Draw the sprites, either as self shadowing or unshadowing
-                                    for (var i = 0; i < shadowCasters.Count; i++)
+                                    else
                                     {
-                                        var shadowCaster = shadowCasters[i];
+                                        var meshMat = shadowCaster.m_CachedLocalToWorldMatrix;
+                                        var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
 
-                                        if (shadowCaster.IsLit(light))
-                                        {
-                                            if (shadowCaster != null && shadowCaster.IsShadowedLayer(layerToRender))
-                                            {
-                                                if (shadowCaster.useRendererSilhouette)
-                                                {
-                                                    // Draw using the sprite renderer
-                                                    var renderer = (Renderer)null;
-                                                    shadowCaster.TryGetComponent<Renderer>(out renderer);
-
-                                                    if (renderer != null)
-                                                    {
-                                                        var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
-                                                        if (material != null)
-                                                            cmdBuffer.DrawRenderer(renderer, material);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    var meshMat = shadowCaster.m_CachedLocalToWorldMatrix;
-                                                    var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
-
-                                                    // Draw using the shadow mesh
-                                                    if (material != null)
-                                                        cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, material);
-                                                }
-                                            }
-                                        }
+                                        // Draw using the shadow mesh
+                                        if (material != null)
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, material);
                                     }
+                                }
+                            }
 
-                                    // Draw the projected shadows for the shadow caster group. Writing clearing the group stencil bit, and setting the global bit
-                                    for (var i = 0; i < shadowCasters.Count; i++)
-                                    {
-                                        var shadowCaster = shadowCasters[i];
-
-                                        if (shadowCaster.IsLit(light))
-                                        {
-                                            if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
-                                            {
-                                                if (shadowCaster.castsShadows)
-                                                {
-                                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, projectedShadowsMaterial, 0, 1);
-                                                }
-                                            }
-                                        }
-                                    }
+                            // Draw the projected shadows for the shadow caster group. Writing clearing the group stencil bit, and setting the global bit
+                            foreach (var shadowCaster in shadowCasters)
+                            {
+                                if (projectedShadowsMaterial != null && shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerToRender))
+                                {
+                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
+                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, projectedShadowsMaterial, 0, 1);
                                 }
                             }
                         }
