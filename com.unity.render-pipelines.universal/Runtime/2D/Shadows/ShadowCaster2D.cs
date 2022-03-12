@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
             }
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
             {
-                //ShapeProviderUtility.PersistantDataCreated(m_ShadowShapeSource, m_ShadowShapeProvider, m_ShadowMesh);
+                ShapeProviderUtility.PersistantDataCreated(m_ShadowShape2DProvider, m_ShadowShape2DComponent, m_ShadowMesh);
             }
         }
 
