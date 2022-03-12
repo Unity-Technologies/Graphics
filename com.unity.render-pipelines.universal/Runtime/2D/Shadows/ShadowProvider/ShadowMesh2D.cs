@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Universal
             return indexToProcess;
         }
 
-        public override void SetShapeFromCapsules(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowContraction = true)        {
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowContraction = true)        {
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
 

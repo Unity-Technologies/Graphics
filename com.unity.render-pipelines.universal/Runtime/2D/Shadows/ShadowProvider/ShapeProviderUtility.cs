@@ -1,19 +1,20 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.U2D;
+
+using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class ShapeProviderUtility
     {
-        static public void CallOnBeforeRender(Component component, ShadowMesh2D shadowMesh, Bounds bounds)
+        static public void CallOnBeforeRender(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh, Bounds bounds)
         {
             if (component != null)
             {
-                IShadowShape2DProvider shapeProvider = component as IShadowShape2DProvider;
                 if (shapeProvider != null)
-                    shapeProvider.OnBeforeRender(shadowMesh, bounds);
+                    shapeProvider.OnBeforeRender(component, bounds, shadowMesh);
             }
             else if (shadowMesh != null && shadowMesh.mesh != null)
             {
@@ -21,51 +22,45 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void PersistantDataCreated(Component component, ShadowMesh2D shadowMesh)
+        static public void PersistantDataCreated(ShadowShape2DProvider shapeProvider, Component component, ShadowMesh2D shadowMesh)
         {
             if (component != null)
             {
-                IShadowShape2DProvider shapeProvider = component as IShadowShape2DProvider;
                 if(shapeProvider != null)
-                    shapeProvider.OnPersistantDataCreated(shadowMesh);
+                    shapeProvider.OnPersistantDataCreated(component, shadowMesh);
             }
         }
 
-        static public List<Component> GetShadowShapeProviders(GameObject go)
+
+        static public void TryGetDefaultShadowShapeProviderSource(GameObject go, out Component source, out ShadowShape2DProvider provider)
         {
+            source = null;
+            provider = null;
+
+            TypeCache.TypeCollection providerTypes = TypeCache.GetTypesDerivedFrom<ShadowShape2DProvider>();
             Component[] components = go.GetComponents<Component>();
 
-            List<Component> retList = new List<Component>();
+            int currentPriority = int.MinValue;
             for (int i = 0; i < components.Length; i++)
             {
                 Component component = components[i];
-                if (components[i] as IShadowShape2DProvider != null)
+
+                foreach (System.Type providerType in providerTypes)
                 {
-                    retList.Add(component);
+                    ShadowShape2DProvider currentProvider = (ShadowShape2DProvider)ScriptableObject.CreateInstance(providerType);
+                    if(currentProvider.CanProvideShape(component))
+                    {
+                        int menuPriority = currentProvider.MenuPriority();
+                        if(menuPriority > currentPriority)
+                        {
+                            currentPriority = menuPriority;
+                            source = component;
+                            provider = currentProvider;
+                        }
+                    }
                 }
             }
-
-            return retList;
         }
 
-        static public Component GetDefaultShadowCastingSource(GameObject go)
-        {
-            Component[] components = go.GetComponents<Component>();
-
-            Component defaultComponent = null;
-            for (int i = 0; i < components.Length; i++)
-            {
-                Component component = components[i];
-                if (components[i] as IShadowShape2DProvider != null)
-                {
-                    if (component as Renderer) // There can only be one renderer
-                        defaultComponent = component;
-                    else if (defaultComponent == null) // Renderer takes priority
-                        defaultComponent = component;
-                }
-            }
-
-            return defaultComponent;
-        }
     }
 }

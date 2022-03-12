@@ -9,14 +9,16 @@ namespace UnityEditor.Rendering.Universal
     {
         class SelectionData
         {
-            public SerializedObject   shadowCaster;
-            public Component          newShapeProvider;
-            public int                newCastingSource;
+            public SerializedObject         shadowCaster;
+            public ShadowShape2DProvider    newShadowShapeProvider;
+            public Component                newShadowShapeComponent;
+            public int                      newCastingSource;
 
-            public SelectionData(int inNewCastingSource, Component inNewShapeProvider, SerializedObject inShadowCaster)
+            public SelectionData(int inNewCastingSource, ShadowShape2DProvider inNewShapeProvider, Component inNewShadowShapeComponent, SerializedObject inShadowCaster)
             {
                 shadowCaster = inShadowCaster;
-                newShapeProvider = inNewShapeProvider;
+                newShadowShapeProvider = inNewShapeProvider;
+                newShadowShapeComponent = inNewShadowShapeComponent;
                 newCastingSource = inNewCastingSource;
             }
         }
@@ -25,12 +27,14 @@ namespace UnityEditor.Rendering.Universal
         {
             SelectionData selectionData = (SelectionData)layerSelectionDataObject;
 
-            SerializedProperty shapeProvider = selectionData.shadowCaster.FindProperty("m_ShadowShapeProvider");
+            SerializedProperty shapeProvider = selectionData.shadowCaster.FindProperty("m_ShadowShape2DProvider");
+            SerializedProperty shapeComponent = selectionData.shadowCaster.FindProperty("m_ShadowShape2DComponent");
             SerializedProperty castingSource = selectionData.shadowCaster.FindProperty("m_ShadowCastingSource");
 
             selectionData.shadowCaster.Update();
             castingSource.intValue  = selectionData.newCastingSource;
-            shapeProvider.objectReferenceValue = selectionData.newShapeProvider;
+            shapeProvider.objectReferenceValue = (Object)selectionData.newShadowShapeProvider;
+            shapeComponent.objectReferenceValue = (Object)selectionData.newShadowShapeComponent;
             selectionData.shadowCaster.ApplyModifiedProperties();
         }
 
@@ -56,7 +60,7 @@ namespace UnityEditor.Rendering.Universal
                 if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
                     selected = new GUIContent("ShapeEditor");
                 else if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider && shadowCaster.shadowShape2DProvider != null)
-                    selected = new GUIContent(GetCompactTypeName(shadowCaster.shadowShape2DProvider));
+                    selected = new GUIContent(GetCompactTypeName(shadowCaster.shadowShape2DComponent));
 
                 // Draw the drop down menu
                 if (EditorGUI.DropdownButton(position, selected, FocusType.Keyboard, EditorStyles.popup))
@@ -64,13 +68,13 @@ namespace UnityEditor.Rendering.Universal
                     GenericMenu menu = new GenericMenu();
                     menu.allowDuplicateNames = true;
 
-                    menu.AddItem(new GUIContent("None"), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.None, null, serializedObject));
-                    menu.AddItem(new GUIContent("Shape Editor"), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeEditor, null, serializedObject));
+                    menu.AddItem(new GUIContent("None"), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.None, null, null, serializedObject));
+                    menu.AddItem(new GUIContent("Shape Editor"), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeEditor, null, null, serializedObject));
 
-                    List<Component> castingSources = ShapeProviderUtility.GetShadowShapeProviders(shadowCaster.gameObject);
+                    var castingSources = ShapeProviderEditorUtility.GetShadowShapeProviders(shadowCaster.gameObject);
                     for (int i = 0; i < castingSources.Count; i++)
                     {
-                        menu.AddItem(new GUIContent(GetCompactTypeName(castingSources[i])), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeProvider, castingSources[i], serializedObject));
+                        menu.AddItem(new GUIContent(GetCompactTypeName(castingSources[i].component)), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeProvider, castingSources[i].provider, castingSources[i].component, serializedObject));
                     }
 
 
