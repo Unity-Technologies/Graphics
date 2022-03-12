@@ -42,6 +42,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     centerSample.color = GetColorSample(posInputs.positionSS, 0);
     centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
+    // The early exit is creating artifacts during upscale of the half-res tiles, so let's disable it for now
+#if 0
     int tileClass = GetTileClass(posInputs.positionSS);
     if (ResScale != 1.0 && tileClass != FAST_DEFOCUS_TILE)
     {
@@ -49,6 +51,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE)centerSample.color;
         return;
     }
+#endif
 
     DoFTile tileData;
     LoadTileData(posInputs.positionSS, centerSample, NumRings, tileData);
