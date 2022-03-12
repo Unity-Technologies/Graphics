@@ -87,20 +87,45 @@ Varyings VertQuadPadding(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     float2 scalePadding = ((_BlitTextureSize + float(_BlitPaddingSize)) / _BlitTextureSize);
-    float2 offsetPaddding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
+    float2 offsetPadding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
 
 #if SHADER_API_GLES
     float4 pos = input.positionOS;
-    float2 uv  = input.uv;
+    float2 uv = input.uv;
 #else
     float4 pos = GetQuadVertexPosition(input.vertexID);
-    float2 uv  = GetQuadTexCoord(input.vertexID);
+    float2 uv = GetQuadTexCoord(input.vertexID);
 #endif
 
     output.positionCS = pos * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.texcoord = uv;
-    output.texcoord = (output.texcoord - offsetPaddding) * scalePadding;
+    output.texcoord = (output.texcoord - offsetPadding) * scalePadding;
+    output.texcoord = output.texcoord * _BlitScaleBias.xy + _BlitScaleBias.zw;
+    return output;
+}
+
+Varyings VertQuadOctahedralPadding(Attributes input)
+{
+    Varyings output;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    float2 scalePadding = _BlitTextureSize / max(_BlitTextureSize - float(_BlitPaddingSize), 1);
+    float2 offsetPadding = (scalePadding - 1.0f) * 0.5f;
+
+#if SHADER_API_GLES
+    float4 pos = input.positionOS;
+    float2 uv = input.uv;
+#else
+    float4 pos = GetQuadVertexPosition(input.vertexID);
+    float2 uv = GetQuadTexCoord(input.vertexID);
+#endif
+
+    output.positionCS = pos * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+    output.texcoord = uv;
+    output.texcoord = output.texcoord * scalePadding - offsetPadding;
     output.texcoord = output.texcoord * _BlitScaleBias.xy + _BlitScaleBias.zw;
     return output;
 }
@@ -159,8 +184,8 @@ float4 FragOctahedralProject(Varyings input) : SV_Target
 float4 FragOctahedralProjectArraySlice(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 UV = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
-    float3 dir = UnpackNormalOctQuadEncode(2.0f * UV - 1.0f);
+    float2 uv = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f * uv - 1.0f);
     return float4(SAMPLE_TEXTURECUBE_ARRAY_LOD(_BlitCubeTextureArray, sampler_LinearRepeat, dir, _BlitTexArraySlice, _BlitMipLevel).rgb, 1);
 }
 

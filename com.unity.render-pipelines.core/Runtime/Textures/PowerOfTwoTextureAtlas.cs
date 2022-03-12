@@ -100,28 +100,30 @@ namespace UnityEngine.Rendering
             {
                 if (blitType == BlitType.CubeArrayTo2DArrayOctahedralPadding)
                 {
-                    textureSize *= 2;
-
                     //@ Make m_ArraySize a parameter like blitMips.
                     for (int arrayIdx = 0; arrayIdx < m_ArraySize; ++arrayIdx)
                     {
                         for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                         {
+                            if (mipLevel > mipPadding)
+                                pixelPadding *= 2;
                             cmd.SetRenderTarget(m_AtlasTexture, mipLevel, CubemapFace.Unknown, arrayIdx);
-                            Vector2 mipSize = new Vector2((int)textureSize.x >> mipLevel, (int)textureSize.y >> mipLevel);
-                            Blitter.BlitCubeArraySliceOctahedralPadding(cmd, texture, mipSize, scaleOffset, mipLevel, bilinear, pixelPadding, arrayIdx);
+                            Blitter.BlitCubeArraySliceOctahedralPadding(cmd, texture, textureSize * 2, scaleOffset, mipLevel, bilinear, pixelPadding, arrayIdx);
                         }
                     }
                 }
-                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                else
                 {
-                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    switch (blitType)
+                    for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                     {
-                        case BlitType.Padding: Blitter.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
-                        case BlitType.PaddingMultiply: Blitter.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
-                        case BlitType.OctahedralPadding: Blitter.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
-                        case BlitType.OctahedralPaddingMultiply: Blitter.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
+                        cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                        switch (blitType)
+                        {
+                            case BlitType.Padding: Blitter.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
+                            case BlitType.PaddingMultiply: Blitter.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
+                            case BlitType.OctahedralPadding: Blitter.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
+                            case BlitType.OctahedralPaddingMultiply: Blitter.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
+                        }
                     }
                 }
             }

@@ -154,9 +154,10 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         {
             #if defined(USE_OCTAHEDRAL_ENV_MAP) 
                 // Apply atlas scale and offset
-                float mipTexelSize = _EnvOctahedralAtlasData.y * pow(2.0, lod);
-                float2 scale = _EnvOctAtlasScaleOffset[index].xy - 2.0 * mipTexelSize;
-                float2 offset = _EnvOctAtlasScaleOffset[index].zw + mipTexelSize;
+                float texelSize = _EnvOctahedralAtlasData.y;
+                float pixelPadding = 16.0 * pow(2.0, max(lod - 4.0, 0.0));
+                float2 scale = _EnvOctAtlasScaleOffset[index].xy - 2.0 * pixelPadding * texelSize;
+                float2 offset = _EnvOctAtlasScaleOffset[index].zw + pixelPadding * texelSize;
                 float2 texCoordOct = saturate(PackNormalOctQuadEncode(texCoord) * 0.5 + 0.5);
                 float2 atlasCoords = texCoordOct * scale + offset;
 

@@ -32,7 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Resolution = resolution;
             m_Format = format;
 
-            int mipPadding = 0;
+            // Make this as a parameter
+            int mipPadding = 4;
             m_TextureAtlas = new PowerOfTwoTextureAtlas(resolution, mipPadding, format, FilterMode.Trilinear, "ReflectionProbeCache2D Atlas", true, m_IBLFiltersBSDF.Length);
 
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
@@ -200,10 +201,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // In theory we should multiply by sqrt(6) to match the area.
-                    int octahedralWidth = convolvedTextureArrayTemp.width * 2;
-                    int octahedralHeight = convolvedTextureArrayTemp.height * 2;
+                    int octahedralSize = convolvedTextureArrayTemp.width * 2;
 
-                    if (TryAllocateTextureWithoutBlit(textureId, octahedralWidth, octahedralHeight, ref scaleOffset))
+                    // Last mip level should be at least 4 texels wide for the correct octahedral border.
+                    Debug.Assert(octahedralSize >= Mathf.Pow(2, (int)EnvConstants.ConvolutionMipCount));
+
+                    if (TryAllocateTextureWithoutBlit(textureId, octahedralSize, octahedralSize, ref scaleOffset))
                         m_TextureAtlas.BlitCubeArrayTexture2DArray(cmd, scaleOffset, convolvedTextureArrayTemp, true, textureId);
                     else
                         success = false;
