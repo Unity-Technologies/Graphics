@@ -2900,7 +2900,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isOrtho = hdCamera.camera.orthographic;
 
             // If DLSS is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
-            if (m_DLSSPassEnabled && currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+            if (m_DLSSPassEnabled && (currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.conditionalStabilizeCoC == 0 || currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost))
                 stabilizeCoC = true;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)

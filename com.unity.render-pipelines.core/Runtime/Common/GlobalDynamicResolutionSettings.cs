@@ -96,6 +96,9 @@ namespace UnityEngine.Rendering
         /// <summary>0 == always on, 1 = dynamic, 2 = always off.</summary>
         public int forceControlJitter;
 
+        /// <summary>0 == always, 1 = before post only.</summary>
+        public int conditionalStabilizeCoC;
+
         /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS) automatic recommendation system for scaling and sharpness.
         /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored. The sharpness setting of DLSS is also ignored.
         /// </summary>

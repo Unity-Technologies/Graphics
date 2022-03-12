@@ -549,6 +549,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     var q= EditorGUIUtility.TrTextContent("Force Control Jitter", "0 == always on, 1 = dynamic, 2 = always off..");
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forceControlJitter, q);
 
+                    var q2= EditorGUIUtility.TrTextContent("Conditional Stabilize CoC", "0 == always, 1 = before post only..");
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.conditionalStabilizeCoC, q2);
+                    
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
 
                     using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue))
