@@ -137,6 +137,95 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.IsTrue(contextNode.TryGetPort("Foo", out var fooReader));
                 Assert.NotNull(fooReader);
             }
+
+            [Test]
+            public void CanDeserializeNodeAndPorts()
+            {
+                GraphHandler graphHandler = new GraphHandler();
+                GraphDelta graphDelta = graphHandler.graphDelta;
+                using (INodeWriter node = graphDelta.AddNode("Add"))
+                {
+                    node.TryAddPort("A", true, true, out IPortWriter _);
+                    node.TryAddPort("B", true, true, out IPortWriter _);
+                    node.TryAddPort("Out", false, true, out IPortWriter _);
+                }
+
+                var nodeRef = graphDelta.GetNodeReader("Add");
+                Assert.NotNull(nodeRef);
+                Assert.IsTrue(nodeRef.TryGetPort("A", out IPortReader portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+
+                var roundTrip = graphHandler.ToSerializedFormat();
+                var deserializedHandler = new GraphHandler(roundTrip).graphDelta;
+
+                // Rerun tests on the deserialized version
+                nodeRef = deserializedHandler.GetNodeReader("Add");
+                Assert.NotNull(nodeRef);
+                Assert.IsTrue(nodeRef.TryGetPort("A", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+            }
+
+
+            [Test]
+            public void CanDeserializeConnections()
+            {
+                GraphHandler graphHandler = new GraphHandler();
+                GraphDelta graphDelta = graphHandler.graphDelta;
+                using (INodeWriter foo = graphDelta.AddNode("Foo"))
+                using (INodeWriter bar = graphDelta.AddNode("Bar"))
+                {
+                    Assert.IsTrue(foo.TryAddPort("A", true, true, out IPortWriter _));
+                    Assert.IsTrue(foo.TryAddPort("B", true, true, out IPortWriter _));
+                    Assert.IsTrue(foo.TryAddPort("Out", false, true, out IPortWriter output));
+                    Assert.IsTrue(bar.TryAddPort("A", true, true, out IPortWriter input));
+                    Assert.IsNotNull(output);
+                    Assert.IsNotNull(input);
+                    Assert.IsTrue(output.TryAddConnection(input));
+                }
+                var thruEdge = (graphDelta.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
+                var normSearch = graphDelta.m_data.Search("Bar.A");
+                Assert.NotNull(thruEdge);
+                Assert.NotNull(normSearch);
+                Assert.AreEqual(thruEdge, normSearch);
+
+
+                var roundTrip = graphHandler.ToSerializedFormat();
+                var deserializedHandler = new GraphHandler(roundTrip).graphDelta;
+
+                // rerun tests on the serialized version
+                try
+                {
+                    thruEdge = (deserializedHandler.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
+                    normSearch = deserializedHandler.m_data.Search("Bar.A");
+                }
+                catch(System.Exception)
+                {
+                    Assert.Fail("Connected element could not be found.");
+                }
+                Assert.NotNull(thruEdge);
+                Assert.NotNull(normSearch);
+                Assert.AreEqual(thruEdge, normSearch);
+            }
         }
     }
 
