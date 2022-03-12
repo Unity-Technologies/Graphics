@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.Universal
         {
             if (shadowCasterGroup != null)
                 shadowCasterGroup.UnregisterShadowCaster2D(shadowCaster);
+
+            if (shadowCasterGroup == shadowCaster)
+                RemoveGroup(shadowCasterGroup);
         }
 
         public static void AddGroup(ShadowCasterGroup2D group)
