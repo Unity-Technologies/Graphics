@@ -47,15 +47,18 @@ namespace UnityEngine.Rendering.Universal
 
                 foreach (System.Type providerType in providerTypes)
                 {
-                    ShadowShape2DProvider currentProvider = (ShadowShape2DProvider)ScriptableObject.CreateInstance(providerType);
-                    if(currentProvider.CanProvideShape(component))
+                    if (!providerType.IsAbstract)
                     {
-                        int menuPriority = currentProvider.MenuPriority();
-                        if(menuPriority > currentPriority)
+                        ShadowShape2DProvider currentProvider = (ShadowShape2DProvider)ScriptableObject.CreateInstance(providerType);
+                        if (currentProvider.CanProvideShape(component))
                         {
-                            currentPriority = menuPriority;
-                            source = component;
-                            provider = currentProvider;
+                            int menuPriority = currentProvider.MenuPriority();
+                            if (menuPriority > currentPriority)
+                            {
+                                currentPriority = menuPriority;
+                                source = component;
+                                provider = currentProvider;
+                            }
                         }
                     }
                 }

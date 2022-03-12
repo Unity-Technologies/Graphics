@@ -33,10 +33,13 @@ namespace UnityEditor.Rendering.Universal
                 // check each component to see if it is a valid provider
                 foreach (System.Type providerType in providerTypes)
                 {
-                    ShadowShape2DProvider provider = (ShadowShape2DProvider)ScriptableObject.CreateInstance(providerType);
-                    if(provider.CanProvideShape(component))
+                    if (!providerType.IsAbstract)
                     {
-                        retList.Add(new ShadowShapeProviderData(component, provider));
+                        ShadowShape2DProvider provider = (ShadowShape2DProvider)ScriptableObject.CreateInstance(providerType);
+                        if (provider.CanProvideShape(component))
+                        {
+                            retList.Add(new ShadowShapeProviderData(component, provider));
+                        }
                     }
                 }
             }
