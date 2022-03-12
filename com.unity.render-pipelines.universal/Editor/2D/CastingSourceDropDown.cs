@@ -74,7 +74,8 @@ namespace UnityEditor.Rendering.Universal
                     var castingSources = ShapeProviderEditorUtility.GetShadowShapeProviders(shadowCaster.gameObject);
                     for (int i = 0; i < castingSources.Count; i++)
                     {
-                        menu.AddItem(new GUIContent(GetCompactTypeName(castingSources[i].component)), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeProvider, castingSources[i].provider, castingSources[i].component, serializedObject));
+                        string menuName = castingSources[i].provider.MenuName(GetCompactTypeName(castingSources[i].component));
+                        menu.AddItem(new GUIContent(menuName), false, OnMenuOptionSelected, new SelectionData((int)ShadowCaster2D.ShadowCastingSources.ShapeProvider, castingSources[i].provider, castingSources[i].component, serializedObject));
                     }
 
 
