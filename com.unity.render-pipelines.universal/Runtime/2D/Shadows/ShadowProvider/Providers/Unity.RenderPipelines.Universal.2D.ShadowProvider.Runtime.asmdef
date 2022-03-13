@@ -18,6 +18,11 @@
             "name": "com.unity.2d.spriteshape",
             "expression": "8.0.0",
             "define": "USING_SPRITESHAPE"
+        },
+        {
+            "name": "com.unity.modules.physics2d",
+            "expression": "0.0.0",
+            "define": "USING_PHYSICS2D"
         }
     ],
     "noEngineReferences": false

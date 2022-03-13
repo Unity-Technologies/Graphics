@@ -1,3 +1,4 @@
+#if USING_PHYSICS2D
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -231,3 +232,4 @@ namespace UnityEngine.Rendering.Universal
 
    }
 }
+#endif
