@@ -1,0 +1,24 @@
+{
+    "name": "Unity.RenderPipelines.Universal.2D.ShadowProvider.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:caccfbdb442cdc64fa722b4c5585521f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.2d.spriteshape",
+            "expression": "8.0.0",
+            "define": "USING_SPRITESHAPE"
+        }
+    ],
+    "noEngineReferences": false
+}

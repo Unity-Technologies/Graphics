@@ -1,3 +1,4 @@
+#if USING_SPRITESHAPE
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -73,3 +74,5 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+#endif
+
