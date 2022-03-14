@@ -469,8 +469,8 @@ namespace UnityEngine.Rendering
             // Analytically compute min and max because doing it in the inner loop with Math.Min/Max is costly (not inlined)
             int newMin = chunkStart + brickMin.z * (sizeX * sizeY) + brickMin.x * sizeY + brickMin.y;
             int newMax = chunkStart + Math.Max(0, (brickMax.z - 1)) * (sizeX * sizeY) + Math.Max(0, (brickMax.x - 1)) * sizeY + Math.Max(0, (brickMax.y - 1));
-            //m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
-            //m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, newMax);
+            m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
+            m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, newMax);
             for (int x = brickMin.x; x < brickMax.x; ++x)
             {
                 for (int z = brickMin.z; z < brickMax.z; ++z)
@@ -480,9 +480,6 @@ namespace UnityEngine.Rendering
                         int localFlatIdx = z * (sizeX * sizeY) + x * sizeY + y;
                         int actualIdx = chunkStart + localFlatIdx;
                         m_PhysicalIndexBufferData[actualIdx] = value;
-
-                        m_UpdateMinIndex = Math.Min(actualIdx, m_UpdateMinIndex);
-                        m_UpdateMaxIndex = Math.Max(actualIdx, m_UpdateMaxIndex);
                     }
                 }
             }
