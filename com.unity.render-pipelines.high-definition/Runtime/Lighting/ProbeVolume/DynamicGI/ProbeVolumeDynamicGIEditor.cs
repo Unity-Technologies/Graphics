@@ -43,11 +43,32 @@ namespace UnityEngine.Rendering.HighDefinition
             internal Vector3 emission;
         }
 
-        internal struct RequestInput
+        internal struct RequestInput : IEquatable<RequestInput>
         {
             internal MeshRenderer renderer;
             internal Mesh mesh;
             internal int subMesh;
+
+            public bool Equals(RequestInput other)
+            {
+                return Equals(renderer, other.renderer) && Equals(mesh, other.mesh) && subMesh == other.subMesh;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is RequestInput other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = renderer != null ? renderer.GetHashCode() : 0;
+                    hashCode = (hashCode * 397) ^ (mesh != null ? mesh.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ subMesh;
+                    return hashCode;
+                }
+            }
         }
 
         // Debugging code
@@ -62,6 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal Dictionary<RequestInput, List<ExtraDataRequests>> requestsList = new Dictionary<RequestInput, List<ExtraDataRequests>>();
         internal List<ExtraDataRequestOutput> extraRequestsOutput = new List<ExtraDataRequestOutput>();
+        RaycastHit[] hitBuffer = new RaycastHit[256];
 
         List<int> processingIdxToOutputIdx = new List<int>();
 
@@ -77,11 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float validity;
         }
 
-        internal void ConstructNeighborData(Vector3[] probePositionsWS, Quaternion rotation, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters)
+        internal void ConstructNeighborData(Vector3[] probePositionsWS, Quaternion rotation, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters, bool overwriteValidity)
         {
-            requestsList.Clear();
-            extraRequestsOutput.Clear();
-
             int numProbes = probePositionsWS.Length;
             Debug.Assert(numProbes == probeVolumeAsset.payload.dataValidity.Length);
             var neighborBakeDatas = new ProbeBakeNeighborData[numProbes];
@@ -94,8 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < numProbes; ++i)
             {
                 var probePositionWS = probePositionsWS[i];
-                var validity = probeVolumeAsset.payload.dataValidity[i];
-                hits += GenerateBakeNeighborData(probePositionWS, voxelTransform, inverseVoxelTransform, ref neighborBakeDatas[i], validity);
+                hits += GenerateBakeNeighborData(probePositionWS, voxelTransform, inverseVoxelTransform, ref neighborBakeDatas[i], ref probeVolumeAsset.payload.dataValidity[i], overwriteValidity);
             }
 
             ExecutePendingRequests();
@@ -111,15 +129,17 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void DebugDrawNeighborhood(ProbeVolumeHandle probeVolume, Camera camera)
         {
             if (probeVolume.HitNeighborAxisLength != 0
-                && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
+                && probeVolume.GetPipelineData().EngineDataIndex >= 0)
             {
                 var material = GetDebugNeighborMaterial();
                 if (material != null)
                 {
                     InitializePropagationBuffers(probeVolume);
 
-                    Shader.SetGlobalBuffer("_ProbeVolumeDebugNeighborHits", probeVolume.propagationBuffers.neighborHits);
-                    Shader.SetGlobalInt("_ProbeVolumeDebugNeighborHitCount", probeVolume.propagationBuffers.neighborHits.count);
+                    ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
+                    
+                    Shader.SetGlobalBuffer("_ProbeVolumeDebugNeighborHits", propagationPipelineData.neighborHits);
+                    Shader.SetGlobalInt("_ProbeVolumeDebugNeighborHitCount", propagationPipelineData.neighborHits.count);
                     Shader.SetGlobalFloat("_ProbeVolumeDebugNeighborQuadScale", probeVolume.parameters.neighborsQuadScale);
                     Shader.SetGlobalInt("_ProbeVolumeDebugNeighborMode", probeVolume.parameters.drawEmission ? 1 : 0);
 
@@ -127,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdrp != null)
                     {
                         var obb = probeVolume.ConstructOBBEngineData( Vector3.zero);
-                        var data = probeVolume.parameters.ConvertToEngineData(hdrp.GetProbeVolumeAtlasSHRTDepthSliceCount(), probeVolume.parameters.distanceFadeStart, probeVolume.parameters.distanceFadeEnd);
+                        var data = probeVolume.parameters.ConvertToEngineData(probeVolume.GetPipelineData(), hdrp.GetProbeVolumeAtlasSHRTDepthSliceCount(), probeVolume.parameters.distanceFadeStart, probeVolume.parameters.distanceFadeEnd);
 
                         Shader.SetGlobalFloat("_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
                         Shader.SetGlobalInt("_ProbeVolumeDGIResolutionXY", (int)data.resolutionXY);
@@ -145,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         bounds.center = Vector3.zero;
                         bounds.Expand(10000000.0f);
 
-                        Graphics.DrawProcedural(material, bounds, MeshTopology.Triangles, numVerticesPerAxis, probeVolume.propagationBuffers.neighborHits.count, camera, null, ShadowCastingMode.Off, false);
+                        Graphics.DrawProcedural(material, bounds, MeshTopology.Triangles, numVerticesPerAxis, propagationPipelineData.neighborHits.count, camera, null, ShadowCastingMode.Off, false);
                     }
                 }
             }
@@ -170,25 +190,30 @@ namespace UnityEngine.Rendering.HighDefinition
             return extraRequestsOutput[requestIndex];
         }
 
-        private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, float validity)
+        private int GenerateBakeNeighborData(Vector3 positionWS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref ProbeBakeNeighborData neighborBakeData, ref float validity, bool overwriteValidity)
         {
             InitBakeNeighborData(ref neighborBakeData);
 
-            int hits = 0;
+            int anyHits = 0;
+            int backfaceHits = 0;
+            int hitsWithMaterial = 0;
             for (int i = 0; i < s_NeighborAxis.Length; ++i)
             {
                 var offsetVS = (Vector3)ProbeVolumeAsset.s_Offsets[i];
                 
-                float hitDistance = 0.0f;
-                Vector3 normal = Vector3.zero;
-                var requestIndex = GetRequestIndexForOccluder(positionWS, offsetVS, voxelTransform, inverseVoxelTransform, ref hitDistance, ref normal);
+                var requestIndex = GetRequestIndexForOccluder(positionWS, offsetVS, voxelTransform, inverseVoxelTransform, out float hitDistance, out Vector3 normal, out RaycastFaceSide faceSide);
 
+                if (faceSide != RaycastFaceSide.None)
+                    anyHits++;
+                if (faceSide == RaycastFaceSide.Backface)
+                    backfaceHits++;
+                
                 neighborBakeData.requestIndex[i] = requestIndex;
                 if (requestIndex != -1)
                 {
                     neighborBakeData.neighborDistance[i] = hitDistance;
                     neighborBakeData.neighborNormal[i] = normal;
-                    hits++;
+                    hitsWithMaterial++;
                 }
                 else
                 {
@@ -199,8 +224,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            if (overwriteValidity)
+                validity = anyHits != 0 ? (float)backfaceHits / anyHits : 0f;
+            
             neighborBakeData.validity = validity;
-            return hits;
+            
+            return hitsWithMaterial;
         }
 
         private void InitBakeNeighborData(ref ProbeBakeNeighborData bakeNeighborData)
@@ -210,10 +239,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bakeNeighborData.neighborNormal = new Vector3[s_NeighborAxis.Length];
             bakeNeighborData.neighborDistance = new float[s_NeighborAxis.Length];
             bakeNeighborData.requestIndex = new int[s_NeighborAxis.Length];
-            for (int i = 0; i < s_NeighborAxis.Length; ++i)
-            {
-                bakeNeighborData.requestIndex[i] = -1;
-            }
         }
 
         private void GeneratePackedNeighborData(ProbeBakeNeighborData[] neighborBakeDatas, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters, int hits)
@@ -254,79 +279,79 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        private int GetRequestIndexForOccluder(Vector3 positionWS, Vector3 offsetVS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, ref float outDistance, ref Vector3 normalWS)
+        enum RaycastFaceSide
+        {
+            None,
+            Frontface,
+            Backface
+        }
+        
+        private int GetRequestIndexForOccluder(Vector3 positionWS, Vector3 offsetVS, Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, out float distance, out Vector3 normalWS, out RaycastFaceSide faceSide)
         {
             var offsetWS = voxelTransform.MultiplyVector(offsetVS);
             var neighborDistanceWS = offsetWS.magnitude;
             if (neighborDistanceWS == 0f)
+            {
+                distance = 0f;
+                normalWS = Vector3.zero;
+                faceSide = RaycastFaceSide.None;
                 return -1;
-            
+            }
+
             var directionWS = offsetWS / neighborDistanceWS;
             var collisionLayerMask = ~0;
 
-            RaycastHit[] outBoundHits = Physics.RaycastAll(positionWS, directionWS, neighborDistanceWS, collisionLayerMask);
-            RaycastHit[] inBoundHits = Physics.RaycastAll(positionWS + offsetWS, -1.0f * directionWS, neighborDistanceWS, collisionLayerMask);
+            var inHitCount = Physics.RaycastNonAlloc(positionWS + offsetWS, -1.0f * directionWS, hitBuffer, neighborDistanceWS, collisionLayerMask);
+            var hasInHit = TryFindNearestHit(inHitCount, neighborDistanceWS, true, out var inDistance, out _, out _);
 
-            bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits);
-            if (hasMeshColliderHits)
+            var outHitCount = Physics.RaycastNonAlloc(positionWS, directionWS, hitBuffer, neighborDistanceWS, collisionLayerMask);
+            var hasOutHit = TryFindNearestHit(outHitCount, neighborDistanceWS, false, out var outDistance, out var hit, out var collider);
+
+            if (hasOutHit)
             {
-                int outIndex = 0;
-                outDistance = FindDistance(outBoundHits, neighborDistanceWS, ref outIndex, false);
-                if (outBoundHits.Length > 0)
+                var requestIndex = EnqueueExtraDataRequest(voxelTransform, inverseVoxelTransform, hit, collider, positionWS + directionWS * outDistance);
+                if (requestIndex != -1)
                 {
-                    RaycastHit hit = outBoundHits[outIndex];
-                    MeshCollider collider = hit.collider as MeshCollider;
-                    if (collider != null)
+                    distance = outDistance;
+                    normalWS = inverseVoxelTransform.MultiplyVector(hit.normal).normalized;
+                    faceSide = outDistance < inDistance ? RaycastFaceSide.Frontface : RaycastFaceSide.Backface;
+                    return requestIndex;
+                }
+            }
+
+            distance = 0f;
+            normalWS = Vector3.zero;
+            faceSide = hasInHit ? RaycastFaceSide.Backface : RaycastFaceSide.None;
+            return -1;
+        }
+
+        private bool TryFindNearestHit(int hitCount, float maxDist, bool rayIsInverted, out float distance, out RaycastHit hit, out MeshCollider collider)
+        {
+            hit = default;
+            distance = maxDist;
+            collider = null;
+
+            var hitFound = false;
+            for (int i = 0; i < hitCount; ++i)
+            {
+                RaycastHit candidateHit = hitBuffer[i];
+                var candidateDistance = rayIsInverted ? (maxDist - candidateHit.distance) : candidateHit.distance;
+                
+                if (candidateDistance < distance)
+                {
+                    var candidateCollider = candidateHit.collider;
+
+                    if (candidateCollider is MeshCollider candidateMeshCollider && IsValidForBaking(candidateCollider.gameObject))
                     {
-                        var requestIndex = EnqueueExtraDataRequest(voxelTransform, inverseVoxelTransform, hit, positionWS + directionWS * outDistance);
-                        if (requestIndex != -1)
-                        {
-                            normalWS = inverseVoxelTransform.MultiplyVector(outBoundHits[outIndex].normal).normalized;
-                            return requestIndex;
-                        }
+                        hit = candidateHit;
+                        distance = candidateDistance;
+                        collider = candidateMeshCollider;
+                        hitFound = true;
                     }
                 }
             }
 
-            return -1;
-        }
-
-        private static float FindDistance(RaycastHit[] hits, float maxDist, ref int index, bool findInDistance)
-        {
-            float distance = maxDist;
-            for (int i = 0; i < hits.Length; ++i)
-            {
-                RaycastHit hit = hits[i];
-                float hitDistance = findInDistance ? (maxDist - hit.distance) : hit.distance;
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject) && hitDistance < distance)
-                {
-                    distance = hitDistance;
-                    index = i;
-                }
-            }
-
-            return distance;
-        }
-
-        private static bool HasMeshColliderHits(RaycastHit[] outBoundHits, RaycastHit[] inBoundHits)
-        {
-            foreach (var hit in outBoundHits)
-            {
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
-                {
-                    return true;
-                }
-            }
-
-            foreach (var hit in inBoundHits)
-            {
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return hitFound;
         }
 
         private static bool IsValidForBaking(GameObject gameObject)
@@ -342,74 +367,70 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        private int EnqueueExtraDataRequest(Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, RaycastHit hit, Vector3 hitPositionWS)
+        private int EnqueueExtraDataRequest(Matrix4x4 voxelTransform, Matrix4x4 inverseVoxelTransform, RaycastHit hit, MeshCollider collider, Vector3 hitPositionWS)
         {
             int requestTicket = -1;
 
-            MeshCollider collider = hit.collider as MeshCollider;
-            if (collider != null)
+            Mesh mesh = collider.sharedMesh;
+
+            uint limit = (uint)hit.triangleIndex * 3;
+            int submesh = 0;
+            bool foundSubMesh = false;
+            for (; submesh < mesh.subMeshCount; submesh++)
             {
-                Mesh mesh = collider.sharedMesh;
-
-                uint limit = (uint)hit.triangleIndex * 3;
-                int submesh = 0;
-                bool foundSubMesh = false;
-                for (; submesh < mesh.subMeshCount; submesh++)
+                uint numIndices = mesh.GetIndexCount(submesh);
+                if (numIndices > limit)
                 {
-                    uint numIndices = mesh.GetIndexCount(submesh);
-                    if (numIndices > limit)
-                    {
-                        foundSubMesh = true;
-                        break;
-                    }
-
-                    limit -= numIndices;
+                    foundSubMesh = true;
+                    break;
                 }
 
-                if (!foundSubMesh)
-                {
-                    submesh = mesh.subMeshCount - 1;
-                }
+                limit -= numIndices;
+            }
 
-                MeshRenderer renderer = collider.GetComponent<MeshRenderer>();
-                if (renderer != null && renderer.sharedMaterials[submesh] != null)
+            if (!foundSubMesh)
+            {
+                submesh = mesh.subMeshCount - 1;
+            }
+
+            MeshRenderer renderer = collider.GetComponent<MeshRenderer>();
+            if (renderer != null && renderer.sharedMaterials[submesh] != null)
+            {
+                RequestInput requestInput;
+                requestInput.mesh = mesh;
+                requestInput.renderer = renderer;
+                requestInput.subMesh = submesh;
+                
+                // World-space sample size
+                var hitNormalWS = hit.normal;
+                var hitNormalVS = inverseVoxelTransform.MultiplyVector(hitNormalWS);
+                Vector3 hitPositionDdxVS;
+                Vector3 hitPositionDdyVS;
+                if (hitNormalVS.x == 0f && hitNormalVS.z == 0f)
                 {
-                    RequestInput requestInput;
-                    requestInput.mesh = mesh;
-                    requestInput.renderer = renderer;
-                    requestInput.subMesh = submesh;
-                    
-                    // World-space sample size
-                    var hitNormalWS = hit.normal;
-                    var hitNormalVS = inverseVoxelTransform.MultiplyVector(hitNormalWS);
-                    Vector3 hitPositionDdxVS;
-                    Vector3 hitPositionDdyVS;
-                    if (hitNormalVS.x == 0f && hitNormalVS.z == 0f)
-                    {
-                        hitPositionDdxVS = Vector3.right;
-                        hitPositionDdyVS = Vector3.forward;
-                    }
-                    else
-                    {
-                        hitPositionDdxVS = ExtendToCubeBounds(Vector3.Cross(Vector3.down, hitNormalVS));
-                        hitPositionDdyVS = ExtendToCubeBounds(Vector3.Cross(hitPositionDdxVS, hitNormalVS));
-                    }
-                    var hitPositionDdxWS = voxelTransform.MultiplyVector(hitPositionDdxVS);
-                    var hitPositionDdyWS = voxelTransform.MultiplyVector(hitPositionDdyVS);
-                    
-                    // UV-space sample size
-                    var worldToRenderer = renderer.transform.worldToLocalMatrix;
-                    var hitPositionDdxOS = worldToRenderer.MultiplyVector(hitPositionDdxWS);
-                    var hitPositionDdyOS = worldToRenderer.MultiplyVector(hitPositionDdyWS);
-                    var sampleAreaOS = hitPositionDdxOS.magnitude * hitPositionDdyOS.magnitude;
-                    var uvDistributionMetric = mesh.GetUVDistributionMetric(0);
-                    var sampleSideUV = Mathf.Sqrt(sampleAreaOS / uvDistributionMetric);
-                    
-                    requestTicket = EnqueueRequest(requestInput,
-                        hit.textureCoord, new Vector2(sampleSideUV, 0f), new Vector2(0f, sampleSideUV),
-                        hitPositionWS, hitPositionDdxWS, hitPositionDdyWS,
-                        hitNormalWS);
+                    hitPositionDdxVS = Vector3.right;
+                    hitPositionDdyVS = Vector3.forward;
                 }
+                else
+                {
+                    hitPositionDdxVS = ExtendToCubeBounds(Vector3.Cross(Vector3.down, hitNormalVS));
+                    hitPositionDdyVS = ExtendToCubeBounds(Vector3.Cross(hitPositionDdxVS, hitNormalVS));
+                }
+                var hitPositionDdxWS = voxelTransform.MultiplyVector(hitPositionDdxVS);
+                var hitPositionDdyWS = voxelTransform.MultiplyVector(hitPositionDdyVS);
+                
+                // UV-space sample size
+                var worldToRenderer = renderer.transform.worldToLocalMatrix;
+                var hitPositionDdxOS = worldToRenderer.MultiplyVector(hitPositionDdxWS);
+                var hitPositionDdyOS = worldToRenderer.MultiplyVector(hitPositionDdyWS);
+                var sampleAreaOS = hitPositionDdxOS.magnitude * hitPositionDdyOS.magnitude;
+                var uvDistributionMetric = mesh.GetUVDistributionMetric(0);
+                var sampleSideUV = Mathf.Sqrt(sampleAreaOS / uvDistributionMetric);
+                
+                requestTicket = EnqueueRequest(requestInput,
+                    hit.textureCoord, new Vector2(sampleSideUV, 0f), new Vector2(0f, sampleSideUV),
+                    hitPositionWS, hitPositionDdxWS, hitPositionDdyWS,
+                    hitNormalWS);
             }
 
             return requestTicket;

@@ -106,5 +106,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_SerializedObject.ApplyModifiedProperties();
         }
+
+        internal UnityEngine.Object[] GetTargetObjects()
+        {
+            return m_SerializedObject.targetObjects;
+        }
     }
 }
