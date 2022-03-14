@@ -20,8 +20,8 @@ When you apply the import settings, the importer generates a [Light](Light-Compo
 | **Lamp Description**        | Metadata about the Lamp. |
 | **Light Type**        | The [Light](Light-Component.md) type the importer uses to generate the Light Prefab. |
 | **Spot Angle**        | The distribution of pixels in the projection of spot Light IES profiles. Spot Lights require a 2D texture and, to project the IES in 2D, HDRP uses an angle on the upper hemisphere for a proper projection (specifically, HDRP uses a [Gnomonic projection](https://en.wikipedia.org/wiki/Gnomonic_projection)). |
-| **IES Size**        | The size of the texture generated . For spot and area Lights, this is the size of the 2D texture. For point Lights, this is the size of the Cubemap. |
-| **Apply Light Attenuation**        | Specifies whether to take the distance to the light source into account for spot Lights in order to have correct light attenuation. |
+| **IES Size**        | The size of the texture generated. For spot and area Lights, this is the size of the 2D texture. For point Lights, this is the size of the Cubemap. |
+| **Apply Light Attenuation**        | Specifies whether to take the distance to the light source into account for spot Lights to have correct light attenuation. |
 | **IES Compression**        | The compression Unity uses for the internal texture. |
 | **Use IES Maximum Intensity**        | Specifies whether to use the intensity stored in the IES File for the Prefab the importer generates. |
-| **Aim Axis Rotation**        | For IES with less symmetry, this parameter will allow us to choose on which orientation we can project the IES in the texture. |
+| **Aim Axis Rotation**        | You can use this parameter to determine which orientation Unity projects the IES in the texture. This is particularly useful for an IES that is less symmetrical. |

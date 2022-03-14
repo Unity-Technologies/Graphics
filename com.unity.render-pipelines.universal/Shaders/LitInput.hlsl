@@ -118,13 +118,8 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 half SampleOcclusion(float2 uv)
 {
     #ifdef _OCCLUSIONMAP
-        // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-        #if defined(SHADER_API_GLES)
-            return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-        #else
-            half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-            return LerpWhiteTo(occ, _OcclusionStrength);
-        #endif
+        half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+        return LerpWhiteTo(occ, _OcclusionStrength);
     #else
         return half(1.0);
     #endif

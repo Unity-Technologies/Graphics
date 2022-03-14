@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateRefractionData_Water (Preview)")]
-    class EvaluateRefractionData_Water : AbstractMaterialNode, IGeneratesBodyCode
+    class EvaluateRefractionData_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNDCPosition, IMayRequireViewDirection
     {
         public EvaluateRefractionData_Water()
         {
@@ -21,28 +21,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL => Documentation.GetPageLink("EvaluateRefractionData_Water");
 
-        const int kPositionWSInputSlotId = 0;
-        const string kPositionWSInputSlotName = "PositionWS";
-
-        const int kNormalWSInputSlotId = 1;
+        const int kNormalWSInputSlotId = 0;
         const string kNormalWSInputSlotName = "NormalWS";
 
-        const int kLowFrequencyNormalWSInputSlotId = 2;
+        const int kLowFrequencyNormalWSInputSlotId = 1;
         const string kLowFrequencyNormalWSInputSlotName = "LowFrequencyNormalWS";
 
-        const int kScreenPositionInputSlotId = 3;
-        const string kScreenPositionInputSlotName = "ScreenPosition";
-
-        const int kViewWSInputSlotId = 4;
-        const string kViewWSInputSlotName = "ViewWS";
-
-        const int kRefractedPositionWSOutputSlotId = 5;
+        const int kRefractedPositionWSOutputSlotId = 2;
         const string kRefractedPositionWSOutputSlotName = "RefractedPositionWS";
 
-        const int kDistordedWaterNDCOutputSlotId = 6;
+        const int kDistordedWaterNDCOutputSlotId = 3;
         const string kDistordedWaterNDCOutputSlotName = "DistordedWaterNDC";
 
-        const int kAbsorptionTintOutputSlotId = 7;
+        const int kAbsorptionTintOutputSlotId = 4;
         const string kAbsorptionTintOutputSlotName = "AbsorptionTint";
 
         public override bool hasPreview { get { return false; } }
@@ -50,11 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             // Input
-            AddSlot(new Vector3MaterialSlot(kPositionWSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector3MaterialSlot(kNormalWSInputSlotId, kNormalWSInputSlotName, kNormalWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector3MaterialSlot(kLowFrequencyNormalWSInputSlotId, kLowFrequencyNormalWSInputSlotName, kLowFrequencyNormalWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector2MaterialSlot(kScreenPositionInputSlotId, kScreenPositionInputSlotName, kScreenPositionInputSlotName, SlotType.Input, Vector2.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector3MaterialSlot(kViewWSInputSlotId, kViewWSInputSlotName, kViewWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
 
             // Output
             AddSlot(new Vector3MaterialSlot(kRefractedPositionWSOutputSlotId, kRefractedPositionWSOutputSlotName, kRefractedPositionWSOutputSlotName, SlotType.Output, Vector3.zero));
@@ -64,11 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(new[]
             {
                 // Input
-                kPositionWSInputSlotId,
                 kNormalWSInputSlotId,
                 kLowFrequencyNormalWSInputSlotId,
-                kScreenPositionInputSlotId,
-                kViewWSInputSlotId,
 
                 // Output
                 kRefractedPositionWSOutputSlotId,
@@ -87,14 +72,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("$precision refractedDistance;");
                 sb.AppendLine("$precision3 absorptionTint;");
 
-                // Evaluate the refraction parameters
-                string positionWS = GetSlotValue(kPositionWSInputSlotId, generationMode);
+                string positionAWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.Position)}";
                 string normalWS = GetSlotValue(kNormalWSInputSlotId, generationMode);
                 string lfNormalWS = GetSlotValue(kLowFrequencyNormalWSInputSlotId, generationMode);
-                string screenPos = GetSlotValue(kScreenPositionInputSlotId, generationMode);
-                string viewWS = GetSlotValue(kViewWSInputSlotId, generationMode);
-                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}, {2}, {3}, {4}, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, refractedDistance, absorptionTint);",
-                    positionWS,
+                string screenPos = ScreenSpaceType.Default.ToValueAsVariable();
+                string viewWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection)}";
+
+                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}, {2}, {3}.xy, {4}, true, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, refractedDistance, absorptionTint);",
+                    positionAWS,
                     normalWS,
                     lfNormalWS,
                     screenPos,
@@ -112,6 +97,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("$precision2 {0} = 0.0;", GetVariableNameForSlot(kDistordedWaterNDCOutputSlotId));
                 sb.AppendLine("$precision3 {0} = 0.0;", GetVariableNameForSlot(kAbsorptionTintOutputSlotId));
             }
+        }
+
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
+        {
+            return NeededCoordinateSpace.World;
+        }
+
+        bool IMayRequireNDCPosition.RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            return true;
+        }
+
+        public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
+        {
+            return NeededCoordinateSpace.World;
         }
     }
 }

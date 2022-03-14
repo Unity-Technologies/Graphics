@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DirectionalShadowRayLength;
         SerializedDataParameter m_DirectionalShadowFallbackIntensity;
         SerializedDataParameter m_RTASBuildMode;
+        SerializedDataParameter m_CullingMode;
+        SerializedDataParameter m_CullingDistance;
 
         static public readonly GUIContent k_RTASBuildModeText = EditorGUIUtility.TrTextContent("Acceleration Structure Build Mode", "Specifies if HDRP handles automatically the building of the ray tracing acceleration structure internally or if it's provided by the user through the camera. If manual is selected and no acceleration structure is fed to the camera, ray-traced effects are not executed and fallback to rasterization.");
         public override void OnEnable()
@@ -28,6 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirectionalShadowRayLength = Unpack(o.Find(x => x.directionalShadowRayLength));
             m_DirectionalShadowFallbackIntensity = Unpack(o.Find(x => x.directionalShadowFallbackIntensity));
             m_RTASBuildMode = Unpack(o.Find(x => x.buildMode));
+            m_CullingMode = Unpack(o.Find(x => x.cullingMode));
+            m_CullingDistance = Unpack(o.Find(x => x.cullingDistance));
         }
 
         public override void OnInspectorGUI()
@@ -50,6 +54,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((RTASBuildMode)m_RTASBuildMode.value.enumValueIndex == RTASBuildMode.Manual)
             {
                 EditorGUILayout.HelpBox("When set to Manual, the RTAS build mode expects a ray tracing acceleration structure to be set on the camera. If not, all ray traced effects will be disabled. This option does not affect the scene view.", MessageType.Info, wide: true);
+            }
+
+            PropertyField(m_CullingMode);
+            if ((RTASCullingMode)m_CullingMode.value.enumValueIndex == RTASCullingMode.Sphere)
+            {
+                using (new IndentLevelScope())
+                {
+                    PropertyField(m_CullingDistance);
+                }
             }
         }
     }

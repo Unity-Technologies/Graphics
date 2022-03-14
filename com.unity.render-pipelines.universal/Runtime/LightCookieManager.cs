@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             public float cubeOctahedralSizeScale;  // Cube octahedral projection size scale.
             public bool useStructuredBuffer;       // RenderingUtils.useStructuredBuffer
 
-            public static Settings GetDefault()
+            public static Settings Create()
             {
                 Settings s;
                 s.atlas.resolution = new Vector2Int(1024, 1024);
@@ -595,6 +595,7 @@ namespace UnityEngine.Rendering.Universal
 
         private LightCookieShaderFormat GetLightCookieShaderFormat(GraphicsFormat cookieFormat)
         {
+            // TODO: convert this to use GraphicsFormatUtility
             switch (cookieFormat)
             {
                 default:
@@ -616,6 +617,10 @@ namespace UnityEngine.Rendering.Universal
                 case GraphicsFormat.R32_UInt:
                 case GraphicsFormat.R32_SInt:
                 case GraphicsFormat.R32_SFloat:
+                case GraphicsFormat.R_BC4_SNorm:
+                case GraphicsFormat.R_BC4_UNorm:
+                case GraphicsFormat.R_EAC_SNorm:
+                case GraphicsFormat.R_EAC_UNorm:
                     return LightCookieShaderFormat.Red;
             }
         }

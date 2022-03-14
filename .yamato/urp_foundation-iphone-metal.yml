@@ -11,6 +11,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     name: URP_Foundation on iPhone_Metal_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::iPhone
+        model: SE
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:
@@ -25,7 +26,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -82,6 +83,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Foundation on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
+        model: SE
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:
@@ -96,7 +98,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0

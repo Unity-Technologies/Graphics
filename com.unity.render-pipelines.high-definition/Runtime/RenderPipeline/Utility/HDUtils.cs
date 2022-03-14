@@ -104,10 +104,10 @@ namespace UnityEngine.Rendering.HighDefinition
             try
             {
                 var types = assembly.GetTypes()
-                .Where(t => t.IsSubclassOf(baseType))
-                .Select(Activator.CreateInstance)
-                .Cast<RenderPipelineMaterial>()
-                .ToList();
+                    .Where(t => t.IsSubclassOf(baseType))
+                    .Select(Activator.CreateInstance)
+                    .Cast<RenderPipelineMaterial>()
+                    .ToList();
 
                 // Note: If there is a need for an optimization in the future of this function, user can
                 // simply fill the materialList manually by commenting the code abode and returning a
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="matrix"></param>
         /// <returns></returns>
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
-            => -matrix.m11 / matrix.m00;
+            => - matrix.m11 / matrix.m00;
 
         /// <summary>
         /// Determine if a projection matrix is off-center (asymmetric).
@@ -492,11 +492,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="properties">Optional Material Property block.</param>
         /// <param name="shaderPassId">Optional pass index to use.</param>
         /// <param name="depthSlice">Optional depth slice to render to.</param>
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
+        /// <param name="cubemapFace">Optional cubemap face to render to.</param>
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, CubemapFace cubemapFace, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
         {
-            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
+            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, cubemapFace, depthSlice);
             commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will render into the destination texture with the specified viewport.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="viewport">Destination viewport.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="destination">Destination RenderTargetIdentifier.</param>
+        /// <param name="properties">Optional Material Property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
+        /// <param name="depthSlice">Optional depth slice to render to.</param>
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
+        {
+            DrawFullScreen(commandBuffer, viewport, material, destination, CubemapFace.Unknown, properties, shaderPassId, depthSlice);
         }
 
         /// <summary>
@@ -727,6 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 graphicDevice == GraphicsDeviceType.Direct3D12 ||
                 graphicDevice == GraphicsDeviceType.PlayStation4 ||
                 graphicDevice == GraphicsDeviceType.PlayStation5 ||
+                graphicDevice == GraphicsDeviceType.PlayStation5NGGC ||
                 graphicDevice == GraphicsDeviceType.XboxOne ||
                 graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                 graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
@@ -939,8 +957,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unsafe
             {
-                fixed (byte* b = bytes)
-                    vector = *(Vector4*)b;
+                fixed(byte* b = bytes)
+                vector = *(Vector4*)b;
             }
 
             return vector;
