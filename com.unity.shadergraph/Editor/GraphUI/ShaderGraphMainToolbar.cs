@@ -1,10 +1,9 @@
 using System;
-using UnityEditor.EditorTools;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.Toolbars;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -101,20 +100,57 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Add(m_OptionsButton);
         }
 
-        // TODO (Sai): Add implementation for this button when Liz completes Save Asset functionality
         void OnSaveButton()
         {
-            // If no currently opened graph, early out
-            if (GraphTool.ToolState.AssetModel == null)
-                return;
+            SaveImplementation();
         }
 
-        // TODO (Sai): Add implementation for this button when Liz completes Save Asset functionality
         void OnSaveAsButton()
+        {
+            SaveAsImplementation();
+        }
+
+        public void SaveImplementation()
         {
             // If no currently opened graph, early out
             if (GraphTool.ToolState.AssetModel == null)
                 return;
+            if (GraphTool.ToolState.GraphModel is ShaderGraphModel shaderGraphModel)
+            {
+                var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
+                ShaderGraphAsset.HandleSave(assetPath, assetModel);
+                // Set to false after saving to clear modification state from editor window tab
+                assetModel.Dirty = false;
+            }
+        }
+
+        public string SaveAsImplementation()
+        {
+            // If no currently opened graph, early out
+            if (GraphTool.ToolState.AssetModel == null)
+                return String.Empty;
+
+            if (GraphTool.ToolState.GraphModel is ShaderGraphModel shaderGraphModel)
+            {
+                // Get folder of current shader graph asset
+                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                path = path.Remove(path.LastIndexOf('/'));
+
+                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2");
+                // If User cancelled operation or provided an invalid path
+                if (destinationPath == String.Empty)
+                    return String.Empty;
+
+                var assetModel = GraphTool.ToolState.AssetModel as ShaderGraphAssetModel;
+                ShaderGraphAsset.HandleSave(destinationPath, assetModel);
+                // Refresh asset database so newly saved asset shows up
+                AssetDatabase.Refresh();
+
+                return destinationPath;
+            }
+
+            return String.Empty;
         }
 
         void OnShowInProjectButton()

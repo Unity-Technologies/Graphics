@@ -214,6 +214,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
         {
+            if (IsInitialized) return;
             graphHandler = handler;
             this.nodeName = nodeName;
             this.portName = portName;
