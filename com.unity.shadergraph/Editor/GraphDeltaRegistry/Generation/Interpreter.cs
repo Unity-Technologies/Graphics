@@ -230,7 +230,8 @@ namespace UnityEditor.ShaderGraph.Generation
             ref List<ShaderFunction> shaderFunctions,
             Registry.Registry registry)
         {
-            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
+            var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
+            var func = nodeBuilder.GetShaderFunction(node, container, registry);
             bool shouldAdd = true;
             foreach(var existing in shaderFunctions)
             {

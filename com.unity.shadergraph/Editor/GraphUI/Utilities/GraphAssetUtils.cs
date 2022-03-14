@@ -1,13 +1,32 @@
-﻿using UnityEngine.Rendering;
+
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GraphAssetUtils
+    public static class GraphAssetUtils
     {
-        [MenuItem("Assets/Create/Shader Graph/Blank Shader Graph", priority = CoreUtils.Sections.section1 +  CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        public static void CreateBlankShaderGraph()
+        public class CreateAssetAction : ProjectWindowCallback.EndNameEditAction
         {
-            var graphAssetModel = ShaderGraphOnboardingProvider.CreateBlankShaderGraph();
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                ShaderGraphAsset.HandleCreate(pathName);
+                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(pathName);
+                Selection.activeObject = obj;
+            }
+        }
+
+        [MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
+        public static void CreateBlankGraphInProjectWindow()
+        {
+            var newGraphAction = ScriptableObject.CreateInstance<CreateAssetAction>();
+
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+                0,
+                newGraphAction,
+                $"{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}",
+                null,
+                null);
         }
     }
 }
