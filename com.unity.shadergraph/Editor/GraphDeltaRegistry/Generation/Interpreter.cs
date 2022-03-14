@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 surfaceCPDesc = surfaceDescBuilder.Build();
             }
 
-            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock);
+            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock, String.Empty);
             return shader.codeString;
         }
 
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
             var inputType = BuildStructFromVariables(container, $"{BlockName}Input", inputVariables, blockBuilder);
 
-            mainBodyFunctionBuilder.AddLine($"{outputType.Name} output;");
+            mainBodyFunctionBuilder.AddLine($"{BlockName}Block::{outputType.Name} output;");
             if(isContext)
             {
                 int varIndex = 0;
