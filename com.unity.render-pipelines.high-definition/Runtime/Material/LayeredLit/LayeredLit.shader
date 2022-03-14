@@ -323,6 +323,8 @@ Shader "HDRP/LayeredLit"
         _SpecularAAScreenSpaceVariance("SpecularAAScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
         _SpecularAAThreshold("SpecularAAThreshold", Range(0.0, 1.0)) = 0.2
 
+        [ToggleUI] _ExcludeFromTAA("ExcludeFromTAA", Float) = 0.0
+
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5

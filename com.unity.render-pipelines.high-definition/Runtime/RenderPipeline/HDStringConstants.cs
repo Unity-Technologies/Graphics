@@ -868,6 +868,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputHistoryTexture = Shader.PropertyToID("_OutputHistoryTexture");
         public static readonly int _InputVelocityMagnitudeHistory = Shader.PropertyToID("_InputVelocityMagnitudeHistory");
         public static readonly int _OutputVelocityMagnitudeHistory = Shader.PropertyToID("_OutputVelocityMagnitudeHistory");
+        public static readonly int _OutputDilatedVelocity = Shader.PropertyToID("_OutputDilatedVelocity");
+        public static readonly int _DilatedVelocity = Shader.PropertyToID("_DilatedVelocity");
+        public static readonly int _OutputStencilAndMVLen = Shader.PropertyToID("_OutputStencilAndMVLen");
+        public static readonly int _StencilAndMVLen = Shader.PropertyToID("_StencilAndMVLen");
+        public static readonly int _PrevStencilAndMVLen = Shader.PropertyToID("_PrevStencilAndMVLen");
         public static readonly int _OutputDepthTexture = Shader.PropertyToID("_OutputDepthTexture");
         public static readonly int _OutputMotionVectorTexture = Shader.PropertyToID("_OutputMotionVectorTexture");
 

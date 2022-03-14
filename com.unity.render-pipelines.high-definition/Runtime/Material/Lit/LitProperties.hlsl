@@ -140,6 +140,9 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+// TAA
+float _ExcludeFromTAA;
+
 // Raytracing
 float _RayTracing;
 

@@ -1,0 +1,78 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel TAAStencilPrepCS
+
+#if UNITY_REVERSED_Z
+#define COMPARE_DEPTH(a, b) step(b, a)
+
+
+#else
+#define COMPARE_DEPTH(a, b) step(a, b)
+
+#endif
+
+
+uint PackOutput(uint dilatedStencil, uint stencil, float mvLen)
+{
+    uint finalValue = 0;
+    finalValue |= PackFloatToUInt(mvLen, 0, 14);
+    finalValue |= (stencil & 1) << 14;
+    finalValue |= (dilatedStencil & 1) << 15;
+
+    return finalValue;
+}
+
+// !!!!!IMPORTANT!!!! FOR TAAU WILL THIS NEED TO OUTPUT TO FULL RES AND NOT THE SOURCE RES?
+// LOOK AT THIS LATER. VERY IMPORTANT!! NOW ASSUMING SAME RES BOTH WAYS.
+// I ASSUME CAN STAY LOW RES, JUST NEED TO BE CAREFUL WHEN SAMPLING AND WRITING BACK IN TAA.
+
+
+TEXTURE2D_X(_DepthTexture);
+RW_TEXTURE2D_X(uint, _OutputStencilAndMVLen);
+RW_TEXTURE2D_X(float2, _OutputDilatedVelocity);
+
+
+// TODO: The length of MV need to take the camera into account.
+
+[numthreads(8, 8, 1)]
+void TAAStencilPrepCS(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // TODO: We should dilate 2 for velocity and 1 for stencil... keeping 1 for both for now.
+    int searchWidth = 1;
+
+    // Center pixel.
+    float centralDepth = LOAD_TEXTURE2D_X_LOD(_DepthTexture, (dispatchThreadId.xy), 0).r;
+
+    float s0 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, (dispatchThreadId.xy + int2(-searchWidth, -searchWidth)), 0).r;
+    float s1 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, (dispatchThreadId.xy + int2(searchWidth, -searchWidth)), 0).r;
+    float s2 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, (dispatchThreadId.xy + int2(-searchWidth, searchWidth)), 0).r;
+    float s3 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, (dispatchThreadId.xy + int2(searchWidth, searchWidth)), 0).r;
+
+    float3 closest = float3(0.0, 0.0, centralDepth);
+    closest = COMPARE_DEPTH(s0, closest.z) ? float3(int2(-searchWidth, -searchWidth), s0) : closest;
+    closest = COMPARE_DEPTH(s1, closest.z) ? float3(int2(searchWidth, -searchWidth), s1) : closest;
+    closest = COMPARE_DEPTH(s2, closest.z) ? float3(int2(-searchWidth, searchWidth), s2) : closest;
+    closest = COMPARE_DEPTH(s3, closest.z) ? float3(int2(searchWidth, searchWidth), s3) : closest;
+
+    // Get dilated velocity
+    float4 rawExpandedVelocity = LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, dispatchThreadId.xy + closest);
+    bool stencilTaggedDilated = PixelSetAsExcludedFromTAA(rawExpandedVelocity);
+    bool stencilTagged = PixelSetAsExcludedFromTAA(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, dispatchThreadId.xy));
+
+    float2 dilatedVelocity;
+    DecodeMotionVector(rawExpandedVelocity, dilatedVelocity);
+
+    _OutputDilatedVelocity[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = dilatedVelocity;
+
+    float lenMV = dilatedVelocity /** 10*/;
+
+    uint packedVal = PackOutput(stencilTaggedDilated ? 1 : 0, stencilTagged ? 1 : 0, lenMV);
+
+    _OutputStencilAndMVLen[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = packedVal;
+}

@@ -115,7 +115,12 @@ void Frag(  PackedVaryingsToPS packedInput
     // Setting the motionVector to a value more than 2 set as a flag for "force no motion". This is valid because, given that the velocities are in NDC,
     // a value of >1 can never happen naturally, unless explicitely set.
     if (forceNoMotion)
-        outMotionVector = float4(2.0, 0.0, 0.0, 0.0);
+        SetPixelAsNoMotionVectors(outMotionVector);
+
+#ifdef ALLOW_EXCLUDE_FROM_TAA
+    if (_ExcludeFromTAA)
+        SetPixelAsAntiGhostTAA(outMotionVector);
+#endif
 
 // Depth and Alpha to coverage
 #ifdef WRITE_MSAA_DEPTH

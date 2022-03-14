@@ -308,6 +308,52 @@ float3 ConvertToOutputSpace(float3 color)
 #endif
 }
 
+
+// ---------------------------------------------------
+// Stencil related
+// ---------------------------------------------------
+uint GetDataFromPackedExtra(TEXTURE2D_X_UINT(StencilAndMVLen), int2 posSS, out uint dilatedStencil, out uint stencil, out float mvLen)
+{
+    /*
+        uv = ClampAndScaleUVForPoint(uv);
+    uint packedVal = SAMPLE_TEXTURE2D_X_LOD(StencilAndMVLen, s_point_clamp_sampler, uv, 0);
+*/
+    uint packedVal = StencilAndMVLen[COORD_TEXTURE2D_X(posSS)];
+
+    mvLen = UnpackUIntToFloat(packedVal, 0, 14);
+    stencil = (packedVal >> 14) & 1;
+    dilatedStencil =  (packedVal >> 15) & 1;
+
+    return packedVal;
+}
+
+bool IsEdge(TEXTURE2D_X_UINT(StencilAndMVLen), int2 posSS, uint stencil)
+{
+    for (int x = -1; x <= 1; ++x)
+    {
+        for (int y = -1; y <= 1; ++y)
+        {
+            if (x == 0 && y == 0) continue;
+
+            int2 samplePos = posSS + int2(x, y);
+            uint packedVal = StencilAndMVLen[COORD_TEXTURE2D_X(samplePos)];
+            uint currStencil = (packedVal >> 14) & 1;
+            if (stencil != currStencil) return true;
+
+        }
+    }
+
+    return false;
+}
+
+void GetStencilFromPackedExtra(TEXTURE2D_X(StencilAndMVLen), int2 posSS, out uint dilatedStencil, out uint stencil)
+{
+    uint packedVal = StencilAndMVLen[COORD_TEXTURE2D_X(posSS)];
+    stencil = UnpackUIntToFloat(packedVal, 14, 1);
+    dilatedStencil = UnpackUIntToFloat(packedVal, 15, 1);
+
+}
+
 // ---------------------------------------------------
 // Velocity related functions.
 // ---------------------------------------------------
@@ -376,12 +422,11 @@ float2 GetClosestFragmentCompute(float2 positionSS)
 }
 
 
-float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture), float mvLen, float2 prevUV, float blendFactor, float speedRejectionFactor, float2 rtHandleScale)
+float ModifyBlendWithMotionVectorRejection(float prevMVLen, float mvLen, float2 prevUV, float blendFactor, float speedRejectionFactor, float2 rtHandleScale)
 {
     // TODO: This needs some refinement, it can lead to some annoying flickering coming back on strong camera movement.
 #if VELOCITY_REJECTION
 
-    float prevMVLen = Fetch(VelocityMagnitudeTexture, prevUV, 0, rtHandleScale).x;
     float diff = abs(mvLen - prevMVLen);
 
     // We don't start rejecting until we have the equivalent of around 40 texels in 1080p
@@ -507,7 +552,7 @@ struct NeighbourhoodInfo
     CTYPE filteredCentral;
     CTYPE minNeighbour;
     CTYPE maxNeighbour;
-    CTYPE boxFiltered;
+    CTYPE blurredNeighbourhood;
 
 #if NEIGHBOUROOD_CORNER_METHOD == VARIANCE
     CTYPE moment1;
@@ -523,7 +568,11 @@ void InitNeighbourhoodInfo(inout NeighbourhoodInfo info)
     info.maxNeighbour = -10e10f;
 }
 
-void UpdateNeighbourhoodCornersInfo(CTYPE currSample, inout NeighbourhoodInfo samples)
+#define BLUR_BOX 0
+#define BLUR_GAUSS 1
+#define BLUR_FALLBACK BLUR_BOX
+
+void UpdateNeighbourhoodCornersInfo(CTYPE currSample, int2 offset, inout NeighbourhoodInfo samples)
 {
 #if NEIGHBOUROOD_CORNER_METHOD == VARIANCE
     currSample.xyz = clamp(currSample.xyz, 0, CLAMP_MAX);
@@ -538,7 +587,13 @@ void UpdateNeighbourhoodCornersInfo(CTYPE currSample, inout NeighbourhoodInfo sa
 
 #endif
 
-    samples.boxFiltered += currSample * rcp(NEIGHBOUR_COUNT + 1);
+    samples.blurredNeighbourhood +=  currSample *
+#if BLUR_FALLBACK == BLUR_BOX
+        rcp(NEIGHBOUR_COUNT + 1)
+#else
+        rcp(pow(2, 2+(abs(offset.x) + abs(offset.y))))
+#endif
+        ;
 }
 
 void UpdateCentralColor(CTYPE currSample, float2 distToSampleCenter, float renderScale, float filterSharpness, inout CTYPE filteredColor, inout float totalWeight, out float currWeight)
@@ -629,7 +684,7 @@ CTYPE GatherNeighbourhoodAndFilterColor(TEXTURE2D_X(InputTexture), int2 position
 #if CENTRAL_FILTERING != NO_FILTERING
         UpdateCentralColor(sampleVal, (samplePosSS - dstPosSS), renderScale, filterSharpness, filteredColor, totalWeight, sampleWeight);
 #endif
-        UpdateNeighbourhoodCornersInfo(sampleVal, samples);
+        UpdateNeighbourhoodCornersInfo(sampleVal, offset, samples);
     }
 
     // We now process the central pixel slightly differently.
@@ -647,7 +702,7 @@ CTYPE GatherNeighbourhoodAndFilterColor(TEXTURE2D_X(InputTexture), int2 position
 #if CENTRAL_FILTERING != NO_FILTERING
     UpdateCentralColor(sampleVal, (centralPosInOutputSpace - dstPosSS), renderScale, filterSharpness, filteredColor, totalWeight, sampleWeight);
 #endif
-    UpdateNeighbourhoodCornersInfo(sampleVal, samples);
+    UpdateNeighbourhoodCornersInfo(sampleVal, 0, samples);
 
     if (totalWeight < 1e-5f
 #if CENTRAL_FILTERING == NO_FILTERING
@@ -746,7 +801,7 @@ CTYPE GetClippedHistory(CTYPE filteredColor, CTYPE history, CTYPE minimum, CTYPE
 CTYPE SharpenColor(NeighbourhoodInfo samples, CTYPE color, float sharpenStrength)
 {
     CTYPE linearC = color * PerceptualInvWeight(color);
-    CTYPE linearAvg = samples.boxFiltered * PerceptualInvWeight(samples.boxFiltered);
+    CTYPE linearAvg = samples.blurredNeighbourhood * PerceptualInvWeight(samples.blurredNeighbourhood);
 
 #if YCOCG
     // Rotating back to RGB it leads to better behaviour when sharpening, a better approach needs definitively to be investigated in the future.

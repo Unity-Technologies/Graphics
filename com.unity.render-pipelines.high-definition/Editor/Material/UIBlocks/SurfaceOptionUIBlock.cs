@@ -117,6 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent lockWithObjectScaleText = new GUIContent("Lock With Object Scale", "When enabled, displacement mapping takes the absolute value of the scale of the object into account.");
             public static GUIContent lockWithTilingRateText = new GUIContent("Lock With Height Map Tiling Rate", "When enabled, displacement mapping takes the absolute value of the tiling rate of the height map into account.");
 
+            public static GUIContent excludeFromTAAText = new GUIContent("Exclude from TAA", "---");
+
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
             public static GUIContent transmissionEnableText = new GUIContent("Transmission", "When enabled HDRP processes the transmission effect for subsurface scattering. Simulates the translucency of the object.");
@@ -182,6 +184,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty specularAAThreshold = null;
         const string kSpecularAAThreshold = "_SpecularAAThreshold";
         MaterialProperty transmissionEnable = null;
+        MaterialProperty excludeFromTAA = null;
+        const string kExcludeFromTAA = "_ExcludeFromTAA";
 
         // Per pixel displacement params
         MaterialProperty ppdMinSamples = null;
@@ -327,6 +331,8 @@ namespace UnityEditor.Rendering.HighDefinition
             displacementMode = FindProperty(kDisplacementMode);
             displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale);
             displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale);
+
+            excludeFromTAA = FindProperty(kExcludeFromTAA);
 
             // Per pixel displacement
             ppdMinSamples = FindProperty(kPpdMinSamples);
@@ -771,6 +777,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(specularAAThreshold, Styles.specularAAThresholdText);
                     EditorGUI.indentLevel--;
                 }
+            }
+
+            if (excludeFromTAA != null)
+            {
+                materialEditor.ShaderProperty(excludeFromTAA, Styles.excludeFromTAAText);
             }
 
             if ((m_Features & Features.ShowDepthOffsetOnly) != 0 && depthOffsetEnable != null)

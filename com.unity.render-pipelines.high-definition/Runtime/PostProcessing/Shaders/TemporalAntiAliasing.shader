@@ -18,7 +18,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
 
         #pragma editor_sync_compilation
-        #pragma enable_d3d11_debug_symbols
+        //#pragma enable_d3d11_debug_symbols
 
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -86,7 +86,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION) || defined(ENABLE_MV_REJECTION_OBJ_ONLY)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
-    #define UPSCALE 
+    #define UPSCALE
     #define CLOSEST_VEL_SEARCH_WIDTH 2
 
 #elif defined(POST_DOF)
@@ -101,7 +101,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION) || defined(ENABLE_MV_REJECTION_OBJ_ONLY)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
-    #define CLOSEST_VEL_SEARCH_WIDTH 1
+    #define CLOSEST_VEL_SEARCH_WIDTH 2
 
 #endif
 
@@ -115,6 +115,19 @@ Shader "Hidden/HDRP/TemporalAA"
         TEXTURE2D_X(_DepthTexture);
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
+        TEXTURE2D_X(_DilatedVelocity);
+
+
+        TEXTURE2D_X_UINT(_StencilAndMVLen);
+        TEXTURE2D_X_UINT(_PrevStencilAndMVLen);
+
+#ifdef SHADER_API_PSSL
+        RW_TEXTURE2D_X(float, _OutputStencilAndMVLen) : register(u1);
+#else
+        RW_TEXTURE2D_X(float, _OutputStencilAndMVLen) : register(u2);
+#endif
+
+
         #ifdef SHADER_API_PSSL
         RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u0);
         #else
@@ -159,14 +172,14 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _RTHandleScaleForTAAHistory _TaaScales.xy
         #define _RTHandleScaleForTAA _TaaScales.zw
 
-#if VELOCITY_REJECTION
-        TEXTURE2D_X(_InputVelocityMagnitudeHistory);
-        #ifdef SHADER_API_PSSL
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u1);
-        #else
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u2);
-        #endif
-#endif
+//#if VELOCITY_REJECTION
+//        TEXTURE2D_X(_InputVelocityMagnitudeHistory);
+//        #ifdef SHADER_API_PSSL
+//        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u1);
+//        #else
+//        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u2);
+//        #endif
+//#endif
 
         struct Attributes
         {
@@ -192,6 +205,7 @@ Shader "Hidden/HDRP/TemporalAA"
         }
 
     // ------------------------------------------------------------------
+
 
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
@@ -220,9 +234,6 @@ Shader "Hidden/HDRP/TemporalAA"
             samplePos = outputPixInInput;
 #endif
 
-            float centerDepth, closestDepth;
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos, CLOSEST_VEL_SEARCH_WIDTH, centerDepth, closestDepth);
-
 #endif
             bool excludeTAABit = false;
 #if DIRECT_STENCIL_SAMPLE
@@ -234,8 +245,8 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // Looks like the speed rejection wants to use not the expanded velocity, but the properly central one.
             // TODO: Investigate and if confirmed add option? I feel like the issue is somewhere else.
-            DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, ClampAndScaleUVForPoint(velocityUV + closestOffset * _InputSize.zw), 0), motionVector);
-            // --------------------------------------------------------
+            DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_DilatedVelocity, s_point_clamp_sampler, ClampAndScaleUVForPoint(velocityUV), 0), motionVector);
+            // -----------------------------------------------------
 
             // --------------- Get resampled history ---------------
             float2 prevUV = input.texcoord - motionVector;
@@ -248,12 +259,34 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Gather neigbourhood data ---------------
 
             NeighbourhoodInfo samples;
-            
+
             CTYPE filteredColor = GatherNeighbourhoodAndFilterColor(_InputTexture, input.positionCS.xy, _TaaJitterStrength.xy, _TAAURenderScale, _CentralFilterSharpness, samples);
             CTYPE color = filteredColor;
             float blendFactor = 0;
 
             float3 dbg = 0;
+
+            ///////////////////
+            uint stencilExclusion = 0;
+            uint dilatedStencilExclusion = 0;
+            uint prevDilatedStencilExclusion = 0;
+            uint prevStencilExclusion = 0;
+
+            /*float lengthMV = 0;*/
+            uint packedData = GetDataFromPackedExtra(_StencilAndMVLen, floor( input.texcoord * _InputSize.xy), dilatedStencilExclusion, stencilExclusion, lengthMV);
+            float prevMVLen = 0;
+            uint prevPackedData = GetDataFromPackedExtra(_PrevStencilAndMVLen, floor((prevUV ) * _InputSize.xy), prevDilatedStencilExclusion, prevStencilExclusion, prevMVLen);
+
+            lengthMV *= 10;
+            prevMVLen *= 10;
+            excludeTAABit = excludeTAABit;
+
+            bool isEdge =  IsEdge(_StencilAndMVLen, floor(input.texcoord * _InputSize.xy), stencilExclusion);
+
+
+            bool exclude = !isEdge && (prevDilatedStencilExclusion != dilatedStencilExclusion || stencilExclusion != prevStencilExclusion);
+
+            ///////////////
 
             if (!excludeTAABit)
             {
@@ -316,9 +349,9 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if VELOCITY_REJECTION
                 // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
-                lengthMV = speedRejectionLen * 10;
+              //  lengthMV = speedRejectionLen * 10;
                 if (!skipRejection)
-                    blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
+                    blendFactor = ModifyBlendWithMotionVectorRejection(prevMVLen, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif
 
 #ifdef TAA_UPSCALE
@@ -329,6 +362,10 @@ Shader "Hidden/HDRP/TemporalAA"
 
                 CTYPE finalColor;
 
+
+                blendFactor = exclude ? 1 : blendFactor;
+                if (blendFactor == 1)
+                    filteredColor = samples.blurredNeighbourhood;
              //   filteredColor.xyz = samples.minNeighbour;
 #if PERCEPTUAL_SPACE_ONLY_END
                 finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
@@ -348,9 +385,20 @@ Shader "Hidden/HDRP/TemporalAA"
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
-#if VELOCITY_REJECTION && !defined(POST_DOF)
-            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
-#endif
+
+           // outColor.xyz = exclude ? float3(10, 0, 0) : outColor.xyz;
+
+            //outColor = 0;
+            //outColor.xy = abs(motionVector) * 10;
+           // outColor.xyz += float3(exclude * 100, 0, 0);
+            //outColor = 0;
+            //outColor.x = prevStencilExclusion;
+            //outColor.y = dilatedStencilExclusion;
+
+          //  outColor = _StencilAndMVLen[COORD_TEXTURE2D_X(input.positionCS.xy)] > 0 ? 1 : 0;
+
+           // outColor.xyz += float3(abs(motionVector) * 10000, 0);
+
             // -------------------------------------------------------------
         }
 

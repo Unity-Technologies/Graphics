@@ -54,14 +54,120 @@ void EncodeMotionVector(float2 motionVector, out float4 outBuffer)
     outBuffer = float4(motionVector.xy, 0.0, 0.0);
 }
 
+
+// exponent sign bit is useless since we assume magnitude of 1-epsilon max.
+// This is what we used as a pseudo stencil for tagging motion vector related bits
+// If both exponent sign bits (we have a 16:16 float, so 15th bit of each of the 2 components)
+// [0,0] : No tags
+// [1,0] : No motion
+// [0,1] : Exclude from TAA
+// [1,1] : Free --- NOTE: If this is implemented the [1,0] and [0,1] need to be changed as now they only check 1 bit.
+
+#define TEST 1
+
+void SetPixelAsNoMotionVectors(inout float4 inBuffer)
+{
+#if TEST
+    // We need to make sure to operate in uint to do bitfield ops
+    uint mvXAsUint = f32tof16(inBuffer.x);
+    // Flag the 15th bit as 1
+    mvXAsUint = mvXAsUint | (1 << (14));
+    inBuffer.x = asfloat(f16tof32(mvXAsUint));
+#endif
+}
+
+void SetPixelAsAntiGhostTAA(inout float4 inBuffer)
+{
+#if TEST
+    // We need to make sure to operate in uint to do bitfield ops
+    uint mvYAsUint = f32tof16(inBuffer.y);
+    // Flag the 15th bit as 1
+    mvYAsUint = mvYAsUint | (1 << 14);
+    inBuffer.y = asfloat(f16tof32(mvYAsUint));
+#endif
+}
+
+
 bool PixelSetAsNoMotionVectors(float4 inBuffer)
 {
-    return inBuffer.x > 1.0f;
+#if TEST
+    uint mvXAsUint = f32tof16(inBuffer.x);
+    // Check if the bit is set.
+    return (mvXAsUint >> 14) & 1;
+#else
+    return false;
+#endif
+}
+
+bool PixelSetAsNoMotionVectors(uint2 mvAsUint)
+{
+#if TEST
+    uint mvXAsUint = mvAsUint.x;
+    // Check if the bit is set.
+    return (mvXAsUint >> 14) & 1;
+#else
+    return false;
+#endif
+}
+
+bool PixelSetAsExcludedFromTAA(float4 inBuffer)
+{
+#if TEST
+    uint mvYAsUint = f32tof16(inBuffer.y);
+    // Check if the bit is set.
+    return (mvYAsUint >> 14) & 1;
+#else
+    return false;
+#endif
+}
+
+bool PixelSetAsExcludedFromTAA(uint2 mvAsUint)
+{
+#if TEST
+    uint mvYAsUint = mvAsUint.y;
+    // Check if the bit is set.
+    return (mvYAsUint >> 14) & 1;
+#else
+    return false;
+#endif
 }
 
 void DecodeMotionVector(float4 inBuffer, out float2 motionVector)
 {
-    motionVector = PixelSetAsNoMotionVectors(inBuffer) ? 0.0f : inBuffer.xy;
+#if TEST
+
+    // Because we might have messed with the 15th bit (see above), we need to set it back to 0.
+    uint2 mvAsUint = (f32tof16(inBuffer.xy));
+
+    bool isNoMotion = PixelSetAsNoMotionVectors(mvAsUint);
+    // Reset the bits as we now found the decoding.
+    mvAsUint.x &= ~(1 << 14);
+    mvAsUint.y &= ~(1 << 14);
+    inBuffer.x = asfloat(f16tof32(mvAsUint.x));
+    inBuffer.y = asfloat(f16tof32(mvAsUint.y));
+
+    motionVector = isNoMotion ? 0 : inBuffer.xy;
+    //motionVector = inBuffer.xy;
+#else
+    motionVector = inBuffer.xy;
+#endif
+
+}
+
+void DecodeMotionVector(float4 inBuffer, out float2 motionVector, out bool taaAntiGhost)
+{
+    // Because we might have messed with the 15th bit (see above), we need to set it back to 0.
+    uint2 mvAsUint = asuint(inBuffer.xy);
+
+    bool isNoMotion = PixelSetAsNoMotionVectors(mvAsUint);
+    taaAntiGhost = PixelSetAsExcludedFromTAA(mvAsUint);
+    // Reset the bits as we now found the decoding.
+    mvAsUint.x &= ~(1 << 14);
+    mvAsUint.y &= ~(1 << 14);
+    inBuffer.x = asfloat(mvAsUint.x);
+    inBuffer.y = asfloat(mvAsUint.y);
+
+    motionVector = isNoMotion ? 0 : inBuffer.xy;
 }
 
 void EncodeDistortion(float2 distortion, float distortionBlur, bool isValidSource, out float4 outBuffer)

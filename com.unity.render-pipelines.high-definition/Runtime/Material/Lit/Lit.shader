@@ -173,6 +173,8 @@ Shader "HDRP/Lit"
         _SpecularAAScreenSpaceVariance("SpecularAAScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
         _SpecularAAThreshold("SpecularAAThreshold", Range(0.0, 1.0)) = 0.2
 
+        [ToggleUI] _ExcludeFromTAA("ExcludeFromTAA", Float) = 0.0
+
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
@@ -264,6 +266,7 @@ Shader "HDRP/Lit"
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #endif
+
 
     #pragma shader_feature_local _HEIGHTMAP
     #pragma shader_feature_local_fragment _TANGENTMAP
@@ -676,6 +679,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
             #pragma multi_compile _ WRITE_DECAL_BUFFER
 
+            #define ALLOW_EXCLUDE_FROM_TAA
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"

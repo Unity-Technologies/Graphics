@@ -341,6 +341,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader temporalAntialiasingPS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
             public Shader lensFlareDataDrivenPS;
+            [Reload("Runtime/PostProcessing/Shaders/TAAStencilPrep.compute")]
+            public ComputeShader taaStencilPrepCS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute")]
             public ComputeShader lensFlareMergeOcclusionCS;
             [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]

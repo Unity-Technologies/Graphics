@@ -1501,6 +1501,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAMotionVectorMagnitude, "Velocity magnitude", GraphicsFormat.R16_SFloat, out previous, out next);
         }
 
+        bool GrabStencilAndVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        {
+            return GrabPostProcessHistoryTextures(camera, HDCameraFrameHistoryType.TAAMotionVectorMagnitudeAndStencil, "Velocity+Stencil magnitude", GraphicsFormat.R16_UInt, out previous, out next);
+        }
+
         void ReleasePostDoFTAAHistoryTextures(HDCamera camera)
         {
             var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF);
@@ -1536,6 +1541,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle nextHistory;
             public TextureHandle prevMVLen;
             public TextureHandle nextMVLen;
+
+            public ComputeShader stencilDilation;
+            public TextureHandle dilatedVelocity;
+            public TextureHandle prevPackedStencilMVLen;
+            public TextureHandle nextPackedStencilMVLen;
         }
 
         static readonly Vector2Int[] TAASampleOffsets = new Vector2Int[]
@@ -1735,7 +1745,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             passData.stencilBuffer = stencilTexture;
 
-            passData.taaFilterInfo.x = Mathf.Lerp(2.0f, 80.0f, camera.taaCentralFilterStrength);
+            passData.taaFilterInfo.x = Mathf.Lerp(2.0f, 30.0f, camera.taaCentralFilterStrength);
+
+            passData.stencilDilation = defaultResources.shaders.taaStencilPrepCS;
+
+            RTHandle prevMVStencilLen, nextMVStencilLen;
+            GrabStencilAndVelocityMagnitudeHistoryTextures(camera, out prevMVStencilLen, out nextMVStencilLen);
+
+            passData.dilatedVelocity = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, clearBuffer = true, name = "Dilated Vel" });
+
+            passData.prevPackedStencilMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVStencilLen));
+            passData.nextPackedStencilMVLen = builder.ReadWriteTexture(renderGraph.ImportTexture(nextMVStencilLen));
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilBuffer, bool postDoF, string outputName)
@@ -1757,6 +1778,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         const int excludeTaaPass = 1;
                         const int taauPass = 2;
                         const int copyHistoryPass = 3;
+
+
+                        // ----
+                        var cs = data.stencilDilation;
+                        int kernel = 0;
+                        ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthTexture, data.depthMipChain);
+                        ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputDilatedVelocity, data.dilatedVelocity);
+                        ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputStencilAndMVLen, data.nextPackedStencilMVLen);
+                        ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
+
+                        var dispatchX = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
+                        var dispatchY = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
+
+                        ctx.cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
 
                         if (data.resetPostProcessingHistory)
                         {
@@ -1780,6 +1815,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
                         mpb.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
                         mpb.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
+                        mpb.SetTexture(HDShaderIDs._DilatedVelocity, data.dilatedVelocity);
+
+                        mpb.SetTexture(HDShaderIDs._StencilAndMVLen, data.nextPackedStencilMVLen);
+                        mpb.SetTexture(HDShaderIDs._PrevStencilAndMVLen, data.prevPackedStencilMVLen);
+
                         mpb.SetTexture(HDShaderIDs._InputTexture, source);
                         mpb.SetTexture(HDShaderIDs._InputHistoryTexture, data.prevHistory);
                         if (prevMVLenTexture != null && data.motionVectorRejection)

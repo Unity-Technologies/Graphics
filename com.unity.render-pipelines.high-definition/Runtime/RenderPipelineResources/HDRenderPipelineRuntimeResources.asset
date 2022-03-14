@@ -159,6 +159,7 @@ MonoBehaviour:
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179, type: 3}
     lensFlareDataDrivenPS: {fileID: 4800000, guid: 85330b3de0cfebc4ba78b2d61b1a2899, type: 3}
+    taaStencilPrepCS: {fileID: 7200000, guid: 502b4301c1290d249a6381e7700bb68d, type: 3}
     lensFlareMergeOcclusionCS: {fileID: 7200000, guid: 07492750f384d9a4da9aaf5d2feeed4a, type: 3}
     DLSSBiasColorMaskPS: {fileID: 4800000, guid: 017a05924c0b0484ca29717ed0c60343, type: 3}
     compositeUIAndOETFApplyPS: {fileID: 4800000, guid: 08b7ad21d2b8e9142b730b22d7355821, type: 3}
