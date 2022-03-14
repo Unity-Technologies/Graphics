@@ -510,9 +510,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Save the post process screen size before any resolution group change
             var postProcessScreenSize = hdCamera.postProcessScreenSize;
 
-            //default always to downsampled resolution group.
-            //when DRS is off this resolution group is the same.
-            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.BeforeDynamicResUpscale);
+            //The resGroup is always expected to be in BeforeDynamicResUpscale state at the beginning of post processing.
+            //If this assert fails, it means that some effects prior might be using the wrong resolution.
+            Assert.IsTrue(resGroup == ResolutionGroup.BeforeDynamicResUpscale, "Resolution group must always be reset before calling RenderPostProcess");
 
             // Note: whether a pass is really executed or not is generally inside the Do* functions.
             // with few exceptions.
