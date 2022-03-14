@@ -1195,6 +1195,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Clear SSR Buffers", out var passData))
                     {
+                        builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
+
                         hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
                         var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
@@ -1221,14 +1223,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 passData.clearBuffer2DCS = m_ClearBuffer2DCS;
                                 passData.clearBuffer2DKernel = m_ClearBuffer2DKernel;
 
-                                if (data.accumNeedClear || data.debugDisplaySpeed)
+                                bool clearBoth = hdCamera.colorPyramidHistoryValidFrames <= 1;
+
+                                if (clearBoth || data.accumNeedClear || data.debugDisplaySpeed)
                                 {
                                     ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
                                     ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
                                     ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
                                     ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                                 }
-                                if (data.previousAccumNeedClear || data.debugDisplaySpeed)
+                                if (clearBoth || data.previousAccumNeedClear || data.debugDisplaySpeed)
                                 {
                                     ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccumPrev);
                                     ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
@@ -1410,111 +1414,93 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (data.usePBRAlgo)
                             {
-                                if (!data.validColorPyramid)
+                                using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
                                 {
+                                    int pass;
+                                    if (data.debugDisplaySpeed)
                                     {
-                                        ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
-                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
-                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
-                                        ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
-                                    }
-                                    {
-                                        ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccumPrev);
-                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
-                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
-                                        ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
-                                    }
-                                }
-                                else
-                                {
-                                    using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
-                                    {
-                                        int pass;
-                                        if (data.debugDisplaySpeed)
+                                        if (!data.enableWorldSmoothRejection)
                                         {
-                                            if (!data.enableWorldSmoothRejection)
-                                            {
-                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
-                                                    pass = data.accumulateNoWorldSpeedRejectionBothDebugKernel;
-                                                else if (data.motionVectorFromHit)
-                                                    pass = data.accumulateNoWorldSpeedRejectionHitDebugKernel;
-                                                else
-                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
-                                            }
+                                            if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                pass = data.accumulateNoWorldSpeedRejectionBothDebugKernel;
+                                            else if (data.motionVectorFromHit)
+                                                pass = data.accumulateNoWorldSpeedRejectionHitDebugKernel;
                                             else
-                                            {
-                                                if (data.smoothSpeedRejection)
-                                                {
-                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
-                                                        pass = data.accumulateSmoothSpeedRejectionBothDebugKernel;
-                                                    else if (data.motionVectorFromHit)
-                                                        pass = data.accumulateSmoothSpeedRejectionHitDebugKernel;
-                                                    else
-                                                        pass = data.accumulateSmoothSpeedRejectionSurfaceDebugKernel;
-                                                }
-                                                else
-                                                {
-                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
-                                                        pass = data.accumulateHardThresholdSpeedRejectionBothDebugKernel;
-                                                    else if (data.motionVectorFromHit)
-                                                        pass = data.accumulateHardThresholdSpeedRejectionHitDebugKernel;
-                                                    else
-                                                        pass = data.accumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
-                                                }
-                                            }
+                                                pass = data.accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
                                         }
                                         else
                                         {
-                                            if (!data.enableWorldSmoothRejection)
+                                            if (data.smoothSpeedRejection)
                                             {
                                                 if (data.motionVectorFromSurface && data.motionVectorFromHit)
-                                                    pass = data.accumulateNoWorldSpeedRejectionBothKernel;
+                                                    pass = data.accumulateSmoothSpeedRejectionBothDebugKernel;
                                                 else if (data.motionVectorFromHit)
-                                                    pass = data.accumulateNoWorldSpeedRejectionHitKernel;
+                                                    pass = data.accumulateSmoothSpeedRejectionHitDebugKernel;
                                                 else
-                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceKernel;
+                                                    pass = data.accumulateSmoothSpeedRejectionSurfaceDebugKernel;
                                             }
                                             else
                                             {
-                                                if (data.smoothSpeedRejection)
-                                                {
-                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
-                                                        pass = data.accumulateSmoothSpeedRejectionBothKernel;
-                                                    else if (data.motionVectorFromHit)
-                                                        pass = data.accumulateSmoothSpeedRejectionHitKernel;
-                                                    else
-                                                        pass = data.accumulateSmoothSpeedRejectionSurfaceKernel;
-                                                }
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateHardThresholdSpeedRejectionBothDebugKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateHardThresholdSpeedRejectionHitDebugKernel;
                                                 else
-                                                {
-                                                    if (data.motionVectorFromSurface && data.motionVectorFromHit)
-                                                        pass = data.accumulateHardThresholdSpeedRejectionBothKernel;
-                                                    else if (data.motionVectorFromHit)
-                                                        pass = data.accumulateHardThresholdSpeedRejectionHitKernel;
-                                                    else
-                                                        pass = data.accumulateHardThresholdSpeedRejectionSurfaceKernel;
-                                                }
+                                                    pass = data.accumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
                                             }
                                         }
-
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._DepthTexture, data.depthBuffer);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
-                                        ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
-                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, data.frameIndex);
-                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejection);
-                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPRBSpeedRejectionScalerFactor, data.speedRejectionFactor);
-
-                                        ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
-
-                                        ctx.cmd.DispatchCompute(cs, pass, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                                     }
+                                    else
+                                    {
+                                        if (!data.enableWorldSmoothRejection)
+                                        {
+                                            if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                pass = data.accumulateNoWorldSpeedRejectionBothKernel;
+                                            else if (data.motionVectorFromHit)
+                                                pass = data.accumulateNoWorldSpeedRejectionHitKernel;
+                                            else
+                                                pass = data.accumulateNoWorldSpeedRejectionSurfaceKernel;
+                                        }
+                                        else
+                                        {
+                                            if (data.smoothSpeedRejection)
+                                            {
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateSmoothSpeedRejectionBothKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateSmoothSpeedRejectionHitKernel;
+                                                else
+                                                    pass = data.accumulateSmoothSpeedRejectionSurfaceKernel;
+                                            }
+                                            else
+                                            {
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateHardThresholdSpeedRejectionBothKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateHardThresholdSpeedRejectionHitKernel;
+                                                else
+                                                    pass = data.accumulateHardThresholdSpeedRejectionSurfaceKernel;
+                                            }
+                                        }
+                                    }
+
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._DepthTexture, data.depthBuffer);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
+                                    ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
+                                    ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, data.frameIndex);
+                                    ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejection);
+                                    ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPRBSpeedRejectionScalerFactor, data.speedRejectionFactor);
+
+                                    ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
+
+                                    ctx.cmd.DispatchCompute(cs, pass, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                                 }
                             }
                         });
