@@ -1,0 +1,112 @@
+.ge-node--token .ge-node__title-icon-container {
+    background-color: transparent;
+}
+
+.ge-node--token .ge-node__title-container {
+    background-color: transparent;
+    border-radius: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.ge-node--token .ge-icon-title-progress__collapse-button {
+    display: none;
+}
+
+.ge-node--token .ge-selection-border__content-container
+{
+    flex-direction: row;
+    align-items: center;
+    background-color: #505050;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.ge-node--token .ge-port-container {
+    justify-content: center;
+    background-color: transparent;
+    padding-top: 0;
+    padding-bottom: 0;
+    align-items: center;
+    height: 22px;
+}
+
+.ge-node--token .ge-node__inputs {
+    border-right-width: 0;
+}
+
+.ge-node--token .ge-port__label {
+    display: none;
+}
+
+.ge-node__constant-editor .unity-property-field {
+    font-size: 11px;
+    flex: 1 0 auto;
+}
+
+.ge-node__constant-editor .unity-base-text-field {
+    min-width: 40px;
+}
+
+.ge-node--token.ge-node--read-only .ge-node__title-icon-container {
+    padding-left: 8px;
+    padding-right: 0;
+}
+
+.ge-node--token.ge-node--read-only .ge-node__selection-border,
+.ge-node--token.ge-node--read-only .ge-selection-border__content-container {
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    justify-content: flex-end;
+}
+
+.ge-node--token.ge-node--read-only .ge-node__inputs {
+    display: none;
+}
+
+.ge-node--token.ge-node--write-only .ge-node__title-icon-container {
+    padding-left: 0;
+    padding-right: 8px;
+}
+
+.ge-node--token.ge-node--write-only .ge-node__selection-border,
+.ge-node--token.ge-node--write-only .ge-selection-border__content-container {
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    justify-content: flex-start;
+}
+
+.ge-node--token.ge-node--write-only .ge-node__outputs {
+    display: none;
+}
+
+.ge-node--constant-token .ge-node__icon {
+    display: none;
+}
+
+
+/***********/
+/* Portals */
+/***********/
+
+.ge-node--portal-entry .ge-node__title {
+    padding-right: 12px;
+}
+
+.ge-node--portal-exit .ge-node__title {
+    padding-left: 12px;
+}
+
+.ge-node--portal .ge-node__icon {
+    display: none;
+}
+
+.ge-node--token.ge-node--portal-entry .ge-selection-border__content-container,
+.ge-node--token.ge-node--portal-entry .ge-node__selection-border,
+.ge-node--token.ge-node--portal-entry #disabled-overlay {
+    border-top-right-radius: 20px;
+}
+
+.ge-node--token.ge-node--portal-exit .ge-selection-border__content-container,
+.ge-node--token.ge-node--portal-exit .ge-node__selection-border,
+.ge-node--token.ge-node--portal-exit #disabled-overlay {
+    border-bottom-left-radius: 22px;
+}

@@ -1,0 +1,254 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace UnityEngine.GraphToolsFoundation.Overdrive
+{
+    [System.Obsolete(@"0.10+ This class will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static class AssemblyExtensions
+    {
+        [System.Obsolete(@"0.10+ his method will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static System.Collections.Generic.IEnumerable<System.Type> GetTypesSafe(System.Reflection.Assembly assembly);
+    }
+
+    public struct BinaryOperation : UnityEngine.GraphToolsFoundation.Overdrive.IExpression, UnityEngine.GraphToolsFoundation.Overdrive.IOperation
+    {
+        public readonly UnityEngine.GraphToolsFoundation.Overdrive.IExpression OperandA;
+        public readonly UnityEngine.GraphToolsFoundation.Overdrive.IExpression OperandB;
+        public readonly UnityEngine.GraphToolsFoundation.Overdrive.OperationType Type;
+        public BinaryOperation(UnityEngine.GraphToolsFoundation.Overdrive.OperationType type, UnityEngine.GraphToolsFoundation.Overdrive.IExpression operandA, UnityEngine.GraphToolsFoundation.Overdrive.IExpression operandB) {}
+        public virtual string ToString();
+    }
+
+    public abstract class Enumeration : System.IComparable, System.IComparable<UnityEngine.GraphToolsFoundation.Overdrive.Enumeration>, System.IEquatable<UnityEngine.GraphToolsFoundation.Overdrive.Enumeration>
+    {
+        public string[] ObsoleteNames;
+        public int Id { get; }
+        public string Name { get; }
+        protected Enumeration(int id, string name, string[] obsoleteNames = default(string[])) {}
+        public virtual int CompareTo(object obj);
+        public virtual int CompareTo(UnityEngine.GraphToolsFoundation.Overdrive.Enumeration other);
+        public virtual bool Equals(object obj);
+        public virtual bool Equals(UnityEngine.GraphToolsFoundation.Overdrive.Enumeration other);
+        public static System.Collections.Generic.IEnumerable<TBase> GetAll<T, TBase>() where T : TBase where TBase : UnityEngine.GraphToolsFoundation.Overdrive.Enumeration;
+        public static System.Collections.Generic.IEnumerable<T> GetDeclared<T>() where T : UnityEngine.GraphToolsFoundation.Overdrive.Enumeration;
+        public virtual int GetHashCode();
+        public static bool operator ==(UnityEngine.GraphToolsFoundation.Overdrive.Enumeration left, UnityEngine.GraphToolsFoundation.Overdrive.Enumeration right);
+        public static bool operator !=(UnityEngine.GraphToolsFoundation.Overdrive.Enumeration left, UnityEngine.GraphToolsFoundation.Overdrive.Enumeration right);
+        public virtual string ToString();
+    }
+
+    public struct EnumValueReference
+    {
+        public UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle EnumType { get; set; }
+        public int Value { get; set; }
+        public EnumValueReference(System.Enum e) {}
+        public EnumValueReference(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle handle) {}
+        public bool IsValid();
+        public System.Enum ValueAsEnum();
+    }
+
+    public class ExecutionFlow
+    {
+    }
+
+    public struct ExpressionValue : UnityEngine.GraphToolsFoundation.Overdrive.IExpression, UnityEngine.GraphToolsFoundation.Overdrive.IValue
+    {
+        public readonly float Value;
+        public ExpressionValue(float value) {}
+        public virtual string ToString();
+    }
+
+    public struct FunctionCall : UnityEngine.GraphToolsFoundation.Overdrive.IExpression, UnityEngine.GraphToolsFoundation.Overdrive.IOperation
+    {
+        public readonly System.Collections.Generic.List<UnityEngine.GraphToolsFoundation.Overdrive.IExpression> Arguments;
+        public readonly string Id;
+        public FunctionCall(string id, System.Collections.Generic.List<UnityEngine.GraphToolsFoundation.Overdrive.IExpression> arguments) {}
+        public virtual string ToString();
+    }
+
+    [System.Obsolete(@"0.10+ This class will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static class HashSetExtensions
+    {
+        [System.Obsolete(@"0.10+ This method will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static void AddRange<T>(System.Collections.Generic.HashSet<T> set, System.Collections.Generic.IEnumerable<T> entriesToAdd);
+    }
+
+    [System.Obsolete(@"0.10+ This class will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static class IEnumerableExtensions
+    {
+        [System.Obsolete(@"0.10+ This method will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static int IndexOf<T>(System.Collections.Generic.IEnumerable<T> source, T element);
+    }
+
+    public interface IExpression
+    {
+    }
+
+    public interface ITypeMetadata
+    {
+        public abstract string FriendlyName { get; }
+        public abstract bool IsClass { get; }
+        public abstract bool IsEnum { get; }
+        public abstract bool IsValueType { get; }
+        public abstract string Namespace { get; }
+        public abstract UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle TypeHandle { get; }
+        public abstract bool IsAssignableFrom(System.Type type);
+        public abstract bool IsAssignableFrom(UnityEngine.GraphToolsFoundation.Overdrive.ITypeMetadata metadata);
+        public abstract bool IsAssignableTo(System.Type type);
+        public abstract bool IsSubclassOf(System.Type type);
+        public abstract bool IsSuperclassOf(System.Type type);
+    }
+
+    public interface ITypeMetadataResolver
+    {
+        public abstract UnityEngine.GraphToolsFoundation.Overdrive.ITypeMetadata Resolve(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle th);
+    }
+
+    [System.Runtime.CompilerServices.Extension] public static class MathExpressionParser
+    {
+        public static UnityEngine.GraphToolsFoundation.Overdrive.IExpression Parse(string expressionStr, out string error);
+    }
+
+    public class MissingPort
+    {
+    }
+
+    public enum OperationType
+    {
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Add = 0;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Coma = 8;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Div = 3;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType LeftParens = 4;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Minus = 7;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Mod = 9;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Mul = 2;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Plus = 6;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType RightParens = 5;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.OperationType Sub = 1;
+        public int value__;
+    }
+
+    public struct SerializableGUID : System.IEquatable<UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID>
+    {
+        public bool Valid { get; }
+        public SerializableGUID(string hashString) {}
+        public SerializableGUID(System.UInt64 a, System.UInt64 b) {}
+        public virtual bool Equals(object obj);
+        public virtual bool Equals(UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID other);
+        public static UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID Generate();
+        public virtual int GetHashCode();
+        public static bool operator ==(UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID left, UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID right);
+        public static UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID op_Implicit(UnityEngine.Hash128 hash);
+        public static UnityEngine.Hash128 op_Implicit(UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID sGuid);
+        public static bool operator !=(UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID left, UnityEngine.GraphToolsFoundation.Overdrive.SerializableGUID right);
+        public System.ValueTuple<System.UInt64, System.UInt64> ToParts();
+        public virtual string ToString();
+    }
+
+    [System.Obsolete(@"0.10+ This class will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static class StringExtensions
+    {
+        [System.Obsolete(@"0.10+ This method will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static string CodifyString(string str);
+    }
+
+    [System.Obsolete(@"0.10+ This class will be removed from GTF public API")] public static class TaskUtility
+    {
+        [System.Obsolete(@"0.10+ This method will be removed from GTF public API")] public static System.Collections.Generic.IEnumerable<TOutput> RunTasks<TInput, TOutput>(System.Collections.Generic.List<TInput> items, System.Action<TInput, System.Collections.Concurrent.ConcurrentBag<TOutput>> action);
+    }
+
+    [System.Flags] public enum Token
+    {
+        public const UnityEngine.GraphToolsFoundation.Overdrive.Token Coma = 32;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.Token Identifier = 4;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.Token LeftParens = 8;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.Token None = 0;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.Token Number = 2;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.Token Op = 1;
+        public const UnityEngine.GraphToolsFoundation.Overdrive.Token RightParens = 16;
+        public int value__;
+    }
+
+    [System.Runtime.CompilerServices.Extension] public static class TypeExtensions
+    {
+        [System.Runtime.CompilerServices.Extension] public static string FriendlyName(System.Type type, bool expandGeneric = True);
+        [System.Runtime.CompilerServices.Extension] public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle GenerateTypeHandle(System.Type t);
+        [System.Obsolete(@"0.10+ This method will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static bool HasNumericConversionTo(System.Type self, System.Type other);
+        [System.Obsolete(@"0.10+ This method will be removed from GTF public API")] [System.Runtime.CompilerServices.Extension] public static bool IsNumeric(System.Type self);
+    }
+
+    [JetBrains.Annotations.PublicAPI] public struct TypeHandle : System.IComparable<UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle>, System.IEquatable<UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle>
+    {
+        public string Identification;
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Bool { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Char { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Double { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle ExecutionFlow { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Float { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle GameObject { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Int { get; }
+        public bool IsValid { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Long { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle MissingPort { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle MissingType { get; }
+        public string Name { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Object { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Quaternion { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle String { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle UInt { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Unknown { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Vector2 { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Vector3 { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Vector4 { get; }
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle Void { get; }
+        public virtual int CompareTo(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle other);
+        public virtual bool Equals(object obj);
+        public virtual bool Equals(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle other);
+        public virtual int GetHashCode();
+        public static bool operator ==(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle left, UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle right);
+        public static bool operator !=(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle left, UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle right);
+        public System.Type Resolve();
+        public virtual string ToString();
+    }
+
+    public static class TypeHandleHelpers
+    {
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle GenerateCustomTypeHandle(string uniqueId);
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle GenerateCustomTypeHandle(System.Type t, string customUniqueId);
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle GenerateTypeHandle<T>();
+        public static UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle GenerateTypeHandle(System.Type t);
+    }
+
+    public class TypeMetadata : UnityEngine.GraphToolsFoundation.Overdrive.ITypeMetadata
+    {
+        public virtual string FriendlyName { get; }
+        public virtual bool IsClass { get; }
+        public virtual bool IsEnum { get; }
+        public virtual bool IsValueType { get; }
+        public virtual string Namespace { get; }
+        public virtual UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle TypeHandle { get; }
+        public TypeMetadata(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle typeHandle, System.Type type) {}
+        public virtual bool IsAssignableFrom(System.Type type);
+        public virtual bool IsAssignableFrom(UnityEngine.GraphToolsFoundation.Overdrive.ITypeMetadata metadata);
+        public virtual bool IsAssignableTo(System.Type t);
+        public virtual bool IsSubclassOf(System.Type t);
+        public virtual bool IsSuperclassOf(System.Type t);
+    }
+
+    public class TypeMetadataResolver : UnityEngine.GraphToolsFoundation.Overdrive.ITypeMetadataResolver
+    {
+        public TypeMetadataResolver() {}
+        public virtual UnityEngine.GraphToolsFoundation.Overdrive.ITypeMetadata Resolve(UnityEngine.GraphToolsFoundation.Overdrive.TypeHandle th);
+    }
+
+    public struct UnaryOperation : UnityEngine.GraphToolsFoundation.Overdrive.IExpression, UnityEngine.GraphToolsFoundation.Overdrive.IOperation
+    {
+        public readonly UnityEngine.GraphToolsFoundation.Overdrive.IExpression Operand;
+        public readonly UnityEngine.GraphToolsFoundation.Overdrive.OperationType Type;
+        public UnaryOperation(UnityEngine.GraphToolsFoundation.Overdrive.OperationType type, UnityEngine.GraphToolsFoundation.Overdrive.IExpression operand) {}
+        public virtual string ToString();
+    }
+
+    public class Unknown
+    {
+    }
+
+    public struct Variable : UnityEngine.GraphToolsFoundation.Overdrive.IExpression, UnityEngine.GraphToolsFoundation.Overdrive.IValue
+    {
+        public readonly string Id;
+        public Variable(string id) {}
+        public virtual string ToString();
+    }
+}

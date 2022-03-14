@@ -1,0 +1,27 @@
+.ge-selection-border {
+    flex-grow: 1;
+    border-width: 1px;
+    padding: 1px;
+    border-color: transparent;
+    border-radius: var(--selection-border-radius);
+    margin: -3px;
+}
+
+.ge-selection-border__content-container {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.ge-graph-element:hover > .ge-selection-border {
+    border-color: rgba(68,192,255, 0.5);
+}
+
+.ge-graph-element:checked > .ge-selection-border {
+    border-color: #44C0FF;
+}
+
+.ge-graph-element:checked:hover > .ge-selection-border {
+    border-color: #44C0FF;
+    border-width: 2px;
+    padding: 0;
+}

@@ -1,0 +1,30 @@
+.ge-port-connector-part__connector {
+    width: 8px;
+    height: 8px;
+    border-radius: 8px;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+}
+
+.ge-port-connector-part__cap {
+    width: 4px;
+    height: 4px;
+    border-radius: 4px;
+    /* visibility: hidden; => done in C# because unset is unsupported */
+}
+
+.ge-port-connector-part:hover .ge-port-connector-part__cap {
+    /* visibility: unset; => should be `unset` or `inherit` */
+}
+
+.ge-port-connector-part__label {
+    padding: 0;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.ge-vertical-port-container-part {
+    flex-direction: row;
+    justify-content: center;
+}
