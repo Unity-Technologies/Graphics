@@ -489,48 +489,21 @@ namespace UnityEditor.Rendering.Universal
                 // Create <guid>.index in the project
                 var title = $"Building {name} search index";
                 EditorUtility.DisplayProgressBar(title, "Creating search index...", -1f);
-
-                // Private implementation of a file naming function which puts the file at the selected path.
-                Type assetdatabase = typeof(AssetDatabase);
-                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
-
-                // Write search index manifest
-                System.IO.File.WriteAllText(indexPath,
-@"{
-                ""roots"": [""Assets""],
-                ""includes"": [],
-                ""excludes"": [],
-                ""options"": {
-                    ""types"": true,
-                    ""properties"": true,
-                    ""extended"": true,
-                    ""dependencies"": true
-                    },
-                ""baseScore"": 9999
-                }");
-
-                // Import the search index
-                AssetDatabase.ImportAsset(indexPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.DontDownloadFromCacheServer);
-
-                EditorApplication.delayCall += () =>
-                {
-                    // Create dummy request to ensure indexing has finished
-                    var context = Search.SearchService.CreateContext("asset", $"p: a=\"{name}\"");
-                    Search.SearchService.Request(context, (_, items) =>
-                    {
-                        OnSearchIndexCreated(name, indexPath, () =>
-                        {
-                            DeleteSearchIndex(context, indexPath);
-                        });
-                    });
-                };
+                Search.SearchService.CreateIndex(name, IndexingOptions.Temporary | IndexingOptions.Extended,
+                        new[] { "Assets" },
+                        new[] { ".prefab", ".unity", ".asset" },
+                        null, OnSearchIndexCreated);
             }
 
             void OnSearchIndexCreated(string name, string path, Action onComplete)
             {
                 EditorUtility.ClearProgressBar();
 
-                ConverterCollectData(onComplete);
+                ConverterCollectData(() =>
+                {
+                    onComplete();
+                    EditorUtility.ClearProgressBar();
+                });
             }
 
             void ConverterCollectData(Action onConverterDataCollectionComplete)
@@ -547,20 +520,12 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                // If we did not kick off any converter intialization
+                // If we did not kick off any converter initialization
                 // We can complete everything immediately
                 if (convertersToConvert == 0)
                 {
                     onConverterDataCollectionComplete?.Invoke();
                 }
-            }
-
-            void DeleteSearchIndex(SearchContext context, string indexPath)
-            {
-                context?.Dispose();
-                // Client code has finished with the created index. We can delete it.
-                AssetDatabase.DeleteAsset(indexPath);
-                EditorUtility.ClearProgressBar();
             }
         }
 

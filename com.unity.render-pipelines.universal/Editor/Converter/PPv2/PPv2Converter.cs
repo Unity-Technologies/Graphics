@@ -48,22 +48,19 @@ namespace UnityEditor.Rendering.Universal
             // This allows the old objects to be both re-referenced and deleted safely as they are converted in OnRun.
             // The process of converting Volumes will convert Profiles as-needed, and then the explicit followup Profile
             // conversion step will convert any non-referenced assets and delete all old Profiles.
-            Debug.Log("Running here");
             // Components First
             using var componentContext =
-                    Search.SearchService.CreateContext("asset", "urp:convert-ppv2component");
+                    Search.SearchService.CreateContext("asset", "urp=convert-ppv2component a=URPConverterIndex");
             using var componentItems = Search.SearchService.Request(componentContext);
             {
-                Debug.Log("First Search");
                 AddSearchItemsAsConverterAssetEntries(componentItems, context);
             }
 
             // Then ScriptableObjects
             using var scriptableObjectContext =
-                    Search.SearchService.CreateContext("asset", "urp:convert-ppv2scriptableobject");
+                    Search.SearchService.CreateContext("asset", "urp=convert-ppv2scriptableobject a=URPConverterIndex ");
             using var scriptableObjectItems = Search.SearchService.Request(scriptableObjectContext);
             {
-                Debug.Log("Second Search");
                 AddSearchItemsAsConverterAssetEntries(scriptableObjectItems, context);
             }
 
