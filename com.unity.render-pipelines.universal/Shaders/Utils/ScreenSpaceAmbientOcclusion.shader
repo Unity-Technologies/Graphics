@@ -79,7 +79,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 1 - Horizontal Blur
         Pass
         {
-            Name "SSAO_HorizontalBlur"
+            Name "SSAO_Bilateral_HorizontalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -94,7 +94,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 2 - Vertical Blur
         Pass
         {
-            Name "SSAO_VerticalBlur"
+            Name "SSAO_Bilateral_VerticalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -106,7 +106,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 3 - Final Blur
         Pass
         {
-            Name "SSAO_FinalBlur"
+            Name "SSAO_Bilateral_FinalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -118,7 +118,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 4 - Horizontal + Vertical Blur
         Pass
         {
-            Name "SSAO_HorizontalVerticalBlur"
+            Name "SSAO_Bilateral_HorizontalVerticalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -132,7 +132,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 5 - Horizontal  Gaussian Blur
         Pass
         {
-            Name "SSAO_HorizontalBlurGaussian"
+            Name "SSAO_Gaussian_HorizontalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -144,7 +144,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 6 - Vertical Gaussian Blur
         Pass
         {
-            Name "SSAO_VerticalBlurGaussian"
+            Name "SSAO_Gaussian_VerticalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -156,7 +156,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 7 - Horizontal + Vertical Gaussian Blur
         Pass
         {
-            Name "SSAO_HorizontalVerticalBlurGaussian"
+            Name "SSAO_Gaussian_HorizontalVerticalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -251,6 +251,84 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(input.uv);
                     half occlusion = aoFactor.indirectAmbientOcclusion;
                     return half4(0.0, 0.0, 0.0, occlusion);
+                }
+
+            ENDHLSL
+        }
+
+        // 14 - After Opaque Bilateral
+        Pass
+        {
+            Name "SSAO_Bilateral_FinalBlur_AfterOpaque"
+
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment FragBilateralAfterOpaque
+
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+
+                half4 FragBilateralAfterOpaque(Varyings input) : SV_Target
+                {
+                    half ao = FinalBlur(input);
+                    return half4(0.0, 0.0, 0.0, ao);
+                }
+
+            ENDHLSL
+        }
+
+        // 15 - After Opaque Gaussian
+        Pass
+        {
+            Name "SSAO_Gaussian_VerticalBlur_AfterOpaque"
+
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment FragBilateralAfterOpaque
+
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+
+                half4 FragBilateralAfterOpaque(Varyings input) : SV_Target
+                {
+                    half ao = VerticalGaussianBlur(input);
+                    return half4(0.0, 0.0, 0.0, ao);
+                }
+
+            ENDHLSL
+        }
+
+        // 15 - After Opaque Kawase
+        Pass
+        {
+            Name "SSAO_Kawase_VerticalBlur_AfterOpaque"
+
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment FragBilateralAfterOpaque
+
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+
+                half4 FragBilateralAfterOpaque(Varyings input) : SV_Target
+                {
+                    half ao = KawaseBlur(input);
+                    return half4(0.0, 0.0, 0.0, ao);
                 }
 
             ENDHLSL

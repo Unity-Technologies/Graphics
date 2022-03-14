@@ -22,7 +22,6 @@ half4 _BlurOffset;
 half _KawaseBlurIteration;
 int _LastKawasePass;
 half4 _SSAOParams;
-half4 _SSAOParams2;
 float4 _CameraViewTopLeftCorner[2];
 float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
 
@@ -83,6 +82,7 @@ static half SSAORandomUV[40] =
 };
 
 // Some constants to not bloat the code with half(...)
+static const half  HALF_POINT_ONE   = half(0.1);
 static const half  HALF_MINUS_ONE   = half(-1.0);
 static const half  HALF_ZERO        = half(0.0);
 static const half  HALF_HALF        = half(0.5);
@@ -94,18 +94,15 @@ static const half  HALF_FOUR        = half(4.0);
 static const half  HALF_HUNDRED     = half(100.0);
 
 // SSAO Settings
-#define INTENSITY _SSAOParams.x
 #if defined(_BLUE_NOISE)
-    #define RADIUS _SSAOParams.y * HALF_TWO
+    #define INTENSITY _SSAOParams.x * 0.2
+    #define RADIUS _SSAOParams.y * 6.0
 #else
+    #define INTENSITY _SSAOParams.x
     #define RADIUS _SSAOParams.y
 #endif
 #define DOWNSAMPLE _SSAOParams.z
 #define FALLOFF _SSAOParams.w
-
-#define SPREAD_MIN  _SSAOParams2.x
-#define SPREAD_MAX  _SSAOParams2.y
-#define TIME_MULTIPLIER  _SSAOParams2.z
 
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
     static const int SAMPLE_COUNT = 3;
@@ -188,7 +185,7 @@ float2 GetScreenSpacePosition(float2 uv)
 }
 
 // Pseudo random number generator with 2D coordinates
-half GetRandomUV(half u, half sampleIndex)
+half GetRandomUV(float2 uv, half u, half sampleIndex)
 {
     return SSAORandomUV[u * 20 + sampleIndex];
 }
@@ -198,22 +195,23 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sHalf, half rcpSampleCoun
 {
     #if defined(_BLUE_NOISE)
         const half lerpVal = sHalf * rcpSampleCount;
-        const float2 uvAddon = frac(float2(sHalf + _Time.x * TIME_MULTIPLIER, sHalf + _Time.y * TIME_MULTIPLIER));
+        const float2 uvAddon = frac(float2(sHalf + _Time.x, sHalf + _Time.y));
         const half noise = SAMPLE_BLUE_NOISE_R(uv + uvAddon);
-        const half u = frac(GetRandomUV(HALF_ZERO, sampleIndex).x + noise) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomUV(HALF_ONE, sampleIndex).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
+        const half u = frac(GetRandomUV(uv, HALF_ZERO, sampleIndex).x + noise) * HALF_TWO - HALF_ONE;
+        const half theta = (GetRandomUV(uv, HALF_ONE, sampleIndex).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
         const half u2 = half(sqrt(HALF_ONE - u * u));
 
         half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
         v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
 
         // Adjustment for distance distribution.
-        v *= lerp(SPREAD_MIN, SPREAD_MAX, lerpVal * lerpVal);
+        half l = sampleIndex / SAMPLE_COUNT;
+        v *= lerp(HALF_POINT_ONE, HALF_ONE, l * l);
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
         const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));
-        const half u = frac(GetRandomUV(HALF_ZERO, sampleIndex) + noise) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomUV(HALF_ONE, sampleIndex) + noise) * HALF_TWO_PI;
+        const half u = frac(GetRandomUV(uv, HALF_ZERO, sampleIndex) + noise) * HALF_TWO - HALF_ONE;
+        const half theta = (GetRandomUV(uv, HALF_ONE, sampleIndex) + noise) * HALF_TWO_PI;
         const half u2 = half(sqrt(HALF_ONE - u * u));
 
         half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
@@ -367,7 +365,6 @@ half4 SSAO(Varyings input) : SV_Target
 
         // Sample point
         half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, normal_o);
-
         half3 vpos_s1 = half3(vpos_o + v_s1);
 
         // Reproject the sample point
@@ -471,7 +468,7 @@ half4 HorizontalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     const float2 uv = input.uv;
-    const float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+    const float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE), 0.0);
     return Blur(uv, delta);
 }
 
@@ -480,7 +477,7 @@ half4 VerticalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     const float2 uv = input.uv;
-    const float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+    const float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE));
     return Blur(uv, delta);
 }
 
@@ -498,10 +495,10 @@ half4 HorizontalVerticalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE), 0.0);
     float4 blurH = Blur(uv, delta);
 
-    delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+    delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE));
     float4 blurV = Blur(uv, delta);
     delta = _SourceSize.zw * rcp(DOWNSAMPLE);
 
