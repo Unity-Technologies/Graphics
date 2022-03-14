@@ -2,14 +2,45 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.U2D;
+
 
 namespace UnityEngine.Rendering.Universal
 {
     class ShadowShape2DProvider_SpriteRenderer : ShadowShape2DProvider
     {
         ShadowShape2D m_PersistantShapeData;
+
+        static int GetVertexStreamSize(Sprite sprite)
+        {
+            int vertexStreamSize = 12;
+            if (sprite.HasVertexAttribute(Rendering.VertexAttribute.Normal))
+                vertexStreamSize = vertexStreamSize + 12;
+            if (sprite.HasVertexAttribute(Rendering.VertexAttribute.Tangent))
+                vertexStreamSize = vertexStreamSize + 16;
+            return vertexStreamSize;
+        }
+
+        unsafe static bool HasDeformedVertices(SpriteRenderer spriteRenderer)
+        {
+            return spriteRenderer.GetDeformableBuffer() != null;
+        }
+
+        unsafe static NativeSlice<Vector3> GetDeformedVertices(SpriteRenderer spriteRenderer)
+        {
+            Sprite sprite = spriteRenderer.sprite;
+            int spriteVertexStreamSize = GetVertexStreamSize(sprite);
+            int spriteVertexCount = sprite.GetVertexCount();
+            byte* buffer = spriteRenderer.GetDeformableBuffer();
+
+            NativeSlice<Vector3> positionsSlice = NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<Vector3>(buffer, spriteVertexStreamSize, spriteVertexCount);
+            NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref positionsSlice, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
+
+            return positionsSlice;
+        }
+
 
         void SetPersistantShapeData(Sprite sprite, ShadowShape2D shadowShape2D, NativeSlice<Vector3> vertexSlice)
         {
@@ -81,11 +112,11 @@ namespace UnityEngine.Rendering.Universal
             SpriteRenderer sr = (SpriteRenderer)sourceComponent;
             if (sr != null && sr.sprite != null)
             {
-                if (sr.HasDeformedVertices())
+                if (HasDeformedVertices(sr))
                 {
                     Sprite sprite = sr.sprite;
 
-                    NativeSlice<Vector3> vertices = sr.GetDeformedVertices();
+                    NativeSlice<Vector3> vertices = GetDeformedVertices(sr);
                     SetPersistantShapeData(sprite, persistantShapeObject, vertices);
                 }
             }
