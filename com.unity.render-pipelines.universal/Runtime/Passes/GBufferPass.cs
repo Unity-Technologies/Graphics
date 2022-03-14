@@ -112,22 +112,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer gbufferCommands = CommandBufferPool.Get();
-            using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
+            var cmd = renderingData.commandBuffer;
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                CoreUtils.SetKeyword(gbufferCommands, ShaderKeywordStrings.WriteRenderingLayers, m_DeferredLights.UseRenderingLayers);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, m_DeferredLights.UseRenderingLayers);
 
-                context.ExecuteCommandBuffer(gbufferCommands);
-                gbufferCommands.Clear();
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
                 // If we detect we are in such case (camera is in overlay mode), we clear the highest bits of stencil we have control of and use them to
                 // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
                 if (m_DeferredLights.IsOverlay)
                 {
-                    m_DeferredLights.ClearStencilPartial(gbufferCommands);
-                    context.ExecuteCommandBuffer(gbufferCommands);
-                    gbufferCommands.Clear();
+                    m_DeferredLights.ClearStencilPartial(cmd);
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
                 }
 
                 ref CameraData cameraData = ref renderingData.cameraData;
@@ -147,9 +147,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
             }
-
-            context.ExecuteCommandBuffer(gbufferCommands);
-            CommandBufferPool.Release(gbufferCommands);
         }
     }
 }

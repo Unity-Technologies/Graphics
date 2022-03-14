@@ -78,7 +78,11 @@ namespace UnityEngine.Rendering
                 {
                     displayName = Strings.camera,
                     getter = () => data.volumeDebugSettings.selectedCamera,
-                    setter = value => data.volumeDebugSettings.selectedCamera = value as Camera,
+                    setter = value =>
+                    {
+                        var c = data.volumeDebugSettings.cameras.ToArray();
+                        data.volumeDebugSettings.selectedCameraIndex = Array.IndexOf(c, value as Camera);
+                    },
                     getObjects = () => data.volumeDebugSettings.cameras,
                     onValueChanged = refresh
                 };

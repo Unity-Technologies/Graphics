@@ -88,8 +88,15 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
 
             /// <summary>
+            /// Fallback loading shader.
+            /// </summary>
+            [Reload("Shaders/Utils/FallbackLoading.shader")]
+            public Shader fallbackLoadingPS;
+
+            /// <summary>
             /// Material Error shader.
             /// </summary>
+            [Obsolete("Use fallbackErrorPS instead")]
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
 
@@ -144,6 +151,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
+        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
 
         protected override ScriptableRenderer Create()
         {
@@ -274,6 +282,19 @@ namespace UnityEngine.Rendering.Universal
                 Assert.IsTrue(value.IsValid());
                 SetDirty();
                 m_TileSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Controls when URP renders via an intermediate texture.
+        /// </summary>
+        public IntermediateTextureMode intermediateTextureMode
+        {
+            get => m_IntermediateTextureMode;
+            set
+            {
+                SetDirty();
+                m_IntermediateTextureMode = value;
             }
         }
 

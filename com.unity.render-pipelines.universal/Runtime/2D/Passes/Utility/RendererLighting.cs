@@ -168,8 +168,7 @@ namespace UnityEngine.Rendering.Universal
             pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTargetId);
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTargetId);
-            if (pass.rendererData.cameraSortingLayerRenderTarget != null)
-                cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
+            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)
@@ -509,8 +508,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget, CommandBuffer cmd, LightStats lightStats)
+        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget, LightStats lightStats)
         {
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 // figure out the scale

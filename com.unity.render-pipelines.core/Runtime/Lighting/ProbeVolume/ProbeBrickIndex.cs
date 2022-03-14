@@ -3,14 +3,13 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
 using System.Collections;
 using Unity.Collections;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using CellInfo = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.CellInfo;
-using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using CellInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellInfo;
+using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     internal class ProbeBrickIndex
     {

@@ -68,11 +68,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             public bool clusteredRendering;
             public int tileSize;
 
-            static internal InitParams GetDefault()
+            static internal InitParams Create()
             {
                 InitParams p;
                 {
-                    var settings = LightCookieManager.Settings.GetDefault();
+                    var settings = LightCookieManager.Settings.Create();
                     var asset = UniversalRenderPipeline.asset;
                     if (asset)
                     {
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Creates a new <c>ForwardLights</c> instance.
         /// </summary>
-        public ForwardLights() : this(InitParams.GetDefault()) { }
+        public ForwardLights() : this(InitParams.Create()) { }
 
         internal ForwardLights(InitParams initParams)
         {
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(null, m_ProfilingSampler))
             {
                 var useClusteredRendering = m_UseClusteredRendering;
@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
             }
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
         }
 
         internal void Cleanup()

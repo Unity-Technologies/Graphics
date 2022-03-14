@@ -11,9 +11,9 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
-      enabled: True
+      enabled: false
       nr_commits_to_retrieve: 100
-    allow_triggers: True
+    allow_triggers: false
     variables:
       CACHE_ARGS: '{{cache.flags}}'
   - track: CUSTOM-REVISION
@@ -121,7 +121,6 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
@@ -137,7 +136,6 @@ test_platforms:
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
@@ -184,7 +182,6 @@ test_platforms:
 
       - [OSX_Apple_Silicon_Metal]: --architecture=ARM64
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
@@ -237,7 +234,6 @@ test_platforms:
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal, OSX_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
@@ -264,15 +260,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     agent_package:
       type: Unity::VM
@@ -302,12 +298,10 @@ platforms:
                     del revdate.tmp
                     utr <UTR_FLAGS> & exit 0
         unity_downloader_cli:
-          - command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+          - command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
             retries: 2
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
-        turn_off_firewall:
-          - command: NetSh Advfirewall set allprofiles state off
         log_parser:
           - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
@@ -508,7 +502,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -542,12 +536,10 @@ platforms:
         call_utr_without_git:
           - command: utr <UTR_FLAGS>
         unity_downloader_cli:
-          - command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+          - command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
             retries: 2
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
             retries: 2
-        turn_off_firewall:
-          - command: NetSh Advfirewall set allprofiles state off
         connect_bokken_hikey:
           - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
             retries: 2
@@ -578,7 +570,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -605,8 +597,6 @@ platforms:
             retries: 2
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
             retries: 2
-        turn_off_firewall:
-          - command: NetSh Advfirewall set allprofiles state off
         connect_bokken:
           - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
             retries: 2
@@ -678,11 +668,3 @@ non_project_agents:
     type: Unity::VM::osx
     image: package-ci/mac:stable
     flavor: m1.mac
-  sdet_win_large:
-    type: Unity::VM
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
-  sdet_win_large_gpu:
-    type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large

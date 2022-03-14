@@ -143,11 +143,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                OnExecute(cmd);
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 // Global render pass data containing various settings.
                 // x,y,z are currently unused
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
@@ -163,11 +165,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
-
-                OnExecute(cmd);
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
@@ -203,8 +200,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
                 }
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         protected virtual void OnExecute(CommandBuffer cmd) { }

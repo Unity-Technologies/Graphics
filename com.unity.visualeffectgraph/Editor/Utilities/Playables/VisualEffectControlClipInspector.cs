@@ -1,0 +1,521 @@
+#if VFX_HAS_TIMELINE
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Collections.Generic;
+using UnityEditorInternal;
+using UnityEngine;
+using UnityEngine.VFX;
+using UnityEngine.VFX.Utility;
+
+namespace UnityEditor.VFX
+{
+    [CustomEditor(typeof(VisualEffectControlTrack))]
+    class VisualEffectControlTrackInspector : Editor
+    {
+        SerializedProperty reinitProperty;
+
+        private void OnEnable()
+        {
+            reinitProperty = serializedObject.FindProperty(nameof(VisualEffectControlTrack.reinit));
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(reinitProperty);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+
+                //Modification on tracks doesn't trigger a refresh, calling manually the director refresh
+                var allDirectors = FindObjectsOfType<UnityEngine.Playables.PlayableDirector>(false);
+                foreach (var director in allDirectors)
+                {
+                    director.RebuildGraph();
+                }
+            }
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(PlayableTimeSpace))]
+    class VisualEffectPlayableSerializedEventTimeSpaceDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            var previousTimeSpace = (PlayableTimeSpace)property.enumValueIndex;
+            var newTimeSpace = (PlayableTimeSpace)EditorGUI.EnumPopup(position, label, previousTimeSpace);
+            if (previousTimeSpace != newTimeSpace)
+            {
+                property.enumValueIndex = (int)newTimeSpace;
+                var parentEventPath = property.propertyPath.Substring(0, property.propertyPath.Length - nameof(VisualEffectPlayableSerializedEvent.timeSpace).Length - 1);
+                var parentEvent = property.serializedObject.FindProperty(parentEventPath);
+                if (parentEvent == null)
+                    throw new InvalidOperationException();
+
+                var parentEventTime = parentEvent.FindPropertyRelative(nameof(VisualEffectPlayableSerializedEvent.time));
+                if (parentEventTime == null)
+                    throw new InvalidOperationException();
+
+                var parentPlayable = property.serializedObject.targetObject as VisualEffectControlClip;
+                if (parentPlayable == null)
+                    throw new InvalidOperationException();
+
+                var oldTime = parentEventTime.doubleValue;
+                var newTime = VFXTimeSpaceHelper.GetTimeInSpace(previousTimeSpace, oldTime, newTimeSpace, parentPlayable.clipStart, parentPlayable.clipEnd);
+                parentEventTime.doubleValue = newTime;
+            }
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(UnityEngine.VFX.EventAttributes))]
+    class EventAttributesDrawer : PropertyDrawer
+    {
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return false;
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            var reordableList = VisualEffectControlClipInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlClip, property);
+
+            if (reordableList != null)
+                return reordableList.GetHeight();
+
+            return 0.0f;
+        }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            var reordableList = VisualEffectControlClipInspector.GetOrBuildEventAttributeList(property.serializedObject.targetObject as VisualEffectControlClip, property);
+            if (reordableList != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                reordableList.DoList(position);
+                if (EditorGUI.EndChangeCheck())
+                    property.serializedObject.ApplyModifiedProperties();
+            }
+        }
+    }
+
+    [CustomEditor(typeof(VisualEffectControlClip))]
+    class VisualEffectControlClipInspector : Editor
+    {
+        SerializedProperty scrubbingProperty;
+        SerializedProperty startSeedProperty;
+        SerializedProperty reinitProperty;
+        SerializedProperty prewarmEnable;
+        SerializedProperty prewarmStepCount;
+        SerializedProperty prewarmDeltaTime;
+        SerializedProperty prewarmEvent;
+
+        ReorderableList m_ReoderableClipEvents;
+        ReorderableList m_ReoderableSingleEvents;
+
+        static private List<(VisualEffectControlClip asset, VisualEffectControlClipInspector inspector)> s_RegisteredInspector = new List<(VisualEffectControlClip asset, VisualEffectControlClipInspector inspector)>();
+        Dictionary<string, ReorderableList> m_CacheEventAttributeReordableList = new Dictionary<string, ReorderableList>();
+
+        private static readonly (Type type, Type valueType)[] kEventAttributeSpecialization = GetEventAttributeSpecialization().ToArray();
+
+        private static IEnumerable<(Type type, Type valueType)> GetEventAttributeSpecialization()
+        {
+            var subClasses = VFXLibrary.FindConcreteSubclasses(typeof(EventAttribute));
+            foreach (var eventAttribute in subClasses)
+            {
+                var valueType = eventAttribute.GetMember(nameof(EventAttributeValue<char>.value));
+                yield return (eventAttribute, ((FieldInfo)valueType[0]).FieldType);
+            }
+        }
+
+        private static IEnumerable<EventAttribute> GetAvailableAttributes()
+        {
+            foreach (var attributeName in VFXAttribute.AllIncludingVariadicReadWritable)
+            {
+                var attribute = VFXAttribute.Find(attributeName);
+                var type = VFXExpression.TypeToType(attribute.type);
+
+                EventAttribute eventAttribute = null;
+
+                if (type == typeof(Vector3))
+                {
+                    if (attribute.name.Contains("color"))
+                        eventAttribute = new EventAttributeColor();
+                    else
+                        eventAttribute = new EventAttributeVector3();
+                }
+                else
+                {
+                    var findType = kEventAttributeSpecialization.FirstOrDefault(o => o.valueType == type);
+                    if (findType.type == null)
+                        throw new InvalidOperationException("Unexpected type : " + type);
+                    eventAttribute = (EventAttribute)Activator.CreateInstance(findType.type);
+                }
+
+                if (eventAttribute != null)
+                {
+                    eventAttribute.id = attribute.name;
+                    var valueField = eventAttribute.GetType().GetField(nameof(EventAttributeValue<byte>.value));
+                    valueField.SetValue(eventAttribute, attribute.value.GetContent());
+                    yield return eventAttribute;
+                }
+            }
+
+            foreach (var custom in kEventAttributeSpecialization)
+            {
+                var eventAttribute = (EventAttribute)Activator.CreateInstance(custom.type);
+                eventAttribute.id = "Custom " + custom.type.Name.Replace("EventAttribute", string.Empty);
+                yield return eventAttribute;
+            }
+        }
+
+        private static readonly EventAttribute[] kAvailableAttributes = GetAvailableAttributes().ToArray();
+
+        public static ReorderableList GetOrBuildEventAttributeList(VisualEffectControlClip asset, SerializedProperty property)
+        {
+            var inspector = s_RegisteredInspector.FirstOrDefault(o => o.asset == asset).inspector;
+            if (inspector == null)
+                return null;
+
+            var path = property.propertyPath;
+            if (!inspector.m_CacheEventAttributeReordableList.TryGetValue(path, out var reorderableList))
+            {
+                var emptyGUIContent = new GUIContent(string.Empty);
+
+                var contentProperty = property.FindPropertyRelative(nameof(UnityEngine.VFX.EventAttributes.content));
+                reorderableList = new ReorderableList(property.serializedObject, contentProperty, true, true, true, true);
+                reorderableList.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Attributes"); };
+                reorderableList.onAddDropdownCallback += (Rect buttonRect, ReorderableList list) =>
+                {
+                    var menu = new GenericMenu();
+                    foreach (var option in kAvailableAttributes)
+                    {
+                        menu.AddItem(new GUIContent((string)option.id), false, () =>
+                        {
+                            contentProperty.serializedObject.Update();
+                            contentProperty.arraySize++;
+                            var newEntry = contentProperty.GetArrayElementAtIndex(contentProperty.arraySize - 1);
+                            var newValue = DeepClone(option);
+                            newEntry.managedReferenceValue = newValue;
+                            contentProperty.serializedObject.ApplyModifiedProperties();
+                        });
+                    }
+                    menu.ShowAsContext();
+                };
+
+                reorderableList.drawElementCallback += (Rect rect, int index, bool isActive, bool isFocused) =>
+                {
+                    SerializedProperty attributeProperty = contentProperty.GetArrayElementAtIndex(index);
+                    SerializedProperty attributeName = null, attributeValue = null;
+
+                    if (attributeProperty != null)
+                    {
+                        attributeName = attributeProperty.FindPropertyRelative(nameof(EventAttribute.id) + ".m_Name");
+                        attributeValue = attributeProperty.FindPropertyRelative(nameof(EventAttributeValue<byte>.value));
+                    }
+
+                    if (attributeName == null || attributeValue == null)
+                    {
+                        EditorGUI.LabelField(rect, "NULL");
+                        return;
+                    }
+
+                    var labelSize = GUI.skin.label.CalcSize(new GUIContent(attributeName.stringValue));
+                    if (labelSize.x < 110)
+                        labelSize.x = 110;
+
+                    EditorGUI.PropertyField(new Rect(rect.x, rect.y + 2, labelSize.x - 2, EditorGUIUtility.singleLineHeight), attributeName, emptyGUIContent);
+                    var valueRect = new Rect(rect.x + labelSize.x, rect.y + 2, rect.width - labelSize.x, EditorGUIUtility.singleLineHeight);
+                    if (attributeProperty.managedReferenceValue is EventAttributeColor)
+                    {
+                        var oldVector3 = attributeValue.vector3Value;
+                        var oldColor = new Color(oldVector3.x, oldVector3.y, oldVector3.z);
+                        EditorGUI.BeginChangeCheck();
+                        var newColor = EditorGUI.ColorField(valueRect, oldColor);
+                        if (EditorGUI.EndChangeCheck())
+                            attributeValue.vector3Value = new Vector3(newColor.r, newColor.g, newColor.b);
+                    }
+                    else if (attributeProperty.managedReferenceValue is EventAttributeVector4)
+                    {
+                        var oldVector4 = attributeValue.vector4Value;
+                        EditorGUI.BeginChangeCheck();
+                        var newVector4 = EditorGUI.Vector4Field(valueRect, GUIContent.none, oldVector4);
+                        if (EditorGUI.EndChangeCheck())
+                            attributeValue.vector4Value = newVector4;
+                    }
+                    else
+                    {
+                        EditorGUI.PropertyField(valueRect, attributeValue, emptyGUIContent);
+                    }
+                };
+
+                inspector.m_CacheEventAttributeReordableList.Add(path, reorderableList);
+            }
+            return reorderableList;
+        }
+
+        private void OnDisable()
+        {
+            s_RegisteredInspector.RemoveAll(o => o.inspector == this);
+        }
+
+        ReorderableList BuildEventReordableList(SerializedObject serializedObject, SerializedProperty property)
+        {
+            var reordableList = new ReorderableList(serializedObject, property, true, true, true, true);
+            reordableList.elementHeightCallback += (int index) =>
+            {
+                var clipEvent = property.GetArrayElementAtIndex(index);
+                return EditorGUI.GetPropertyHeight(clipEvent, true);
+            };
+
+            reordableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                var clipEvent = property.GetArrayElementAtIndex(index);
+                var newRect = rect;
+                newRect.x += 8;
+                EditorGUI.PropertyField(newRect, clipEvent, true);
+            };
+            return reordableList;
+        }
+
+        private static VisualEffectPlayableSerializedEvent DeepClone(VisualEffectPlayableSerializedEvent source)
+        {
+            VisualEffectPlayableSerializedEvent newEvent = source;
+            newEvent.name = DeepClone(newEvent.name);
+            newEvent.eventAttributes.content = DeepClone(newEvent.eventAttributes.content);
+            return newEvent;
+        }
+
+        private static VisualEffectPlayableSerializedEventNoColor DeepClone(VisualEffectPlayableSerializedEventNoColor source)
+        {
+            VisualEffectPlayableSerializedEventNoColor newEvent = source;
+            newEvent.name = DeepClone(newEvent.name);
+            newEvent.eventAttributes.content = DeepClone(newEvent.eventAttributes.content);
+            return newEvent;
+        }
+
+        private static ExposedProperty DeepClone(ExposedProperty source)
+        {
+            ExposedProperty newExposedProperty = (string)source;
+            if (object.ReferenceEquals(source, newExposedProperty))
+                throw new InvalidOperationException();
+            return newExposedProperty;
+        }
+
+        private static EventAttribute DeepClone(EventAttribute source)
+        {
+            if (source == null)
+                return null;
+
+            var referenceType = source.GetType();
+            var copy = (EventAttribute)Activator.CreateInstance(referenceType);
+            copy.id = source.id;
+            var valueField = referenceType.GetField(nameof(EventAttributeValue<byte>.value));
+            valueField.SetValue(copy, valueField.GetValue(source));
+            return copy;
+        }
+
+        private static EventAttribute[] DeepClone(EventAttribute[] source)
+        {
+            if (source == null)
+                return new EventAttribute[0];
+
+            var newEventAttributeArray = new EventAttribute[source.Length];
+            for (int i = 0; i < newEventAttributeArray.Length; ++i)
+            {
+                var reference = source[i];
+                newEventAttributeArray[i] = DeepClone(reference);
+            }
+            return newEventAttributeArray;
+        }
+
+        static Color[] kNiceColor = new Color[]
+        {
+            new Color32(123, 158, 5, 255),
+            new Color32(52, 136, 167, 255),
+            new Color32(204, 112, 0, 255),
+            new Color32(90, 178, 188, 255),
+            new Color32(114, 104, 12, 255),
+            new Color32(197, 162, 6, 255),
+            new Color32(136, 40, 7, 255),
+            new Color32(97, 73, 133, 255),
+            new Color32(122, 123, 30, 255),
+            new Color32(80, 160, 93, 255)
+        };
+
+        private static Color SmartPickingNewColor(VisualEffectControlClip controlClip)
+        {
+            var allColor = controlClip.clipEvents.Select(o => o.editorColor);
+            allColor = allColor.Concat(controlClip.singleEvents.Select(o => o.editorColor));
+
+            var candidate = kNiceColor.Where(o => !allColor.Contains(o));
+            if (candidate.Any())
+                return candidate.First();
+
+            //Arbitrary picking (but not random) of color
+            return kNiceColor[allColor.Count() % kNiceColor.Length];
+        }
+
+        private void OnEnable()
+        {
+            s_RegisteredInspector.Add((target as VisualEffectControlClip, this));
+
+            scrubbingProperty = serializedObject.FindProperty(nameof(VisualEffectControlClip.scrubbing));
+            startSeedProperty = serializedObject.FindProperty(nameof(VisualEffectControlClip.startSeed));
+            reinitProperty = serializedObject.FindProperty(nameof(VisualEffectControlClip.reinit));
+
+            var prewarmSettings = serializedObject.FindProperty(nameof(VisualEffectControlClip.prewarm));
+            prewarmEnable = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlClip.PrewarmClipSettings.enable));
+            prewarmStepCount = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlClip.PrewarmClipSettings.stepCount));
+            prewarmDeltaTime = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlClip.PrewarmClipSettings.deltaTime));
+            prewarmEvent = prewarmSettings.FindPropertyRelative(nameof(VisualEffectControlClip.PrewarmClipSettings.eventName) + ".m_Name");
+
+            var clipEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlClip.clipEvents));
+            var singleEventsProperty = serializedObject.FindProperty(nameof(VisualEffectControlClip.singleEvents));
+
+            m_ReoderableClipEvents = BuildEventReordableList(serializedObject, clipEventsProperty);
+            m_ReoderableClipEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Clip Events"); };
+            m_ReoderableClipEvents.onAddCallback = (ReorderableList list) =>
+            {
+                var playable = clipEventsProperty.serializedObject.targetObject as VisualEffectControlClip;
+                Undo.RegisterCompleteObjectUndo(playable, "Add new clip event");
+                clipEventsProperty.serializedObject.ApplyModifiedProperties();
+
+                var newColor = SmartPickingNewColor(playable);
+
+                var newClipEvent = new VisualEffectControlClip.ClipEvent();
+                if (playable.clipEvents.Any())
+                {
+                    var last = playable.clipEvents.Last();
+                    newClipEvent.editorColor = newColor;
+                    newClipEvent.enter = DeepClone(last.enter);
+                    newClipEvent.exit = DeepClone(last.exit);
+                }
+                else
+                {
+                    newClipEvent.editorColor = newColor;
+
+                    newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes();
+                    newClipEvent.enter.name = VisualEffectAsset.PlayEventName;
+                    newClipEvent.enter.time = 0.0;
+                    newClipEvent.enter.timeSpace = PlayableTimeSpace.AfterClipStart;
+
+                    newClipEvent.exit.eventAttributes = new UnityEngine.VFX.EventAttributes();
+                    newClipEvent.exit.name = VisualEffectAsset.StopEventName;
+                    newClipEvent.exit.time = 0.0;
+                    newClipEvent.exit.timeSpace = PlayableTimeSpace.BeforeClipEnd;
+                }
+                playable.clipEvents.Add(newClipEvent);
+                clipEventsProperty.serializedObject.Update();
+            };
+
+            m_ReoderableSingleEvents = BuildEventReordableList(serializedObject, singleEventsProperty);
+            m_ReoderableSingleEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Single Events"); };
+            m_ReoderableSingleEvents.onAddCallback = (ReorderableList list) =>
+            {
+                var playable = singleEventsProperty.serializedObject.targetObject as VisualEffectControlClip;
+                Undo.RegisterCompleteObjectUndo(playable, "Add new single event");
+                singleEventsProperty.serializedObject.ApplyModifiedProperties();
+
+                var newSingleEvent = new VisualEffectPlayableSerializedEvent();
+                if (playable.singleEvents.Any())
+                {
+                    var last = playable.singleEvents.Last();
+                    newSingleEvent = DeepClone(last);
+                }
+                newSingleEvent.editorColor = SmartPickingNewColor(playable);
+
+                playable.singleEvents.Add(newSingleEvent);
+                singleEventsProperty.serializedObject.Update();
+            };
+        }
+
+        private HashSet<EventAttribute> m_CacheEventAttributes = new HashSet<EventAttribute>(); //Only used to save garbage while checking unicity
+        private bool CheckNoDuplicate(IEnumerable<EventAttribute> eventAttributes)
+        {
+            m_CacheEventAttributes.Clear();
+            foreach (var evt in eventAttributes)
+            {
+                if (!m_CacheEventAttributes.Add(evt))
+                    return false;
+            }
+            return true;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(scrubbingProperty);
+
+            var currentReinit = (VisualEffectControlClip.ReinitMode)reinitProperty.enumValueIndex;
+
+            if (scrubbingProperty.boolValue)
+                currentReinit = VisualEffectControlClip.ReinitMode.OnEnterOrExitClip;
+
+            using (new EditorGUI.DisabledScope(scrubbingProperty.boolValue))
+            {
+                EditorGUI.BeginChangeCheck();
+                var newReinit = (VisualEffectControlClip.ReinitMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Reinit"), currentReinit);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    reinitProperty.enumValueIndex = (int)newReinit;
+                }
+            }
+
+            using (new EditorGUI.DisabledScope(!(
+                 currentReinit == VisualEffectControlClip.ReinitMode.OnEnterOrExitClip
+                || currentReinit == VisualEffectControlClip.ReinitMode.OnEnterClip)))
+            {
+                EditorGUILayout.PropertyField(startSeedProperty);
+                EditorGUILayout.PropertyField(prewarmEnable, EditorGUIUtility.TrTextContent("Enable PreWarm"));
+                using (new EditorGUI.DisabledScope(!prewarmEnable.boolValue))
+                {
+                    VisualEffectAssetEditor.DisplayPrewarmInspectorGUI(serializedObject, prewarmDeltaTime, prewarmStepCount);
+                    EditorGUILayout.PropertyField(prewarmEvent, EditorGUIUtility.TrTextContent("PreWarm Event Name"));
+                }
+            }
+
+            m_ReoderableClipEvents.DoLayoutList();
+            m_ReoderableSingleEvents.DoLayoutList();
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+
+#if FIX_DUPLICATE
+                //See case 1381005
+                //Special detection of duplicated referenced element due to manual duplicate in reordable list
+                var playable = serializedObject.targetObject as VisualEffectControlClip;
+                var enterEvents = playable.clipEvents.Where(o => o.enter.eventAttributes.content != null).SelectMany(o => o.enter.eventAttributes.content);
+                var exitEvents = playable.clipEvents.Where(o => o.exit.eventAttributes.content != null).SelectMany(o => o.exit.eventAttributes.content);
+                var singleEvents = playable.singleEvents.Where(o => o.eventAttributes.content != null).SelectMany(o => o.eventAttributes.content);
+                var allAttributes = enterEvents.Concat(exitEvents.Concat(singleEvents));
+                if (!CheckNoDuplicate(allAttributes))
+                {
+                    for (int i = 0; i < playable.clipEvents.Count; ++i)
+                    {
+                        var source = playable.clipEvents[i];
+                        VisualEffectControlClip.ClipEvent copy;
+                        copy.enter = DeepClone(source.enter);
+                        copy.exit = DeepClone(source.exit);
+                        playable.clipEvents[i] = copy;
+                    }
+
+                    for (int i = 0; i < playable.singleEvents.Count; ++i)
+                    {
+                        var source = playable.singleEvents[i];
+                        var copy = DeepClone(source);
+                        playable.singleEvents[i] = copy;
+                    }
+
+                    serializedObject.Update();
+                }
+#endif
+            }
+        }
+    }
+}
+#endif
