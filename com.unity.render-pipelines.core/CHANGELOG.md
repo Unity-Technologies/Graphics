@@ -4,6 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.2] - 2021-02-04
+
+### Added
+- Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
+- Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
+- Added Screen Coordinates Override shader utilities.
+- Added API to blend between baking states for Probe Volumes.
+- Aded explicit control over scenario blending factor and a debug mode for visualization.
+
+### Fixed
+- Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
+- Fixed cubemap array macros for GLCore.
+- Fixed regression on ResourceReloader due to change for supporting built-in resources.
+- Fixed issue with debug markers in Unity Profiler in deep profiler mode
+
 ## [14.0.1] - 2021-12-07
 
 ### Added

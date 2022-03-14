@@ -132,6 +132,7 @@
       * [Planar Reflection Probe](Planar-Reflection-Probe.md)
       * [Reflection Proxy Volume](Reflection-Proxy-Volume.md)
   * [Light](Light-Component.md)
+  * [Light Anchor](light-anchor.md)
   * [Environment Lighting](Environment-Lighting.md)
   * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)

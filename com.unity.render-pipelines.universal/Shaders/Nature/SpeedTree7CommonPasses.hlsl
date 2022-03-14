@@ -101,9 +101,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.viewDirectionWS = input.viewDirWS;
     #endif
 
-    #if SHADER_HINT_NICE_QUALITY
-        inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
-    #endif
+    inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         inputData.shadowCoord = input.shadowCoord;
@@ -138,7 +136,6 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         #ifdef EFFECT_BUMP
             half3 viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
@@ -147,7 +144,6 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         #endif
         LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.clipPos.xy), unity_LODFade.x);
     #endif
-#endif
 
     half2 uv = input.uvHueVariation.xy;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
@@ -225,11 +221,9 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         LODDitheringTransition(ComputeFadeMaskSeed(input.viewDirWS, input.clipPos.xy), unity_LODFade.x);
     #endif
-#endif
 
     half2 uv = input.uvHueVariation.xy;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
@@ -252,15 +246,13 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    #if !defined(SHADER_QUALITY_LOW)
-        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        #ifdef EFFECT_BUMP
-            half3 viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-        #else
-            half3 viewDirectionWS = input.viewDirWS;
-        #endif
-        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.clipPos.xy), unity_LODFade.x);
-        #endif
+    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+    #ifdef EFFECT_BUMP
+        half3 viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
+    #else
+        half3 viewDirectionWS = input.viewDirWS;
+    #endif
+    LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.clipPos.xy), unity_LODFade.x);
     #endif
 
     half2 uv = input.uvHueVariation.xy;

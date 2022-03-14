@@ -2865,7 +2865,6 @@
     "m_DistortionDepthTest": true,
     "m_AddPrecomputedVelocity": false,
     "m_TransparentWritesMotionVec": false,
-    "m_AlphaToMask": false,
     "m_DepthOffset": false,
     "m_ConservativeDepthOffset": false,
     "m_TransparencyFog": true,
@@ -3601,10 +3600,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 1363.0,
-            "y": 595.9999389648438,
-            "width": 199.9998779296875,
-            "height": 41.00006103515625
+            "x": 1367.0,
+            "y": 594.0,
+            "width": 200.0,
+            "height": 41.0
         }
     },
     "m_Slots": [

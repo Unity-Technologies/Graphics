@@ -16,6 +16,8 @@ Decals in HDRP have changed in the following ways:
 
 * When you write a shader for a surface that recieves decals, the normals should now be blended using the surface gradient framework. The prototype for the function `ApplyDecalToSurfaceData` has changed from: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)` to `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS)`. You can refer to `LitData.hlsl` and `LitDecalData.hlsl` for an example implementation.
 
+An optimization performed on decals modified the rendering order between of decals that shares the same **Draw Order** value. If some of the decals in your scene overlaps, check the draw order in their material to ensure that they use different numbers.
+
 ### Tessellation
 HDRP 2021.2 has various tessellation shader code to enable tessellation support in [Master Stacks](master-stack-hdrp.md).  has changed the tessellation shader code in the following ways:
 
@@ -99,3 +101,7 @@ From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are 
 From version 12.0 HDRP sets the **Ambient Mode** parameter in the **Visual Environment** volume component to **Dynamic** by default. This might impact existing projects where no default volume profile overrides the **Ambient Mode** parameter. To change this behavior:
 1. Add a **Visual Environment** component to the default volume profile.
 2. Change the **Ambient Mode** to **Static**.
+
+## Custom Pass
+
+Starting from HDRP 14.x, the default custom color buffer format changed from R8G8B8A8_SNorm to R8G8B8A8_UNorm. The old option is still available in the custom color format so you can revert back to the SNorm format if you need to.

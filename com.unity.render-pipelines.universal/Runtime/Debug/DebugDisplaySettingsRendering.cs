@@ -42,6 +42,23 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        bool m_Overdraw = false;
+
+        /// <summary>
+        /// Whether debug overdraw mode is active.
+        /// </summary>
+        [Obsolete("overdraw has been deprecated. Use overdrawMode instead.", false)]
+
+        public bool overdraw
+        {
+            get => m_Overdraw;
+            set
+            {
+                m_Overdraw = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
+
         DebugOverdrawMode m_OverdrawMode = DebugOverdrawMode.None;
 
         /// <summary>
@@ -163,7 +180,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MapOverlays,
                 autoEnum = typeof(DebugFullScreenMode),
                 getter = () => (int)data.fullScreenDebugMode,
-                setter = (value) => { },
+                setter = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value,
                 getIndex = () => (int)data.fullScreenDebugMode,
                 setIndex = (value) => data.fullScreenDebugMode = (DebugFullScreenMode)value
             };
@@ -189,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.AdditionalWireframeModes,
                 autoEnum = typeof(DebugWireframeMode),
                 getter = () => (int)data.wireframeMode,
-                setter = (value) => { },
+                setter = (value) => data.wireframeMode = (DebugWireframeMode)value,
                 getIndex = () => (int)data.wireframeMode,
                 setIndex = (value) => data.wireframeMode = (DebugWireframeMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -273,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.PixelValidationMode,
                 autoEnum = typeof(DebugValidationMode),
                 getter = () => (int)data.validationMode,
-                setter = (value) => { },
+                setter = (value) => data.validationMode = (DebugValidationMode)value,
                 getIndex = () => (int)data.validationMode,
                 setIndex = (value) => data.validationMode = (DebugValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -284,7 +301,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.Channels,
                 autoEnum = typeof(PixelValidationChannels),
                 getter = () => (int)data.validationChannels,
-                setter = (value) => { },
+                setter = (value) => data.validationChannels = (PixelValidationChannels)value,
                 getIndex = () => (int)data.validationChannels,
                 setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
             };

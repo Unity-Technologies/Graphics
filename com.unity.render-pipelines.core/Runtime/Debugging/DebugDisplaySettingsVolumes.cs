@@ -78,7 +78,11 @@ namespace UnityEngine.Rendering
                 {
                     displayName = Strings.camera,
                     getter = () => data.volumeDebugSettings.selectedCamera,
-                    setter = value => data.volumeDebugSettings.selectedCamera = value as Camera,
+                    setter = value =>
+                    {
+                        var c = data.volumeDebugSettings.cameras.ToArray();
+                        data.volumeDebugSettings.selectedCameraIndex = Array.IndexOf(c, value as Camera);
+                    },
                     getObjects = () => data.volumeDebugSettings.cameras,
                     onValueChanged = refresh
                 };
@@ -101,7 +105,7 @@ namespace UnityEngine.Rendering
                         hdr = p.hdr,
                         showAlpha = p.showAlpha,
                         getter = () => p.value,
-                        setter = _ => { },
+                        setter = value => p.value = value,
                         isHiddenCallback = isHiddenCallback
                     };
                 }
@@ -112,7 +116,7 @@ namespace UnityEngine.Rendering
                     {
                         displayName = name,
                         getter = () => p.value,
-                        setter = _ => { },
+                        setter = value => p.value = value,
                         isHiddenCallback = isHiddenCallback
                     };
                 }
@@ -362,7 +366,13 @@ namespace UnityEngine.Rendering
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => volumeDebugSettings.selectedCamera != null || volumeComponentEnumIndex > 0;
+        /// <summary>
+        /// Checks whether ANY of the debug settings are currently active.
+        /// </summary>
+        public bool AreAnySettingsActive => false; // Volume Debug Panel doesn't need to modify the renderer data, therefore this property returns false
+        /// <summary>
+        /// Checks whether the current state of these settings allows post-processing.
+        /// </summary>
         public bool IsPostProcessingAllowed => true;
         /// <summary>
         /// Checks whether lighting is active for these settings.
