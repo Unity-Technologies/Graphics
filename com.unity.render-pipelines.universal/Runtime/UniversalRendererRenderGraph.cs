@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
             CameraData cameraData = renderingData.cameraData;
             RenderGraph renderGraph = renderingData.renderGraph;
 
-            RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
+            RenderTargetIdentifier targetId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
                 targetId = cameraData.xr.renderTarget;
