@@ -48,7 +48,7 @@
 #endif
 
 #if defined(DOTS_INSTANCING_ON) && (SHADER_TARGET < 45)
-#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater).
+#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater). Make sure to use target 4.5 or greater in all SubShaders that use DOTS_INSTANCING_ON, and to NOT use DOTS_INSTANCING_ON in any SubShaders that must use a lower target version.
 #endif
 
 #if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
@@ -376,13 +376,23 @@
         #undef UNITY_PREV_MATRIX_I_M
 
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+#if 1
             #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld)))
             #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject)))
+#else
+            #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4_o2w(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld)))
+            #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4_w2o(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject)))
+#endif
             #define UNITY_PREV_MATRIX_M   ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM)))
             #define UNITY_PREV_MATRIX_I_M ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI)))
         #else
+#if 1
             #define UNITY_MATRIX_M        LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld))
             #define UNITY_MATRIX_I_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject))
+#else
+            #define UNITY_MATRIX_M        LoadDOTSInstancedData_float4x4_from_float3x4_o2w(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M      LoadDOTSInstancedData_float4x4_from_float3x4_w2o(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject))
+#endif
             #define UNITY_PREV_MATRIX_M   LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM))
             #define UNITY_PREV_MATRIX_I_M LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI))
         #endif
