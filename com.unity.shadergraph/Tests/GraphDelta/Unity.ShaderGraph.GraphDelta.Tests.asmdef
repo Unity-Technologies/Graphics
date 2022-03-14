@@ -1,0 +1,24 @@
+{
+    "name": "Unity.ShaderGraph.GraphDelta.Tests",
+    "rootNamespace": "",
+    "references": [
+        "Unity.ShaderGraph.Editor",
+        "ContextLayeredDataStorage",
+        "Unity.ShaderGraph.GraphDeltaRegistry"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

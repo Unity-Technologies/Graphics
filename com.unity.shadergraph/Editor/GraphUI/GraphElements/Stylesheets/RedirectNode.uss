@@ -1,0 +1,17 @@
+﻿.ge-port__icon, .ge-port__label {
+    display: none;
+}
+
+.sg-redirect-node {
+    width: 56px;
+}
+
+.sg-redirect-node .ge-port-container {
+    padding: 8px;
+}
+
+.sg-redirect-node .ge-port,
+.sg-redirect-node .ge-port__connector-container {
+    min-height: 8px;
+    height: 8px;
+}

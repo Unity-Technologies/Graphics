@@ -1,0 +1,21 @@
+{
+    "name": "Unity.ShaderGraph.GraphDeltaRegistry",
+    "rootNamespace": "",
+    "references": [
+        "ContextLayeredDataStorage",
+        "Unity.ShaderFoundry.Editor",
+        "Unity.ShaderGraph.Editor",
+        "UnityEditor.ShaderGraph.Generation"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

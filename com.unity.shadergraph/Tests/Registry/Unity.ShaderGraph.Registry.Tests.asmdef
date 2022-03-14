@@ -1,0 +1,23 @@
+{
+    "name": "Unity.ShaderGraph.Registry.Tests",
+    "rootNamespace": "",
+    "references": [
+        "Unity.ShaderGraph.GraphDeltaRegistry",
+        "GtfPlayground"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.shadergraph/Editor/GraphDeltaRegistry/PreviewManager/HeadlessPreviewManager.cs.meta
+guid: ce6c96f84d114e94e94c807c37387b67
+=======
+guid: cf1a0e8f33fb84faea6d798523a56fff
+>>>>>>> sg2/staging-master:com.unity.shadergraph/Editor/GraphUI/ShaderGraphGraphTool.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
