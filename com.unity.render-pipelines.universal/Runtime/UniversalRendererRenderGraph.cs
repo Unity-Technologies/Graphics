@@ -216,6 +216,9 @@ namespace UnityEngine.Rendering.Universal
 
                 var depthDescriptor = cameraData.cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                //TODO RENDERGRAPH: in some cornercases (f.e. rendering to targetTexture) this is needed. maybe this will be unnece
+                depthDescriptor.depthBufferBits =
+                    depthDescriptor.depthBufferBits != 0 ? depthDescriptor.depthBufferBits : 32;
                 frameResources.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_MotionVectorDepthTexture", true);
             }
             #endregion
