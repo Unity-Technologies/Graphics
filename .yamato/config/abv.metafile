@@ -26,12 +26,12 @@ jobs:
       - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
       - .yamato/all-batchrenderergroup.yml#BatchRendererGroup_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 1 * * ?
-        allow_on:
-          - trunk
+#    triggers:
+#        recurring:
+#          -  branch: master
+#             frequency: 1 * * ?
+#        allow_on:
+#          - trunk
 
   - name: General Checks
     # triggers:
@@ -40,6 +40,7 @@ jobs:
       - .yamato/_projectcontext.yml#all_package_ci_project_<TRACK>
       - .yamato/_formatting.yml#formatting
       - .yamato/all-smoke_test.yml#Smoke_Test_<TRACK>
+      - .yamato/_find_missing_docs.yml#find_missing_docs_core
       - .yamato/_find_missing_docs.yml#find_missing_docs_hdrp
       - .yamato/_find_missing_docs.yml#find_missing_docs_hdrp_config
       - .yamato/_find_missing_docs.yml#find_missing_docs_vfx_graph

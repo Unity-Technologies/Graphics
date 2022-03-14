@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Modes for Debugging Probes
@@ -30,6 +29,10 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         ValidityOverDilationThreshold,
         /// <summary>
+        /// Show in red probes that have been made invalid by touchup volumes. Important to note that this debug view will only show result for volumes still present in the scene.
+        /// </summary>
+        InvalidatedByTouchupVolumes,
+        /// <summary>
         /// Based on size
         /// </summary>
         Size
@@ -52,21 +55,21 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
+        public int otherStateIndex = 0;
     }
 
     public partial class ProbeReferenceVolume
     {
-        class CellInstancedDebugProbes
+        internal class CellInstancedDebugProbes
         {
             public List<Matrix4x4[]> probeBuffers;
             public List<Matrix4x4[]> offsetBuffers;
             public List<MaterialPropertyBlock> props;
-            public Hash128 cellHash;
-            public Vector3 cellPosition;
         }
 
         const int kProbesPerBatch = 511;
 
+        /// <summary>Name of debug panel for Probe Volume</summary>
         public static readonly string k_DebugPanelName = "Probe Volume";
 
         internal ProbeVolumeDebug debugDisplay { get; } = new ProbeVolumeDebug();
@@ -79,8 +82,13 @@ namespace UnityEngine.Experimental.Rendering
         Material m_DebugMaterial;
         Mesh m_DebugOffsetMesh;
         Material m_DebugOffsetMaterial;
-        List<CellInstancedDebugProbes> m_CellDebugData = new List<CellInstancedDebugProbes>();
         Plane[] m_DebugFrustumPlanes = new Plane[6];
+
+        // Scenario blending debug data
+        GUIContent[] m_DebugScenarioNames = new GUIContent[0];
+        int[] m_DebugScenarioValues = new int[0];
+        string m_DebugActiveSceneGUID, m_DebugActiveScenario;
+        DebugUI.EnumField m_DebugScenarioField;
 
         internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
 
@@ -120,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering
                 subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
                 subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
                 subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
-			}
+            }
 
             RegisterDebug(parameters);
 
@@ -232,6 +240,8 @@ namespace UnityEngine.Experimental.Rendering
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
 
+            streamingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Loaded Per Frame", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 0 });
+
             if (parameters.supportsRuntimeDebug)
             {
                 // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
@@ -244,6 +254,83 @@ namespace UnityEngine.Experimental.Rendering
             if (parameters.supportStreaming)
             {
                 widgetList.Add(streamingContainer);
+            }
+
+            if (parameters.scenarioBlendingShader != null && parameters.sceneData != null)
+            {
+                void RefreshScenarioNames(string guid)
+                {
+                    HashSet<string> allScenarios = new();
+                    foreach (var set in parameters.sceneData.bakingSets)
+                    {
+                        if (!set.sceneGUIDs.Contains(guid))
+                            continue;
+                        foreach (var scenario in set.lightingScenarios)
+                            allScenarios.Add(scenario);
+                    }
+
+                    allScenarios.Remove(sceneData.lightingScenario);
+                    if (m_DebugActiveSceneGUID == guid && allScenarios.Count + 1 == m_DebugScenarioNames.Length && m_DebugActiveScenario == sceneData.lightingScenario)
+                        return;
+
+                    int i = 0;
+                    ArrayExtensions.ResizeArray(ref m_DebugScenarioNames, allScenarios.Count + 1);
+                    ArrayExtensions.ResizeArray(ref m_DebugScenarioValues, allScenarios.Count + 1);
+                    m_DebugScenarioNames[0] = new GUIContent("None");
+                    m_DebugScenarioValues[0] = 0;
+                    foreach (var scenario in allScenarios)
+                    {
+                        i++;
+                        m_DebugScenarioNames[i] = new GUIContent(scenario);
+                        m_DebugScenarioValues[i] = i;
+                    }
+
+                    m_DebugActiveSceneGUID = guid;
+                    m_DebugActiveScenario = sceneData.lightingScenario;
+                    m_DebugScenarioField.enumNames = m_DebugScenarioNames;
+                    m_DebugScenarioField.enumValues = m_DebugScenarioValues;
+                    if (debugDisplay.otherStateIndex >= m_DebugScenarioNames.Length)
+                        debugDisplay.otherStateIndex = 0;
+                }
+
+                var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
+                m_DebugScenarioField = new DebugUI.EnumField
+                {
+                    displayName = "Scenario To Blend With",
+                    enumNames = m_DebugScenarioNames,
+                    enumValues = m_DebugScenarioValues,
+                    getIndex = () =>
+                    {
+                        RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
+
+                        debugDisplay.otherStateIndex = 0;
+                        if (!string.IsNullOrEmpty(sceneData.otherScenario))
+                        {
+                            for (int i = 1; i < m_DebugScenarioNames.Length; i++)
+                            {
+                                if (m_DebugScenarioNames[i].text == sceneData.otherScenario)
+                                {
+                                    debugDisplay.otherStateIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        return debugDisplay.otherStateIndex;
+                    },
+                    setIndex = value =>
+                    {
+                        string other = value == 0 ? null : m_DebugScenarioNames[value].text;
+                        sceneData.BlendLightingScenario(other, sceneData.scenarioBlendingFactor);
+                        debugDisplay.otherStateIndex = value;
+                    },
+                    getter = () => debugDisplay.otherStateIndex,
+                    setter = (value) => debugDisplay.otherStateIndex = value,
+                };
+
+                blendingContainer.children.Add(m_DebugScenarioField);
+                blendingContainer.children.Add(new DebugUI.FloatField { displayName = "Scenario Blending Factor", getter = () => instance.scenarioBlendingFactor, setter = value => instance.scenarioBlendingFactor = value, min = () => 0.0f, max = () => 1.0f });
+
+                widgetList.Add(blendingContainer);
             }
 
             if (widgetList.Count > 0)
@@ -286,10 +373,6 @@ namespace UnityEngine.Experimental.Rendering
             if (!debugDisplay.drawProbes && !debugDisplay.drawVirtualOffsetPush)
                 return;
 
-            // TODO: Update data on ref vol changes
-            if (m_CellDebugData.Count == 0)
-                CreateInstancedProbes();
-
             GeometryUtility.CalculateFrustumPlanes(camera, m_DebugFrustumPlanes);
 
             m_DebugMaterial.shaderKeywords = null;
@@ -298,9 +381,19 @@ namespace UnityEngine.Experimental.Rendering
             else if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L2");
 
-            foreach (var debug in m_CellDebugData)
+            // This is to force the rendering not to draw to the depth pre pass and still behave.
+            // They are going to be rendered opaque anyhow, just using the transparent render queue to make sure
+            // they properly behave w.r.t fog.
+            m_DebugMaterial.renderQueue = (int)RenderQueue.Transparent;
+
+            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
-                if (ShouldCullCell(debug.cellPosition, camera.transform, m_DebugFrustumPlanes))
+                if (ShouldCullCell(cellInfo.cell.position, camera.transform, m_DebugFrustumPlanes))
+                    continue;
+
+                var debug = CreateInstancedProbes(cellInfo);
+
+                if (debug == null)
                     continue;
 
                 for (int i = 0; i < debug.probeBuffers.Count; ++i)
@@ -331,104 +424,114 @@ namespace UnityEngine.Experimental.Rendering
 
         void ClearDebugData()
         {
-            m_CellDebugData.Clear();
             realtimeSubdivisionInfo.Clear();
         }
 
-        void CreateInstancedProbes()
+        CellInstancedDebugProbes CreateInstancedProbes(CellInfo cellInfo)
         {
+            if (cellInfo.debugProbes != null)
+                return cellInfo.debugProbes;
+
             int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+
+            var cell = cellInfo.cell;
+
+            if (!cell.bricks.IsCreated || cell.bricks.Length == 0 || !cellInfo.loaded)
+                return null;
+
+            List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
+            List<Matrix4x4[]> offsetBuffers = new List<Matrix4x4[]>();
+            List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
+            var chunks = cellInfo.chunkList;
+
+            Vector4[] texels = new Vector4[kProbesPerBatch];
+            float[] validity = new float[kProbesPerBatch];
+            float[] relativeSize = new float[kProbesPerBatch];
+            float[] touchupUpVolumeAction = cell.touchupVolumeInteraction.Length > 0 ? new float[kProbesPerBatch] : null;
+            Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
+
+            List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
+            List<Matrix4x4> offsetBuffer = new List<Matrix4x4>();
+
+            var debugData = new CellInstancedDebugProbes();
+            debugData.probeBuffers = probeBuffers;
+            debugData.offsetBuffers = offsetBuffers;
+            debugData.props = props;
+
+            int idxInBatch = 0;
+            for (int i = 0; i < cell.probePositions.Length; i++)
             {
-                var cell = cellInfo.cell;
+                var brickSize = cell.bricks[i / 64].subdivisionLevel;
 
-                if (!cell.shL0L1Data.IsCreated || cell.shL0L1Data.Length == 0 || !cellInfo.loaded)
-                    continue;
+                int chunkIndex = i / ProbeBrickPool.GetChunkSizeInProbeCount();
+                var chunk = chunks[chunkIndex];
+                int indexInChunk = i % ProbeBrickPool.GetChunkSizeInProbeCount();
+                int brickIdx = indexInChunk / 64;
+                int indexInBrick = indexInChunk % 64;
 
-                List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
-                List<Matrix4x4[]> offsetBuffers = new List<Matrix4x4[]>();
-                List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
-                var chunks = cellInfo.chunkList;
+                Vector2Int brickStart = new Vector2Int(chunk.x + brickIdx * 4, chunk.y);
+                int indexInSlice = indexInBrick % 16;
+                Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
 
-                Vector4[] texels = new Vector4[kProbesPerBatch];
-                float[] validity = new float[kProbesPerBatch];
-                float[] relativeSize = new float[kProbesPerBatch];
-                Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
+                probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                validity[idxInBatch] = cell.GetValidity(i);
+                texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
+                relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
 
-                List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
-                List<Matrix4x4> offsetBuffer = new List<Matrix4x4>();
-
-                var debugData = new CellInstancedDebugProbes();
-                debugData.probeBuffers = probeBuffers;
-                debugData.offsetBuffers = offsetBuffers;
-                debugData.props = props;
-                debugData.cellPosition = cell.position;
-
-                int idxInBatch = 0;
-                for (int i = 0; i < cell.probePositions.Length; i++)
+                if (touchupUpVolumeAction != null)
                 {
-                    var brickSize = cell.bricks[i / 64].subdivisionLevel;
-
-                    int chunkIndex = i / ProbeBrickPool.GetChunkSizeInProbeCount();
-                    var chunk = chunks[chunkIndex];
-                    int indexInChunk = i % ProbeBrickPool.GetChunkSizeInProbeCount();
-                    int brickIdx = indexInChunk / 64;
-                    int indexInBrick = indexInChunk % 64;
-
-                    Vector2Int brickStart = new Vector2Int(chunk.x + brickIdx * 4, chunk.y);
-                    int indexInSlice = indexInBrick % 16;
-                    Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
-
-                    probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                    validity[idxInBatch] = cell.validity[i];
-                    texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
-                    relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
-                    if (offsets != null)
-                    {
-                        const float kOffsetThresholdSqr = 1e-6f;
-
-                        var offset = cell.offsetVectors[i];
-                        offsets[idxInBatch] = offset;
-
-                        if (offset.sqrMagnitude < kOffsetThresholdSqr)
-                        {
-                            offsetBuffer.Add(Matrix4x4.identity);
-                        }
-                        else
-                        {
-                            var position = cell.probePositions[i] + offset;
-                            var orientation = Quaternion.LookRotation(-offset);
-                            var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
-                            offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
-                        }
-                    }
-                    idxInBatch++;
-
-                    if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
-                    {
-                        idxInBatch = 0;
-                        MaterialPropertyBlock prop = new MaterialPropertyBlock();
-
-                        prop.SetFloatArray("_Validity", validity);
-                        prop.SetFloatArray("_RelativeSize", relativeSize);
-                        prop.SetVectorArray("_IndexInAtlas", texels);
-
-                        if (offsets != null)
-                            prop.SetVectorArray("_Offset", offsets);
-
-                        props.Add(prop);
-
-                        probeBuffers.Add(probeBuffer.ToArray());
-                        probeBuffer = new List<Matrix4x4>();
-                        probeBuffer.Clear();
-
-                        offsetBuffers.Add(offsetBuffer.ToArray());
-                        offsetBuffer.Clear();
-                    }
+                    touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteraction[i];
                 }
 
-                m_CellDebugData.Add(debugData);
+
+                if (offsets != null)
+                {
+                    const float kOffsetThresholdSqr = 1e-6f;
+
+                    var offset = cell.offsetVectors[i];
+                    offsets[idxInBatch] = offset;
+
+                    if (offset.sqrMagnitude < kOffsetThresholdSqr)
+                    {
+                        offsetBuffer.Add(Matrix4x4.identity);
+                    }
+                    else
+                    {
+                        var position = cell.probePositions[i] + offset;
+                        var orientation = Quaternion.LookRotation(-offset);
+                        var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
+                        offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
+                    }
+                }
+                idxInBatch++;
+
+                if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
+                {
+                    idxInBatch = 0;
+                    MaterialPropertyBlock prop = new MaterialPropertyBlock();
+
+                    prop.SetFloatArray("_Validity", validity);
+                    prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
+                    prop.SetFloatArray("_RelativeSize", relativeSize);
+                    prop.SetVectorArray("_IndexInAtlas", texels);
+
+                    if (offsets != null)
+                        prop.SetVectorArray("_Offset", offsets);
+
+                    props.Add(prop);
+
+                    probeBuffers.Add(probeBuffer.ToArray());
+                    probeBuffer = new List<Matrix4x4>();
+                    probeBuffer.Clear();
+
+                    offsetBuffers.Add(offsetBuffer.ToArray());
+                    offsetBuffer.Clear();
+                }
             }
+
+            cellInfo.debugProbes = debugData;
+
+            return debugData;
         }
 
         void OnClearLightingdata()

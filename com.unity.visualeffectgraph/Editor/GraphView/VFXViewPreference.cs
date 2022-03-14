@@ -153,7 +153,7 @@ namespace UnityEditor.VFX
                     }
 #endif
 
-                    m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorGUILayout.EnumPopup(new GUIContent("Main Camera fallback", "Specifies the camera source for the color and depth buffer that MainCamera Operators use when in the editor."), m_CameraBuffersFallback);
+                    m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorGUILayout.EnumPopup(new GUIContent("Main Camera fallback", "Specifies the camera source for MainCamera Operators and Blocks to use when in the editor."), m_CameraBuffersFallback);
 
                     var userTemplateDirectory = EditorGUILayout.DelayedTextField(new GUIContent("User Systems", "Directory for user-generated VFX templates (e.g. Assets/VFX/Templates)"), VFXResources.defaultResources.userTemplateDirectory);
 

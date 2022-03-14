@@ -32,10 +32,6 @@ all_project_ci_nightly_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 1 * * ?
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on_new_revision
@@ -69,6 +65,8 @@ General_Checks_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-smoke_test.yml#Smoke_Test_trunk
          rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_core
+         rerun: on_new_revision
       -  path: .yamato/_find_missing_docs.yml#find_missing_docs_hdrp
          rerun: on_new_revision
       -  path: .yamato/_find_missing_docs.yml#find_missing_docs_hdrp_config
@@ -82,8 +80,6 @@ Safety_net_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match [".yamato/**/*", "com.unity.*/**/*", "TestProjects/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -190,6 +186,8 @@ General_Checks_CUSTOM-REVISION:
       -  path: .yamato/_formatting.yml#formatting
          rerun: on_new_revision
       -  path: .yamato/all-smoke_test.yml#Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_find_missing_docs.yml#find_missing_docs_core
          rerun: on_new_revision
       -  path: .yamato/_find_missing_docs.yml#find_missing_docs_hdrp
          rerun: on_new_revision

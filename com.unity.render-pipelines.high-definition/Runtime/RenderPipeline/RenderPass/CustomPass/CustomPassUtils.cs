@@ -684,7 +684,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="overrideCamera">The camera that will replace the current one.</param>
             /// <example>
             /// <code>
-            /// using (new HDRenderPipeline.OverrideCameraRendering(ctx, overrideCamera))
+            /// using (new CustomPassUtils.OverrideCameraRendering(ctx, overrideCamera))
             /// {
             ///     ...
             /// }
