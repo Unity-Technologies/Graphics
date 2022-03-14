@@ -190,7 +190,8 @@ void Frag(PackedVaryings packedInput,
     uint surfaceRenderingLayer = LoadSceneRenderingLayer(input.positionCS.xy);
 #endif
     uint projectorRenderingLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal));
-    clip((surfaceRenderingLayer & projectorRenderingLayer) != 0 ? 1 : -1);
+    clip((surfaceRenderingLayer & projectorRenderingLayer) - 0.1);
+
 #endif
 
 #if defined(DECAL_PROJECTOR)

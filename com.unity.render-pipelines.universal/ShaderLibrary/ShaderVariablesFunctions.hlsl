@@ -424,12 +424,16 @@ uint GetMeshRenderingLayer()
 
 float EncodeMeshRenderingLayer(uint renderingLayer)
 {
-    return PackInt(renderingLayer, _RenderingLayerMaskSize);
+    uint maxInt = (1u << _RenderingLayerMaskSize) - 1u;
+    return saturate(renderingLayer * rcp(maxInt));
+    //return PackInt(renderingLayer, 16);
 }
 
 uint DecodeMeshRenderingLayer(float renderingLayer)
 {
-    return UnpackInt(renderingLayer, _RenderingLayerMaskSize);
+    uint maxInt = (1u << _RenderingLayerMaskSize) - 1u;
+    return (uint)(renderingLayer * maxInt + 0.5); // Round instead of truncating
+    //return UnpackInt(renderingLayer, 16);
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
