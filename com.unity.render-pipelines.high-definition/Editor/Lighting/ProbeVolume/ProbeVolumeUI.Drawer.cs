@@ -105,6 +105,17 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ProbeVolumeManager.BakeSelected();
             }
+            if (GUILayout.Button(Styles.k_BakeDynamicGIOnlyText))
+            {
+                var targets = serialized.GetTargetObjects();
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    var probeVolume = (ProbeVolume)targets[i];
+                    EditorUtility.DisplayProgressBar("Baking Dynamic GI", $"{i + 1}/{targets.Length} {probeVolume.name}", (i + 0.5f) / targets.Length);
+                    probeVolume.BakeDynamicGIOnly();
+                }
+                EditorUtility.ClearProgressBar();
+            }
             GUILayout.EndHorizontal();
         }
 

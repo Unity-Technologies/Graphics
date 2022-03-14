@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal Quaternion rotation;
 
         [SerializeField] internal VolumeGlobalUniqueID globalUniqueID;
+        
+        // We are not saving it for now as it's only used when rebaking a loaded volume.
+        internal int dataVersion;
 
         internal bool IsDataAssigned()
         {
@@ -98,8 +101,10 @@ namespace UnityEngine.Rendering.HighDefinition
             string assetFileName = GetFileName(globalUniqueID);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
+            
+            // TODO: Why do we need those? Let's try without it to speed baking up.
+            // UnityEditor.AssetDatabase.SaveAssets();
+            // UnityEditor.AssetDatabase.Refresh();
 
             return asset;
         }
