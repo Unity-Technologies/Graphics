@@ -45,6 +45,10 @@ namespace UnityEditor.ShaderGraph.Registry.Default
             var reg = new Registry();
             reg.Register<Types.GraphType>();
             reg.Register<Types.GraphTypeAssignment>();
+            reg.Register<Types.GradientType>();
+            reg.Register<Types.GradientTypeAssignment>();
+            reg.Register<Types.GradientNode>();
+            reg.Register<Types.SampleGradientNode>();
             reg.Register<DefaultContext>();
             //RegistryInstance.Register<Registry.Types.AddNode>();
 

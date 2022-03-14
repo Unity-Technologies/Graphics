@@ -44,11 +44,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_Root = new VisualElement {name = PartName};
 
+            // Add common stylesheet which includes fixes for label spacing.
+            m_Root.AddStylesheet("StaticPortParts/SingleFieldPart.uss");
+
             // Additional styling could be loaded here.
             GraphElementHelper.LoadTemplate(m_Root, UXMLTemplateName);
 
             m_Field = m_Root.Q<F>(FieldName);
             m_Field.RegisterValueChangedCallback(OnFieldValueChanged);
+
+            if (m_Field is BaseField<T> baseField)
+            {
+                baseField.label = m_PortName;
+            }
 
             parent.Add(m_Root);
         }

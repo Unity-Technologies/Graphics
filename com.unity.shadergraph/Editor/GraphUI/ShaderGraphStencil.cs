@@ -23,6 +23,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
+
+        // See ShaderGraphExampleTypes.GetGraphType for more details
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
         {
             if (typeHandle == TypeHandle.Vector2
@@ -35,9 +37,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return typeof(GraphTypeConstant);
             }
 
-            return typeHandle == ShaderGraphExampleTypes.DayOfWeek
-                ? typeof(DayOfWeekConstant)
-                : TypeToConstantMapper.GetConstantNodeType(typeHandle);
+            if (typeHandle == ShaderGraphExampleTypes.GradientTypeHandle)
+            {
+                return typeof(GradientTypeConstant);
+            }
+
+            // There is no inline editor for this port type, so there is no need for CLDS access.
+            return typeof(AnyConstant);
         }
 
         public override ISearcherDatabaseProvider GetSearcherDatabaseProvider()

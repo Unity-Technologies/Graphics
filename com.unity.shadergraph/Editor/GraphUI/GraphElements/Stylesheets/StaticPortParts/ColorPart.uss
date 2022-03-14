@@ -1,0 +1,3 @@
+.unity-color-field__input {
+    width: 60px;
+}

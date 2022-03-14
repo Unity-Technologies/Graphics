@@ -18,6 +18,7 @@
     flex-grow: 1;
     padding: 5px;
     height: 100px;
+    width: 125px;
     -unity-font-style: bold;
     border-bottom-color: #1a1a1a;
     border-bottom-width: 1px;
