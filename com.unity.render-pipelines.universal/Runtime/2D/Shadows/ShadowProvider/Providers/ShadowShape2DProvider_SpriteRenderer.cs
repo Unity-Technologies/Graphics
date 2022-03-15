@@ -13,35 +13,6 @@ namespace UnityEngine.Rendering.Universal
     {
         ShadowShape2D m_PersistantShapeData;
 
-        static int GetVertexStreamSize(Sprite sprite)
-        {
-            int vertexStreamSize = 12;
-            if (sprite.HasVertexAttribute(Rendering.VertexAttribute.Normal))
-                vertexStreamSize = vertexStreamSize + 12;
-            if (sprite.HasVertexAttribute(Rendering.VertexAttribute.Tangent))
-                vertexStreamSize = vertexStreamSize + 16;
-            return vertexStreamSize;
-        }
-
-        unsafe static bool HasDeformedVertices(SpriteRenderer spriteRenderer)
-        {
-            return spriteRenderer.GetDeformableBuffer() != null;
-        }
-
-        unsafe static NativeSlice<Vector3> GetDeformedVertices(SpriteRenderer spriteRenderer)
-        {
-            Sprite sprite = spriteRenderer.sprite;
-            int spriteVertexStreamSize = GetVertexStreamSize(sprite);
-            int spriteVertexCount = sprite.GetVertexCount();
-            byte* buffer = spriteRenderer.GetDeformableBuffer();
-
-            NativeSlice<Vector3> positionsSlice = NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<Vector3>(buffer, spriteVertexStreamSize, spriteVertexCount);
-            NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref positionsSlice, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
-
-            return positionsSlice;
-        }
-
-
         void SetPersistantShapeData(Sprite sprite, ShadowShape2D shadowShape2D, NativeSlice<Vector3> vertexSlice)
         {
             if (shadowShape2D != null)
@@ -74,18 +45,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // This was added for the 2D Animation System
-        void SetShadowShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology topology)
-        {
-            m_PersistantShapeData.SetShape(vertices, indices, topology);
-        }
-
-        // This was added for the 2D Animation System
-        void UpdateShadowVertices(NativeArray<Vector3> vertices)
-        {
-            m_PersistantShapeData.UpdateVertices(vertices);
-        }
-
         //============================================================================================================
         //                                                  Public
         //============================================================================================================
@@ -112,11 +71,10 @@ namespace UnityEngine.Rendering.Universal
             SpriteRenderer sr = (SpriteRenderer)sourceComponent;
             if (sr != null && sr.sprite != null)
             {
-                if (HasDeformedVertices(sr))
+                NativeSlice<Vector3> vertices = sr.GetDeformedVertices();
+                if (vertices.Length > 0)
                 {
                     Sprite sprite = sr.sprite;
-
-                    NativeSlice<Vector3> vertices = GetDeformedVertices(sr);
                     SetPersistantShapeData(sprite, persistantShapeObject, vertices);
                 }
             }
