@@ -2,7 +2,7 @@
   "dependencies": {
     "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
     "com.unity.test-framework": "1.1.30",
-    "com.unity.testframework.graphics": "7.8.19-exp.2",
+    "com.unity.testframework.graphics": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git#code-based-tests",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",
     "com.unity.modules.audio": "1.0.0",
