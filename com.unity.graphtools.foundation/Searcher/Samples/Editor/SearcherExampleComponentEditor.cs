@@ -12,13 +12,9 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
 
         public override void OnInspectorGUI()
         {
-            var root = new SearcherItem("Root");
-            var children = new List<SearcherItem>();
+            var items = new List<SearcherItem>(10);
             for (var i = 0; i < 10; ++i)
-                children.Add(new SearcherItem("B-" + i));
-
-            var child = new SearcherItem("Child", "", children);
-            root.AddChild(child);
+                items.Add(new SearcherItem("B-" + i) { CategoryPath = "Root/Child" });
 
             {
                 EditorGUILayout.BeginHorizontal();
@@ -31,7 +27,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
 
                     SearcherWindow.Show(
                         editorWindow,
-                        new List<SearcherItem> { root },
+                        items,
                         "Mouse Position",
                         item =>
                         {
@@ -59,7 +55,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
 
                     SearcherWindow.Show(
                         editorWindow,
-                        new List<SearcherItem> { root },
+                        items,
                         "Button Center",
                         item =>
                         {

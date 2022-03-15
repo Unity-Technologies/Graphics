@@ -1,10 +1,10 @@
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
 {
     class EdgeModel : BasicModel.EdgeModel
     {
-        [SerializeField, HideInInspector]
         GraphModel m_GraphModel;
 
         public override IGraphModel GraphModel => m_GraphModel;
@@ -33,6 +33,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
                 m_ToPort = value;
             }
         }
+
+        public override string FromPortId => FromPort.UniqueName;
+
+        public override string ToPortId => ToPort.UniqueName;
+
+        public override SerializableGUID FromNodeGuid => FromPort.NodeModel.Guid;
+
+        public override SerializableGUID ToNodeGuid => ToPort.NodeModel.Guid;
 
         public void SetGraphModel(GraphModel graphModel)
         {

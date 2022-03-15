@@ -9,7 +9,8 @@
         "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Unity.InternalAPIEngineBridge.015"
+        "Unity.InternalAPIEngineBridge.015",
+        "Unity.PerformanceTesting"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 {
     [Serializable]
     public abstract class BoolLogicOperator : MathOperator
     {
-        public override ValueType[] ValueInputTypes => new[] { ValueType.Bool };
+        public override TypeHandle[] ValueInputTypes => new[] { TypeHandle.Bool };
 
         protected List<bool> BoolValues => this.GetInputPorts().Select(portModel => portModel != null && GetValue(portModel).Bool).ToList();
 

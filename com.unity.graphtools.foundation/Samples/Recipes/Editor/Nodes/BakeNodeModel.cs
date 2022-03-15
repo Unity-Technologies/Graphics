@@ -1,28 +1,37 @@
 using System;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 {
     [Serializable]
     [SearcherItem(typeof(RecipeStencil), SearcherContext.Graph, "Cooking/Bake")]
-    public class BakeNodeModel : NodeModel
+    public class BakeNodeModel : RecipeNodeBaseModel
     {
-        [SerializeField]
-        int m_TemperatureC = 180;
-        [SerializeField]
-        int m_Minutes = 60;
+        internal static string TemperatureFieldName => nameof(m_Temperature);
 
-        public int Temperature
+        [SerializeField]
+        [ModelSetting]
+        [Tooltip("The baking temperature.")]
+        [FormerlySerializedAs("m_TemperatureC")]
+        Temperature m_Temperature = new Temperature() { Value = 180, Unit = TemperatureUnit.Celsius };
+
+        [SerializeField]
+        [ModelSetting]
+        [Tooltip("The bake time (minutes).")]
+        [FormerlySerializedAs("m_Minutes")]
+        int m_Time = 60;
+
+        public Temperature Temperature
         {
-            get => m_TemperatureC;
-            set => m_TemperatureC = value;
+            get => m_Temperature;
+            set => m_Temperature = value;
         }
 
         public int Duration
         {
-            get => m_Minutes;
-            set => m_Minutes = value;
+            get => m_Time;
+            set => m_Time = value;
         }
 
         protected override void OnDefineNode()

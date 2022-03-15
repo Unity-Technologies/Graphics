@@ -2,7 +2,6 @@ using System;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
 {
@@ -11,20 +10,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
     {
         protected override Type GraphModelType => typeof(ContextSample);
 
-        [MenuItem("Assets/Create/Contexts")]
+        [MenuItem("Assets/Create/GTF Samples/Contexts")]
         public static void CreateGraph(MenuCommand menuCommand)
         {
             const string path = "Assets";
             var template = new GraphTemplate<ContextSampleStencil>(ContextSampleStencil.GraphName);
             BaseGraphTool graphTool = null;
-            if (EditorWindow.HasOpenInstances<ContextGraphViewWindow>())
-            {
-                var window = EditorWindow.GetWindow<ContextGraphViewWindow>();
-                if (window != null)
-                {
-                    graphTool = window.GraphTool;
-                }
-            }
+            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ContextGraphViewWindow>();
+            if (window != null)
+                graphTool = window.GraphTool;
 
             GraphAssetCreationHelpers<ContextSampleAsset>.CreateInProjectWindow(template, graphTool, path);
         }
@@ -35,9 +29,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
             var obj = EditorUtility.InstanceIDToObject(instanceId);
             if (obj is ContextSampleAsset graphAssetModel)
             {
-                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ContextGraphViewWindow>();
-                window.SetCurrentSelection(graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-                return window != null;
+                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ContextGraphViewWindow>(graphAssetModel.GetPath());
+                window.SetCurrentSelection(window.GraphTool?.ToolState?.AssetModel?? graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+                return true;
             }
 
             return false;

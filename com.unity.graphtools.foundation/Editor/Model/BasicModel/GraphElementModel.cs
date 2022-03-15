@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
@@ -18,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField, HideInInspector]
         SerializableGUID m_Guid;
 
-        //[SerializeField, HideInInspector, FormerlySerializedAs("m_GraphAssetModel")]
+        [SerializeField, HideInInspector, FormerlySerializedAs("m_GraphAssetModel")]
         protected GraphAssetModel m_AssetModel;
 
         [SerializeField, HideInInspector]
@@ -43,10 +42,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public virtual SerializableGUID Guid
         {
-            get
-            {
-                return m_Guid;
-            }
+            get => m_Guid;
             set => m_Guid = value;
         }
 
@@ -105,7 +101,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             // Use package release number as the name of the version.
 
+            // ReSharper disable once InconsistentNaming
             GTF_V_0_8_2 = 0,
+
+            GTF_V_0_13_0 = 1,
 
             /// <summary>
             /// Keep Latest as the highest value in this enum
@@ -119,7 +118,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public virtual void AssignNewGuid()
+        public void AssignNewGuid()
         {
             m_Guid = SerializableGUID.Generate();
         }

@@ -1,0 +1,31 @@
+.model-inspector-view {
+    width: 260px;
+    flex: 0 0 auto;
+    height: 100%;
+    border-left-color: var(--inspector-border);
+    border-left-width: 2px;
+    overflow: hidden;
+}
+
+.unity-overlay .model-inspector-view {
+    width: auto;
+    border-left-width: 0;
+    background-color: var(--overlay-background-color);
+}
+
+.model-inspector-view__title {
+    flex: 0 0 auto;
+    padding: 5px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    border-bottom-color: var(--unity-colors-inspector_titlebar-border);
+    border-bottom-width: 1px;
+}
+
+.model-inspector-view__container {
+    flex: 1 0 0;
+}
+
+.model-inspector-view__container .unity-inspector-element {
+    padding: 0;
+}

@@ -38,8 +38,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var node1 = m_NodeModel1.GetUI<Node>(graphView);
-            var node2 = m_NodeModel2.GetUI<Node>(graphView);
+            var node1 = m_NodeModel1.GetView<Node>(GraphView);
+            var node2 = m_NodeModel2.GetView<Node>(GraphView);
 
             Assert.IsNotNull(node1);
             Assert.IsNotNull(node2);
@@ -48,30 +48,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.False(m_NodeModel2.IsDeletable());
 
             // We need to get the graphView in focus for the commands to be properly sent.
-            graphView.Focus();
+            GraphView.Focus();
 
-            var uiList = new List<ModelUI>();
-            GraphModel.GraphElementModels.GetAllUIsInList(graphView, null, uiList);
+            var uiList = new List<ModelView>();
+            GraphModel.GraphElementModels.GetAllViewsInList(GraphView, null, uiList);
             Assert.AreEqual(2, uiList.Count);
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, m_NodeModel1));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, m_NodeModel1));
             yield return null;
 
-            helpers.ExecuteCommand("Delete");
+            Helpers.ExecuteCommand("Delete");
             yield return null;
 
-            GraphModel.GraphElementModels.GetAllUIsInList(graphView, null, uiList);
+            GraphModel.GraphElementModels.GetAllViewsInList(GraphView, null, uiList);
             Assert.AreEqual(1, uiList.Count);
 
             // Node 2 is not deletable.
             // Selecting it and sending the Delete command should leave the node count unchanged.
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, m_NodeModel2));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, m_NodeModel2));
             yield return null;
 
-            helpers.ExecuteCommand("Delete");
+            Helpers.ExecuteCommand("Delete");
             yield return null;
 
-            GraphModel.GraphElementModels.GetAllUIsInList(graphView, null, uiList);
+            GraphModel.GraphElementModels.GetAllViewsInList(GraphView, null, uiList);
             Assert.AreEqual(1, uiList.Count);
             yield return null;
         }
@@ -80,25 +80,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             Vector2 increment = (end - start) / 10;
             for (int i = 0; i < 10; i++)
-                helpers.MouseMoveEvent(start + i * increment, start + (i + 1) * increment);
+                Helpers.MouseMoveEvent(start + i * increment, start + (i + 1) * increment);
         }
 
         [Test]
         public void UnparentingElementDuringSelectionDragDoesntThrow()
         {
-            graphView.RebuildUI();
-            var node1 = m_NodeModel1.GetUI<Node>(graphView);
+            GraphView.RebuildUI();
+            var node1 = m_NodeModel1.GetView<Node>(GraphView);
 
             Assert.IsNotNull(node1);
 
-            graphView.Focus();
+            GraphView.Focus();
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, m_NodeModel1));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, m_NodeModel1));
 
-            helpers.MouseDownEvent(node1);
+            Helpers.MouseDownEvent(node1);
 
             var testMousePosition = new Vector2(10, 0);
-            helpers.MouseMoveEvent(Vector2.zero, testMousePosition);
+            Helpers.MouseMoveEvent(Vector2.zero, testMousePosition);
 
             node1.RemoveFromHierarchy();
 
@@ -107,20 +107,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 "Did not expect any errors when moving mouse with selection containing unparented elements");
 
             // Reset pan and other side effects of the selection drag
-            helpers.MouseUpEvent(node1);
+            Helpers.MouseUpEvent(node1);
         }
 
         [UnityTest]
         public IEnumerator ZoomWorks()
         {
-            VisualElement vc = window.GraphView.ContentViewContainer;
+            VisualElement vc = Window.GraphView.ContentViewContainer;
             Matrix4x4 transform = vc.transform.matrix;
 
             yield return null;
 
             Assert.AreEqual(Matrix4x4.identity, vc.transform.matrix);
 
-            var testMousePosition = window.position.center - window.position.position;
+            var testMousePosition = Window.position.center - Window.position.position;
             int delta = 10;
 
             Vector2 localMousePosition = vc.WorldToLocal(testMousePosition);
@@ -139,7 +139,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             transform.m03 = GraphViewStaticBridge.RoundToPixelGrid(transform.m03);
             transform.m13 = GraphViewStaticBridge.RoundToPixelGrid(transform.m13);
 
-            window.SendEvent(new Event
+            Window.SendEvent(new Event
             {
                 type = EventType.ScrollWheel,
                 mousePosition = testMousePosition,
@@ -150,6 +150,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             //Can't use AreEquals because we need the kEpsilon from ==
             Assert.IsTrue(transform == vc.transform.matrix, vc.transform.matrix + " is different from expected " + transform);
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ClickOnSelectedElementUnselectOtherElements()
+        {
+            GraphView.Dispatcher.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, m_NodeModel1, m_NodeModel2));
+            MarkGraphViewStateDirty();
+            yield return null;
+
+            var ui1 = m_NodeModel1.GetView<GraphElement>(GraphView);
+            var ui2 = m_NodeModel2.GetView<GraphElement>(GraphView);
+            Assert.IsNotNull(ui1);
+            Assert.IsNotNull(ui2);
+            Assert.IsTrue(ui1.IsSelected());
+            Assert.IsTrue(ui2.IsSelected());
+
+            var nodeCenter = ui1.parent.LocalToWorld(ui1.layout.center);
+            Helpers.Click(nodeCenter);
+            yield return null;
+
+            ui1 = m_NodeModel1.GetView<GraphElement>(GraphView);
+            ui2 = m_NodeModel2.GetView<GraphElement>(GraphView);
+            Assert.IsNotNull(ui1);
+            Assert.IsNotNull(ui2);
+            Assert.IsTrue(ui1.IsSelected());
+            Assert.IsFalse(ui2.IsSelected());
         }
     }
 }

@@ -1,11 +1,10 @@
 using System;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 {
     [Serializable]
     [SearcherItem(typeof(RecipeStencil), SearcherContext.Graph, "Preparation/Beat")]
-    public class BeatNodeModel : NodeModel
+    public class BeatNodeModel : RecipeNodeBaseModel
     {
         protected override void OnDefineNode()
         {

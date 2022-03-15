@@ -8,7 +8,7 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
     /// A class to manage changeset lists in a <see cref="IStateComponent"/>.
     /// </summary>
     /// <typeparam name="TChangeset">The type of changesets.</typeparam>
-    public class ChangesetManager<TChangeset> where TChangeset : class, IChangeset, new()
+    public class ChangesetManager<TChangeset> : IChangesetManager where TChangeset : class, IChangeset, new()
     {
         List<(uint Version, TChangeset Changeset)> m_Changesets = new List<(uint, TChangeset)>();
 
@@ -21,23 +21,14 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         /// </summary>
         public TChangeset CurrentChangeset { get; private set; } = new TChangeset();
 
-        /// <summary>
-        /// Pushes the current changeset in the changeset list, tagging it with <paramref name="version"/>.
-        /// </summary>
-        /// <param name="version">The version number used to tag the current changeset.</param>
+        /// <inheritdoc />
         public void PushChangeset(uint version)
         {
             m_Changesets.Add((version, CurrentChangeset));
             CurrentChangeset = new TChangeset();
         }
 
-        /// <summary>
-        /// Removes obsolete changesets from the changeset list. Changesets tagged with a version number
-        /// lower or equal to <paramref name="untilVersion"/> are considered obsolete.
-        /// </summary>
-        /// <param name="untilVersion">Purge changeset up to and including this version.</param>
-        /// <param name="currentVersion">The version associated with the current changeset. This should be the current version of the state component.</param>
-        /// <returns>The version number of the earliest changeset.</returns>
+        /// <inheritdoc />
         public uint PurgeOldChangesets(uint untilVersion, uint currentVersion)
         {
             int countToRemove = 0;
@@ -63,7 +54,7 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         /// </summary>
         /// <param name="sinceVersion">The version from which to consider changesets.</param>
         /// <param name="currentVersion">The version associated with the current changeset. This should be the current version of the state component.</param>
-        /// <returns></returns>
+        /// <returns>The aggregated changeset.</returns>
         public TChangeset GetAggregatedChangeset(uint sinceVersion, uint currentVersion)
         {
             if (m_AggregatedChangesetCacheVersionFrom != sinceVersion || m_AggregatedChangesetCacheVersionTo != currentVersion)

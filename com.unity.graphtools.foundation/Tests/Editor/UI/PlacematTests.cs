@@ -41,16 +41,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             GraphModel.CreatePlacemat(new Rect(205, 0, 200, 200), new SerializableGUID(0, 2));
             var nodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node0", new Vector2(190, 100), new SerializableGUID(0, 3));
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var nodeUI = nodeModel.GetUI<Node>(GraphView);
+            var nodeUI = nodeModel.GetView<Node>(GraphView);
             Assert.IsNotNull(nodeUI);
             nodeUI.style.width = 200;
             nodeUI.style.height = 200;
             yield return null;
 
-            IEnumerable<IGraphElementModel> modelsToMove = null;
+            IEnumerable<IModel> modelsToMove = null;
             var elementsToMove = new HashSet<GraphElement>();
 
             yield return TestPrereqCommandPostreq(mode,
@@ -86,7 +86,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                     switch (frame)
                     {
                         case 0:
-                            MarkGraphViewStateDirty();
+                            MarkGraphModelStateDirty();
                             return TestPhase.WaitForNextFrame;
                         case 1:
                             {
@@ -96,7 +96,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                                 return TestPhase.WaitForNextFrame;
                             }
                         case 2:
-                            MarkGraphViewStateDirty();
+                            MarkGraphModelStateDirty();
                             return TestPhase.WaitForNextFrame;
                         default:
                             return TestPhase.Done;
@@ -148,7 +148,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             {
                 // Create a placemat and collapse it.
                 var placemat = GraphModel.CreatePlacemat(new Rect(0, 0, 200, 500), new SerializableGUID(0, 1)) as PlacematModel;
-                MarkGraphViewStateDirty();
+                MarkGraphModelStateDirty();
                 yield return null;
 
                 GraphView.Dispatch(new CollapsePlacematCommand(placemat, true, new IGraphElementModel[] {}));
@@ -156,7 +156,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
                 // Add a node under it.
                 GraphModel.CreateNode<Type0FakeNodeModel>("Node0", new Vector2(10, 100), new SerializableGUID(0, 2));
-                MarkGraphViewStateDirty();
+                MarkGraphModelStateDirty();
                 yield return null;
             }
 
@@ -177,7 +177,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                     switch (frame)
                     {
                         case 0:
-                            MarkGraphViewStateDirty();
+                            MarkGraphModelStateDirty();
                             return TestPhase.WaitForNextFrame;
                         case 1:
                             {
@@ -186,7 +186,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                                 return TestPhase.WaitForNextFrame;
                             }
                         case 2:
-                            MarkGraphViewStateDirty();
+                            MarkGraphModelStateDirty();
                             return TestPhase.WaitForNextFrame;
                         default:
                             return TestPhase.Done;
@@ -227,7 +227,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             {
                 // Create a placemat and collapse it.
                 var placemat = GraphModel.CreatePlacemat(new Rect(0, 0, 200, 500), new SerializableGUID(0, 1)) as PlacematModel;
-                MarkGraphViewStateDirty();
+                MarkGraphModelStateDirty();
                 yield return null;
 
                 GraphView.Dispatch(new CollapsePlacematCommand(placemat, true, new IGraphElementModel[] {}));
@@ -235,7 +235,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
                 // Add a node under it.
                 GraphModel.CreateNode<Type0FakeNodeModel>("Node0", new Vector2(10, 100), new SerializableGUID(0, 2));
-                MarkGraphViewStateDirty();
+                MarkGraphModelStateDirty();
                 yield return null;
             }
 
@@ -256,7 +256,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                     switch (frame)
                     {
                         case 0:
-                            MarkGraphViewStateDirty();
+                            MarkGraphModelStateDirty();
                             return TestPhase.WaitForNextFrame;
                         case 1:
                             {
@@ -265,7 +265,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                                 return TestPhase.WaitForNextFrame;
                             }
                         case 2:
-                            MarkGraphViewStateDirty();
+                            MarkGraphModelStateDirty();
                             return TestPhase.WaitForNextFrame;
                         default:
                             return TestPhase.Done;

@@ -97,7 +97,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="modifierFlags">The modifier flags of the new variable declaration to create.</param>
         /// <param name="isExposed">Whether the variable is exposed externally or not.</param>
         /// <param name="group">The group in which the variable is added. If null, it will go to the root group.</param>
-        /// <param name="indexInGroup">THe index of the variable in the group.</param>
+        /// <param name="indexInGroup">THe index of the variable in the group. For indexInGroup &lt;= 0, The item will be added at the beginning. For indexInGroup &gt;= Items.Count, items will be added at the end.</param>
         /// <param name="initializationModel">The initialization model of the new variable declaration to create. Can be <code>null</code>.</param>
         /// <param name="guid">The SerializableGUID to assign to the newly created item.</param>
         /// <param name="initializationCallback">An initialization method to be called right after the variable declaration is created.</param>
@@ -105,7 +105,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <typeparam name="TDeclType">The type of variable declaration to create.</typeparam>
         /// <returns>The newly created variable declaration.</returns>
         public static TDeclType CreateGraphVariableDeclaration<TDeclType>(this IGraphModel self, TypeHandle variableDataType,
-            string variableName, ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = -1, IConstant initializationModel = null,
+            string variableName, ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = int.MaxValue, IConstant initializationModel = null,
             SerializableGUID guid = default, Action<TDeclType, IConstant> initializationCallback = null,
             SpawnFlags spawnFlags = SpawnFlags.Default)
             where TDeclType : class, IVariableDeclarationModel
@@ -130,7 +130,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return self.CreateOppositePortal(edgePortalModel, currentPos + offset, spawnFlags);
         }
 
-        public static IReadOnlyCollection<IGraphElementModel> DeleteVariableDeclaration(this IGraphModel self,
+        public static GraphChangeDescription DeleteVariableDeclaration(this IGraphModel self,
             IVariableDeclarationModel variableDeclarationToDelete, bool deleteUsages)
         {
             return self.DeleteVariableDeclarations(new[] { variableDeclarationToDelete }, deleteUsages);
@@ -156,22 +156,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return self.DeletePlacemats(new[] { placematToDelete });
         }
 
-        static void FlattenGraphElementList(IEnumerable<IGraphElementModel> graphElementModels, List<IGraphElementModel> result)
-        {
-            foreach (var element in graphElementModels)
-            {
-                result.Add(element);
-                if (element is IGraphElementContainer container)
-                    FlattenGraphElementList(container.GraphElementModels, result);
-            }
-        }
-
         struct ElementsByType
         {
             public HashSet<IStickyNoteModel> stickyNoteModels;
             public HashSet<IPlacematModel> placematModels;
             public HashSet<IVariableDeclarationModel> variableDeclarationsModels;
-            public HashSet<IGroupModel> variableGroupModels;
+            public HashSet<IGroupModel> groupModels;
             public HashSet<IEdgeModel> edgeModels;
             public HashSet<INodeModel> nodeModels;
         }
@@ -193,8 +183,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     case IVariableDeclarationModel variableDeclarationModel:
                         elementsByType.variableDeclarationsModels.Add(variableDeclarationModel);
                         break;
-                    case IGroupModel variableGroupModel:
-                        elementsByType.variableGroupModels.Add(variableGroupModel);
+                    case IGroupModel groupModel:
+                        elementsByType.groupModels.Add(groupModel);
                         break;
                     case IEdgeModel edgeModel:
                         elementsByType.edgeModels.Add(edgeModel);
@@ -206,7 +196,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        public static IEnumerable<IGraphElementModel> DeleteElements(this IGraphModel self,
+        public static GraphChangeDescription DeleteElements(this IGraphModel self,
             IReadOnlyCollection<IGraphElementModel> graphElementModels)
         {
             ElementsByType elementsByType;
@@ -214,52 +204,45 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             elementsByType.stickyNoteModels = new HashSet<IStickyNoteModel>();
             elementsByType.placematModels = new HashSet<IPlacematModel>();
             elementsByType.variableDeclarationsModels = new HashSet<IVariableDeclarationModel>();
-            elementsByType.variableGroupModels = new HashSet<IGroupModel>();
+            elementsByType.groupModels = new HashSet<IGroupModel>();
             elementsByType.edgeModels = new HashSet<IEdgeModel>();
             elementsByType.nodeModels = new HashSet<INodeModel>();
 
             RecursiveSortElements(ref elementsByType, graphElementModels);
 
             // Add nodes that would be backed by declaration models.
-            elementsByType.nodeModels.AddRangeInternal(elementsByType.variableDeclarationsModels.SelectMany(d => self.FindReferencesInGraph<IHasDeclarationModel>(d).OfType<INodeModel>()));
+            elementsByType.nodeModels.UnionWith(elementsByType.variableDeclarationsModels.SelectMany(d => self.FindReferencesInGraph<IHasDeclarationModel>(d).OfType<INodeModel>()));
 
             // Add edges connected to the deleted nodes.
             foreach (var portModel in elementsByType.nodeModels.OfType<IPortNodeModel>().SelectMany(n => n.Ports))
-                elementsByType.edgeModels.AddRangeInternal(self.EdgeModels.Where(e => e.ToPort == portModel || e.FromPort == portModel));
+                elementsByType.edgeModels.UnionWith(self.EdgeModels.Where(e => e.ToPort == portModel || e.FromPort == portModel));
 
-            return self.DeleteStickyNotes(elementsByType.stickyNoteModels)
+            var deletedModels = self.DeleteStickyNotes(elementsByType.stickyNoteModels)
                 .Concat(self.DeletePlacemats(elementsByType.placematModels))
                 .Concat(self.DeleteEdges(elementsByType.edgeModels))
-                .Concat(self.DeleteVariableDeclarations(elementsByType.variableDeclarationsModels, deleteUsages: false))
-                .Concat(self.DeleteVariableGroups(elementsByType.variableGroupModels))
                 .Concat(self.DeleteNodes(elementsByType.nodeModels, deleteConnections: false)).ToList();
+
+            var changeDescription = self.DeleteVariableDeclarations(elementsByType.variableDeclarationsModels, deleteUsages: false);
+            changeDescription.Union(self.DeleteGroups(elementsByType.groupModels));
+            changeDescription.Union(null, null, deletedModels);
+            return changeDescription;
         }
 
         public static IReadOnlyList<T> GetListOf<T>(this IGraphModel self) where T : IGraphElementModel
         {
-            switch (typeof(T))
-            {
-                case Type x when x == typeof(INodeModel):
-                    return (IReadOnlyList<T>)self.NodeModels;
-
-                case Type x when x == typeof(IEdgeModel):
-                    return (IReadOnlyList<T>)self.EdgeModels;
-
-                case Type x when x == typeof(IStickyNoteModel):
-                    return (IReadOnlyList<T>)self.StickyNoteModels;
-
-                case Type x when x == typeof(IPlacematModel):
-                    return (IReadOnlyList<T>)self.PlacematModels;
-
-                case Type x when x == typeof(IVariableDeclarationModel):
-                    return (IReadOnlyList<T>)self.VariableDeclarations;
-
-                case Type x when x == typeof(IDeclarationModel):
-                    return (IReadOnlyList<T>)self.PortalDeclarations;
-
-                default:
-                    throw new ArgumentException($"{typeof(T).Name} isn't a supported type of graph element");
-            }
+            if (typeof(T) == typeof(INodeModel))
+                return (IReadOnlyList<T>)self.NodeModels;
+            if (typeof(T) == typeof(IEdgeModel))
+                return (IReadOnlyList<T>)self.EdgeModels;
+            if (typeof(T) == typeof(IStickyNoteModel))
+                return (IReadOnlyList<T>)self.StickyNoteModels;
+            if (typeof(T) == typeof(IPlacematModel))
+                return (IReadOnlyList<T>)self.PlacematModels;
+            if (typeof(T) == typeof(IVariableDeclarationModel))
+                return (IReadOnlyList<T>)self.VariableDeclarations;
+            if (typeof(T) == typeof(IDeclarationModel))
+                return (IReadOnlyList<T>)self.PortalDeclarations;
+            throw new ArgumentException($"{typeof(T).Name} isn't a supported type of graph element");
         }
 
         /// <summary>
@@ -498,16 +481,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             self.DeleteElements(toRemove);
         }
 
-        public static void Repair(this IGraphModel self)
-        {
-            var toRemove = self.NodeModels.Where(n => n == null).Cast<IGraphElementModel>()
-                .Concat(self.StickyNoteModels.Where(s => s == null))
-                .Concat(self.PlacematModels.Where(p => p == null))
-                .Concat(self.EdgeModels.Where(e => e?.ToPort == null || e.FromPort == null))
-                .ToList();
-            self.DeleteElements(toRemove);
-        }
-
         public static bool CheckIntegrity(this IGraphModel self, Verbosity errors)
         {
             Assert.IsTrue((Object)self.AssetModel, "graph asset is invalid");
@@ -532,6 +505,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (!failed && errors == Verbosity.Verbose)
                 Debug.Log("Integrity check succeeded");
             return !failed;
+        }
+
+        /// <summary>
+        /// Gets a list of subgraph nodes on the current graph that reference the current graph.
+        /// </summary>
+        /// <returns>A list of subgraph nodes on the current graph that reference the current graph.</returns>
+        public static IEnumerable<ISubgraphNodeModel> GetRecursiveSubgraphNodes(this IGraphModel self)
+        {
+            var recursiveSubgraphNodeModels = new List<ISubgraphNodeModel>();
+
+            var subgraphNodeModels = self.NodeModels.OfType<ISubgraphNodeModel>().ToList();
+            if (subgraphNodeModels.Any())
+            {
+                var currentGraphId = self.AssetModel.GetFileId();
+                recursiveSubgraphNodeModels.AddRange(subgraphNodeModels.Where(subgraphNodeModel => subgraphNodeModel.SubgraphAssetModel.GetFileId() == currentGraphId));
+            }
+
+            return recursiveSubgraphNodeModels;
         }
 
         static void CheckNodeList(this IGraphModel self)

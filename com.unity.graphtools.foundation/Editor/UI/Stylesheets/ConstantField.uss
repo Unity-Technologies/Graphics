@@ -1,0 +1,20 @@
+.ge-model-property-field--connected {
+    opacity: 1.0;
+}
+
+.ge-model-property-field--connected .unity-base-text-field__input {
+    background-color: var(--plugged-value-tint);
+}
+
+.ge-inline-value-editor .unity-base-text-field__label {
+    margin-right: 2px;
+    flex-basis: auto;
+}
+
+.ge-inline-value-editor .unity-base-text-field__input {
+    width: 60px;
+}
+
+.ge-inline-value-editor .unity-toggle {
+    margin: 3px;
+}

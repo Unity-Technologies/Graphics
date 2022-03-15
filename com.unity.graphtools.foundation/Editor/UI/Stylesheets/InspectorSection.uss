@@ -1,0 +1,16 @@
+.ge-inspector-section {
+    border-top-width: 1px;
+    border-color: var(--inspector-inside-border);
+}
+
+.ge-inspector-section.first-child {
+    border-top-width: 0;
+}
+
+.ge-inspector-section.last-child {
+    border-bottom-width: 1px;
+}
+
+.ge-inspector-section__content-container {
+    margin: 5px 1px 8px 16px;
+}

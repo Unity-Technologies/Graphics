@@ -1,0 +1,87 @@
+.ge-view {
+
+    --unity-icon-foldout: resource("Builtin Skins/LightSkin/Images/IN foldout@2x.png");
+    --unity-icon-foldout-on: resource("Builtin Skins/LightSkin/Images/IN foldout on@2x.png");
+    --unity-icon-foldout-act: resource("Builtin Skins/LightSkin/Images/IN foldout act@2x.png");
+    --unity-icon-foldout-act-on: resource("Builtin Skins/LightSkin/Images/IN foldout act on@2x.png");
+
+    --graph-color-background: #969696;
+    --graph-color-node-light:  var(--unity-colors-window-background);
+    --graph-color-node-dark: #bababa;
+    --graph-color-borders: var(--unity-colors-app_toolbar-background);
+    --graph-color-dividers: var(--graph-color-background);
+    --graph-color-selection-fill: rgba(146,189,255,0.32);
+
+    --overlay-background-color: #C8C8C8;
+
+    /*Blackboard.uss*/
+    --blackboard-background: var(--overlay-background-color);
+    --blackboard-header-background: var(--unity-colors-default-background);
+    --blackboard-section-header-background: var(--unity-colors-default-background);
+    --blackboard-section-background: rgba(174, 174, 174, 0.4);
+    --blackboard-group-background: rgba(200, 200, 200, 0.45);
+
+    --blackboard-capsule-background: var(--graph-color-node-light);
+    --blackboard-variable-type-label: var(--unity-colors-default-text);
+
+    /*ConstantField.uss*/
+    --plugged-value-tint: #a1a9ab;
+
+    /*EdgeBubble.uss*/
+    --edge-bubble-background: rgba(186, 186, 186, 0.9);
+
+    /*GraphElement.uss*/
+    --minimap-nodes: var(--graph-color-node-light);
+
+    /*GraphView.uss*/
+    --grid-border: rgba(65, 65, 65, 0.07);
+    --grid-border-thick:  rgba(65, 65, 65,0.1);
+
+    /*Minimap.uss*/
+    --minimap-viewport-border:  var(--graph-color-borders);
+
+    /*Placemat.us*/
+    --placemat-text: #c4c4c4;
+
+    /*Port.uss & Blackboard.uss*/
+    --port-type-execution: #B47800;
+    --port-type-string: #C99700;
+    --port-type-gameobject: #5A5A5A;
+    --port-type-boolean: #673AB7;
+    --port-type-integer: #0C6CCB;
+    --port-type-float: #0A8CA0;
+    --port-type-float2: #2E7D32;
+    --port-type-float3: #FFDB59;
+    --port-type-float4: #F363B7;
+    --port-type-textures: #F26F6F;
+    --port-type-animation: #117787;
+    --port-type-matrix: #5696BC;
+    --port-type-component: #C9F774;
+    --port-type-empty: #999999;
+    --port-type-missing: #FF0000;
+}
+
+.ge-port--data-type-missing-port .ge-port__icon {
+    --unity-image: url("Icons/ErrorToolbar/ErrorIcon.png");
+}
+
+/*Node Icons*/
+.ge-node__icon--node {
+    background-image: url("Icons/Function@x3.png");
+}
+
+.ge-collapse-button__icon {
+    background-image: url("Icons/NodeChevronDown.png");
+}
+
+.ge-collapse-button--collapsed .ge-collapse-button__icon {
+    background-image: url("Icons/NodeChevronRight.png");
+}
+
+.ge-icon-title-progress__missing-graph-icon {
+    background-image: url("Icons/ErrorToolbar/ErrorIcon.png");
+}
+
+.ge-icon-title-progress__asset-graph-icon {
+    background-image: url("Icons/MainToolbar/Open.png");
+}

@@ -17,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             const string newTitle = "New Title";
             var model = new NodeModel { Title = "" };
-            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null);
+            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null, "");
 
             var inputField = field.SafeQ<BaseField<string>>(null, BaseField<string>.ussClassName);
 
@@ -36,7 +36,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             const string newTitle = "New Title";
             var model = new NodeModel { Title = "" };
             bool callbackCalled = false;
-            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null, (v, f) => callbackCalled = true);
+            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null, "", (_, __) => callbackCalled = true);
 
             model.Title = newTitle;
             field.UpdateDisplayedValue();
@@ -49,7 +49,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             const string newTitle = "New Title";
             const string overriddenTitle = "42";
             var model = new NodeModel { Title = "" };
-            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null, (Action<string, ModelPropertyField<string>>)null, elementModel => overriddenTitle);
+            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null, "", (Action<string, ModelPropertyField<string>>)null, _ => overriddenTitle);
 
             var inputField = field.SafeQ<BaseField<string>>(null, BaseField<string>.ussClassName);
 
@@ -70,7 +70,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             const string newTitle = "New Title";
             var model = new NodeModel { Title = "" };
             bool callbackCalled = false;
-            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null, (v, f) => callbackCalled = true);
+            var field = new ModelPropertyField<string>(null, model, nameof(NodeModel.Title), null, "", (_, __) => callbackCalled = true);
             Window.rootVisualElement.Add(field);
 
             var inputField = field.SafeQ<BaseField<string>>(null, BaseField<string>.ussClassName);
@@ -127,7 +127,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             var commandTarget = new FakeCommandTarget();
 
-            var field = new ModelPropertyField<string>(commandTarget, model, nameof(NodeModel.Title), null, typeof(TestCommand));
+            var field = new ModelPropertyField<string>(commandTarget, model, nameof(NodeModel.Title), null, "", typeof(TestCommand));
             Window.rootVisualElement.Add(field);
 
             var inputField = field.SafeQ<BaseField<string>>(null, BaseField<string>.ussClassName);

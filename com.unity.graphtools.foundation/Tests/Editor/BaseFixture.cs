@@ -15,21 +15,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 {
     public enum TestingMode { Command, UndoRedo }
 
-    [PublicAPI]
-    public abstract class BaseFixture
+    static class BaseFixtureHelpers
     {
-        protected const string k_GraphPath = "Assets/test.asset";
-
-        protected NoUITestGraphTool GraphTool { get; private set; }
-
-        protected IGraphModel GraphModel => GraphTool.ToolState.GraphModel;
-        protected Preferences Preferences => GraphTool.Preferences;
-        protected Stencil Stencil => (Stencil)GraphModel.Stencil;
-
-        protected abstract bool CreateGraphOnStartup { get; }
-        protected virtual Type CreatedGraphType => typeof(ClassStencil);
-
-        internal static void AssumePreviousTest(Action delegateToRun)
+        public static void AssumePreviousTest(Action delegateToRun)
         {
             try
             {
@@ -42,7 +30,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             }
         }
 
-        internal static void AssertPreviousTest(Action delegateToRun)
+        public static void AssertPreviousTest(Action delegateToRun)
         {
             try
             {
@@ -54,6 +42,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
                 throw inconclusiveException;
             }
         }
+    }
+
+    [PublicAPI]
+    public abstract class BaseFixture<TGraphTool> where TGraphTool : NoUITestGraphTool, new()
+    {
+        protected const string k_GraphPath = "Assets/test.asset";
+
+        protected TGraphTool GraphTool { get; set; }
+
+        protected IGraphModel GraphModel => GraphTool.ToolState.GraphModel;
+        protected Preferences Preferences => GraphTool.Preferences;
+        protected Stencil Stencil => (Stencil)GraphModel.Stencil;
+
+        protected abstract bool CreateGraphOnStartup { get; }
+        protected virtual Type CreatedGraphType => typeof(ClassStencil);
 
         protected void TestPrereqCommandPostreq<T>(TestingMode mode, Action checkReqs, Func<T> provideCommand, Action checkPostReqs)
             where T : UndoableCommand
@@ -69,13 +72,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
                     checkPostReqs();
                     break;
                 case TestingMode.UndoRedo:
-                    var assetModel = GraphTool.GraphViewState.AssetModel;
+                    var assetModel = GraphTool.ToolState.AssetModel;
 
                     MockSaveAssetModel(assetModel);
 
                     Undo.IncrementCurrentGroup();
 
-                    AssumePreviousTest(() =>
+                    BaseFixtureHelpers.AssumePreviousTest(() =>
                     {
                         checkReqs();
                         command = provideCommand();
@@ -101,7 +104,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 
         static void CheckRedo(Action checkPostReqs, IGraphAssetModel assetModel)
         {
-            AssertPreviousTest(checkPostReqs);
+            BaseFixtureHelpers.AssertPreviousTest(checkPostReqs);
 
             if (assetModel != null)
                 Assert.IsTrue(assetModel.Dirty);
@@ -118,8 +121,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 
         void CheckUndo<T>(Action checkReqs, Func<T> provideCommand, IGraphAssetModel assetModel) where T : UndoableCommand
         {
-            AssertPreviousTest(checkReqs);
-            AssertPreviousTest(() => provideCommand());
+            BaseFixtureHelpers.AssertPreviousTest(checkReqs);
+            BaseFixtureHelpers.AssertPreviousTest(() => provideCommand());
 
             if (assetModel != null)
                 Assert.IsTrue(assetModel.Dirty);
@@ -133,7 +136,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
         [SetUp]
         public virtual void SetUp()
         {
-            GraphTool = CsoTool.Create<NoUITestGraphTool>();
+            GraphTool = CsoTool.Create<TGraphTool>(new Hash128());
             Preferences.SetBoolNoEditorUpdate(BoolPref.ErrorOnRecursiveDispatch, false);
 
             GraphTool.Dispatcher.CheckIntegrity =

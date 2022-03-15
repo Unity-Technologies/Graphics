@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
 {
-    class CompatiblePortTests : BaseFixture
+    class CompatiblePortTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         [Serializable]
         class NodeType1 : NodeModel

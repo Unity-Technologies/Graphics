@@ -15,10 +15,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 
             var stickyNoteModel = GraphModel.CreateStickyNote(Rect.zero);
             stickyNoteModel.Title = "My Note";
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var stickyNote = stickyNoteModel.GetUI<GraphElement>(GraphView);
+            var stickyNote = stickyNoteModel.GetView<GraphElement>(GraphView);
             var label = stickyNote.SafeQ(StickyNote.titleContainerPartName).SafeQ(EditableLabel.labelName);
             var clickPosition = label.parent.LocalToWorld(label.layout.center);
             Helpers.Click(clickPosition, clickCount: 2);
@@ -41,10 +41,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             var stickyNoteModel = GraphModel.CreateStickyNote(new Rect(0, 0, 200, 200));
             stickyNoteModel.Title = "My Note";
             stickyNoteModel.Contents = "Old Content";
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var stickyNote = stickyNoteModel.GetUI<GraphElement>(GraphView);
+            var stickyNote = stickyNoteModel.GetView<GraphElement>(GraphView);
             var label = stickyNote.SafeQ(StickyNote.contentContainerPartName).SafeQ(EditableLabel.labelName);
             var clickPosition = label.parent.LocalToWorld(label.layout.center);
             Helpers.Click(clickPosition, clickCount: 2);
@@ -68,10 +68,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             var stickyNoteModel = GraphModel.CreateStickyNote(originalRect);
             stickyNoteModel.Title = "Placemat";
             stickyNoteModel.PositionAndSize = originalRect;
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var stickyNote = stickyNoteModel.GetUI<GraphElement>(GraphView);
+            var stickyNote = stickyNoteModel.GetView<GraphElement>(GraphView);
             var rightResizer = stickyNote.SafeQ(Placemat.resizerPartName).SafeQ("right-resize");
             var clickPosition = rightResizer.parent.LocalToWorld(rightResizer.layout.center);
             Helpers.DragTo(clickPosition, clickPosition + move);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -14,10 +15,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         string m_InstantiationStackTrace;
 #endif
 
+        protected IToolbarProvider m_MainToolbarProvider;
+#if UNITY_2022_2_OR_NEWER
+        protected Dictionary<string, IOverlayToolbarProvider> m_ToolbarProviders;
+#endif
+
         /// <summary>
         /// The name of the tool.
         /// </summary>
         public string Name { get; set; } = "UnnamedTool";
+
+        /// <summary>
+        /// The icon of the tool.
+        /// </summary>
+        public Texture2D Icon { get; set; } = EditorGUIUtility.IconContent(EditorGUIUtility.isProSkin ? "d_ScriptableObject Icon" : "ScriptableObject Icon").image as Texture2D;
 
         internal bool WantsTransientPrefs { get; set; }
 
@@ -42,10 +53,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public UndoStateComponent UndoStateComponent { get; private set; }
 
         /// <summary>
+        /// The state component holding information about which variable declarations should be highlighted.
+        /// </summary>
+        public DeclarationHighlighterStateComponent HighlighterState { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BaseGraphTool"/> class.
         /// </summary>
         public BaseGraphTool()
         {
+            m_MainToolbarProvider = null;
+#if UNITY_2022_2_OR_NEWER
+            m_ToolbarProviders = new Dictionary<string, IOverlayToolbarProvider>();
+#endif
 #if DEBUG
             m_InstantiationStackTrace = Environment.StackTrace;
 #endif
@@ -73,6 +93,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             if (disposing)
             {
+                ToolState.Dispose();
                 Undo.undoRedoPerformed -= UndoRedoPerformed;
             }
             base.Dispose(disposing);
@@ -98,14 +119,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 Preferences = Preferences.CreatePreferences(Name);
             }
 
-            ToolState = new ToolStateComponent();
+            ToolState = PersistedState.GetOrCreateAssetViewStateComponent<ToolStateComponent>(default, WindowID, Name);
             State.AddStateComponent(ToolState);
 
             GraphProcessingState = new GraphProcessingStateComponent();
             State.AddStateComponent(GraphProcessingState);
 
-            UndoStateComponent = new UndoStateComponent(State);
+            UndoStateComponent = new UndoStateComponent(State, ToolState);
             State.AddStateComponent(UndoStateComponent);
+
+            HighlighterState = new DeclarationHighlighterStateComponent();
+            State.AddStateComponent(HighlighterState);
 
             Dispatcher.RegisterCommandHandler<ToolStateComponent, GraphProcessingStateComponent, LoadGraphAssetCommand>(
                 LoadGraphAssetCommand.DefaultCommandHandler, ToolState, GraphProcessingState);
@@ -145,5 +169,52 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             Dispatcher.Dispatch(new UndoRedoCommand());
         }
+
+        /// <summary>
+        /// Gets the toolbar provider for the main toolbar.
+        /// </summary>
+        /// <remarks>Use this method to get the provider for the legacy <see cref="MainToolbar"/>.</remarks>
+        /// <returns>The toolbar provider for the main toolbar.</returns>
+        public virtual IToolbarProvider GetToolbarProvider()
+        {
+            return m_MainToolbarProvider ?? new MainToolbarProvider();
+        }
+
+#if UNITY_2022_2_OR_NEWER
+        protected virtual IOverlayToolbarProvider CreateToolbarProvider(string toolbarId)
+        {
+            switch (toolbarId)
+            {
+                case MainOverlayToolbar.toolbarId:
+                    return new MainToolbarProvider();
+                case PanelsToolbar.toolbarId:
+                    return new PanelsToolbarProvider();
+                case ErrorOverlayToolbar.toolbarId:
+                    return new ErrorToolbarProvider();
+                case OptionsMenuToolbar.toolbarId:
+                    return new OptionsToolbarProvider();
+                case BreadcrumbsToolbar.toolbarId:
+                    return new BreadcrumbsToolbarProvider();
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the toolbar provider for a toolbar.
+        /// </summary>
+        /// <param name="toolbar">The toolbar for which to get the provider.</param>
+        /// <returns>The toolbar provider for the toolbar.</returns>
+        public IOverlayToolbarProvider GetToolbarProvider(OverlayToolbar toolbar)
+        {
+            if (!m_ToolbarProviders.TryGetValue(toolbar.id, out var toolbarProvider))
+            {
+                toolbarProvider = CreateToolbarProvider(toolbar.id);
+                m_ToolbarProviders[toolbar.id] = toolbarProvider;
+            }
+
+            return toolbarProvider;
+        }
+#endif
     }
 }

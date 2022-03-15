@@ -1,5 +1,6 @@
 using System;
 using JetBrains.Annotations;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.GraphToolsFoundation.Overdrive
 {
@@ -145,18 +146,21 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Whether the type handle is valid.
         /// </summary>
-        public bool IsValid => !string.IsNullOrEmpty(Identification);
+        public bool IsValid => !string.IsNullOrEmpty(m_Identification);
 
-        internal bool IsCustomTypeHandle => TypeHandleHelpers.IsCustomTypeHandle(Identification);
+        internal bool IsCustomTypeHandle => TypeHandleHelpers.IsCustomTypeHandle(m_Identification);
 
         /// <summary>
         /// The unique id for the type handle.
         /// </summary>
-        public string Identification;
+        [SerializeField, FormerlySerializedAs("Identification")]
+        string m_Identification;
+
+        public string Identification => m_Identification;
 
         internal TypeHandle(string identification)
         {
-            Identification = identification;
+            m_Identification = identification;
             m_Name = null;
         }
 
@@ -165,7 +169,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         /// <summary>
         /// The name of the type.
         /// </summary>
-        public string Name => m_Name ??= IsCustomTypeHandle ? Identification : Resolve().Name;
+        public string Name => m_Name ??= IsCustomTypeHandle ? m_Identification : Resolve().Name;
         /// <summary>
         /// Determines whether this TypeHandle is equal to another TypeHandle.
         /// </summary>
@@ -173,7 +177,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         /// <returns>True if this TypeHandle is equal to the other TypeHandle.</returns>
         public bool Equals(TypeHandle other)
         {
-            return string.Equals(Identification, other.Identification);
+            return string.Equals(m_Identification, other.m_Identification);
         }
 
         /// <summary>
@@ -194,7 +198,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         public override int GetHashCode()
         {
             // ReSharper disable once NonReadonlyMemberInGetHashCode
-            return Identification?.GetHashCode() ?? 0;
+            return m_Identification?.GetHashCode() ?? 0;
         }
 
         /// <summary>
@@ -203,7 +207,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         /// <returns>The string representation of this object.</returns>
         public override string ToString()
         {
-            return $"TypeName:{Identification}";
+            return $"TypeName:{m_Identification}";
         }
 
         /// <summary>
@@ -235,7 +239,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         /// <returns>-1, 0, or 1 if this instance is smaller, equal or greater than <paramref name="other"/>, respectively.</returns>
         public int CompareTo(TypeHandle other)
         {
-            return string.Compare(Identification, other.Identification, StringComparison.Ordinal);
+            return string.Compare(m_Identification, other.m_Identification, StringComparison.Ordinal);
         }
 
         /// <summary>

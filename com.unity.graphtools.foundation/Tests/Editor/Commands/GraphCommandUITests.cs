@@ -23,7 +23,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
             var nodeA = GraphModel.CreateNode<Type0FakeNodeModel>("A", Vector2.zero);
             var nodeB = GraphModel.CreateNode<Type0FakeNodeModel>("B", new Vector2(100, 100));
             GraphView.Dispatch(new ReframeGraphViewCommand(Vector3.zero, Vector3.one));
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             yield return SendPanToNodeAndRefresh(operatorModel);
@@ -32,7 +32,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
 
             IEnumerator SendPanToNodeAndRefresh(NodeModel nodeModel)
             {
-                var node = nodeModel.GetUI<GraphElement>(GraphView);
+                var node = nodeModel.GetView<GraphElement>(GraphView);
                 Vector3 pOrig = GraphView.ContentViewContainer.transform.position;
                 GraphView.DispatchFrameAndSelectElementsCommand(true, node);
                 yield return null;
@@ -55,7 +55,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
             var nodeA = GraphModel.CreateNode<Type0FakeNodeModel>("A", new Vector2(100, -100));
             var nodeB = GraphModel.CreateNode<Type0FakeNodeModel>("B", new Vector2(100, 100));
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeA));
@@ -87,10 +87,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
 
             var edge = GraphModel.CreateEdge(nodeB.Input0, nodeA.OutputPort) as EdgeModel;
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, new GraphElementModel[] { nodeB, edge }));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeB, edge));
 
             GraphView.Focus();
             using (var evt = ExecuteCommandEvent.GetPooled("Duplicate"))
@@ -121,7 +121,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
 
             Assert.AreEqual(Vector3.zero, position);
             Assert.AreEqual(Vector3.one, scale);
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(node));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(node));
 
             var newPos = new Vector3(32, 45, 0);
             var newScale = new Vector3(0.42f, 0.42f, 1.0f);
@@ -133,7 +133,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
 
             Assert.AreEqual(newPos, position);
             Assert.AreEqual(newScale, scale);
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(node));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(node));
         }
 
         [UnityTest]
@@ -144,7 +144,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
                 GraphModel.CreateNode<Type0FakeNodeModel>("", new Vector2(10 + 50 * i, 30 * i));
             }
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             GraphView.Dispatch(new ReframeGraphViewCommand(new Vector3(-500, -500, 0), new Vector3(.9f, .9f, .9f)));
@@ -155,7 +155,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
 
             foreach (var nodeModel in GraphModel.NodeModels)
             {
-                var nodeUI = nodeModel.GetUI<GraphElement>(GraphView);
+                var nodeUI = nodeModel.GetView<GraphElement>(GraphView);
                 Assert.IsNotNull(nodeUI);
                 Assert.IsTrue(GraphView.layout.Contains(nodeUI.layout.min),
                     $"Node {GraphModel.NodeModels.IndexOfInternal(nodeModel)} min is outside graph view.");
@@ -172,32 +172,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
             var nodeC = GraphModel.CreateNode<Type0FakeNodeModel>("C", new Vector2(1000, 100));
 
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeB));
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             var initialPos = GraphView.ContentViewContainer.transform.position;
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeA));
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(nodeB));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeC));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeA));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(nodeB));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeC));
 
-            GraphView.DispatchFramePrevCommand(e => true);
+            GraphView.DispatchFramePrevCommand(_ => true);
             yield return null;
 
             Assert.AreNotEqual(initialPos, GraphView.ContentViewContainer.transform.position);
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(nodeA));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeB));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeC));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(nodeA));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeB));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeC));
 
             // Check that cycling work.
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeA));
             yield return null;
 
-            GraphView.DispatchFramePrevCommand(e => true);
+            GraphView.DispatchFramePrevCommand(_ => true);
             yield return null;
 
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeA));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeB));
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(nodeC));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeA));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeB));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(nodeC));
         }
 
         [UnityTest]
@@ -208,32 +208,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI.Commands
             var nodeC = GraphModel.CreateNode<Type0FakeNodeModel>("C", new Vector2(1000, 100));
 
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeB));
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             var initialPos = GraphView.ContentViewContainer.transform.position;
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeA));
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(nodeB));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeC));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeA));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(nodeB));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeC));
 
-            GraphView.DispatchFrameNextCommand(e => true);
+            GraphView.DispatchFrameNextCommand(_ => true);
             yield return null;
 
             Assert.AreNotEqual(initialPos, GraphView.ContentViewContainer.transform.position);
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeA));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeB));
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(nodeC));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeA));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeB));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(nodeC));
 
             // Check that cycling work.
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeC));
             yield return null;
 
-            GraphView.DispatchFrameNextCommand(e => true);
+            GraphView.DispatchFrameNextCommand(_ => true);
             yield return null;
 
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(nodeA));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeB));
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(nodeC));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(nodeA));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeB));
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(nodeC));
         }
     }
 }

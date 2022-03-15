@@ -1,18 +1,8 @@
-/* TODO VladN: fix for light skin, when GTF supports light skin this file should look like Searcher_dark.uss  */
-.unity-list-view__empty-label {
-    color: #C4C4C4;
-}
-
-.unity-collection-view__item--selected {
-    background-color: #555555;
-}
-
-.unity-text-field__input {
-    --unity-cursor-color: #CCCCCC;
-}
-
-#windowDetailsVisualContainer {
-    background-color: #C8C8C8;
-    border-color: #000000;
-    border-width: 1px;
+.item-library-theme {
+    --search-placeholder-text-color: #828282;
+    --toggle-searcher-preview-on-image: resource("toggle_searcher_preview_on");
+    --toggle-searcher-preview-off-image: resource("toggle_searcher_preview_off");
+    --window-resizer-image: resource("resizer");
+    --favorite-disabled-image: resource("Favorite");
+    --favorite-enabled-image: resource("Favorite_colored");
 }

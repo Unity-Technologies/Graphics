@@ -29,18 +29,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         {
             GraphView.Dispatch(new LoadGraphAssetCommand(m_Asset1));
             GraphTool.Update();
-            Assert.IsNotNull(GraphView.SelectionState);
-            using (var selectionUpdater = GraphView.SelectionState.UpdateScope)
+            Assert.IsNotNull(GraphView.GraphViewModel.SelectionState);
+            using (var selectionUpdater = GraphView.GraphViewModel.SelectionState.UpdateScope)
             {
                 selectionUpdater.SelectElements(new[] { m_NodeModel }, true);
             }
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(m_NodeModel));
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(m_NodeModel));
 
             // Load another asset in the same view: node is not selected anymore.
             GraphView.Dispatch(new LoadGraphAssetCommand(m_Asset2));
             GraphTool.Update();
-            Assert.IsNotNull(GraphView.SelectionState);
-            Assert.IsFalse(GraphView.SelectionState.IsSelected(m_NodeModel));
+            Assert.IsNotNull(GraphView.GraphViewModel.SelectionState);
+            Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(m_NodeModel));
 
             // Fetch a selection state for the same asset in another view: node is not selected in this component.
             var assetKey = PersistedState.MakeAssetKey(m_Asset2);
@@ -51,8 +51,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             // Reload the original asset in the original view: node is still selected.
             GraphView.Dispatch(new LoadGraphAssetCommand(m_Asset1));
             GraphTool.Update();
-            Assert.IsNotNull(GraphView.SelectionState);
-            Assert.IsTrue(GraphView.SelectionState.IsSelected(m_NodeModel));
+            Assert.IsNotNull(GraphView.GraphViewModel.SelectionState);
+            Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(m_NodeModel));
         }
     }
 }

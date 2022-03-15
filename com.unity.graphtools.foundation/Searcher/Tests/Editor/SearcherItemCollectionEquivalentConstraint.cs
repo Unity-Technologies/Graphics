@@ -57,13 +57,6 @@ namespace UnityEditor.GraphToolsFoundation.Searcher.Tests
                     Description = $"Object at index {i} are not the same.\nExpected: {res1},\nBut was: {res2}";
                     return false;
                 }
-
-                var constraint = new SearcherItemCollectionEquivalentConstraint(m_Expected[i].Children);
-                if (constraint.Matches(actualList[i].Children))
-                    continue;
-
-                Description = constraint.Description;
-                return false;
             }
 
             return true;

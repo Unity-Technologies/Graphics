@@ -78,9 +78,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // Get the UI nodes
-            m_SnappedNode = snappingNodeModel.GetUI<Node>(graphView);
-            m_ReferenceNode1 = referenceNode1Model.GetUI<Node>(graphView);
-            m_ReferenceNode2 = referenceNode2Model.GetUI<Node>(graphView);
+            m_SnappedNode = snappingNodeModel.GetView<Node>(GraphView);
+            m_ReferenceNode1 = referenceNode1Model.GetView<Node>(GraphView);
+            m_ReferenceNode2 = referenceNode2Model.GetView<Node>(GraphView);
 
             m_SnappingNodePos = m_SnappedNode?.layout.position ?? Vector2.zero;
             m_ReferenceNode1Pos = m_ReferenceNode1?.layout.position ?? Vector2.zero;
@@ -93,18 +93,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
         protected IEnumerator MoveElementWithOffset(Vector2 offset)
         {
-            Vector2 worldNodePos = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
 
             // Move the snapping node.
-            helpers.MouseDownEvent(start);
+            Helpers.MouseDownEvent(start);
             yield return null;
 
             Vector2 end = start + offset;
-            helpers.MouseDragEvent(start, end);
+            Helpers.MouseDragEvent(start, end);
             yield return null;
 
-            helpers.MouseUpEvent(end);
+            Helpers.MouseUpEvent(end);
             yield return null;
         }
     }

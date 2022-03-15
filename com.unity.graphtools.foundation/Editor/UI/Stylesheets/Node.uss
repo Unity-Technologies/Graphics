@@ -1,0 +1,89 @@
+.ge-node {
+    position: absolute;
+    align-items: stretch;
+    padding: 0;
+    margin: 0;
+    --border-radius: 6px;
+    --selection-border-radius: 8px;
+}
+
+.ge-node .ge-selection-border__content-container {
+    background-color: var(--node-background);
+    border-color: var(--node-border);
+    border-radius: var(--border-radius);
+    border-width: 1px;
+    overflow: hidden;
+}
+
+.ge-node__title-icon-container {
+    padding: 0 6px;
+    background-color: var(--node-background-header);
+}
+
+.ge-node__title-container {
+    padding: 10px 0;
+}
+
+.ge-node--disabled #disabled-overlay {
+    display: flex;
+    background-color: var(--node-disabled-tint);
+}
+
+.ge-node--unused #disabled-overlay {
+    display: flex;
+    border-color: rgb(120, 104, 31);
+    border-width: 1px;
+}
+
+.ge-node--highlighted .ge-node__selection-border {
+    border-color: var(--node-selection-counterpart-border);
+}
+
+.ge-node__title {
+    font-size: var(--unity-font-size);
+    color: var(--node-title-text);
+}
+
+.ge-node .ge-collapse-button {
+    margin-left: 16px;
+    visibility: hidden;
+}
+
+.ge-node:hover .ge-collapse-button {
+    /* unset and inherit are unsupported */
+    /* visibility: unset; */
+    visibility: visible;
+}
+
+.ge-node--collapsed .ge-port--not-connected {
+    display: none;
+}
+
+.ge-node__node-settings, .ge-node__port-container {
+    background-color: var(--node-background);
+    border-top-width: 1px;
+    border-top-color: var(--graph-color-dividers);
+}
+
+.ge-node__node-settings {
+    padding: 6px;
+}
+
+.ge-node__node-settings.ge-inspector-fields--empty {
+    padding: 0;
+    border-width: 0;
+}
+
+.ge-node__progress-bar {
+    flex-grow: 1;
+    min-width: 60px;
+}
+
+.ge-node__progress-bar .unity-progress-bar__background {
+    height: 6px;
+}
+
+.ge-node .unity-property-field {
+    padding: 0;
+    margin: 0;
+}

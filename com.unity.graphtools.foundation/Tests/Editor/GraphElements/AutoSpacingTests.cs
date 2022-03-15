@@ -18,19 +18,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // Get the UI elements
-            m_FirstNode = FirstNodeModel.GetUI<Node>(graphView);
-            m_SecondNode = SecondNodeModel.GetUI<Node>(graphView);
-            m_ThirdNode = ThirdNodeModel.GetUI<Node>(graphView);
-            m_FourthNode = FourthNodeModel.GetUI<Node>(graphView);
-            m_Placemat = PlacematModel.GetUI<Placemat>(graphView);
-            m_StickyNote = StickyNoteModel.GetUI<StickyNote>(graphView);
+            m_FirstNode = FirstNodeModel.GetView<Node>(GraphView);
+            m_SecondNode = SecondNodeModel.GetView<Node>(GraphView);
+            m_ThirdNode = ThirdNodeModel.GetView<Node>(GraphView);
+            m_FourthNode = FourthNodeModel.GetView<Node>(GraphView);
+            m_Placemat = PlacematModel.GetView<Placemat>(GraphView);
+            m_StickyNote = StickyNoteModel.GetView<StickyNote>(GraphView);
         }
 
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
-            m_AutoSpacingHelper = new AutoSpacingHelper(graphView);
+            m_AutoSpacingHelper = new AutoSpacingHelper(GraphView);
         }
 
         [UnityTest]
@@ -145,7 +145,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Vector2 selectionPosStickyNote = graphView.ContentViewContainer.LocalToWorld(m_StickyNote.layout.position) + k_SelectionOffset;
+            Vector2 selectionPosStickyNote = GraphView.ContentViewContainer.LocalToWorld(m_StickyNote.layout.position) + k_SelectionOffset;
 
             // Unselect StickyNote
             actions = SelectElement(selectionPosStickyNote);

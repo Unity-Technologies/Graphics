@@ -23,16 +23,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField]
         protected string m_EdgeLabel;
 
-        public void InitAssetModel(IGraphAssetModel model)
-        {
-            AssetModel = model;
-            m_FromPortReference.InitAssetModel(model);
-            m_ToPortReference.InitAssetModel(model);
-        }
+        IPortModel m_FromPortModelCache;
 
-        protected IPortModel m_FromPortModelCache;
-
-        protected IPortModel m_ToPortModelCache;
+        IPortModel m_ToPortModelCache;
 
         /// <inheritdoc />
         public virtual IPortModel FromPort
@@ -61,16 +54,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public string FromPortId => m_FromPortReference.UniqueId;
+        public virtual string FromPortId => m_FromPortReference.UniqueId;
 
         /// <inheritdoc />
-        public string ToPortId => m_ToPortReference.UniqueId;
+        public virtual string ToPortId => m_ToPortReference.UniqueId;
 
         /// <inheritdoc />
-        public SerializableGUID FromNodeGuid => m_FromPortReference.NodeModelGuid;
+        public virtual SerializableGUID FromNodeGuid => m_FromPortReference.NodeModelGuid;
 
         /// <inheritdoc />
-        public SerializableGUID ToNodeGuid => m_ToPortReference.NodeModelGuid;
+        public virtual SerializableGUID ToNodeGuid => m_ToPortReference.NodeModelGuid;
 
         /// <inheritdoc />
         public virtual string EdgeLabel
@@ -130,6 +123,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             m_FromPortModelCache = default;
             m_ToPortModelCache = default;
+        }
+
+        /// <summary>
+        /// Updates the port references with the cached ports.
+        /// </summary>
+        public void UpdatePortFromCache()
+        {
+            if (m_FromPortModelCache == null || m_ToPortModelCache == null)
+                return;
+
+            m_FromPortReference.Assign(m_FromPortModelCache);
+            m_ToPortReference.Assign(m_ToPortModelCache);
         }
 
         /// <inheritdoc />

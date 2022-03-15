@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Castle.DynamicProxy.Generators;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels;
-using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -42,6 +39,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 GraphModel.UnregisterElement(elementModel);
 
             m_GraphElements.RemoveAll(elementModels.Contains);
+        }
+
+        public void Repair()
+        {
         }
     }
 

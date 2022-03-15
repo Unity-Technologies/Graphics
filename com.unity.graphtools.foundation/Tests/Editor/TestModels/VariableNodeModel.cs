@@ -1,5 +1,6 @@
 using System;
-using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -18,11 +19,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
         public override IGraphModel GraphModel => m_GraphModel;
 
         /// <inheritdoc />
-        public IGroupModel Group { get; set; }
+        public IEnumerable<IGraphElementModel> ContainedModels
+        {
+            get => Enumerable.Repeat(this, 1);
+        }
+
+        /// <inheritdoc />
+        public IGroupModel ParentGroup { get; set; }
 
         public string GetVariableName() => Title.CodifyStringInternal();
         public void CreateInitializationValue()
         {
+        }
+
+        public bool IsUsed()
+        {
+            return true;
         }
 
         // Can't be on the property as we inherit a getter only GraphModel property.
@@ -51,7 +63,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
             }
         }
 
-        public IVariableDeclarationModel VariableDeclarationModel => DeclarationModel as IVariableDeclarationModel;
+        public IVariableDeclarationModel VariableDeclarationModel
+        {
+            get => DeclarationModel as IVariableDeclarationModel;
+            set => DeclarationModel = value;
+        }
+
         public void UpdateTypeFromDeclaration()
         {
             if (DeclarationModel != null && m_MainPortModel != null)
@@ -86,7 +103,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
             base.OnDefineNode();
 
             // used by macro outputs
-            if (m_DeclarationModel != null /* this node */ && m_DeclarationModel.Modifiers.HasFlag(ModifierFlags.WriteOnly))
+            if (m_DeclarationModel != null /* this node */ && m_DeclarationModel.Modifiers.HasFlag(ModifierFlags.Write))
             {
                 if (this.GetDataType() == TypeHandle.ExecutionFlow)
                     m_MainPortModel = this.AddExecutionInputPort(null);

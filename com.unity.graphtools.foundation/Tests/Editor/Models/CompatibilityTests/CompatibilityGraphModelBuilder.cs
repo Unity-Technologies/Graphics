@@ -31,8 +31,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
                 new Rect(15, 15, 500, 400),
                 "StickyNote 1",
                 "text",
-                StickyNoteTheme.Red.ToString(),
-                StickyNoteFontSize.Large.ToString()
+                StickyNoteColorTheme.Red.ToString(),
+                StickyNoteTextSize.Large.ToString()
             )
         };
 
@@ -107,14 +107,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             (
                 TypeHandle.Bool,
                 "Variable Decl 1",
-                ModifierFlags.ReadOnly,
+                ModifierFlags.Read,
                 false,
                 null
             ),
             (
                 TypeHandle.Int,
                 "Variable Decl 2",
-                ModifierFlags.WriteOnly,
+                ModifierFlags.Write,
                 false,
                 null
             ),
@@ -128,7 +128,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             (
                 TypeHandle.Double,
                 "Variable Decl 4",
-                ModifierFlags.ReadOnly,
+                ModifierFlags.Read,
                 true,
                 new DoubleConstant() { Value = 42 }
             )
@@ -232,7 +232,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             AddNodes(asset.GraphModel);
             AddConstantNodes(asset.GraphModel);
             var section = asset.GraphModel.GetSectionModel(asset.GraphModel.Stencil.SectionNames.First());
-            section.Guid =  new SerializableGUID(k_SectionBaseGuid,0);
+            section.Guid =  new SerializableGUID(k_SectionBaseGuid, 0);
             AddVariableDeclarations(asset.GraphModel);
             AddVariableNodes(asset.GraphModel);
             AddEdges(asset.GraphModel);
@@ -318,14 +318,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             foreach (var data in k_VariableDeclarations)
             {
                 graph.CreateGraphVariableDeclaration(data.TypeHandle, data.Title, data.ModifierFlags, data.IsExposed,
-                    null, -1, data.InitializationModel,
+                    null, int.MaxValue, data.InitializationModel,
                     new SerializableGUID(k_VariableDeclarationBaseGuid, i++));
             }
 
             foreach (var typeHandle in k_TypeHandles)
             {
-                graph.CreateGraphVariableDeclaration(typeHandle, typeHandle.ToString(), ModifierFlags.ReadOnly,
-                    false, null, -1, null,
+                graph.CreateGraphVariableDeclaration(typeHandle, typeHandle.ToString(), ModifierFlags.Read,
+                    false, null, int.MaxValue, null,
                     new SerializableGUID(k_VariableDeclarationBaseGuid, i++));
             }
         }

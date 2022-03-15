@@ -1,6 +1,5 @@
 using System.Linq;
 using UnityEngine.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI
@@ -21,22 +20,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI
             m_Type = type;
         }
 
-        public static void DefaultHandler(UndoStateComponent undoState, GraphViewStateComponent graphViewState, AddPortCommand command)
+        public static void DefaultHandler(UndoStateComponent undoState, GraphModelStateComponent graphModelState, AddPortCommand command)
         {
             if (!command.Models.Any() || command.m_PortDirection == PortDirection.None)
                 return;
 
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphViewState, command);
+                undoStateUpdater.SaveSingleState(graphModelState, command);
             }
 
-            using (var updater = graphViewState.UpdateScope)
+            using (var updater = graphModelState.UpdateScope)
             {
                 foreach (var nodeModel in command.Models)
                     nodeModel.AddPort(command.m_PortOrientation, command.m_PortDirection, command.m_Type);
 
-                updater.MarkChanged(command.Models.Cast<NodeModel>());
+                updater.MarkChanged(command.Models.OfType<IGraphElementModel>(), ChangeHint.GraphTopology);
             }
         }
     }

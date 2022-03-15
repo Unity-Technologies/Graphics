@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class GraphViewTester
     {
-        static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(SelectionDragger.panAreaWidth * 8, SelectionDragger.panAreaWidth * 6));
+        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(SelectionDragger.panAreaWidth * 8, SelectionDragger.panAreaWidth * 6));
 
         bool m_SnapToPortEnabled;
         bool m_SnapToBorderEnabled;
@@ -18,10 +18,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         bool m_SnapToSpacingEnabled;
         float m_SpacingMarginValue;
 
-        protected TestGraphViewWindow window { get; private set; }
-        protected TestGraphView graphView { get; private set; }
-        protected TestEventHelpers helpers { get; private set; }
-        protected IGraphModel GraphModel => window.GraphTool.ToolState.GraphModel;
+        protected TestGraphViewWindow Window { get; set; }
+        protected TestGraphView GraphView { get; private set; }
+        protected TestEventHelpers Helpers { get; private set; }
+        protected IGraphModel GraphModel => Window.GraphTool.ToolState.GraphModel;
 
         bool m_EnablePersistence;
 
@@ -31,6 +31,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         }
 
         bool m_SavedUseNewStylesheets;
+
+        protected virtual void CreateWindow()
+        {
+            Window = EditorWindow.GetWindowWithRect<TestGraphViewWindow>(k_WindowRect);
+            Window.CloseAllOverlays();
+        }
+
         [SetUp]
         public virtual void SetUp()
         {
@@ -45,39 +52,35 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GraphViewSettings.UserSettings.EnableSnapToGrid = false;
             GraphViewSettings.UserSettings.EnableSnapToSpacing = false;
 
-            m_SavedUseNewStylesheets = GraphElementHelper.UseNewStylesheets;
-            GraphElementHelper.UseNewStylesheets = true;
-
-            window = EditorWindow.GetWindowWithRect<TestGraphViewWindow>(k_WindowRect);
+            CreateWindow();
 
             if (!m_EnablePersistence)
-                window.DisableViewDataPersistence();
+                Window.DisableViewDataPersistence();
             else
-                window.ClearPersistentViewData();
+                Window.ClearPersistentViewData();
 
-            graphView = window.GraphView as TestGraphView;
-            graphView.AddTestStylesheet("Tests.uss");
+            GraphView = Window.GraphView as TestGraphView;
+            GraphView.AddTestStylesheet("Tests.uss");
 
-            helpers = new TestEventHelpers(window);
+            Helpers = new TestEventHelpers(Window);
 
             var graphAsset = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
-            window.GraphView.Dispatch(new LoadGraphAssetCommand(graphAsset));
-            window.GraphTool.Update();
+            Window.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+            Window.GraphTool.Update();
 
             Vector3 frameTranslation = Vector3.zero;
             Vector3 frameScaling = Vector3.one;
-            window.GraphView.Dispatch(new ReframeGraphViewCommand(frameTranslation, frameScaling));
-            window.GraphTool.Update();
+            Window.GraphView.Dispatch(new ReframeGraphViewCommand(frameTranslation, frameScaling));
+            Window.GraphTool.Update();
         }
 
         [TearDown]
         public virtual void TearDown()
         {
-            GraphElementHelper.UseNewStylesheets = m_SavedUseNewStylesheets;
-            UIForModel.Reset();
+            ViewForModel.Reset();
 
             if (m_EnablePersistence)
-                window.ClearPersistentViewData();
+                Window.ClearPersistentViewData();
 
             Clear();
 
@@ -93,21 +96,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             // See case: https://fogbugz.unity3d.com/f/cases/998343/
             // Clearing the capture needs to happen before closing the window
             MouseCaptureController.ReleaseMouse();
-            if (window != null)
+            if (Window != null)
             {
-                window.Close();
+                Window.Close();
             }
         }
 
         protected void MarkGraphViewStateDirty()
         {
-            using (var updater = graphView.GraphViewState.UpdateScope)
+            using (var updater = GraphView.GraphViewModel.GraphModelState.UpdateScope)
             {
                 updater.ForceCompleteUpdate();
             }
         }
 
-        protected IONodeModel CreateNode(string title = "", Vector2 position = default, int inCount = 0, int outCount = 0, int exeInCount = 0, int exeOutCount = 0, PortOrientation orientation = PortOrientation.Horizontal)
+        public IONodeModel CreateNode(string title = "", Vector2 position = default, int inCount = 0, int outCount = 0, int exeInCount = 0, int exeOutCount = 0, PortOrientation orientation = PortOrientation.Horizontal)
         {
             return CreateNode<IONodeModel>(title, position, inCount, outCount, exeInCount, exeOutCount, orientation);
         }
@@ -167,14 +170,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         protected IEnumerator ConnectPorts(IPortModel fromPort, IPortModel toPort)
         {
             var originalEdgeCount = GraphModel.EdgeModels.Count;
-            var fromPortUI = fromPort.GetUI<Port>(graphView);
-            var toPortUI = toPort.GetUI<Port>(graphView);
+            var fromPortUI = fromPort.GetView<Port>(GraphView);
+            var toPortUI = toPort.GetView<Port>(GraphView);
 
             Assert.IsNotNull(fromPortUI);
             Assert.IsNotNull(toPortUI);
 
             // Drag an edge between the two ports
-            helpers.DragTo(fromPortUI.GetGlobalCenter(), toPortUI.GetGlobalCenter());
+            Helpers.DragTo(fromPortUI.GetGlobalCenter(), toPortUI.GetGlobalCenter());
             yield return null;
 
             Assert.AreEqual(originalEdgeCount + 1, GraphModel.EdgeModels.Count, "Edge has not been created");
@@ -193,6 +196,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             sticky.Contents = contents;
             sticky.Title = title;
             return sticky;
+        }
+
+        protected ISubgraphNodeModel CreateSubgraphNode(IGraphAssetModel referenceGraphAsset, Vector2 position = default)
+        {
+            var subgraphNode = GraphModel.CreateSubgraphNode((GraphAssetModel)referenceGraphAsset, position);
+            return subgraphNode;
         }
 
         public static void AssertVector2AreEqualWithinDelta(Vector2 expected, Vector2 actual, float withinDelta, string message = null)

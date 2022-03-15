@@ -1,0 +1,59 @@
+.ge-main-toolbar #errorIconLabel, .ge-main-toolbar #previousErrorButton {
+    border-left-width: 1px;
+}
+
+.ge-main-toolbar #newGraphButton .icon {
+    background-image: var(--graph-toolbar-icon-new);
+}
+
+.ge-main-toolbar #saveAllButton .icon {
+    background-image: resource("SaveActive");
+}
+
+.ge-main-toolbar #buildAllButton .icon {
+    width: 14px;
+    height: 12px;
+    background-image: var(--graph-toolbar-icon-build);
+}
+
+.ge-main-toolbar #refreshButton .icon {
+    background-image: var(--graph-toolbar-icon-refresh);
+}
+
+.ge-main-toolbar #showBlackboardButton {
+    border-left-width: 1px;
+}
+
+.ge-main-toolbar #showBlackboardButton .icon {
+    background-image: var(--graph-toolbar-icon-blackboard);
+}
+
+.ge-main-toolbar #showMiniMapButton .icon {
+    background-image: var(--graph-toolbar-icon-minimap);
+}
+
+.ge-main-toolbar #optionsButton .icon {
+    background-image: var(--graph-toolbar-icon-options);
+}
+
+/* breadcrumb */
+
+.ge-main-toolbar #breadcrumbButton .popupIcon {
+    background-image: resource("IN pulldown");
+    width: 8px;
+    height: 13px;
+}
+
+.ge-main-toolbar #breadcrumbButton .icon {
+    background-image: var(--graph-toolbar-icon-open);
+    width: 14px;
+    height: 12px;
+}
+
+.ge-main-toolbar #breadcrumbButton {
+    flex-direction: row;
+    -unity-slice-left: 1;
+    -unity-slice-right: 1;
+    -unity-slice-top: 1;
+    -unity-slice-bottom: 1;
+}

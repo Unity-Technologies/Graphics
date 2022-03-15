@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
@@ -18,9 +17,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
         public Type Type => Value.Type;
         public bool IsLocked { get; set; }
         public IConstant Value { get; set; }
-        public void PredefineSetup()
+        public void Initialize(TypeHandle constantTypeHandle)
         {
-            Value.ObjectValue = Value.DefaultValue;
+            Value.Initialize(constantTypeHandle);
         }
 
         public void SetValue<T>(T value)

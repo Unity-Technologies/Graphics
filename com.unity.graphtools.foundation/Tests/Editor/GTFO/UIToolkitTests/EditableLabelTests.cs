@@ -22,6 +22,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIToolkitTests
             Assert.IsFalse(called, "CollapsedButton called our callback.");
         }
 
+        [Test]
+        public void SetValueWithoutNotifyDoesNothingWhenFieldIsInEditMode()
+        {
+            var editableLabel = new EditableLabel();
+            var label = editableLabel.SafeQ<Label>(EditableLabel.labelName);
+            Window.rootVisualElement.Add(editableLabel);
+            editableLabel.SetValueWithoutNotify("42");
+
+            editableLabel.BeginEditing();
+            editableLabel.SetValueWithoutNotify("Blah");
+            editableLabel.Blur();
+
+            Assert.AreEqual("42", label.text);
+        }
+
         [UnityTest]
         public IEnumerator SingleClickOnEditableLabelDoesNotShowTextField()
         {

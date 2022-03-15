@@ -50,7 +50,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return IsInputOrOutput(self) && self.DataType == TypeHandle.ExecutionFlow;
         }
 
-        static bool IsOutput(this IVariableDeclarationModel self) => self.Modifiers == ModifierFlags.WriteOnly;
-        static bool IsInput(this IVariableDeclarationModel declarationModel) => declarationModel.Modifiers == ModifierFlags.ReadOnly;
+        static bool IsOutput(this IVariableDeclarationModel self) => self.Modifiers == ModifierFlags.Write;
+        static bool IsInput(this IVariableDeclarationModel declarationModel) => declarationModel.Modifiers == ModifierFlags.Read;
     }
 }

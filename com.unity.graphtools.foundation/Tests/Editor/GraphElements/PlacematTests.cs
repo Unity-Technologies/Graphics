@@ -85,9 +85,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var element = elementModel.GetUI<GraphElement>(graphView);
-            var pm = pmModel.GetUI<Placemat>(graphView);
-            var pm2 = pm2Model.GetUI<Placemat>(graphView);
+            var element = elementModel.GetView<GraphElement>(GraphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
+            var pm2 = pm2Model.GetView<Placemat>(GraphView);
 
             string Elem() => elementType == ElementType.Node ? "Node" : "Sticky note";
 
@@ -105,9 +105,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 MarkGraphViewStateDirty();
                 yield return null;
 
-                element = elementModel.GetUI<GraphElement>(graphView);
-                pm = pmModel.GetUI<Placemat>(graphView);
-                pm2 = pm2Model.GetUI<Placemat>(graphView);
+                element = elementModel.GetView<GraphElement>(GraphView);
+                pm = pmModel.GetView<Placemat>(GraphView);
+                pm2 = pm2Model.GetView<Placemat>(GraphView);
 
                 if (element != null)
                     Assert.IsFalse(element.visible, $"{Elem()} should not be visible after main placemat collapsing.");
@@ -120,18 +120,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             // Move!
             {
-                var worldPmPosition = graphView.ContentViewContainer.LocalToWorld(pm.layout.position);
+                var worldPmPosition = GraphView.ContentViewContainer.LocalToWorld(pm.layout.position);
                 var start = worldPmPosition + k_SelectionOffset;
                 var end = start + moveDelta;
-                helpers.DragTo(start, end, eventModifiers: modifier);
+                Helpers.DragTo(start, end, eventModifiers: modifier);
                 yield return null;
             }
 
             yield return null;
 
-            element = elementModel.GetUI<GraphElement>(graphView);
-            pm = pmModel.GetUI<Placemat>(graphView);
-            pm2 = pm2Model.GetUI<Placemat>(graphView);
+            element = elementModel.GetView<GraphElement>(GraphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
+            pm2 = pm2Model.GetView<Placemat>(GraphView);
 
             // Main placemat will always move.
             // The node and second placemat will not move if and only if Shift is pressed (so we move only the main
@@ -163,8 +163,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 pm.CollapsePlacemat(false);
                 yield return null;
 
-                element = elementModel.GetUI<GraphElement>(graphView);
-                pm2 = pm2Model.GetUI<Placemat>(graphView);
+                element = elementModel.GetView<GraphElement>(GraphView);
+                pm2 = pm2Model.GetView<Placemat>(GraphView);
 
                 if (element != null)
                     Assert.IsTrue(element.visible, $"{Elem()} should be visible after main placemat uncollapsing.");
@@ -188,12 +188,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             while (actions.MoveNext())
                 yield return null;
 
-            var node1 = node1Model.GetUI<Node>(graphView);
-            var node2 = node2Model.GetUI<Node>(graphView);
-            var pm = pmModel.GetUI<Placemat>(graphView);
+            var node1 = node1Model.GetView<Node>(GraphView);
+            var node2 = node2Model.GetView<Node>(GraphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
 
             var edgeModel = node1Model.GetOutputPorts().First().GetConnectedEdges().First();
-            var edge = edgeModel.GetUI<Edge>(graphView);
+            var edge = edgeModel.GetView<Edge>(GraphView);
 
             bool node1Overlaps = pm.worldBound.Overlaps(node1.worldBound);
             bool node2Overlaps = pm.worldBound.Overlaps(node2.worldBound);
@@ -213,10 +213,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             pm.CollapsePlacemat(true);
             yield return null;
 
-            node1 = node1Model.GetUI<Node>(graphView);
-            node2 = node2Model.GetUI<Node>(graphView);
-            pm = pmModel.GetUI<Placemat>(graphView);
-            edge = edgeModel.GetUI<Edge>(graphView);
+            node1 = node1Model.GetView<Node>(GraphView);
+            node2 = node2Model.GetView<Node>(GraphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
+            edge = edgeModel.GetView<Edge>(GraphView);
 
             if (node1Overlaps)
             {
@@ -235,22 +235,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.IsTrue(isPortOverridden, "Port of collapsed node should be overridden.");
             if (node1Overlaps)
             {
-                var edgePos = graphView.ContentViewContainer.LocalToWorld(edge.From);
+                var edgePos = GraphView.ContentViewContainer.LocalToWorld(edge.From);
                 Assert.AreEqual(portOverridePos, edgePos, "Overriden port position is not what it was expected.");
             }
             else
             {
-                var edgePos = graphView.ContentViewContainer.LocalToWorld(edge.To);
+                var edgePos = GraphView.ContentViewContainer.LocalToWorld(edge.To);
                 Assert.AreEqual(portOverridePos, edgePos, "Overriden port position is not what it was expected.");
             }
 
             pm.CollapsePlacemat(false);
             yield return null;
 
-            node1 = node1Model.GetUI<Node>(graphView);
-            node2 = node2Model.GetUI<Node>(graphView);
-            pm = pmModel.GetUI<Placemat>(graphView);
-            edge = edgeModel.GetUI<Edge>(graphView);
+            node1 = node1Model.GetView<Node>(GraphView);
+            node2 = node2Model.GetView<Node>(GraphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
+            edge = edgeModel.GetView<Edge>(GraphView);
 
             Assert.IsTrue(node1.visible, "Node should be visible after to placemat uncollapsing.");
             Assert.IsTrue(node2.visible, "Node should be visible after to placemat uncollapsing.");
@@ -271,13 +271,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var start = mouseStart;
             var delta = Vector2.up * 50;
             var end = start + delta;
-            helpers.DragTo(start, end);
+            Helpers.DragTo(start, end);
             yield return null;
 
             // Test Move
             for (int i = 0; i < positions.Length; i++)
             {
-                pm = pmModels[i].GetUI<Placemat>(graphView);
+                pm = pmModels[i].GetView<Placemat>(GraphView);
                 AssertVector2AreEqualWithinDelta(GraphViewStaticBridge.RoundToPixelGrid(positions[i].position + delta),
                     pm.layout.position, 0.0001f, $"Placemat with zOrder {i + 1} did not move properly");
             }
@@ -285,20 +285,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             // Test Collapse
             for (int i = 0; i < positions.Length; i++)
             {
-                pm = pmModels[i].GetUI<Placemat>(graphView);
+                pm = pmModels[i].GetView<Placemat>(GraphView);
                 Assert.True(pm.visible, $"Placemat with zOrder {i + 1} should be visible before collapse");
             }
 
-            pm = pmModels[0].GetUI<Placemat>(graphView);
+            pm = pmModels[0].GetView<Placemat>(GraphView);
             pm.CollapsePlacemat(true);
             yield return null;
 
-            pm = pmModels[0].GetUI<Placemat>(graphView);
+            pm = pmModels[0].GetView<Placemat>(GraphView);
             Assert.True(pm.visible, "Placemat with zOrder 1 should be visible after collapse");
 
             for (int i = 1; i < positions.Length; i++)
             {
-                pm = pmModels[i].GetUI<Placemat>(graphView);
+                pm = pmModels[i].GetView<Placemat>(GraphView);
                 Assert.False(pm.visible, $"Placemat with zOrder {i + 1} should not be visible after collapse");
             }
         }
@@ -310,7 +310,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GraphViewSettings.UserSettings.EnableSnapToBorders = false;
             GraphViewSettings.UserSettings.EnableSnapToPort = false;
 
-            graphView.AddTestStylesheet("Tests.uss");
+            GraphView.AddTestStylesheet("Tests.uss");
         }
 
         [Test]
@@ -333,13 +333,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var pm2Model = CreatePlacemat(k_DefaultPlacematRect);
             var pm3Model = CreatePlacemat(k_DefaultPlacematRect);
             var pm4Model = CreatePlacemat(k_DefaultPlacematRect);
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
             yield return null;
 
-            var pm1 = pm1Model.GetUI<Placemat>(graphView);
-            var pm2 = pm2Model.GetUI<Placemat>(graphView);
-            var pm3 = pm3Model.GetUI<Placemat>(graphView);
-            var pm4 = pm4Model.GetUI<Placemat>(graphView);
+            var pm1 = pm1Model.GetView<Placemat>(GraphView);
+            var pm2 = pm2Model.GetView<Placemat>(GraphView);
+            var pm3 = pm3Model.GetView<Placemat>(GraphView);
+            var pm4 = pm4Model.GetView<Placemat>(GraphView);
 
             var orders = new[] { 0, 1, 2, 3 };
 
@@ -347,52 +347,52 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             //                              ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm1, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle up.");
             //                                   ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm1, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle up.");
             //                                        ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm4, pm1 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle up.");
             //                                             ^^^
 
             // Once at the top, it stays at the top
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm4, pm1 }.Select(p => p.PlacematModel.GetZOrder()), "Cycling up topmost placemat should be idempotent.");
             //                                             ^^^
 
             // Go back down
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm1, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle down.");
             //                                        ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm1, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle down.");
             //                                   ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle down.");
             //                              ^^^
 
             // Once at the bottom, it stays at the bottom
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Cycling down bottommost placemat should be idempotent.");
             //                              ^^^
@@ -414,34 +414,34 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var pm2Model = CreatePlacemat(k_DefaultPlacematRect, "pm 2");
             var pm3Model = CreatePlacemat(k_DefaultPlacematRect, "pm 3");
             var pm4Model = CreatePlacemat(k_DefaultPlacematRect, "pm 4");
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
             yield return null;
 
-            var pm1 = pm1Model.GetUI<Placemat>(graphView);
-            var pm2 = pm2Model.GetUI<Placemat>(graphView);
-            var pm3 = pm3Model.GetUI<Placemat>(graphView);
-            var pm4 = pm4Model.GetUI<Placemat>(graphView);
+            var pm1 = pm1Model.GetView<Placemat>(GraphView);
+            var pm2 = pm2Model.GetView<Placemat>(GraphView);
+            var pm3 = pm3Model.GetView<Placemat>(GraphView);
+            var pm4 = pm4Model.GetView<Placemat>(GraphView);
 
             CheckOrder(new[] { pm1, pm2, pm3, pm4 });
 
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveTop, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveTop, new[] {pm1Model}));
             yield return null;
             CheckOrder(new[] { pm2, pm3, pm4, pm1 });
 
             // BringPlacematToFront called twice is idempotent.
             var currentZOrders = new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder());
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveTop, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveTop, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(currentZOrders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Bringing to front topmost placemat should be idempotent.");
 
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm1Model}));
             yield return null;
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
             CheckOrder(new[] { pm1, pm2, pm3, pm4 });
 
             // SendPlacematToBack called twice is idempotent.
             currentZOrders = new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder());
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(currentZOrders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Sending to back bottommost placemat should be idempotent.");
         }
@@ -455,23 +455,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             MarkGraphViewStateDirty();
             yield return null;
-            var pm = pmModel.GetUI<Placemat>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
 
             var newRect = pm.ComputeGrowToFitElementsRect();
             if (newRect != Rect.zero)
-                graphView.Dispatch(new ChangeElementLayoutCommand(pmModel, newRect));
+                GraphView.Dispatch(new ChangeElementLayoutCommand(pmModel, newRect));
             yield return null;
 
-            pm = pmModel.GetUI<Placemat>(graphView);
-            var node1 = node1Model.GetUI<Node>(graphView);
-            var node2 = node2Model.GetUI<Node>(graphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
+            var node1 = node1Model.GetView<Node>(GraphView);
+            var node2 = node2Model.GetView<Node>(GraphView);
 
-            var placematBounds = new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds),
-                GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds));
+            var placematBounds = new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds),
+                GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds));
 
             AssertVector2AreEqualWithinDelta(node1.layout.position -
-                new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds),
-                    GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds + Placemat.boundTop)),
+                new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds),
+                    GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds + Placemat.k_BoundTop)),
                 pm.layout.position,
                 0.0001f,
                 "Incorrect placemat top left position after growing it to fit nodes over it.");
@@ -492,20 +492,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var pm = pmModel.GetUI<Placemat>(graphView);
-            var node1 = node1Model.GetUI<Node>(graphView);
-            var node2 = node2Model.GetUI<Node>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
+            var node1 = node1Model.GetView<Node>(GraphView);
+            var node2 = node2Model.GetView<Node>(GraphView);
 
             var newRect = pm.ComputeGrowToFitElementsRect(new List<GraphElement> { node1, node2 });
             if (newRect != Rect.zero)
-                graphView.Dispatch(new ChangeElementLayoutCommand(pmModel, newRect));
+                GraphView.Dispatch(new ChangeElementLayoutCommand(pmModel, newRect));
             yield return null;
 
-            pm = pmModel.GetUI<Placemat>(graphView);
-            node2 = node2Model.GetUI<Node>(graphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
+            node2 = node2Model.GetView<Node>(GraphView);
 
-            var placematBounds = new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds),
-                GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds));
+            var placematBounds = new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds),
+                GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds));
 
             // Since we're not snugging, the position of the placemat will remain unchanged.
             Assert.AreEqual(GraphViewStaticBridge.RoundToPixelGrid(k_DefaultPlacematRect.position), pm.layout.position,
@@ -532,23 +532,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var pm = pmModel.GetUI<Placemat>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
 
             var newRect = pm.ComputeShrinkToFitElementsRect();
             if (newRect != Rect.zero)
-                graphView.Dispatch(new ChangeElementLayoutCommand(pmModel, newRect));
+                GraphView.Dispatch(new ChangeElementLayoutCommand(pmModel, newRect));
             yield return null;
 
-            pm = pmModel.GetUI<Placemat>(graphView);
-            var node1 = node1Model.GetUI<Node>(graphView);
-            var node2 = node2Model.GetUI<Node>(graphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
+            var node1 = node1Model.GetView<Node>(GraphView);
+            var node2 = node2Model.GetView<Node>(GraphView);
 
-            var placematBounds = new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds),
-                GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds));
+            var placematBounds = new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds),
+                GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds));
 
             AssertVector2AreEqualWithinDelta(node1.layout.position -
-                new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds),
-                    GraphViewStaticBridge.RoundToPixelGrid(Placemat.bounds + Placemat.boundTop)),
+                new Vector2(GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds),
+                    GraphViewStaticBridge.RoundToPixelGrid(Placemat.k_Bounds + Placemat.k_BoundTop)),
                 pm.layout.position,
                 0.0001f,
                 "Incorrect placemat top left position after growing it to fit nodes over it.");
@@ -638,31 +638,31 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             // Move!
             {
-                var worldPmPosition = graphView.ContentViewContainer.LocalToWorld(k_DefaultPlacematRect.position);
+                var worldPmPosition = GraphView.ContentViewContainer.LocalToWorld(k_DefaultPlacematRect.position);
                 var start = worldPmPosition + k_SelectionOffset;
                 var end = start + moveDelta;
-                helpers.MouseDownEvent(start);
+                Helpers.MouseDownEvent(start);
                 yield return null;
 
                 for (int i = 0; i < steps; i++)
                 {
                     // Make sure we get under the node
-                    helpers.MouseDragEvent(start, end);
+                    Helpers.MouseDragEvent(start, end);
                     yield return null;
 
                     start = end;
                     end += moveDelta;
                 }
 
-                helpers.MouseUpEvent(end);
+                Helpers.MouseUpEvent(end);
                 yield return null;
             }
 
             // The placemat will have moved, but not the node.
             Vector2 expectedPlacematPos = GraphViewStaticBridge.RoundToPixelGrid(k_DefaultPlacematRect.position + moveDelta * steps);
             Vector2 expectedNodePos = GraphViewStaticBridge.RoundToPixelGrid(startNodePos);
-            var pm = pmModel.GetUI<Placemat>(graphView);
-            var node = nodeModel.GetUI<Node>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
+            var node = nodeModel.GetView<Node>(GraphView);
             Assert.AreEqual(expectedPlacematPos, pm?.layout.position, "Placemat should have moved following manipulation.");
             Assert.AreEqual(expectedNodePos, node?.layout.position, "Node should not have moved when placemat was moved under it.");
             yield return null;
@@ -828,21 +828,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var pm = pmModel.GetUI<Placemat>(graphView);
-            var pm2 = pm2Model.GetUI<Placemat>(graphView);
-            var node = nodeModel.GetUI<Node>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
+            var pm2 = pm2Model.GetView<Placemat>(GraphView);
+            var node = nodeModel.GetView<Node>(GraphView);
 
-            graphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm2Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm2Model}));
             yield return null;
 
             Vector2 moveDelta = new Vector2(20, 20);
 
             // Move!
             {
-                var worldPmPosition = graphView.ContentViewContainer.LocalToWorld(pm.layout.position);
+                var worldPmPosition = GraphView.ContentViewContainer.LocalToWorld(pm.layout.position);
                 var start = worldPmPosition + k_SelectionOffset;
                 var end = start + moveDelta;
-                helpers.DragTo(start, end);
+                Helpers.DragTo(start, end);
                 yield return null;
             }
 
@@ -982,34 +982,34 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            var node1 = node1Model.GetUI<Node>(graphView);
-            var node2 = node2Model.GetUI<Node>(graphView);
-            var edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetUI<Edge>(graphView);
+            var node1 = node1Model.GetView<Node>(GraphView);
+            var node2 = node2Model.GetView<Node>(GraphView);
+            var edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetView<Edge>(GraphView);
 
             Assert.IsTrue(node1.visible, "Node should be visible prior to placemat collapsing.");
             Assert.IsTrue(node2.visible, "Node should be visible prior to placemat collapsing.");
             Assert.IsTrue(edge.visible, "Edge should be visible prior to placemat collapsing.");
 
-            var pm = pmModel.GetUI<Placemat>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
 
             pm.CollapsePlacemat(true);
             yield return null;
 
-            node1 = node1Model.GetUI<Node>(graphView);
-            node2 = node2Model.GetUI<Node>(graphView);
-            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetUI<Edge>(graphView);
+            node1 = node1Model.GetView<Node>(GraphView);
+            node2 = node2Model.GetView<Node>(GraphView);
+            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetView<Edge>(GraphView);
 
             Assert.IsFalse(node1.visible, "Node over placemat should not be visible after placemat collapse.");
             Assert.IsFalse(node2.visible, "Node over placemat should not be visible after placemat collapse.");
             Assert.IsFalse(edge.visible, "Edge connecting two nodes over placemat should not be visible after placemat collapse.");
 
-            pm = pmModel.GetUI<Placemat>(graphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
             pm.CollapsePlacemat(false);
             yield return null;
 
-            node1 = node1Model.GetUI<Node>(graphView);
-            node2 = node2Model.GetUI<Node>(graphView);
-            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetUI<Edge>(graphView);
+            node1 = node1Model.GetView<Node>(GraphView);
+            node2 = node2Model.GetView<Node>(GraphView);
+            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetView<Edge>(GraphView);
 
             Assert.IsTrue(node1.visible, "Node should be visible after to placemat uncollapsing.");
             Assert.IsTrue(node2.visible, "Node should be visible after to placemat uncollapsing.");
@@ -1045,24 +1045,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var pm = pmModel.GetUI<Placemat>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
             pm.CollapsePlacemat(true);
             yield return null;
 
-            var node = nodeModel.GetUI<Node>(graphView);
+            var node = nodeModel.GetView<Node>(GraphView);
             Assert.AreEqual(nodePos, node.layout.position);
 
             // Move pm2
             {
-                var pm2 = pm2Model.GetUI<Placemat>(graphView);
-                var worldPm2Position = graphView.ContentViewContainer.LocalToWorld(pm2.layout.position);
+                var pm2 = pm2Model.GetView<Placemat>(GraphView);
+                var worldPm2Position = GraphView.ContentViewContainer.LocalToWorld(pm2.layout.position);
                 var start = worldPm2Position + k_SelectionOffset;
                 var end = start + (Vector2.right * 100);
-                helpers.DragTo(start, end);
+                Helpers.DragTo(start, end);
                 yield return null;
             }
 
-            node = nodeModel.GetUI<Node>(graphView);
+            node = nodeModel.GetView<Node>(GraphView);
             Assert.AreEqual(nodePos, node.layout.position);
         }
 
@@ -1087,7 +1087,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 new Rect(425, 175, 200, 100),
                 new Rect(300, 250, 200, 100)
             };
-            var actions = TestStackedPlacematsMoveAndCollapse(pos[0].center, pos);
+            var actions = TestStackedPlacematsMoveAndCollapse(GraphView.ContentViewContainer.LocalToWorld(pos[0].center), pos);
 
             while (actions.MoveNext())
                 yield return null;
@@ -1126,7 +1126,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 new Rect(550, 275, 200, 100),
                 new Rect(800, 275, 200, 100)
             };
-            var actions = TestStackedPlacematsMoveAndCollapse(pos[0].center, pos);
+            var actions = TestStackedPlacematsMoveAndCollapse(GraphView.ContentViewContainer.LocalToWorld(pos[0].center), pos);
 
             while (actions.MoveNext())
                 yield return null;
@@ -1155,7 +1155,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
                 new Rect(50, 200, 825, 100)
             };
-            var actions = TestStackedPlacematsMoveAndCollapse(pos[0].center, pos);
+            var actions = TestStackedPlacematsMoveAndCollapse(GraphView.ContentViewContainer.LocalToWorld(pos[0].center), pos);
 
             while (actions.MoveNext())
                 yield return null;
@@ -1194,28 +1194,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var pm2 = pm2Model.GetUI<Placemat>(graphView);
-            var node = nodeModel.GetUI<Node>(graphView);
+            var pm2 = pm2Model.GetView<Placemat>(GraphView);
+            var node = nodeModel.GetView<Node>(GraphView);
 
             Assert.True(node.visible, "Node should be visible prior to collapse");
             pm2.CollapsePlacemat(true);
             yield return null;
 
-            node = nodeModel.GetUI<Node>(graphView);
+            node = nodeModel.GetView<Node>(GraphView);
             Assert.False(node.visible, "Node should not be visible after collapse");
             yield return null;
 
-            var worldPmPosition = graphView.ContentViewContainer.LocalToWorld(k_DefaultPlacematRect.position);
+            var worldPmPosition = GraphView.ContentViewContainer.LocalToWorld(k_DefaultPlacematRect.position);
             var start = worldPmPosition + k_SelectionOffset;
             var delta = Vector2.one * 10;
             var end = start + delta;
-            helpers.DragTo(start, end);
+            Helpers.DragTo(start, end);
             yield return null;
 
             pm2.CollapsePlacemat(false);
             yield return null;
 
-            node = nodeModel.GetUI<Node>(graphView);
+            node = nodeModel.GetView<Node>(GraphView);
             Assert.True(node.visible, "Node should be visible after uncollapse");
             Assert.AreEqual(nodePos + delta, node.layout.position, "Node should have moved with the placemat hiding it");
         }
@@ -1255,10 +1255,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            var node1 = node1Model.GetUI<Node>(graphView);
-            var node2 = node2Model.GetUI<Node>(graphView);
-            var edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetUI<Edge>(graphView);
-            var pm2 = pm2Model.GetUI<Placemat>(graphView);
+            var node1 = node1Model.GetView<Node>(GraphView);
+            var node2 = node2Model.GetView<Node>(GraphView);
+            var edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetView<Edge>(GraphView);
+            var pm2 = pm2Model.GetView<Placemat>(GraphView);
 
             Assert.True(node1.visible, "Node should be visible prior to collapse");
             Assert.True(node2.visible, "Node should be visible prior to collapse");
@@ -1266,10 +1266,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             pm2.CollapsePlacemat(true);
             yield return null;
 
-            node1 = node1Model.GetUI<Node>(graphView);
-            node2 = node2Model.GetUI<Node>(graphView);
-            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetUI<Edge>(graphView);
-            pm2 = pm2Model.GetUI<Placemat>(graphView);
+            node1 = node1Model.GetView<Node>(GraphView);
+            node2 = node2Model.GetView<Node>(GraphView);
+            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetView<Edge>(GraphView);
+            pm2 = pm2Model.GetView<Placemat>(GraphView);
 
             Assert.False(node1.visible, "Node should not be visible after collapse");
             Assert.True(node2.visible, "Node should still be visible after collapse");
@@ -1277,22 +1277,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             var isPortOverridden = pm2.GetPortCenterOverride(node1Model.GetOutputPorts().First(), out var portOverridePos);
             Assert.IsTrue(isPortOverridden, "Port of hidden node should be overridden.");
-            var edgeFromPos = graphView.ContentViewContainer.LocalToWorld(edge.From);
+            var edgeFromPos = GraphView.ContentViewContainer.LocalToWorld(edge.From);
             Assert.AreEqual(portOverridePos, edgeFromPos, "Overriden port position is not what it was expected.");
 
-            var worldPmPosition = graphView.ContentViewContainer.LocalToWorld(k_DefaultPlacematRect.position);
+            var worldPmPosition = GraphView.ContentViewContainer.LocalToWorld(k_DefaultPlacematRect.position);
             var start = worldPmPosition + k_SelectionOffset;
             var delta = Vector2.one * 10;
             var end = start + delta;
-            helpers.DragTo(start, end);
+            Helpers.DragTo(start, end);
             yield return null;
 
-            pm2 = pm2Model.GetUI<Placemat>(graphView);
-            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetUI<Edge>(graphView);
+            pm2 = pm2Model.GetView<Placemat>(GraphView);
+            edge = node1Model.GetOutputPorts().First().GetConnectedEdges().First().GetView<Edge>(GraphView);
 
             isPortOverridden = pm2.GetPortCenterOverride(node1Model.GetOutputPorts().First(), out portOverridePos);
             Assert.IsTrue(isPortOverridden, "Port of hidden node should still be overridden.");
-            edgeFromPos = graphView.ContentViewContainer.LocalToWorld(edge.From);
+            edgeFromPos = GraphView.ContentViewContainer.LocalToWorld(edge.From);
             Assert.AreEqual(portOverridePos, edgeFromPos, "Overriden port position is not what it was expected after move.");
         }
 
@@ -1305,25 +1305,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var pm = pmModel.GetUI<Placemat>(graphView);
+            var pm = pmModel.GetView<Placemat>(GraphView);
 
             var newRect = new Rect(-42, 4242, 242, 242);
-            pm.SetPosition(newRect);
+            pm.SetPositionAndSize(newRect);
             yield return null;
 
             Assert.AreEqual(newRect, pm.layout);
 
-            using (var graphUpdater = graphView.GraphViewState.UpdateScope)
+            using (var graphUpdater = GraphView.GraphViewModel.GraphModelState.UpdateScope)
             {
                 pmModel.PositionAndSize = newRect;
                 pmModel.Collapsed = true;
-                graphUpdater.MarkChanged(pmModel);
+                graphUpdater.MarkChanged(pmModel, ChangeHint.Layout);
             }
             yield return null;
 
-            pm = pmModel.GetUI<Placemat>(graphView);
+            pm = pmModel.GetView<Placemat>(GraphView);
             var currentSize = pm.layout.size;
-            pm.SetPosition(k_DefaultPlacematRect);
+            pm.SetPositionAndSize(k_DefaultPlacematRect);
             yield return null;
 
             Assert.AreEqual(currentSize, pm.layout.size);
@@ -1335,24 +1335,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var pmModel = CreatePlacemat(k_DefaultPlacematRect);
 
             // ReSharper disable once Unity.InefficientMultiplicationOrder
-            Vector2 nodePos = k_DefaultPlacematPos + Vector2.down * 2 * Placemat.defaultCollapsedSize;
+            Vector2 nodePos = k_DefaultPlacematPos + Vector2.down * 2 * Placemat.k_DefaultCollapsedSize;
             var nodeModel = AddNode(nodePos);
 
             MarkGraphViewStateDirty();
             yield return null;
 
-            var node = nodeModel.GetUI<Node>(graphView);
+            var node = nodeModel.GetView<Node>(GraphView);
             Assert.IsFalse(node.style.visibility == Visibility.Hidden);
 
-            using (var graphUpdater = graphView.GraphViewState.UpdateScope)
+            using (var graphUpdater = GraphView.GraphViewModel.GraphModelState.UpdateScope)
             {
                 pmModel.Collapsed = true;
                 pmModel.HiddenElements = new[] { nodeModel };
-                graphUpdater.MarkChanged(pmModel);
+                graphUpdater.MarkChanged(pmModel, ChangeHint.Layout);
             }
             yield return null;
 
-            node = nodeModel.GetUI<Node>(graphView);
+            node = nodeModel.GetView<Node>(GraphView);
 
             Assert.IsTrue(node.style.visibility == Visibility.Hidden);
         }

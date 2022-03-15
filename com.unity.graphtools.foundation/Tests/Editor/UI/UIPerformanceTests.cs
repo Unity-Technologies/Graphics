@@ -13,11 +13,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 {
     class CommandThatMarksNew : UndoableCommand
     {
-        public static void DefaultCommandHandler(GraphViewStateComponent graphViewState, CommandThatMarksNew command)
+        public static void DefaultCommandHandler(GraphModelStateComponent graphModelState, CommandThatMarksNew command)
         {
-            using (var graphUpdater = graphViewState.UpdateScope)
+            using (var graphUpdater = graphModelState.UpdateScope)
             {
-                var placematModel = graphViewState.GraphModel.CreatePlacemat(Rect.zero);
+                var placematModel = graphModelState.GraphModel.CreatePlacemat(Rect.zero);
                 graphUpdater.MarkNew(placematModel);
             }
         }
@@ -25,11 +25,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
     class CommandThatMarksChanged : UndoableCommand
     {
-        public static void DefaultCommandHandler(GraphViewStateComponent graphViewState, CommandThatMarksChanged command)
+        public static void DefaultCommandHandler(GraphModelStateComponent graphModelState, CommandThatMarksChanged command)
         {
-            using (var graphUpdater = graphViewState.UpdateScope)
+            using (var graphUpdater = graphModelState.UpdateScope)
             {
-                var placemat = graphViewState.GraphModel.PlacematModels.FirstOrDefault();
+                var placemat = graphModelState.GraphModel.PlacematModels.FirstOrDefault();
                 Debug.Assert(placemat != null);
                 graphUpdater.MarkChanged(placemat);
             }
@@ -38,12 +38,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
     class CommandThatMarksDeleted : UndoableCommand
     {
-        public static void DefaultCommandHandler(GraphViewStateComponent graphViewState, CommandThatMarksDeleted command)
+        public static void DefaultCommandHandler(GraphModelStateComponent graphModelState, CommandThatMarksDeleted command)
         {
-            using (var graphUpdater = graphViewState.UpdateScope)
+            using (var graphUpdater = graphModelState.UpdateScope)
             {
-                var placemat = graphViewState.GraphModel.PlacematModels.FirstOrDefault();
-                graphViewState.GraphModel.DeletePlacemats(new[] { placemat });
+                var placemat = graphModelState.GraphModel.PlacematModels.FirstOrDefault();
+                graphModelState.GraphModel.DeletePlacemats(new[] { placemat });
                 Debug.Assert(placemat != null);
                 graphUpdater.MarkDeleted(placemat);
             }
@@ -52,9 +52,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
     class CommandThatRebuildsAll : UndoableCommand
     {
-        public static void DefaultCommandHandler(GraphViewStateComponent graphViewState, CommandThatRebuildsAll command)
+        public static void DefaultCommandHandler(GraphModelStateComponent graphModelState, CommandThatRebuildsAll command)
         {
-            using (var updater = graphViewState.UpdateScope)
+            using (var updater = graphModelState.UpdateScope)
             {
                 updater.ForceCompleteUpdate();
             }
@@ -70,21 +70,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
     class GraphViewStateObserver : StateObserver
     {
-        GraphViewStateComponent m_GraphViewStateComponent;
+        GraphModelStateComponent m_GraphModelStateComponent;
 
         public UpdateType UpdateType { get; set; }
 
         /// <inheritdoc />
-        public GraphViewStateObserver(GraphViewStateComponent graphViewStateComponent)
-            : base(graphViewStateComponent)
+        public GraphViewStateObserver(GraphModelStateComponent graphModelStateComponent)
+            : base(graphModelStateComponent)
         {
-            m_GraphViewStateComponent = graphViewStateComponent;
+            m_GraphModelStateComponent = graphModelStateComponent;
         }
 
         /// <inheritdoc />
         public override void Observe()
         {
-            using (var observation = this.ObserveState(m_GraphViewStateComponent))
+            using (var observation = this.ObserveState(m_GraphModelStateComponent))
                 UpdateType = observation.UpdateType;
         }
     }
@@ -101,13 +101,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         {
             base.SetUp();
 
-            GraphView.Dispatcher.RegisterCommandHandler<GraphViewStateComponent, CommandThatMarksNew>(CommandThatMarksNew.DefaultCommandHandler, GraphView.GraphViewState);
-            GraphView.Dispatcher.RegisterCommandHandler<GraphViewStateComponent, CommandThatMarksChanged>(CommandThatMarksChanged.DefaultCommandHandler, GraphView.GraphViewState);
-            GraphView.Dispatcher.RegisterCommandHandler<GraphViewStateComponent, CommandThatMarksDeleted>(CommandThatMarksDeleted.DefaultCommandHandler, GraphView.GraphViewState);
-            GraphView.Dispatcher.RegisterCommandHandler<GraphViewStateComponent, CommandThatRebuildsAll>(CommandThatRebuildsAll.DefaultCommandHandler, GraphView.GraphViewState);
+            GraphView.Dispatcher.RegisterCommandHandler<GraphModelStateComponent, CommandThatMarksNew>(CommandThatMarksNew.DefaultCommandHandler, GraphView.GraphViewModel.GraphModelState);
+            GraphView.Dispatcher.RegisterCommandHandler<GraphModelStateComponent, CommandThatMarksChanged>(CommandThatMarksChanged.DefaultCommandHandler, GraphView.GraphViewModel.GraphModelState);
+            GraphView.Dispatcher.RegisterCommandHandler<GraphModelStateComponent, CommandThatMarksDeleted>(CommandThatMarksDeleted.DefaultCommandHandler, GraphView.GraphViewModel.GraphModelState);
+            GraphView.Dispatcher.RegisterCommandHandler<GraphModelStateComponent, CommandThatRebuildsAll>(CommandThatRebuildsAll.DefaultCommandHandler, GraphView.GraphViewModel.GraphModelState);
             GraphView.Dispatcher.RegisterCommandHandler<CommandThatDoesNothing>(CommandThatDoesNothing.DefaultCommandHandler);
 
-            m_GraphViewStateObserver = new GraphViewStateObserver(GraphView.GraphViewState);
+            m_GraphViewStateObserver = new GraphViewStateObserver(GraphView.GraphViewModel.GraphModelState);
             GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
 
             // Trigger initial update cycle.
@@ -149,7 +149,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         {
             m_GraphViewStateObserver.UpdateType = UpdateType.None;
             Type0FakeNodeModel model;
-            using (var updater = GraphView.GraphViewState.UpdateScope)
+            using (var updater = GraphView.GraphViewModel.GraphModelState.UpdateScope)
             {
                 model = GraphModel.CreateNode<Type0FakeNodeModel>("Node 0", Vector2.zero);
                 updater.MarkNew(model);

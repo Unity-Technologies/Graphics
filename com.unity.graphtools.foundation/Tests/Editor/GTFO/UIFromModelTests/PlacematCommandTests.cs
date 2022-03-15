@@ -12,10 +12,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
         public IEnumerator PlacematCollapsesOnValueChanged()
         {
             var placematModel = GraphModel.CreatePlacemat(Rect.zero);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var placemat = placematModel.GetUI<GraphElement>(GraphView);
+            var placemat = placematModel.GetView<GraphElement>(GraphView);
             var collapseButton = placemat.SafeQ<CollapseButton>(Placemat.collapseButtonPartName);
             Assert.IsNotNull(collapseButton);
             Assert.IsFalse(collapseButton.value);
@@ -31,10 +31,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
         public IEnumerator PlacematCollapsesOnClick()
         {
             var placematModel = GraphModel.CreatePlacemat(Rect.zero);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var placemat = placematModel.GetUI<GraphElement>(GraphView);
+            var placemat = placematModel.GetView<GraphElement>(GraphView);
             var collapseButton = placemat.SafeQ<CollapseButton>(Placemat.collapseButtonPartName);
             Assert.IsNotNull(collapseButton);
             Assert.IsFalse(collapseButton.value);
@@ -59,10 +59,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 
             var placematModel = GraphModel.CreatePlacemat(Rect.zero);
             placematModel.Title = "Placemat";
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var placemat = placematModel.GetUI<GraphElement>(GraphView);
+            var placemat = placematModel.GetView<GraphElement>(GraphView);
             var label = placemat.SafeQ(Placemat.titleContainerPartName).SafeQ(EditableLabel.labelName);
             var clickPosition = label.parent.LocalToWorld(label.layout.center);
             Helpers.Click(clickPosition, clickCount: 2);
@@ -83,10 +83,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 
             var placematModel = GraphModel.CreatePlacemat(originalRect);
             placematModel.Title = "Placemat";
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var placemat = placematModel.GetUI<GraphElement>(GraphView);
+            var placemat = placematModel.GetView<GraphElement>(GraphView);
             var rightResizer = placemat.SafeQ(Placemat.resizerPartName).SafeQ("right-resize");
             var clickPosition = rightResizer.parent.LocalToWorld(rightResizer.layout.center);
             Helpers.DragTo(clickPosition, clickPosition + move);

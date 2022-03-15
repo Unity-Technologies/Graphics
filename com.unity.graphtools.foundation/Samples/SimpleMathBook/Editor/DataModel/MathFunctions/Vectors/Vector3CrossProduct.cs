@@ -1,10 +1,13 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 {
     [Serializable]
+    [SearcherItem(typeof(MathBookStencil), SearcherContext.Graph, "Vectors/Vector3 Cross Product")]
+    [SeacherHelp("Outputs the cross product of all vector 3 inputs.")]
     public class Vector3CrossProduct : MathOperator
     {
         public override string Title
@@ -13,7 +16,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             set {}
         }
 
-        public override ValueType[] ValueInputTypes => new[] { ValueType.Vector3 };
+        public override TypeHandle[] ValueInputTypes => new[] { TypeHandle.Vector3 };
 
         public override Value Evaluate()
         {
@@ -29,6 +32,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         protected override void AddOutputPorts()
         {
             this.AddDataOutputPort<Vector3>("Output");
+        }
+
+        /// <inheritdoc />
+        protected override (string op, bool isInfix) GetCSharpOperator()
+        {
+            return ("Vector3.Cross", false);
         }
     }
 }

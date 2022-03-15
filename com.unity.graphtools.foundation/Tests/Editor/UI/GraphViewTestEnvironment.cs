@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive.Bridge;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;

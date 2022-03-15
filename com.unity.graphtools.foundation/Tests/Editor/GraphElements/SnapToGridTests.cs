@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class SnapToGridHelper
     {
-        public const float k_SnapDistance = 8.0f;
+        public const float snapDistance = 8.0f;
 
         public enum Edge
         {
@@ -28,15 +28,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             switch (edge)
             {
                 case Edge.Top:
-                    return k_SnapDistance + borderWidth.Top;
+                    return snapDistance + borderWidth.Top;
                 case Edge.Right:
-                    return k_SnapDistance - borderWidth.Right;
+                    return snapDistance - borderWidth.Right;
                 case Edge.Bottom:
-                    return k_SnapDistance - borderWidth.Bottom;
+                    return snapDistance - borderWidth.Bottom;
                 case Edge.Left:
-                    return k_SnapDistance + borderWidth.Left;
+                    return snapDistance + borderWidth.Left;
                 default:
-                    return k_SnapDistance;
+                    return snapDistance;
             }
         }
     }
@@ -621,8 +621,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // Get the UI nodes
-            var snappingNode = snappingNodeModel.GetUI<Node>(graphView);
-            Placemat secondElement = secondElementModel.GetUI<Placemat>(graphView);
+            var snappingNode = snappingNodeModel.GetView<Node>(GraphView);
+            Placemat secondElement = secondElementModel.GetView<Placemat>(GraphView);
             Assert.IsNotNull(snappingNode);
             Assert.IsNotNull(secondElement);
 
@@ -630,34 +630,34 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SetUINodeSize(ref snappingNode, k_HalfSpacing, k_HalfSpacing);
             yield return null;
 
-            Vector2 worldPosSnappingNode = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
-            Vector2 worldPosSecondElement = graphView.ContentViewContainer.LocalToWorld(secondElementPos);
+            Vector2 worldPosSnappingNode = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldPosSecondElement = GraphView.ContentViewContainer.LocalToWorld(secondElementPos);
 
             Vector2 selectionPosSnappingNode = worldPosSnappingNode + m_SelectionOffset;
             Vector2 selectionPosSecondElement = worldPosSecondElement + m_SelectionOffset;
 
             // Select placemat by clicking on it and pressing Ctrl
-            helpers.MouseDownEvent(selectionPosSecondElement, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDownEvent(selectionPosSecondElement, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
-            helpers.MouseUpEvent(selectionPosSecondElement, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseUpEvent(selectionPosSecondElement, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Move mouse to Node2
-            helpers.MouseMoveEvent(selectionPosSecondElement, selectionPosSnappingNode, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseMoveEvent(selectionPosSecondElement, selectionPosSnappingNode, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Select Node1 by clicking on it and pressing Ctrl
-            helpers.MouseDownEvent(selectionPosSnappingNode, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDownEvent(selectionPosSnappingNode, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Move Node1 within snapping distance
             Vector2 moveOffset = new Vector2(10, SnapToGridHelper.GetSnapDistance(snappingNode, SnapToGridHelper.Edge.Top));
             Vector2 end = selectionPosSnappingNode + moveOffset;
-            helpers.MouseDragEvent(selectionPosSnappingNode, end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDragEvent(selectionPosSnappingNode, end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
-            helpers.MouseUpEvent(end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseUpEvent(end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // The snapping Node1 top border should snap but X should be dragged normally

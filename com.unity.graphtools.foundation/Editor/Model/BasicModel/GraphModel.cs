@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
@@ -18,7 +16,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     [MovedFrom(false, sourceAssembly: "Unity.GraphTools.Foundation.Overdrive.Editor")]
     public abstract class GraphModel : IGraphModel, ISerializationCallbackReceiver
     {
-        //[SerializeReference]
+        static List<ChangeHint> s_GroupingChangeHint = new List<ChangeHint> { ChangeHint.Grouping };
+
+        [SerializeField, HideInInspector]
+        SerializableGUID m_Guid;
+
+        [SerializeReference]
         GraphAssetModel m_AssetModel;
 
         [SerializeReference]
@@ -57,10 +60,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeReference]
         List<ISectionModel> m_SectionModels;
 
-        [SerializeField, FormerlySerializedAs("name")]
+        [SerializeField]
+        [FormerlySerializedAs("name")]
+        [HideInInspector]
         string m_Name;
 
+        /// <summary>
+        /// Holds created variables names to make creation of unique names faster.
+        /// </summary>
+        HashSet<string> m_ExistingVariableNames;
+
         [SerializeField]
+        [HideInInspector]
         string m_StencilTypeName; // serialized as string, resolved as type by ISerializationCallbackReceiver
 
         Type m_StencilType;
@@ -69,6 +80,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         Dictionary<SerializableGUID, IGraphElementModel> m_ElementsByGuid;
 
         PortEdgeIndex m_PortEdgeIndex;
+
+        /// <inheritdoc />
+        public virtual SerializableGUID Guid
+        {
+            get
+            {
+                if (!m_Guid.Valid)
+                    AssignNewGuid();
+                return m_Guid;
+            }
+            set => m_Guid = value;
+        }
 
         /// <inheritdoc />
         public virtual Type DefaultStencilType => null;
@@ -172,7 +195,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <summary>
-        /// Checks that all variables are referenced in a variable group. Otherwise adds the variables in their valid section.
+        /// Checks that all variables are referenced in a group. Otherwise adds the variables in their valid section.
         /// Also cleans up no longer existing sections.
         /// </summary>
         internal void CheckGroupConsistency()
@@ -216,6 +239,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// </summary>
         protected GraphModel()
         {
+            AssignNewGuid();
+
             m_GraphNodeModels = new List<INodeModel>();
             m_GraphEdgeModels = new List<IEdgeModel>();
             m_BadgeModels = new List<IBadgeModel>();
@@ -223,8 +248,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             m_GraphPlacematModels = new List<IPlacematModel>();
             m_GraphVariableModels = new List<IVariableDeclarationModel>();
             m_GraphPortalModels = new List<IDeclarationModel>();
+            m_SectionModels = new List<ISectionModel>();
+            m_ExistingVariableNames = new HashSet<string>();
 
             m_PortEdgeIndex = new PortEdgeIndex(this);
+        }
+
+        /// <inheritdoc />
+        public void AssignNewGuid()
+        {
+            m_Guid = SerializableGUID.Generate();
         }
 
         /// <inheritdoc />
@@ -243,9 +276,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             var startEdgePortalModel = startPortModel.NodeModel as IEdgePortalModel;
 
-            if (startPortModel.PortDataType == typeof(ExecutionFlow) && compatiblePortModel.PortDataType != typeof(ExecutionFlow))
-                return false;
-            if (compatiblePortModel.PortDataType == typeof(ExecutionFlow) && startPortModel.PortDataType != typeof(ExecutionFlow))
+            if ((startPortModel.PortDataType == typeof(ExecutionFlow)) != (compatiblePortModel.PortDataType == typeof(ExecutionFlow)))
                 return false;
 
             // No good if ports belong to same node that does not allow self connect
@@ -262,11 +293,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
 
             // This is true for all ports
-            return compatiblePortModel.Direction != startPortModel.Direction;
+            if (compatiblePortModel.Direction == startPortModel.Direction ||
+                compatiblePortModel.PortType != startPortModel.PortType)
+                return false;
+
+            return Stencil.CanAssignTo(compatiblePortModel.DataTypeHandle, startPortModel.DataTypeHandle);
         }
 
         /// <inheritdoc />
-        public virtual List<IPortModel> GetCompatiblePorts(List<IPortModel> portModels, IPortModel startPortModel)
+        public virtual List<IPortModel> GetCompatiblePorts(IReadOnlyList<IPortModel> portModels, IPortModel startPortModel)
         {
             return portModels.Where(pModel =>
             {
@@ -487,17 +522,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             RegisterElement(variableDeclarationModel);
             m_GraphVariableModels.Add(variableDeclarationModel);
+            m_ExistingVariableNames.Add(variableDeclarationModel.Title);
         }
 
         /// <summary>
         /// Removes a variable declaration from the graph.
         /// </summary>
         /// <param name="variableDeclarationModel">The variable declaration to remove.</param>
-        protected void RemoveVariableDeclaration(IVariableDeclarationModel variableDeclarationModel)
+        protected IGroupItemModel RemoveVariableDeclaration(IVariableDeclarationModel variableDeclarationModel)
         {
             UnregisterElement(variableDeclarationModel);
             m_GraphVariableModels.Remove(variableDeclarationModel);
-            variableDeclarationModel.Group?.RemoveItem(variableDeclarationModel);
+            m_ExistingVariableNames.Remove(variableDeclarationModel.Title);
+
+            var parent = variableDeclarationModel.ParentGroup;
+            parent?.RemoveItem(variableDeclarationModel);
+            return parent;
         }
 
         void RecursiveBuildElementByGuid(IGraphElementModel model)
@@ -515,18 +555,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// Instantiates an object of type <paramref name="type"/>.
         /// </summary>
         /// <param name="type">The type of the object to instantiate.</param>
-        /// <typeparam name="InterfaceT">A base type for <paramref name="type"/>.</typeparam>
+        /// <typeparam name="TInterface">A base type for <paramref name="type"/>.</typeparam>
         /// <returns>A new object.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="type"/> does not derive from <typeparamref name="InterfaceT"/></exception>
-        protected InterfaceT Instantiate<InterfaceT>(Type type)
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="type"/> does not derive from <typeparamref name="TInterface"/></exception>
+        protected TInterface Instantiate<TInterface>(Type type)
         {
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
 
-            InterfaceT obj;
-            if (typeof(InterfaceT).IsAssignableFrom(type))
-                obj = (InterfaceT)Activator.CreateInstance(type);
+            TInterface obj;
+            if (typeof(TInterface).IsAssignableFrom(type))
+                obj = (TInterface)Activator.CreateInstance(type);
             else
                 throw new ArgumentOutOfRangeException(nameof(type));
 
@@ -569,12 +609,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 RecursiveBuildElementByGuid(model);
             }
 
-            foreach (var model in m_GraphVariableModels)
+            foreach (var model in m_GraphPortalModels)
             {
                 RecursiveBuildElementByGuid(model);
             }
 
-            foreach (var model in m_GraphPortalModels)
+            foreach (var model in m_SectionModels)
             {
                 RecursiveBuildElementByGuid(model);
             }
@@ -638,9 +678,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public virtual ISubgraphNodeModel CreateSubgraphNode(GraphAssetModel referenceGraphAsset, Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default)
+        public virtual ISubgraphNodeModel CreateSubgraphNode(IGraphAssetModel referenceGraphAsset, Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default)
         {
-            return this.CreateNode<SubgraphNodeModel>(referenceGraphAsset.Name, position, guid, v => { v.ReferenceGraphAssetModel = referenceGraphAsset; }, spawnFlags);
+            if (referenceGraphAsset.IsContainerGraph())
+            {
+                Debug.LogWarning("Failed to create the subgraph node. Container graphs cannot be referenced by a subgraph node.");
+                return null;
+            }
+            return this.CreateNode<SubgraphNodeModel>(referenceGraphAsset.Name, position, guid, v => { v.SubgraphAssetModel = referenceGraphAsset; }, spawnFlags);
         }
 
         /// <inheritdoc />
@@ -653,7 +698,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             {
                 if (model is IConstantNodeModel constantModel)
                 {
-                    constantModel.PredefineSetup();
+                    constantModel.Initialize(constantTypeHandle);
                     initializationCallback?.Invoke(constantModel);
                 }
             }
@@ -740,11 +785,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             else if (targetInputNode != null)
             {
                 inputPortModel = (targetInputNode as IInputOutputPortsNodeModel)?.InputsById[sourceEdge.ToPortId];
-                outputPortModel = sourceEdge.FromPort;
+                outputPortModel = sourceEdge.FromPort.AssetModel == AssetModel ? sourceEdge.FromPort : null;
             }
             else if (targetOutputNode != null)
             {
-                inputPortModel = sourceEdge.ToPort;
+                inputPortModel = sourceEdge.ToPort.AssetModel == AssetModel ? sourceEdge.ToPort : null;
                 outputPortModel = (targetOutputNode as IInputOutputPortsNodeModel)?.OutputsById[sourceEdge.FromPortId];
             }
 
@@ -998,7 +1043,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         /// <inheritdoc />
         public IVariableDeclarationModel CreateGraphVariableDeclaration(TypeHandle variableDataType, string variableName,
-            ModifierFlags modifierFlags, bool isExposed,  IGroupModel group = null, int indexInGroup = -1, IConstant initializationModel = null, SerializableGUID guid = default,
+            ModifierFlags modifierFlags, bool isExposed,  IGroupModel group = null, int indexInGroup = int.MaxValue, IConstant initializationModel = null, SerializableGUID guid = default,
             SpawnFlags spawnFlags = SpawnFlags.Default)
         {
             return CreateGraphVariableDeclaration(GetDefaultVariableDeclarationType(), variableDataType, variableName,
@@ -1008,7 +1053,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             {
                 if (variableDeclaration is VariableDeclarationModel basicVariableDeclarationModel)
                 {
-                    basicVariableDeclarationModel.variableFlags = VariableFlags.None;
+                    basicVariableDeclarationModel.VariableFlags = VariableFlags.None;
 
                     if (initModel != null) basicVariableDeclarationModel.InitializationModel = initModel;
                 }
@@ -1016,8 +1061,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
+        public void RenameVariable(IVariableDeclarationModel variable, string expectedNewName)
+        {
+            m_ExistingVariableNames.Remove(variable.Title);
+            var newName = GenerateGraphVariableDeclarationUniqueName(expectedNewName);
+            m_ExistingVariableNames.Add(newName);
+            variable.Title = newName;
+        }
+
+        /// <inheritdoc />
         public IVariableDeclarationModel CreateGraphVariableDeclaration(Type variableTypeToCreate,
-            TypeHandle variableDataType, string variableName, ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = -1,
+            TypeHandle variableDataType, string variableName, ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = int.MaxValue,
             IConstant initializationModel = null, SerializableGUID guid = default, Action<IVariableDeclarationModel, IConstant> initializationCallback = null,
             SpawnFlags spawnFlags = SpawnFlags.Default)
         {
@@ -1036,27 +1090,59 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             {
                 var section = variableDeclaration.GraphModel.GetSectionModel(variableDeclaration.GraphModel.Stencil.GetVariableSection(variableDeclaration));
 
-                section.InsertItem(variableDeclaration,indexInGroup);
+                section.InsertItem(variableDeclaration, indexInGroup);
             }
 
             return variableDeclaration;
         }
 
         /// <inheritdoc />
-        public string GenerateGraphVariableDeclarationUniqueName(string variableName, SerializableGUID variableDeclarationGuid)
+        public string GenerateGraphVariableDeclarationUniqueName(string originalName)
         {
-            var trimmedName = variableName.Trim();
-            var finalName = trimmedName;
+            originalName = originalName.Trim();
 
-            var existingTitles = new HashSet<string>(m_GraphVariableModels
-                .Where(v => v.Guid != variableDeclarationGuid)
-                .Select(v => v.DisplayTitle));
+            if (!m_ExistingVariableNames.Contains(originalName))
+                return originalName;
 
+            originalName.ExtractBaseNameAndIndex(out var basename, out var _);
+
+#if UNITY_2021_1_OR_NEWER // TODO VladN: remove once we don't support 2020.3 anymore
+            // mimicking what GameObject do: don't bother over a certain number
+            // (see ObjectNames.GetUniqueName C++ implementation)
+            // especially for graph variables using the same name:
+            // It's probably not sane to have that much anyway.
+            const int maxVarNum = 5000;
+
+            var isParenthesis = EditorSettings.gameObjectNamingScheme == EditorSettings.NamingScheme.SpaceParenthesis;
+            var longestVarName = basename.FormatWithNamingScheme(maxVarNum);
+            var span = longestVarName.ToArray().AsSpan(); // create a buffer containing the longest variable name
+            var intFormat = ("D" + Math.Max(1, EditorSettings.gameObjectNamingDigits)).AsSpan();
+            var numIndex = basename.Length + 1 + (isParenthesis ? 1 : 0); // ".", "_" or " ("
+            var numSlice = span.Slice(numIndex); // where to blit the number
+
+            // until we find a match, blit the new number in the variable buffer
+            // if needed also add the closing parenthesis.
+            for (int i = 1; i <= maxVarNum; i++)
+            {
+                var intStr = i.TryFormat(numSlice, out var intLength, intFormat);
+                if (isParenthesis)
+                    span[numIndex + intLength] = ')';
+
+                var finalSpan = span.Slice(0, numIndex + intLength + (isParenthesis ? 1 : 0));
+
+                var finalName = finalSpan.ToString();
+                if (!m_ExistingVariableNames.Contains(finalName))
+                    return finalName;
+            }
+#else
             var i = 1;
-            while (existingTitles.Contains(finalName.Nicify()))
-                finalName = trimmedName.FormatWithNamingScheme(i++);
+            do
+            {
+                originalName = originalName.FormatWithNamingScheme(i++);
+            } while (m_ExistingVariableNames.Contains(originalName));
+#endif
+            return originalName;
 
-            return finalName;
         }
 
         /// <summary>
@@ -1082,7 +1168,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 variableDeclaration.Guid = guid;
             variableDeclaration.AssetModel = AssetModel;
             variableDeclaration.DataType = variableDataType;
-            variableDeclaration.Title = GenerateGraphVariableDeclarationUniqueName(variableName, guid);
+            variableDeclaration.Title = GenerateGraphVariableDeclarationUniqueName(variableName);
             variableDeclaration.IsExposed = isExposed;
             variableDeclaration.Modifiers = modifierFlags;
 
@@ -1097,29 +1183,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             return typeof(GroupModel);
         }
 
-        IGroupModel InstantiateGroup()
+        public IGroupModel CreateGroup(string title, IReadOnlyCollection<IGroupItemModel> items = null)
         {
             var group = Instantiate<IGroupModel>(GetGroupModelType());
-
-            return group;
-        }
-
-        public IGroupModel CreateVariableGroup(string title)
-        {
-            var group = InstantiateGroup();
             group.Title = title;
             group.AssetModel = AssetModel;
+            RegisterElement(group);
+            if (items != null)
+            {
+                foreach (var item in items)
+                    group.InsertItem(item);
+            }
 
             return group;
         }
 
         /// <inheritdoc />
-        public virtual TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel)
+        public virtual TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel, bool keepGuid = false)
             where TDeclType : IVariableDeclarationModel
         {
             var uniqueName = sourceModel.Title;
             var copy = sourceModel.Clone();
-            copy.Title = uniqueName;
+            if (keepGuid)
+                copy.Guid = sourceModel.Guid;
+            copy.Title = GenerateGraphVariableDeclarationUniqueName(uniqueName);
             if (copy.InitializationModel != null)
             {
                 copy.CreateInitializationValue();
@@ -1128,17 +1215,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             AddVariableDeclaration(copy);
 
+            if (sourceModel.ParentGroup != null && sourceModel.ParentGroup.GraphModel == this)
+                sourceModel.ParentGroup.InsertItem(copy, -1);
+            else
+            {
+                var section = GetSectionModel(Stencil.GetVariableSection(copy));
+                section.InsertItem(copy, -1);
+            }
+
             return copy;
         }
 
         /// <inheritdoc />
-        public IReadOnlyCollection<IGraphElementModel> DeleteVariableDeclarations(IReadOnlyCollection<IVariableDeclarationModel> variableModels, bool deleteUsages = true)
+        public GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<IVariableDeclarationModel> variableModels, bool deleteUsages = true)
         {
+            var changedModelsDict = new Dictionary<IGraphElementModel, IReadOnlyList<ChangeHint>>();
             var deletedModels = new List<IGraphElementModel>();
 
             foreach (var variableModel in variableModels.Where(v => v.IsDeletable()))
             {
-                RemoveVariableDeclaration(variableModel);
+                var parent = RemoveVariableDeclaration(variableModel);
+
+                changedModelsDict[parent] = s_GroupingChangeHint;
                 deletedModels.Add(variableModel);
 
                 if (deleteUsages)
@@ -1148,12 +1246,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 }
             }
 
-            return deletedModels;
+            return new GraphChangeDescription(null, changedModelsDict, deletedModels);
         }
 
         /// <inheritdoc />
-        public IReadOnlyCollection<IGraphElementModel> DeleteVariableGroups(IReadOnlyCollection<IGroupModel> variableGroupModels)
+        public GraphChangeDescription DeleteGroups(IReadOnlyCollection<IGroupModel> groupModels)
         {
+            var changedModelsDict = new Dictionary<IGraphElementModel, IReadOnlyList<ChangeHint>>();
             var deletedModels = new List<IGraphElementModel>();
             var deletedVariables = new List<IVariableDeclarationModel>();
 
@@ -1166,21 +1265,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                         deletedVariables.Add(variable);
                     else if( item is IGroupModel group)
                         RecurseAddVariables(group);
-                    item.Group = null;
+                    item.ParentGroup = null;
                 }
             }
 
-            foreach (var groupModel in variableGroupModels.Where(v => v.IsDeletable()))
+            foreach (var groupModel in groupModels.Where(v => v.IsDeletable()))
             {
-                groupModel.Group?.RemoveItem(groupModel);
+                if (groupModel.ParentGroup != null)
+                {
+                    var changedModels = groupModel.ParentGroup.RemoveItem(groupModel);
+                    foreach (var changedModel in changedModels)
+                    {
+                        changedModelsDict[changedModel] = s_GroupingChangeHint;
+                    }
+                }
 
                 RecurseAddVariables(groupModel);
                 deletedModels.Add(groupModel);
             }
 
-            DeleteVariableDeclarations(deletedVariables);
-
-            return deletedModels;
+            var result = DeleteVariableDeclarations(deletedVariables);
+            result.Union(null, changedModelsDict, deletedModels);
+            return result;
         }
 
         /// <summary>
@@ -1243,7 +1349,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
 
             if (oppositeType != null)
-                createdPortal = (EdgePortalModel)CreateNode(oppositeType, edgePortalModel.Title, position, spawnFlags: spawnFlags);
+                createdPortal = (EdgePortalModel)CreateNode(oppositeType, edgePortalModel.Title, position, spawnFlags: spawnFlags, initializationCallback: n => ((EdgePortalModel)n).PortDataTypeHandle = edgePortalModel.PortDataTypeHandle);
 
             if (createdPortal != null)
                 createdPortal.DeclarationModel = edgePortalModel.DeclarationModel;
@@ -1258,17 +1364,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             if (outputPortModel.PortType == PortType.Execution)
                 return this.CreateNode<ExecutionEdgePortalEntryModel>();
 
-            return this.CreateNode<DataEdgePortalEntryModel>();
+            return this.CreateNode<DataEdgePortalEntryModel>(initializationCallback: n => n.PortDataTypeHandle = outputPortModel.DataTypeHandle);
         }
 
         /// <inheritdoc />
         public IEdgePortalExitModel CreateExitPortalFromEdge(IEdgeModel edgeModel)
         {
             var inputPortModel = edgeModel.ToPort;
-            if (inputPortModel?.PortType == PortType.Execution)
+            if (inputPortModel.PortType == PortType.Execution)
                 return this.CreateNode<ExecutionEdgePortalExitModel>();
 
-            return this.CreateNode<DataEdgePortalExitModel>();
+            return this.CreateNode<DataEdgePortalExitModel>(initializationCallback: n => n.PortDataTypeHandle = inputPortModel.DataTypeHandle);
         }
 
         /// <inheritdoc />
@@ -1325,10 +1431,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                     continue;
                 model.AssetModel = AssetModel;
             }
-            foreach (var edgeModel in m_GraphEdgeModels.Select(e => e as EdgeModel))
-            {
-                edgeModel?.InitAssetModel(AssetModel);
-            }
+
             foreach (var nodeModel in NodeModels)
             {
                 (nodeModel as NodeModel)?.DefineNode();
@@ -1362,6 +1465,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
+        public void OnLoadGraphAsset()
+        {
+            foreach (var nodeModel in NodeModels.OfType<NodeModel>())
+                nodeModel.DefineNode();
+
+            foreach (var edgeModel in EdgeModels.OfType<EdgeModel>())
+            {
+                edgeModel.UpdatePortFromCache();
+                edgeModel.ResetPortCache();
+            }
+        }
+
+        /// <inheritdoc />
         public virtual bool CheckIntegrity(Verbosity errors)
         {
             return GraphModelExtensions.CheckIntegrity(this, errors);
@@ -1379,6 +1495,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             if (!string.IsNullOrEmpty(m_StencilTypeName))
                 StencilType = Type.GetType(m_StencilTypeName) ?? DefaultStencilType;
+
+#if UNITY_2021_1_OR_NEWER // TODO VladN: remove once we don't support 2020.3 anymore
+            m_ExistingVariableNames = new HashSet<string>(VariableDeclarations.Count);
+#else
+            m_ExistingVariableNames = new HashSet<string>();
+#endif
+            foreach (var declarationModel in VariableDeclarations)
+            {
+                if (declarationModel != null) // in case of bad serialized graph - breaks a test if not tested
+                    m_ExistingVariableNames.Add(declarationModel.Title);
+            }
         }
 
         /// <summary>
@@ -1398,7 +1525,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             foreach (var sectionName in sectionNames)
             {
-                if (!m_SectionModels.Any(t => t.Title == sectionName))
+                if (m_SectionModels.All(t => t.Title != sectionName))
                 {
                     var section = CreateSection(sectionName);
                     section.AssetModel = AssetModel;
@@ -1494,8 +1621,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                     List<string> pastedHiddenContent = new List<string>();
                     foreach (var guid in pastedPlacemat.HiddenElementsGuid)
                     {
-                        IGraphElementModel pastedElement;
-                        if (elementMapping.TryGetValue(guid, out pastedElement))
+                        if (elementMapping.TryGetValue(guid, out IGraphElementModel pastedElement))
                         {
                             pastedHiddenContent.Add(pastedElement.Guid.ToString());
                         }
@@ -1504,6 +1630,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                     pastedPlacemat.HiddenElementsGuid = pastedHiddenContent;
                 }
             }
+        }
+
+        /// <inheritdoc />
+        public virtual void Repair()
+        {
+            m_GraphNodeModels.RemoveAll(t => t == null);
+            m_GraphNodeModels.RemoveAll(t => t is IVariableNodeModel variable && variable.DeclarationModel == null);
+
+            foreach (var container in m_GraphNodeModels.OfType<IGraphElementContainer>())
+            {
+                container.Repair();
+            }
+
+            var validGuids = new HashSet<SerializableGUID>(m_GraphNodeModels.Select(t=>t.Guid));
+
+            m_BadgeModels.RemoveAll(t => t == null);
+            m_BadgeModels.RemoveAll(t => t.ParentModel == null);
+            m_GraphEdgeModels.RemoveAll(t => t == null);
+            m_GraphEdgeModels.RemoveAll(t => ! validGuids.Contains(t.FromNodeGuid) || ! validGuids.Contains(t.ToNodeGuid));
+            m_GraphStickyNoteModels.RemoveAll(t => t == null);
+            m_GraphPlacematModels.RemoveAll(t => t == null);
+            m_GraphVariableModels.RemoveAll(t=>t == null);
+            m_GraphPortalModels.RemoveAll(t => t == null);
+            m_SectionModels.ForEach(t => t.Repair());
         }
     }
 }
