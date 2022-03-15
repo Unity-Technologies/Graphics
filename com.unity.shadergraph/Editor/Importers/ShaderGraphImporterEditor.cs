@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor.Callbacks;
 #if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
@@ -80,16 +82,33 @@ namespace UnityEditor.ShaderGraph
                 if (alreadyExists && GUILayout.Button("Regenerate"))
                     update = true;
 
+                var pathList = new List<string>();
+                pathList.Add(path);
+
                 if (update)
                 {
                     var graphData = GetGraphData(importer);
                     var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, humanReadable: true);
                     if (!GraphUtil.WriteToFile(path, generator.generatedShader))
                         open = false;
+
+                    if (generator.allGeneratedShaders.Count() > 1)
+                    {
+                        var allGeneratedShaders = generator.allGeneratedShaders.ToArray();
+                        for (int i = 1; i < allGeneratedShaders.Length; ++i)
+                        {
+                            string pathSub = String.Format("Temp/GeneratedFromGraph-{0}_{1}.shader", assetName.Replace(" ", ""), i);
+                            pathList.Add(pathSub);
+                            GraphUtil.WriteToFile(pathSub, allGeneratedShaders[i].codeString);
+                        }
+                    }
                 }
 
                 if (open)
-                    GraphUtil.OpenFile(path);
+                {
+                    for (int i = 0; i < pathList.Count; ++i)
+                        GraphUtil.OpenFile(pathList[i]);
+                }
             }
             if (Unsupported.IsDeveloperMode())
             {
