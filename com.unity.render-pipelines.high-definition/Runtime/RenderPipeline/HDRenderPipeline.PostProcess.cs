@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
-            var postProcessHistorySizes = DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost ? m_BeforeDynamicResUpscaleRes : m_AfterDynamicResUpscaleRes;
+            var postProcessHistorySizes = DynamicResolutionHandler.instance.upsamplerSchedule != DynamicResolutionHandler.UpsamplerScheduleType.BeforePost ? m_BeforeDynamicResUpscaleRes : m_AfterDynamicResUpscaleRes;
             hdCamera.SetPostProcessHistorySizeAndReference(postProcessHistorySizes.x, postProcessHistorySizes.y, m_AfterDynamicResUpscaleRes.x, m_AfterDynamicResUpscaleRes.y);
 
             var source = inputColor;
