@@ -25,11 +25,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.SpriteLit(target));
+            context.AddSubShader(PostProcessSubShader(SubShaders.SpriteLit(target)));
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
+
             // Only support SpriteColor legacy block if BaseColor/Alpha are not active
             var descs = context.blocks.Select(x => x.descriptor);
             bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);

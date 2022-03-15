@@ -34,8 +34,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
-    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
-    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+    SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
     half4 color = surfaceDescription.SpriteColor;
@@ -43,7 +42,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
+#ifdef HAVE_VFX_MODIFICATION
+    //TODO Hack for VFX, unpacked.color isn't defined
+#else
     color *= unpacked.color;
+#endif
 
     SurfaceData2D surfaceData;
     InitializeSurfaceData(color.rgb, color.a, surfaceDescription.SpriteMask, surfaceData);
