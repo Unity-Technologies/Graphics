@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework.Interfaces;
 using UnityEditor;
+#if UNITY_EDITOR
 using UnityEditor.TestTools.TestRunner.Api;
+#endif
 
 namespace UnityEngine.TestTools.Graphics
 {
