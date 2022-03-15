@@ -20,6 +20,31 @@ namespace UnityEngine.TestTools.Graphics
             ReferenceImagesRoot = referenceImagesRoot;
             ActualImagesRoot = string.IsNullOrEmpty(actualImagesRoot) ? Path.Combine(Path.GetDirectoryName(referenceImagesRoot), "ActualImages") : actualImagesRoot;
         }
+
+        public static bool TryFindAttributeOn(ITest test, out CodeBasedGraphicsTestAttribute attrib)
+            => TryFindAttributeOn(test.Method, test.TypeInfo, out attrib);
+
+#if UNITY_EDITOR
+        public static bool TryFindAttributeOn(ITestAdaptor test, out CodeBasedGraphicsTestAttribute attrib)
+            => TryFindAttributeOn(test.Method, test.TypeInfo, out attrib);
+#endif
+
+        private static bool TryFindAttributeOn(IMethodInfo method, ITypeInfo type, out CodeBasedGraphicsTestAttribute attrib)
+        {
+            var attribs = method.GetCustomAttributes<CodeBasedGraphicsTestAttribute>(true);
+            if (attribs.Length == 0)
+                attribs = type.GetCustomAttributes<CodeBasedGraphicsTestAttribute>(true);
+            if (attribs.Length != 0)
+            {
+                attrib = attribs[0];
+                return true;
+            }
+            else
+            {
+                attrib = null;
+                return false;
+            }
+        }
     }
 
 #if UNITY_EDITOR
@@ -50,33 +75,10 @@ namespace UnityEngine.TestTools.Graphics
             return AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImagePath);
         }
 
-        public static bool TryFindCodeBasedGraphicsTestAttribute(ITest test, out CodeBasedGraphicsTestAttribute attrib)
-            => TryFindCodeBasedGraphicsTestAttribute(test.Method, test.TypeInfo, out attrib);
-
-        public static bool TryFindCodeBasedGraphicsTestAttribute(ITestAdaptor test, out CodeBasedGraphicsTestAttribute attrib)
-            => TryFindCodeBasedGraphicsTestAttribute(test.Method, test.TypeInfo, out attrib);
-
-        private static bool TryFindCodeBasedGraphicsTestAttribute(IMethodInfo method, ITypeInfo type, out CodeBasedGraphicsTestAttribute attrib)
-        {
-            var attribs = method.GetCustomAttributes<CodeBasedGraphicsTestAttribute>(true);
-            if (attribs.Length == 0)
-                attribs = type.GetCustomAttributes<CodeBasedGraphicsTestAttribute>(true);
-            if (attribs.Length != 0)
-            {
-                attrib = attribs[0];
-                return true;
-            }
-            else
-            {
-                attrib = null;
-                return false;
-            }
-        }
-
         private static void TraverseTests(ITestAdaptor test, List<GraphicsTestCase> collection)
         {
             if (!test.HasChildren && Array.IndexOf(test.Categories, "Graphics") >= 0
-                && TryFindCodeBasedGraphicsTestAttribute(test, out var attrib))
+                && CodeBasedGraphicsTestAttribute.TryFindAttributeOn(test, out var attrib))
             {
                 var referenceImage = LoadReferenceImage(test.Name, attrib);
                 collection.Add(new GraphicsTestCase(test.Name, attrib, referenceImage));

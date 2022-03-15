@@ -200,7 +200,7 @@ namespace UnityEngine.TestTools.Graphics
             if (actual == null)
                 throw new ArgumentNullException(nameof(actual));
 
-            var actualImagePath = CodeBasedGraphicsTests.TryFindCodeBasedGraphicsTestAttribute(TestContext.CurrentTestExecutionContext.CurrentTest, out var attrib)
+            var actualImagePath = CodeBasedGraphicsTestAttribute.TryFindAttributeOn(TestContext.CurrentTestExecutionContext.CurrentTest, out var attrib)
                 ? attrib.ActualImagesRoot : "Assets/ActualImages";
 
             var dirName = Path.Combine(actualImagePath, TestUtils.GetCurrentTestResultsFolderPath());
