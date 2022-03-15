@@ -7,11 +7,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphView : GraphView
     {
+    //    public MathBookGraphView(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName,
+    //GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
+    //: base(window, graphTool, graphViewName, displayMode)
+
+
+
         public ShaderGraphView(
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
-            string graphViewName)
-            : base(window, graphTool, graphViewName)
+            string graphViewName,
+            GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
+            : base(window, graphTool, graphViewName, displayMode)
         {
         }
 
@@ -27,19 +34,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
             evt.menu.AppendSeparator();
         }
 
-        protected override void CollectCopyableGraphElements(
-            IEnumerable<IGraphElementModel> elements,
-            HashSet<IGraphElementModel> elementsToCopySet)
-        {
-            var elementsList = elements.ToList();
-            base.CollectCopyableGraphElements(elementsList, elementsToCopySet);
+    //    protected override void CollectCopyableGraphElements(
+    //        IEnumerable<IGraphElementModel> elements,
+    //        HashSet<IGraphElementModel> elementsToCopySet)
+    //    {
+    //        var elementsList = elements.ToList();
+    //        base.CollectCopyableGraphElements(elementsList, elementsToCopySet);
 
-            // Pasting a redirect should also paste an edge to its source node.
-            foreach (var redirect in elementsList.OfType<RedirectNodeModel>())
-            {
-                var incomingEdge = redirect.GetIncomingEdges().FirstOrDefault();
-                if (incomingEdge != null) elementsToCopySet.Add(incomingEdge);
-            }
-        }
+    //        // Pasting a redirect should also paste an edge to its source node.
+    //        foreach (var redirect in elementsList.OfType<RedirectNodeModel>())
+    //        {
+    //            var incomingEdge = redirect.GetIncomingEdges().FirstOrDefault();
+    //            if (incomingEdge != null) elementsToCopySet.Add(incomingEdge);
+    //        }
+    //    }
     }
 }

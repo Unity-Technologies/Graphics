@@ -3,9 +3,9 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class DataNodeTextPart : BaseModelUIPart
+    public class DataNodeTextPart : BaseModelViewPart
     {
-        public DataNodeTextPart(string name, IGraphElementModel model, IModelUI ownerElement,
+        public DataNodeTextPart(string name, IGraphElementModel model, IModelView ownerElement,
             string parentClassName) : base(name, model, ownerElement, parentClassName)
         {
         }

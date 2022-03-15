@@ -17,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField, HideInInspector]
         SerializableGUID m_Guid;
 
-        [SerializeField, HideInInspector, FormerlySerializedAs("m_GraphAssetModel")]
+        // [SerializeField, HideInInspector, FormerlySerializedAs("m_GraphAssetModel")]
         protected GraphAssetModel m_AssetModel;
 
         [SerializeField, HideInInspector]

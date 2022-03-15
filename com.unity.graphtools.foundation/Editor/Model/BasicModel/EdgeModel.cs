@@ -23,9 +23,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField]
         protected string m_EdgeLabel;
 
-        IPortModel m_FromPortModelCache;
+        protected IPortModel m_FromPortModelCache;
 
-        IPortModel m_ToPortModelCache;
+        protected IPortModel m_ToPortModelCache;
+
+
+        public void InitAssetModel(IGraphAssetModel model)
+        {
+            AssetModel = model;
+            m_FromPortReference.InitAssetModel(model);
+            m_ToPortReference.InitAssetModel(model);
+        }
+
 
         /// <inheritdoc />
         public virtual IPortModel FromPort

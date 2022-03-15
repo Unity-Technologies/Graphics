@@ -8,22 +8,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class GraphViewStateObserver : StateObserver
     {
         PreviewManager m_PreviewManagerInstance;
-        GraphViewStateComponent m_GraphViewStateComponent;
+        GraphModelStateComponent m_graphModelStateComponent;
 
-        public GraphViewStateObserver(GraphViewStateComponent graphViewStateComponent, PreviewManager previewManager) : base(new [] {graphViewStateComponent}, new [] {graphViewStateComponent})
+        public GraphViewStateObserver(GraphModelStateComponent graphModelStateComponent, PreviewManager previewManager) : base(new [] {graphModelStateComponent}, new [] {graphModelStateComponent})
         {
             m_PreviewManagerInstance = previewManager;
-            m_GraphViewStateComponent = graphViewStateComponent;
+            m_graphModelStateComponent = graphModelStateComponent;
         }
 
         public override void Observe()
         {
             // Note: These using statements are necessary to increment last observed version
-            using (var graphViewObservation = this.ObserveState(m_GraphViewStateComponent))
+            using (var graphViewObservation = this.ObserveState(m_graphModelStateComponent))
             {
                 if (graphViewObservation.UpdateType != UpdateType.None)
                 {
-                    var changeset = m_GraphViewStateComponent.GetAggregatedChangeset(graphViewObservation.LastObservedVersion);
+                    var changeset = m_graphModelStateComponent.GetAggregatedChangeset(graphViewObservation.LastObservedVersion);
                     var addedModels = changeset.NewModels;
                     var removedModels = changeset.DeletedModels;
 
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         if (addedModel is GraphDataNodeModel graphDataNodeModel)
                         {
                             m_PreviewManagerInstance.OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
-                            using var graphUpdater = m_GraphViewStateComponent.UpdateScope;
+                            using var graphUpdater = m_graphModelStateComponent.UpdateScope;
                             graphUpdater.MarkChanged(addedModel);
                         }
                     }

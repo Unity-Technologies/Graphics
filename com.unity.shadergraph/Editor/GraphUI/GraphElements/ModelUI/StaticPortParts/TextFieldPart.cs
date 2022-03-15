@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public TextFieldPart(
             string name,
             IGraphElementModel model,
-            IModelUI ownerElement,
+            IModelView ownerElement,
             string parentClassName,
             string portName
         ) : base(name, model, ownerElement, parentClassName, portName)

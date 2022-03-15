@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -19,17 +19,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void DefaultHandler(
             UndoStateComponent undoState,
-            GraphViewStateComponent graphViewState,
+            GraphModelStateComponent graphModelState,
             AddRedirectNodeCommand command
         )
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
-                undoUpdater.SaveSingleState(graphViewState, command);
+                undoUpdater.SaveSingleState(graphModelState, command);
             }
 
-            var graphModel = graphViewState.GraphModel;
-            using var updater = graphViewState.UpdateScope;
+            var graphModel = graphModelState.GraphModel;
+            using var updater = graphModelState.UpdateScope;
 
             var fromPort = command.Edge.FromPort;
             var toPort = command.Edge.ToPort;

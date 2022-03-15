@@ -17,14 +17,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField, FormerlySerializedAs("NodeModelGuid")]
         SerializableGUID m_NodeModelGuid;
 
-        [SerializeField, FormerlySerializedAs("GraphAssetModel")]
-        GraphAssetModel m_GraphAssetModel;
+        // [SerializeField, FormerlySerializedAs("GraphAssetModel")]
+        IGraphAssetModel m_GraphAssetModel;
 
         [SerializeField, FormerlySerializedAs("UniqueId")]
         string m_UniqueId;
 
         [SerializeField]
         string m_Title;
+
+        public void InitAssetModel(IGraphAssetModel model) => m_GraphAssetModel = model;
 
         INodeModel m_NodeModel;
 
@@ -136,7 +138,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             if (m_GraphAssetModel != null)
             {
-                return $"{m_GraphAssetModel.GetInstanceID()}:{m_NodeModelGuid}@{UniqueId}";
+                return $"{m_GraphAssetModel.GetPath()}:{m_NodeModelGuid}@{UniqueId}";
             }
             return String.Empty;
         }
