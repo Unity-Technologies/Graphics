@@ -20,7 +20,8 @@ Shader "2D/Clear"
             half4 _Color0;
             half4 _Color1;
             half4 _Color2;
-            // half4 _Color3;
+            half4 _Color3;
+            half4 _NormalColor;
 
             struct Attributes
             {
@@ -51,7 +52,8 @@ Shader "2D/Clear"
                 output.GLightBuffer0 = _Color0;
                 output.GLightBuffer1 = _Color1;
                 output.GLightBuffer2 = _Color2;
-                // output.GLightBuffer3 = _Color3;
+                output.GLightBuffer3 = _Color3;
+                output.NormalBuffer = _NormalColor;
                 return output;
             }
 

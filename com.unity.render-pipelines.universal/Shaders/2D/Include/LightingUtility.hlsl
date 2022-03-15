@@ -1,9 +1,15 @@
 #if USE_NORMAL_MAP
-    #if LIGHT_QUALITY_FAST
-        #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
-            half4   lightDirection  : TEXCOORDA;\
-            half2   screenUV   : TEXCOORDB;
 
+    half4 SampleNormals(Varyings input)
+    {
+        #if _RENDER_PASS_ENABLED
+        return LOAD_FRAMEBUFFER_INPUT(NORMALBUFFER, input.positionCS.xy);
+        #else
+        return SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);
+        #endif
+    }
+
+    #if LIGHT_QUALITY_FAST
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)\
             output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz / output.positionCS.w);\
             half3 planeNormal = -GetViewForwardDir();\
@@ -12,20 +18,16 @@
             output.lightDirection.w = 0;
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
-            half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
+            half4 normal = SampleNormals(input);\
             half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
     #else
-        #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
-            half4   positionWS : TEXCOORDA;\
-            half2   screenUV   : TEXCOORDB;
-
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos) \
             output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz / output.positionCS.w); \
             output.positionWS = worldSpacePos;
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
-            half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
+            half4 normal = SampleNormals(input);\
             half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             half3 planeNormal = -GetViewForwardDir();\
             half3 projLightPos = _LightPosition.xyz - (dot(_LightPosition.xyz - input.positionWS.xyz, planeNormal) - _LightZDistance) * planeNormal;\
@@ -33,20 +35,10 @@
             lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
     #endif
 
-    #define NORMALS_LIGHTING_VARIABLES \
-            TEXTURE2D(_NormalMap); \
-            SAMPLER(sampler_NormalMap); \
-            half4       _LightPosition;\
-            half        _LightZDistance;
 #else
-    #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB)
-    #define NORMALS_LIGHTING_VARIABLES
     #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)
     #define APPLY_NORMALS_LIGHTING(input, lightColor)
 #endif
-
-#define SHADOW_COORDS(TEXCOORDA)\
-    float2  shadowUV    : TEXCOORDA;
 
 #define SHADOW_VARIABLES\
     float  _ShadowIntensity;\
@@ -90,24 +82,26 @@ struct FragmentOutput
     half4 GLightBuffer0 : SV_Target0;
     half4 GLightBuffer1 : SV_Target1;
     half4 GLightBuffer2 : SV_Target2;
+    half4 GLightBuffer3 : SV_Target3;
+    half4 NormalBuffer : SV_Target4;
+    half4 ColorBuffer : SV_Target5;
 };
 
 FragmentOutput ToFragmentOutput(half4 finalColor)
 {
     FragmentOutput output = (FragmentOutput)0;
+    #if WRITE_SHAPE_LIGHT_TYPE_0
     output.GLightBuffer0 = finalColor;
-
+    #endif
     #if WRITE_SHAPE_LIGHT_TYPE_1
     output.GLightBuffer1 = finalColor;
-    #else
-    output.GLightBuffer1 *= 1;
     #endif
     #if WRITE_SHAPE_LIGHT_TYPE_2
     output.GLightBuffer2 = finalColor;
-    #else
-    output.GLightBuffer2 *= 1;
     #endif
-
+    #if WRITE_SHAPE_LIGHT_TYPE_3
+    output.GLightBuffer3 = finalColor;
+    #endif
     return output;
 }
 

@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
     public partial class ScriptableRenderer
     {
         private const int kRenderPassMapSize = 10;
-        private const int kRenderPassMaxCount = 20;
+        private const int kRenderPassMaxCount = 64;
 
         // used to keep track of the index of the last pass when we called BeginSubpass
         private int m_LastBeginSubpassPassIndex = 0;
@@ -716,6 +716,7 @@ namespace UnityEngine.Rendering.Universal
             var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachment : m_CameraDepthTarget.nameID;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : depthTarget.GetHashCode();
 #pragma warning restore 0618
+            depthID = renderPass.specialId; // HACK by Paul
             return new RenderPassDescriptor(w, h, samples, depthID);
         }
 

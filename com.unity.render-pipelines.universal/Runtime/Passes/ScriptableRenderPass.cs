@@ -224,6 +224,8 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        public int specialId { get; set; }
+
         RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
         RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
 

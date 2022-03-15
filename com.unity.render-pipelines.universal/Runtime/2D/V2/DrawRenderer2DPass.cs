@@ -17,11 +17,14 @@ namespace UnityEngine.Rendering.Universal
         public Renderer2DData rendererData { get; }
         private LayerBatch layerBatch;
         private RTHandle[] gbuffers;
+        private bool[] transients = {false, false, false, false};
 
-
-        public DrawRenderer2DPass(Renderer2DData rendererData)
+        public DrawRenderer2DPass(Renderer2DData rendererData, bool isNative)
         {
             this.rendererData = rendererData;
+            useNativeRenderPass = isNative;
+            gbuffers = new RTHandle[5];
+            transients = new bool[gbuffers.Length];
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -61,10 +64,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                for (var blendStyleIndex = 0; blendStyleIndex < Render2DLightingPass.k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                 {
                     cmd.SetGlobalTexture(Render2DLightingPass.k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
-                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
+                    RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, false);
                 }
             }
 
@@ -81,10 +84,20 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            if(useNativeRenderPass)
+                ConfigureInputAttachments(gbuffers, transients);
+        }
+
         public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers)
         {
             this.layerBatch = layerBatch;
-            this.gbuffers = gbuffers;
+            for (var i = 0; i < this.gbuffers.Length; i++)
+            {
+                transients[i] = true;
+                this.gbuffers[i] = gbuffers[i];
+            }
         }
     }
 }

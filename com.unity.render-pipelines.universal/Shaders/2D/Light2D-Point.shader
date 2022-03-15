@@ -27,9 +27,10 @@ Shader "Hidden/Light2D-Point"
             #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_0 __
             #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_1 __
             #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_2 __
+            #pragma multi_compile _ _RENDER_PASS_ENABLED
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalProperties.hlsl"
 
             struct Attributes
             {
@@ -47,6 +48,9 @@ Shader "Hidden/Light2D-Point"
                 SHADOW_COORDS(TEXCOORD6)
             };
 
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
+
+
 #if USE_POINT_LIGHT_COOKIES
             TEXTURE2D(_PointLightCookieTex);
             SAMPLER(sampler_PointLightCookieTex);
@@ -60,7 +64,7 @@ Shader "Hidden/Light2D-Point"
             SAMPLER(sampler_LightLookup);
             half4 _LightLookup_TexelSize;
 
-            NORMALS_LIGHTING_VARIABLES
+            // NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES
 
             half4       _LightColor;

@@ -11,14 +11,16 @@ namespace UnityEngine.Rendering.Universal
         {
             "WRITE_SHAPE_LIGHT_TYPE_0", "WRITE_SHAPE_LIGHT_TYPE_1", "WRITE_SHAPE_LIGHT_TYPE_2", "WRITE_SHAPE_LIGHT_TYPE_3"
         };
-        private RTHandle[] gbuffers;
-        private LayerBatch layerBatch;
-        private RTHandle m_DepthHandle;
-        private RTHandle m_NormalAttachmentHandle;
 
-        public DrawLight2DPass(Renderer2DData data)
+        private LayerBatch layerBatch;
+        private RTHandle[] gbuffers;
+        private GraphicsFormat[] gformats;
+        private RTHandle depthAttachment;
+
+        public DrawLight2DPass(Renderer2DData data, bool isNative)
         {
             rendererData = data;
+            useNativeRenderPass = isNative;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -27,7 +29,9 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / rendererData.hdrEmulationScale);
-                cmd.SetGlobalTexture("_NormalMap", m_NormalAttachmentHandle);
+                if (useNativeRenderPass)
+                    cmd.EnableShaderKeyword("_RENDER_PASS_ENABLED");
+                // cmd.SetGlobalTexture("_NormalMap", normalAttachmentHandle);
 
                 for (var blendStyleIndex = 0; blendStyleIndex < 4; blendStyleIndex++)
                 {
@@ -65,18 +69,30 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(gbuffers, m_DepthHandle);
-            ConfigureClear(ClearFlag.Color, Color.black);
+            // ConfigureInputAttachments(new []{gbuffers[4]}, new []{false});
+            ConfigureInputAttachments(gbuffers[4], false);
+
+            var rt = new RTHandle[4];
+            var ft = new GraphicsFormat[rt.Length];
+
+            for (var i = 0; i < rt.Length; i++)
+            {
+                rt[i] = gbuffers[i];
+                ft[i] = gformats[i];
+            }
+
+            ConfigureTarget(rt, depthAttachment, gformats);
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         public Renderer2DData rendererData { get; }
 
-        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, RTHandle depthHandle, RTHandle normalAttachmentHandle)
+        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, GraphicsFormat[] formats, RTHandle depthAttachment)
         {
-            this.layerBatch = layerBatch;
+            this.depthAttachment = depthAttachment;
             this.gbuffers = gbuffers;
-            this.m_DepthHandle = depthHandle;
-            this.m_NormalAttachmentHandle = normalAttachmentHandle;
+            this.gformats = formats;
+            this.layerBatch = layerBatch;
         }
     }
 }

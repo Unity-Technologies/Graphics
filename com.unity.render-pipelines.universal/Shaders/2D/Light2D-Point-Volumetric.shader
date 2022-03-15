@@ -16,6 +16,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalProperties.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             struct Attributes

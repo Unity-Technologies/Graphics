@@ -4,16 +4,14 @@ namespace UnityEngine.Rendering.Universal
     {
         private static readonly ProfilingSampler m_ProfilingDrawLights = new ProfilingSampler("Draw 2D GLobal Lights");
         private readonly Renderer2DData m_RendererData;
-        private LayerBatch m_LayerBatch;
-        private RTHandle[] m_GBuffers;
         private Material m_Material;
-        private RTHandle m_DepthHandle;
+        private LayerBatch m_LayerBatch;
         private static string[] ColorNames = {"_Color0", "_Color1", "_Color2", "_Color3"};
 
-        public DrawGlobalLight2DPass(Renderer2DData rendererData, Material material)
+        public DrawGlobalLight2DPass(Material material, bool isNative)
         {
-            this.m_RendererData = rendererData;
             m_Material = material;
+            useNativeRenderPass = isNative;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -25,6 +23,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     cmd.SetGlobalColor(ColorNames[blendStyleIndex], m_LayerBatch.clearColors[blendStyleIndex]);
                 }
+                cmd.SetGlobalColor("_NormalColor", RendererLighting.k_NormalClearColor);
+
                 // cmd.EnableShaderKeyword("_USE_DRAW_PROCEDURAL");
                 // cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1);
                 // cmd.DisableShaderKeyword("_USE_DRAW_PROCEDURAL");
@@ -40,16 +40,10 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public void Setup(LayerBatch layerBatch)
         {
-            ConfigureTarget(m_GBuffers, m_DepthHandle);
+            m_LayerBatch = layerBatch;
         }
 
-        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, RTHandle depthHandle)
-        {
-            this.m_LayerBatch = layerBatch;
-            this.m_GBuffers = gbuffers;
-            this.m_DepthHandle = depthHandle;
-        }
     }
 }

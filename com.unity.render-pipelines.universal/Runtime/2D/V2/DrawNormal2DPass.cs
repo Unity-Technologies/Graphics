@@ -1,3 +1,4 @@
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.UI;
 
 namespace UnityEngine.Rendering.Universal
@@ -7,8 +8,14 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Draw 2D Normals");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         private LayerBatch layerBatch;
-        private RTHandle normalTarget;
-        private RTHandle depthTexture;
+        // private RTHandle[] gbuffers;
+        // private GraphicsFormat[] gformats;
+        // private RTHandle depthTexture;
+
+        public DrawNormal2DPass(bool isNative)
+        {
+            useNativeRenderPass = isNative;
+        }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -22,12 +29,16 @@ namespace UnityEngine.Rendering.Universal
                 filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
                 var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
-                cmd.SetRenderTarget(
-                    normalTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    depthTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmd.ClearRenderTarget(true, true, RendererLighting.k_NormalClearColor);
+                // if (!useNativeRenderPass)
+                // {
+                //     cmd.DisableShaderKeyword("USE_MRT");
+                //     // CoreUtils.SetRenderTarget(cmd, normalTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, RendererLighting.k_NormalClearColor);
+                // }
+                // else
+                // {
+                     cmd.EnableShaderKeyword("USE_MRT");
+                // }
 
-                // CoreUtils.SetRenderTarget(cmd, normalTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, RendererLighting.k_NormalClearColor);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -39,15 +50,16 @@ namespace UnityEngine.Rendering.Universal
 
         // public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         // {
-        //     ConfigureTarget(normalTexture, depthTexture);
-        //     ConfigureClear(ClearFlag.Color, RendererLighting.k_NormalClearColor);
+        //     ConfigureTarget(gbuffers, depthTexture, gformats);
+        //     ConfigureClear(ClearFlag.None, Color.black);
         // }
 
-        public void Setup(LayerBatch layerBatch, RTHandle normalTexture, RTHandle depthTextureHandle)
+        public void Setup(LayerBatch layerBatch)//, RTHandle depthAttachment, GraphicsFormat[] formats, params RTHandle[] gbuffers)
         {
             this.layerBatch = layerBatch;
-            this.normalTarget = normalTexture;
-            this.depthTexture = depthTextureHandle;
+            // this.gbuffers = gbuffers;
+            // this.gformats = formats;
+            // this.depthTexture = depthAttachment;
         }
     }
 }

@@ -26,9 +26,10 @@ Shader "Hidden/Light2D-Shape"
             #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_0 __
             #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_1 __
             #pragma multi_compile WRITE_SHAPE_LIGHT_TYPE_2 __
+            #pragma multi_compile _ _RENDER_PASS_ENABLED
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalProperties.hlsl"
 
             struct Attributes
             {
@@ -47,6 +48,8 @@ Shader "Hidden/Light2D-Shape"
                 NORMALS_LIGHTING_COORDS(TEXCOORD2, TEXCOORD3)
             };
 
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
+
             half    _InverseHDREmulationScale;
             half4   _LightColor;
             half    _FalloffDistance;
@@ -59,7 +62,7 @@ Shader "Hidden/Light2D-Shape"
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
-            NORMALS_LIGHTING_VARIABLES
+            // NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES
 
             Varyings vert(Attributes attributes)
