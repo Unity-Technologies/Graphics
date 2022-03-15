@@ -1870,7 +1870,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
-                m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
+                m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.volumeCount : 0;
 
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,

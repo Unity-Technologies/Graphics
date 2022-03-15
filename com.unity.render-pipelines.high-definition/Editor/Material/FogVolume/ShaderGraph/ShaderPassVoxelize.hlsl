@@ -27,6 +27,9 @@ float4x4 _WorldToLocal; // UNITY_MATRIX_I_M isn't set when doing a DrawProcedura
 float _RcpDistanceFadeLength;
 float _EndTimesRcpDistanceFadeLength;
 float4 _AlbedoMask;
+uint _VolumeIndex;
+StructuredBuffer<OrientedBBox>            _VolumeBounds;
+StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
 
 struct VertexToFragment
 {
@@ -112,10 +115,9 @@ FragInputs BuildFragInputs(VertexToFragment v2f)
     return output;
 }
 
-float ComputeFadeFactorPositionOS(float3 positionOS)
+float ComputeFadeFactorPositionOS(float3 positionOS, float distance)
 {
     float3 coordNDC = (positionOS / _LocalDensityVolumeExtent) * 0.5 + 0.5;
-    float distance = length(positionOS);
 
     return ComputeVolumeFadeFactor(
         coordNDC, distance, _RcpPositiveFade, _RcpNegativeFade,
@@ -138,6 +140,58 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     if (any(v2f.positionOS > _LocalDensityVolumeExtent) || any(v2f.positionOS < -_LocalDensityVolumeExtent))
         clip(-1);
 
+    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+    float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
+
+    float e1 = v2f.depthSlice * de + de; // (slice + 1) / sliceCount
+    float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
+    float dt = t1 - t0;
+    float t  = t0 + 0.5 * dt;
+    float minSliceDist = t;
+
+    float e11 = (v2f.depthSlice + 1) * de + de; // (slice + 1) / sliceCount
+    float t11 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
+    float dt1 = t1 - t0;
+    float maxSliceDist  = t0 + 0.5 * dt; // static
+
+    float distanceToCamera = length(fragInputs.positionRWS);
+
+    if (distanceToCamera > maxSliceDist)
+        clip(-1);
+    if (distanceToCamera < minSliceDist - 1)
+        clip(-1);
+
+    float3 F = GetViewForwardDir();
+    float3 U = GetViewUpDir();
+
+    float2 centerCoord = fragInputs.positionSS.xy + float2(0.5, 0.5);
+    float3 rayDirWS       = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS[unity_StereoEyeIndex]).xyz;
+    // float3 rayDirWS = v2f.viewDirectionWS;
+    outColor = float4(rayDirWS, 1);
+    float  rcpLenRayDir   = rsqrt(dot(rayDirWS, rayDirWS));
+
+    float3 raycenterDirWS = rayDirWS * rcpLenRayDir; // Normalize
+    float3 rayoriginWS    = GetCurrentViewPosition();
+    float3 voxelCenterWS = rayoriginWS + t * raycenterDirWS;
+    outColor = float4(voxelCenterWS, 1);
+    // return;
+    // float3 voxelCenterWS = fragInputs.positionRWS;
+
+    OrientedBBox obb = _VolumeBounds[_VolumeIndex];
+    float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
+    float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
+
+    float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
+    float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
+    outColor = float4(voxelCenterCS, 1);
+    // return;
+    bool overlap = Max3(abs(voxelCenterCS.x), abs(voxelCenterCS.y), abs(voxelCenterCS.z)) <= 1;
+
+    // if (!overlap)
+    //     clip(-1);
+
+    // float overlapFraction = overlap ? 1 : 0;
+
     // outColor = float4(v2f.positionOS, 1);
     // return;
 
@@ -145,9 +199,13 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 
     extinction *= _Extinction;
 
+    // extinction *= overlapFraction;
+
+    float fade = ComputeFadeFactorPositionOS(v2f.positionOS, length(fragInputs.positionRWS));
+    // extinction *= fade;
+
     float3 scatteringColor = (albedo * _AlbedoMask) * extinction;
 
     // Apply volume blending
-    float fade = ComputeFadeFactorPositionOS(v2f.positionOS);
-    outColor = float4(scatteringColor, extinction * fade);
+    outColor = float4(scatteringColor, extinction);
 }

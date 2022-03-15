@@ -13,8 +13,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Mean free path, in meters: [1, inf].</summary>
         public float meanFreePath; // Should be chromatic - this is an optimization!
 
-        public LocalVolumetricFogBlendingModes blendingMode;
-        public float priority;
+        /// <summary>
+        /// Specifies how the fog in the volume will interact with the fog.
+        /// </summary>
+        public LocalVolumetricFogBlendingMode blendingMode;
+        
+        /// <summary>
+        /// Rendering priority of the volume, higher priority will be rendered first.
+        /// </summary>
+        public int priority;
 
         /// <summary>Anisotropy of the phase function: [-1, 1]. Positive values result in forward scattering, and negative values - in backward scattering.</summary>
         [FormerlySerializedAs("asymmetry")]
@@ -76,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             albedo = color;
             meanFreePath = _meanFreePath;
-            blendingMode = LocalVolumetricFogBlendingModes.Overwrite;
+            blendingMode = LocalVolumetricFogBlendingMode.Overwrite;
             priority = 0;
             anisotropy = _anisotropy;
 
