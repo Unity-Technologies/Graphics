@@ -15,16 +15,17 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
 
         public Renderer2DData rendererData { get; }
-        private LayerBatch layerBatch;
-        private RTHandle[] gbuffers;
-        private bool[] transients = {false, false, false, false};
+        private LayerBatch m_LayerBatch;
+        private UniversalRenderer2D.GBuffers m_GBuffers;
+        private bool m_NeedsClear;
 
-        public DrawRenderer2DPass(Renderer2DData rendererData, bool isNative)
+        public DrawRenderer2DPass(Renderer2DData rendererData, LayerBatch layerBatch, UniversalRenderer2D.GBuffers buffers, bool needsClear)
         {
             this.rendererData = rendererData;
-            useNativeRenderPass = isNative;
-            gbuffers = new RTHandle[5];
-            transients = new bool[gbuffers.Length];
+            useNativeRenderPass = true;
+            m_GBuffers = buffers;
+            m_LayerBatch = layerBatch;
+            m_NeedsClear = needsClear;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -35,8 +36,8 @@ namespace UnityEngine.Rendering.Universal
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
-            filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound,
-                layerBatch.layerRange.upperBound);
+            filterSettings.sortingLayerRange = new SortingLayerRange(m_LayerBatch.layerRange.lowerBound,
+                m_LayerBatch.layerRange.upperBound);
 
             var drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
             var blendStylesCount = rendererData.lightBlendStyles.Length;
@@ -46,19 +47,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalColor(k_RendererColorID, Color.white);
             this.SetShapeLightShaderGlobals(cmd);
 
-            if (layerBatch.lightStats.totalLights > 0)
+            if (m_LayerBatch.lightStats.totalLights > 0)
             {
                 for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                 {
                     var blendStyleMask = (uint)(1 << blendStyleIndex);
-                    var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
-
-                    if (blendStyleUsed)
-                    {
-                        var gBuffer = gbuffers[blendStyleIndex];
-                        cmd.SetGlobalTexture(gBuffer.name, gBuffer.nameID);
-                    }
-
+                    var blendStyleUsed = (m_LayerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
                     RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
                 }
             }
@@ -71,10 +65,13 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            cmd.SetGlobalColor("_GlobalLight0", layerBatch.clearColors[0]);
-            cmd.SetGlobalColor("_GlobalLight1", layerBatch.clearColors[1]);
-            cmd.SetGlobalColor("_GlobalLight2", layerBatch.clearColors[2]);
-            cmd.SetGlobalColor("_GlobalLight3", layerBatch.clearColors[3]);
+            cmd.SetGlobalColor("_GlobalLight0", m_LayerBatch.clearColors[0]);
+            cmd.SetGlobalColor("_GlobalLight1", m_LayerBatch.clearColors[1]);
+            cmd.SetGlobalColor("_GlobalLight2", m_LayerBatch.clearColors[2]);
+            cmd.SetGlobalColor("_GlobalLight3", m_LayerBatch.clearColors[3]);
+
+            if(m_NeedsClear)
+                cmd.ClearRenderTarget(true, true, Color.black);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -86,18 +83,11 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            if(useNativeRenderPass)
-                ConfigureInputAttachments(gbuffers, transients);
-        }
+            // THIS LINE IS CRUCIAL, WITHOUT IT, MEMORYLESS TEXTURES WON'T GET MADE PROPERLY
+            ConfigureInputAttachments(m_GBuffers.lightBuffers, m_GBuffers.transients);
 
-        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers)
-        {
-            this.layerBatch = layerBatch;
-            for (var i = 0; i < this.gbuffers.Length; i++)
-            {
-                transients[i] = true;
-                this.gbuffers[i] = gbuffers[i];
-            }
+            ConfigureTarget(m_GBuffers.colorAttachment, m_GBuffers.depthAttachment);
+            ConfigureClear(ClearFlag.None, Color.black);
         }
     }
 }

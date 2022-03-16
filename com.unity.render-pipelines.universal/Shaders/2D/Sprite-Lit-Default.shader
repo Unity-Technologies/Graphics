@@ -171,28 +171,22 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
 
-            #if USE_MRT
             struct NormalOutput
             {
                 half4 NormalBuffer : SV_Target4;
             };
 
+            // half4 NormalsRenderingFragment(Varyings i) : SV_Target4
             NormalOutput NormalsRenderingFragment(Varyings i)
-            #else
-            half4 NormalsRenderingFragment(Varyings i) : SV_Target
-            #endif
             {
                 const half4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 const half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
 
                 const half4 color = NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, i.normalWS.xyz);
-                #if USE_MRT
                 NormalOutput output = (NormalOutput)0;
                 output.NormalBuffer = color;
                 return output;
-                #else
-                return color;
-                #endif
+                // return color;
             }
             ENDHLSL
         }

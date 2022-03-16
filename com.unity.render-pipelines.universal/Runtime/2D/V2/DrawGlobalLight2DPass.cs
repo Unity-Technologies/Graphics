@@ -3,15 +3,19 @@ namespace UnityEngine.Rendering.Universal
     internal class DrawGlobalLight2DPass : ScriptableRenderPass
     {
         private static readonly ProfilingSampler m_ProfilingDrawLights = new ProfilingSampler("Draw 2D GLobal Lights");
+
+        private readonly UniversalRenderer2D.GBuffers m_GBuffers;
         private readonly Renderer2DData m_RendererData;
         private Material m_Material;
         private LayerBatch m_LayerBatch;
         private static string[] ColorNames = {"_Color0", "_Color1", "_Color2", "_Color3"};
 
-        public DrawGlobalLight2DPass(Material material, bool isNative)
+        public DrawGlobalLight2DPass(Material material, LayerBatch layerBatch, UniversalRenderer2D.GBuffers buffers)
         {
+            m_GBuffers = buffers;
             m_Material = material;
-            useNativeRenderPass = isNative;
+            m_LayerBatch = layerBatch;
+            useNativeRenderPass = true;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -24,15 +28,6 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalColor(ColorNames[blendStyleIndex], m_LayerBatch.clearColors[blendStyleIndex]);
                 }
                 cmd.SetGlobalColor("_NormalColor", RendererLighting.k_NormalClearColor);
-
-                // cmd.EnableShaderKeyword("_USE_DRAW_PROCEDURAL");
-                // cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1);
-                // cmd.DisableShaderKeyword("_USE_DRAW_PROCEDURAL");
-                float flipSign = false ? -1.0f : 1.0f;
-                Vector4 scaleBiasRt = (flipSign < 0.0f)
-                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
             }
 
@@ -40,10 +35,10 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
-        public void Setup(LayerBatch layerBatch)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_LayerBatch = layerBatch;
+            ConfigureTarget(m_GBuffers.buffers, m_GBuffers.depthAttachment, m_GBuffers.formats);
+            ConfigureClear(ClearFlag.None, Color.black);
         }
-
     }
 }
