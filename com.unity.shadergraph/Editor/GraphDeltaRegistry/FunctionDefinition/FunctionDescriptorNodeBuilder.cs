@@ -2,7 +2,7 @@ using System;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// FunctionDescriptorNodeBuilder is a way to to make INodeDefinitionBuilder

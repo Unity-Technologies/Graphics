@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// A ParameterDescriptor describes a parameter of a function and its usage.
