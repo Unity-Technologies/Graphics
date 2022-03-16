@@ -292,11 +292,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static PortHandler AddPort(this NodeHandler node, string name, bool isInput, RegistryKey key, Registry.Registry registry)
         {
             var port = node.AddPort(name, isInput, true);
-            port.SetMetadata(kRegistryKeyName, key);
+            port.AddTypeField().SetMetadata(kRegistryKeyName, key);
 
             var builder = registry.GetTypeBuilder(key);
 
-            builder.BuildType(port.AddTypeField(), registry);
+            builder.BuildType(port.GetTypeField(), registry);
             return port;
         }
     }

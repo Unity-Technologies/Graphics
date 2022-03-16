@@ -12,8 +12,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
         }
 
-        [Obsolete("SetPortField is obselete - for now, use GetPort.AddField", false)]
-        public void SetPortField<T>(string portID, string fieldID, T data) => GetPort(portID).AddField<T>(fieldID, data);
+        internal override DataHeader GetDefaultHeader()
+        {
+            return new NodeHeader();
+        }
+
+        [Obsolete("SetPortField is obselete - for now, use GetPort.GetTypeField().AddSub`Field", false)]
+        public void SetPortField<T>(string portID, string fieldID, T data) => GetPort(portID).GetTypeField().AddSubField<T>(fieldID, data);
 
         public IEnumerable<PortHandler> GetPorts()
         {
@@ -52,8 +57,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             var w = Writer;
             var c = w.AddChild(localID);
-            c.SetHeader(new PortHeader(isInput, isHorizontal));
-            return new PortHandler(ID.FullPath + $".{localID}", Owner, DefaultLayer);
+            c.SetHeader(new PortHeader());
+            var childID = ID.FullPath + $".{localID}";
+            Owner.SetMetadata(childID, PortHeader.kInput, isInput);
+            Owner.SetMetadata(childID, PortHeader.kHorizontal, isHorizontal);
+            return new PortHandler(childID, Owner, DefaultLayer);
         }
         public void RemovePort(string localID)
         {

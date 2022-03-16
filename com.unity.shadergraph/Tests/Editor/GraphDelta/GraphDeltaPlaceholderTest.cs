@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.NotNull(userAdd);
                 Assert.AreEqual(userAdd.ID.FullPath, "AddNodeRef");
                 Assert.IsTrue(userAdd.Children.Count == 0);
-                var addRegKey = userAdd.Header.GetMetadata<RegistryKey>(GraphDelta.kRegistryKeyName);
+                var addRegKey = storage.GetMetadata<RegistryKey>(userAdd.ID, GraphDelta.kRegistryKeyName);
                 Assert.NotNull(addRegKey);
                 Assert.IsFalse(string.IsNullOrEmpty(addRegKey.ToString()));
 
@@ -187,6 +187,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 var contextNode = graphHandler.GetNode("TestContextDescriptor");
                 Assert.NotNull(contextNode);
                 var fooReader = contextNode.GetPort("Foo");
+                Assert.NotNull(fooReader);
+                fooReader = contextNode.GetPorts().First();
                 Assert.NotNull(fooReader);
             }
         }

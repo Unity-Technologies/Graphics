@@ -11,6 +11,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
         }
 
+        internal override DataHeader GetDefaultHeader()
+        {
+            return new FieldHeader();
+        }
         public IEnumerable<FieldHandler> GetSubFields()
         {
             throw new System.NotImplementedException();

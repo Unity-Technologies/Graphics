@@ -12,6 +12,8 @@ namespace UnityEditor.ContextLayeredDataStorage
         [SerializeField]
         internal List<SerializedLayerData> m_serializedData;
         [NonSerialized]
+        internal MetadataCollection m_metadata;
+        [NonSerialized]
         internal readonly LayerList m_layerList;
         [NonSerialized]
         protected Dictionary<string, Element> m_flatStructureLookup;
@@ -41,7 +43,33 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             m_layerList = new LayerList(this);
             m_flatStructureLookup = new Dictionary<string, Element>();
+            m_metadata = new MetadataCollection();
             AddDefaultLayers();
+        }
+
+        public bool HasMetadata(ElementID id, string lookup)
+        {
+            return m_metadata.TryGetValue(id.FullPath, out MetadataBlock block) && block.HasMetadata(lookup);
+        }
+
+        public T GetMetadata<T>(ElementID id, string lookup)
+        {
+            if(m_metadata.TryGetValue(id.FullPath, out MetadataBlock block))
+            {
+                return block.GetMetadata<T>(lookup);
+            }
+            return default;
+        }
+
+        public void SetMetadata<T>(ElementID id, string lookup, T data)
+        {
+            MetadataBlock block;
+            if(!m_metadata.TryGetValue(id.FullPath, out block))
+            {
+                block = new MetadataBlock();
+                m_metadata.Add(id.FullPath, block);
+            }
+            block.SetMetadata(lookup, data);
         }
 
         //overridable default structure setup

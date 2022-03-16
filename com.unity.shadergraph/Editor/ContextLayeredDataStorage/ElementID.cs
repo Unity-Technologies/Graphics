@@ -72,6 +72,13 @@ namespace UnityEditor.ContextLayeredDataStorage
             return true;
         }
 
+        /// <summary>
+        /// Returns true if ElementID other contains ElementID this as a root path
+        /// ie. "Foo.Bar" is a subpath of "Foo.Bar.Baz"
+        /// "Foo.Bar" is not "Baz.Foo.Bar"
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
         public bool IsSubpathOf(ElementID other)
         {
             if (m_path.Count >= other.m_path.Count)
@@ -92,7 +99,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public bool IsImmediateSubpathOf(ElementID other)
         {
-            return m_path.Count == other.m_path.Count + 1 && IsSubpathOf(other);
+            return m_path.Count + 1 == other.m_path.Count && IsSubpathOf(other);
         }
 
         public static ElementID FromString(string path)

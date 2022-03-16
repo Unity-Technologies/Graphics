@@ -37,10 +37,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             else
             {
                 elem = Owner.AddElementToLayer(layerName, ID);
-                Owner.SetHeader(elem, Reader.Element.Header); //Should we default set the header to what our reader is?
+                Owner.SetHeader(elem, GetDefaultHeader()); //Should we default set the header to what our reader is?
                 val = elem.GetWriter();
             }
             return val;
+        }
+
+        internal virtual DataHeader GetDefaultHeader()
+        {
+            return new DataHeader();
         }
 
         internal DataWriter Writer => GetWriter(DefaultLayer);
@@ -54,17 +59,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         internal virtual T GetMetadata<T>(string lookup)
         {
-            return Reader.Element.Header.GetMetadata<T>(lookup);
+            return Owner.GetMetadata<T>(ID, lookup);
         }
 
         internal virtual void SetMetadata<T>(string lookup, T data)
         {
-            Reader.Element.Header.SetMetadata(lookup, data);
+            Owner.SetMetadata(ID, lookup, data);
         }
 
         internal virtual bool HasMetadata(string lookup)
         {
-            return Reader.Element.Header.HasMetadata(lookup);
+            return Owner.HasMetadata(ID, lookup);
         }
 
         internal void ClearLayerData(string layer)

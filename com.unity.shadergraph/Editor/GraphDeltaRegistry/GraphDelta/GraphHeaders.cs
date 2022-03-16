@@ -23,18 +23,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             public const string kInput = "_isInput";
             public const string kHorizontal = "_isHorizontal";
-            public PortHeader() : base()
-            {
-                SetMetadata(kInput, true);
-                SetMetadata(kHorizontal, true);
-            }
-
-            public PortHeader(bool isInput, bool isHorizontal) : this()
-            {
-                SetMetadata(kInput, isInput);
-                SetMetadata(kHorizontal, isHorizontal);
-            }
-
             public override DataReader GetReader(Element element)
             {
                 return new PortReader(element);

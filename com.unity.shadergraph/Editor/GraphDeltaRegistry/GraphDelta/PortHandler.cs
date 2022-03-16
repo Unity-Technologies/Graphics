@@ -8,10 +8,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class PortHandler : GraphDataHandler
     {
+        internal override DataHeader GetDefaultHeader()
+        {
+            return new PortHeader();
+        }
+
         internal string kTypeField = "TypeField";
-        public string LocalID { get; private set; }
-        public bool IsInput { get; }
-        public bool IsHorizontal { get; }
+        public string LocalID => ID.LocalPath;
+        public bool IsInput => GetMetadata<bool>(PortHeader.kInput);
+        public bool IsHorizontal => GetMetadata<bool>(PortHeader.kHorizontal);
         public FieldHandler GetTypeField() => GetField(kTypeField);
         public FieldHandler AddTypeField() => AddField(kTypeField);
 

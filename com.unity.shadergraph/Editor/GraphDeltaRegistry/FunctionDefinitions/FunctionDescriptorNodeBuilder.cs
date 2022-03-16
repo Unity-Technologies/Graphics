@@ -120,18 +120,19 @@ namespace com.unity.shadergraph.defs
             );
 
             // Set the port's parameters from the resolved type.
-            port.AddField(kLength, resolvedType.Length);
-            port.AddField(kHeight, resolvedType.Height);
-            port.AddField(kPrecision, resolvedType.Precision);
-            port.AddField(kPrimitive, resolvedType.Primitive);
+            var typeField = port.GetTypeField();
+            typeField.GetSubField<Length>(kLength).SetData(resolvedType.Length);
+            typeField.GetSubField<Height>(kHeight).SetData(resolvedType.Height);
+            typeField.GetSubField<Precision>(kPrecision).SetData(resolvedType.Precision);
+            typeField.GetSubField<Primitive>(kPrimitive).SetData(resolvedType.Primitive);
 
-            if (param.Usage is Usage.Static) port.AddField("IsStatic", true); // TODO(Liz) : should be metadata
-            if (param.Usage is Usage.Local) port.AddField("IsLocal", true);
+            if (param.Usage is Usage.Static) typeField.AddSubField("IsStatic", true); // TODO(Liz) : should be metadata
+            if (param.Usage is Usage.Local)  typeField.AddSubField("IsLocal", true);
 
             int i = 0;
             foreach(var val in param.DefaultValue)
             {
-                port.AddField($"c{i++}", val);
+                typeField.GetSubField<float>($"c{i++}").SetData(val);
             }
 
             return port;

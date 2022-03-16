@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     if (port.IsHorizontal && port.IsInput)
                     {
-                        var entry = port.GetField<IContextDescriptor.ContextEntry>(ShaderGraph.Registry.Types.GraphType.kEntry).GetData();
+                        var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(ShaderGraph.Registry.Types.GraphType.kEntry).GetData();
                         var varOutBuilder = new BlockVariable.Builder(container)
                         {
                             ReferenceName = entry.fieldName,
@@ -109,12 +109,11 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     if(port.IsHorizontal && port.IsInput)
                     {
-                        var entry = port.GetMetadata<IContextDescriptor.ContextEntry>(Registry.Types.GraphType.kEntry);
-                        var connectedPort = port.GetConnectedPorts().First();
+                        var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(Registry.Types.GraphType.kEntry).GetData();
+                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
-                            var connectedNodePath = port.ID.FullPath.Replace("." + port.ID.LocalPath, "");
-                            var connectedNode = shaderGraph.GetNode(connectedNodePath);
+                            var connectedNode = connectedPort.GetNode();
                             mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
                         }
                         else // not connected.
@@ -240,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         continue;
                     if (port.IsInput)
                     {
-                        var connectedPort = port.GetConnectedPorts().First();
+                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
@@ -283,7 +282,7 @@ namespace UnityEditor.ShaderGraph.Generation
         private static IEnumerable<NodeHandler> GatherTreeLeafFirst(NodeHandler rootNode)
         {
             Stack<NodeHandler> stack = new();
-            HashSet<NodeHandler> visited = new();
+            HashSet<string> visited = new();
             stack.Push(rootNode);
             while(stack.Count > 0)
             {
@@ -291,13 +290,13 @@ namespace UnityEditor.ShaderGraph.Generation
                 bool isLeaf = true;
                 foreach(PortHandler port in check.GetPorts()) //NEDS TO BE INPUT PORTS
                 {
-                    if(port.IsHorizontal)
+                    if(port.IsHorizontal && port.IsInput)
                     {
                         foreach(NodeHandler connected in GetConnectedNodes(port))
                         {
-                            if (!visited.Contains(connected))
+                            if (!visited.Contains(connected.ID.FullPath))
                             {
-                                visited.Add(connected);
+                                visited.Add(connected.ID.FullPath);
                                 isLeaf = false;
                                 stack.Push(connected);
                             }
@@ -316,7 +315,7 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             foreach(var connected in port.GetConnectedPorts())
             {
-                yield return null;//connected.GetNode();
+                yield return connected.GetNode();
             }
         }
     }
