@@ -2,7 +2,6 @@
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta

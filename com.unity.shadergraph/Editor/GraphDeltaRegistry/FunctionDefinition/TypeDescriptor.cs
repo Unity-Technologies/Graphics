@@ -1,10 +1,8 @@
-﻿using UnityEditor.ShaderGraph.GraphDelta;
-
-namespace UnityEditor.ShaderGraph.Defs
+﻿namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /// <summary>
     /// </summary>
-    internal readonly struct TypeDescriptor
+    public readonly struct TypeDescriptor
     {
         public GraphType.Primitive Primitive { get; }
         public GraphType.Precision Precision { get; }

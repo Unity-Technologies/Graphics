@@ -2,6 +2,7 @@
     "name": "Unity.ShaderGraph.Registry.Tests",
     "rootNamespace": "",
     "references": [
+        "Unity.ShaderGraph.StandardDefinitions",
         "Unity.ShaderGraph.GraphDeltaRegistry",
         "GtfPlayground"
     ],

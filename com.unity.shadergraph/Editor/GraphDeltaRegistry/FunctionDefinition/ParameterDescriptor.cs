@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace UnityEditor.ShaderGraph.Defs
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /// <summary>
     /// A ParameterDescriptor describes a parameter of a function and its usage.
@@ -19,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
     /// Example with Default Value
     /// new ParameterDescriptor("A", TYPE.Any, GraphType.Usage.In, new float[] {1f, 0f, 0f, 0f})
     /// </summary>
-    internal readonly struct ParameterDescriptor
+    public readonly struct ParameterDescriptor
     {
         public string Name { get; }  // Must be a valid reference name
         public TypeDescriptor TypeDescriptor { get; }

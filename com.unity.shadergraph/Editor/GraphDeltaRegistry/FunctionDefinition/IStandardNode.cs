@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace UnityEditor.ShaderGraph.Defs
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
 
-    internal interface IStandardNode
+    public interface IStandardNode
     {
         static FunctionDescriptor FunctionDescriptor { get; }
         static Dictionary<string, string> UIStrings { get; }

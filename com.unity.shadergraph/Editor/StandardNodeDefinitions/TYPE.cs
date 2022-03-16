@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// </summary>
-    internal class TYPE
+    public class TYPE
     {
         public static readonly TypeDescriptor Any = new(
             GraphType.Precision.Any,

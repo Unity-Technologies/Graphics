@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace UnityEditor.ShaderGraph.Defs
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
 
     /// <summary>
@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
     /// In registration (See: Register(FunctionDescriptor funcDesc)), a
     /// FunctionDescriptor is registered as a node prototype.
     /// </summary>
-    internal readonly struct FunctionDescriptor
+    public readonly struct FunctionDescriptor
     {
         public int Version { get; }
         public string Name { get; } // Must be a valid reference name

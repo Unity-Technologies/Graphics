@@ -4,6 +4,7 @@
   "references": [
     "Unity.ShaderGraph.Editor",
     "ContextLayeredDataStorage",
+    "Unity.ShaderGraph.StandardDefinitions",
     "Unity.ShaderGraph.GraphDeltaRegistry"
   ],
   "includePlatforms": [
