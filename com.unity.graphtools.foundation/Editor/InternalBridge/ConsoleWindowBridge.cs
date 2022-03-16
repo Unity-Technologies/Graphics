@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
     static class ConsoleWindowBridge
     {
         static Action<int> s_RemoveLogEntriesByIdentifierDelegate;
-        static readonly int k_GTFLogIdentifier = "GraphToolsFoundation".GetHashCode();
+        static readonly int k_LogIdentifier = "GraphToolsFoundation".GetHashCode();
 
         // TODO: This is taken directly from Runtime\Logging\LogAssert.h.  There is no C# equivalent in the editor
         // so when the native enum changes, this should be updated as well.  Unfortunately such changes are very difficult to
@@ -19,6 +20,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
         // Note that some values are intentionally unused but still here for clarity.  Value names are left unchanged
         // from editor, hence the following SuppressMessage attributes.
         [Flags]
+        [SuppressMessage("ReSharper", "UnusedMember.Local")]
         enum LogMessageFlags
         {
             NoLogMessageFlags = 0,
@@ -90,7 +92,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
                 message = message,
                 file = file,
                 mode = mode,
-                identifier = k_GTFLogIdentifier,
+                identifier = k_LogIdentifier,
                 instanceID = instanceId,
             });
         }
@@ -105,7 +107,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
                 Assert.IsNotNull(s_RemoveLogEntriesByIdentifierDelegate);
             }
 
-            s_RemoveLogEntriesByIdentifierDelegate(k_GTFLogIdentifier);
+            s_RemoveLogEntriesByIdentifierDelegate(k_LogIdentifier);
         }
 
         public static T FindBoundGraphViewToolWindow<T>(VisualElement gv) where T : GraphViewToolWindowBridge
@@ -113,8 +115,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             var guiViews = new List<GUIView>();
             GUIViewDebuggerHelper.GetViews(guiViews);
 
-            FieldInfo fieldInfo = typeof(T).GetField("m_SelectedGraphView", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.IsNotNull(fieldInfo);
+            PropertyInfo propertyInfo = typeof(T).GetProperty("SelectedGraphView", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(propertyInfo);
 
             using (var it = UIElementsUtility.GetPanelsIterator())
             {
@@ -126,7 +128,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
 
                     foreach (var graphViewTool in dockArea.m_Panes.OfType<T>())
                     {
-                        var usedGv = (VisualElement)fieldInfo.GetValue(graphViewTool);
+                        var usedGv = (VisualElement)propertyInfo.GetValue(graphViewTool);
                         if (usedGv == gv)
                             return graphViewTool;
                     }

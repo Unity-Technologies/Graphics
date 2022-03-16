@@ -40,7 +40,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// Interface for a model that represents a graph.
     /// </summary>
-    public interface IGraphModel : IGraphElementContainer
+    public interface IGraphModel : IModel, IGraphElementContainer
     {
         IStencil Stencil { get; }
         Type DefaultStencilType { get; }
@@ -104,22 +104,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="modifierFlags">The modifier flags of the new variable declaration to create.</param>
         /// <param name="isExposed">Whether the variable is exposed externally or not.</param>
         /// <param name="group">The group in which the variable is added. If null, it will go to the root group.</param>
-        /// <param name="indexInGroup">The index of the variable in the group.</param>
+        /// <param name="indexInGroup">The index of the variable in the group. For indexInGroup &lt;= 0, The item will be added at the beginning. For indexInGroup &gt;= Items.Count, items will be added at the end.</param>
         /// <param name="initializationModel">The initialization model of the new variable declaration to create. Can be <code>null</code>.</param>
         /// <param name="guid">The SerializableGUID to assign to the newly created item.</param>
         /// <param name="spawnFlags">The flags specifying how the variable declaration is to be spawned.</param>
         /// <returns>The newly created variable declaration.</returns>
         IVariableDeclarationModel CreateGraphVariableDeclaration(TypeHandle variableDataType, string variableName,
-            ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = -1, IConstant initializationModel = null, SerializableGUID guid = default,
+            ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = int.MaxValue, IConstant initializationModel = null, SerializableGUID guid = default,
             SpawnFlags spawnFlags = SpawnFlags.Default);
 
         /// <summary>
         /// Generates a unique name for a variable declaration in the graph.
         /// </summary>
         /// <param name="variableDeclarationName">The name of the variable declaration.</param>
-        /// <param name="variableDeclarationGuid">The guid of the variable declaration.</param>
         /// <returns>The unique name for the variable declaration.</returns>
-        string GenerateGraphVariableDeclarationUniqueName(string variableDeclarationName, SerializableGUID variableDeclarationGuid);
+        string GenerateGraphVariableDeclarationUniqueName(string variableDeclarationName);
+
+        /// <summary>
+        /// Rename an existing variable declaration in the graph with a new unique name.
+        /// </summary>
+        /// <param name="variable">The variable to rename.</param>
+        /// <param name="expectedNewName">The new name we want to give to the variable.</param>
+        void RenameVariable(IVariableDeclarationModel variable, string expectedNewName);
 
         /// <summary>
         /// Creates a new variable declaration in the graph.
@@ -130,14 +136,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="modifierFlags">The modifier flags of the new variable declaration to create.</param>
         /// <param name="isExposed">Whether the variable is exposed externally or not.</param>
         /// <param name="group">The group in which the variable is added. If null, it will go to the root group.</param>
-        /// <param name="indexInGroup">The index of the variable in the group.</param>
+        /// <param name="indexInGroup">The index of the variable in the group. For indexInGroup &lt;= 0, The item will be added at the beginning. For indexInGroup &gt;= Items.Count, items will be added at the end.</param>
         /// <param name="initializationModel">The initialization model of the new variable declaration to create. Can be <code>null</code>.</param>
         /// <param name="guid">The SerializableGUID to assign to the newly created item.</param>
         /// <param name="initializationCallback">An initialization method to be called right after the variable declaration is created.</param>
         /// <param name="spawnFlags">The flags specifying how the variable declaration is to be spawned.</param>
         /// <returns>The newly created variable declaration.</returns>
         IVariableDeclarationModel CreateGraphVariableDeclaration(Type variableTypeToCreate, TypeHandle variableDataType, string variableName,
-            ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = -1, IConstant initializationModel = null, SerializableGUID guid = default,
+            ModifierFlags modifierFlags, bool isExposed, IGroupModel group = null, int indexInGroup = int.MaxValue, IConstant initializationModel = null, SerializableGUID guid = default,
             Action<IVariableDeclarationModel, IConstant> initializationCallback = null, SpawnFlags spawnFlags = SpawnFlags.Default);
 
         /// <summary>
@@ -147,28 +153,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="variableModels">The variable declaration models to delete.</param>
         /// <param name="deleteUsages">Whether or not to delete the corresponding variable models.</param>
         /// <returns>The list of deleted models.</returns>
-        IReadOnlyCollection<IGraphElementModel> DeleteVariableDeclarations(IReadOnlyCollection<IVariableDeclarationModel> variableModels, bool deleteUsages = true);
+        GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<IVariableDeclarationModel> variableModels, bool deleteUsages = true);
 
         /// <summary>
         /// Creates a new group.
         /// </summary>
         /// <param name="title">The title of the new group.</param>
+        /// <param name="items">An optional list of items that will be added to the group.</param>
         /// <returns>A new group.</returns>
-        IGroupModel CreateVariableGroup(string title);
+        IGroupModel CreateGroup(string title, IReadOnlyCollection<IGroupItemModel> items = null);
 
         /// <summary>
-        /// Deletes the given variable group models.
+        /// Deletes the given group models.
         /// </summary>
-        /// <param name="variableGroupModels">The variable group models to delete.</param>
+        /// <param name="groupModels">The group models to delete.</param>
         /// <returns>The list of deleted models.</returns>
-        IReadOnlyCollection<IGraphElementModel> DeleteVariableGroups(IReadOnlyCollection<IGroupModel> variableGroupModels);
+        GraphChangeDescription DeleteGroups(IReadOnlyCollection<IGroupModel> groupModels);
 
         /// <summary>
         /// Duplicates a variable declaration.
         /// </summary>
         /// <param name="sourceModel">The variable declaration to duplicate.</param>
+        /// <param name="keepGuid">Whether the duplicated model should have the same guid as the <paramref name="sourceModel"/>.</param>
         /// <returns>The duplicated variable declaration.</returns>
-        TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel)
+        TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel, bool keepGuid = false)
             where TDeclType : IVariableDeclarationModel;
 
         /// <summary>
@@ -215,7 +223,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="guid">The SerializableGUID to assign to the newly created item.</param>
         /// <param name="spawnFlags">The flags specifying how the node is to be spawned.</param>
         /// <returns>The newly created subgraph node.</returns>
-        ISubgraphNodeModel CreateSubgraphNode(GraphAssetModel referenceGraphAsset, Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default);
+        ISubgraphNodeModel CreateSubgraphNode(IGraphAssetModel referenceGraphAsset, Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default);
 
         /// <summary>
         /// Creates a new node in the graph.
@@ -249,6 +257,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>The newly created edge</returns>
         IEdgeModel CreateEdge(IPortModel toPort, IPortModel fromPort, SerializableGUID guid = default);
         IEdgeModel DuplicateEdge(IEdgeModel sourceEdge, INodeModel targetInputNode, INodeModel targetOutputNode);
+
+        /// <summary>
+        /// Deletes edges from the graph.
+        /// </summary>
+        /// <param name="edgeModels">The list of edges to delete.</param>
+        /// <returns>A list of graph element models that were deleted by this operation.</returns>
         IReadOnlyCollection<IGraphElementModel> DeleteEdges(IReadOnlyCollection<IEdgeModel> edgeModels);
 
         /// <summary>
@@ -296,7 +310,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="portModels">The list of candidate ports.</param>
         /// <param name="startPortModel">The port to which the connection originates (can be an input or output port).</param>
         /// <returns>A list of ports that can be connected to <paramref name="startPortModel"/>.</returns>
-        List<IPortModel> GetCompatiblePorts(List<IPortModel> portModels, IPortModel startPortModel);
+        List<IPortModel> GetCompatiblePorts(IReadOnlyList<IPortModel> portModels, IPortModel startPortModel);
 
         bool CheckIntegrity(Verbosity errors);
 
@@ -304,11 +318,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         void CloneGraph(IGraphModel sourceGraphModel);
 
         /// <summary>
-        /// Returns the model for a given section name, creating it if it doesn't exist.
+        /// Returns the model for a given section name. Sections are created from <see cref="IStencil.SectionNames"/>.
         /// </summary>
         /// <param name="sectionName">The section to use.</param>
         /// <returns>The model for a given section name.</returns>
         ISectionModel GetSectionModel(string sectionName = "");
 
+        /// <summary>
+        /// Updates the graph model when loading the graph.
+        /// </summary>
+        void OnLoadGraphAsset();
     }
 }

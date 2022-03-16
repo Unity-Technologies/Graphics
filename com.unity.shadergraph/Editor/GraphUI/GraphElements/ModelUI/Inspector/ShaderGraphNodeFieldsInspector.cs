@@ -16,12 +16,12 @@
 //        /// <param name="ownerElement">The owner of the part.</param>
 //        /// <param name="parentClassName">The class name of the parent.</param>
 //        /// <returns>A new instance of <see cref="ShaderGraphNodeFieldsInspector"/>.</returns>
-//        public static ShaderGraphNodeFieldsInspector CreateInspector(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
+//        public static ShaderGraphNodeFieldsInspector CreateInspector(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName)
 //        {
 //            return new ShaderGraphNodeFieldsInspector(name, model, ownerElement, parentClassName);
 //        }
 
-//        protected ShaderGraphNodeFieldsInspector(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
+//        protected ShaderGraphNodeFieldsInspector(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName)
 //            : base(name, model, ownerElement, parentClassName)
 //        {
 

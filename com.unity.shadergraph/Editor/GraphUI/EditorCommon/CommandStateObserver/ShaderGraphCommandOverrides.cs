@@ -11,13 +11,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public static class ShaderGraphCommandOverrides
     {
         public static void HandleCreateEdge(
-            UndoStateComponent undoState,
-            GraphViewStateComponent graphViewState,
+            BaseGraphTool graphTool,
+            GraphViewModel graphView,
             PreviewManager previewManager,
-            Preferences preferences,
             CreateEdgeCommand command)
         {
-            CreateEdgeCommand.DefaultCommandHandler(undoState, graphViewState, preferences, command);
+            var undoState = graphTool.UndoStateComponent;
+            var graphModelState = graphView.GraphModelState;
+            var selectionState = graphView.SelectionState;
+            var preferences = graphTool.Preferences;
+
+            CreateEdgeCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, preferences, command);
 
             var resolvedSource = command.FromPortModel;
             var resolvedDestinations = new List<IPortModel>();
@@ -27,7 +31,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 resolvedDestinations = toRedir.ResolveDestinations().ToList();
 
                 // Update types of descendant redirect nodes.
-                using var graphUpdater = graphViewState.UpdateScope;
+                using var graphUpdater = graphModelState.UpdateScope;
                 foreach (var child in toRedir.GetRedirectTree(true))
                 {
                     child.UpdateTypeFrom(command.FromPortModel);
@@ -47,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (resolvedSource is not GraphDataPortModel fromDataPort) return;
 
             // Make the corresponding connections in Shader Graph's data model.
-            var shaderGraphModel = (ShaderGraphModel) graphViewState.GraphModel;
+            var shaderGraphModel = (ShaderGraphModel) graphModelState.GraphModel;
             foreach (var toDataPort in resolvedDestinations.OfType<GraphDataPortModel>())
             {
                 // Validation should have already happened in GraphModel.IsCompatiblePort.
@@ -60,13 +64,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void HandleBypassNodes(
             UndoStateComponent undoState,
-            GraphViewStateComponent graphViewState,
+            GraphModelStateComponent graphModelState,
+            SelectionStateComponent selectionState,
             PreviewManager previewManager,
             BypassNodesCommand command)
         {
-            BypassNodesCommand.DefaultCommandHandler(undoState, graphViewState, command);
+            BypassNodesCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
 
-            var graphModel = (ShaderGraphModel)graphViewState.GraphModel;
+            var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
 
             // Delete backing data for graph data nodes.
             foreach (var graphData in command.Models.OfType<GraphDataNodeModel>())
@@ -80,7 +85,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void HandleDeleteElements(
             UndoStateComponent undoState,
-            GraphViewStateComponent graphViewState,
+            GraphModelStateComponent graphModelState,
             SelectionStateComponent selectionState,
             PreviewManager previewManager,
             DeleteElementsCommand command)
@@ -93,10 +98,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             using var undoStateUpdater = undoState.UpdateScope;
             {
-                undoStateUpdater.SaveSingleState(graphViewState, command);
+                undoStateUpdater.SaveSingleState(graphModelState, command);
             }
 
-            var graphModel = (ShaderGraphModel)graphViewState.GraphModel;
+            var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
 
             // Partition out redirect nodes because they get special delete behavior.
             var redirects = new List<RedirectNodeModel>();
@@ -116,7 +121,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             using var selectionUpdater = selectionState.UpdateScope;
-            using var graphUpdater = graphViewState.UpdateScope;
+            using var graphUpdater = graphModelState.UpdateScope;
             {
                 foreach (var model in nonRedirects)
                 {
@@ -169,7 +174,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
 
                 // Delete everything else as usual.
-                deletedModels.AddRange(graphModel.DeleteElements(nonRedirects));
+                deletedModels.AddRange(graphModel.DeleteElements(nonRedirects).DeletedModels);
 
                 var selectedModels = deletedModels.Where(m => selectionState.IsSelected(m)).ToList();
                 if (selectedModels.Any())
@@ -224,46 +229,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
             //}
         }
 
+        //public static void HandleUpdateConstantValue(
+        //    GraphViewStateComponent graphViewState,
+        //    PreviewManager previewManager,
+        //    UpdateConstantValueCommand updateConstantValueCommand)
+        //{
+        //    // TODO: Handle Property values being changed when those come online
+        //    // using var previewUpdater = graphPreviewState.UpdateScope;
+        //    // {
+        //    //     // Find all property nodes backed by this constant
+        //    //     var graphNodes = graphViewState.GraphModel.NodeModels;
+        //    //     foreach (var graphNode in graphNodes)
+        //    //     {
+        //    //         if (graphNode is IVariableNodeModel variableNodeModel &&
+        //    //             Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
+        //    //         {
+        //    //             previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
+        //    //         }
+        //    //     }
+        //    // }
+        //}
+
         public static void HandleUpdateConstantValue(
-            GraphViewStateComponent graphViewState,
+            UndoStateComponent undoState,
+            GraphModelStateComponent graphModelState,
             PreviewManager previewManager,
             UpdateConstantValueCommand updateConstantValueCommand)
         {
-            // TODO: Handle Property values being changed when those come online
-            // using var previewUpdater = graphPreviewState.UpdateScope;
-            // {
-            //     // Find all property nodes backed by this constant
-            //     var graphNodes = graphViewState.GraphModel.NodeModels;
-            //     foreach (var graphNode in graphNodes)
-            //     {
-            //         if (graphNode is IVariableNodeModel variableNodeModel &&
-            //             Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
-            //         {
-            //             previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
-            //         }
-            //     }
-            // }
-        }
-
-        public static void HandleUpdatePortValue(
-            GraphViewStateComponent graphViewState,
-            PreviewManager previewManager,
-            IGraphModel graphModel,
-            UpdatePortConstantCommand updatePortConstantCommand)
-        {
-            var shaderGraphModel = graphModel as ShaderGraphModel;
-            var portModel = updatePortConstantCommand.PortModel;
-            if (portModel.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
+            var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
+            var model = updateConstantValueCommand.OwnerModel as GraphDataPortModel;
+            if (model.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
             {
                 var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
                 if (nodeWriter != null)
                 {
-                    previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, portModel.UniqueName, updatePortConstantCommand.NewValue);
-
-                    using (var graphUpdater = graphViewState.UpdateScope)
-                    {
-                        graphUpdater.MarkChanged(portModel.NodeModel);
-                    }
+                    previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, model.UniqueName, updateConstantValueCommand.Value);
                 }
             }
         }

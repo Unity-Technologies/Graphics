@@ -5,6 +5,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.GraphToolsFoundation.Overdrive.Bridge;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -23,13 +24,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         protected BaseGraphTool GraphTool => Window.GraphTool;
         protected GraphModel GraphModel => (GraphModel)GraphTool?.ToolState.GraphModel;
 
+        protected virtual Type GetWindowType()
+        {
+            return WithSidePanel ? typeof(UITestWindowWithSidePanel) : typeof(UITestWindow);
+        }
+
         protected abstract bool CreateGraphOnStartup { get; }
         protected virtual Type CreatedGraphType => typeof(ClassStencil);
+
+        protected virtual bool WithSidePanel => false;
 
         [SetUp]
         public virtual void SetUp()
         {
-            Window = EditorWindow.GetWindowWithRect<UITestWindow>(k_WindowRect);
+            var windowType = GetWindowType();
+            Window = EditorWindow.GetWindowWithRect(windowType, k_WindowRect) as UITestWindow;
+            Assert.IsNotNull(Window);
+            Window.CloseAllOverlays();
+
             GraphView = Window.GraphView;
             Helpers = new TestEventHelpers(Window);
 
@@ -61,7 +73,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
         protected IList<GraphElement> GetGraphElements()
         {
-            return ((IGraphElementContainer) GraphModel).GraphElementModels.GetAllUIsInList(GraphView, null, new List<ModelUI>()).OfType<GraphElement>().ToList();
+            return ((IGraphElementContainer) GraphModel).GraphElementModels.GetAllViewsInList(GraphView, null, new List<ModelView>()).OfType<GraphElement>().ToList();
         }
 
         protected GraphElement GetGraphElement(int index)
@@ -69,9 +81,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             return GetGraphElements()[index];
         }
 
-        protected void MarkGraphViewStateDirty()
+        protected void MarkGraphModelStateDirty()
         {
-            using (var updater = GraphView.GraphViewState.UpdateScope)
+            using (var updater = GraphView.GraphViewModel.GraphModelState.UpdateScope)
             {
                 updater.ForceCompleteUpdate();
             }
@@ -106,7 +118,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             switch (mode)
             {
                 case TestingMode.Command:
-                    BaseFixture.AssumePreviousTest(checkReqs);
+                    BaseFixtureHelpers.AssumePreviousTest(checkReqs);
 
                     currentFrame = 0;
                     while (doUndoableStuff(currentFrame++) == TestPhase.WaitForNextFrame)
@@ -121,7 +133,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                     Undo.ClearAll();
 
                     Undo.IncrementCurrentGroup();
-                    BaseFixture.AssumePreviousTest(checkReqs);
+                    BaseFixtureHelpers.AssumePreviousTest(checkReqs);
 
                     currentFrame = 0;
                     while (doUndoableStuff(currentFrame++) == TestPhase.WaitForNextFrame)
@@ -131,7 +143,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
                     yield return WaitFrames();
 
-                    BaseFixture.AssumePreviousTest(checkPostReqs);
+                    BaseFixtureHelpers.AssumePreviousTest(checkPostReqs);
 
                     yield return WaitFrames();
 
@@ -139,13 +151,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
                     yield return WaitFrames();
 
-                    BaseFixture.AssertPreviousTest(checkReqs);
+                    BaseFixtureHelpers.AssertPreviousTest(checkReqs);
 
                     Undo.PerformRedo();
 
                     yield return WaitFrames();
 
-                    BaseFixture.AssertPreviousTest(checkPostReqs);
+                    BaseFixtureHelpers.AssertPreviousTest(checkPostReqs);
                     break;
 
                 default:

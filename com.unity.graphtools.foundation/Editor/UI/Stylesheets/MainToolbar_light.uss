@@ -1,0 +1,9 @@
+.ge-main-toolbar{
+    --graph-toolbar-icon-new: url("Icons/MainToolbar/CreateNew.png");
+    --graph-toolbar-icon-open: url("Icons/MainToolbar/Open.png");
+    --graph-toolbar-icon-build: url("Icons/MainToolbar/BuildAll.png");
+    --graph-toolbar-icon-refresh: url("Icons/MainToolbar/Refresh.png");
+    --graph-toolbar-icon-blackboard: url("Icons/MainToolbar/Blackboard.png");
+    --graph-toolbar-icon-minimap: url("Icons/MainToolbar/MiniMap.png");
+    --graph-toolbar-icon-options: url("Icons/MainToolbar/Options.png");
+}

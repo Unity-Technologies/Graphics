@@ -1,0 +1,87 @@
+.ge-view {
+
+    --unity-icon-foldout: resource("Builtin Skins/DarkSkin/Images/IN foldout@2x.png");
+    --unity-icon-foldout-on: resource("Builtin Skins/DarkSkin/Images/IN foldout on@2x.png");
+    --unity-icon-foldout-act: resource("Builtin Skins/DarkSkin/Images/IN foldout act@2x.png");
+    --unity-icon-foldout-act-on: resource("Builtin Skins/DarkSkin/Images/IN foldout act on@2x.png");
+
+    --graph-color-background: #202020;
+    --graph-color-node-light:  #393939;
+    --graph-color-node-dark: #2B2B2B;
+    --graph-color-borders: #1A1A1A;
+    --graph-color-dividers: #222222;
+    --graph-color-selection-fill: rgba(68, 192, 255,0.11);
+
+    --overlay-background-color: #383838;
+
+    /*Blackboard.uss*/
+    --blackboard-background: var(--overlay-background-color);
+    --blackboard-header-background: #2A2A2A;
+    --blackboard-section-header-background: #2A2A2A;
+    --blackboard-section-background: rgba(57, 57, 57, 0.4);
+    --blackboard-group-background: rgba(57, 57, 57, 0.45);
+
+    --blackboard-capsule-background: #545454;
+    --blackboard-variable-type-label: #808080;
+
+    /*ConstantField.uss*/
+    --plugged-value-tint: #243333;
+
+    /*EdgeBubble.uss*/
+    --edge-bubble-background: rgba(39, 39, 39, 0.9);
+
+    /*GraphElement.uss*/
+    --minimap-nodes: rgba(230, 230, 230, 0.5);
+
+    /*GraphView.uss*/
+    --grid-border: rgba(200,200,200,0.05);
+    --grid-border-thick:  rgba(200,200,200,0.1);
+
+    /*Minimap.uss*/
+    --minimap-viewport-border: rgba(230, 230, 230, 0.5);
+
+    /*Placemat.us*/
+    --placemat-text: #c4c4c4;
+
+    /*Port.uss & Blackboard.uss*/
+    --port-type-execution: #D7AE1F;
+    --port-type-string: #fcd76e;
+    --port-type-gameobject: #c1c1c1;
+    --port-type-boolean: #9481e6;
+    --port-type-integer: #58c3ff;
+    --port-type-float: #84e4e7;
+    --port-type-float2: #71e866;
+    --port-type-float3: #f6ff9a;
+    --port-type-float4: #fbcbf4;
+    --port-type-textures: #ff8b8b;
+    --port-type-animation: #7cf4c9;
+    --port-type-matrix: #8fc1df;
+    --port-type-component: #C9F774;
+    --port-type-empty: #8d8d8d;
+    --port-type-missing: #ff0000;
+}
+
+.ge-port--data-type-missing-port .ge-port__icon {
+    --unity-image: url("Icons/ErrorToolbar/d_ErrorIcon.png");
+}
+
+/*Node Icons*/
+.ge-node__icon--node {
+    background-image: url("Icons/d_Function@x3.png");
+}
+
+.ge-collapse-button__icon {
+    background-image: url("Icons/d_NodeChevronDown.png");
+}
+
+.ge-collapse-button--collapsed .ge-collapse-button__icon {
+    background-image: url("Icons/d_NodeChevronRight.png");
+}
+
+.ge-icon-title-progress__missing-graph-icon {
+    background-image: url("Icons/ErrorToolbar/d_ErrorIcon.png");
+}
+
+.ge-icon-title-progress__asset-graph-icon {
+    background-image: url("Icons/MainToolbar/d_Open.png");
+}

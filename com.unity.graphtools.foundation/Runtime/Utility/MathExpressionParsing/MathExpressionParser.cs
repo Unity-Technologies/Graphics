@@ -16,7 +16,6 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         Mul,
         Div,
         LeftParens,
-        RightParens,
         Plus,
         Minus,
         Coma,
@@ -109,6 +108,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
             return Ops.Single(o => o.Value.Str == input && o.Value.Unary == unary).Value;
         }
 
+#if !UNITY_2022_1_OR_NEWER
         static bool TryPeek<T>(this Stack<T> stack, out T t)
         {
             if (stack.Count != 0)
@@ -120,6 +120,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
             t = default;
             return false;
         }
+#endif
 
         static IExpression ParseUntil(MathExpressionReader r, Stack<Operator> opStack, Stack<IExpression> output, Token readUntilToken,
             int startOpStackSize)

@@ -13,8 +13,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         public class EnumValueSearcherItem : SearcherItem
         {
-            public EnumValueSearcherItem(Enum value, string help = "")
-                : base(value.ToString(), help)
+            public EnumValueSearcherItem(Enum value)
+                :base(value.ToString())
             {
                 this.value = value;
             }

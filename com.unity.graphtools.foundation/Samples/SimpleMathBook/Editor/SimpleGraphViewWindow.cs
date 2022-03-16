@@ -15,23 +15,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         [MenuItem("GTF/Samples/MathBook Editor")]
         public static void ShowWindow()
         {
-            GetWindow<SimpleGraphViewWindow>();
+            FindOrCreateGraphWindow<SimpleGraphViewWindow>();
         }
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            return CsoTool.Create<MathBookGraphTool>();
+            return CsoTool.Create<MathBookGraphTool>(WindowID);
         }
 
         protected override GraphView CreateGraphView()
         {
-            var graphView = new GraphView(this, GraphTool, GraphTool.Name);
+            var graphView = new MathBookGraphView(this, GraphTool, GraphTool.Name);
 
-            GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(425, 400), 2.0f);
+            GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 400), 2.0f);
 
             graphView.RegisterCommandHandler<SetNumberOfInputPortCommand>(SetNumberOfInputPortCommand.DefaultCommandHandler);
             graphView.RegisterCommandHandler<Preferences, CreateEdgeCommand>(EdgeCommandOverrides.HandleCreateEdge, GraphTool.Preferences);
             graphView.RegisterCommandHandler<DeleteElementsCommand>(EdgeCommandOverrides.HandleDeleteEdge);
+            graphView.RegisterCommandHandler<RenameElementCommand>(NodeCommandOverrides.HandleRenameNode);
 
             return graphView;
         }
@@ -49,9 +50,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             return asset is MathBookAsset;
         }
 
+#if !UNITY_2022_2_OR_NEWER
         protected override MainToolbar CreateMainToolbar()
         {
             return new MathBookMainToolbar(GraphTool, GraphView);
         }
+#endif
     }
 }

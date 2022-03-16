@@ -34,5 +34,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
         {
             return new BlackboardGraphModel(graphAssetModel);
         }
+
+        /// <inheritdoc />
+        public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
+        {
+            return null;
+        }
+
+        /// <inheritdoc />
+        public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
+        {
+            return true;
+        }
+
+        public override  bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph)
+        {
+            return true;
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.TestTools;
@@ -35,9 +36,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreNotEqual(Vector3.one, command.Scale);
             }
 
-            graphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
 
-            helpers.KeyPressed(ShortcutFrameAllEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutFrameAllEvent.modifiers));
+            ShortcutFrameAllEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -55,9 +56,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(Vector3.one, command.Scale);
             }
 
-            graphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
 
-            helpers.KeyPressed(ShortcutFrameOriginEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutFrameOriginEvent.modifiers));
+            ShortcutFrameOriginEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -67,7 +68,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         public IEnumerator ShortcutFramePreviousSendsCorrectCommand()
         {
             bool commandReceived = false;
-            var elemList = graphView.GraphModel.NodeModels.Where(e => e.IsSelectable()).ToList();
+            var elemList = GraphView.GraphModel.NodeModels.Where(e => e.IsSelectable()).ToList();
 
             void CommandHandler(ReframeGraphViewCommand command)
             {
@@ -76,15 +77,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(elemList[k_NodeCount - 2], command.NewSelection[0]);
             }
 
-            graphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
 
             // we need the UI
             MarkGraphViewStateDirty();
             yield return null;
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, elemList[k_NodeCount - 1]));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, elemList[k_NodeCount - 1]));
 
-            helpers.KeyPressed(ShortcutFramePreviousEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutFramePreviousEvent.modifiers));
+            ShortcutFramePreviousEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -94,7 +95,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         public IEnumerator ShortcutFrameNextSendsCorrectCommand()
         {
             bool commandReceived = false;
-            var elemList = graphView.GraphModel.NodeModels.Where(e => e.IsSelectable()).ToList();
+            var elemList = GraphView.GraphModel.NodeModels.Where(e => e.IsSelectable()).ToList();
             void CommandHandler(ReframeGraphViewCommand command)
             {
                 commandReceived = true;
@@ -102,15 +103,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(elemList[1], command.NewSelection[0]);
             }
 
-            graphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<ReframeGraphViewCommand>(CommandHandler);
 
             // we need the UI
             MarkGraphViewStateDirty();
             yield return null;
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, elemList[0]));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, elemList[0]));
 
-            helpers.KeyPressed(ShortcutFrameNextEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutFrameNextEvent.modifiers));
+            ShortcutFrameNextEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -120,7 +121,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         public IEnumerator ShortcutDeleteSendsCorrectCommand()
         {
             bool commandReceived = false;
-            var elemList = graphView.GraphModel.NodeModels.Where(e => e.IsSelectable()).ToList();
+            var elemList = GraphView.GraphModel.NodeModels.Where(e => e.IsSelectable()).ToList();
             void CommandHandler(DeleteElementsCommand command)
             {
                 commandReceived = true;
@@ -128,11 +129,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(elemList[0], command.Models[0]);
             }
 
-            graphView.RegisterCommandHandler<DeleteElementsCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<DeleteElementsCommand>(CommandHandler);
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, elemList[0]));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, elemList[0]));
 
-            helpers.KeyPressed(ShortcutDeleteEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutDeleteEvent.modifiers));
+            ShortcutDeleteEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -152,11 +153,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(constantNode, command.ConstantNodeModels[0]);
             }
 
-            graphView.RegisterCommandHandler<ConvertConstantNodesAndVariableNodesCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<ConvertConstantNodesAndVariableNodesCommand>(CommandHandler);
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, constantNode));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, constantNode));
 
-            helpers.KeyPressed(ShortcutConvertConstantAndVariableEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutConvertConstantAndVariableEvent.modifiers));
+            ShortcutConvertConstantAndVariableEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -172,9 +173,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.IsFalse(command.Follow);
             }
 
-            graphView.RegisterCommandHandler<AlignNodesCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<AlignNodesCommand>(CommandHandler);
 
-            helpers.KeyPressed(ShortcutAlignNodesEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutAlignNodesEvent.modifiers));
+            ShortcutAlignNodesEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -190,9 +191,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.IsTrue(command.Follow);
             }
 
-            graphView.RegisterCommandHandler<AlignNodesCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<AlignNodesCommand>(CommandHandler);
 
-            helpers.KeyPressed(ShortcutAlignNodeHierarchiesEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutAlignNodeHierarchiesEvent.modifiers));
+            ShortcutAlignNodeHierarchiesEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);
@@ -207,9 +208,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 commandReceived = true;
             }
 
-            graphView.RegisterCommandHandler<CreateStickyNoteCommand>(CommandHandler);
+            GraphView.RegisterCommandHandler<CreateStickyNoteCommand>(CommandHandler);
 
-            helpers.KeyPressed(ShortcutCreateStickyNoteEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutCreateStickyNoteEvent.modifiers));
+            ShortcutCreateStickyNoteEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
             Assert.IsTrue(commandReceived);

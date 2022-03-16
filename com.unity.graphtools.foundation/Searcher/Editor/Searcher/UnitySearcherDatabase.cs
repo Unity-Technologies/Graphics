@@ -17,7 +17,12 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         internal static bool IsOldDatabaseWithoutQuickSearch => false;
 
         List<int> m_MatchIndicesBuffer;
+
+        /// <summary>
+        /// During one search query, stores the item being processed currently.
+        /// </summary>
         SearcherItem m_CurrentItem;
+
         float m_ScoreMultiplier = 1f;
         QueryEngine<SearcherItem> m_QueryEngine;
 
@@ -33,7 +38,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         /// Instantiates a database with items.
         /// </summary>
         /// <param name="items">Items to populate the database.</param>
-        public SearcherDatabase(List<SearcherItem> items)
+        public SearcherDatabase(IReadOnlyList<SearcherItem> items)
             : base(items)
         {
             SetupQueryEngine();
@@ -65,7 +70,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         {
             m_QueryEngine = new QueryEngine<SearcherItem>();
             m_QueryEngine.SetSearchDataCallback(GetSearchData, s => s.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase);
-            m_QueryEngine.SetSearchWordMatcher((searchWord, isExact, comparisonOption, searchData) =>
+            m_QueryEngine.SetSearchWordMatcher((searchWord, _, __, searchData) =>
             {
                 if (m_MatchIndicesBuffer == null)
                     m_MatchIndicesBuffer = new List<int>(searchData.Length);
@@ -75,9 +80,10 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
                 var fuzzyMatch = FuzzySearch.FuzzyMatch(searchWord, searchData, ref score, m_MatchIndicesBuffer);
                 if (m_CurrentItem != null)
                 {
-                    m_CurrentItem.lastMatchedIndices = m_MatchIndicesBuffer;
-                    m_CurrentItem.lastMatchedString = searchData;
-                    m_CurrentItem.lastSearchScore = (long)(score * m_ScoreMultiplier);
+                    LastSearchData[m_CurrentItem] = new SearchData {
+                        MatchedIndices = m_MatchIndicesBuffer,
+                        MatchedString = searchData,
+                        Score = (long)(score * m_ScoreMultiplier) };
                 }
                 return fuzzyMatch;
             });

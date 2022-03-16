@@ -14,10 +14,6 @@
     background-image: resource("toggle_searcher_preview_on");
 }
 
-.ge-sg-toolbar #showInProjectButton .icon {
-    background-image: resource("toggle_searcher_preview_on");
-}
-
 .ge-sg-toolbar #checkOutButton .icon {
     background-image: resource("P4_CheckOutLocal");
 }

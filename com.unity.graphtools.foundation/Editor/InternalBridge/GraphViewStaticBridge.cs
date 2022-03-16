@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if UNITY_2022_2_OR_NEWER
+using UnityEditor.Overlays;
+using UnityEditor.Toolbars;
+#endif
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -20,10 +24,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             public const string Delete = UnityEngine.EventCommandNames.Delete;
             public const string SoftDelete = UnityEngine.EventCommandNames.SoftDelete;
             public const string FrameSelected = UnityEngine.EventCommandNames.FrameSelected;
+            public const string SelectAll = UnityEngine.EventCommandNames.SelectAll;
+            public const string DeselectAll = UnityEngine.EventCommandNames.DeselectAll;
+            public const string InvertSelection = UnityEngine.EventCommandNames.InvertSelection;
         }
 
-        public static readonly int s_EditorPixelsPerPointId = Shader.PropertyToID("_EditorPixelsPerPoint");
-        public static readonly int s_GraphViewScaleId = Shader.PropertyToID("_GraphViewScale");
+        public static readonly int editorPixelsPerPointId = Shader.PropertyToID("_EditorPixelsPerPoint");
+        public static readonly int graphViewScaleId = Shader.PropertyToID("_GraphViewScale");
 
         static Shader s_GraphViewShader;
 
@@ -77,7 +84,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
         }
 
         /* For tests */
-        public static void SetTimeSinceStartupCB(Func<long> cb)
+        public static void SetTimeSinceStartupCallback(Func<long> cb)
         {
             if (cb == null)
                 Panel.TimeSinceStartup = null;
@@ -228,6 +235,26 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             mgc.Rectangle(MeshGenerationContextUtils.RectangleParams.MakeSolid(rectParams, color, context));
         }
 
+        public static void Border(MeshGenerationContext mgc, Rect rectParams, Color color, ContextType context)
+        {
+            var borderParams = new MeshGenerationContextUtils.BorderParams
+            {
+                rect = rectParams,
+                playmodeTintColor = context == ContextType.Editor
+                    ? UIElementsUtility.editorPlayModeTintColor
+                    : Color.white,
+                bottomColor = color,
+                topColor = color,
+                leftColor = color,
+                rightColor = color,
+                leftWidth = 1,
+                rightWidth = 1,
+                topWidth = 1,
+                bottomWidth = 1
+            };
+            mgc.Border(borderParams);
+        }
+
         public static MeshWriteData AllocateMeshWriteData(MeshGenerationContext mgc, int vertexCount, int indexCount)
         {
             return mgc.Allocate(vertexCount, indexCount, null, null, MeshGenerationContext.MeshFlags.UVisDisplacement);
@@ -299,7 +326,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             e.propagation = EventBase.EventPropagation.TricklesDown | EventBase.EventPropagation.Bubbles | EventBase.EventPropagation.Cancellable;
         }
 
-        public static void SetUpRender(this VisualElement self, Action<Material> onUpdateMaterial, Action<IPanel> onBeforeUpdate)
+        public static void SetUpRender(this VisualElement self, Action<Material> onUpdateMaterial)
         {
             if (self.panel is BaseVisualElementPanel p)
             {
@@ -312,7 +339,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
                     ownerView.actualView.antiAliasing = 4;
 
                 p.updateMaterial += onUpdateMaterial;
-                p.beforeUpdate += onBeforeUpdate;
             }
 
             // Force DefaultCommonDark.uss since GraphView only has a dark style at the moment
@@ -322,7 +348,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
         // VLadN: Use our own ForceDarkStyleSheet as UIToolkit version also affects parent elements
         // (UIElementsEditorUtility.ForceDarkStyleSheet)
         // This makes it that panels outside of graphview like node inspector and toolbar are also forced in dark incorrectly
-        private static void ForceDarkStyleSheet(VisualElement ele)
+        static void ForceDarkStyleSheet(VisualElement ele)
         {
             if (EditorGUIUtility.isProSkin)
                 return;
@@ -344,14 +370,38 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             }
         }
 
-        public static void TearDownRender(this VisualElement self, Action<Material> onUpdateMaterial, Action<IPanel> onBeforeUpdate)
+        public static void TearDownRender(this VisualElement self, Action<Material> onUpdateMaterial)
         {
             if (self.panel is BaseVisualElementPanel p)
             {
-                p.beforeUpdate -= onBeforeUpdate;
                 p.updateMaterial -= onUpdateMaterial;
             }
         }
+
+#if UNITY_2022_2_OR_NEWER
+        public static VisualElement CreateEditorToolbar(IEnumerable<string> toolbarElements, EditorWindow containerWindow)
+        {
+            return new EditorToolbar(toolbarElements, containerWindow).rootVisualElement;
+        }
+
+        public static IEnumerable<Overlay> GetAllOverlays(this EditorWindow window)
+        {
+            return window.overlayCanvas.overlays;
+        }
+
+        public static void RebuildOverlays(EditorWindow window)
+        {
+            foreach (var overlay in window.overlayCanvas.overlays)
+            {
+                overlay.RebuildContent();
+            }
+        }
+
+        public static VisualElement GetOverlayRoot(Overlay overlay)
+        {
+            return overlay.rootVisualElement;
+        }
+#endif
     }
 
     public abstract class GraphViewToolWindowBridge : EditorWindow

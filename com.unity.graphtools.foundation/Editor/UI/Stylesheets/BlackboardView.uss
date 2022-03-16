@@ -1,0 +1,10 @@
+.blackboard-view {
+    position: relative;
+    flex-direction: column;
+    width: auto;
+    height: auto;
+    background-color: var(--blackboard-background);
+    font-size: var(--unity-font-size);
+    flex: 1;
+    overflow: hidden;
+}

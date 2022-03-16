@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -133,25 +132,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             Title = newName;
         }
-    }
 
-    enum StickyNoteTextSize
-    {
-        Small,
-        Medium,
-        Large,
-        Huge
-    }
-
-    enum StickyNoteColorTheme
-    {
-        Classic,
-        Dark,
-        Orange,
-        Green,
-        Blue,
-        Red,
-        Purple,
-        Teal
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            if (Theme == "Dark")
+                Theme = StickyNoteColorTheme.Black.ToString();
+        }
     }
 }

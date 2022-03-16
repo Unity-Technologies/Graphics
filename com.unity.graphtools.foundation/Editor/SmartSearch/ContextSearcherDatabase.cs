@@ -13,7 +13,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     {
         readonly List<SearcherItem> m_Items;
         readonly Stencil m_Stencil;
-        IGraphModel m_GraphModel;
         Type m_ContextType;
 
         /// <summary>
@@ -22,11 +21,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="stencil">The stencil to use.</param>
         /// <param name="graphModel">The GraphModel to use.</param>
         /// <param name="contextType">The Type of context to use.</param>
+        [Obsolete("Graphmodel isn't needed anymore (2021-09-21).")]
+        // ReSharper disable once UnusedParameter.Local
         public ContextSearcherDatabase(Stencil stencil, IGraphModel graphModel, Type contextType)
+        :this(stencil, contextType)
+        {
+        }
+
+        /// <summary>
+        /// Creates a ContextSearcherDatabase.
+        /// </summary>
+        /// <param name="stencil">The stencil to use.</param>
+        /// <param name="contextType">The Type of context to use.</param>
+        public ContextSearcherDatabase(Stencil stencil, Type contextType)
         {
             m_Stencil = stencil;
             m_Items = new List<SearcherItem>();
-            m_GraphModel = graphModel;
             m_ContextType = contextType;
         }
 
@@ -50,7 +60,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                 var blockInstance = Activator.CreateInstance(type) as IBlockNodeModel;
 
-                if (!blockInstance.IsCompatibleWith(containerInstance))
+                if (blockInstance == null || !blockInstance.IsCompatibleWith(containerInstance))
                     continue;
 
                 foreach (var attribute in attributes)
@@ -58,18 +68,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     if (!attribute.StencilType.IsInstanceOfType(m_Stencil))
                         continue;
 
-                    var name = attribute.Path.Split('/').Last();
-                    var path = attribute.Path.Remove(attribute.Path.LastIndexOf('/') + 1);
-
                     if (attribute.Context == SearcherContext.Graph)
                     {
-                        var node = new GraphNodeModelSearcherItem(m_GraphModel,
-                            new NodeSearcherItemData(type),
-                            data => data.CreateBlock(type, name, contextTypeToCreate: m_ContextType),
-                            name
-                        );
-
-                        m_Items.AddAtPath(node, path);
+                        var node = new GraphNodeModelSearcherItem(new NodeSearcherItemData(type),
+                            data => data.CreateBlock(type, contextTypeToCreate: m_ContextType))
+                        {
+                            FullName = attribute.Path,
+                            StyleName = attribute.StyleName
+                        };
+                        m_Items.Add(node);
                     }
 
                     break;

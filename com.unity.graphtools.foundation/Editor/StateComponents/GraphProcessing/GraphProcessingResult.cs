@@ -47,7 +47,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         void AddError(string desc, INodeModel node, bool isWarning, QuickFix quickFix)
         {
-            m_Errors.Add(new GraphProcessingError { Description = desc, SourceNode = node, SourceNodeGuid = node == null ? default : node.Guid, IsWarning = isWarning, Fix = quickFix });
+            var error = new GraphProcessingError
+            {
+                Description = desc,
+                SourceNode = node,
+                SourceNodeGuid = node?.Guid ?? default,
+                IsWarning = isWarning,
+                Fix = quickFix
+            };
+
+            if (!m_Errors.Contains(error))
+            {
+                m_Errors.Add(error);
+            }
         }
     }
 }

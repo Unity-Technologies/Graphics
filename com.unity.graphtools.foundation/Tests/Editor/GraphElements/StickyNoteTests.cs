@@ -17,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             var graphNodeModelSearcherItem = (GraphNodeModelSearcherItem)database.Items.First();
 
-            graphView.Dispatch(CreateNodeCommand.OnGraph(graphNodeModelSearcherItem, new Vector2(100, 200)));
+            GraphView.Dispatch(CreateNodeCommand.OnGraph(graphNodeModelSearcherItem, new Vector2(100, 200)));
 
             Assert.AreEqual(1, GraphModel.StickyNoteModels.Count);
 
@@ -36,20 +36,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             var graphNodeModelSearcherItem = (GraphNodeModelSearcherItem)database.Items.First();
 
-            graphView.Dispatch(CreateNodeCommand.OnGraph(graphNodeModelSearcherItem, new Vector2(100, 200)));
+            GraphView.Dispatch(CreateNodeCommand.OnGraph(graphNodeModelSearcherItem, new Vector2(100, 200)));
 
             var stickyNote = GraphModel.StickyNoteModels.First();
 
-            graphView.Dispatch(new UpdateStickyNoteCommand(stickyNote, "Title", "Contents"));
+            GraphView.Dispatch(new UpdateStickyNoteCommand(stickyNote, "Title", "Contents"));
 
             Assert.AreEqual("Title", stickyNote.Title);
             Assert.AreEqual("Contents", stickyNote.Contents);
 
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
 
             yield return null; // waiting for styling
 
-            var stickyNoteUI = stickyNote.GetUI<StickyNote>(graphView);
+            var stickyNoteUI = stickyNote.GetView<StickyNote>(GraphView);
 
             Assert.AreEqual(new Vector2(100, 200), new Vector2(stickyNoteUI.resolvedStyle.left, stickyNoteUI.resolvedStyle.top));
 
@@ -76,22 +76,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             var graphNodeModelSearcherItem = (GraphNodeModelSearcherItem)database.Items.First();
 
-            graphView.Dispatch(CreateNodeCommand.OnGraph(graphNodeModelSearcherItem, new Vector2(100, 200)));
+            GraphView.Dispatch(CreateNodeCommand.OnGraph(graphNodeModelSearcherItem, new Vector2(100, 200)));
 
             var stickyNote = GraphModel.StickyNoteModels.First();
 
-            graphView.Dispatch(new UpdateStickyNoteCommand(stickyNote, "Title", "Contents"));
+            GraphView.Dispatch(new UpdateStickyNoteCommand(stickyNote, "Title", "Contents"));
 
-            graphView.Dispatch(new ChangeElementLayoutCommand(stickyNote, new Rect(1, 2, 400, 500)));
+            GraphView.Dispatch(new ChangeElementLayoutCommand(stickyNote, new Rect(1, 2, 400, 500)));
 
             Assert.AreEqual(new Vector2(1, 2), stickyNote.Position);
 
             Assert.AreEqual(new Vector2(400, 500), stickyNote.PositionAndSize.size);
 
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
 
             yield return null; // waiting for styling
-            var stickyNoteUI = stickyNote.GetUI<StickyNote>(graphView);
+            var stickyNoteUI = stickyNote.GetView<StickyNote>(GraphView);
 
             Assert.AreEqual(new Vector2(1, 2), new Vector2(stickyNoteUI.resolvedStyle.left, stickyNoteUI.resolvedStyle.top));
 
@@ -101,21 +101,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         [UnityTest]
         public IEnumerator StickyNoteChangeThemeAndCheckUI()
         {
-            graphView.Dispatch(new CreateStickyNoteCommand(new Rect(10, 20, 100, 200)));
+            GraphView.Dispatch(new CreateStickyNoteCommand(new Rect(10, 20, 100, 200)));
 
             Assert.AreEqual(1, GraphModel.StickyNoteModels.Count);
 
             var stickyNote = GraphModel.StickyNoteModels.First();
 
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
 
             yield return null; // waiting for styling
 
-            var stickyNoteUI = stickyNote.GetUI<StickyNote>(graphView);
+            var stickyNoteUI = stickyNote.GetView<StickyNote>(GraphView);
 
             var originalColor = stickyNoteUI.resolvedStyle.backgroundColor;
 
-            graphView.Dispatch(new UpdateStickyNoteThemeCommand(StickyNoteTheme.Dark.ToString(), stickyNote));
+            GraphView.Dispatch(new UpdateStickyNoteThemeCommand(StickyNoteColorTheme.Black.ToString(), stickyNote));
 
             yield return null; // waiting for styling
 
@@ -133,7 +133,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             var originalContentsSize = contentsLabel.resolvedStyle.fontSize;
 
-            graphView.Dispatch(new UpdateStickyNoteTextSizeCommand(StickyNoteFontSize.Huge.ToString(), stickyNote));
+            GraphView.Dispatch(new UpdateStickyNoteTextSizeCommand(StickyNoteTextSize.Huge.ToString(), stickyNote));
 
             yield return null; // waiting for styling
 

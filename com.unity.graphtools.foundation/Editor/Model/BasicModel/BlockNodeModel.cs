@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 {
@@ -10,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     [Serializable]
     public class BlockNodeModel : NodeModel, IBlockNodeModel
     {
-        [SerializeReference, HideInInspector]
+        [SerializeReference]
         IContextNodeModel m_ContextNodeModel;
 
         /// <inheritdoc />
@@ -45,7 +44,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             int cpt = 0;
             foreach (var block in ContextNodeModel.GraphElementModels)
             {
-                if (block == this)
+                if (ReferenceEquals(block, this))
                     return cpt;
                 cpt++;
             }

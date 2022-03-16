@@ -15,7 +15,7 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         protected readonly Dictionary<IStateComponent, List<IStateObserver>> m_StateObservers = new Dictionary<IStateComponent, List<IStateObserver>>();
 
         List<IStateObserver> m_SortedObservers = new List<IStateObserver>();
-        readonly HashSet<IStateObserver> m_ObserverCallSet = new HashSet<IStateObserver>();
+        readonly List<IStateObserver> m_ObserverCallList = new List<IStateObserver>();
         readonly HashSet<IStateComponent> m_DirtyComponentSet = new HashSet<IStateComponent>();
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
                     if (m_SortedObservers == null)
                         SortObservers();
 
-                    m_ObserverCallSet.Clear();
+                    m_ObserverCallList.Clear();
                     if (m_SortedObservers.Count > 0)
                     {
                         m_DirtyComponentSet.Clear();
@@ -159,18 +159,18 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
                             {
                                 if (m_DirtyComponentSet.Overlaps(observer.ObservedStateComponents))
                                 {
-                                    m_ObserverCallSet.Add(observer);
+                                    m_ObserverCallList.Add(observer);
                                     m_DirtyComponentSet.UnionWith(observer.ModifiedStateComponents);
                                 }
                             }
                         }
                     }
 
-                    if (m_ObserverCallSet.Any())
+                    if (m_ObserverCallList.Any())
                     {
                         try
                         {
-                            foreach (var observer in m_ObserverCallSet)
+                            foreach (var observer in m_ObserverCallList)
                             {
                                 StateObserverHelper.CurrentObserver = observer;
                                 observer.Observe();
@@ -208,7 +208,7 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
                 }
                 finally
                 {
-                    m_ObserverCallSet.Clear();
+                    m_ObserverCallList.Clear();
                     m_DirtyComponentSet.Clear();
                     IsObserving = false;
                 }

@@ -1,9 +1,13 @@
 using System;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 {
     [Serializable]
+    [SearcherItem(typeof(MathBookStencil), SearcherContext.Graph, "Vectors/Vector3 Dot Product")]
+    [SeacherHelp("Outputs the dot product of the two input vector 3.")]
     public class Vector3DotProduct : MathNode
     {
         public override string Title
@@ -12,7 +16,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             set {}
         }
 
-        public override ValueType[] ValueInputTypes => new[] { ValueType.Vector3 };
+        public override TypeHandle[] ValueInputTypes => new[] { TypeHandle.Vector3 };
 
         public IPortModel InputA { get; private set; }
         public IPortModel InputB { get; private set; }
@@ -29,6 +33,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             InputA = this.AddDataInputPort<Vector3>("A");
             InputB = this.AddDataInputPort<Vector3>("B");
             this.AddDataOutputPort<float>("Output");
+        }
+
+        public override string CompileToCSharp(MathBookGraphProcessor context)
+        {
+            var variable1 = context.GenerateCodeForPort(InputA);
+            var variable2 = context.GenerateCodeForPort(InputB);
+            var result = context.DeclareVariable(OutputsById.First().Value.DataTypeHandle, "");
+            context.Statements.Add($"{result} = Vector3.Dot({variable1}, {variable2})");
+            return result;
         }
     }
 }

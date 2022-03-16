@@ -1,15 +1,16 @@
 using System;
+using System.Text.RegularExpressions;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 {
-    public class TemperatureAndTimePart : BaseModelUIPart
+    public class TemperatureAndTimePart : BaseModelViewPart
     {
         public static readonly string ussClassName = "ge-sample-bake-node-part";
         public static readonly string temperatureLabelName = "temperature";
         public static readonly string durationLabelName = "duration";
 
-        public static TemperatureAndTimePart Create(string name, IGraphElementModel model, IModelUI modelUI, string parentClassName)
+        public static TemperatureAndTimePart Create(string name, IModel model, IModelView modelUI, string parentClassName)
         {
             if (model is INodeModel)
             {
@@ -25,7 +26,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 
         public override VisualElement Root => TemperatureAndTimeContainer;
 
-        TemperatureAndTimePart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
+        TemperatureAndTimePart(string name, IModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
         }
@@ -59,8 +60,47 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
             if (!(m_Model is BakeNodeModel bakeNodeModel))
                 return;
 
-            if (int.TryParse(evt.newValue, out var v))
-                m_OwnerElement.View.Dispatch(new SetTemperatureCommand(v, bakeNodeModel));
+            var regex = new Regex(@"(\d+)\s*(.*)");
+            var match = regex.Match(evt.newValue);
+
+            if (match.Groups.Count > 1 && int.TryParse(match.Groups[1].Value, out var v))
+            {
+                var unit = TemperatureUnit.Celsius;
+                if (match.Groups.Count > 2)
+                {
+                    if (match.Groups[2].Value.Length == 1)
+                    {
+                        switch (match.Groups[2].Value.ToLower())
+                        {
+                            case "f":
+                                unit = TemperatureUnit.Fahrenheit;
+                                break;
+                            case "k":
+                                unit = TemperatureUnit.Kelvin;
+                                break;
+                            case "c":
+                                unit = TemperatureUnit.Celsius;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        if (String.Equals(match.Groups[2].Value, TemperatureUnit.Celsius.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                            unit = TemperatureUnit.Celsius;
+                        else if (String.Equals(match.Groups[2].Value, TemperatureUnit.Fahrenheit.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                            unit = TemperatureUnit.Celsius;
+                        else if (String.Equals(match.Groups[2].Value, TemperatureUnit.Kelvin.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                            unit = TemperatureUnit.Celsius;
+                    }
+                }
+
+                m_OwnerElement.RootView.Dispatch(new SetTemperatureCommand(
+                        new Temperature { Value = v, Unit = unit }, bakeNodeModel));
+            }
+            else
+            {
+                UpdatePartFromModel();
+            }
         }
 
         void OnChangeTime(ChangeEvent<string> evt)
@@ -69,7 +109,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
                 return;
 
             if (int.TryParse(evt.newValue, out var v))
-                m_OwnerElement.View.Dispatch(new SetDurationCommand(v, nodes: bakeNodeModel));
+                m_OwnerElement.RootView.Dispatch(new SetDurationCommand(v, nodes: bakeNodeModel));
         }
 
         protected override void PostBuildPartUI()
@@ -88,7 +128,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
             if (!(m_Model is BakeNodeModel bakeNodeModel))
                 return;
 
-            TemperatureLabel.SetValueWithoutNotify($"{bakeNodeModel.Temperature} C");
+            TemperatureLabel.SetValueWithoutNotify($"{bakeNodeModel.Temperature.Value} {bakeNodeModel.Temperature.Unit}");
             DurationLabel.SetValueWithoutNotify($"{bakeNodeModel.Duration} min.");
         }
     }

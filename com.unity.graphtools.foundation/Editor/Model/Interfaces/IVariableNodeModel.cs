@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// The <see cref="IVariableDeclarationModel"/> associated with this node.
         /// </summary>
-        IVariableDeclarationModel VariableDeclarationModel { get; }
+        IVariableDeclarationModel VariableDeclarationModel { get; set; }
 
         /// <summary>
         /// Updates the port type from the variable declaration type.
@@ -21,6 +21,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// Extension methods for <see cref="IVariableNodeModel"/>.
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     public static class IVariableNodeModelExtensions
     {
         /// <summary>

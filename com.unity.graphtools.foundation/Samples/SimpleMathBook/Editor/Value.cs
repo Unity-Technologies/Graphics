@@ -3,34 +3,16 @@ using System.Globalization;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 {
     /// <summary>
-    /// A type of value used in the <see cref="MathBook"/>.
-    /// </summary>
-    [Serializable]
-    public enum ValueType : byte
-    {
-        Unknown = 0,
-        Bool = 1,
-        Int = 2,
-        Float = 3,
-        Vector2 = 4,
-        Vector3 = 5,
-        String = 6,
-    }
-
-    /// <summary>
     /// A value used in the <see cref="MathBook"/> with a dynamic type.
     /// </summary>
-    [Serializable]
     public struct Value : IEquatable<Value>
     {
-        /// <summary>
-        /// The type of the value.
-        /// </summary>
-        public ValueType Type;
+        TypeHandle m_Type;
 
         bool m_Bool;
         int m_Int;
@@ -40,9 +22,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         string m_String;
 
         /// <summary>
+        /// The type of the value.
+        /// </summary>
+        public TypeHandle Type
+        {
+            get => m_Type;
+            set => m_Type = value;
+        }
+
+        /// <summary>
         /// Gets the value as a boolean.
         /// </summary>
-        public bool Bool { get { Assert.AreEqual(Type, ValueType.Bool); return m_Bool; } set { Type = ValueType.Bool; m_Bool = value; } }
+        public bool Bool
+        {
+            get
+            {
+                Assert.AreEqual(Type, TypeHandle.Bool);
+                return m_Bool;
+            }
+            set
+            {
+                Type = TypeHandle.Bool;
+                m_Bool = value;
+            }
+        }
 
         /// <summary>
         /// Gets the value as an integer.
@@ -51,19 +54,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         {
             get
             {
-                switch (Type)
-                {
-                    case ValueType.Bool:
-                        return m_Bool ? 1 : 0;
-                    case ValueType.Float:
-                        return (int)m_Float;
-                    case ValueType.Int:
-                        return m_Int;
-                    default:
-                        throw new InvalidDataException();
-                }
+                if (Type == TypeHandle.Bool)
+                    return m_Bool ? 1 : 0;
+                if (Type == TypeHandle.Float)
+                    return (int)m_Float;
+                if (Type == TypeHandle.Int)
+                    return m_Int;
+                throw new InvalidDataException();
             }
-            set { Type = ValueType.Int; m_Int = value; }
+            set { Type = TypeHandle.Int; m_Int = value; }
         }
 
         /// <summary>
@@ -73,17 +72,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         {
             get
             {
-                switch (Type)
-                {
-                    case ValueType.Float:
-                        return m_Float;
-                    case ValueType.Int:
-                        return m_Int;
-                    default:
-                        throw new InvalidDataException();
-                }
+                if (Type == TypeHandle.Float)
+                    return m_Float;
+                if (Type == TypeHandle.Int)
+                    return m_Int;
+                throw new InvalidDataException();
             }
-            set { Type = ValueType.Float; m_Float = value; }
+            set { Type = TypeHandle.Float; m_Float = value; }
         }
 
         /// <summary>
@@ -93,23 +88,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         {
             get
             {
-                switch (Type)
-                {
-                    case ValueType.Int:
-                        return new Vector2(m_Int, 0);
-                    case ValueType.Float:
-                        return new Vector2(m_Float, 0);
-                    case ValueType.Vector2:
-                        return m_Vector2;
-                    case ValueType.Vector3:
-                        return new Vector2(m_Vector3.x, m_Vector3.y);
-                    default:
-                        throw new InvalidDataException();
-                }
+                if (Type == TypeHandle.Int)
+                    return new Vector2(m_Int, 0);
+                if (Type == TypeHandle.Float)
+                    return new Vector2(m_Float, 0);
+                if (Type == TypeHandle.Vector2)
+                    return m_Vector2;
+                if (Type == TypeHandle.Vector3)
+                    return new Vector2(m_Vector3.x, m_Vector3.y);
+                throw new InvalidDataException();
             }
             set
             {
-                Type = ValueType.Vector2;
+                Type = TypeHandle.Vector2;
                 m_Vector2 = value;
             }
         }
@@ -121,23 +112,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         {
             get
             {
-                switch (Type)
-                {
-                    case ValueType.Int:
-                        return new Vector3(m_Int, 0, 0);
-                    case ValueType.Float:
-                        return new Vector3(m_Float, 0, 0);
-                    case ValueType.Vector2:
-                        return new Vector3(m_Vector2.x, m_Vector2.y, 0);
-                    case ValueType.Vector3:
-                        return m_Vector3;
-                    default:
-                        throw new InvalidDataException();
-                }
+                if (Type == TypeHandle.Int)
+                    return new Vector3(m_Int, 0, 0);
+                if (Type == TypeHandle.Float)
+                    return new Vector3(m_Float, 0, 0);
+                if (Type == TypeHandle.Vector2)
+                    return new Vector3(m_Vector2.x, m_Vector2.y, 0);
+                if (Type == TypeHandle.Vector3)
+                    return m_Vector3;
+                throw new InvalidDataException();
             }
             set
             {
-                Type = ValueType.Vector3;
+                Type = TypeHandle.Vector3;
                 m_Vector3 = value;
             }
         }
@@ -145,7 +132,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         /// <summary>
         /// Gets the value as a string.
         /// </summary>
-        public string String { get { Assert.AreEqual(Type, ValueType.String); return m_String; } set { Type = ValueType.String; m_String = value; } }
+        public string String
+        {
+            get
+            {
+                Assert.AreEqual(Type, TypeHandle.String);
+                return m_String;
+            }
+            set
+            {
+                Type = TypeHandle.String;
+                m_String = value;
+            }
+        }
 
         public static implicit operator Value(bool f)
         {
@@ -184,82 +183,46 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the value doesn't have an expected type.</exception>
         public override string ToString()
         {
-            switch (Type)
-            {
-                case ValueType.Unknown:
-                    return ValueType.Unknown.ToString();
-                case ValueType.Bool:
-                    return Bool.ToString(CultureInfo.InvariantCulture);
-                case ValueType.Int:
-                    return Int.ToString(CultureInfo.InvariantCulture);
-                case ValueType.Float:
-                    return Float.ToString(CultureInfo.InvariantCulture);
-                case ValueType.Vector2:
-                    return Vector2.ToString();
-                case ValueType.Vector3:
-                    return Vector3.ToString();
-                case ValueType.String:
-                    return m_String;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        /// <summary>
-        /// Represents of the value as a string more user-friendly than <see cref="ToString" />.
-        /// </summary>
-        /// <returns>A string representing the value</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if the value doesn't have an expected type.</exception>
-        public string ToPrettyString()
-        {
-            switch (Type)
-            {
-                case ValueType.Unknown:
-                    return ValueType.Unknown.ToString();
-                case ValueType.Bool:
-                    return Bool.ToString(CultureInfo.InvariantCulture);
-                case ValueType.Int:
-                    return Int.ToString(CultureInfo.InvariantCulture);
-                case ValueType.Float:
-                    return Float.ToString("F2");
-                case ValueType.Vector2:
-                    return Vector2.ToString("F2", CultureInfo.InvariantCulture);
-                case ValueType.Vector3:
-                    return Vector3.ToString("F2", CultureInfo.InvariantCulture);
-                case ValueType.String:
-                    return m_String;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            if (Type == TypeHandle.Unknown)
+                return TypeHandle.Unknown.ToString();
+            if (Type == TypeHandle.Bool)
+                return Bool.ToString(CultureInfo.InvariantCulture);
+            if (Type == TypeHandle.Int)
+                return Int.ToString(CultureInfo.InvariantCulture);
+            if (Type == TypeHandle.Float)
+                return Float.ToString(CultureInfo.InvariantCulture);
+            if (Type == TypeHandle.Vector2)
+                return Vector2.ToString();
+            if (Type == TypeHandle.Vector3)
+                return Vector3.ToString();
+            if (Type == TypeHandle.String)
+                return m_String;
+            throw new ArgumentOutOfRangeException();
         }
 
         public bool Equals(Value other)
         {
             if (Type != other.Type)
             {
-                if (Type == ValueType.Float && other.Type == ValueType.Int || Type == ValueType.Int && other.Type == ValueType.Float)
+                if (Type == TypeHandle.Float && other.Type == TypeHandle.Int || Type == TypeHandle.Int && other.Type == TypeHandle.Float)
                     return Float.Equals(other.Float);
             }
 
-            switch (Type)
-            {
-                case ValueType.Unknown:
-                    return false;
-                case ValueType.Bool:
-                    return Bool == other.Bool;
-                case ValueType.Int:
-                    return Int == other.Int;
-                case ValueType.Float:
-                    return Float.Equals(other.Float);
-                case ValueType.Vector2:
-                    return Vector2.Equals(other.Vector2);
-                case ValueType.Vector3:
-                    return Vector3.Equals(other.Vector3);
-                case ValueType.String:
-                    return String.Equals(other.String);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            if (Type == TypeHandle.Unknown)
+                return false;
+            if (Type == TypeHandle.Bool)
+                return Bool == other.Bool;
+            if (Type == TypeHandle.Int)
+                return Int == other.Int;
+            if (Type == TypeHandle.Float)
+                return Float.Equals(other.Float);
+            if (Type == TypeHandle.Vector2)
+                return Vector2.Equals(other.Vector2);
+            if (Type == TypeHandle.Vector3)
+                return Vector3.Equals(other.Vector3);
+            if (Type == TypeHandle.String)
+                return String.Equals(other.String);
+            throw new ArgumentOutOfRangeException();
         }
 
         /// <inheritdoc />
@@ -271,7 +234,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return (int)Type;
+            // ReSharper disable once NonReadonlyMemberInGetHashCode
+            return Type.GetHashCode();
         }
     }
 }

@@ -1,0 +1,4 @@
+.unity-item-library-window--popup{
+    border-width: 1px;
+    border-color: var(--unity-colors-window-border);
+}

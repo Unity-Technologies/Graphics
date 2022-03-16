@@ -7,20 +7,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
 {
     class VerticalGraphAssetModel : GraphAssetModel
     {
-        [MenuItem("Assets/Create/VerticalFlow")]
+        [MenuItem("Assets/Create/GTF Samples/VerticalFlow")]
         public static void CreateGraph(MenuCommand menuCommand)
         {
             const string path = "Assets";
-            var template = new GraphTemplate<VerticalStencil>(VerticalStencil.k_GraphName);
+            var template = new GraphTemplate<VerticalStencil>(VerticalStencil.graphName);
             ICommandTarget target = null;
-            if (EditorWindow.HasOpenInstances<VerticalGraphWindow>())
-            {
-                var window = EditorWindow.GetWindow<VerticalGraphWindow>();
-                if (window != null)
-                {
-                    target = window.GraphTool;
-                }
-            }
+
+            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<VerticalGraphWindow>();
+            if (window != null)
+                target = window.GraphTool;
 
             GraphAssetCreationHelpers<VerticalGraphAssetModel>.CreateInProjectWindow(template, target, path);
         }
@@ -31,9 +27,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
             var obj = EditorUtility.InstanceIDToObject(instanceId);
             if (obj is VerticalGraphAssetModel graphAssetModel)
             {
-                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<VerticalGraphWindow>();
-                window.SetCurrentSelection(graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-                return window != null;
+                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<VerticalGraphWindow>(graphAssetModel.GetPath());
+                window.SetCurrentSelection(window.GraphTool?.ToolState?.AssetModel?? graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+                return true;
             }
 
             return false;

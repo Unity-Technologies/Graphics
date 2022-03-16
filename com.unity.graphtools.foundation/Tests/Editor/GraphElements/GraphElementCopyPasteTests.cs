@@ -15,47 +15,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
         int m_SelectedNodeCount;
 
-        static string SerializeGraphElementsImplementation(IEnumerable<IGraphElementModel> elements)
-        {
-            // A real implementation would serialize all necessary GraphElement data.
-            var count = elements.Count();
-            if (count > 0)
-            {
-                return count + " serialized elements";
-            }
-
-            return string.Empty;
-        }
-
-        static bool CanPasteSerializedDataImplementation(string data)
-        {
-            // Check if the data starts with an int. That's what we need for pasting.
-            int count = int.Parse(data.Split(' ')[0]);
-            return count > 0;
-        }
-
-        void UnserializeAndPasteImplementation(PasteOperation operation, string operationName, string data)
-        {
-            int count = int.Parse(data.Split(' ')[0]);
-
-            for (int i = 0; i < count; ++i)
-            {
-                CreateNode("Pasted element " + i);
-            }
-        }
-
         int GetElementCount()
         {
-            var allUIs = new List<ModelUI>();
-            GraphModel.GraphElementModels.GetAllUIsInList(graphView, null, allUIs);
+            var allUIs = new List<ModelView>();
+            GraphModel.GraphElementModels.GetAllViewsInList(GraphView, null, allUIs);
             return allUIs.Count;
         }
 
         void SelectThreeElements()
         {
-            var list = GraphModel.GraphElementModels.ToList();
+            var list = GraphModel.NodeModels.ToList();
             m_SelectedNodeCount = 3;
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, list[0], list[1], list[2]));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, list[0], list[1], list[2]));
         }
 
         [SetUp]
@@ -68,11 +39,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 CreateNode("Deletable element " + i);
             }
 
-            graphView.SerializeGraphElementsCallback = SerializeGraphElementsImplementation;
-            graphView.CanPasteSerializedDataCallback = CanPasteSerializedDataImplementation;
-            graphView.UnserializeAndPasteCallback = UnserializeAndPasteImplementation;
-
-            graphView.UseInternalClipboard = true;
+            GraphView.ViewSelection = new TestViewSelection(GraphView, GraphView.GraphViewModel.GraphModelState, GraphView.GraphViewModel.SelectionState, this);
             m_SelectedNodeCount = 0;
         }
 
@@ -82,49 +49,49 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            graphView.Clipboard = "Unknown data";
-            graphView.Dispatch(new ClearSelectionCommand());
-            graphView.Focus();
+            GraphView.ViewSelection.Clipboard = "Unknown data";
+            GraphView.Dispatch(new ClearSelectionCommand());
+            GraphView.Focus();
             yield return null;
 
-            bool used = helpers.ValidateCommand("Copy");
+            bool used = Helpers.ValidateCommand("Copy");
             Assert.IsFalse(used);
             yield return null;
 
-            helpers.ExecuteCommand("Copy");
+            Helpers.ExecuteCommand("Copy");
             yield return null;
 
-            Assert.AreEqual("Unknown data", graphView.Clipboard);
+            Assert.AreEqual("Unknown data", GraphView.ViewSelection.Clipboard);
         }
 
         //[Ignore("sometimes the graphView.clipboard is still Unknown data after the Copy execute")]
         [UnityTest]
         public IEnumerator SelectedElementsCanBeCopyPasted()
         {
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
             yield return null;
 
-            graphView.Clipboard = "Unknown data";
+            GraphView.ViewSelection.Clipboard = "Unknown data";
             SelectThreeElements();
             MouseCaptureController.ReleaseMouse();
-            graphView.Focus();
+            GraphView.Focus();
             yield return null;
 
-            bool used = helpers.ValidateCommand("Copy");
+            bool used = Helpers.ValidateCommand("Copy");
             Assert.IsTrue(used);
             yield return null;
 
-            helpers.ExecuteCommand("Copy");
+            Helpers.ExecuteCommand("Copy");
             yield return null;
 
-            Assert.AreNotEqual("Unknown data", graphView.Clipboard);
+            Assert.AreNotEqual("Unknown data", GraphView.ViewSelection.Clipboard);
 
-            used = helpers.ValidateCommand("Paste");
+            used = Helpers.ValidateCommand("Paste");
             Assert.IsTrue(used);
             yield return null;
 
-            helpers.ExecuteCommand("Paste");
-            graphView.RebuildUI();
+            Helpers.ExecuteCommand("Paste");
+            GraphView.RebuildUI();
             yield return null;
 
             Assert.AreEqual(k_DefaultNodeCount + m_SelectedNodeCount, GetElementCount());
@@ -136,45 +103,45 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            graphView.Clipboard = "Unknown data";
+            GraphView.ViewSelection.Clipboard = "Unknown data";
             SelectThreeElements();
             MouseCaptureController.ReleaseMouse();
-            graphView.Focus();
+            GraphView.Focus();
             yield return null;
 
-            bool used = helpers.ValidateCommand("Cut");
+            bool used = Helpers.ValidateCommand("Cut");
             Assert.IsTrue(used);
             yield return null;
 
-            helpers.ExecuteCommand("Cut");
+            Helpers.ExecuteCommand("Cut");
             yield return null;
 
-            Assert.AreNotEqual("Unknown data", graphView.Clipboard);
+            Assert.AreNotEqual("Unknown data", GraphView.ViewSelection.Clipboard);
             Assert.AreEqual(k_DefaultNodeCount - m_SelectedNodeCount, GetElementCount());
         }
 
         [UnityTest]
         public IEnumerator SelectedElementsCanBeDuplicated()
         {
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
             yield return null;
 
-            graphView.Clipboard = "Unknown data";
+            GraphView.ViewSelection.Clipboard = "Unknown data";
             SelectThreeElements();
             MouseCaptureController.ReleaseMouse();
-            graphView.Focus();
+            GraphView.Focus();
             yield return null;
 
-            bool used = helpers.ValidateCommand("Duplicate");
+            bool used = Helpers.ValidateCommand("Duplicate");
             Assert.IsTrue(used);
             yield return null;
 
-            helpers.ExecuteCommand("Duplicate");
-            graphView.RebuildUI();
+            Helpers.ExecuteCommand("Duplicate");
+            GraphView.RebuildUI();
             yield return null;
 
             // Duplicate does not change the copy buffer.
-            Assert.AreEqual("Unknown data", graphView.Clipboard);
+            Assert.AreEqual("Unknown data", GraphView.ViewSelection.Clipboard);
             Assert.AreEqual(k_DefaultNodeCount + m_SelectedNodeCount, GetElementCount());
         }
 
@@ -186,13 +153,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             SelectThreeElements();
             MouseCaptureController.ReleaseMouse();
-            graphView.Focus();
+            GraphView.Focus();
 
-            bool used = helpers.ValidateCommand("Delete");
+            bool used = Helpers.ValidateCommand("Delete");
             Assert.IsTrue(used);
             yield return null;
 
-            helpers.ExecuteCommand("Delete");
+            Helpers.ExecuteCommand("Delete");
             yield return null;
 
             Assert.AreEqual(k_DefaultNodeCount - m_SelectedNodeCount, GetElementCount());

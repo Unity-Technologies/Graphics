@@ -1,0 +1,40 @@
+.ge-overlay-resizer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.ge-overlay-resizer > #right  {
+    width: 8px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ge-overlay-resizer > #middle {
+    flex:1 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ge-overlay-resizer > #middle > #middle-center {
+    flex:1 0 auto;
+}
+
+.ge-overlay-resizer > #middle > #bottom-resize {
+    height: 8px;
+    cursor: resize-vertical;
+}
+
+.ge-overlay-resizer > #right > #right-resize {
+    flex:1 0 auto;
+    cursor: resize-horizontal;
+}
+
+.ge-overlay-resizer > #right > #bottom-right-resize {
+    height: 8px;
+    cursor: resize-up-left;
+}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
@@ -26,15 +27,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             var field = typeof(EdgeModel).GetField("m_ToPortReference", BindingFlags.Instance | BindingFlags.NonPublic);
             var inputPortReference = (PortReference)field.GetValue(edge);
             inputPortReference.UniqueId = "asd";
+            inputPortReference.Title = "dsa";
             field.SetValue(edge, inputPortReference);
 
             edge.ResetPortCache(); // get rid of cached port models
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
+            var lostPortsAdded = GraphView.Query(className: "ge-port--data-type-missing-port").Build().ToList();
+            Assert.AreEqual(1, lostPortsAdded.Count);
 
-            var lostPortsAdded = GraphView.Query(className: "ge-port--data-type-missing-port").Build().ToList().Count;
-            Assert.AreEqual(1, lostPortsAdded);
+            var lostPort = (lostPortsAdded.First() as Port)?.PortModel;
+            Assert.NotNull(lostPort);
+            Assert.AreEqual("asd", lostPort.UniqueName);
+            Assert.AreEqual("dsa", (lostPort as IHasTitle)?.Title);
         }
     }
 }

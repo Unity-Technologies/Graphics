@@ -1,23 +1,25 @@
+using System;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
-    /// <summary>
-    /// Graphview used by the searcher to instantiate previews.
-    /// </summary>
-    class SearcherGraphView : GraphView
+    static class SearcherGraphView
     {
-        new static readonly string ussClassName = "ge-searcher-graph-view";
+        static readonly string ussClassName = "ge-searcher-graph-view";
 
-        public SearcherGraphView(GraphViewEditorWindow window, BaseGraphTool graphTool) : base(window, graphTool, "")
+        public static GraphView CreateSearcherGraphView(Type graphViewType)
         {
-            styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(AssetHelper.AssetPath +
+            var graphView = Activator.CreateInstance(graphViewType, null, null, "", GraphViewDisplayMode.NonInteractive) as GraphView;
+
+            if (graphView == null)
+                return null;
+
+            graphView.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(AssetHelper.AssetPath +
                 "SmartSearch/Stylesheets/SearcherGraphView.uss"));
 
-            AddToClassList(ussClassName);
+            graphView.AddToClassList(ussClassName);
 
-            UnregisterCallback<ValidateCommandEvent>(OnValidateCommand);
-            UnregisterCallback<ExecuteCommandEvent>(OnExecuteCommand);
+            return graphView;
         }
     }
 }

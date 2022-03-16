@@ -1,21 +1,19 @@
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Searcher;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 {
     [Serializable]
     class Type3FakeNodeModel : NodeModel
     {
-        public static void AddToSearcherDatabase(IGraphModel graphModel, GraphElementSearcherDatabase db)
+        public static void AddToSearcherDatabase(GraphElementSearcherDatabase db)
         {
-            SearcherItem parent = db.Items.GetItemFromPath("Fake");
-
-            parent.AddChild(new GraphNodeModelSearcherItem(graphModel,
+            db.Items.Add(new GraphNodeModelSearcherItem(nameof(Type3FakeNodeModel),
                 new NodeSearcherItemData(typeof(Type3FakeNodeModel)),
-                data => data.CreateNode<Type3FakeNodeModel>(),
-                nameof(Type3FakeNodeModel)
-            ));
+                data => data.CreateNode<Type3FakeNodeModel>())
+            {
+                CategoryPath = "Fake"
+            });
         }
 
         public IPortModel Input { get; private set; }

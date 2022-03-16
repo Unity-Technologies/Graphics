@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor.GraphToolsFoundation.Overdrive.Bridge;
 using UnityEditor.UIElements;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -50,12 +51,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             Assert.AreEqual("", state.CurrentGraph.GraphModelAssetGuid);
         }
 
+        void DisplayToolbarBreadcrumbs()
+        {
+#if UNITY_2022_2_OR_NEWER
+            Window.TryGetOverlay(BreadcrumbsToolbar.toolbarId, out var toolbar);
+            toolbar.displayed = true;
+#endif
+        }
+
+        ToolbarBreadcrumbs GetToolbarBreadcrumbs()
+        {
+#if UNITY_2022_2_OR_NEWER
+            Window.TryGetOverlay(BreadcrumbsToolbar.toolbarId, out var toolbar);
+            var toolbarRoot = toolbar == null ? null : GraphViewStaticBridge.GetOverlayRoot(toolbar);
+            return toolbarRoot.Q<GraphBreadcrumbs>();
+#else
+            return  Window.rootVisualElement.Q<ToolbarBreadcrumbs>();
+#endif
+        }
+
         [UnityTest]
         public IEnumerator TestRenameAssetUpdatesCurrentGraphName()
         {
             var state = Window.GraphTool.ToolState;
 
             Assert.IsNotNull(state.CurrentGraph.GetGraphAssetModel());
+            DisplayToolbarBreadcrumbs();
 
             yield return null;
 
@@ -65,7 +86,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
             yield return null;
 
-            var firstBreadcrumbButton = Window.rootVisualElement.Q<ToolbarBreadcrumbs>()?.Children().First() as ToolbarButton;
+            var firstBreadcrumbButton = GetToolbarBreadcrumbs()?.Children().First() as ToolbarButton;
             Assert.IsNotNull(firstBreadcrumbButton);
             Assert.AreEqual("blah", firstBreadcrumbButton.text);
         }

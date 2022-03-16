@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
@@ -14,7 +13,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     public class DeclarationModel : GraphElementModel, IDeclarationModel, IRenamable
     {
         [FormerlySerializedAs("name")]
-        [SerializeField]
+        [SerializeField, HideInInspector]
         string m_Name;
 
         /// <inheritdoc />

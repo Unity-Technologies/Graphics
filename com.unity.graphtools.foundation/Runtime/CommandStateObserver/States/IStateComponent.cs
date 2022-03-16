@@ -33,5 +33,17 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         /// <param name="observerVersion">The last state component observed by the observer.</param>
         /// <returns>Returns the type of update an observer should do.</returns>
         UpdateType GetUpdateType(StateComponentVersion observerVersion);
+
+        /// <summary>
+        /// Called when the state component has been added to the state.
+        /// </summary>
+        /// <param name="state">The state to which the state component was added.</param>
+        void OnAddedToState(IState state);
+
+        /// <summary>
+        /// Called when the state component has been removed from the state.
+        /// </summary>
+        /// <param name="state">The state from which the state component was removed.</param>
+        void OnRemovedFromState(IState state);
     }
 }

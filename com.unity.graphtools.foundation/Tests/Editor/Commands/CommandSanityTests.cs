@@ -8,7 +8,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 {
     public class CommandSanityTests
     {
-        static string[] IgnoredCommandTypes =
+        static string[] s_IgnoredCommandTypes =
         {
             // Not undoable
             nameof(LoadGraphAssetCommand)
@@ -17,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
         static IEnumerable<Type> AllCommands()
         {
             return TypeCache.GetTypesDerivedFrom<UndoableCommand>()
-                .Where(a => !a.IsAbstract && !IgnoredCommandTypes.Contains(a.Name) && !a.Namespace.Contains(".Tests"))
+                .Where(a => !a.IsAbstract && !s_IgnoredCommandTypes.Contains(a.Name) && !a.Namespace.Contains(".Tests"))
                 .OrderBy(t => t.Namespace).ThenBy(t => t.Name);
         }
 

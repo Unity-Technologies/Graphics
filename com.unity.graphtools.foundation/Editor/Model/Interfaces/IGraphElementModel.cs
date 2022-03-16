@@ -1,23 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     /// <summary>
     /// Interface for a model that represents an element in a graph.
     /// </summary>
-    public interface IGraphElementModel
+    public interface IGraphElementModel : IModel
     {
         /// <summary>
         /// The graph model to which the element belongs.
         /// </summary>
         IGraphModel GraphModel { get; }
-
-        /// <summary>
-        /// The unique identifier of the element.
-        /// </summary>
-        SerializableGUID Guid { get; set; }
 
         /// <summary>
         /// The asset model to which the element belongs.
@@ -28,11 +22,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// The container for this graph element.
         /// </summary>
         IGraphElementContainer Container { get; }
-
-        /// <summary>
-        /// Assign a newly generated GUID to the model.
-        /// </summary>
-        void AssignNewGuid();
 
         /// <summary>
         /// The list of capabilities of the element.

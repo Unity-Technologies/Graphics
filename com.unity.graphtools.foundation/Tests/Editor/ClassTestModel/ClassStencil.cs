@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -10,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 {
     [Serializable]
     [MovedFrom(false, "UnityEditor.VisualScripting.Model.Stencils", "Unity.GraphTools.Foundation.Overdrive.Editor")]
-    public class ClassStencil : Stencil
+    class ClassStencil : Stencil
     {
         ISearcherFilterProvider m_SearcherFilterProvider;
         List<ITypeMetadata> m_AssembliesTypes;
@@ -83,6 +82,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
         {
             return new BlackboardGraphModel(graphAssetModel);
+        }
+
+        /// <inheritdoc />
+        public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
+        {
+            return new InspectorModel(inspectedModel);
+        }
+
+        /// <inheritdoc />
+        public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
+        {
+            return true;
+        }
+
+        public override  bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph)
+        {
+            return true;
         }
     }
 }

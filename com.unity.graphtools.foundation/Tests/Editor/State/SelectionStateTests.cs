@@ -1,7 +1,6 @@
 using System;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.CommandSystem
 {
@@ -66,7 +65,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.CommandSystem
             var node1 = graphModel.CreateNode<NodeModel>();
             var node2 = graphModel.CreateNode<NodeModel>();
 
-            var viewGuid1 = SerializableGUID.Generate();
             var state = new SelectionStateComponent();
 
             using (var selectionUpdater = state.UpdateScope)

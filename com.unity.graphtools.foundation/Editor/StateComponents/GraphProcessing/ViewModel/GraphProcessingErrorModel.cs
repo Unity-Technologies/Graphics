@@ -33,10 +33,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// The container this node is stored into.
         /// </summary>
-        public virtual IGraphElementContainer Container
-        {
-            get => GraphModel;
-        }
+        public virtual IGraphElementContainer Container => GraphModel;
 
         /// <inheritdoc/>
         public void AssignNewGuid()
@@ -61,6 +58,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc/>
         public IGraphElementModel ParentModel { get; }
 
+        /// <inheritdoc />
+        public LogType ErrorType { get; }
+
         /// <inheritdoc/>
         public string ErrorMessage { get; }
 
@@ -75,6 +75,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             ParentModel = error.SourceNode;
             ErrorMessage = error.Description;
+            ErrorType = error.IsWarning ? LogType.Warning : LogType.Error;
             Fix = error.Fix;
         }
     }

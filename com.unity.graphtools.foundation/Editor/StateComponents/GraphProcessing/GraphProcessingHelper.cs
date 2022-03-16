@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -25,44 +24,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public static class GraphProcessingHelper
     {
-        static GraphProcessingOptions GetGraphProcessingOptions(bool tracingEnabled)
-        {
-            GraphProcessingOptions graphProcessingOptions = EditorApplication.isPlaying
-                ? GraphProcessingOptions.LiveEditing
-                : GraphProcessingOptions.Default;
-
-            if (tracingEnabled)
-                graphProcessingOptions |= GraphProcessingOptions.Tracing;
-
-            return graphProcessingOptions;
-        }
-
         /// <summary>
-        /// Processes the graph using the graph processor returned by <see cref="Stencil.CreateGraphProcessor"/>.
+        /// Processes the graph using the graph processors provided by <see cref="Stencil.GetGraphProcessorContainer"/>.
         /// </summary>
         /// <param name="graphModel">The graph to process.</param>
-        /// <param name="pluginRepository">The plugin repository.</param>
+        /// <param name="changeset">A description of what changed in the graph. If null, the method assumes everything changed.</param>
         /// <param name="options">Graph processing options.</param>
-        /// <returns>The result of a graph processing.</returns>
-        public static GraphProcessingResult ProcessGraph(this IGraphModel graphModel, PluginRepository pluginRepository, RequestGraphProcessingOptions options)
+        /// <returns>The results of the graph processing.</returns>
+        public static IReadOnlyList<GraphProcessingResult> ProcessGraph(
+            IGraphModel graphModel,
+            GraphModelStateComponent.Changeset changeset,
+            RequestGraphProcessingOptions options)
         {
             var stencil = (Stencil)graphModel?.Stencil;
             if (stencil == null)
                 return null;
 
-            if (pluginRepository != null)
-            {
-                var tracingEnabled = stencil.GetDebugInstrumentationHandler()?.TracingStatusState.TracingEnabled ?? false;
-                var graphProcessingOptions = GetGraphProcessingOptions(tracingEnabled);
-                var plugins = stencil.GetGraphProcessingPluginHandlers(graphProcessingOptions);
-                pluginRepository.RegisterPlugins(plugins);
-            }
+            var changes = changeset == null ? null : new GraphChangeDescription(changeset.NewModels, changeset.ChangedModelsAndHints, changeset.DeletedModels);
 
-            var graphProcessor = stencil.CreateGraphProcessor();
             if (options == RequestGraphProcessingOptions.SaveGraph)
                 AssetDatabase.SaveAssets();
 
-            return graphProcessor.ProcessGraph(graphModel);
+            return stencil.GetGraphProcessorContainer().ProcessGraph(graphModel, changes);
         }
 
         /// <summary>
@@ -71,10 +54,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="stencil">The stencil.</param>
         /// <param name="results">The graph processing results used as the source of errors to convert.</param>
         /// <returns>The converted errors.</returns>
-        public static IEnumerable<IGraphProcessingErrorModel> GetErrors(Stencil stencil, GraphProcessingResult results)
+        public static IEnumerable<IGraphProcessingErrorModel> GetErrors(Stencil stencil, IReadOnlyList<GraphProcessingResult> results)
         {
-            if (results?.Errors != null)
-                return results.Errors.Select(stencil.CreateProcessingErrorModel).Where(m => m != null);
+            if (results != null && results.Any())
+            {
+                return results.SelectMany(r => r.Errors.Select(stencil.CreateProcessingErrorModel).Where(m => m != null));
+            }
 
             return Enumerable.Empty<IGraphProcessingErrorModel>();
         }

@@ -5,7 +5,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// Base <see cref="SearcherAdapter"/> used in Graph Tools foundation.
     /// </summary>
-    public class SimpleSearcherAdapter : SearcherAdapter, IGTFSearcherAdapter
+    public class SimpleSearcherAdapter : SearcherAdapter, ISearcherAdapter
     {
         /// <summary>
         /// Initializes a new instance of the SimpleSearcherAdapter class.

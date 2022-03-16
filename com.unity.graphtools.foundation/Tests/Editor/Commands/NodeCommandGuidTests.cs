@@ -6,7 +6,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 {
     [Category("Command")]
-    class NodeCommandGuidTests : BaseFixture
+    class NodeCommandGuidTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
         protected override Type CreatedGraphType => typeof(ClassStencil);

@@ -1,0 +1,30 @@
+.subgraph-properties__container {
+    max-width: 240px;
+}
+
+.subgraph-properties__toggle-container {
+    margin-left: 15px;
+    white-space: normal;
+}
+
+.subgraph-properties__description {
+    flex-direction: column;
+    height: 100px;
+}
+
+.subgraph-properties__text-area {
+    white-space: normal;
+}
+
+.subgraph-properties__placeholder > .unity-base-text-field__input {
+    color: #969696;
+    font-size: 10px;
+}
+
+.subgraph-properties__placeholder > .unity-label {
+    padding-bottom: 3px;
+}
+
+.subgraph-properties__hidden {
+    display: none;
+}

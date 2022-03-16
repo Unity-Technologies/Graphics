@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (evt.clickCount != 2 || evt.button != 0) return;
                 if (Model is not EdgeModel edgeModel) return;
 
-                View.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(evt.mousePosition)));
+                RootView.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(evt.mousePosition)));
             });
         }
 
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             evt.menu.AppendAction("Add Redirect Node", action =>
             {
                 if (Model is not EdgeModel edgeModel) return;
-                View.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(action.eventInfo.mousePosition)));
+                RootView.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(action.eventInfo.mousePosition)));
             });
         }
     }

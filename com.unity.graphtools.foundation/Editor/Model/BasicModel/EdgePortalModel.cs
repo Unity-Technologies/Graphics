@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
@@ -17,11 +18,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeReference]
         IDeclarationModel m_DeclarationModel;
 
+        [SerializeField]
+        TypeHandle m_TypeHandle;
+
         /// <inheritdoc />
         public IDeclarationModel DeclarationModel
         {
             get => m_DeclarationModel;
             set => m_DeclarationModel = value;
+        }
+
+        /// <inheritdoc />
+        public TypeHandle PortDataTypeHandle
+        {
+            get
+            {
+                // Type's identification of portals' ports are empty strings in the compatibility tests.
+                if (m_TypeHandle.Identification == null)
+                    m_TypeHandle = new TypeHandle("");
+                return m_TypeHandle;
+            }
+            set => m_TypeHandle = value;
         }
 
         /// <inheritdoc />

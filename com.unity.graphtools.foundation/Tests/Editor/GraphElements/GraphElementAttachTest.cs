@@ -9,11 +9,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class GraphElementAttachTests : GraphViewTester
     {
-        private static readonly Rect k_NodeRect = new Rect(SelectionDragger.panAreaWidth * 2, SelectionDragger.panAreaWidth * 3, 50, 50);
+        static readonly Rect k_NodeRect = new Rect(SelectionDragger.panAreaWidth * 2, SelectionDragger.panAreaWidth * 3, 50, 50);
 
-        Attacher CreateAttachedElement<T>(TestGraphViewWindow window) where T : VisualElement
+        Attacher CreateAttachedElement<T>() where T : VisualElement
         {
-            T target = graphView.SafeQ<T>();
+            T target = GraphView.SafeQ<T>();
 
             Attacher attacher = null;
             if (target != null)
@@ -43,14 +43,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             // Create node.
             var nodeModel = CreateNode("Node 1", k_NodeRect.position);
             MarkGraphViewStateDirty();
-            graphView.Dispatch(new ReframeGraphViewCommand(Vector3.zero, Vector3.one));
+            GraphView.Dispatch(new ReframeGraphViewCommand(Vector3.zero, Vector3.one));
             yield return null;
 
-            var node = nodeModel.GetUI<Node>(graphView);
+            var node = nodeModel.GetView<Node>(GraphView);
             node.style.width = k_NodeRect.width;
             node.style.height = k_NodeRect.height;
 
-            var attacher = CreateAttachedElement<Node>(window);
+            var attacher = CreateAttachedElement<Node>();
             Assert.AreNotEqual(null, attacher);
             yield return null;
 
@@ -59,16 +59,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.AreNotEqual(attacher.Target.layout.center.x, attacher.Element.layout.center.x);
 
             var mouseDownPosition = initialPosition + k_NodeRect.size / 2;
-            mouseDownPosition = graphView.contentContainer.LocalToWorld(mouseDownPosition);
+            mouseDownPosition = GraphView.contentContainer.LocalToWorld(mouseDownPosition);
             var delta = Vector2.one * 10;
             // Move the movable node.
-            helpers.MouseDownEvent(mouseDownPosition);
+            Helpers.MouseDownEvent(mouseDownPosition);
             yield return null;
 
-            helpers.MouseDragEvent(mouseDownPosition, mouseDownPosition + delta);
+            Helpers.MouseDragEvent(mouseDownPosition, mouseDownPosition + delta);
             yield return null;
 
-            helpers.MouseUpEvent(mouseDownPosition + delta);
+            Helpers.MouseUpEvent(mouseDownPosition + delta);
             yield return null;
 
             Assert.AreNotEqual(initialPosition, nodeModel.Position);

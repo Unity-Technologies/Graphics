@@ -65,12 +65,12 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
             m_Dictionary = null; // force rebuild dictionary, as references in Values will be lost
         }
 
-        static void SerializeDictionaryToLists<K, V>(IReadOnlyDictionary<K, V> dic, out List<K> keys, out List<V> values)
+        static void SerializeDictionaryToLists(IReadOnlyDictionary<TKey, TValue> dic, out List<TKey> keys, out List<TValue> values)
         {
             if (dic == null)
             {
-                keys = new List<K>();
-                values = new List<V>();
+                keys = new List<TKey>();
+                values = new List<TValue>();
                 return;
             }
 
@@ -78,7 +78,7 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
             values = dic.Values.ToList();
         }
 
-        static void DeserializeDictionaryFromLists<K, V>(Dictionary<K, V> dic, IReadOnlyList<K> keys, IReadOnlyList<V> values)
+        static void DeserializeDictionaryFromLists(Dictionary<TKey, TValue> dic, IReadOnlyList<TKey> keys, IReadOnlyList<TValue> values)
         {
             int numKeys = keys?.Count ?? 0;
 

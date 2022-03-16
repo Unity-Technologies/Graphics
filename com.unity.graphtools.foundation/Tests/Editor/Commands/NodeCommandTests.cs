@@ -11,7 +11,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 {
     [Category("Node")]
     [Category("Command")]
-    class NodeCommandTests : BaseFixture
+    class NodeCommandTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
         protected override Type CreatedGraphType => typeof(ClassStencil);
@@ -20,7 +20,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
         public void Test_CreateNodeFromSearcherCommand([Values] TestingMode mode)
         {
             var gedb = new GraphElementSearcherDatabase(Stencil, GraphModel);
-            Type0FakeNodeModel.AddToSearcherDatabase(GraphModel, gedb);
+            Type0FakeNodeModel.AddToSearcherDatabase(gedb);
             var db = gedb.Build();
             var item = (GraphNodeModelSearcherItem)db.Search(nameof(Type0FakeNodeModel))[0];
 
@@ -54,9 +54,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     var nodeModel = GetNode(0);
                     Assert.That(nodeModel, Is.TypeOf<Type0FakeNodeModel>());
 
-                    CopyPasteData copyPasteData = CopyPasteData.GatherCopiedElementsData(new List<IGraphElementModel> { nodeModel });
+                    CopyPasteData copyPasteData = CopyPasteData.GatherCopiedElementsData(null, new List<IGraphElementModel> { nodeModel });
 
-                    return new PasteSerializedDataCommand("Duplicate", Vector2.one, copyPasteData);
+                    return new PasteSerializedDataCommand(PasteOperation.Duplicate,"Duplicate", Vector2.one, copyPasteData);
                 },
                 () =>
                 {
@@ -71,14 +71,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             var node0 = GraphModel.CreateNode<Type0FakeNodeModel>("Node0", Vector2.zero);
             var node1 = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", Vector2.zero);
             var edge = GraphModel.CreateEdge(node1.Input0, node0.Output0);
-            var copyPasteData = CopyPasteData.GatherCopiedElementsData(new List<IGraphElementModel> { node1, edge });
+            var copyPasteData = CopyPasteData.GatherCopiedElementsData(null, new List<IGraphElementModel> { node1, edge });
 
             TestPrereqCommandPostreq(mode,
                 () =>
                 {
                     Assert.That(GetNodeCount(), Is.EqualTo(2));
                     Assert.That(GetEdgeCount(), Is.EqualTo(1));
-                    return new PasteSerializedDataCommand("Duplicate", Vector2.one, copyPasteData);
+                    return new PasteSerializedDataCommand(PasteOperation.Duplicate,"Duplicate", Vector2.one, copyPasteData);
                 },
                 () =>
                 {
@@ -106,7 +106,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                 {
                     Assert.That(GetNodeCount(), Is.EqualTo(2));
                     Assert.That(GetEdgeCount(), Is.EqualTo(0));
-                    return new PasteSerializedDataCommand("Duplicate", Vector2.one, copyPasteData);
+                    return new PasteSerializedDataCommand(PasteOperation.Duplicate, "Duplicate", Vector2.one, copyPasteData);
                 },
                 () =>
                 {
@@ -274,6 +274,41 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.That(GetNodeCount(), Is.EqualTo(2));
                     Assert.That(GetEdgeCount(), Is.EqualTo(1));
                     Assert.That(binary1.Input0, Is.ConnectedTo(constantA.OutputPort));
+                });
+
+            void Refresh()
+            {
+                RefreshReference(ref binary0);
+                RefreshReference(ref binary1);
+                RefreshReference(ref constantA);
+            }
+        }
+
+        [Test]
+        public void Test_BypassNodesCommand_AllNodes([Values] TestingMode mode)
+        {
+            var constantA = GraphModel.CreateConstantNode(typeof(int).GenerateTypeHandle(), "constantA", Vector2.zero);
+            var binary0 = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", Vector2.zero);
+            var binary1 = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", Vector2.zero);
+            GraphModel.CreateEdge(binary0.Input0, constantA.OutputPort);
+            GraphModel.CreateEdge(binary1.Input0, binary0.Output0);
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    Refresh();
+                    var nodesToBypass = new[] { binary0 };
+                    var nodesToDelete = new IInputOutputPortsNodeModel[] { binary0, binary1, constantA };
+
+                    Assert.That(GetNodeCount(), Is.EqualTo(3));
+                    Assert.That(GetEdgeCount(), Is.EqualTo(2));
+                    return new BypassNodesCommand(nodesToBypass, nodesToDelete);
+                },
+                () =>
+                {
+                    Refresh();
+                    Assert.That(GetNodeCount(), Is.EqualTo(0));
+                    Assert.That(GetEdgeCount(), Is.EqualTo(0));
                 });
 
             void Refresh()

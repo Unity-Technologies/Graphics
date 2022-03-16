@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
@@ -19,9 +18,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         string m_Title;
         PortType m_PortType;
         TypeHandle m_DataTypeHandle;
+        PortDirection m_Direction;
 
-        string m_DisplayTitleCache;
+        PortCapacity? m_PortCapacity;
+
         Type m_PortDataTypeCache;
+
+        string m_TooltipCache;
+        string m_TooltipOverride = null;
 
         /// <inheritdoc />
         public IPortNodeModel NodeModel { get; set; }
@@ -34,21 +38,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             {
                 var oldUniqueName = UniqueName;
                 m_Title = value;
-                m_DisplayTitleCache = null;
                 OnUniqueNameChanged(oldUniqueName, UniqueName);
             }
         }
 
         /// <inheritdoc />
-        public virtual string DisplayTitle
-        {
-            get
-            {
-                if (m_DisplayTitleCache == null)
-                    m_DisplayTitleCache = Title.Nicify();
-                return m_DisplayTitleCache;
-            }
-        }
+        public virtual string DisplayTitle => Title;
 
         /// <inheritdoc />
         public string UniqueName
@@ -62,6 +57,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
         }
 
+        /// <inheritdoc />
         public override SerializableGUID Guid
         {
             get => base.Guid;
@@ -88,14 +84,35 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
         }
 
+
         /// <inheritdoc />
-        public PortDirection Direction { get; set; }
+        public PortDirection Direction
+        {
+            get => m_Direction;
+            set
+            {
+                var oldDirection = m_Direction;
+                m_Direction = value;
+                OnDirectionChanged(oldDirection,value);
+            }
+        }
 
         /// <inheritdoc />
         public PortOrientation Orientation { get; set; }
 
         /// <inheritdoc />
-        public virtual PortCapacity Capacity => NodeModel?.GetPortCapacity(this) ?? GetDefaultCapacity();
+        public virtual PortCapacity Capacity
+        {
+            get
+            {
+                if (m_PortCapacity != null)
+                    return m_PortCapacity.Value;
+
+                // If not set, fallback to default behavior.
+                return PortType == PortType.Data && Direction == PortDirection.Input ? PortCapacity.Single : PortCapacity.Multi;
+            }
+            set => m_PortCapacity = value;
+        }
 
         /// <inheritdoc />
         public TypeHandle DataTypeHandle
@@ -133,6 +150,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             (GraphModel as GraphModel)?.PortEdgeIndex.UpdatePortUniqueName(this, oldUniqueName, newUniqueName);
         }
 
+        /// <summary>
+        /// Notifies the graph model that the port direction has changed. Derived implementations of PortModel
+        /// should call this method whenever a change makes <see cref="Direction"/> return a different value than before.
+        /// </summary>
+        /// <param name="oldDirection">The previous direction.</param>
+        /// <param name="newDirection">The new direction.</param>
+
+        protected void OnDirectionChanged(PortDirection oldDirection, PortDirection newDirection)
+        {
+            (GraphModel as GraphModel)?.PortEdgeIndex.UpdatePortDirection(this, oldDirection, newDirection);
+        }
+
         /// <inheritdoc />
         public virtual IEnumerable<IPortModel> GetConnectedPorts()
         {
@@ -168,15 +197,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
         }
 
-        /// <inheritdoc />
-        public bool DisableEmbeddedValueEditor => this.IsConnected() && GetConnectedPorts().Any(p => p.NodeModel.State == ModelState.Enabled);
-
-        string m_TooltipCache = null;
-        /// <inheritdoc />
+        /// <summary>
+        /// The tooltip for the port.
+        /// </summary>
+        /// <remarks>
+        /// If the tooltip is not set, or if it's set to null, the default value for the tooltip will be returned.
+        /// The default tooltip is "[Input|Output] execution flow" for execution ports (e.g. "Output execution flow"
+        /// and "[Input|Output] of type (friendly name of the port type)" for data ports (e.g. "Input of type Float").
+        /// </remarks>
         public virtual string ToolTip
         {
             get
             {
+                if (m_TooltipOverride != null)
+                    return m_TooltipOverride;
+
                 if (m_TooltipCache == null)
                 {
                     var newTooltip = new StringBuilder(Direction == PortDirection.Output ? "Output" : "Input");
@@ -196,8 +231,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 return m_TooltipCache;
             }
 
-            // We don't support setting the tooltip for base port models.
-            set {}
+            set => m_TooltipOverride = value;
         }
 
         /// <inheritdoc />
@@ -215,14 +249,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public override string ToString()
         {
             return $"Port {NodeModel}: {PortType} {Title}(id: {UniqueName ?? "\"\""})";
-        }
-
-        /// <inheritdoc />
-        public PortCapacity GetDefaultCapacity()
-        {
-            return PortType == PortType.Data ? Direction == PortDirection.Input ? PortCapacity.Single :
-                PortCapacity.Multi :
-                PortCapacity.Multi;
         }
 
         /// <inheritdoc />

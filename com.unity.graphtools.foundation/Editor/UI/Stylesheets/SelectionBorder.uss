@@ -1,0 +1,30 @@
+.ge-selection-border {
+    flex-grow: 1;
+    border-width: 1px;
+    padding: 1px;
+    border-color: transparent;
+    border-radius: var(--selection-border-radius);
+    margin: -3px;
+}
+
+.ge-selection-border__content-container {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.ge-graph-element:hover > .ge-selection-border,
+.ge-blackboard-element:hover > .ge-selection-border {
+    border-color: var(--selection-hover);
+}
+
+.ge-graph-element:checked > .ge-selection-border,
+.ge-blackboard-element:checked > .ge-selection-border {
+    border-color: var(--selection-checked);
+}
+
+.ge-graph-element:checked:hover > .ge-selection-border,
+.ge-blackboard-element:checked:hover > .ge-selection-border {
+    border-color: var(--selection-checked-hover);
+    border-width: 2px;
+    padding: 0;
+}

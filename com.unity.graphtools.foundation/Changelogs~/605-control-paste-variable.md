@@ -1,0 +1,2 @@
+### Added
+- CanPasteVariable in IStencil.

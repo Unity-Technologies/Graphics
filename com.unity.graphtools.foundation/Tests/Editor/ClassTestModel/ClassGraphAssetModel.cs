@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 {

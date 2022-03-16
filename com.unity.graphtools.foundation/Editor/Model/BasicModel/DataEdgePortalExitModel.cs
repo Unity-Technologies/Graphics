@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
@@ -19,7 +18,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         protected override void OnDefineNode()
         {
             base.OnDefineNode();
-            this.AddDataOutputPort("", TypeHandle.Unknown);
+            this.AddDataOutputPort("", PortDataTypeHandle);
         }
 
         /// <inheritdoc />

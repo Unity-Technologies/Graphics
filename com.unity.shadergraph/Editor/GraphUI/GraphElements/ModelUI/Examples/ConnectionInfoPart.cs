@@ -6,9 +6,9 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ConnectionInfoPart : BaseModelUIPart
+    public class ConnectionInfoPart : BaseModelViewPart
     {
-        public ConnectionInfoPart(string name, IGraphElementModel model, IModelUI ownerElement,
+        public ConnectionInfoPart(string name, IGraphElementModel model, IModelView ownerElement,
             string parentClassName)
             : base(name, model, ownerElement, parentClassName) { }
 
