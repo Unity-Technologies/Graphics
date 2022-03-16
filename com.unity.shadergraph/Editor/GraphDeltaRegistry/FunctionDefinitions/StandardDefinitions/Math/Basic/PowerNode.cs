@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -10,10 +10,10 @@ namespace com.unity.shadergraph.defs
             1,          // Version
             "Power",    // Name
             "Out = UnsignedBase ? pow(abs(Base), Exp) : pow(Base, Exp);",
-            new ParameterDescriptor("Base", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Exp", TYPE.Any, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
-            new ParameterDescriptor("UnsignBase", TYPE.Bool, Usage.Static, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("Base", TYPE.Any, GraphType.Usage.In),
+            new ParameterDescriptor("Exp", TYPE.Any, GraphType.Usage.In, new float[] { 2f, 2f, 2f, 2f }),
+            new ParameterDescriptor("UnsignBase", TYPE.Bool, GraphType.Usage.Static, new float[] { 1f }),
+            new ParameterDescriptor("Out", TYPE.Any, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

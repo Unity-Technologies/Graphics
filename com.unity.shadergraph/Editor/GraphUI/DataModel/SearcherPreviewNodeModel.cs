@@ -1,13 +1,13 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
-    /// PreviewNodeModel is backed by a registry key, but not graph data. It's only used for previews, and shouldn't
-    /// exist on the graph.
+    /// PreviewNodeModel is backed by a registry key, but not graph data.
+    /// It's only used for previews, and shouldn't exist on the graph.
     /// </summary>
     public class SearcherPreviewNodeModel : NodeModel
     {
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        void AddPortFromReader(GraphDelta.IPortReader portReader)
+        void AddPortFromReader(IPortReader portReader)
         {
             var isInput = portReader.IsInput();
             var orientation = portReader.IsHorizontal()

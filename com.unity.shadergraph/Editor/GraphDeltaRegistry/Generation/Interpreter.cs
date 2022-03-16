@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
-        public static string GetFunctionCode(INodeReader node, Registry.Registry registry)
+        public static string GetFunctionCode(INodeReader node, Registry registry)
         {
             var builder = new ShaderBuilder();
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry);
@@ -19,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ConvertToString();
         }
 
-        public static string GetBlockCode(INodeReader node, GraphHandler graph, Registry.Registry registry)
+        public static string GetBlockCode(INodeReader node, GraphHandler graph, Registry registry)
         {
             var builder = new ShaderBuilder();
             var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
@@ -28,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ConvertToString();
         }
 
-        public static string GetShaderForNode(INodeReader node, GraphHandler graph, Registry.Registry registry)
+        public static string GetShaderForNode(INodeReader node, GraphHandler graph, Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
@@ -58,8 +55,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return structBuilder.Build();
         }
 
-
-        internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
+        internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry)
         {
             const string BlockName = "ShaderGraphBlock";
             var blockBuilder = new Block.Builder(container, BlockName);
@@ -75,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     if (port.IsHorizontal() && port.IsInput())
                     {
-                        port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
+                        port.GetField(GraphType.kEntry, out IContextDescriptor.ContextEntry entry);
                         var varOutBuilder = new BlockVariable.Builder(container);
                         varOutBuilder.Name = entry.fieldName;
                         varOutBuilder.Type = EvaluateShaderType(entry, container);
@@ -125,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     if(port.IsHorizontal() && port.IsInput())
                     {
-                        port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
+                        port.GetField(GraphType.kEntry, out IContextDescriptor.ContextEntry entry);
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
@@ -176,12 +172,12 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             switch (entry.primitive)
             {
-                case Registry.Types.GraphType.Primitive.Bool:
+                case GraphType.Primitive.Bool:
                     return container.GetType($"bool{lxh}");
-                case Registry.Types.GraphType.Primitive.Int:
+                case GraphType.Primitive.Int:
                     return container.GetType($"int{lxh}");
-                case Registry.Types.GraphType.Primitive.Float:
-                    if (entry.precision == Registry.Types.GraphType.Precision.Single)
+                case GraphType.Primitive.Float:
+                    if (entry.precision == GraphType.Precision.Single)
                     {
                         return container.GetType($"double{lxh}");
                     }
@@ -228,7 +224,7 @@ namespace UnityEditor.ShaderGraph.Generation
             ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
             ref List<ShaderFunction> shaderFunctions,
-            Registry.Registry registry)
+            Registry registry)
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
             var func = nodeBuilder.GetShaderFunction(node, container, registry);

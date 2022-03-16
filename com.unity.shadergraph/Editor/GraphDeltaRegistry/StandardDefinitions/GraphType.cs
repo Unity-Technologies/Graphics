@@ -1,16 +1,13 @@
 
-
 using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.Registry.Types
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /// <summary>
     /// Experimenting with different helper function interfaces.
     /// </summary>
-
     internal static class GraphTypeHelpers
     {
         public static GraphType.Precision GetPrecision(IFieldReader field)
@@ -109,9 +106,9 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     /// <summary>
     /// Base 'GraphType' representing templated HLSL Types, eg. vector <float, 3>, matrix <float 4, 4>, int3, etc.
     /// </summary>
-    public class GraphType : Defs.ITypeDefinitionBuilder
+    public class GraphType : ITypeDefinitionBuilder
     {
-        public static RegistryKey kRegistryKey => new RegistryKey { Name = "GraphType", Version = 1 };
+        public static RegistryKey kRegistryKey => new() { Name = "GraphType", Version = 1 };
         public RegistryKey GetRegistryKey() => kRegistryKey;
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
 
@@ -122,7 +119,6 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         // TODO: This is used by node builders and is general to all ports, should be moved into a CLDS header when possible.
         public enum Usage { In, Out, Static, Local }
-
 
         #region Priorities
         // Values here represent a resolving priority.
@@ -189,14 +185,14 @@ namespace UnityEditor.ShaderGraph.Registry.Types
                 GraphTypeHelpers.SetComponent(typeWriter, i, 0);
         }
 
-        string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
+        string ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
         {
             var height = GraphTypeHelpers.GetHeight(data);
             var length = GraphTypeHelpers.GetLength(data);
             int l = Mathf.Clamp((int)length, 1, 4);
             int h = Mathf.Clamp((int)height, 1, 4);
 
-            string result = $"{((Defs.ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
+            string result = $"{((ITypeDefinitionBuilder)this).GetShaderType(data, new ShaderFoundry.ShaderContainer(), registry).Name}" + "(";
 
             for (int i = 0; i < l * h; ++i)
             {
@@ -208,7 +204,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             return result;
         }
 
-        ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+        ShaderFoundry.ShaderType ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
             var height = GraphTypeHelpers.GetHeight(data);
             var length = GraphTypeHelpers.GetLength(data);
@@ -247,7 +243,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         }
     }
 
-    internal class GraphTypeAssignment : Defs.ICastDefinitionBuilder
+    internal class GraphTypeAssignment : ICastDefinitionBuilder
     {
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
@@ -256,10 +252,8 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         {
             var srcHgt = GraphTypeHelpers.GetHeight(src);
             var srcLen = GraphTypeHelpers.GetLength(src);
-
             var dstHgt = GraphTypeHelpers.GetHeight(dst);
             var dstLen = GraphTypeHelpers.GetLength(dst);
-
             return srcHgt == dstHgt || srcHgt == GraphType.Height.One && srcLen >= dstLen;
         }
 

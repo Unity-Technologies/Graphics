@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -10,9 +10,9 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "CrossProduct", // Name
             "Out = cross(A, B);",
-            new ParameterDescriptor("A", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("B", TYPE.Vec3, Usage.In, new float[] { 0f, 1f, 0f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In),
+            new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0f, 1f, 0f }),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

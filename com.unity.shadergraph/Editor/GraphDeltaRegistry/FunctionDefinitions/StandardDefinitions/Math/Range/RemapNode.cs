@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -10,10 +10,10 @@ namespace com.unity.shadergraph.defs
             1,
             "Remap",
             "Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { -1f, -1f, -1f, -1f }),
-            new ParameterDescriptor("InMinMax", TYPE.Vec2, Usage.In, new float[] { -1f, 1f }),
-            new ParameterDescriptor("OutMinMax", TYPE.Vec2, Usage.In, new float[] { 0f, 1f }),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In, new float[] { -1f, -1f, -1f, -1f }),
+            new ParameterDescriptor("InMinMax", TYPE.Vec2, GraphType.Usage.In, new float[] { -1f, 1f }),
+            new ParameterDescriptor("OutMinMax", TYPE.Vec2, GraphType.Usage.In, new float[] { 0f, 1f }),
+            new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

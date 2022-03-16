@@ -5,8 +5,6 @@ using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -24,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ShaderGraphAssetModel ShaderGraphAssetModel => AssetModel as ShaderGraphAssetModel;
 
-        public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
+        public Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 
         protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
         {

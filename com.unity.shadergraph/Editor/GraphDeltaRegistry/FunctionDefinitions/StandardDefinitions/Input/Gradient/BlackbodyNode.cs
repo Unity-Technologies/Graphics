@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -20,9 +20,9 @@ namespace com.unity.shadergraph.defs
     if (Temperature < 1000.0) color *= Temperature/1000.0;
     Out = color;
 }",
-            new ParameterDescriptor("Temperature", TYPE.Float, Usage.In, new float[] {512.0f}),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("color", TYPE.Vec3, Usage.Local,new float[] { 255.0f, 255.0f, 255.0f})
+            new ParameterDescriptor("Temperature", TYPE.Float, GraphType.Usage.In, new float[] {512.0f}),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+            new ParameterDescriptor("color", TYPE.Vec3, GraphType.Usage.Local,new float[] { 255.0f, 255.0f, 255.0f})
         );
 
         public static Dictionary<string, string> UIStrings => new()

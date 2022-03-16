@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEngine;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -11,24 +10,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ShaderGraphStencil : Stencil
     {
         public const string Name = "ShaderGraph";
-
         public const string DefaultAssetName = "NewShaderGraph";
-
         public const string Extension = "sg2";
-
-        public string ToolName => Name;
-
         Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
+        private Registry RegistryInstance = null;
 
         public ShaderGraphStencil()
         {
             m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
         }
 
+        public string ToolName => Name;
+
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
-
-        // See ShaderGraphExampleTypes.GetGraphType for more details
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
         {
             if (typeHandle == TypeHandle.Vector2
@@ -60,9 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        private Registry.Registry RegistryInstance = null;
-
-        public Registry.Registry GetRegistry()
+        public Registry GetRegistry()
         {
             if (RegistryInstance == null)
             {
@@ -71,17 +64,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 void ReadUIInfo(RegistryKey key, Type type)
                 {
                     const string uiHintsGetterName = "get_UIHints";
-
                     var getUiHints = type.GetMethod(uiHintsGetterName);
                     if (getUiHints != null)
                     {
                         m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
                     }
-
-                    // TODO: Get and use UI strings
                 }
 
-                RegistryInstance = Registry.Default.DefaultRegistry.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
+                RegistryInstance = DefaultRegistry.CreateDefaultRegistry(
+                    afterNodeRegistered: ReadUIInfo);
             }
 
             return RegistryInstance;

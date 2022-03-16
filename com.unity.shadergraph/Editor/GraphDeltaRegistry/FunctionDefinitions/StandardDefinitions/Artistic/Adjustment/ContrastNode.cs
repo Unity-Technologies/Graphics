@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -14,10 +14,10 @@ namespace com.unity.shadergraph.defs
     midpoint = pow(0.5, 2.2);
     Out =  (In - midpoint) * Contrast + midpoint;
 }",
-            new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("midpoint", TYPE.Float, Usage.Local)
+            new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.In),
+            new ParameterDescriptor("Contrast", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+            new ParameterDescriptor("midpoint", TYPE.Float, GraphType.Usage.Local)
         );
 
         public static Dictionary<string, string> UIStrings => new()

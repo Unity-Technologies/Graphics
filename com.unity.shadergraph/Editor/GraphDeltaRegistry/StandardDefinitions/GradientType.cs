@@ -1,15 +1,10 @@
-
-
-using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
-using com.unity.shadergraph.defs;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.Registry.Types
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
 
-    internal class SampleGradientNode : Defs.INodeDefinitionBuilder
+    internal class SampleGradientNode : INodeDefinitionBuilder
     {
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleGradientNode", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
@@ -79,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     /// <summary>
     /// Constructor node with a static gradient type input; this is purely so that the gradient UI Widget has a node to use.
     /// </summary>
-    internal class GradientNode : Defs.INodeDefinitionBuilder
+    internal class GradientNode : INodeDefinitionBuilder
     {
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientNode", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
@@ -151,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     /// <summary>
     /// Represents the Gradient type found in Functions.hlsl, similar to the C# version, except it's key count is fixed to 8.
     /// </summary>
-    internal class GradientType : Defs.ITypeDefinitionBuilder
+    internal class GradientType : ITypeDefinitionBuilder
     {
         public static RegistryKey kRegistryKey => new RegistryKey { Name = "GradientType", Version = 1 };
         public RegistryKey GetRegistryKey() => kRegistryKey;
@@ -188,7 +183,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         private string AlphaKeyToDecl(GradientAlphaKey key) => $"float2({key.alpha},{key.time})";
 
 
-        string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
+        string ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
         {
             data.GetField<int>(kColorCount, out var colorCount);
             data.GetField<int>(kAlphaCount, out var alphaCount);
@@ -220,7 +215,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             return $"NewGradient({(int)gradientMode}, {colorCount}, {alphaCount}, {color}, {alpha})";
         }
 
-        ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+        ShaderFoundry.ShaderType ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
             // We could potentially support a much broader range of types, precision and array lengths,
             // though GradientTypeAssignment would need to handle conversions.
@@ -231,7 +226,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         }
     }
 
-    internal class GradientTypeAssignment : Defs.ICastDefinitionBuilder
+    internal class GradientTypeAssignment : ICastDefinitionBuilder
     {
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientTypeAssignment", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;

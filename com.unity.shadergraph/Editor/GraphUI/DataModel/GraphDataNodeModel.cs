@@ -4,7 +4,6 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -55,7 +54,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
 
         GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
-        Registry.Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
+        Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,
         // as there currently is no other way to know if they both represent the same underlying port

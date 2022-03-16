@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -22,13 +22,13 @@ namespace com.unity.shadergraph.defs
     RG.g = G;
 }
 ",
-            new ParameterDescriptor("R", TYPE.Float, Usage.In),
-            new ParameterDescriptor("G", TYPE.Float, Usage.In),
-            new ParameterDescriptor("B", TYPE.Float, Usage.In),
-            new ParameterDescriptor("A", TYPE.Float, Usage.In),
-            new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-            new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("RG", TYPE.Vec2, Usage.Out)
+            new ParameterDescriptor("R", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("G", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("B", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("A", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("RGBA", TYPE.Vec4, GraphType.Usage.Out),
+            new ParameterDescriptor("RGB", TYPE.Vec3, GraphType.Usage.Out),
+            new ParameterDescriptor("RG", TYPE.Vec2, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "Preview", // Name
             "Out = In;",
-            new ParameterDescriptor("In", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Any, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Any, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

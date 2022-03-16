@@ -1,11 +1,8 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
-using Types = UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.Generation.UnitTests
 {
@@ -14,21 +11,21 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
     {
 
         private static GraphHandler graph;
-        private static Registry.Registry registry;
+        private static Registry registry;
 
         [SetUp]
         public static void Setup()
         {
             graph = new GraphHandler();
-            registry = new Registry.Registry();
+            registry = new Registry();
 
-            registry.Register<Types.GraphType>();
-            registry.Register<Types.AddNode>();
-            registry.Register<Types.GraphTypeAssignment>();
+            registry.Register<GraphType>();
+            registry.Register<GraphDelta.AddNode>();
+            registry.Register<GraphTypeAssignment>();
 
-            graph.AddNode<Types.AddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
-            graph.AddNode<Types.AddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
-            graph.AddNode<Types.AddNode>("Add3", registry);
+            graph.AddNode<GraphDelta.AddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
+            graph.AddNode<GraphDelta.AddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            graph.AddNode<GraphDelta.AddNode>("Add3", registry);
             graph.TryConnect("Add1", "Out", "Add3", "In1", registry);
             graph.TryConnect("Add2", "Out", "Add3", "In2", registry); //should be (1,1,0,0)
         }
@@ -54,13 +51,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             rt.Release();
             return output;
         }
-
-        static object[] testAsIsSource = new object[]
-        {
-            ("Add1", new Color(1,0,0,1)), //Colors with Alpha 1 since target is opaque
-            ("Add2", new Color(0,1,0,1)),
-            ("Add3", new Color(1,1,0,1)),
-        };
 
         [Test]
         [TestCaseSource("testAsIsSource")]

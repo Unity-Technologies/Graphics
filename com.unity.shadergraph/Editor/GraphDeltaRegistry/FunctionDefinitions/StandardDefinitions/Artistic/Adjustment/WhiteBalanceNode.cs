@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -32,22 +32,22 @@ namespace com.unity.shadergraph.defs
 		lms.z *= w1.z / w2.z;
 		Out = mul(LMS_2_LIN_MAT, lms);
 }",
-            new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("Temperature", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Tint", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("t1", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("x", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("y", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("w1", TYPE.Vec3, Usage.Local, new float[] { 0.949237f, 1.03542f, 1.08728f }), // D65 white point
-            new ParameterDescriptor("X", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("Z", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("w2", TYPE.Vec3, Usage.Local),
-            new ParameterDescriptor("lms", TYPE.Vec3, Usage.Local),
-            new ParameterDescriptor("LIN_2_LMS_MAT", TYPE.Mat3, Usage.Local, new float[] { 3.90405e-1f, 5.49941e-1f, 8.92632e-3f,
+            new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.In),
+            new ParameterDescriptor("Temperature", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Tint", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+            new ParameterDescriptor("t1", TYPE.Float, GraphType.Usage.Local),
+            new ParameterDescriptor("x", TYPE.Float, GraphType.Usage.Local),
+            new ParameterDescriptor("y", TYPE.Float, GraphType.Usage.Local),
+            new ParameterDescriptor("w1", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.949237f, 1.03542f, 1.08728f }), // D65 white point
+            new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.Local),
+            new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.Local),
+            new ParameterDescriptor("w2", TYPE.Vec3, GraphType.Usage.Local),
+            new ParameterDescriptor("lms", TYPE.Vec3, GraphType.Usage.Local),
+            new ParameterDescriptor("LIN_2_LMS_MAT", TYPE.Mat3, GraphType.Usage.Local, new float[] { 3.90405e-1f, 5.49941e-1f, 8.92632e-3f,
                                                                                            7.08416e-2f, 9.63172e-1f, 1.35775e-3f,
                                                                                            2.31082e-2f, 1.28021e-1f, 9.36245e-1f }),
-            new ParameterDescriptor("LMS_2_LIN_MAT", TYPE.Mat3, Usage.Local, new float[] { 2.85847e+0f, -1.62879e+0f, -2.48910e-2f,
+            new ParameterDescriptor("LMS_2_LIN_MAT", TYPE.Mat3, GraphType.Usage.Local, new float[] { 2.85847e+0f, -1.62879e+0f, -2.48910e-2f,
                                                                                            -2.10182e-1f,  1.15820e+0f,  3.24281e-4f,
                                                                                            -4.18120e-2f, -1.18169e-1f,  1.06867e+0f })
         );

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -13,12 +13,12 @@ namespace com.unity.shadergraph.defs
 {
     Out = lerp(To, In, saturate((distance(From, In) - Range) / max(Fuzziness, 1e-5f)));
 }",
-            new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("From", TYPE.Vec3, Usage.In),//TODO: Need to be color picker 
-            new ParameterDescriptor("To", TYPE.Vec3, Usage.In),//Need to be color picker 
-            new ParameterDescriptor("Range", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Fuzziness", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.In),
+            new ParameterDescriptor("From", TYPE.Vec3, GraphType.Usage.In),//TODO: Need to be color picker 
+            new ParameterDescriptor("To", TYPE.Vec3, GraphType.Usage.In),//Need to be color picker 
+            new ParameterDescriptor("Range", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Fuzziness", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

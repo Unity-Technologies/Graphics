@@ -1,11 +1,9 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderFoundry;
 
-namespace UnityEditor.ShaderGraph.Registry.Defs
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public interface IRegistryEntry
     {
@@ -19,13 +17,13 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
     internal interface INodeDefinitionBuilder : IRegistryEntry
     {
         void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry);
-        ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry);
+        ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry);
     }
 
     internal interface ITypeDefinitionBuilder : IRegistryEntry
     {
         void BuildType(IFieldReader userData, IFieldWriter generatedData, Registry registry);
-        ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry);
+        ShaderType GetShaderType(IFieldReader data, ShaderContainer container, Registry registry);
         string GetInitializerList(IFieldReader data, Registry registry);
     }
 
@@ -39,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         // implement an ITypeConversion with itself to ensure that static concepts can be represented.
         bool CanConvert(IFieldReader src, IFieldReader dst);
 
-        ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry);
+        ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderContainer container, Registry registry);
     }
 
 
@@ -48,10 +46,10 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         public struct ContextEntry
         {
             public string fieldName;
-            internal Types.GraphType.Precision precision;
-            internal Types.GraphType.Primitive primitive;
-            public Types.GraphType.Length length;
-            public Types.GraphType.Height height;
+            internal GraphType.Precision precision;
+            internal GraphType.Primitive primitive;
+            public GraphType.Length length;
+            public GraphType.Height height;
             public Matrix4x4 initialValue;
             public string interpolationSemantic;
             public bool isFlat;
@@ -89,12 +87,12 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             var context = registry.GetContextDescriptor(contextKey);
             foreach (var entry in context.GetEntries())
             {
-                var port = generatedData.AddPort<Types.GraphType>(userData, entry.fieldName, true, registry);
-                port.SetField(Types.GraphType.kHeight, entry.height);
-                port.SetField(Types.GraphType.kLength, entry.length);
-                port.SetField(Types.GraphType.kPrecision, entry.precision);
-                port.SetField(Types.GraphType.kPrimitive, entry.primitive);
-                port.SetField(Types.GraphType.kEntry, entry);
+                var port = generatedData.AddPort<GraphType>(userData, entry.fieldName, true, registry);
+                port.SetField(GraphType.kHeight, entry.height);
+                port.SetField(GraphType.kLength, entry.length);
+                port.SetField(GraphType.kPrecision, entry.precision);
+                port.SetField(GraphType.kPrimitive, entry.primitive);
+                port.SetField(GraphType.kEntry, entry);
                 for (int i = 0; i < (int)entry.length * (int)entry.height; ++i)
                     port.SetField($"c{i}", entry.initialValue[i]);
                 if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
@@ -114,18 +112,9 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
     }
 }
 
-
-
-
-
-
-
-
-
-
-//public ShaderFoundry.Block GetShaderBlock(IGraphHandler graph, INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+//public Block GetShaderBlock(IGraphHandler graph, INodeReader data, ShaderContainer container, Registry registry)
 //{
-//    var builder = new ShaderFoundry.Block.Builder(data.GetRegistryKey().ToString());
+//    var builder = new Block.Builder(data.GetRegistryKey().ToString());
 //    foreach (var port in data.GetPorts())
 //    {
 //        if (port.IsInput() && !port.IsHorizontal())
@@ -136,7 +125,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 //        if (!port.IsInput() || !port.IsHorizontal())
 //            continue;
 
-//        var varBuilder = new ShaderFoundry.BlockVariable.Builder();
+//        var varBuilder = new BlockVariable.Builder();
 //        varBuilder.Type = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType((IFieldReader)port, container, registry);
 //        varBuilder.ReferenceName = port.GetName();
 //        builder.AddOutput(varBuilder.Build(container));

@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,     // Version
             "Matrix2x2", // Name
             "Out = Matrix2x2;",
-            new ParameterDescriptor("Matrix2x2", TYPE.Mat2, Usage.Static),
-            new ParameterDescriptor("Out", TYPE.Mat2, Usage.Out)
+            new ParameterDescriptor("Matrix2x2", TYPE.Mat2, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Mat2, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

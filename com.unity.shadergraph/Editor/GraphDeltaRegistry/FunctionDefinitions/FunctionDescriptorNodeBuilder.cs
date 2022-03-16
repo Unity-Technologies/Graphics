@@ -1,11 +1,6 @@
 using System;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
-using UnityEngine;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
 namespace com.unity.shadergraph.defs
 {
@@ -32,44 +27,44 @@ namespace com.unity.shadergraph.defs
             // 1 < 4 < 3 < 2 for Height and Length
             // Bigger wins for Primitive and Precision
 
-            Height resolvedHeight = Height.Any;
-            Length resolvedLength = Length.Any;
-            Precision resolvedPrecision = Precision.Any;
-            Primitive resolvedPrimitive = Primitive.Any;
+            GraphType.Height resolvedHeight = GraphType.Height.Any;
+            GraphType.Length resolvedLength = GraphType.Length.Any;
+            GraphType.Precision resolvedPrecision = GraphType.Precision.Any;
+            GraphType.Primitive resolvedPrimitive = GraphType.Primitive.Any;
 
             // Find the highest priority value for all type parameters set
             // in the user data.
             foreach (var port in userData.GetPorts())
             {
                 var field = (IFieldReader)port;
-                if (field.TryGetSubField(kLength, out IFieldReader fieldReader))
+                if (field.TryGetSubField(GraphType.kLength, out IFieldReader fieldReader))
                 {
-                    fieldReader.TryGetValue(out Length readLength);
-                    if (LengthToPriority[resolvedLength] < LengthToPriority[readLength])
+                    fieldReader.TryGetValue(out GraphType.Length readLength);
+                    if (GraphType.LengthToPriority[resolvedLength] < GraphType.LengthToPriority[readLength])
                     {
                         resolvedLength = readLength;
                     }
                 }
-                if (field.TryGetSubField(kHeight, out fieldReader))
+                if (field.TryGetSubField(GraphType.kHeight, out fieldReader))
                 {
-                    fieldReader.TryGetValue(out Height readHeight);
-                    if (HeightToPriority[resolvedHeight] < HeightToPriority[readHeight])
+                    fieldReader.TryGetValue(out GraphType.Height readHeight);
+                    if (GraphType.HeightToPriority[resolvedHeight] < GraphType.HeightToPriority[readHeight])
                     {
                         resolvedHeight = readHeight;
                     }
                 }
-                if (field.TryGetSubField(kPrecision, out fieldReader))
+                if (field.TryGetSubField(GraphType.kPrecision, out fieldReader))
                 {
-                    fieldReader.TryGetValue(out Precision readPrecision);
-                    if (PrecisionToPriority[resolvedPrecision] < PrecisionToPriority[readPrecision])
+                    fieldReader.TryGetValue(out GraphType.Precision readPrecision);
+                    if (GraphType.PrecisionToPriority[resolvedPrecision] < GraphType.PrecisionToPriority[readPrecision])
                     {
                         resolvedPrecision = readPrecision;
                     }
                 }
-                if (field.TryGetSubField(kPrimitive, out fieldReader))
+                if (field.TryGetSubField(GraphType.kPrimitive, out fieldReader))
                 {
-                    fieldReader.TryGetValue(out Primitive readPrimitive);
-                    if (PrimitiveToPriority[resolvedPrimitive] < PrimitiveToPriority[readPrimitive])
+                    fieldReader.TryGetValue(out GraphType.Primitive readPrimitive);
+                    if (GraphType.PrimitiveToPriority[resolvedPrimitive] < GraphType.PrimitiveToPriority[readPrimitive])
                     {
                         resolvedPrimitive = readPrimitive;
                     }
@@ -78,22 +73,22 @@ namespace com.unity.shadergraph.defs
 
             // If we didn't find a value for a type parameter in user data,
             // set it to a legacy default.
-            if (resolvedLength == Length.Any)
+            if (resolvedLength == GraphType.Length.Any)
             {
-                resolvedLength = Length.Four;
+                resolvedLength = GraphType.Length.Four;
             }
-            if (resolvedHeight == Height.Any)
+            if (resolvedHeight == GraphType.Height.Any)
             {
                 // this matches the legacy resolving behavior
-                resolvedHeight = Height.One;
+                resolvedHeight = GraphType.Height.One;
             }
-            if (resolvedPrecision == Precision.Any)
+            if (resolvedPrecision == GraphType.Precision.Any)
             {
-                resolvedPrecision = Precision.Single;
+                resolvedPrecision = GraphType.Precision.Single;
             }
-            if (resolvedPrimitive == Primitive.Any)
+            if (resolvedPrimitive == GraphType.Primitive.Any)
             {
-                resolvedPrimitive = Primitive.Float;
+                resolvedPrimitive = GraphType.Primitive.Float;
             }
 
             return new TypeDescriptor(
@@ -124,27 +119,27 @@ namespace com.unity.shadergraph.defs
             IPortWriter port = nodeWriter.AddPort<GraphType>(
                 nodeReader,
                 param.Name,
-                param.Usage is Usage.In or Usage.Static or Usage.Local,
+                param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local,
                 registry
             );
             TypeDescriptor paramType = param.TypeDescriptor;
 
             // A new type descriptor with all Any values replaced.
             TypeDescriptor resolvedType = new(
-                paramType.Precision == Precision.Any ? fallbackType.Precision : paramType.Precision,
-                paramType.Primitive == Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
-                paramType.Length == Length.Any ? fallbackType.Length : paramType.Length,
-                paramType.Height == Height.Any ? fallbackType.Height : paramType.Height
+                paramType.Precision == GraphType.Precision.Any ? fallbackType.Precision : paramType.Precision,
+                paramType.Primitive == GraphType.Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
+                paramType.Length == GraphType.Length.Any ? fallbackType.Length : paramType.Length,
+                paramType.Height == GraphType.Height.Any ? fallbackType.Height : paramType.Height
             );
 
             // Set the port's parameters from the resolved type.
-            port.SetField(kLength, resolvedType.Length);
-            port.SetField(kHeight, resolvedType.Height);
-            port.SetField(kPrecision, resolvedType.Precision);
-            port.SetField(kPrimitive, resolvedType.Primitive);
+            port.SetField(GraphType.kLength, resolvedType.Length);
+            port.SetField(GraphType.kHeight, resolvedType.Height);
+            port.SetField(GraphType.kPrecision, resolvedType.Precision);
+            port.SetField(GraphType.kPrimitive, resolvedType.Primitive);
 
-            if (param.Usage is Usage.Static) port.SetField("IsStatic", true);
-            if (param.Usage is Usage.Local) port.SetField("IsLocal", true);
+            if (param.Usage is GraphType.Usage.Static) port.SetField("IsStatic", true);
+            if (param.Usage is GraphType.Usage.Local) port.SetField("IsLocal", true);
 
             int i = 0;
             foreach(var val in param.DefaultValue)
@@ -192,11 +187,13 @@ namespace com.unity.shadergraph.defs
                 data.TryGetPort(param.Name, out var port);
                 var shaderType = registry.GetShaderType((IFieldReader)port, container);
 
-                if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.Local)
+                if (param.Usage == GraphType.Usage.In ||
+                    param.Usage == GraphType.Usage.Static ||
+                    param.Usage == GraphType.Usage.Local)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
-                else if (param.Usage == Usage.Out)
+                else if (param.Usage == GraphType.Usage.Out)
                 {
                     shaderFunctionBuilder.AddOutput(shaderType, param.Name);
                 }

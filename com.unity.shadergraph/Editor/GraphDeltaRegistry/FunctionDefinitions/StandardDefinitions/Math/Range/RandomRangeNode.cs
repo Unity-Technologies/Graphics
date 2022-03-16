@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -13,11 +13,11 @@ namespace com.unity.shadergraph.defs
 {
     Out = lerp(Min, Max, frac(sin(dot(Seed, temp))*43758.5453));
 }",
-            new ParameterDescriptor("Seed", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("Min", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
-            new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local, new float[] { 12.9898f, 78.233f })
+            new ParameterDescriptor("Seed", TYPE.Vec2, GraphType.Usage.In),
+            new ParameterDescriptor("Min", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Max", TYPE.Float, GraphType.Usage.In, new float[] { 1f }),
+            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+            new ParameterDescriptor("temp", TYPE.Vec2, GraphType.Usage.Local, new float[] { 12.9898f, 78.233f })
         );
 
         public static Dictionary<string, string> UIStrings => new()

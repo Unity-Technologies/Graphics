@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -15,11 +15,11 @@ namespace com.unity.shadergraph.defs
     Out = sinIn + lerp(Min, Max, frac(sin((sinIn - sin(In + 1.0)) * (12.9898 + 78.233))*43758.5453));
 }
 ",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Min", TYPE.Float, Usage.In, new float[] { -0.5f }),
-            new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
-            new ParameterDescriptor("sinIn", TYPE.Float, Usage.Local)
+            new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+            new ParameterDescriptor("Min", TYPE.Float, GraphType.Usage.In, new float[] { -0.5f }),
+            new ParameterDescriptor("Max", TYPE.Float, GraphType.Usage.In, new float[] { 0.5f }),
+            new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out),
+            new ParameterDescriptor("sinIn", TYPE.Float, GraphType.Usage.Local)
         );
 
         public static Dictionary<string, string> UIStrings => new()

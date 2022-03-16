@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.Remoting.Contexts;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Defs;
 using System.Linq;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -9,6 +6,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     internal sealed class GraphDelta
     {
         internal readonly GraphStorage m_data;
+        private readonly List<string> contextNodes = new();
+        private const string kRegistryKeyName = "_RegistryKey";
 
         public IEnumerable<INodeReader> ContextNodes
         {
@@ -21,7 +20,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        private const string kRegistryKeyName = "_RegistryKey";
         public GraphDelta()
         {
             m_data = new GraphStorage();
@@ -37,15 +35,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return EditorJsonUtility.ToJson(m_data);
         }
 
-        private List<string> contextNodes = new List<string>();
-
-        internal INodeWriter AddNode<T>(string name, Registry.Registry registry)  where T : Registry.Defs.INodeDefinitionBuilder
+        internal INodeWriter AddNode<T>(string name, Registry registry)  where T : INodeDefinitionBuilder
         {
-            var key = Registry.Registry.ResolveKey<T>();
+            var key = Registry.ResolveKey<T>();
             return AddNode(key, name, registry);
         }
 
-        public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry)
+        public INodeWriter AddNode(RegistryKey key, string name, Registry registry)
         {
             var builder = registry.GetNodeBuilder(key);
             if (builder is ContextBuilder cb)
@@ -72,10 +68,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return nodeWriter;
         }
 
-        public INodeWriter AddContextNode(RegistryKey contextDescriptorKey, Registry.Registry registry)
+        public INodeWriter AddContextNode(RegistryKey contextDescriptorKey, Registry registry)
         {
             var nodeWriter = AddNodeToLayer(GraphStorage.k_user, contextDescriptorKey.Name);
-            var contextKey = Registry.Registry.ResolveKey<ContextBuilder>();
+            var contextKey = Registry.ResolveKey<ContextBuilder>();
             var builder = registry.GetNodeBuilder(contextKey);
 
             nodeWriter.TryAddField<RegistryKey>("_contextDescriptor", out var contextWriter);
@@ -100,7 +96,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         }
 
-        public void SetupContextNodes(IEnumerable<IContextDescriptor> contextDescriptors, Registry.Registry registry)
+        public void SetupContextNodes(IEnumerable<IContextDescriptor> contextDescriptors, Registry registry)
         {
             foreach(var descriptor in contextDescriptors)
             {
@@ -108,7 +104,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public void AppendContextBlockToStage(IContextDescriptor contextDescriptor, Registry.Registry registry)
+        public void AppendContextBlockToStage(IContextDescriptor contextDescriptor, Registry registry)
         {
             var contextNodeWriter = AddContextNode(contextDescriptor.GetRegistryKey(), registry);
 
@@ -137,7 +133,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public bool ReconcretizeNode(string name, Registry.Registry registry)
+        public bool ReconcretizeNode(string name, Registry registry)
         {
             var nodeReader = GetNodeReader(name);
             var key = nodeReader.GetRegistryKey();
@@ -184,24 +180,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<INodeReader> GetNodes()
         {
-            return m_data.GetAllChildReaders().Where(e => e != null && m_data.GetNodeReader(e.GetName()) != null);
+            return m_data.GetAllChildReaders().Where(
+                e => e != null && m_data.GetNodeReader(e.GetName()) != null
+            );
         }
 
         public void RemoveNode(string id)
         {
             m_data.RemoveNode(id);
         }
-
-        /*
-        public void RemoveNode(INodeRef node)
-        {
-            node.Remove();
-        }
-
-        public bool TryMakeConnection(IPortRef output, IPortRef input)
-        {
-            return m_data.TryConnectPorts(output, input);
-        }
-        */
     }
 }

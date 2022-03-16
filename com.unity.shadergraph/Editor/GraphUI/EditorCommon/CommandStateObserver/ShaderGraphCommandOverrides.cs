@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI

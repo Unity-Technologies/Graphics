@@ -1,44 +1,12 @@
 using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
 using com.unity.shadergraph.defs;
+using UnityEditor.ShaderFoundry;
 
-namespace UnityEditor.ShaderGraph.Registry
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    /*
-    TODOs:
-        Namespaces and Context local overrides.
-
-    Search:
-        Categories, search hierachy, tooltips, etc-- how should these be handled?
-    Registry:
-        Unregister Builder
-        Clean/Reinit Registry
-        On Registry Updated
-        Registration descriptors- etc.
-    Errors:
-        No messaging or error state handling or checking on Registry actions.
-        Need an error handler for definition interface that can be used for concretization as well.
-    */
-    public struct Box<T> : ISerializable
-    {
-        public T data;
-
-        Box(SerializationInfo info, StreamingContext context)
-        {
-            data = (T)info.GetValue("value", typeof(T));
-        }
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("value", data);
-        }
-    }
-
-
     [Serializable]
     public struct RegistryKey : ISerializable
     {
@@ -62,7 +30,8 @@ namespace UnityEditor.ShaderGraph.Registry
         }
     }
 
-    [Flags] public enum RegistryFlags
+    [Flags]
+    public enum RegistryFlags
     {
         Type = 1, // The corresponding node definition is allowed to be a port.
         Func = 2, // Cannot be a port.
@@ -70,7 +39,10 @@ namespace UnityEditor.ShaderGraph.Registry
         Base = 4,
     }
 
-
+    /// <summary>
+    /// The Registry holds information about available nodes, types, and type casting
+    /// operations available in the shader graph.
+    /// </summary>
     public class Registry
     {
         readonly Dictionary<RegistryKey, IRegistryEntry> builders = new Dictionary<RegistryKey, IRegistryEntry>();
@@ -82,16 +54,20 @@ namespace UnityEditor.ShaderGraph.Registry
             Register<ReferenceNodeBuilder>();
         }
 
-        internal ShaderFoundry.ShaderType GetShaderType(IFieldReader field, ShaderFoundry.ShaderContainer container)
+        internal ShaderType GetShaderType(IFieldReader field, ShaderContainer container)
         {
             var graphTypeBuilder = this.GetTypeBuilder(field.GetRegistryKey());
             return graphTypeBuilder.GetShaderType(field, container, this);
         }
 
-        public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
-        public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNodeReader(key.ToString());
+        public IEnumerable<RegistryKey> BrowseRegistryKeys() =>
+            builders.Keys;
 
-        public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
+        public INodeReader GetDefaultTopology(RegistryKey key) =>
+            defaultTopologies.GetNodeReader(key.ToString());
+
+        public bool CastExists(RegistryKey from, RegistryKey to) =>
+            builders.Values.OfType<ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 
         public bool Register<T>() where T : IRegistryEntry
         {
@@ -130,12 +106,22 @@ namespace UnityEditor.ShaderGraph.Registry
             return null;
         }
 
-        internal INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) => (INodeDefinitionBuilder)GetBuilder(key);
-        internal ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) => (ITypeDefinitionBuilder)GetBuilder(key);
-        internal ICastDefinitionBuilder GetCastBuilder(RegistryKey key) => (ICastDefinitionBuilder)GetBuilder(key);
+        internal INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) =>
+            (INodeDefinitionBuilder)GetBuilder(key);
 
-        private IRegistryEntry GetBuilder(RegistryKey key) => builders.TryGetValue(key, out var builder) ? builder : null;
-        public static RegistryKey ResolveKey<T>() where T : IRegistryEntry => Activator.CreateInstance<T>().GetRegistryKey();
-        public static RegistryFlags ResolveFlags<T>() where T : IRegistryEntry => Activator.CreateInstance<T>().GetRegistryFlags();
+        internal ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) =>
+            (ITypeDefinitionBuilder)GetBuilder(key);
+
+        internal ICastDefinitionBuilder GetCastBuilder(RegistryKey key) =>
+            (ICastDefinitionBuilder)GetBuilder(key);
+
+        private IRegistryEntry GetBuilder(RegistryKey key) =>
+            builders.TryGetValue(key, out var builder) ? builder : null;
+
+        public static RegistryKey ResolveKey<T>() where T : IRegistryEntry =>
+            Activator.CreateInstance<T>().GetRegistryKey();
+
+        public static RegistryFlags ResolveFlags<T>() where T : IRegistryEntry =>
+            Activator.CreateInstance<T>().GetRegistryFlags();
     }
 }

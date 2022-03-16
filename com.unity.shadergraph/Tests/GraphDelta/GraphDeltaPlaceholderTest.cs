@@ -1,10 +1,5 @@
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.ContextLayeredDataStorage;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -24,10 +19,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             public void CanAddEmptyNode()
             {
                 GraphDelta graphHandler = new GraphHandler().graphDelta;
-                using (INodeWriter node = graphHandler.AddNode("foo"))
-                {
-                    Assert.NotNull(node);
-                }
+                using INodeWriter node = graphHandler.AddNode("foo");
+                Assert.NotNull(node);
             }
 
             [Test]
@@ -97,7 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.AreEqual(thruEdge, normSearch);
             }
 
-            public class TestDescriptor : Registry.Defs.IContextDescriptor
+            public class TestDescriptor : IContextDescriptor
             {
                 public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
                 {
@@ -106,10 +99,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                         new IContextDescriptor.ContextEntry()
                         {
                             fieldName = "Foo",
-                            primitive = Registry.Types.GraphType.Primitive.Int,
-                            height = Registry.Types.GraphType.Height.One,
-                            length = Registry.Types.GraphType.Length.One,
-                            precision = Registry.Types.GraphType.Precision.Fixed,
+                            primitive = GraphType.Primitive.Int,
+                            height = GraphType.Height.One,
+                            length = GraphType.Length.One,
+                            precision = GraphType.Precision.Fixed,
                             isFlat = true
                         }
                     };
@@ -130,10 +123,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             public void CanSetupContext()
             {
                 GraphDelta graphHandler = new GraphHandler().graphDelta;
-                var registry = new Registry.Registry();
+                var registry = new Registry();
                 registry.Register<TestDescriptor>();
-                registry.Register<Registry.Types.GraphType>();
-                graphHandler.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, registry);
+                registry.Register<GraphType>();
+                graphHandler.SetupContextNodes(new List<IContextDescriptor>() { new TestDescriptor() }, registry);
                 var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
                 Assert.NotNull(contextNode);
                 Assert.IsTrue(contextNode.TryGetPort("Foo", out var fooReader));
@@ -235,15 +228,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             public void ReconcretizeGraph()
             {
                 var graph = new GraphHandler();
-                var registry = new Registry.Registry();
-                registry.Register<Registry.Types.GraphType>();
-                registry.Register<Registry.Types.AddNode>();
-                registry.Register<Registry.Types.GraphTypeAssignment>();
+                var registry = new Registry();
+                registry.Register<GraphType>();
+                registry.Register<AddNode>();
+                registry.Register<GraphTypeAssignment>();
 
                 // should default concretize length to 4.
-                graph.AddNode<Registry.Types.AddNode>("Add1", registry);
+                graph.AddNode<AddNode>("Add1", registry);
                 var reader = graph.GetNodeReader("Add1");
-                reader.GetField("In1.Length", out Registry.Types.GraphType.Length len);
+                reader.GetField("In1.Length", out GraphType.Length len);
                 Assert.AreEqual(4, (int)len);
 
                 var roundTrip = graph.ToSerializedFormat();

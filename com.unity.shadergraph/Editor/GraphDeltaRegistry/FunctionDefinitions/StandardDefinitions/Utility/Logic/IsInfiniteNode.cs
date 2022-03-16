@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -10,8 +10,8 @@ namespace com.unity.shadergraph.defs
             1,
             "IsInfinite",
             "Out = isinf(In);",
-            new ParameterDescriptor("In", TYPE.Float, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -16,9 +16,9 @@ namespace com.unity.shadergraph.defs
     normalVector.z = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
     Out = normalize(normalVector);
 }",
-            new ParameterDescriptor("In", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-            new ParameterDescriptor("normalVector", TYPE.Vec3, Usage.Local)
+            new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+            new ParameterDescriptor("normalVector", TYPE.Vec3, GraphType.Usage.Local)
         );
 
         public static Dictionary<string, string> UIStrings => new()

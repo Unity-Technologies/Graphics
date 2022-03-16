@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+﻿using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -10,10 +10,10 @@ namespace com.unity.shadergraph.defs
             1,
             "Clamp",
             "Out = clamp(In, Min, Max);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Min", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Max", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f}),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+            new ParameterDescriptor("Min", TYPE.Vector, GraphType.Usage.In),
+            new ParameterDescriptor("Max", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f}),
+            new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
         );
 
         public static Dictionary<string, string> UIStrings => new()

@@ -1,7 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
 using UnityEngine.UIElements;
 
