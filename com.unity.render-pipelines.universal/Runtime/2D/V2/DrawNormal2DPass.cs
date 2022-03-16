@@ -6,9 +6,14 @@ namespace UnityEngine.Rendering.Universal
     {
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Draw 2D Normals");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
-        private LayerBatch layerBatch;
-        private RTHandle normalTarget;
-        private RTHandle depthTexture;
+        private LayerBatch m_LayerBatch;
+        private UniversalRenderer2D.Attachments m_Attachments;
+
+        public DrawNormal2DPass(LayerBatch layerBatch, UniversalRenderer2D.Attachments attachments)
+        {
+            m_LayerBatch = layerBatch;
+            m_Attachments = attachments;
+        }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -19,15 +24,10 @@ namespace UnityEngine.Rendering.Universal
                 filterSettings.renderQueueRange = RenderQueueRange.all;
                 filterSettings.layerMask = -1;
                 filterSettings.renderingLayerMask = 0xFFFFFFFF;
-                filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
+                filterSettings.sortingLayerRange = new SortingLayerRange(m_LayerBatch.layerRange.lowerBound, m_LayerBatch.layerRange.upperBound);
                 var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
-                cmd.SetRenderTarget(
-                    normalTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    depthTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmd.ClearRenderTarget(true, true, RendererLighting.k_NormalClearColor);
-
-                // CoreUtils.SetRenderTarget(cmd, normalTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, RendererLighting.k_NormalClearColor);
+                CoreUtils.SetRenderTarget(cmd, m_Attachments.normalAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, RendererLighting.k_NormalClearColor);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -35,19 +35,6 @@ namespace UnityEngine.Rendering.Universal
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        // public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        // {
-        //     ConfigureTarget(normalTexture, depthTexture);
-        //     ConfigureClear(ClearFlag.Color, RendererLighting.k_NormalClearColor);
-        // }
-
-        public void Setup(LayerBatch layerBatch, RTHandle normalTexture, RTHandle depthTextureHandle)
-        {
-            this.layerBatch = layerBatch;
-            this.normalTarget = normalTexture;
-            this.depthTexture = depthTextureHandle;
         }
     }
 }

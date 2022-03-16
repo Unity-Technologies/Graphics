@@ -11,13 +11,14 @@ namespace UnityEngine.Rendering.Universal
         {
             "WRITE_SHAPE_LIGHT_TYPE_0", "WRITE_SHAPE_LIGHT_TYPE_1", "WRITE_SHAPE_LIGHT_TYPE_2", "WRITE_SHAPE_LIGHT_TYPE_3"
         };
-        private RTHandle[] gbuffers;
-        private LayerBatch layerBatch;
-        private RTHandle m_DepthHandle;
-        private RTHandle m_NormalAttachmentHandle;
 
-        public DrawLight2DPass(Renderer2DData data)
+        private LayerBatch m_LayerBatch;
+        private UniversalRenderer2D.Attachments m_Attachments;
+
+        public DrawLight2DPass(Renderer2DData data, LayerBatch layerBatch, UniversalRenderer2D.Attachments attachments)
         {
+            m_LayerBatch = layerBatch;
+            m_Attachments = attachments;
             rendererData = data;
         }
 
@@ -27,11 +28,10 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / rendererData.hdrEmulationScale);
-                cmd.SetGlobalTexture("_NormalMap", m_NormalAttachmentHandle);
 
                 for (var blendStyleIndex = 0; blendStyleIndex < 4; blendStyleIndex++)
                 {
-                    var visibleLights = layerBatch.GetLights(blendStyleIndex);
+                    var visibleLights = m_LayerBatch.GetLights(blendStyleIndex);
                     if (visibleLights.Count == 0)
                         continue;
 
@@ -65,18 +65,10 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(gbuffers, m_DepthHandle);
+            ConfigureTarget(m_Attachments.buffers, m_Attachments.intermediateDepthAttachment);
             ConfigureClear(ClearFlag.Color, Color.black);
         }
 
         public Renderer2DData rendererData { get; }
-
-        public void Setup(LayerBatch layerBatch, RTHandle[] gbuffers, RTHandle depthHandle, RTHandle normalAttachmentHandle)
-        {
-            this.layerBatch = layerBatch;
-            this.gbuffers = gbuffers;
-            this.m_DepthHandle = depthHandle;
-            this.m_NormalAttachmentHandle = normalAttachmentHandle;
-        }
     }
 }
