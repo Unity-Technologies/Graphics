@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering.Universal
             "_ShapeLightTexture1",
             "_ShapeLightTexture2",
             "_ShapeLightTexture3",
-            "_NormalTexture",
-            "_ColorTexture"
+            "_NormalAttachment",
+            "_CameraColorAttachment"
         };
 
         public static readonly int[] k_ShapeLightTextureIDs =

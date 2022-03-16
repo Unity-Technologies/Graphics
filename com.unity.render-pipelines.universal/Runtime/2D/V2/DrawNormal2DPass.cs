@@ -38,7 +38,8 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_GBuffers.buffers[UniversalRenderer2D.GBuffers.k_NormalTexture], m_GBuffers.depthAttachment);
+            // ConfigureTarget(m_GBuffers.buffers[UniversalRenderer2D.GBuffers.k_NormalTexture], m_GBuffers.depthAttachment);
+            ConfigureTarget(m_GBuffers.normalAttachment, m_GBuffers.depthAttachment);
             ConfigureClear(ClearFlag.None, Color.black);
         }
     }

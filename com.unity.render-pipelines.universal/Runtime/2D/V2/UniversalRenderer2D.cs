@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
         public class GBuffers
         {
             public static readonly int k_NormalTexture = 4;
+            public static readonly int k_ColorTexture = 5;
 
             public RTHandle[] buffers { get; }
             public GraphicsFormat[] formats { get; }
@@ -25,18 +26,29 @@ namespace UnityEngine.Rendering.Universal
 
             public RTHandle depthAttachment { get; private set; }
 
+            public RTHandle normalAttachment { get; private set; }
+
             public GBuffers()
             {
-                buffers = new RTHandle[5];
-                lightBuffers = new RTHandle[4];
-                formats = new GraphicsFormat[5];
+                buffers = new RTHandle[
+                    4
+                    + 1 // normal
+                    + 1 // color
+                ];
+                formats = new GraphicsFormat[buffers.Length];
                 transients = new[] {true, true, true, true, true};
+                lightBuffers = new RTHandle[4];
             }
 
-            public void Init(ref RenderingData renderingData)
+            public void Init(ref RenderingData renderingData, Renderer2DData rendererData)
             {
                 ref var cameraData = ref renderingData.cameraData;
                 ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
+
+                var renderTextureScale = 1.0f;//Mathf.Clamp(rendererData.lightRenderTextureScale, 0.01f, 1.0f);
+                var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
+                var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
+
                 var gbufferSlice = cameraTargetDescriptor;
                 gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                 gbufferSlice.stencilFormat = GraphicsFormat.None;
@@ -44,10 +56,30 @@ namespace UnityEngine.Rendering.Universal
                 gbufferSlice.msaaSamples = 1;
                 gbufferSlice.useMipMap = false;
                 gbufferSlice.autoGenerateMips = false;
+
+                gbufferSlice.width = width;
+                gbufferSlice.height = height;
+
                 for (var i = 0; i < buffers.Length; i++)
                 {
-                    formats[i] = gbufferSlice.graphicsFormat;
-                    buffers[i] = RTHandles.Alloc(Render2DLightingPass.k_ShapeLightTextureNames[i], Render2DLightingPass.k_ShapeLightTextureNames[i]);
+                    if (i == k_ColorTexture)
+                    {
+                        var colorDescriptor = cameraTargetDescriptor;
+                        colorDescriptor.depthBufferBits = 0;
+                        colorDescriptor.width = width;
+                        colorDescriptor.height = height;
+
+                        var rt = this.buffers[i];
+                        RenderingUtils.ReAllocateIfNeeded(ref rt, colorDescriptor, FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: Render2DLightingPass.k_ShapeLightTextureNames[i]);
+                        buffers[i] = rt;
+                        formats[i] = colorDescriptor.graphicsFormat;
+                        colorAttachment = rt;
+                    }
+                    else
+                    {
+                        formats[i] = gbufferSlice.graphicsFormat;
+                        buffers[i] = RTHandles.Alloc(Render2DLightingPass.k_ShapeLightTextureNames[i], Render2DLightingPass.k_ShapeLightTextureNames[i]);
+                    }
                 }
 
                 {
@@ -55,24 +87,37 @@ namespace UnityEngine.Rendering.Universal
                         lightBuffers[i] = buffers[i];
                 }
 
-                {
-                    var colorDescriptor = cameraTargetDescriptor;
-                    colorDescriptor.depthBufferBits = 0;
-                    var rt = this.colorAttachment;
-                    RenderingUtils.ReAllocateIfNeeded(ref rt, colorDescriptor, FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "_CameraColorTexture");
-                    this.colorAttachment = rt;
-                }
+                // {
+                //     var colorDescriptor = cameraTargetDescriptor;
+                //     colorDescriptor.depthBufferBits = 0;
+                //     var rt = this.colorAttachment;
+                //     RenderingUtils.ReAllocateIfNeeded(ref rt, colorDescriptor, FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "_CameraColorAttachment");
+                //     this.colorAttachment = rt;
+                // }
 
                 {
                     var depthDescriptor = cameraTargetDescriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = 32;
+                    depthDescriptor.width = width;
+                    depthDescriptor.height = height;
+
                     if (!cameraData.resolveFinalTarget && true)
                         depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
                     var rt = this.depthAttachment;
                     RenderingUtils.ReAllocateIfNeeded(ref rt, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     this.depthAttachment = rt;
+                }
+
+                {
+                    this.normalAttachment = buffers[k_NormalTexture];
+
+                    // var colorDescriptor = cameraTargetDescriptor;
+                    // colorDescriptor.depthBufferBits = 0;
+                    // var rt = this.normalAttachment;
+                    // RenderingUtils.ReAllocateIfNeeded(ref rt, colorDescriptor, FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "_NormalAttachment");
+                    // this.normalAttachment = rt;
                 }
             }
 
@@ -103,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_GBuffers.Init(ref renderingData);
+            m_GBuffers.Init(ref renderingData, m_RendererData);
             ConfigureCameraTarget(m_GBuffers.colorAttachment, m_GBuffers.depthAttachment);
 
             var layerBatches = LayerUtility.CalculateBatches(m_RendererData.lightCullResult, out var batchCount);
@@ -127,7 +172,7 @@ namespace UnityEngine.Rendering.Universal
                 drawLightPass.specialId = i;
                 EnqueuePass(drawLightPass);
 
-                var drawObjectPass = new DrawRenderer2DPass(m_RendererData, layerBatch, m_GBuffers, i == 0);
+                var drawObjectPass = new DrawRenderer2DPass(m_RendererData, layerBatch, m_GBuffers);
                 drawObjectPass.specialId = i;
                 EnqueuePass(drawObjectPass);
             }
