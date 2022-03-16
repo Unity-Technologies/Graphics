@@ -52,7 +52,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 )
 {
 #ifdef SCENEPICKINGPASS
-    outColor = _SelectionID;
+    outColor = unity_SelectionID;
 #else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);

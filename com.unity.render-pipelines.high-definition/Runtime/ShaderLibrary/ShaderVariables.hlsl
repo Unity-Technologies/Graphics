@@ -577,6 +577,14 @@ static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0
 static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
 static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
 
+// Set up by BRG picking/selection code
+int unity_SubmeshIndex;
+#define unity_SelectionID UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex, _SelectionID)
+
+#else
+
+#define unity_SelectionID _SelectionID
+
 #endif
 
 // Define View/Projection matrix macro

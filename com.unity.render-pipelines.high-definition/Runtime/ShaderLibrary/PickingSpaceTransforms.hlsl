@@ -1,8 +1,7 @@
 #ifndef UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 
-// DOTS_INSTANCING_ON variants have different C++ setup and use normal matrix conventions
-#if (defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)) && !defined(DOTS_INSTANCING_ON)
+#if (defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS))
 
 // The picking pass uses custom matrices defined directly from the c++
 // So we have to redefine the space transform functions to overwrite the used matrices
@@ -11,7 +10,24 @@
 #undef SHADEROPTIONS_CAMERA_RELATIVE_RENDERING
 
 // Define the correct matrices
-#if !defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(HAVE_VFX_MODIFICATION)
+#if defined(DOTS_INSTANCING_ON)
+
+#undef unity_ObjectToWorld
+#undef unity_MatrixPreviousM
+
+#undef UNITY_MATRIX_M
+#define UNITY_MATRIX_M UNITY_DOTS_MATRIX_M
+
+#undef UNITY_MATRIX_I_M
+#define UNITY_MATRIX_I_M Inverse(UNITY_DOTS_MATRIX_M)
+
+#undef UNITY_PREV_MATRIX_M
+#define UNITY_PREV_MATRIX_M UNITY_DOTS_PREV_MATRIX_M
+
+#undef UNITY_PREV_MATRIX_I_M
+#define UNITY_PREV_MATRIX_I_M Inverse(UNITY_DOTS_PREV_MATRIX_M)
+
+#elif !defined(HAVE_VFX_MODIFICATION)
 
 #undef unity_ObjectToWorld
 #undef unity_MatrixPreviousM

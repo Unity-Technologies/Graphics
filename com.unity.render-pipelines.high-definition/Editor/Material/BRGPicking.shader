@@ -29,10 +29,9 @@ Shader "Hidden/HDRP/BRGPicking"
 
             #define SCENEPICKINGPASS
 
-            float4x4 unity_BRGPickingViewMatrix;
-            float4x4 unity_BRGPickingProjMatrix;
+            // ScenePickingPass uses the old built-in matrix property
+            float4x4 unity_MatrixVP;
             float4 _SelectionID;
-            int unity_SubmeshIndex;
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -59,11 +58,10 @@ Shader "Hidden/HDRP/BRGPicking"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-                float4x4 objectToWorld = LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld));
+                float4x4 objectToWorld = UNITY_DOTS_MATRIX_M;
 
                 float4 positionWS = mul(objectToWorld, float4(input.positionOS, 1.0));
-                float4 positionVS = mul(unity_BRGPickingViewMatrix, positionWS);
-                output.positionCS = mul(unity_BRGPickingProjMatrix, positionVS);
+                output.positionCS = mul(unity_MatrixVP, positionWS);
 
                 return output;
             }
@@ -71,7 +69,7 @@ Shader "Hidden/HDRP/BRGPicking"
             void Frag(PickingMeshToPS input, out float4 outColor : SV_Target0)
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                outColor = UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex);
+                outColor = unity_SelectionID;
             }
 
             ENDHLSL

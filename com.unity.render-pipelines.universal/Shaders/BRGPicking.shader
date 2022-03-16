@@ -36,10 +36,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
 
             #define SCENEPICKINGPASS
 
-            float4x4 unity_BRGPickingViewMatrix;
-            float4x4 unity_BRGPickingProjMatrix;
             float4 _SelectionID;
-            int unity_SubmeshIndex;
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -61,9 +58,10 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-                float4 positionWS = mul(UNITY_MATRIX_M, input.positionOS);
-                float4 positionVS = mul(unity_BRGPickingViewMatrix, positionWS);
-                output.positionCS = mul(unity_BRGPickingProjMatrix, positionVS);
+                float4x4 objectToWorld = UNITY_DOTS_MATRIX_M;
+
+                float4 positionWS = mul(objectToWorld, float4(input.positionOS.xyz, 1.0));
+                output.positionCS = mul(unity_MatrixVP, positionWS);
 
                 return output;
             }
@@ -71,7 +69,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             half4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                return UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex);
+                return unity_SelectionID;
             }
 
             ENDHLSL
@@ -94,8 +92,6 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             #pragma editor_sync_compilation
 
             #pragma multi_compile DOTS_INSTANCING_ON
-
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -138,9 +134,6 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             half4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-
-                Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
-
                 return half4(_ObjectId, _PassValue, 1.0, 1.0);
             }
 

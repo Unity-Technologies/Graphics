@@ -62,6 +62,14 @@ static const float4 unity_SpecCube1_HDR = float4(0,0,0,0);
 
 static const float4 unity_MotionVectorsParams = float4(0,1,0,1);
 
+// Set up by BRG picking/selection code
+int unity_SubmeshIndex;
+#define unity_SelectionID UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex, _SelectionID)
+
+#else
+
+#define unity_SelectionID _SelectionID
+
 #endif
 
 #endif

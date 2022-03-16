@@ -111,7 +111,7 @@ void Frag(  PackedVaryingsToPS packedInput
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 #elif defined(SCENEPICKINGPASS)
-    outColor = _SelectionID;
+    outColor = unity_SelectionID;
 #else
 
     // Depth and Alpha to coverage
