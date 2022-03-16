@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
     internal class SampleGradientNode : Defs.INodeDefinitionBuilder
     {
-        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleGradientNode", Version = 1 };
+        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleGradient", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
         public const string kGradient = "Gradient";
@@ -81,10 +81,10 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     /// </summary>
     internal class GradientNode : Defs.INodeDefinitionBuilder
     {
-        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientNode", Version = 1 };
+        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Gradient", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-        public const string kInlineStatic = "InlineStatic";
+        public const string kInlineStatic = " ";
         public const string kOutput = "Out";
 
         public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)

@@ -1,0 +1,10 @@
+﻿{
+    "MonoBehaviour": {
+        "m_Enabled": true,
+        "m_EditorHideFlags": 0,
+        "m_Name": "",
+        "m_EditorClassIdentifier": "",
+        "GraphDeltaJSON": "{\n    \"m_serializedData\": [\n        {\n            \"layerName\": \"User\",\n            \"layerData\": [\n                {\n                    \"id\": \"DefaultContextDescriptor\",\n                    \"type\": \"\",\n                    \"data\": \"\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor._contextDescriptor\",\n                    \"type\": \"UnityEditor.ShaderGraph.Registry.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"data\": \"{\\n    \\\"m_data\\\": {\\n        \\\"Name\\\": \\\"DefaultContextDescriptor\\\",\\n        \\\"Version\\\": 1\\n    }\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor._RegistryKey\",\n                    \"type\": \"UnityEditor.ShaderGraph.Registry.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"data\": \"{\\n    \\\"m_data\\\": {\\n        \\\"Name\\\": \\\"_Context\\\",\\n        \\\"Version\\\": 1\\n    }\\n}\"\n                }\n            ]\n        }\n    ]\n}",
+        "GTFJSON": ""
+    }
+}
