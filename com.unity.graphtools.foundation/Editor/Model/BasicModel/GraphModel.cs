@@ -1437,6 +1437,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 (nodeModel as NodeModel)?.DefineNode();
             }
 
+            foreach (var edge in m_GraphEdgeModels)
+            {
+                (edge as EdgeModel)?.InitAssetModel(this.AssetModel);
+            }
+
             MigrateNodes();
 
             CheckGroupConsistency();
