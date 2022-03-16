@@ -3,6 +3,9 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.Rendering.Fullscreen.ShaderGraph;
+
+using System;
 
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -10,6 +13,9 @@ using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
+    using BlendMode = UnityEngine.Rendering.BlendMode;
+    using BlendOp = UnityEditor.ShaderGraph.BlendOp;
+
     sealed partial class FogVolumeSubTarget : SurfaceSubTarget, IRequiresData<FogVolumeData>
     {
         public FogVolumeSubTarget() => displayName = "Fog Volume";
@@ -31,8 +37,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportRaytracing => false;
         protected override bool supportPathtracing => false;
 
-        static readonly string k_SrcBlendUniform = "[_SrcBlend]";
-        static readonly string k_DstBlendUniform = "[_DstBlend]";
+        internal static readonly string k_BlendModeProperty = "_FogVolumeBlendMode";
+        internal static readonly string k_SrcColorBlendProperty = "_FogVolumeSrcColorBlend";
+        internal static readonly string k_DstColorBlendProperty = "_FogVolumeDstColorBlend";
+        internal static readonly string k_SrcAlphaBlendProperty = "_FogVolumeSrcAlphaBlend";
+        internal static readonly string k_DstAlphaBlendProperty = "_FogVolumeDstAlphaBlend";
+        internal static readonly string k_ColorBlendOpProperty = "_FogVolumeColorBlendOp";
+        internal static readonly string k_AlphaBlendOpProperty = "_FogVolumeColorBlendOp";
+
+        static readonly string k_SrcColorBlend = $"[{k_SrcColorBlendProperty}]";
+        static readonly string k_DstColorBlend = $"[{k_DstColorBlendProperty}]";
+        static readonly string k_SrcAlphaBlend = $"[{k_SrcAlphaBlendProperty}]";
+        static readonly string k_DstAlphaBlend = $"[{k_DstAlphaBlendProperty}]";
+        static readonly string k_ColorBlendOp = $"[{k_ColorBlendOpProperty}]";
+        static readonly string k_AlphaBlendOp = $"[{k_AlphaBlendOpProperty}]";
 
         // Material Data
         FogVolumeData m_FogVolumeData;
@@ -79,34 +97,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 StructFields.Attributes.vertexID,
             }
         };
-
-        // PassDescriptor GetWriteDepthPass()
-        // {
-        //     return new PassDescriptor()
-        //     {
-        //         // Definition
-        //         displayName = HDShaderPassNames.s_FogVolumeDepthPassStr,
-        //         referenceName = "SHADERPASS_FOGVOLUME_WRITE_DEPTH",
-        //         lightMode = HDShaderPassNames.s_FogVolumeDepthPassStr,
-        //         useInPreview = false,
-
-        //         // Port mask
-        //         validPixelBlocks = FogVolumeBlocks.FragmentDefault,
-        //         requiredFields = new FieldCollection { StructFields.SurfaceDescriptionInputs.FaceSign },
-
-        //         // structs = HDShaderPasses.GenerateStructs(new StructCollection
-        //         // {
-        //         //     { Structs.SurfaceDescriptionInputs },
-        //         //     { Varyings },
-        //         //     { Structs.VertexDescriptionInputs },
-        //         // }, TargetsVFX(), false),
-        //         structs = HDShaderPasses.GenerateStructs(null, TargetsVFX(), false),
-        //         pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false),
-        //         defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
-        //         renderStates = FogVolumeRenderStates.DepthPass,
-        //         includes = FogVolumeIncludes.WriteDepth,
-        //     };
-        // }
 
         PassDescriptor GetVoxelizePass()
         {
@@ -159,18 +149,84 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            base.GetActiveBlocks(ref context);
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 
-        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            context.AddProperty("Blend Mode", new UnityEngine.UIElements.EnumField(fogVolumeData.blendMode) { value = fogVolumeData.blendMode }, (evt) =>
+            {
+                if (Equals(fogVolumeData.blendMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend Mode");
+                fogVolumeData.blendMode = (LocalVolumetricFogBlendingMode)evt.newValue;
+                onChange();
+            });
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
+
+            BlendMode srcColorBlend, srcAlphaBlend, dstColorBlend, dstAlphaBlend;
+            BlendOp colorBlendOp = BlendOp.Add, alphaBlendOp = BlendOp.Add;
+
+            // Patch the default blend values depending on the Blend Mode:
+            switch (fogVolumeData.blendMode)
+            {
+                default:
+                case LocalVolumetricFogBlendingMode.Additive:
+                    srcColorBlend = BlendMode.SrcAlpha;
+                    dstColorBlend = BlendMode.One;
+                    srcAlphaBlend = BlendMode.One;
+                    dstAlphaBlend = BlendMode.One;
+                    break;
+                case LocalVolumetricFogBlendingMode.Multiply:
+                    srcColorBlend = BlendMode.DstColor;
+                    dstColorBlend = BlendMode.Zero;
+                    srcAlphaBlend = BlendMode.One;
+                    dstAlphaBlend = BlendMode.OneMinusSrcAlpha;
+                    break;
+                case LocalVolumetricFogBlendingMode.Overwrite:
+                    srcColorBlend = BlendMode.One;
+                    dstColorBlend = BlendMode.Zero;
+                    srcAlphaBlend = BlendMode.One;
+                    dstAlphaBlend = BlendMode.Zero;
+                    break;
+                case LocalVolumetricFogBlendingMode.Subtractive:
+                    srcColorBlend = BlendMode.SrcAlpha;
+                    dstColorBlend = BlendMode.One;
+                    srcAlphaBlend = BlendMode.One;
+                    dstAlphaBlend = BlendMode.One;
+                    alphaBlendOp = BlendOp.Sub;
+                    break;
+                case LocalVolumetricFogBlendingMode.Max:
+                    srcColorBlend = BlendMode.One;
+                    dstColorBlend = BlendMode.One;
+                    srcAlphaBlend = BlendMode.One;
+                    dstAlphaBlend = BlendMode.One;
+                    alphaBlendOp = BlendOp.Max;
+                    colorBlendOp = BlendOp.Max;
+                    break;
+                case LocalVolumetricFogBlendingMode.Min:
+                    srcColorBlend = BlendMode.One;
+                    dstColorBlend = BlendMode.One;
+                    srcAlphaBlend = BlendMode.One;
+                    dstAlphaBlend = BlendMode.One;
+                    alphaBlendOp = BlendOp.Min;
+                    colorBlendOp = BlendOp.Min;
+                    break;
+            }
+
+            collector.AddEnumProperty(k_BlendModeProperty, fogVolumeData.blendMode);
+            collector.AddEnumProperty(k_DstColorBlendProperty, dstColorBlend);
+            collector.AddEnumProperty(k_SrcColorBlendProperty, srcColorBlend);
+            collector.AddEnumProperty(k_DstAlphaBlendProperty, dstAlphaBlend);
+            collector.AddEnumProperty(k_SrcAlphaBlendProperty, srcAlphaBlend);
+            collector.AddEnumProperty(k_ColorBlendOpProperty, colorBlendOp);
+            collector.AddEnumProperty(k_AlphaBlendOpProperty, alphaBlendOp);
         }
 
         #region BlockMasks
@@ -187,11 +243,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region RenderStates
         static class FogVolumeRenderStates
         {
-            // public static RenderStateCollection ScenePicking = new RenderStateCollection
-            // {
-            //     { RenderState.Cull(Cull.Back) },
-            // };
-
             public static RenderStateCollection DepthPass = new RenderStateCollection
             {
                 { RenderState.Cull(Cull.Off) },
@@ -205,8 +256,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.Cull(Cull.Off) }, // When we do the ray marching, we don't want the camera to clip in the geometry
                 { RenderState.ZTest(ZTest.Always) },
                 { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.Blend("Blend Off") }, // TODO: blend mode options
-                // { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha) }, // TODO: blend mode options
+                { RenderState.Blend(k_SrcColorBlend, k_DstColorBlend) },
+                { RenderState.BlendOp(k_ColorBlendOp, k_AlphaBlendOp) },
             };
         }
         #endregion
@@ -228,15 +279,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreIncludes.MinimalCorePregraph },
                 { kVoxelizePass, IncludeLocation.Postgraph }, // TODO: scene selection pass!
             };
-
-            // public static IncludeCollection WriteDepth = new IncludeCollection
-            // {
-            //     { kPacking, IncludeLocation.Pregraph },
-            //     { kColor, IncludeLocation.Pregraph },
-            //     { kFunctions, IncludeLocation.Pregraph },
-            //     { CoreIncludes.MinimalCorePregraph },
-            //     { kWriteDepthPass, IncludeLocation.Postgraph }, // TODO: scene selection pass!
-            // };
         }
         #endregion
     }

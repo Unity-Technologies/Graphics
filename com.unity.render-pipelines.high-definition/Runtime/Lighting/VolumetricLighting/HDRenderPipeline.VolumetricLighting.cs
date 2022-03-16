@@ -96,12 +96,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     public enum LocalVolumetricFogBlendingMode
     {
-        Overwrite,
-        Add,
-        Sub,
-        Mult,
-        Min,
-        Max
+        Additive    = 0,
+        Subtractive = 1,
+        Overwrite   = 2,
+        Multiply    = 3,
+        Min         = 4,
+        Max         = 5,
     }
 
     public enum LocalVolumetricFogMaskMode
@@ -212,7 +212,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return decodingParams.x * Mathf.Pow(2, d * decodingParams.y) + decodingParams.z;
         }
 
-        // Inverse of ComputeLastSliceDistance
         internal int ComputeSliceIndexFromDistance(float distance, int maxSliceCount)
         {
             // Avoid out of bounds access
@@ -810,7 +809,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var volume in volumes.OrderByDescending(v => v.parameters.maskMode == LocalVolumetricFogMaskMode.Material ? (long)v.parameters.priority : ((long)v.parameters.priority << 32) | int.MaxValue))
                 {
                     // TODO: cache these?
-                    Debug.Log(volume.gameObject);
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
@@ -1138,20 +1136,19 @@ namespace UnityEngine.Rendering.HighDefinition
                                 props.SetFloat("_MaxDepth", maxViewSpaceDepth);
                                 props.SetInteger("_FalloffMode", (int)volume.parameters.falloffMode);
                                 props.SetMatrix("_WorldToLocal", volume.transform.worldToLocalMatrix); // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
+                                // TODO: use volume data instead of sending this
                                 float distFadeLen = Mathf.Max(volume.parameters.distanceFadeEnd - volume.parameters.distanceFadeStart, 0.00001526f);
                                 float rcpDistFadeLen = 1.0f / distFadeLen;
                                 props.SetFloat("_RcpDistanceFadeLength", rcpDistFadeLen);
                                 props.SetFloat("_EndTimesRcpDistanceFadeLength", volume.parameters.distanceFadeEnd * rcpDistFadeLen);
                                 props.SetVector("_AlbedoMask", (Vector4)volume.parameters.albedo);
-                                int index = m_VisibleVolumeBoundsCount + i;
-                                props.SetInt("_VolumeIndex", index);
+                                props.SetInt("_VolumeIndex", m_VisibleVolumeBoundsCount + i);
                                 props.SetBuffer(HDShaderIDs._VolumeBounds, visibleVolumeBoundsBuffer);
-                                // Debug.Log(m_VisibleVolumeBounds[index].center);
-
                                 props.SetBuffer(HDShaderIDs._VolumeData, visibleVolumeDataBuffer);
 
                                 CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
                                 ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
+                                sliceCount += 50; // TODO: compute correctly the slice count using the world space distance instead of view space
                                 ctx.cmd.DrawProcedural(volume.transform.localToWorldMatrix, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, sliceCount, props);
                             }
                         });
