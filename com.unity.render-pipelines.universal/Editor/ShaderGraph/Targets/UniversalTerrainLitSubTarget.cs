@@ -13,7 +13,7 @@ using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalTerrainLitSubTarget : UniversalSubTarget, ILegacyTarget
+    partial class UniversalTerrainLitSubTarget : UniversalSubTarget, ILegacyTarget
     {
         private static readonly GUID kSourceCodeGuid = new GUID("ea07e558bc2741a5ba7f1d5470eb242b"); // UniversalTerrainLitSubTarget.cs
 
@@ -82,8 +82,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
                 context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphTerrainLitGUI).FullName, universalRPType);
 
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+
+            context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+
+            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+
+            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -146,73 +155,118 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            collector.AddShaderProperty(new BooleanShaderProperty
+            #if false
+            if (collector.shaderName.EndsWith("_AddPass"))
             {
-                value = enableHeightBlend,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_EnableHeightBlend",
-                displayName = "Enable Height Blend",
-            });
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
+                    value = enableInstancedPerPixelNormal,
+                    hidden = false,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_EnableInstancedPerPixelNormal",
+                    displayName = "Enable Instanced per Pixel Normal",
+                });
 
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                floatType = FloatType.Slider,
-                value = heightTransition,
-                hidden = false,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_HeightTransition",
-                displayName = "Height Transition",
-            });
-
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                value = enableInstancedPerPixelNormal,
-                hidden = false,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_EnableInstancedPerPixelNormal",
-                displayName = "Enable Instanced per Pixel Normal",
-            });
-
-            collector.AddShaderProperty(new Texture2DShaderProperty
-            {
-                defaultType = Texture2DShaderProperty.DefaultType.White,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_TerrainHolesTexture",
-                displayName = "Holes Map (RGB)",
-                useTilingAndOffset = true,
-            });
-
-            // if using material control, add the material property to control workflow mode
-            if (target.allowMaterialOverride)
-            {
-                // force to set metallic workflow
-                collector.AddFloatProperty(Property.SpecularWorkflowMode, 1.0f);
-                collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
-                collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
-
-                // setup properties using the defaults
-                collector.AddFloatProperty(Property.SurfaceType, 0.0f);
-                collector.AddFloatProperty(Property.BlendMode, (float)target.alphaMode);
-                collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-                collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector, ok to have incorrect values here
-                collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector, ok to have incorrect values here
-                collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
-                collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
-                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
-                collector.AddFloatProperty(Property.CullMode, 2.0f);    // render face enum is designed to directly pass as a cull mode
+                collector.AddShaderProperty(new Texture2DShaderProperty
+                {
+                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_TerrainHolesTexture",
+                    displayName = "Holes Map (RGB)",
+                    useTilingAndOffset = true,
+                });
             }
+            else if (collector.shaderName.EndsWith("_BaseMap"))
+            {
+                collector.AddShaderProperty(new Texture2DShaderProperty
+                {
+                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_TerrainHolesTexture",
+                    displayName = "Holes Map (RGB)",
+                    useTilingAndOffset = true,
+                });
+            }
+            else if (collector.shaderName.EndsWith("_BaseMapGen"))
+            {
 
-            // We always need these properties regardless of whether the material is allowed to override other shader properties.
-            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
-            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
-            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
-            collector.AddFloatProperty(Property.QueueControl, -1.0f);
+            }
+            else
+            #endif
+            {
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
+                    value = enableHeightBlend,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_EnableHeightBlend",
+                    displayName = "Enable Height Blend",
+                });
+
+                collector.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    floatType = FloatType.Slider,
+                    value = heightTransition,
+                    hidden = false,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_HeightTransition",
+                    displayName = "Height Transition",
+                });
+
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
+                    value = enableInstancedPerPixelNormal,
+                    hidden = false,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_EnableInstancedPerPixelNormal",
+                    displayName = "Enable Instanced per Pixel Normal",
+                });
+
+                collector.AddShaderProperty(new Texture2DShaderProperty
+                {
+                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_TerrainHolesTexture",
+                    displayName = "Holes Map (RGB)",
+                    useTilingAndOffset = true,
+                });
+
+                // if using material control, add the material property to control workflow mode
+                if (target.allowMaterialOverride)
+                {
+                    // force to set metallic workflow
+                    collector.AddFloatProperty(Property.SpecularWorkflowMode, 1.0f);
+                    collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
+                    collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+
+                    // setup properties using the defaults
+                    collector.AddFloatProperty(Property.SurfaceType, 0.0f);
+                    collector.AddFloatProperty(Property.BlendMode, (float)target.alphaMode);
+                    collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+                    collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector, ok to have incorrect values here
+                    collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector, ok to have incorrect values here
+                    collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
+                    collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
+                    collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                    collector.AddFloatProperty(Property.CullMode, 2.0f);    // render face enum is designed to directly pass as a cull mode
+                }
+
+                // We always need these properties regardless of whether the material is allowed to override other shader properties.
+                // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
+                // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
+                collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+                collector.AddFloatProperty(Property.QueueControl, -1.0f);
+            }
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -492,7 +546,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region SubShader
-        static class SubShaders
+        static class TerrainSubShaders
         {
             // SM 4.5, compute with dots instancing
             public static SubShaderDescriptor LitComputeDotsSubShader(UniversalTarget target, string renderType, string renderQueue, bool blendModePreserveSpecular)
@@ -520,6 +574,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 result.passes.Add(PassVariant(TerrainLitPasses.DepthNormal(target), TerrainCorePragmas.DOTSInstanced));
                 result.passes.Add(PassVariant(TerrainLitPasses.Meta(target), TerrainCorePragmas.DOTSInstanced));
+
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(PassVariant(TerrainLitPasses.SceneSelection(target), TerrainCorePragmas.DOTSDefault));
@@ -558,8 +613,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 if (target.mayWriteDepth)
                     result.passes.Add(TerrainLitPasses.DepthOnly(target));
+
                 result.passes.Add(TerrainLitPasses.DepthNormal(target));
                 result.passes.Add(TerrainLitPasses.Meta(target));
+
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(TerrainLitPasses.SceneSelection(target));
@@ -667,14 +724,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region Passes
-        static class TerrainLitPasses
+        internal static class TerrainLitPasses
         {
-            static void AddReceiveShadowsControlToPass(ref PassDescriptor pass, UniversalTarget target, bool receiveShadows)
+            public static void AddReceiveShadowsControlToPass(ref PassDescriptor pass, UniversalTarget target, bool receiveShadows)
             {
                 if (target.allowMaterialOverride)
-                    pass.keywords.Add(LitKeywords.ReceiveShadowsOff);
+                    pass.keywords.Add(TerrainLitKeywords.ReceiveShadowsOff);
                 else if (!receiveShadows)
-                    pass.defines.Add(LitKeywords.ReceiveShadowsOff, 1);
+                    pass.defines.Add(TerrainLitKeywords.ReceiveShadowsOff, 1);
             }
 
             public static PassDescriptor Forward(UniversalTarget target, bool blendModePreserveSpecular, PragmaCollection pragmas = null)
@@ -704,7 +761,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = pragmas ?? TerrainCorePragmas.Forward,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog, },
-                    keywords = new KeywordCollection() { LitKeywords.Forward },
+                    keywords = new KeywordCollection() { TerrainLitKeywords.Forward },
                     includes = TerrainCoreIncludes.Forward,
 
                     // Custom Interpolator Support
@@ -800,7 +857,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = TerrainCorePragmas.DOTSGBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.GBuffer },
+                    keywords = new KeywordCollection() { TerrainLitKeywords.GBuffer },
                     includes = TerrainCoreIncludes.GBuffer,
 
                     // Custom Interpolator Support
@@ -1036,7 +1093,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return new ShaderDependency()
                 {
                     dependencyName = "AddPassShader",
-                    shaderName = "",
+                    shaderName = "Shader Graphs/URPTerrain_AddPass",
                 };
             }
             public static ShaderDependency BaseMapShader()
@@ -1044,7 +1101,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return new ShaderDependency()
                 {
                     dependencyName = "BaseMapShader",
-                    shaderName = "",
+                    shaderName = "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)",
+                    //shaderName = "Shader Graphs/URPTerrain_BaseMap",
                 };
             }
             public static ShaderDependency BaseMapGenShader()
@@ -1052,7 +1110,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return new ShaderDependency()
                 {
                     dependencyName = "BaseMapGenShader",
-                    shaderName = "",
+                    shaderName = "Shader Graphs/URPTerrain_BaseMapGen",
                 };
             }
         }
@@ -1186,6 +1244,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
+            public static readonly KeywordDescriptor TerrainAddPass = new KeywordDescriptor()
+            {
+                displayName = "Universal Terrain AddPass",
+                referenceName = "TERRAIN_SPLAT_ADDPASS",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
             public static KeywordDescriptor TerrainNormalmap = new KeywordDescriptor()
             {
                 displayName = "Terrain Normal Map",
@@ -1245,7 +1312,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
         #region Keywords
-        static class LitKeywords
+        static class TerrainLitKeywords
         {
             public static readonly KeywordDescriptor ReceiveShadowsOff = new KeywordDescriptor()
             {

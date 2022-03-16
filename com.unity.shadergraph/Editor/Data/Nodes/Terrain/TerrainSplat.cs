@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
@@ -22,6 +23,26 @@ namespace UnityEditor.ShaderGraph
         const string kOutputControlBSlotName = "Control(b)";
         const string kOutputControlASlotName = "Control(a)";
 
+        private MaterialSlot m_ControlRNode;
+        private MaterialSlot m_ControlGNode;
+        private MaterialSlot m_ControlBNode;
+        private MaterialSlot m_ControlANode;
+
+        private string m_ControlRType;
+        private string m_ControlGType;
+        private string m_ControlBType;
+        private string m_ControlAType;
+
+        private string m_ControlRValue;
+        private string m_ControlGValue;
+        private string m_ControlBValue;
+        private string m_ControlAValue;
+
+        private IEnumerable<IEdge> m_ControlREdge;
+        private IEnumerable<IEdge> m_ControlGEdge;
+        private IEnumerable<IEdge> m_ControlBEdge;
+        private IEnumerable<IEdge> m_ControlAEdge;
+
         public TerrainSplat()
         {
             name = "Terrain Splat";
@@ -45,70 +66,83 @@ namespace UnityEditor.ShaderGraph
             var inputSplatIndexValue = GetSlotValue(InputSplatId, GenerationMode.ForReals);
             var inputSplatIndex = int.Parse(inputSplatIndexValue);
 
-            var controlRNode = FindOutputSlot<MaterialSlot>(OutputControlRId);
-            var controlGNode = FindOutputSlot<MaterialSlot>(OutputControlGId);
-            var controlBNode = FindOutputSlot<MaterialSlot>(OutputControlBId);
-            var controlANode = FindOutputSlot<MaterialSlot>(OutputControlAId);
+            // pre-accusitions
+            m_ControlRNode = FindOutputSlot<MaterialSlot>(OutputControlRId);
+            m_ControlGNode = FindOutputSlot<MaterialSlot>(OutputControlGId);
+            m_ControlBNode = FindOutputSlot<MaterialSlot>(OutputControlBId);
+            m_ControlANode = FindOutputSlot<MaterialSlot>(OutputControlAId);
 
-            var controlRType = controlRNode.concreteValueType.ToShaderString();
-            var controlGType = controlGNode.concreteValueType.ToShaderString();
-            var controlBType = controlBNode.concreteValueType.ToShaderString();
-            var controlAType = controlANode.concreteValueType.ToShaderString();
+            m_ControlRType = m_ControlRNode.concreteValueType.ToShaderString();
+            m_ControlGType = m_ControlGNode.concreteValueType.ToShaderString();
+            m_ControlBType = m_ControlBNode.concreteValueType.ToShaderString();
+            m_ControlAType = m_ControlANode.concreteValueType.ToShaderString();
 
-            var controlRValue = GetVariableNameForSlot(OutputControlRId);
-            var controlGValue = GetVariableNameForSlot(OutputControlGId);
-            var controlBValue = GetVariableNameForSlot(OutputControlBId);
-            var controlAValue = GetVariableNameForSlot(OutputControlAId);
+            m_ControlRValue = GetVariableNameForSlot(OutputControlRId);
+            m_ControlGValue = GetVariableNameForSlot(OutputControlGId);
+            m_ControlBValue = GetVariableNameForSlot(OutputControlBId);
+            m_ControlAValue = GetVariableNameForSlot(OutputControlAId);
 
-            var controlREdge = owner.GetEdges(controlRNode.slotReference);
-            var controlGEdge = owner.GetEdges(controlGNode.slotReference);
-            var controlBEdge = owner.GetEdges(controlBNode.slotReference);
-            var controlAEdge = owner.GetEdges(controlANode.slotReference);
+            m_ControlREdge = owner.GetEdges(m_ControlRNode.slotReference);
+            m_ControlGEdge = owner.GetEdges(m_ControlGNode.slotReference);
+            m_ControlBEdge = owner.GetEdges(m_ControlBNode.slotReference);
+            m_ControlAEdge = owner.GetEdges(m_ControlANode.slotReference);
 
-            if (inputSplatIndex == 0)
-            {
-                sb.AppendLine("#if defined(UNIVERSAL_TERRAIN_ENABLED)");
-                sb.IncreaseIndent();
-                sb.AppendLine("#ifndef SPLAT_CONTROL");
-                sb.AppendLine("#define SPLAT_CONTROL");
-                sb.AppendLine("float2 splatUV = (IN.uv0.xy * (_Control_TexelSize.zw - 1.0) + 0.5) * _Control_TexelSize.xy;");
-                sb.AppendLine("half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);");
-                sb.AppendLine("#endif // SPLAT_CONTROL");
-                sb.DecreaseIndent();
-                if (controlREdge.Any()) sb.AppendLine("{0} {1} = splatControl.r;", controlRType, controlRValue);
-                if (controlGEdge.Any()) sb.AppendLine("{0} {1} = splatControl.g;", controlGType, controlGValue);
-                if (controlBEdge.Any()) sb.AppendLine("{0} {1} = splatControl.b;", controlBType, controlBValue);
-                if (controlAEdge.Any()) sb.AppendLine("{0} {1} = splatControl.a;", controlAType, controlAValue);
-                sb.AppendLine("#elif defined(HD_TERRAIN_ENABLED)");
-            }
-            else
-            {
-                sb.AppendLine("#if defined(HD_TERRAIN_ENABLED) && defined(_TERRAIN_8_LAYERS)");
-            }
+            GenerateNodeCodeInUniversalTerrain(sb, inputSplatIndex);
+            GenerateNodeCodeInHDTerrain(sb, inputSplatIndex);
+            GenerateNodeCodeInNullTerrain(sb);
+        }
+
+        private void GenerateNodeCodeInUniversalTerrain(ShaderStringBuilder sb, int inputSplatIndex)
+        {
+            string universalTerrainDef = inputSplatIndex == 0
+                ? "#if defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(TERRAIN_SPLAT_ADDPASS)"
+                : "#if defined(UNIVERSAL_TERRAIN_ENABLED) && defined(TERRAIN_SPLAT_ADDPASS)";
+
+            sb.AppendLine(universalTerrainDef);
             sb.IncreaseIndent();
-            sb.AppendLine("#ifndef SPLAT_CONTROL{0}", inputSplatIndexValue);
-            sb.AppendLine("#define SPLAT_CONTROL{0}", inputSplatIndexValue);
-            sb.AppendLine("float2 blendUV{0} = (IN.uv0.xy * (_Control{0}_TexelSize.zw - 1.0) + 0.5) * _Control{0}_TexelSize.xy;", inputSplatIndexValue);
-            sb.AppendLine("float4 splatControl{0} = SAMPLE_TEXTURE2D(_Control{0}, sampler_Control0, blendUV{0});", inputSplatIndexValue);
-            sb.AppendLine("#endif // SPLAT_CONTROL{0}", inputSplatIndexValue);
+            sb.AppendLine("#ifndef SPLAT_CONTROL");
+            sb.AppendLine("#define SPLAT_CONTROL");
+            sb.AppendLine("float2 controlUV = (IN.uv0.xy * (_Control_TexelSize.zw - 1.0) + 0.5) * _Control_TexelSize.xy;");
+            sb.AppendLine("half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, controlUV);");
+            sb.AppendLine("#endif // SPLAT_CONTROL");
             sb.DecreaseIndent();
-            if (controlREdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.r;", controlRType, controlRValue, inputSplatIndexValue);
-            if (controlGEdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.g;", controlGType, controlGValue, inputSplatIndexValue);
-            if (controlBEdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.b;", controlBType, controlBValue, inputSplatIndexValue);
-            if (controlAEdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.a;", controlAType, controlAValue, inputSplatIndexValue);
+
+            if (m_ControlREdge.Any()) sb.AppendLine("{0} {1} = splatControl.r;", m_ControlRType, m_ControlRValue);
+            if (m_ControlGEdge.Any()) sb.AppendLine("{0} {1} = splatControl.g;", m_ControlGType, m_ControlGValue);
+            if (m_ControlBEdge.Any()) sb.AppendLine("{0} {1} = splatControl.b;", m_ControlBType, m_ControlBValue);
+            if (m_ControlAEdge.Any()) sb.AppendLine("{0} {1} = splatControl.a;", m_ControlAType, m_ControlAValue);
+        }
+
+        private void GenerateNodeCodeInHDTerrain(ShaderStringBuilder sb, int inputSplatIndex)
+        {
+            string hdTerrainDef = inputSplatIndex == 0
+                ? "#elif defined(HD_TERRAIN_ENABLED)"
+                : "#elif defined(HD_TERRAIN_ENABLED) && defined(_TERRAIN_8_LAYERS)";
+
+            sb.AppendLine(hdTerrainDef);
+            sb.IncreaseIndent();
+            sb.AppendLine("#ifndef SPLAT_CONTROL{0}", inputSplatIndex);
+            sb.AppendLine("#define SPLAT_CONTROL{0}", inputSplatIndex);
+            sb.AppendLine("float2 controlUV{0} = (IN.uv0.xy * (_Control{0}_TexelSize.zw - 1.0) + 0.5) * _Control{0}_TexelSize.xy;", inputSplatIndex);
+            sb.AppendLine("float4 splatControl{0} = SAMPLE_TEXTURE2D(_Control{0}, sampler_Control0, controlUV{0});", inputSplatIndex);
+            sb.AppendLine("#endif // SPLAT_CONTROL{0}", inputSplatIndex);
+            sb.DecreaseIndent();
+
+            if (m_ControlREdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.r;", m_ControlRType, m_ControlRValue, inputSplatIndex);
+            if (m_ControlGEdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.g;", m_ControlGType, m_ControlGValue, inputSplatIndex);
+            if (m_ControlBEdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.b;", m_ControlBType, m_ControlBValue, inputSplatIndex);
+            if (m_ControlAEdge.Any()) sb.AppendLine("{0} {1} = splatControl{2}.a;", m_ControlAType, m_ControlAValue, inputSplatIndex);
+        }
+
+        private void GenerateNodeCodeInNullTerrain(ShaderStringBuilder sb)
+        {
             sb.AppendLine("#else");
-            if (controlREdge.Any()) sb.AppendLine("{0} {1} = 0.0;", controlRType, controlRValue);
-            if (controlGEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", controlGType, controlGValue);
-            if (controlBEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", controlBType, controlBValue);
-            if (controlAEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", controlAType, controlAValue);
-            if (inputSplatIndex == 0)
-            {
-                sb.AppendLine("#endif // UNIVERSAL_TERRAIN_ENABLED / HD_TERRAIN_ENABLED");
-            }
-            else
-            {
-                sb.AppendLine("#endif // HD_TERRAIN_ENABLED");
-            }
+
+            if (m_ControlREdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlRType, m_ControlRValue);
+            if (m_ControlGEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlGType, m_ControlGValue);
+            if (m_ControlBEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlBType, m_ControlBValue);
+            if (m_ControlAEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlAType, m_ControlAValue);
+            sb.AppendLine("#endif // UNIVERSAL_TERRAIN_ENABLED / HD_TERRAIN_ENABLED");
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
