@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static void ValidateFogVolumeMaterial(Material material)
         {
-            // TODO
+            FogVolumeAPI.SetupFogVolumeKeywordsAndProperties(material);
         }
     }
 }

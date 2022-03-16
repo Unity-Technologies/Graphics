@@ -24,5 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // For now we only expose the fog blending mode
             materialEditor.ShaderProperty(FindProperty(FogVolumeSubTarget.k_BlendModeProperty, props), Styles.blendMode);
         }
+
+        public override void ValidateMaterial(Material material) => ShaderGraphAPI.ValidateFogVolumeMaterial(material);
     }
 }
