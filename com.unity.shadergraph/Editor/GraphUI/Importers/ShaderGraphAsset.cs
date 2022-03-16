@@ -113,6 +113,7 @@ namespace UnityEditor.ShaderGraph
         }
         public static ShaderGraphAssetModel HandleLoad(string path)
         {
+            AssetDatabase.ImportAsset(path);
             var assetModel = AssetDatabase.LoadAssetAtPath(path, typeof(ShaderGraphAssetModel)) as ShaderGraphAssetModel;
             assetModel.Init(); // trust that we'll find the GraphHandler through our OnEnable...
             return assetModel;
