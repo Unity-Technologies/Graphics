@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 "OITSort_Network_8",
                 "OITSort_Network_16",
                 "OITSort_Network_32",
-                "OITSort_GroupShared"
+                "OITSort_GroupSharedWave"
             };
 
             Debug.Assert(index < GetNumSortVariants());

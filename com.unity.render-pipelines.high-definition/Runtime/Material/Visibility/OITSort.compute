@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-//#pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel OITSort_Init
@@ -15,6 +15,7 @@
 #pragma kernel OITSort_Network_16
 #pragma kernel OITSort_Network_32
 #pragma kernel OITSort_GroupShared
+#pragma kernel OITSort_GroupSharedWave
 
 // BUG: For some reason, the binding system refuses to work unless the visibility buffer resource is provided as read/write instead of read only.
 //      This may have something to do with it moving from an SRV -> UAV descriptor type when the write capability is added.
@@ -757,5 +758,134 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
     if (threadIndex < listCount)
     {
         _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+    }
+}
+
+#define GROUP_SHARED_WAVE_SIZE 32
+#define GROUP_SHARED_NUM_KEYS_PER_THREAD 8
+
+[numthreads(32, 1, 1)]
+void OITSort_GroupSharedWave(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: SV_GroupID)
+{
+    uint threadIndex = groupThreadId.x;
+
+    // Load pixel index
+
+    uint sortVariantOffset = 5;
+    uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
+    uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+
+    uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + groupId.x;
+    uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+    uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+    uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+    uint sortKeys[GROUP_SHARED_NUM_KEYS_PER_THREAD];
+    for (uint keyIndex = 0; keyIndex < GROUP_SHARED_NUM_KEYS_PER_THREAD; ++keyIndex)
+    {
+        uint sortKey = GenerateSortKey((keyIndex * GROUP_SHARED_WAVE_SIZE) + threadIndex, listCount, listOffset);
+
+        // Flip the key so the depth is in the LSBs since we only sort the bottom 16-bits
+        // Also flip the depth key value so we get a descending order sort
+        sortKey = (sortKey << 16) | (0xFFFF - (sortKey >> 16));
+
+        sortKeys[keyIndex] = sortKey;
+    }
+
+    // 16-bit radix sort (we don't bother sorting the top half since they contain indices)
+    for (uint radixPassIndex = 0; radixPassIndex < 4; ++radixPassIndex)
+    {
+        // Initialize the sum bins to 0
+        sRadixScratch[threadIndex] = 0;
+
+        uint binIndices[GROUP_SHARED_NUM_KEYS_PER_THREAD];
+        for (uint keyIndex = 0; keyIndex < GROUP_SHARED_NUM_KEYS_PER_THREAD; ++keyIndex)
+        {
+            binIndices[keyIndex] = ((sortKeys[keyIndex] >> (radixPassIndex * 4)) & 0xF);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Increment the bin associated with the current value to sort
+        uint localOffsets[GROUP_SHARED_NUM_KEYS_PER_THREAD];
+        for (uint keyIndex = 0; keyIndex < GROUP_SHARED_NUM_KEYS_PER_THREAD; ++keyIndex)
+        {
+            uint binIndex = binIndices[keyIndex];
+
+            uint localOffset;
+            InterlockedAdd(sRadixScratch[binIndex], 1, localOffset);
+
+            localOffsets[keyIndex] = localOffset;
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        uint originalSum = sRadixScratch[threadIndex];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        for (uint offset = 1; offset < 16; offset <<= 1)
+        {
+            uint sum = 0;
+            if (threadIndex >= offset)
+            {
+                sum = sRadixScratch[threadIndex - offset];
+            }
+
+            GroupMemoryBarrierWithGroupSync();
+
+            sRadixScratch[threadIndex] += sum;
+
+            GroupMemoryBarrierWithGroupSync();
+        }
+
+        sRadixScratch[threadIndex] -= originalSum;
+
+        GroupMemoryBarrierWithGroupSync();
+
+        uint globalOffsets[GROUP_SHARED_NUM_KEYS_PER_THREAD];
+        for (uint keyIndex = 0; keyIndex < GROUP_SHARED_NUM_KEYS_PER_THREAD; ++keyIndex)
+        {
+            uint binIndex = binIndices[keyIndex];
+
+            uint globalOffset = sRadixScratch[binIndex];
+
+            globalOffsets[keyIndex] = globalOffset;
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        for (uint keyIndex = 0; keyIndex < GROUP_SHARED_NUM_KEYS_PER_THREAD; ++keyIndex)
+        {
+            uint outputIndex = globalOffsets[keyIndex] + localOffsets[keyIndex];
+
+            sRadixScratch[outputIndex] = sortKeys[keyIndex];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        for (uint keyIndex = 0; keyIndex < GROUP_SHARED_NUM_KEYS_PER_THREAD; ++keyIndex)
+        {
+            sortKeys[keyIndex] = sRadixScratch[(keyIndex * GROUP_SHARED_WAVE_SIZE) + threadIndex];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+
+    for (uint keyIndex = 0; keyIndex < GROUP_SHARED_NUM_KEYS_PER_THREAD; ++keyIndex)
+    {
+        uint sampleIndex = (keyIndex * GROUP_SHARED_WAVE_SIZE) + threadIndex;
+
+        uint sortIndexAddr = sortIndicesBaseAddr + sampleIndex;
+
+        uint sortedIndex = ((sortKeys[keyIndex] >> 16) & 0xFF);
+
+        if (sampleIndex < listCount)
+        {
+            _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+        }
     }
 }
