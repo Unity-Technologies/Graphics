@@ -106,8 +106,9 @@ namespace UnityEditor.ShaderGraph
 
                 if (open)
                 {
-                    for (int i = 0; i < pathList.Count; ++i)
+                    for (int i = 1; i < pathList.Count; ++i)
                         GraphUtil.OpenFile(pathList[i]);
+                    GraphUtil.OpenFile(pathList[0]);
                 }
             }
             if (Unsupported.IsDeveloperMode())
