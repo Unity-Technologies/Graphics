@@ -264,11 +264,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (nodeWriter != null)
                 {
                     previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, model.UniqueName, updateConstantValueCommand.Value);
-
-                    using (var graphUpdater = graphModelState.UpdateScope)
-                    {
-                        graphUpdater.MarkChanged(model.NodeModel);
-                    }
                 }
             }
         }

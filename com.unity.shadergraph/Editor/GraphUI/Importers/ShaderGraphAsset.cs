@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
     {
         [SerializeField] public string GraphJSON;
         [SerializeField] public string ViewModelJSON;
-        [SerializeField] public List<Edge> edges = new();
+        //[SerializeField] public List<Edge> edges = new();
 
         [Serializable]
         public struct Edge { public string srcNode, srcPort, dstNode, dstPort; }
@@ -30,8 +30,8 @@ namespace UnityEditor.ShaderGraph
             var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
 
             //graph.ReconcretizeAll(reg);
-            foreach (var edge in edges)
-                graph.TryConnect(edge.srcNode, edge.srcPort, edge.dstNode, edge.dstPort, reg);
+            //foreach (var edge in edges)
+            //    graph.TryConnect(edge.srcNode, edge.srcPort, edge.dstNode, edge.dstPort, reg);
             graph.ReconcretizeAll(reg);
             return graph;
         }
@@ -57,17 +57,17 @@ namespace UnityEditor.ShaderGraph
             var asset = CreateInstance<ShaderGraphAsset>();
             asset.GraphJSON = model.GraphHandler.ToSerializedFormat();
             asset.ViewModelJSON = EditorJsonUtility.ToJson(model);
-            foreach (var em in model.ShaderGraphModel.EdgeModels)
-            {
-                var edge = new Edge
-                {
-                    srcNode = ((GraphDataNodeModel)em.FromPort.NodeModel).graphDataName,
-                    srcPort = ((GraphDataPortModel)em.FromPort).graphDataName,
-                    dstNode = ((GraphDataNodeModel)em.ToPort.NodeModel).graphDataName,
-                    dstPort = ((GraphDataPortModel)em.ToPort).graphDataName
-                };
-                asset.edges.Add(edge);
-            }
+            //foreach (var em in model.ShaderGraphModel.EdgeModels)
+            //{
+            //    var edge = new Edge
+            //    {
+            //        srcNode = ((GraphDataNodeModel)em.FromPort.NodeModel).graphDataName,
+            //        srcPort = ((GraphDataPortModel)em.FromPort).graphDataName,
+            //        dstNode = ((GraphDataNodeModel)em.ToPort.NodeModel).graphDataName,
+            //        dstPort = ((GraphDataPortModel)em.ToPort).graphDataName
+            //    };
+            //    asset.edges.Add(edge);
+            //}
             var json = EditorJsonUtility.ToJson(asset, true);
             File.WriteAllText(path, json);
             AssetDatabase.ImportAsset(path);

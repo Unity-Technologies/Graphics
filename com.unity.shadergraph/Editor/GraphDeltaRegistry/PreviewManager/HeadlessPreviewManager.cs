@@ -313,6 +313,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     UpdateShaderData(previewData);
                     UpdateRenderData(previewData);
                     nodeRenderOutput = m_CompilingTexture;
+
                     return PreviewOutputState.Updating;
                 }
                 // Ran into error compiling the preview shader
