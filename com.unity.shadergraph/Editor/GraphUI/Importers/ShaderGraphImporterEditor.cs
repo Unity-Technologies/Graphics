@@ -1,3 +1,5 @@
+using System;
+using System.Text;
 using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEditor.Callbacks;
@@ -19,7 +21,10 @@ namespace UnityEditor.ShaderGraph
             if (GUILayout.Button("View Generated Shader"))
             {
                 AssetImporter importer = target as AssetImporter;
-                var graph = GraphUtil.OpenGraph(importer.assetPath);
+                var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
+                var graph = asset.ResolveGraph();
+
+
                 var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
                 var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
                 var node = graph.GetNodeReader(key.Name);
@@ -47,7 +52,6 @@ namespace UnityEditor.ShaderGraph
             if (material)
                 materialEditor = (MaterialEditor)CreateEditor(material);
         }
-
         public override void OnDisable()
         {
             base.OnDisable();
@@ -59,17 +63,21 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
-            var assetModel = AssetDatabase.LoadAssetAtPath(path, typeof(ShaderGraphAssetModel)) as ShaderGraphAssetModel;
-            if(assetModel == null)
-            {
-                return false;
-            }
+            var assetModel = ShaderGraphAsset.HandleLoad(path);
             return ShowWindow(path, assetModel);
         }
 
         private static bool ShowWindow(string path, ShaderGraphAssetModel model)
         {
-            var shaderGraphEditorWindow = GraphViewEditorWindow.FindOrCreateGraphWindow<ShaderGraphEditorWindow>();
+            // Prevents the same graph asset from being opened in two separate editor windows
+            var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
+            foreach (var existingEditorWindow in existingEditorWindows)
+            {
+                if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.AssetModel, model))
+                    return true;
+            }
+
+            var shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             if(shaderGraphEditorWindow == null)
             {
                 return false;

@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -88,7 +89,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     Assert.IsNotNull(input);
                     Assert.IsTrue(output.TryAddConnection(input));
                 }
-                var thruEdge = (graphHandler.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
+                var thruEdgeName = (graphHandler.m_data.Search("Foo.Out._Output") as Element<List<string>>).data[0];
+                var thruEdge = graphHandler.m_data.Search(thruEdgeName);
                 var normSearch = graphHandler.m_data.Search("Bar.A");
                 Assert.NotNull(thruEdge);
                 Assert.NotNull(normSearch);
@@ -137,6 +139,123 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.IsTrue(contextNode.TryGetPort("Foo", out var fooReader));
                 Assert.NotNull(fooReader);
             }
+
+            [Test]
+            public void CanDeserializeNodeAndPorts()
+            {
+                GraphHandler graphHandler = new GraphHandler();
+                GraphDelta graphDelta = graphHandler.graphDelta;
+                using (INodeWriter node = graphDelta.AddNode("Add"))
+                {
+                    node.TryAddPort("A", true, true, out IPortWriter _);
+                    node.TryAddPort("B", true, true, out IPortWriter _);
+                    node.TryAddPort("Out", false, true, out IPortWriter _);
+                }
+
+                var nodeRef = graphDelta.GetNodeReader("Add");
+                Assert.NotNull(nodeRef);
+                Assert.IsTrue(nodeRef.TryGetPort("A", out IPortReader portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+
+                var roundTrip = graphHandler.ToSerializedFormat();
+                var deserializedHandler = new GraphHandler(roundTrip).graphDelta;
+
+                // Rerun tests on the deserialized version
+                nodeRef = deserializedHandler.GetNodeReader("Add");
+                Assert.NotNull(nodeRef);
+                Assert.IsTrue(nodeRef.TryGetPort("A", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
+                Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+            }
+
+
+            [Test]
+            public void CanDeserializeConnections()
+            {
+                GraphHandler graphHandler = new GraphHandler();
+                GraphDelta graphDelta = graphHandler.graphDelta;
+                using (INodeWriter foo = graphDelta.AddNode("Foo"))
+                using (INodeWriter bar = graphDelta.AddNode("Bar"))
+                {
+                    Assert.IsTrue(foo.TryAddPort("A", true, true, out IPortWriter _));
+                    Assert.IsTrue(foo.TryAddPort("B", true, true, out IPortWriter _));
+                    Assert.IsTrue(foo.TryAddPort("Out", false, true, out IPortWriter output));
+                    Assert.IsTrue(bar.TryAddPort("A", true, true, out IPortWriter input));
+                    Assert.IsNotNull(output);
+                    Assert.IsNotNull(input);
+                    Assert.IsTrue(output.TryAddConnection(input));
+                }
+                var thruEdgeName = (graphDelta.m_data.Search("Foo.Out._Output") as Element<List<string>>).data[0];
+                var thruEdge = graphDelta.m_data.Search(thruEdgeName);
+                var normSearch = graphDelta.m_data.Search("Bar.A");
+                Assert.NotNull(thruEdge);
+                Assert.NotNull(normSearch);
+                Assert.AreEqual(thruEdge, normSearch);
+
+
+                var roundTrip = graphHandler.ToSerializedFormat();
+                var deserializedHandler = new GraphHandler(roundTrip).graphDelta;
+
+                // rerun tests on the serialized version
+                try
+                {
+                    thruEdgeName = (deserializedHandler.m_data.Search("Foo.Out._Output") as Element<List<string>>).data[0];
+                    thruEdge = deserializedHandler.m_data.Search(thruEdgeName);
+                    normSearch = deserializedHandler.m_data.Search("Bar.A");
+                }
+                catch(System.Exception)
+                {
+                    Assert.Fail("Connected element could not be found.");
+                }
+                Assert.NotNull(thruEdge);
+                Assert.NotNull(normSearch);
+                Assert.AreEqual(thruEdge, normSearch);
+            }
+
+            [Test]
+            public void ReconcretizeGraph()
+            {
+                var graph = new GraphHandler();
+                var registry = new Registry.Registry();
+                registry.Register<Registry.Types.GraphType>();
+                registry.Register<Registry.Types.AddNode>();
+                registry.Register<Registry.Types.GraphTypeAssignment>();
+
+                // should default concretize length to 4.
+                graph.AddNode<Registry.Types.AddNode>("Add1", registry);
+                var reader = graph.GetNodeReader("Add1");
+                reader.GetField("In1.Length", out Registry.Types.GraphType.Length len);
+                Assert.AreEqual(4, (int)len);
+
+                var roundTrip = graph.ToSerializedFormat();
+                var deserializedHandler = new GraphHandler(roundTrip);
+                deserializedHandler.ReconcretizeAll(registry);
+
+                reader = deserializedHandler.GetNodeReader("Add1");
+                reader.GetField("In2.Length", out len);
+
+                Assert.AreEqual(4, (int)len);
+            }
+
         }
     }
 

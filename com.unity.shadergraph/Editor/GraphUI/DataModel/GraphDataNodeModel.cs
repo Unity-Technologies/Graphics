@@ -158,6 +158,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
+            //if (existsInGraphData)
+            //{
+            //    if(!graphHandler.ReconcretizeNode(graphDataName, registry))
+            //        Debug.LogErrorFormat("Failed to reconcretize Node \"{0}", graphDataName);
+            //}
+
             if (!TryGetNodeReader(out var nodeReader))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
@@ -194,7 +200,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 IPortModel newPortModel = null;
                 if (isInput)
+                {
                     newPortModel = this.AddDataInputPort(portReader.GetName(), type, orientation: orientation, initializationCallback: initCallback);
+                    // If we were deserialized, the InitCallback doesn't get triggered.
+                    if (newPortModel != null)
+                        ((ICLDSConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.GetName(), portReader.GetName());
+                }
                 else
                     newPortModel = this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);
 

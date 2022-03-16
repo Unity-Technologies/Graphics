@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Registry;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -18,6 +19,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             graphDelta = new GraphDelta(serializedData);
         }
 
+        static public GraphHandler FromSerializedFormat(string json)
+        {
+            return new GraphHandler(json);
+        }
+
         public string ToSerializedFormat()
         {
             return EditorJsonUtility.ToJson(graphDelta.m_data, true);
@@ -31,6 +37,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public INodeWriter GetNodeWriter(string name) => graphDelta.GetNodeWriter(name);
         public void RemoveNode(string name) => graphDelta.RemoveNode(name);
         public IEnumerable<INodeReader> GetNodes() => graphDelta.GetNodes();
+        public void ReconcretizeAll(Registry.Registry registry)
+        {
+            foreach (var name in GetNodes().Select(e => e.GetName()).ToList())
+            {
+                var node = GetNodeReader(name);
+                if (node != null)
+                {
+                    var builder = registry.GetNodeBuilder(node.GetRegistryKey());
+                    if (builder != null)
+                    {
+                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                        {
+                            ReconcretizeNode(node.GetName(), registry);
+                        }
+                    }
+                }
+            }
+        }
 
         //public TargetRef AddTarget(TargetType targetType)
 

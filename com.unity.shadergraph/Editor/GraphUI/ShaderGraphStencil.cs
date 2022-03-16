@@ -12,6 +12,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public const string Name = "ShaderGraph";
 
+        public const string DefaultAssetName = "NewShaderGraph";
+
+        public const string Extension = "sg2";
+
         public string ToolName => Name;
 
         Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
