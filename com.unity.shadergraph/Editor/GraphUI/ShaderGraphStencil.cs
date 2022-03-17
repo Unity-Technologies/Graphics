@@ -100,6 +100,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menu, IRootView view, IGroupModel selectedGroup = null)
         {
+            // Need to get types from registry here I guess
             base.PopulateBlackboardCreateMenu(sectionName, menu, view, selectedGroup);
         }
 
