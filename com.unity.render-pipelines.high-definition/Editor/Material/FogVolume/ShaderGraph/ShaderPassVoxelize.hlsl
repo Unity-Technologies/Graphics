@@ -159,5 +159,5 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     float3 scatteringColor = (albedo * _AlbedoMask) * extinction;
 
     // Apply volume blending
-    outColor = float4(scatteringColor, extinction);
+    outColor = max(0, float4(scatteringColor, extinction));
 }

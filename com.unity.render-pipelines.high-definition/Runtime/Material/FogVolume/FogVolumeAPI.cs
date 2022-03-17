@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static readonly string k_SrcAlphaBlendProperty = "_FogVolumeSrcAlphaBlend";
         internal static readonly string k_DstAlphaBlendProperty = "_FogVolumeDstAlphaBlend";
         internal static readonly string k_ColorBlendOpProperty = "_FogVolumeColorBlendOp";
-        internal static readonly string k_AlphaBlendOpProperty = "_FogVolumeColorBlendOp";
+        internal static readonly string k_AlphaBlendOpProperty = "_FogVolumeAlphaBlendOp";
 
         internal static void ComputeBlendParameters(LocalVolumetricFogBlendingMode mode, out BlendMode srcColorBlend,
             out BlendMode srcAlphaBlend, out BlendMode dstColorBlend, out BlendMode dstAlphaBlend,
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     srcAlphaBlend = BlendMode.One;
                     dstAlphaBlend = BlendMode.One;
                     alphaBlendOp = BlendOp.Subtract;
-                    Debug.Log("????");
+                    colorBlendOp = BlendOp.Subtract;
                     break;
                 case LocalVolumetricFogBlendingMode.Max:
                     srcColorBlend = BlendMode.One;
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 material.SetFloat(k_SrcAlphaBlendProperty, (float)srcAlphaBlend);
                 material.SetFloat(k_DstAlphaBlendProperty, (float)dstAlphaBlend);
                 material.SetFloat(k_ColorBlendOpProperty, (float)colorBlendOp);
-                material.SetFloat(k_DstAlphaBlendProperty, (float)dstAlphaBlend);
+                material.SetFloat(k_AlphaBlendOpProperty, (float)alphaBlendOp);
             }
         }
     }
