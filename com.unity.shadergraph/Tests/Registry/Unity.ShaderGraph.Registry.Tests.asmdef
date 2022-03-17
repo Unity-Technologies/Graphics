@@ -4,6 +4,7 @@
     "references": [
         "Unity.ShaderGraph.StandardDefinitions",
         "Unity.ShaderGraph.GraphDeltaRegistry",
+        "Unity.ShaderGraph.Test",
         "GtfPlayground"
     ],
     "includePlatforms": [

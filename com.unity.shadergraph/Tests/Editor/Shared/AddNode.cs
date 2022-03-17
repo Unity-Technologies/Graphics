@@ -1,4 +1,7 @@
-namespace UnityEditor.ShaderGraph.GraphDelta
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderFoundry;
+
+namespace UnityEditor.ShaderGraph.Test
 {
 
     class AddNode : INodeDefinitionBuilder
@@ -14,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             NodeHelpers.MathNodeDynamicResolver(userData, nodeWriter, registry);
         }
 
-        public ShaderFoundry.ShaderFunction GetShaderFunction(
+        public ShaderFunction GetShaderFunction(
             INodeReader data,
             ShaderFoundry.ShaderContainer container,
             Registry registry)

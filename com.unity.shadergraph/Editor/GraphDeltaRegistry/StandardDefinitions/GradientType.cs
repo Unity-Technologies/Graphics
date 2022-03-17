@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     internal class SampleGradientNode : INodeDefinitionBuilder
     {
-        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleGradientNode", Version = 1 };
+        public RegistryKey GetRegistryKey() => new() { Name = "SampleGradientNode", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
         public const string kGradient = "Gradient";
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             var input = generatedData.AddPort<GradientType>(userData, kInlineStatic, true, registry);
             input.SetField<bool>("IsStatic", true); // TODO: This is just the hint for UI to use the large gradient editor.
-            var output = generatedData.AddPort<GradientType>(userData, kOutput, false, registry);
+            _ = generatedData.AddPort<GradientType>(userData, kOutput, false, registry);
         }
 
         public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
@@ -123,8 +123,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 alphas.Add(alphaKey);
             }
 
-            var result = new Gradient();
-            result.mode = mode;
+            var result = new Gradient
+            {
+                mode = mode
+            };
             result.SetKeys(colors.ToArray(), alphas.ToArray());
             return result;
         }

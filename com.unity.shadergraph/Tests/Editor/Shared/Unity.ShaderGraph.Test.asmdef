@@ -1,0 +1,19 @@
+{
+	"name": "Unity.ShaderGraph.Test",
+  "rootNamespace": "",
+  "references": [
+    "Unity.ShaderFoundry.Editor",
+    "Unity.ShaderGraph.GraphDeltaRegistry"
+  ],
+  "includePlatforms": [
+      "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

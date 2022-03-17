@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Test;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 {
@@ -45,8 +46,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     class PreviewTestFixture
     {
         HeadlessPreviewManager m_PreviewManager = new ();
-
-        Registry m_RegistryInstance = new ();
+        readonly Registry m_RegistryInstance = new ();
 
         GraphHandler m_InterpreterTestsGraph;
 
@@ -60,9 +60,9 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             // Setup a separate graph for the interpreter tests
             m_InterpreterTestsGraph = new GraphHandler();
-            m_InterpreterTestsGraph.AddNode<AddNode>("Add1", m_RegistryInstance).SetPortField("In1", "c0", 1f); //(1,0,0,0)
-            m_InterpreterTestsGraph.AddNode<AddNode>("Add2", m_RegistryInstance).SetPortField("In2", "c1", 1f); //(0,1,0,0)
-            m_InterpreterTestsGraph.AddNode<AddNode>("Add3", m_RegistryInstance);
+            m_InterpreterTestsGraph.AddNode<Test.AddNode>("Add1", m_RegistryInstance).SetPortField("In1", "c0", 1f); //(1,0,0,0)
+            m_InterpreterTestsGraph.AddNode<Test.AddNode>("Add2", m_RegistryInstance).SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            m_InterpreterTestsGraph.AddNode<Test.AddNode>("Add3", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add1", "Out", "Add3", "In1", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add2", "Out", "Add3", "In2", m_RegistryInstance); //should be (1,1,0,0)
         }
@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -211,7 +211,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -249,7 +249,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -272,7 +272,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -295,7 +295,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -322,7 +322,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -349,7 +349,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -375,7 +375,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Get code for node, first version
@@ -404,7 +404,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Throws an exception right now
@@ -444,7 +444,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<Test.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -502,7 +502,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void NodePreview_GetFuncAndBlockShaderCode()
         {
-            FunctionDescriptor passThroughFD = new FunctionDescriptor(1, "PassThrough",
+            FunctionDescriptor passThroughFD = new(1, "PassThrough",
                 "Out = In.x;",
                 new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
                 new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In));
@@ -536,18 +536,18 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void FunctionDescriptor_PreviewOutputTypes()
         {
-            FunctionDescriptor truncate = new FunctionDescriptor(1, "Truncate",
+            FunctionDescriptor truncate = new(1, "Truncate",
                 "Out = In.x;",
                 new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
                 new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In));
 
-            FunctionDescriptor make = new FunctionDescriptor(1, "Make",
+            FunctionDescriptor make = new(1, "Make",
                 "Out.x = X; Out.y = Y;",
                 new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
                 new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
                 new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In));
 
-            FunctionDescriptor append = new FunctionDescriptor(1, "Append",
+            FunctionDescriptor append = new(1, "Append",
                 "Out.xy = In; Out.z = Z;",
                 new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
                 new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
@@ -646,8 +646,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient", registry);
             previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
-
-            previewMgr.RequestNodePreviewShaderCodeStrings("SampleGradientNode", out _, out _, out string block, out _);
+            previewMgr.RequestNodePreviewShaderCodeStrings("SampleGradientNode", out _, out _, out _, out _);
             Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(nodePreviewMaterial));
 
             // TODO: split these tests up into fixtures and also move these sort of tests out of PreviewTests.cs
