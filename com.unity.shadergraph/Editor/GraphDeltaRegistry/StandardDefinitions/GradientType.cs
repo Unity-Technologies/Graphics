@@ -26,9 +26,9 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             // setup a float1 for time port.
             var time = node.AddPort<GraphType>(kTime, true, registry);
             time.GetTypeField().GetSubField<Precision>(GraphType.kPrecision).SetData(GraphType.Precision.Single);
-            time.GetTypeField().GetSubField(GraphType.kPrimitive).SetData(GraphType.Primitive.Float);
-            time.GetTypeField().GetSubField(GraphType.kLength).SetData(GraphType.Length.One);
-            time.GetTypeField().GetSubField(GraphType.kHeight).SetData(GraphType.Height.One);
+            time.GetTypeField().GetSubField<Primitive>(GraphType.kPrimitive).SetData(GraphType.Primitive.Float);
+            time.GetTypeField().GetSubField<Length>(GraphType.kLength).SetData(GraphType.Length.One);
+            time.GetTypeField().GetSubField<Height>(GraphType.kHeight).SetData(GraphType.Height.One);
 
             // default for GraphType is a float4.
             node.AddPort<GraphType>(kOutput, false, registry);

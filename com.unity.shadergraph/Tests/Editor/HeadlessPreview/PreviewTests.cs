@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                     primitive = Types.GraphType.Primitive.Float,
                     precision = Types.GraphType.Precision.Fixed,
                     height = Types.GraphType.Height.One,
-                    length = Types.GraphType.Length.One,
+                    length = Types.GraphType.Length.Three,
                 }
             };
         }

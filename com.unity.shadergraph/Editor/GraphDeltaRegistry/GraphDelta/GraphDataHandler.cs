@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             else
             {
                 elem = Owner.AddElementToLayer(layerName, ID);
-                Owner.SetHeader(elem, GetDefaultHeader()); //Should we default set the header to what our reader is?
+                Owner.SetHeader(elem, GetDefaultHeader());
                 val = elem.GetWriter();
             }
             return val;

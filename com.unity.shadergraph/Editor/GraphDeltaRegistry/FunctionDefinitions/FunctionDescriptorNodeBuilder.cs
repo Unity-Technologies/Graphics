@@ -132,7 +132,7 @@ namespace com.unity.shadergraph.defs
             int i = 0;
             foreach(var val in param.DefaultValue)
             {
-                typeField.GetSubField<float>($"c{i++}").SetData(val);
+                typeField.SetField<float>($"c{i++}", val);
             }
 
             return port;

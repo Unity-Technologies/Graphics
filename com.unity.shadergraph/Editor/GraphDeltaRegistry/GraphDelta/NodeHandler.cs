@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         [Obsolete("SetPortField is obselete - for now, use GetPort.GetTypeField().AddSub`Field", false)]
-        public void SetPortField<T>(string portID, string fieldID, T data) => GetPort(portID).GetTypeField().AddSubField<T>(fieldID, data);
+        public void SetPortField<T>(string portID, string fieldID, T data) => GetPort(portID).GetTypeField().SetField(fieldID, data);
 
         public IEnumerable<PortHandler> GetPorts()
         {

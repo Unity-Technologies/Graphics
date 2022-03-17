@@ -29,10 +29,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         [Obsolete("This should probably be an extension method", false)]
         internal void SetField<T>(string localID, T data)
         {
-            var nested = GetSubField(localID);
+            var nested = GetSubField<T>(localID);
             if(nested != null)
             {
-                nested.ToFieldHandler<T>().SetData(data);
+                nested.SetData(data);
             }
             else
             {
@@ -92,12 +92,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             else
             {
                 elem = Owner.AddElementToLayer(layerName, ID, default(T));
-                Owner.SetHeader(elem, Reader.Element.Header); //Should we default set the header to what our reader is?
+                Owner.SetHeader(elem, GetDefaultHeader()); //Should we default set the header to what our reader is?
                 val = elem.GetWriter();
             }
             return val;
         }
-
+        internal override DataHeader GetDefaultHeader()
+        {
+            return new FieldHeader<T>();
+        }
         public T GetData()
         {
             return Reader.GetData<T>();

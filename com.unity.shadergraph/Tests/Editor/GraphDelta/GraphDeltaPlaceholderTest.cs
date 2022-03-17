@@ -256,7 +256,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.NotNull(thruEdge);
                 Assert.IsTrue(thruEdge.ID.Equals("Bar.A"));
 
-
                 var roundTrip = graphHandler.ToSerializedFormat();
                 var deserializedHandler = new GraphHandler(roundTrip).graphDelta;
 

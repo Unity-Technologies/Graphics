@@ -29,10 +29,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     }
 
     [Serializable]
+    internal class Edge 
+    {
+        [SerializeField]
+        private ElementID m_output;
+        public ElementID Output { get => m_output; }
+        [SerializeField]
+        private ElementID m_input;
+        public ElementID Input { get => m_input; }
+
+        public Edge()
+        {
+        }
+        public Edge(ElementID output, ElementID input) 
+        {
+            this.m_output = output;
+            this.m_input = input;
+        }
+
+        public bool Equals(Edge obj)
+        {
+            return Output.Equals(obj.Output) && Input.Equals(obj.Input);
+        }
+    }
+
+    [Serializable]
     internal sealed partial class GraphStorage : CLDS, ISerializationCallbackReceiver
     {
         [SerializeField]
-        internal List<(ElementID output, ElementID input)> edges = new List<(ElementID output, ElementID input)>();
+        internal List<Edge> edges = new List<Edge>();
 
         protected override void AddDefaultLayers()
         {
@@ -90,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return base.SearchRelative(element, elementID);
         }
 
-        internal IEnumerable<NodeHandler> GetAllChildReaders()
+        internal IEnumerable<NodeHandler> GetNodes()
         {
             foreach (var data in m_flatStructureLookup.Values)
             {

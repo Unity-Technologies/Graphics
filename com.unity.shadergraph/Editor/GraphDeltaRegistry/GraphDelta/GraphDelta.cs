@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool ReconcretizeNode(ElementID id, Registry.Registry registry)
         {
-            var nodeHandler = m_data.GetHandler(id) as NodeHandler;
+            var nodeHandler = m_data.GetHandler(id).ToNodeHandler();
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
             nodeHandler.ClearLayerData(k_concrete);
@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetNodes()
         {
-            throw new System.NotImplementedException();
+            return m_data.GetNodes();
         }
 
         public NodeHandler GetNode(ElementID id)
@@ -156,13 +156,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public EdgeHandler AddEdge(ElementID output, ElementID input)
         {
-            m_data.edges.Add((output, input));
+            m_data.edges.Add(new Edge(output, input));
             return new EdgeHandler(output, input, m_data);
         }
 
         public void RemoveEdge(ElementID output, ElementID input)
         {
-            m_data.edges.Remove((output, input));
+            m_data.edges.RemoveAll(e => e.Output.Equals(output) && e.Input.Equals(input));
         }
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID node)
@@ -185,13 +185,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             bool isInput = m_data.GetMetadata<bool>(port, PortHeader.kInput);
             foreach(var edge in m_data.edges)
             {
-                if(isInput && edge.input.Equals(port))
+                if(isInput && edge.Input.Equals(port))
                 {
-                    yield return new PortHandler(edge.output, m_data);
+                    yield return new PortHandler(edge.Output, m_data);
                 }
-                else if (!isInput && edge.output.Equals(port))
+                else if (!isInput && edge.Output.Equals(port))
                 {
-                    yield return new PortHandler(edge.input, m_data);
+                    yield return new PortHandler(edge.Input, m_data);
                 }
 
             }

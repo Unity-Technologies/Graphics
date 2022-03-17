@@ -28,13 +28,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             bool input = GetMetadata<bool>(PortHeader.kInput);
             foreach(var edge in Owner.edges)
             {
-                if(input && edge.input.Equals(ID))
+                if(input && edge.Input.Equals(ID))
                 {
-                    yield return new PortHandler(edge.output, Owner, DefaultLayer);
+                    yield return new PortHandler(edge.Output, Owner, DefaultLayer);
                 }
-                else if(!input && edge.output.Equals(ID))
+                else if(!input && edge.Output.Equals(ID))
                 {
-                    yield return new PortHandler(edge.input, Owner, DefaultLayer);
+                    yield return new PortHandler(edge.Input, Owner, DefaultLayer);
                 }
 
             }

@@ -11,7 +11,7 @@ namespace UnityEditor.ContextLayeredDataStorage
     {
         [SerializeField]
         internal List<SerializedLayerData> m_serializedData;
-        [NonSerialized]
+        [SerializeField]
         internal MetadataCollection m_metadata;
         [NonSerialized]
         internal readonly LayerList m_layerList;
