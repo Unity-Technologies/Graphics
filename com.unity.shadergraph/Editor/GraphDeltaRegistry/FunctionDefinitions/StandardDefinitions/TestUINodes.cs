@@ -156,4 +156,22 @@ namespace com.unity.shadergraph.defs
             { "In.UseSlider", 1 } // Use a slider for In (float value is ignored)
         };
     }
+
+    internal class TestUIPropertyNode : IStandardNode
+    {
+        public static FunctionDescriptor FunctionDescriptor => new(
+            1, // Version
+            "TestUIProperties", // Name
+            "Out = In;",
+            new ParameterDescriptor("PortIn", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("StaticBodyIn", TYPE.Float, GraphType.Usage.Static),
+            new ParameterDescriptor("StaticInspectorIn", TYPE.Float, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "StaticInspectorIn.InspectorOnly", 1 }
+        };
+    }
 }

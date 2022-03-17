@@ -115,8 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
         {
-            return null;
-            //throw new NotImplementedException();
+            return new InspectorModel(inspectedModel);
         }
     }
 }
