@@ -1117,12 +1117,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 rcpNegFade.x = Mathf.Min(1.0f / volume.parameters.negativeFade.x, float.MaxValue);
                                 rcpNegFade.z = Mathf.Min(1.0f / volume.parameters.negativeFade.z, float.MaxValue);
 
-                                int sliceCount = Mathf.Abs(stopSlice - startSlice) + 1;
-
                                 var props = new MaterialPropertyBlock();
                                 var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
                                 if (aabb.Contains(cameraPosition)) // TODO: OBB check instead for accuracy // TODO: remove that and fix the projection computation issue
+                                {
                                     viewSpaceBounds = new Vector4(-1, -1, 2, 2);
+                                    startSlice = 0;
+                                }
+                                int sliceCount = Mathf.Abs(stopSlice - startSlice) + 1;
                                 float extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath);
                                 props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
                                 props.SetInteger("_SliceOffset", startSlice);

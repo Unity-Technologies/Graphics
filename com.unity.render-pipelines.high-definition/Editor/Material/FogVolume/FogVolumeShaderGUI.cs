@@ -14,15 +14,17 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     internal class FogVolumeShaderGUI : HDShaderGUI
     {
-        static class Styles
+        MaterialUIBlockList m_UIBlocks = new MaterialUIBlockList
         {
-            public static readonly GUIContent blendMode = new GUIContent("Blend Mode", "Specifies how the fog will be blended with the global fog.");
-        }
+            // new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
+            new FogVolumeUIBlock(MaterialUIBlock.ExpandableBit.Base),
+            new ShaderGraphUIBlock(MaterialUIBlock.ExpandableBit.ShaderGraph, ShaderGraphUIBlock.Features.Unlit),
+        };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             // For now we only expose the fog blending mode
-            materialEditor.ShaderProperty(FindProperty(FogVolumeSubTarget.k_BlendModeProperty, props), Styles.blendMode);
+            m_UIBlocks.OnGUI(materialEditor, props);
         }
 
         public override void ValidateMaterial(Material material) => ShaderGraphAPI.ValidateFogVolumeMaterial(material);

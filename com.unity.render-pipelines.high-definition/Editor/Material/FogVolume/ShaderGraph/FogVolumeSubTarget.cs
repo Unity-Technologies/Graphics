@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -5,11 +6,10 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.Fullscreen.ShaderGraph;
 
-using System;
-
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
+using static UnityEngine.Rendering.HighDefinition.FogVolumeAPI;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -36,14 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/FogVolume/ShaderGraph/Templates/FogVolume.template";
         protected override bool supportRaytracing => false;
         protected override bool supportPathtracing => false;
-
-        internal static readonly string k_BlendModeProperty = "_FogVolumeBlendMode";
-        internal static readonly string k_SrcColorBlendProperty = "_FogVolumeSrcColorBlend";
-        internal static readonly string k_DstColorBlendProperty = "_FogVolumeDstColorBlend";
-        internal static readonly string k_SrcAlphaBlendProperty = "_FogVolumeSrcAlphaBlend";
-        internal static readonly string k_DstAlphaBlendProperty = "_FogVolumeDstAlphaBlend";
-        internal static readonly string k_ColorBlendOpProperty = "_FogVolumeColorBlendOp";
-        internal static readonly string k_AlphaBlendOpProperty = "_FogVolumeColorBlendOp";
 
         static readonly string k_SrcColorBlend = $"[{k_SrcColorBlendProperty}]";
         static readonly string k_DstColorBlend = $"[{k_DstColorBlendProperty}]";
@@ -170,55 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CollectShaderProperties(collector, generationMode);
 
-            BlendMode srcColorBlend, srcAlphaBlend, dstColorBlend, dstAlphaBlend;
-            BlendOp colorBlendOp = BlendOp.Add, alphaBlendOp = BlendOp.Add;
-
-            // Patch the default blend values depending on the Blend Mode:
-            switch (fogVolumeData.blendMode)
-            {
-                default:
-                case LocalVolumetricFogBlendingMode.Additive:
-                    srcColorBlend = BlendMode.SrcAlpha;
-                    dstColorBlend = BlendMode.One;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.One;
-                    break;
-                case LocalVolumetricFogBlendingMode.Multiply:
-                    srcColorBlend = BlendMode.DstColor;
-                    dstColorBlend = BlendMode.Zero;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.OneMinusSrcAlpha;
-                    break;
-                case LocalVolumetricFogBlendingMode.Overwrite:
-                    srcColorBlend = BlendMode.One;
-                    dstColorBlend = BlendMode.Zero;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.Zero;
-                    break;
-                case LocalVolumetricFogBlendingMode.Subtractive:
-                    srcColorBlend = BlendMode.SrcAlpha;
-                    dstColorBlend = BlendMode.One;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.One;
-                    alphaBlendOp = BlendOp.Sub;
-                    break;
-                case LocalVolumetricFogBlendingMode.Max:
-                    srcColorBlend = BlendMode.One;
-                    dstColorBlend = BlendMode.One;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.One;
-                    alphaBlendOp = BlendOp.Max;
-                    colorBlendOp = BlendOp.Max;
-                    break;
-                case LocalVolumetricFogBlendingMode.Min:
-                    srcColorBlend = BlendMode.One;
-                    dstColorBlend = BlendMode.One;
-                    srcAlphaBlend = BlendMode.One;
-                    dstAlphaBlend = BlendMode.One;
-                    alphaBlendOp = BlendOp.Min;
-                    colorBlendOp = BlendOp.Min;
-                    break;
-            }
+            FogVolumeAPI.ComputeBlendParameters(fogVolumeData.blendMode, out var srcColorBlend, out var srcAlphaBlend, out var dstColorBlend, out var dstAlphaBlend, out var colorBlendOp, out var alphaBlendOp);
 
             collector.AddEnumProperty(k_BlendModeProperty, fogVolumeData.blendMode);
             collector.AddEnumProperty(k_DstColorBlendProperty, dstColorBlend);
