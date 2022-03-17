@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 {
@@ -17,14 +18,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public virtual string DisplayTitle => Title;
 
         /// <inheritdoc />
-        public IGroupModel Group { get; set; }
+        public IGroupModel ParentGroup { get; set; }
 
         /// <inheritdoc />
         public IReadOnlyList<IGroupItemModel> Items => m_Items;
 
         IEnumerable<IGraphElementModel> IGraphElementContainer.GraphElementModels => Items;
 
-        public override IGraphElementContainer Container => Group;
+        /// <inheritdoc />
+        public override IGraphElementContainer Container => ParentGroup;
+
+        /// <inheritdoc />
+        public IEnumerable<IGraphElementModel> ContainedModels
+        {
+            get
+            {
+                return Items.SelectMany(t => Enumerable.Repeat(t, 1).Concat(t.ContainedModels));
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GroupModel" /> class.
@@ -37,50 +48,88 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 Overdrive.Capabilities.Droppable,
                 Overdrive.Capabilities.Selectable,
                 Overdrive.Capabilities.Collapsible,
+                Overdrive.Capabilities.Copiable,
                 Overdrive.Capabilities.Renamable
             });
         }
 
         /// <inheritdoc />
-        public void InsertItem(IGroupItemModel itemModel, int index = -1)
+        public IEnumerable<IGraphElementModel> InsertItem(IGroupItemModel itemModel, int index = int.MaxValue)
         {
-            if (itemModel.Group != null)
-                itemModel.Group.RemoveItem(itemModel);
+            HashSet<IGraphElementModel> changedModels = new HashSet<IGraphElementModel>();
 
-            itemModel.Group = this;
-            if (index < 0 || index >= m_Items.Count)
+            IGroupModel current = this;
+            while (current != null)
+            {
+                if (ReferenceEquals(current, itemModel))
+                    return Enumerable.Empty<IGraphElementModel>();
+                current = current.ParentGroup;
+            }
+
+            if (itemModel.ParentGroup != null)
+                changedModels.UnionWith(itemModel.ParentGroup.RemoveItem(itemModel));
+
+            changedModels.Add(this);
+            itemModel.ParentGroup = this;
+            if (index < 0)
+                m_Items.Insert(0,itemModel);
+            else if (index >= m_Items.Count)
                 m_Items.Add(itemModel);
             else
                 m_Items.Insert(index, itemModel);
+
+            return changedModels;
         }
 
         /// <inheritdoc />
-        public bool MoveItemsAfter(IReadOnlyList<IGroupItemModel> items, IGroupItemModel insertAfter)
+        public IEnumerable<IGraphElementModel> MoveItemsAfter(IReadOnlyList<IGroupItemModel> items, IGroupItemModel insertAfter)
         {
-            int insertIndex = m_Items.IndexOf(insertAfter);
-
-            if (insertAfter != null && insertIndex == -1)
-                return false;
+            if (insertAfter != null && !m_Items.Contains(insertAfter))
+                return null;
 
             if (items.Contains((insertAfter)))
-                return false;
+                return null;
+
+            HashSet<IGraphElementModel> changedModels = new HashSet<IGraphElementModel>();
+            foreach (var model in items)
+            {
+                if (model.ParentGroup != null)
+                    changedModels.UnionWith(model.ParentGroup.RemoveItem(model));
+            }
+
+            // remove items from m_Items
+            //   done by replacing m_Items with a copy that excludes items
+            //   in most cases this is faster than doing many List.Remove
+            var itemsCopy = new List<IGroupItemModel>(m_Items.Count);
+            foreach (var item in m_Items)
+            {
+                if (!items.Contains(item))
+                    itemsCopy.Add(item);
+            }
+            m_Items = itemsCopy;
+
+            int insertIndex = m_Items.IndexOf(insertAfter);
 
             foreach (var model in items)
-                model.Group.RemoveItem(model);
-
-            insertIndex = m_Items.IndexOf(insertAfter);
-
-            foreach (var model in items)
-                InsertItem(model, ++insertIndex);
-            return true;
+                changedModels.UnionWith(InsertItem(model, ++insertIndex));
+            return changedModels;
         }
 
         /// <inheritdoc />
-        public void RemoveItem(IGroupItemModel itemModel)
+        public IEnumerable<IGraphElementModel> RemoveItem(IGroupItemModel itemModel)
         {
-            itemModel.Group = null;
+            HashSet<IGraphElementModel> changedModels = new HashSet<IGraphElementModel>();
 
-            m_Items.Remove(itemModel);
+            if (m_Items.Contains(itemModel))
+            {
+                itemModel.ParentGroup = null;
+
+                m_Items.Remove(itemModel);
+
+                changedModels.Add(this);
+            }
+
+            return changedModels;
         }
 
         public override void OnAfterDeserialize()
@@ -93,7 +142,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
             foreach (var item in m_Items)
             {
-                item.Group = this;
+                item.ParentGroup = this;
             }
         }
 
@@ -107,6 +156,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public void Rename(string name)
         {
             Title = name;
+        }
+
+        /// <inheritdoc />
+        public virtual void Repair()
+        {
+            m_Items.RemoveAll(t=>t == null);
+            foreach (var item in m_Items.OfType<IGroupModel>())
+            {
+                item.Repair();
+            }
         }
     }
 }

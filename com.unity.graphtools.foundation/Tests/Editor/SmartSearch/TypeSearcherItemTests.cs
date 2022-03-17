@@ -1,8 +1,5 @@
-using System;
 using NUnit.Framework;
-using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.SmartSearch
 {
@@ -11,27 +8,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.SmartSearch
         [TestCase]
         public void TestTypeSearcherItemSystemObject()
         {
-            var item = new TypeSearcherItem(typeof(object).GenerateTypeHandle(), "System.Object");
+            var objectTypeHandle = typeof(object).GenerateTypeHandle();
+            var item = new TypeSearcherItem("System.Object", objectTypeHandle);
 
-            Assert.AreEqual(item.Type, typeof(object).GenerateTypeHandle());
+            Assert.AreEqual(item.Type, objectTypeHandle);
             Assert.AreEqual(item.Name, "System.Object");
         }
 
         [TestCase]
         public void TestTypeSearcherItemUnityObject()
         {
-            var item = new TypeSearcherItem(typeof(Object).GenerateTypeHandle(), "UnityEngine.Object");
+            var unityObjectTypeHandle = typeof(UnityEngine.Object).GenerateTypeHandle();
+            var item = new TypeSearcherItem("UnityEngine.Object", unityObjectTypeHandle);
 
-            Assert.AreEqual(item.Type, typeof(Object).GenerateTypeHandle());
+            Assert.AreEqual(item.Type, unityObjectTypeHandle);
             Assert.AreEqual(item.Name, "UnityEngine.Object");
         }
 
         [TestCase]
         public void TestTypeSearcherItemString()
         {
-            var item = new TypeSearcherItem(typeof(string).GenerateTypeHandle(), typeof(string).FriendlyName());
+            var stringTypeHandle = typeof(string).GenerateTypeHandle();
+            var item = new TypeSearcherItem(typeof(string).FriendlyName(), stringTypeHandle);
 
-            Assert.AreEqual(item.Type, typeof(string).GenerateTypeHandle());
+            Assert.AreEqual(item.Type, stringTypeHandle);
             Assert.AreEqual(item.Name, typeof(string).FriendlyName());
         }
     }

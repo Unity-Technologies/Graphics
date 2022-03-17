@@ -1,0 +1,189 @@
+.ge-context-node  {
+    width: 360px;
+    overflow: visible;
+}
+
+.ge-context-node .ge-node__outputs
+{
+    min-width:70px;
+}
+
+.ge-context-node .ge-icon-title-progress {
+    background-color: var(--context-header-background);
+    justify-content: space-around;
+}
+
+.ge-context-node > .ge-icon-title-progress .ge-node__title {
+    font-size: var(--unity-font-size-very-big);
+}
+
+.ge-context-node__context-border-title {
+    position: absolute;
+    height : 54px;
+    left:0;
+    right:0;
+    top:0;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.ge-context-node--no-vertical-input .ge-context-node__context-border-title {
+    height : 44px;
+}
+
+.ge-context-node__context-border > .ge-node__selection-border {
+    position: absolute;
+    top : -4px;
+    bottom:-4px;
+    right: -4px;
+    left: -4px;
+    border-radius: 12px;
+    margin: 0;
+}
+
+
+.ge-context-node .ge-node__bottom-vertical-port-container .ge-port-container
+{
+    padding-top:  16px;
+    padding-bottom:  16px;
+}
+.ge-context-node__context-border {
+    position: absolute;
+    top : 12px;
+    bottom:28px;
+    right: 0;
+    left: 0;
+    border-top-color: var(--context-border-top-border);
+    border-top-width: 2px;
+    border-bottom-color: var(--context-border-bottom-border);
+    border-bottom-width: 2px;
+    border-radius: 8px;
+    border-color: var(--context-border);
+    background-color: var(--context-background);
+}
+.ge-context-node__context-border--accepted {
+    border-width: 2px;
+    border-color: var(--context-drag-accepted);
+}
+.ge-context-node__context-border--refused {
+    border-width: 2px;
+    border-color: var(--context-drag-refused);
+}
+
+.ge-context-node__blocks-container {
+    flex-direction: column-reverse;
+    padding: 4px 4px 4px 8px;
+    background-color: var(--context-block-container-background);
+    border-radius: 8px;
+}
+
+.ge-context-node__etch {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    width: 45px;
+    height: 12px;
+    border-right-color: var(--context-etch-border);
+    border-left-color: var(--context-etch-border);
+    border-bottom-color: var(--context-etch-border);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background-color: var(--context-etch);
+}
+
+.ge-context-node__add-block {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.ge-context-node__add-block-label {
+    color: var(--context-addblock-text);
+    padding-top: 2px;
+ }
+.ge-context-node__add-block-plus {
+    font-size: 24px;
+    color: var(--context-addblock-icon);
+    height:16px;
+    margin-top: -14px;
+}
+
+.ge-context-node .ge-node__bottom-vertical-port-container {
+    border-bottom-width: 0;
+    border-top-width: 0;
+    padding-top: 0;
+}
+
+.ge-context-node--no-vertical-input .ge-context-node__context-border {
+    top: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+}
+
+.ge-context-node--no-vertical-output .ge-context-node__context-border {
+    bottom: 0;
+}
+
+.ge-context-node > .ge-selection-border__content-container {
+    padding: 4px;
+    padding-bottom: 8px;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    border-top-width: 0;
+    border-bottom-width: 0;
+    overflow: visible;
+    border-left-width: 0;
+    border-right-width: 0;
+}
+
+.ge-context-node .ge-vertical-port-container-part {
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+}
+
+.ge-context-node .ge-node__port-container {
+    background-color: var(--context-settings-input-background);
+    border-color: rgba(0,0,0,0);
+}
+
+.ge-context-node:hover .ge-context-node__context-border > .ge-selection-border {
+    border-color: var(--context-highlight-hover);
+}
+
+.ge-context-node:checked .ge-context-node__context-border > .ge-selection-border {
+    border-color: var(--context-highlight);
+}
+
+.ge-context-node:checked:hover .ge-context-node__context-border > .ge-selection-border {
+    border-color: var(--context-highlight);
+    border-width: 2px;
+    padding: 0;
+}
+
+.ge-context-node.ge-node--disabled #disabled-overlay {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0);
+}
+.ge-context-node.ge-node--disabled > #disabled-overlay {
+    display: flex;
+    background-color: var(--context-disabled-tint);
+}
+
+.ge-context-node.ge-node > .ge-node__port-container > .ge-node__outputs {
+    background-color: var(--context-settings-output-background);
+}
+
+.ge-context-node.ge-node > .ge-node__port-container > .ge-node__inputs {
+    border-right-width:0;
+}
+
+.ge-context-node .ge-port__constant-editor {
+    flex: 1 1 auto;
+}
+
+/* make composite fields shrink if needed in contexts */
+.ge-context-node .ge-port__constant-editor .unity-composite-field__input{
+    flex: 1 1 auto;
+}

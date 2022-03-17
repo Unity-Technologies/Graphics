@@ -2,7 +2,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(DepthOfField))]
+    [CustomEditor(typeof(DepthOfField))]
     sealed class DepthOfFieldEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;

@@ -1,6 +1,27 @@
 # Changelog
 
-## [5.0.0] - 2021-06-01
+## [Unreleased]
+
+### Added
+- Favorite system. Add or remove any non-category item as a favorite, based on it's `SearcherItem.FullName`.
+- Favorite UI (star icon) in the searcher to toggle items as favorites.
+- Favorite Category in the searcher regroups all favorite items in a separate category.
+- SearcherItem `StyleName` allows the view of searcher items to assign USS classes to different parts of the UI.
+- SearcherItem `FullName` sets both the `CategoryPath` and the `Name` properties, as SearcherItems aren't used to build hierarchy folders anymore.
+- ISearcherAdapter `InitDetailsPanel` and `UpdateDetailsPanel` can now be used to customize the details ("preview") panel.
+- `UPGRADE_GUIDE.md` added to help with API changes and code migration between releases.
+
+### Changed
+- `SearcherItem` isn't used to build a hierarchy anymore, only the searchable "leaves".
+- `SearcherItem` constructor with children deprecated and won't work. Give items a `CategoryPath` (e.g. "Food/Fruits") or `FullName` (e.g. "Food/Fruits/Apple").
+- `SearcherItem` constructor simplified to only take 0 parameter or just the Name. Users are encouraged to use initializers such as { CategoryPath = ..., StyleName = ... } etc.
+
+### Removed
+- SearcherItem `Icon` and `CollapseEmptyIcon`. Use SearcherItem.`StyleName` instead which will assign USS classes to different parts of the UI.
+- ISearcherAdapter `MakeItem`, `Bind` have been merged into the basic implementation as they were too open and complex and no client was overriding them.
+- ISearcherAdapter `AddAllChildResults` was unused.
+
+## [5.0.0] - 2021-06-01 (unpublished)
 - Stop using Lucene
 - Start using unity Quicksearch (available as package for editor < 2021)
 - No longer a proper package, lives in graphtools.foundation package

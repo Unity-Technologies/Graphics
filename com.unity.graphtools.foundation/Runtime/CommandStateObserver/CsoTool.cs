@@ -13,15 +13,18 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         /// </summary>
         /// <typeparam name="T">The type of tool to create.</typeparam>
         /// <returns>The newly created tool.</returns>
-        public static T Create<T>() where T : CsoTool, new()
+        public static T Create<T>(Hash128 windowID) where T : CsoTool, new()
         {
             var tool = new T();
+            tool.WindowID = windowID;
             tool.Initialize();
             return tool;
         }
 
+        protected Hash128 WindowID { get; private set; }
+
         /// <inheritdoc />
-        public ICommandTarget Parent { get; } = null;
+        public ICommandTarget Parent => null;
 
         /// <summary>
         /// The command dispatcher.

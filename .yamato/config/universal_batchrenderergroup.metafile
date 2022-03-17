@@ -1,0 +1,78 @@
+project:
+  name: Universal_BatchRendererGroup
+  folder: BatchRendererGroup_URP
+test_platforms:
+  - type: Standalone
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
+      - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [all]: --compilation-errors-as-warnings
+  - type: playmode
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
+
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: OSX
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis:
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies: # add any dependencies
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - Standalone
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - Standalone
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - Standalone
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

@@ -10,12 +10,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class GraphElementEdgeInteractionsTests : GraphViewTester
     {
-        IONodeModel firstNode { get; set; }
-        IONodeModel secondNode { get; set; }
-        IPortModel startPort { get; set; }
-        IPortModel endPort { get; set; }
-        IPortModel startPortTwo { get; set; }
-        IPortModel endPortTwo { get; set; }
+        IONodeModel FirstNode { get; set; }
+        IONodeModel SecondNode { get; set; }
+        IPortModel StartPort { get; set; }
+        IPortModel EndPort { get; set; }
+        IPortModel StartPortTwo { get; set; }
+        IPortModel EndPortTwo { get; set; }
 
         const float k_EdgeSelectionOffset = 20.0f;
 
@@ -24,13 +24,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             base.SetUp();
 
-            firstNode = CreateNode("First Node", new Vector2(0, 0), outCount: 2);
-            startPort = firstNode.OutputsByDisplayOrder[0];
-            startPortTwo = firstNode.OutputsByDisplayOrder[1];
+            FirstNode = CreateNode("First Node", new Vector2(0, 0), outCount: 2);
+            StartPort = FirstNode.OutputsByDisplayOrder[0];
+            StartPortTwo = FirstNode.OutputsByDisplayOrder[1];
 
-            secondNode = CreateNode("Second Node", new Vector2(400, 0), inCount: 2);
-            endPort = secondNode.InputsByDisplayOrder[0];
-            endPortTwo = secondNode.InputsByDisplayOrder[1];
+            SecondNode = CreateNode("Second Node", new Vector2(400, 0), inCount: 2);
+            EndPort = SecondNode.InputsByDisplayOrder[0];
+            EndPortTwo = SecondNode.InputsByDisplayOrder[1];
         }
 
         [UnityTest]
@@ -56,13 +56,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var edgeModel = hOutPort.GetConnectedEdges().First();
             Assert.IsNotNull(edgeModel);
 
-            Port outputPort = hOutPort.GetUI<Port>(graphView);
-            Port inputPort = vInPort.GetUI<Port>(graphView);
+            Port outputPort = hOutPort.GetView<Port>(GraphView);
+            Port inputPort = vInPort.GetView<Port>(GraphView);
 
             Assert.IsNotNull(outputPort);
             Assert.IsNotNull(inputPort);
 
-            Edge edge = edgeModel.GetUI<Edge>(graphView);
+            Edge edge = edgeModel.GetView<Edge>(GraphView);
             Assert.IsNotNull(edge);
             Assert.AreEqual(inputPort.PortModel, edge.Input);
             Assert.AreEqual(outputPort.PortModel, edge.Output);
@@ -78,13 +78,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             edgeModel = vOutPort.GetConnectedEdges().First();
             Assert.IsNotNull(edgeModel);
 
-            outputPort = vOutPort.GetUI<Port>(graphView);
-            inputPort = hInPort.GetUI<Port>(graphView);
+            outputPort = vOutPort.GetView<Port>(GraphView);
+            inputPort = hInPort.GetView<Port>(GraphView);
 
             Assert.IsNotNull(outputPort);
             Assert.IsNotNull(inputPort);
 
-            edge = edgeModel.GetUI<Edge>(graphView);
+            edge = edgeModel.GetView<Edge>(GraphView);
             Assert.IsNotNull(edge);
             Assert.AreEqual(inputPort.PortModel, edge.Input);
             Assert.AreEqual(outputPort.PortModel, edge.Output);
@@ -99,24 +99,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // We start without any connection
-            Assert.IsFalse(startPort.IsConnected());
-            Assert.IsFalse(endPort.IsConnected());
+            Assert.IsFalse(StartPort.IsConnected());
+            Assert.IsFalse(EndPort.IsConnected());
 
-            var actions = ConnectPorts(startPort, endPort);
+            var actions = ConnectPorts(StartPort, EndPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
             // Check that the edge exists and that it connects the two ports.
-            Assert.IsTrue(startPort.IsConnected());
-            Assert.IsTrue(endPort.IsConnected());
-            Assert.IsTrue(startPort.IsConnectedTo(endPort));
+            Assert.IsTrue(StartPort.IsConnected());
+            Assert.IsTrue(EndPort.IsConnected());
+            Assert.IsTrue(StartPort.IsConnectedTo(EndPort));
 
-            var edge = startPort.GetConnectedEdges().First();
+            var edge = StartPort.GetConnectedEdges().First();
             Assert.IsNotNull(edge);
 
-            var edgeUI = edge.GetUI<Edge>(graphView);
+            var edgeUI = edge.GetView<Edge>(GraphView);
             Assert.IsNotNull(edgeUI);
             Assert.IsNotNull(edgeUI.parent);
         }
@@ -132,24 +132,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // We start without any connection
-            Assert.IsFalse(startPort.IsConnected());
-            Assert.IsFalse(endPort.IsConnected());
+            Assert.IsFalse(StartPort.IsConnected());
+            Assert.IsFalse(EndPort.IsConnected());
 
-            var actions = ConnectPorts(endPort, startPort);
+            var actions = ConnectPorts(EndPort, StartPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
             // Check that the edge exists and that it connects the two ports.
-            Assert.IsTrue(startPort.IsConnected());
-            Assert.IsTrue(endPort.IsConnected());
-            Assert.IsTrue(startPort.IsConnectedTo(endPort));
+            Assert.IsTrue(StartPort.IsConnected());
+            Assert.IsTrue(EndPort.IsConnected());
+            Assert.IsTrue(StartPort.IsConnectedTo(EndPort));
 
-            var edge = startPort.GetConnectedEdges().First();
+            var edge = StartPort.GetConnectedEdges().First();
             Assert.IsNotNull(edge);
 
-            var edgeUI = edge.GetUI<Edge>(graphView);
+            var edgeUI = edge.GetView<Edge>(GraphView);
             Assert.IsNotNull(edgeUI);
             Assert.IsNotNull(edgeUI.parent);
         }
@@ -163,45 +163,45 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var actions = ConnectPorts(startPort, endPort);
+            var actions = ConnectPorts(StartPort, EndPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
-            var startPortUI = startPort.GetUI<Port>(graphView);
-            var endPortUI = endPort.GetUI<Port>(graphView);
+            var startPortUI = StartPort.GetView<Port>(GraphView);
+            var endPortUI = EndPort.GetView<Port>(GraphView);
             Assert.IsNotNull(startPortUI);
             Assert.IsNotNull(endPortUI);
             var startPortPosition = startPortUI.GetGlobalCenter();
             var endPortPosition = endPortUI.GetGlobalCenter();
 
-            var edgeModel = startPort.GetConnectedEdges().First();
-            var edge = edgeModel.GetUI<Edge>(graphView);
+            var edgeModel = StartPort.GetConnectedEdges().First();
+            var edge = edgeModel.GetView<Edge>(GraphView);
             Assert.IsNotNull(edge);
             VisualElement edgeParent = edge.parent;
 
             // Mouse press on the right half of the edge
             var edgeRightSegmentPos = new Vector2(endPortPosition.x - k_EdgeSelectionOffset, endPortPosition.y);
-            helpers.MouseDownEvent(edgeRightSegmentPos);
+            Helpers.MouseDownEvent(edgeRightSegmentPos);
             yield return null;
 
             // Mouse move to the empty area while holding CTRL.
             var emptyAreaPos = new Vector2(startPortPosition.x + (endPortPosition.x - startPortPosition.x) / 2, endPortPosition.y);
-            helpers.MouseDragEvent(edgeRightSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
+            Helpers.MouseDragEvent(edgeRightSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
             yield return null;
 
-            Assert.AreEqual(startPort, edge.Output);
+            Assert.AreEqual(StartPort, edge.Output);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Mouse release on the empty area
-            helpers.MouseUpEvent(emptyAreaPos);
+            Helpers.MouseUpEvent(emptyAreaPos);
             yield return null;
 
 
             Assert.IsTrue(searcherInvoked, "Searcher was not invoked.");
-            Assert.AreEqual(1, startPort.GetConnectedEdges().Count(), "Edge was unexpectedly deleted.");
+            Assert.AreEqual(1, StartPort.GetConnectedEdges().Count(), "Edge was unexpectedly deleted.");
         }
 
         [UnityTest]
@@ -213,43 +213,43 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var startPortUI = startPort.GetUI<Port>(graphView);
-            var endPortUI = endPort.GetUI<Port>(graphView);
+            var startPortUI = StartPort.GetView<Port>(GraphView);
+            var endPortUI = EndPort.GetView<Port>(GraphView);
 
             float startPortX = startPortUI.GetGlobalCenter().x;
             float startPortY = startPortUI.GetGlobalCenter().y;
             float endPortX = endPortUI.GetGlobalCenter().x;
 
             // Create the edge to be tested.
-            var actions = ConnectPorts(startPort, endPort);
+            var actions = ConnectPorts(StartPort, EndPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
-            var edge = startPort.GetConnectedEdges().First().GetUI<Edge>(graphView);
+            var edge = StartPort.GetConnectedEdges().First().GetView<Edge>(GraphView);
             VisualElement edgeParent = edge.parent;
 
             // Mouse press on the left half of the edge
             var edgeLeftSegmentPos = new Vector2(startPortX + k_EdgeSelectionOffset, startPortY);
-            helpers.MouseDownEvent(edgeLeftSegmentPos);
+            Helpers.MouseDownEvent(edgeLeftSegmentPos);
             yield return null;
 
             // Mouse move to the empty area while holding CTRL.
             var emptyAreaPos = new Vector2(startPortX + (endPortX - startPortX) / 2, startPortY);
-            helpers.MouseDragEvent(edgeLeftSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
+            Helpers.MouseDragEvent(edgeLeftSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
             yield return null;
 
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Mouse release on the empty area
-            helpers.MouseUpEvent(emptyAreaPos);
+            Helpers.MouseUpEvent(emptyAreaPos);
             yield return null;
 
             Assert.IsTrue(searcherInvoked, "Searcher was not invoked.");
-            Assert.AreEqual(1, startPort.GetConnectedEdges().Count(), "Edge was unexpectedly deleted.");
+            Assert.AreEqual(1, StartPort.GetConnectedEdges().Count(), "Edge was unexpectedly deleted.");
         }
 
         [UnityTest]
@@ -258,19 +258,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var endPortUI = endPort.GetUI<Port>(graphView);
+            var endPortUI = EndPort.GetView<Port>(GraphView);
 
             float endPortX = endPortUI.GetGlobalCenter().x;
             float endPortY = endPortUI.GetGlobalCenter().y;
 
             // Create the edge to be tested.
-            var actions = ConnectPorts(startPort, endPort);
+            var actions = ConnectPorts(StartPort, EndPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
-            var edge = startPort.GetConnectedEdges().First().GetUI<Edge>(graphView);
+            var edge = StartPort.GetConnectedEdges().First().GetView<Edge>(GraphView);
 
             // Allow one frame for the edge to be placed onto a layer
             yield return null;
@@ -282,27 +282,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             // Mouse press on the right half of the edge
             var edgeRightSegmentPos = new Vector2(endPortX - k_EdgeSelectionOffset, endPortY);
-            helpers.MouseDownEvent(edgeRightSegmentPos);
+            Helpers.MouseDownEvent(edgeRightSegmentPos);
             yield return null;
 
             // Mouse move to the second port while holding CTRL.
-            var endPortTwoUI = endPortTwo.GetUI<Port>(graphView);
+            var endPortTwoUI = EndPortTwo.GetView<Port>(GraphView);
             var portTwoAreaPos = endPortTwoUI.GetGlobalCenter();
-            helpers.MouseDragEvent(edgeRightSegmentPos, portTwoAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
+            Helpers.MouseDragEvent(edgeRightSegmentPos, portTwoAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
             yield return null;
 
-            Assert.AreEqual(startPort, edge.Output);
+            Assert.AreEqual(StartPort, edge.Output);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Mouse release on the port area
-            helpers.MouseUpEvent(portTwoAreaPos);
+            Helpers.MouseUpEvent(portTwoAreaPos);
             yield return null;
 
-            edge = startPort.GetConnectedEdges().First().GetUI<Edge>(graphView);
+            edge = StartPort.GetConnectedEdges().First().GetView<Edge>(GraphView);
 
-            Assert.AreEqual(startPort, edge.Output);
-            Assert.AreEqual(endPortTwo, edge.Input);
+            Assert.AreEqual(StartPort, edge.Output);
+            Assert.AreEqual(EndPortTwo, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
         }
@@ -313,44 +313,44 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var startPortUI = startPort.GetUI<Port>(graphView);
+            var startPortUI = StartPort.GetView<Port>(GraphView);
 
             float startPortX = startPortUI.GetGlobalCenter().x;
             float startPortY = startPortUI.GetGlobalCenter().y;
 
             // Create the edge to be tested.
-            var actions = ConnectPorts(startPort, endPort);
+            var actions = ConnectPorts(StartPort, EndPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
-            var edge = startPort.GetConnectedEdges().First().GetUI<Edge>(graphView);
+            var edge = StartPort.GetConnectedEdges().First().GetView<Edge>(GraphView);
             VisualElement edgeParent = edge.parent;
 
             // Mouse press on the left half of the edge
             var edgeLeftSegmentPos = new Vector2(startPortX + k_EdgeSelectionOffset, startPortY);
-            helpers.MouseDownEvent(edgeLeftSegmentPos);
+            Helpers.MouseDownEvent(edgeLeftSegmentPos);
             yield return null;
 
             // Mouse move to the second port while holding CTRL.
-            var startPortTwoUI = startPortTwo.GetUI<Port>(graphView);
+            var startPortTwoUI = StartPortTwo.GetView<Port>(GraphView);
             var portTwoAreaPos = startPortTwoUI.GetGlobalCenter();
-            helpers.MouseDragEvent(edgeLeftSegmentPos, portTwoAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
+            Helpers.MouseDragEvent(edgeLeftSegmentPos, portTwoAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
             yield return null;
 
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Mouse release on the empty area
-            helpers.MouseUpEvent(portTwoAreaPos);
+            Helpers.MouseUpEvent(portTwoAreaPos);
             yield return null;
 
-            edge = startPortTwo.GetConnectedEdges().First().GetUI<Edge>(graphView);
+            edge = StartPortTwo.GetConnectedEdges().First().GetView<Edge>(GraphView);
 
-            Assert.AreEqual(startPortTwo, edge.Output);
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(StartPortTwo, edge.Output);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
         }
@@ -361,57 +361,57 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var startPortUI = startPort.GetUI<Port>(graphView);
-            var endPortUI = endPort.GetUI<Port>(graphView);
+            var startPortUI = StartPort.GetView<Port>(GraphView);
+            var endPortUI = EndPort.GetView<Port>(GraphView);
 
             float startPortX = startPortUI.GetGlobalCenter().x;
             float endPortX = endPortUI.GetGlobalCenter().x;
             float endPortY = endPortUI.GetGlobalCenter().y;
 
             // Create the edge to be tested.
-            var actions = ConnectPorts(startPort, endPort);
+            var actions = ConnectPorts(StartPort, EndPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
-            var edge = startPort.GetConnectedEdges().First().GetUI<Edge>(graphView);
+            var edge = StartPort.GetConnectedEdges().First().GetView<Edge>(GraphView);
 
             VisualElement edgeParent = edge.parent;
 
             // Mouse press on the right half of the edge
             var edgeRightSegmentPos = new Vector2(endPortX - k_EdgeSelectionOffset, endPortY);
-            helpers.MouseDownEvent(edgeRightSegmentPos);
+            Helpers.MouseDownEvent(edgeRightSegmentPos);
             yield return null;
 
             // Mouse move to the empty area while holding CTRL.
             var emptyAreaPos = new Vector2(startPortX + (endPortX - startPortX) / 2, endPortY);
-            helpers.MouseDragEvent(edgeRightSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
+            Helpers.MouseDragEvent(edgeRightSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
             yield return null;
 
-            Assert.AreEqual(startPort, edge.Output);
+            Assert.AreEqual(StartPort, edge.Output);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Key down with ESC key
-            helpers.KeyDownEvent(KeyCode.Escape);
+            Helpers.KeyDownEvent(KeyCode.Escape);
             yield return null;
 
-            Assert.AreEqual(startPort, edge.Output);
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(StartPort, edge.Output);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Key up to keep the event flow consistent
-            helpers.KeyUpEvent(KeyCode.Escape);
+            Helpers.KeyUpEvent(KeyCode.Escape);
             yield return null;
 
             // Mouse release on the empty area
-            helpers.MouseUpEvent(emptyAreaPos);
+            Helpers.MouseUpEvent(emptyAreaPos);
             yield return null;
 
-            Assert.AreEqual(startPort, edge.Output);
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(StartPort, edge.Output);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
         }
@@ -422,57 +422,57 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var startPortUI = startPort.GetUI<Port>(graphView);
-            var endPortUI = endPort.GetUI<Port>(graphView);
+            var startPortUI = StartPort.GetView<Port>(GraphView);
+            var endPortUI = EndPort.GetView<Port>(GraphView);
 
             float startPortX = startPortUI.GetGlobalCenter().x;
             float startPortY = startPortUI.GetGlobalCenter().y;
             float endPortX = endPortUI.GetGlobalCenter().x;
 
             // Create the edge to be tested.
-            var actions = ConnectPorts(startPort, endPort);
+            var actions = ConnectPorts(StartPort, EndPort);
             while (actions.MoveNext())
             {
                 yield return null;
             }
 
-            var edge = startPort.GetConnectedEdges().First().GetUI<Edge>(graphView);
+            var edge = StartPort.GetConnectedEdges().First().GetView<Edge>(GraphView);
 
             VisualElement edgeParent = edge.parent;
 
             // Mouse press on the left half of the edge
             var edgeLeftSegmentPos = new Vector2(startPortX + k_EdgeSelectionOffset, startPortY);
-            helpers.MouseDownEvent(edgeLeftSegmentPos);
+            Helpers.MouseDownEvent(edgeLeftSegmentPos);
             yield return null;
 
             // Mouse move to the empty area while holding CTRL.
             var emptyAreaPos = new Vector2(startPortX + (endPortX - startPortX) / 2, startPortY);
-            helpers.MouseDragEvent(edgeLeftSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
+            Helpers.MouseDragEvent(edgeLeftSegmentPos, emptyAreaPos, MouseButton.LeftMouse, EventModifiers.Control);
             yield return null;
 
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Key down with ESC key
-            helpers.KeyDownEvent(KeyCode.Escape);
+            Helpers.KeyDownEvent(KeyCode.Escape);
             yield return null;
 
-            Assert.AreEqual(startPort, edge.Output);
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(StartPort, edge.Output);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
 
             // Key up to keep the event flow consistent
-            helpers.KeyUpEvent(KeyCode.Escape);
+            Helpers.KeyUpEvent(KeyCode.Escape);
             yield return null;
 
             // Mouse release on the empty area
-            helpers.MouseUpEvent(emptyAreaPos);
+            Helpers.MouseUpEvent(emptyAreaPos);
             yield return null;
 
-            Assert.AreEqual(startPort, edge.Output);
-            Assert.AreEqual(endPort, edge.Input);
+            Assert.AreEqual(StartPort, edge.Output);
+            Assert.AreEqual(EndPort, edge.Input);
             Assert.IsNotNull(edge.parent);
             Assert.AreEqual(edgeParent, edge.parent);
         }
@@ -483,13 +483,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            Port startPortUI = startPort.GetUI<Port>(graphView);
+            Port startPortUI = StartPort.GetView<Port>(GraphView);
             var startPos = startPortUI.GetGlobalCenter();
-            helpers.DragTo(startPos, startPos + new Vector3(EdgeConnector.connectionDistanceThreshold / 2f, 0f, 0f));
+            Helpers.DragTo(startPos, startPos + new Vector3(EdgeConnector.connectionDistanceThreshold / 2f, 0f, 0f));
 
             yield return null;
 
-            Assert.AreEqual(0, secondNode.GetInputPorts().First().GetConnectedEdges().Count());
+            Assert.AreEqual(0, SecondNode.GetInputPorts().First().GetConnectedEdges().Count());
         }
 
         [UnityTest]
@@ -499,18 +499,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // We start without any connection
-            Assert.AreEqual(0, startPort.GetConnectedEdges().Count());
-            Assert.AreEqual(0, endPort.GetConnectedEdges().Count());
-            Assert.AreEqual(0, endPortTwo.GetConnectedEdges().Count());
+            Assert.AreEqual(0, StartPort.GetConnectedEdges().Count());
+            Assert.AreEqual(0, EndPort.GetConnectedEdges().Count());
+            Assert.AreEqual(0, EndPortTwo.GetConnectedEdges().Count());
 
 
-            Port startPortUI = startPort.GetUI<Port>(graphView);
-            Port endPortUI = endPort.GetUI<Port>(graphView);
-            Port endPortTwoUI = endPortTwo.GetUI<Port>(graphView);
+            Port startPortUI = StartPort.GetView<Port>(GraphView);
+            Port endPortUI = EndPort.GetView<Port>(GraphView);
+            Port endPortTwoUI = EndPortTwo.GetView<Port>(GraphView);
 
             // Drag an edge between the two ports
-            helpers.DragTo(startPortUI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
-            helpers.DragTo(startPortUI.GetGlobalCenter(), endPortTwoUI.GetGlobalCenter());
+            Helpers.DragTo(startPortUI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
+            Helpers.DragTo(startPortUI.GetGlobalCenter(), endPortTwoUI.GetGlobalCenter());
 
             // Allow one frame for the edge to be placed onto a layer
             yield return null;
@@ -519,14 +519,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // Check that the edge exists and that it connects the two ports.
-            Assert.AreEqual(2, startPort.GetConnectedEdges().Count());
-            Assert.AreEqual(1, endPort.GetConnectedEdges().Count());
-            Assert.AreEqual(1, endPortTwo.GetConnectedEdges().Count());
+            Assert.AreEqual(2, StartPort.GetConnectedEdges().Count());
+            Assert.AreEqual(1, EndPort.GetConnectedEdges().Count());
+            Assert.AreEqual(1, EndPortTwo.GetConnectedEdges().Count());
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, startPort.GetConnectedEdges().First(), startPort.GetConnectedEdges().Skip(1).First()));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, StartPort.GetConnectedEdges().First(), StartPort.GetConnectedEdges().Skip(1).First()));
 
-            Port startPortTwoUI = startPortTwo.GetUI<Port>(graphView);
-            helpers.DragTo(startPortUI.GetGlobalCenter() + new Vector3(k_EdgeSelectionOffset, 0, 0), startPortTwoUI.GetGlobalCenter());
+            Port startPortTwoUI = StartPortTwo.GetView<Port>(GraphView);
+            Helpers.DragTo(startPortUI.GetGlobalCenter() + new Vector3(k_EdgeSelectionOffset, 0, 0), startPortTwoUI.GetGlobalCenter());
 
             // Allow one frame for the edge to be placed onto a layer
             yield return null;
@@ -534,9 +534,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             // Allow one frame for the edge to be rendered and process its layout a first time
             yield return null;
 
-            Assert.AreEqual(2, startPortTwo.GetConnectedEdges().Count());
-            Assert.AreEqual(1, endPort.GetConnectedEdges().Count());
-            Assert.AreEqual(1, endPortTwo.GetConnectedEdges().Count());
+            Assert.AreEqual(2, StartPortTwo.GetConnectedEdges().Count());
+            Assert.AreEqual(1, EndPort.GetConnectedEdges().Count());
+            Assert.AreEqual(1, EndPortTwo.GetConnectedEdges().Count());
         }
 
         [UnityTest]
@@ -544,8 +544,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             IONodeModel exeStartNode = CreateNode("First Out Exe node", new Vector2(100, 100), 0, 0, 0, 1);
             IONodeModel exeStartNode2 = CreateNode("Second Out Exe node", new Vector2(100, 400), 0, 0, 0, 1);
-            IONodeModel exeEndNode = CreateNode("First In Exe node", new Vector2(400, 100), 0, 0, 1, 0);
-            IONodeModel exeEndNode2 = CreateNode("Second In Exe node", new Vector2(400, 400), 0, 0, 1, 0);
+            IONodeModel exeEndNode = CreateNode("First In Exe node", new Vector2(400, 100), 0, 0, 1);
+            IONodeModel exeEndNode2 = CreateNode("Second In Exe node", new Vector2(400, 400), 0, 0, 1);
 
             IPortModel startPort = exeStartNode.GetPorts(PortDirection.Output, PortType.Execution).First();
             IPortModel startPort2 = exeStartNode2.GetPorts(PortDirection.Output, PortType.Execution).First();
@@ -560,14 +560,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            Port startPortUI = startPort.GetUI<Port>(graphView);
-            Port startPort2UI = startPort2.GetUI<Port>(graphView);
-            Port endPortUI = endPort.GetUI<Port>(graphView);
-            Port endPort2UI = endPort2.GetUI<Port>(graphView);
+            Port startPortUI = startPort.GetView<Port>(GraphView);
+            Port startPort2UI = startPort2.GetView<Port>(GraphView);
+            Port endPortUI = endPort.GetView<Port>(GraphView);
+            Port endPort2UI = endPort2.GetView<Port>(GraphView);
 
             // Drag an edge between the two ports
-            helpers.DragTo(startPortUI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
-            helpers.DragTo(startPortUI.GetGlobalCenter(), endPort2UI.GetGlobalCenter());
+            Helpers.DragTo(startPortUI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
+            Helpers.DragTo(startPortUI.GetGlobalCenter(), endPort2UI.GetGlobalCenter());
 
             // Allow one frame for the edge to be placed onto a layer
             yield return null;
@@ -580,9 +580,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.AreEqual(1, endPort.GetConnectedEdges().Count());
             Assert.AreEqual(1, endPort2.GetConnectedEdges().Count());
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, startPort.GetConnectedEdges().First(), startPort.GetConnectedEdges().Skip(1).First()));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, startPort.GetConnectedEdges().First(), startPort.GetConnectedEdges().Skip(1).First()));
 
-            helpers.DragTo(startPortUI.GetGlobalCenter() + new Vector3(k_EdgeSelectionOffset, 0, 0), startPort2UI.GetGlobalCenter());
+            Helpers.DragTo(startPortUI.GetGlobalCenter() + new Vector3(k_EdgeSelectionOffset, 0, 0), startPort2UI.GetGlobalCenter());
 
             // Allow one frame for the edge to be placed onto a layer
             yield return null;
@@ -599,8 +599,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             IONodeModel exeStartNode = CreateNode("First Out Exe node", new Vector2(100, 100), 0, 0, 0, 1);
             IONodeModel exeStartNode2 = CreateNode("Second Out Exe node", new Vector2(100, 400), 0, 0, 0, 1);
-            IONodeModel exeEndNode = CreateNode("First In Exe node", new Vector2(400, 100), 0, 0, 1, 0);
-            IONodeModel exeEndNode2 = CreateNode("Second In Exe node", new Vector2(400, 400), 0, 0, 1, 0);
+            IONodeModel exeEndNode = CreateNode("First In Exe node", new Vector2(400, 100), 0, 0, 1);
+            IONodeModel exeEndNode2 = CreateNode("Second In Exe node", new Vector2(400, 400), 0, 0, 1);
 
             IPortModel startPort = exeStartNode.GetPorts(PortDirection.Output, PortType.Execution).First();
             IPortModel startPort2 = exeStartNode2.GetPorts(PortDirection.Output, PortType.Execution).First();
@@ -615,14 +615,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            Port startPortUI = startPort.GetUI<Port>(graphView);
-            Port startPort2UI = startPort2.GetUI<Port>(graphView);
-            Port endPortUI = endPort.GetUI<Port>(graphView);
-            Port endPort2UI = endPort2.GetUI<Port>(graphView);
+            Port startPortUI = startPort.GetView<Port>(GraphView);
+            Port startPort2UI = startPort2.GetView<Port>(GraphView);
+            Port endPortUI = endPort.GetView<Port>(GraphView);
+            Port endPort2UI = endPort2.GetView<Port>(GraphView);
 
             // Drag an edge between the two ports
-            helpers.DragTo(startPortUI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
-            helpers.DragTo(startPort2UI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
+            Helpers.DragTo(startPortUI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
+            Helpers.DragTo(startPort2UI.GetGlobalCenter(), endPortUI.GetGlobalCenter());
 
             // Allow one frame for the edge to be placed onto a layer
             yield return null;
@@ -635,9 +635,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.AreEqual(1, startPort2.GetConnectedEdges().Count());
             Assert.AreEqual(2, endPort.GetConnectedEdges().Count());
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, endPort.GetConnectedEdges().First(), endPort.GetConnectedEdges().Skip(1).First()));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, endPort.GetConnectedEdges().First(), endPort.GetConnectedEdges().Skip(1).First()));
 
-            helpers.DragTo(endPortUI.GetGlobalCenter() - new Vector3(k_EdgeSelectionOffset, 0, 0), endPort2UI.GetGlobalCenter());
+            Helpers.DragTo(endPortUI.GetGlobalCenter() - new Vector3(k_EdgeSelectionOffset, 0, 0), endPort2UI.GetGlobalCenter());
 
             // Allow one frame for the edge to be placed onto a layer
             yield return null;

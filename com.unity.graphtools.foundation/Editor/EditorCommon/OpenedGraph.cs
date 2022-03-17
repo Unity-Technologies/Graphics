@@ -22,7 +22,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         [SerializeField]
         GameObject m_BoundObject;
 
-        internal IGraphAssetModel m_GraphAssetModel;
+        IGraphAssetModel m_GraphAssetModel;
+
+        internal IGraphAssetModel GetGraphAssetModelWithoutLoading() => m_GraphAssetModel;
 
         /// <summary>
         /// Gets the graph asset model.

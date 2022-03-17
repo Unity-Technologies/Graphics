@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
@@ -53,14 +52,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         TypeHandle GetSubgraphNodeTypeHandle();
 
         /// <summary>
-        /// Gets the port capacity of a port.
-        /// </summary>
-        /// <param name="portModel">The port model to check.</param>
-        /// <param name="capacity">The resulting capacity for the given <paramref name="portModel"/></param>
-        /// <returns>True if a capacity other than the default one was returned in <paramref name="capacity"/>. False otherwise.</returns>
-        bool GetPortCapacity(IPortModel portModel, out PortCapacity capacity);
-
-        /// <summary>
         /// Get the entry points of the associated <see cref="GraphModel"/>.
         /// </summary>
         /// <returns>The entry points of the associated <see cref="GraphModel"/>.</returns>
@@ -101,10 +92,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Indicates if a node can be pasted or duplicated.
         /// </summary>
-        /// <param name="originalModel">The node model to copy</param>
+        /// <param name="originalModel">The node model to copy.</param>
         /// <param name="graph">The graph in which the action takes place.</param>
-        /// <returns>If the node can be pasted or duplicated.</returns>
+        /// <returns>True if the node can be pasted or duplicated.</returns>
         bool CanPasteNode(INodeModel originalModel, IGraphModel graph);
+
+        /// <summary>
+        /// Indicates if a variable declaration can be pasted or duplicated.
+        /// </summary>
+        /// <param name="originalModel">The variable declaration model to copy.</param>
+        /// <param name="graph">The graph in which the action takes place.</param>
+        /// <returns>True if the variable declaration can be pasted or duplicated.</returns>
+        bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph);
 
         /// <summary>
         /// Creates a <see cref="IBlackboardGraphModel"/> for the <paramref name="graphAssetModel"/>.
@@ -113,6 +112,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>A new <see cref="IBlackboardGraphModel"/></returns>
         IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel);
 
+        /// <summary>
+        /// The list of valid section names for the graph.
+        /// </summary>
         public IEnumerable<string> SectionNames { get; }
 
         /// <summary>
@@ -121,5 +123,36 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="variable">The variable.</param>
         /// <returns>A valid section for a given variable. Default is to return the first section.</returns>
         string GetVariableSection(IVariableDeclarationModel variable);
+
+        /// <summary>
+        /// Returns whether a given variable can be converted to go in the section named sectionName.
+        /// </summary>
+        /// <param name="variable">The variable.</param>
+        /// <param name="sectionName">The target section.</param>
+        /// <returns>Whether a given variable can be converted to go in the section named sectionName.</returns>
+        bool CanConvertVariable(IVariableDeclarationModel variable, string sectionName);
+
+        /// <summary>
+        /// Convert a variable to go to the section named sectionName. Either a new variable or the same variable can be returned.
+        /// </summary>
+        /// <param name="variable">The variable.</param>
+        /// <param name="sectionName">The target section.</param>
+        /// <returns>The converted variable.</returns>
+        IVariableDeclarationModel ConvertVariable(IVariableDeclarationModel variable, string sectionName);
+
+        /// <summary>
+        /// Creates a <see cref="IInspectorModel"/> to inspect <see cref="inspectedModel"/>.
+        /// </summary>
+        /// <param name="inspectedModel">The model to inspect.</param>
+        /// <returns>A view model for the inspector.</returns>
+        IInspectorModel CreateInspectorModel(IModel inspectedModel);
+
+        /// <summary>
+        /// Returns whether a given type handle can be assigned to another type handle, in the context of the stencil.
+        /// </summary>
+        /// <param name="destination">The destination type handle.</param>
+        /// <param name="source">The source type handle.</param>
+        /// <returns>Whether a given type handle can be assigned to another type handle.</returns>
+        bool CanAssignTo(TypeHandle destination, TypeHandle source);
     }
 }

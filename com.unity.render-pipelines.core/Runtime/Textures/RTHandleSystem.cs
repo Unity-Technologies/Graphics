@@ -181,10 +181,11 @@ namespace UnityEngine.Rendering
                 }
                 m_FramesSinceLastReset++;
             }
-
-            // If some cameras is requesting the same res as the max res, we don't want to reset
-            if (m_MaxWidths == width && m_MaxHeights == height)
+            else
+            {
+                // If some cameras is a reasonable resolution size, we dont reset.
                 m_FramesSinceLastReset = 0;
+            }
 #endif
 
             bool sizeChanged = width > GetMaxWidth() || height > GetMaxHeight() || reset;
@@ -426,6 +427,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns></returns>
         public RTHandle Alloc(
@@ -447,6 +449,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -478,6 +481,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
+                    vrUsage = vrUsage,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
                 };
             }
@@ -499,6 +503,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
+                    vrUsage = vrUsage,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale)
                 };
             }
@@ -543,6 +548,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>A new RTHandle.</returns>
         public RTHandle Alloc(
@@ -563,6 +569,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -587,6 +594,7 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
             );
 
@@ -627,6 +635,7 @@ namespace UnityEngine.Rendering
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="vrUsage">Special treatment of the VR eye texture used in stereoscopic rendering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>A new RTHandle.</returns>
         public RTHandle Alloc(
@@ -647,6 +656,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
             string name = ""
         )
         {
@@ -672,6 +682,7 @@ namespace UnityEngine.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
+                vrUsage,
                 name
             );
 
@@ -701,6 +712,7 @@ namespace UnityEngine.Rendering
             bool bindTextureMS,
             bool useDynamicScale,
             RenderTextureMemoryless memoryless,
+            VRTextureUsage vrUsage,
             string name
         )
         {
@@ -742,6 +754,7 @@ namespace UnityEngine.Rendering
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
                     stencilFormat = stencilFormat,
+                    vrUsage = vrUsage,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale)
                 };
             }
@@ -763,6 +776,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
+                    vrUsage = vrUsage,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale)
                 };
             }

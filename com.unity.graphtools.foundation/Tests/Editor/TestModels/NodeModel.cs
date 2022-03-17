@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
             m_Capabilities.Add(Overdrive.Capabilities.Renamable);
         }
 
-        public override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
+        protected override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType, TypeHandle dataType, string portId, PortModelOptions options)
         {
             var port = new PortModel

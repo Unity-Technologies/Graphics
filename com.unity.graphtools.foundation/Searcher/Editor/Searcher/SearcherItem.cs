@@ -13,34 +13,58 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
     [Serializable]
     public class SearcherItem
     {
-        [SerializeField] int m_Id;
-        [SerializeField] List<int> m_ChildrenIds;
+        [SerializeField] string m_CategoryPath;
         [SerializeField] string m_Name;
         [SerializeField] string m_Help;
         [SerializeField] string[] m_Synonyms;
-        [SerializeField] Texture2D m_Icon;
-        [SerializeField] bool m_CollapseEmptyIcon = true;
+        [SerializeField] string m_StyleName;
+        [SerializeField] int m_Priority;
 
-        internal long lastSearchScore;
-        internal string lastMatchedString;
-        internal List<int> lastMatchedIndices;
+        public static readonly char CategorySeparator = '/';
 
         /// <summary>
-        /// Index in the database.
+        /// Name of the item.
+        /// <remarks>Used to find the item during search.</remarks>
         /// </summary>
-        public int Id => m_Id;
+        public virtual string Name => m_Name ?? "";
 
         /// <summary>
-        /// Name of the Item.
+        /// Full name of the item including its path as a searchable string.
+        /// e.g. path separated by spaces rather than /.
+        /// <example>"Food Fruits Berries Strawberry"</example>
         /// </summary>
-        public virtual string Name => m_Name;
+        public string SearchableFullName
+        {
+            get => FullName.Replace(CategorySeparator, ' ');
+        }
 
         /// <summary>
-        /// Path in the hierarchy of items.
+        /// Name of the item including its category path.
+        /// <example>"Food/Fruits/Berries/Strawberry"</example>
+        /// <remarks>This will set the <see cref="CategoryPath"/> and <see cref="Name"/> properties.</remarks>
         /// </summary>
-        public string Path { get; private set; }
+        public string FullName
+        {
+            get => CategoryPath == "" ? Name : Name == "" ? CategoryPath : CategoryPath + CategorySeparator + Name;
+            set
+            {
+                var success = ExtractPathAndNameFromFullName(value, out m_CategoryPath, out m_Name);
+                if (!success)
+                    Debug.LogWarning($"error parsing SearcherItem fullname '{value}'.Category path set to '{m_CategoryPath}' and name set to '{m_Name}'");
+            }
+        }
 
-        public int ChildrenCapacity { get; set; }
+        public string[] GetParentCategories() => CategoryPath.Split(CategorySeparator);
+
+        /// <summary>
+        /// The category in which this item belongs, in a directory format.
+        /// <example>"Food/Fruits/Berries"</example>
+        /// </summary>
+        public string CategoryPath
+        {
+            get => m_CategoryPath ?? "";
+            set => m_CategoryPath = value;
+        }
 
         /// <summary>
         /// Help content to display about this item.
@@ -53,7 +77,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
 
         /// <summary>
         /// Synonyms of this item.
-        /// Might be used to find the item by an alternate name.
+        /// <remarks> Might be used to find the item by an alternate name.</remarks>
         /// </summary>
         public string[] Synonyms
         {
@@ -62,61 +86,72 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         }
 
         /// <summary>
-        /// Depth of this item in the hierarchy.
-        /// </summary>
-        public int Depth => Parent?.Depth + 1 ?? 0;
-
-        /// <summary>
         /// Custom User Data.
         /// </summary>
+        [Obsolete("You should create your own class inheriting from SearcherItem. (2021-09-21)")]
         public object UserData { get; set; }
 
         /// <summary>
-        /// Icon associated with this item.
+        /// Custom name used to generate USS styles when creating UI for this item.
         /// </summary>
-        public Texture2D Icon { get => m_Icon; set => m_Icon = value; }
+        public string StyleName
+        {
+            get => m_StyleName;
+            set => m_StyleName = value;
+        }
 
         /// <summary>
-        /// Whether the icon of this item should be collapsed or not if empty.
+        /// Number to allow some items to come before others.
+        /// <remarks>The lower, the higher the priority is.</remarks>
         /// </summary>
-        public bool CollapseEmptyIcon { get => m_CollapseEmptyIcon; set => m_CollapseEmptyIcon = value; }
-
-        /// <summary>
-        /// Parent of this item in the hierarchy.
-        /// </summary>
-        public SearcherItem Parent { get; private set; }
-
-        /// <summary>
-        /// Whether this item has children or not.
-        /// </summary>
-        public bool HasChildren => Children.Count > 0;
-
-        /// <summary>
-        /// Database this items belongs to.
-        /// </summary>
-        public SearcherDatabaseBase Database { get; private set; }
-
+        public int Priority
+        {
+            get => m_Priority;
+            set => m_Priority = value;
+        }
 
         static (Func<SearcherItem, IEnumerable<string>> getSearchData, float ratio)[] s_SearchKeysRatios =
         {
             (si => Enumerable.Repeat(si.Name, 1), 1f),
-            (si => Enumerable.Repeat(si.Path, 1), 0.5f),
+            (si => Enumerable.Repeat(si.SearchableFullName, 1), 0.5f),
             (si => si.Synonyms ?? Enumerable.Empty<string>(), 0.5f),
         };
 
         /// <summary>
-        /// Data to apply search query on, with ratios of importance for each one
+        /// Data to apply search query on, with ratios of importance for each one.
         /// </summary>
         public IEnumerable<(IEnumerable<string> searchData, float ratio)> SearchKeys =>
             s_SearchKeysRatios.Select(tu => (tu.getSearchData(this), tu.ratio));
 
-        // the backing field gets serialized otherwise and triggers a "Serialization depth limit 7 exceeded" warning
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearcherItem"/> class.
+        /// </summary>
+        public SearcherItem()
+        {
+        }
 
         /// <summary>
-        /// Children of this item in the hierarchy.
+        /// Initializes a new instance of the <see cref="SearcherItem"/> class.
         /// </summary>
-        [field: NonSerialized]
-        public List<SearcherItem> Children { get; private set; }
+        /// <param name="name">The name used to search the item.</param>
+        public SearcherItem(string name)
+        {
+            m_Name = name;
+        }
+
+        static bool ExtractPathAndNameFromFullName(string fullName, out string path, out string name)
+        {
+            path = "";
+            name = fullName;
+            var nameParts = fullName.Split(CategorySeparator);
+            if (nameParts.Length > 1)
+            {
+                name = nameParts[nameParts.Length - 1];
+                path = fullName.Substring(0, fullName.Length - name.Length - 1);
+                return true;
+            }
+            return nameParts.Length == 1;
+        }
 
         /// <summary>
         /// Instantiates a Searcher item.
@@ -127,66 +162,19 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         /// <param name="userData">Custom user data to store.</param>
         /// <param name="icon">Icon to display with this item.</param>
         /// <param name="collapseEmptyIcon">Whether this item icon should be collapsed or not if it's empty.</param>
-        public SearcherItem(string name, string help = "", List<SearcherItem> children = null, object userData = null, Texture2D icon = null, bool collapseEmptyIcon = true)
+        /// <param name="styleName">Custom name used to generate USS styles when creating UI for this item.</param>
+        [Obsolete("SearcherItems don't have children, as they aren't used to represent categories anymore. Specify CategoryPath such as 'Food/Fruits', or FullName such as 'Food/Fruits/Apple'")]
+        public SearcherItem(string name, string help, List<SearcherItem> children, object userData = null, Texture2D icon = null, bool collapseEmptyIcon = true, string styleName = null)
         {
-            m_Id = -1;
-            Parent = null;
-            Database = null;
-
-            m_Name = name;
-            m_Help = help;
-            m_Icon = icon;
-            UserData = userData;
-            m_CollapseEmptyIcon = collapseEmptyIcon;
-
-            Children = new List<SearcherItem>();
-            if (children == null)
-                return;
-
-            Children = children;
-            foreach (var child in children)
-                child.OverwriteParent(this);
         }
 
         /// <summary>
         /// Add a Searcher Item as a child of this item.
         /// </summary>
         /// <param name="child">The children to add.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the children to add was null.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if the item doesn't belong to a database.</exception>
+        [Obsolete("SearcherItems don't have children, as they aren't used to represent categories anymore. Specify CategoryPath such as 'Food/Fruits', or FullName such as 'Food/Fruits/Apple'.")]
         public void AddChild(SearcherItem child)
         {
-            if (child == null)
-                throw new ArgumentNullException(nameof(child));
-
-            if (Database != null)
-                throw new InvalidOperationException(
-                    "Cannot add more children to an item that was already used in a database.");
-
-            Children = Children ?? new List<SearcherItem>(ChildrenCapacity > 0 ? ChildrenCapacity : 0);
-
-            Children.Add(child);
-            child.OverwriteParent(this);
-        }
-
-        internal void OverwriteId(int newId)
-        {
-            m_Id = newId;
-        }
-
-        void OverwriteParent(SearcherItem newParent)
-        {
-            Parent = newParent;
-        }
-
-        internal void OverwriteDatabase(SearcherDatabaseBase newDatabase)
-        {
-            Database = newDatabase;
-        }
-
-        internal void OverwriteChildrenIds(List<int> childrenIds)
-        {
-            m_ChildrenIds = childrenIds;
         }
 
         /// <summary>
@@ -196,31 +184,6 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         /// </summary>
         public virtual void Build()
         {
-            GeneratePath();
-        }
-
-        internal void GeneratePath()
-        {
-            if (Parent != null)
-                Path = Parent.Path + " ";
-            else
-                Path = string.Empty;
-            Path += Name;
-        }
-
-        internal void ReInitAfterLoadFromFile()
-        {
-            if (Children == null)
-                Children = new List<SearcherItem>(m_ChildrenIds.Count);
-
-            foreach (var id in m_ChildrenIds)
-            {
-                var child = Database.IndexedItems[id];
-                Children.Add(child);
-                child.OverwriteParent(this);
-            }
-
-            GeneratePath();
         }
 
         /// <summary>
@@ -229,7 +192,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         /// <returns>The representation of this item as a string.</returns>
         public override string ToString()
         {
-            return $"{nameof(Id)}: {Id}, {nameof(Name)}: {Name}, {nameof(Depth)}: {Depth}";
+            return $"{nameof(FullName)}: {FullName}";
         }
     }
 }

@@ -97,12 +97,22 @@ namespace UnityEngine.Rendering.HighDefinition
         // All Validate functions must be static. It allows to automatically update the shaders with a script if code changes
         internal static void ValidateMaterial(Material material)
         {
+            MaterialId materialId = material.GetMaterialId();
+            if (material.HasProperty(kMaterialID))
+            {
+                if (materialId != MaterialId.LitStandard && materialId != MaterialId.LitSSS && materialId != MaterialId.LitTranslucent)
+                {
+                    materialId = MaterialId.LitStandard;
+                    material.SetFloat(kMaterialID, (float)materialId);
+                }
+            }
+
             BaseLitAPI.SetupBaseLitKeywords(material);
             BaseLitAPI.SetupBaseLitMaterialPass(material);
             SetupLayersMappingKeywords(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitAPI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
+            BaseLitAPI.SetupStencil(material, receiveSSR, materialId == MaterialId.LitSSS);
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -177,7 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
-            MaterialId materialId = material.GetMaterialId();
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
 

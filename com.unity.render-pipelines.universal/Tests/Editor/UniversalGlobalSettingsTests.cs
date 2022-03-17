@@ -30,6 +30,11 @@ class UniversalGlobalSettingsTests
     void EnsureUniversalRPIsActivePipeline()
     {
         Camera.main.Render();
+
+        // Skip test if project is not configured to be SRP project
+        if (RenderPipelineManager.currentPipeline == null)
+            Assert.Ignore("Test project has no SRP configured, skipping test");
+
         initialGlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
         Assert.IsInstanceOf<UniversalRenderPipeline>(RenderPipelineManager.currentPipeline);
         Assert.IsNotNull(initialGlobalSettings);

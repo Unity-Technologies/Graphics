@@ -39,7 +39,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
         /// <inheritdoc />
         protected override BaseGraphTool CreateGraphTool()
         {
-            return CsoTool.Create<VerticalGraphTool>();
+            return CsoTool.Create<VerticalGraphTool>(WindowID);
         }
     }
 }

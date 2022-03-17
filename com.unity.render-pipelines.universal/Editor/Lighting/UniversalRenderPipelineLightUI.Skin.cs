@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     partial class UniversalRenderPipelineLightUI
     {
-        static class Styles
+        private static class Styles
         {
             public static readonly GUIContent Type = EditorGUIUtility.TrTextContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, and Area lights.");
 
@@ -44,6 +44,8 @@ namespace UnityEditor.Rendering.Universal
                 UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[1],
                 UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[2],
             };
+
+            public static GUIContent SoftShadowQuality = EditorGUIUtility.TrTextContent("Soft Shadows Quality", "Controls the filtering quality of soft shadows. Higher quality has lower performance.");
 
             // Bias (default or custom)
             public static GUIContent shadowBias = EditorGUIUtility.TrTextContent("Bias", "Select if the Bias should use the settings from the Pipeline Asset or Custom settings.");

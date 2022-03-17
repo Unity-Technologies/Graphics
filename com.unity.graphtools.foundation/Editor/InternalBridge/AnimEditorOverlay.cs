@@ -37,8 +37,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
                 m_PlayHeadCursor.headColor = PlayHeadColor;
                 m_PlayHeadCursor.lineColor = PlayHeadColor;
                 m_PlayHeadCursor.alignment = TimeCursorManipulator.Alignment.Left;
-                m_PlayHeadCursor.onStartDrag += (manipulator, evt) => OnDragPlayHead(evt);
-                m_PlayHeadCursor.onDrag += (manipulator, evt) => OnDragPlayHead(evt);
+                m_PlayHeadCursor.onStartDrag += (_, evt) => OnDragPlayHead(evt);
+                m_PlayHeadCursor.onDrag += (_, evt) => OnDragPlayHead(evt);
             }
 
             m_PlayHeadCursor.HandleEvents();

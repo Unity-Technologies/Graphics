@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -59,16 +60,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual string pathtracingInclude => null;
         protected virtual bool supportPathtracing => false;
         protected virtual bool supportRaytracing => false;
+        protected virtual string[] sharedTemplatePath => new string[]{
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
+            $"{HDUtils.GetVFXPath()}/Editor/ShaderGraph/Templates"
+        };
 
         public virtual string identifier => GetType().Name;
 
-        public virtual ScriptableObject GetMetadataObject()
+        public virtual ScriptableObject GetMetadataObject(GraphDataReadOnly graph)
         {
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
             hdMetadata.subTargetGuid = subTargetGuid;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
             hdMetadata.hdSubTargetVersion = systemData.version;
+            hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation || graph.AnyVertexAnimationActive();
             return hdMetadata;
         }
 
@@ -126,12 +132,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        private static readonly string[] s_SharedTemplatePath =
-        {
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
-            $"{HDUtils.GetVFXPath()}/Editor/ShaderGraph/Templates"
-        };
-
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
             if (TargetsVFX())
@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectories = s_SharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
+                passDescriptor.sharedTemplateDirectories = sharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;

@@ -7,7 +7,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// The graph asset referenced by the subgraph node.
         /// </summary>
-        GraphAssetModel ReferenceGraphAssetModel { get; set; }
+        IGraphAssetModel SubgraphAssetModel { get; set; }
+        /// <summary>
+        /// The guid of the graph asset referenced by the subgraph node.
+        /// </summary>
+        string SubgraphGuid { get; }
         /// <summary>
         /// The data input port models on the subgraph node with their corresponding variable declaration models.
         /// </summary>
@@ -24,5 +28,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// The execution output port models on the subgraph node with their corresponding variable declaration models.
         /// </summary>
         Dictionary<IPortModel, IVariableDeclarationModel> ExecutionOutputPortToVariableDeclarationDictionary { get; }
+
+        /// <summary>
+        /// Updates the subgraph node.
+        /// </summary>
+        void Update();
     }
 }

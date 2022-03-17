@@ -220,7 +220,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             HasPreview = nodeHasPreview;
         }
 
-        public override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
+        protected override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {

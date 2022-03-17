@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Header("Wind")]
         public ClampedFloatParameter windOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Controls the global wind speed in kilometers per hour.</summary>
-        public FloatParameter windSpeed = new FloatParameter(100.0f);
+        public FloatParameter windSpeed = new FloatParameter(0.0f);
 
         // Deprecated, kept for migration
         [SerializeField]
@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Returns interpolated value from the visual environment.</summary>
         /// <param name="camera">The camera containing the volume stack to evaluate</param>
         /// <returns>The value for this parameter.</returns>
-        public float GetValue(HDCamera camera)
+        public virtual float GetValue(HDCamera camera)
         {
             if (value.mode == WindOverrideMode.Custom)
                 return value.customValue;
@@ -218,6 +218,36 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The value for this parameter.</returns>
         protected override float GetGlobalValue(HDCamera camera) =>
             camera.volumeStack.GetComponent<VisualEnvironment>().windOrientation.value;
+
+        /// <summary>Interpolates between two values.</summary>
+        /// <param name="from">The start value</param>
+        /// <param name="to">The end value</param>
+        /// <param name="t">The interpolation factor in range [0,1]</param>
+        public override void Interp(WindParamaterValue from, WindParamaterValue to, float t)
+        {
+            // These are not used
+            m_Value.multiplyValue = 0;
+
+            // Binary state that cannot be blended
+            m_Value.mode = t > 0f ? to.mode : from.mode;
+
+            // Override the orientation specific values
+            m_Value.additiveValue = from.additiveValue + (to.additiveValue - from.additiveValue) * t;
+            m_Value.customValue = HDUtils.InterpolateOrientation(from.customValue, to.customValue, t);
+        }
+
+        /// <summary>Returns interpolated value from the visual environment.</summary>
+        /// <param name="camera">The camera containing the volume stack to evaluate</param>
+        /// <returns>The value for this parameter.</returns>
+        public override float GetValue(HDCamera camera)
+        {
+            // Multiply mode is not supported for wind orientation
+            if (value.mode == WindOverrideMode.Multiply)
+                throw new NotSupportedException("Texture format not supported");
+
+            // Otherwise we want the base behavior
+            return base.GetValue(camera);
+        }
     }
 
     /// <summary>

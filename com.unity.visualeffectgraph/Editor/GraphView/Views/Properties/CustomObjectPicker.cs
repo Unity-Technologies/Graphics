@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 
 using UnityEditor.Search;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Search;
@@ -15,24 +16,79 @@ namespace UnityEditor.VFX.UI
     {
         internal static void Pick(Type type, TextureDimension textureDimension, Action<Object, bool> selectHandler)
         {
-            var view = typeof(Texture).IsAssignableFrom(type)
-                ? GetTexturePickerView(type, textureDimension, selectHandler)
-                : GetGenericView(type, selectHandler);
-
-            // Until the "viewState" API is made public (should be in 2022.1) we use reflection to remove the inspector button
-            var quickSearchType = typeof(Search.SearchService).Assembly.GetType("UnityEditor.Search.QuickSearch");
-            var viewStateInfo = quickSearchType?.GetProperty("viewState", BindingFlags.Instance | BindingFlags.NonPublic);
-            var state = viewStateInfo?.GetValue(view);
-            if (state != null)
+            SearchViewState state;
+            if (typeof(Texture).IsAssignableFrom(type))
             {
-                var flagsInfo = state.GetType().GetField("flags", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                flagsInfo?.SetValue(state, SearchViewFlags.DisableInspectorPreview);
+                state = GetTexturePickerView(type, textureDimension, selectHandler);
+            }
+            else if (typeof(ShaderGraphVfxAsset).IsAssignableFrom(type))
+            {
+                state = GetShaderGraphPickerView(selectHandler);
+            }
+            else
+            {
+                ShowGenericView(type, selectHandler);
+                return;
+            }
+
+            Search.SearchService.ShowPicker(state);
+        }
+
+        private static SearchViewState GetShaderGraphPickerView(Action<Object, bool> selectHandler)
+        {
+            return new SearchViewState
+            {
+                flags = SearchViewFlags.DisableInspectorPreview,
+                title = "VFX Shader Graph",
+                itemSize = 1f,
+                selectHandler = (x, y) => selectHandler(x?.ToObject(), y),
+                context = Search.SearchService.CreateContext(CreateShaderProvider()),
+            };
+        }
+
+        private static SearchProvider CreateShaderProvider()
+        {
+            return new SearchProvider("shader", "Shader Graph", (context, _) => FetchShaderGraph(context));
+        }
+
+        private static IEnumerable<SearchItem> FetchShaderGraph(SearchContext context)
+        {
+            var userQuery = context.searchQuery;
+            var providers = new[] { Search.SearchService.GetProvider("adb") };
+            var assetProvider = Search.SearchService.GetProvider("asset");
+
+            using (var query = Search.SearchService.CreateContext(providers, $"t:{nameof(ShaderGraphVfxAsset)} {userQuery}", context.options))
+            using (var request = Search.SearchService.Request(query))
+            {
+                foreach (var r in request)
+                {
+                    if (r != null && r.ToObject<ShaderGraphVfxAsset>() == null)
+                    {
+                        var shader = r.ToObject<Shader>();
+                        var path = AssetDatabase.GetAssetPath(shader);
+                        var subAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+                        var vfxShader = subAssets.SingleOrDefault(x => x is ShaderGraphVfxAsset);
+                        if (vfxShader != null)
+                        {
+                            var gid = GlobalObjectId.GetGlobalObjectIdSlow(vfxShader);
+                            path = AssetDatabase.GetAssetPath(vfxShader);
+                            var item = Search.Providers.AssetProvider.CreateItem("vfxshader", context, assetProvider, gid.ToString(), path, r.score - 900, SearchDocumentFlags.Asset | SearchDocumentFlags.Nested);
+                            item.label = vfxShader.name;
+                            item.description = path;
+                            yield return item;
+                        }
+                    }
+                    else
+                    {
+                        yield return r;
+                    }
+                }
             }
         }
 
-        static ISearchView GetGenericView(Type type, Action<Object, bool> selectHandler)
+        static void ShowGenericView(Type type, Action<Object, bool> selectHandler)
         {
-            return Search.SearchService.ShowObjectPicker(
+            Search.SearchService.ShowObjectPicker(
                 selectHandler,
                 null,
                 null,
@@ -40,19 +96,16 @@ namespace UnityEditor.VFX.UI
                 type);
         }
 
-        static ISearchView GetTexturePickerView(Type type, TextureDimension textureDimension, Action<Object, bool> selectHandler)
+        static SearchViewState GetTexturePickerView(Type type, TextureDimension textureDimension, Action<Object, bool> selectHandler)
         {
-            var view = Search.SearchService.ShowPicker(
-                Search.SearchService.CreateContext(CreateTextureProvider(type, textureDimension)),
-                (x, y) => selectHandler(x?.ToObject(), y),
-                null,
-                null,
-                null,
-                type.Name,
-                5f);
-            view.itemIconSize = 5f;
-
-            return view;
+            return new SearchViewState
+            {
+                flags = SearchViewFlags.DisableInspectorPreview,
+                title = type.Name,
+                itemSize = 5f,
+                selectHandler = (x, y) => selectHandler(x?.ToObject(), y),
+                context = Search.SearchService.CreateContext(CreateTextureProvider(type, textureDimension)),
+            };
         }
 
         static SearchProvider CreateTextureProvider(Type type, TextureDimension textureDimension)
@@ -62,17 +115,6 @@ namespace UnityEditor.VFX.UI
 
         static IEnumerable<SearchItem> FetchTextures(Type type, TextureDimension textureDimension, SearchContext context)
         {
-            // This piece of code is meant to put RenderTextures in a separate tab
-            // But the display is right now buggy, so keep it for later use when display issue is fixed
-            //var createGroupProviderMethod = typeof(Search.SearchUtils).GetMethod("CreateGroupProvider", BindingFlags.NonPublic|BindingFlags.Static);
-            //SearchProvider textureGroupProvider = null;
-            //SearchProvider renderTextureGroupProvider = null;
-            //if (createGroupProviderMethod != null)
-            //{
-            //    textureGroupProvider = createGroupProviderMethod.Invoke(null, new object[] { adbProvider, type.Name, 0, true }) as SearchProvider;
-            //    renderTextureGroupProvider = createGroupProviderMethod.Invoke(null, new object[] { adbProvider, "Render Textures", 1, true }) as SearchProvider;;
-            //}
-
             var userQuery = context.searchQuery;
             var providers = new[] { Search.SearchService.GetProvider("adb") };
 
@@ -81,8 +123,15 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var r in request)
                 {
-                    //r.provider = textureGroupProvider;
-                    yield return r;
+                    if (r == null)
+                    {
+                        yield return null;
+                    }
+                    else
+                    {
+                        r.provider = Search.SearchUtils.CreateGroupProvider(r.provider, "Texture 2D", 0, true);
+                        yield return r;
+                    }
                 }
             }
 
@@ -97,7 +146,7 @@ namespace UnityEditor.VFX.UI
                         var rt = r.ToObject<RenderTexture>();
                         if (rt.dimension == textureDimension)
                         {
-                            //r.provider = renderTextureGroupProvider;
+                            r.provider = Search.SearchUtils.CreateGroupProvider(r.provider, "Render Texture", 0, true);
                             yield return r;
                         }
                     }

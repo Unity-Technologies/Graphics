@@ -1,0 +1,95 @@
+.InspectorView {
+    position:absolute;
+    justify-content: flex-start;
+    min-width: 100px;
+    min-height: 100px;
+    width: 300px;
+    height: 275px;
+}
+
+.InspectorView > .mainContainer {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+ScrollView {
+    flex: 1 0 0;
+}
+
+.InspectorView > .mainContainer {
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-radius: 5px;
+    background-color: #2e2e2e;
+    border-color: #191919;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 6px;
+    flex-grow: 1;
+}
+
+.InspectorView > .mainContainer > #content {
+    flex-grow: 1;
+}
+
+.InspectorView > .mainContainer > #content > #contentContainer {
+    min-height: auto;
+    padding: 6px;
+    flex-direction: column;
+    flex-grow: 1;
+    align-items: stretch;
+    padding-bottom: 15px;
+}
+
+.InspectorView > .mainContainer > #content > #header {
+    overflow: hidden;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #393939;
+    padding: 8px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+}
+
+.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
+}
+
+#maxItemsMessageLabel {
+    visibility: hidden;
+    padding: 8px 4px 4px 4px;
+    color: rgb(180, 180, 180);
+    align-self: center;
+    border-color: #1F1F1F;
+}
+
+#labelContainer {
+    flex: 1 0 0;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#titleLabel {
+    font-size: 14px;
+    color: rgb(180, 180, 180);
+    padding: 1px 2px 2px;
+}
+
+.MainFoldout {
+    background-color: #383838;
+    border-color: #1F1F1F;
+    border-top-width: 1px;
+}
+
+.InspectorView #NodeSettingsContainer {
+    padding-left: 3px;
+    padding-right: 6px;
+    width: 0;
+    min-width: 100%;
+}

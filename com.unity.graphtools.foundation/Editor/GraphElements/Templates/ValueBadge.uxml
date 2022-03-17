@@ -1,4 +1,0 @@
-<UXML id = "IconAnnotation" xmlns:ui="UnityEngine.UIElements">
-    <ui:Image name="tip" />
-    <ui:Label name="desc"/>
-</UXML>

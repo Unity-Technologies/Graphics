@@ -6,6 +6,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 
+/// <summary>
+/// Editor window class for the Render Graph Viewer
+/// </summary>
 public class RenderGraphViewer : EditorWindow
 {
     static class Style
@@ -660,6 +663,11 @@ public class RenderGraphViewer : EditorWindow
 
     void OnEnable()
     {
+        // For some reason, when entering playmode, CreateGUI is not called again so we need to rebuild the UI because all references are lost.
+        // Apparently it was not the case a while ago.
+        if (m_Root == null)
+            RebuildUI();
+
         for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             m_ResourceElementsInfo[i] = new DynamicArray<ResourceElementInfo>();
 

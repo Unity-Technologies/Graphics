@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
         {
             base.BuildPartList();
 
-            PartList.InsertPartAfter(titleIconContainerPartName, TemperatureAndTimePart.Create(paramContainerPartName, Model, this, ussClassName));
+            PartList.ReplacePart(nodeSettingsContainerPartName, TemperatureAndTimePart.Create(paramContainerPartName, Model, this, ussClassName));
         }
     }
 }

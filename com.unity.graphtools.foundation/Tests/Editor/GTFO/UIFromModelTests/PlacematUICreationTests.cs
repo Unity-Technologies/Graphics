@@ -1,6 +1,4 @@
 using NUnit.Framework;
-using UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels;
-using UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 

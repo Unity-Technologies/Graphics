@@ -51,8 +51,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             // Get the UI ports
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
 
@@ -88,8 +88,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             // Get the UI ports
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
 
@@ -120,8 +120,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
             m_OutputPort.Orientation = PortOrientation.Vertical;
@@ -165,8 +165,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
             m_OutputPort.Orientation = PortOrientation.Vertical;
@@ -235,7 +235,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Vector2 worldNodePos = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
 
             // We move the snapping Node2 toward reference Node1 within the snapping range
@@ -244,20 +244,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Vector2 end = start + moveOffset;
 
             // Move the snapping node.
-            helpers.MouseDownEvent(start);
+            Helpers.MouseDownEvent(start);
             yield return null;
 
-            helpers.MouseDragEvent(start, end);
+            Helpers.MouseDragEvent(start, end);
             yield return null;
 
-            helpers.MouseUpEvent(end);
+            Helpers.MouseUpEvent(end);
             yield return null;
 
             // Get the UI ports
-            var node1OutputPortUI = node1OutputPort.GetUI<Port>(graphView);
-            var node2InputPortUI = node2InputPort.GetUI<Port>(graphView);
-            var node2OutputPortUI = node2OutputPort.GetUI<Port>(graphView);
-            var node3InputPortUI = node3InputPort.GetUI<Port>(graphView);
+            var node1OutputPortUI = node1OutputPort.GetView<Port>(GraphView);
+            var node2InputPortUI = node2InputPort.GetView<Port>(GraphView);
+            var node2OutputPortUI = node2OutputPort.GetView<Port>(GraphView);
+            var node3InputPortUI = node3InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(node1OutputPortUI);
             Assert.IsNotNull(node2InputPortUI);
             Assert.IsNotNull(node2OutputPortUI);
@@ -268,7 +268,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             // The snapping Node2 should not snap to Node3's port
             Assert.AreNotEqual(node3InputPortUI.GetGlobalCenter().y, node2OutputPortUI.GetGlobalCenter().y);
 
-            worldNodePos = graphView.ContentViewContainer.LocalToWorld(snappingNodeModel.Position);
+            worldNodePos = GraphView.ContentViewContainer.LocalToWorld(snappingNodeModel.Position);
             start = worldNodePos + m_SelectionOffset;
 
             // We move the snapping Node2 toward Node3 within the snapping range
@@ -276,14 +276,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             moveOffset = GraphViewStaticBridge.RoundToPixelGrid(new Vector2(0, offSetY));
 
             // Move the snapping node.
-            helpers.MouseDownEvent(start);
+            Helpers.MouseDownEvent(start);
             yield return null;
 
             end = start + moveOffset;
-            helpers.MouseDragEvent(start, end);
+            Helpers.MouseDragEvent(start, end);
             yield return null;
 
-            helpers.MouseUpEvent(end);
+            Helpers.MouseUpEvent(end);
             yield return null;
 
             // The snapping Node2's port should snap to Node3's port
@@ -337,25 +337,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Vector2 worldPosNode2 = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
-            Vector2 worldPosNode3 = graphView.ContentViewContainer.LocalToWorld(secondSelectedNodePos);
+            Vector2 worldPosNode2 = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldPosNode3 = GraphView.ContentViewContainer.LocalToWorld(secondSelectedNodePos);
 
             Vector2 selectionPosNode2 = worldPosNode2 + m_SelectionOffset;
             Vector2 selectionPosNode3 = worldPosNode3 + m_SelectionOffset;
 
             // Select Node3 by clicking on it and pressing Ctrl
-            helpers.MouseDownEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDownEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
-            helpers.MouseUpEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseUpEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Move mouse to Node2
-            helpers.MouseMoveEvent(selectionPosNode3, selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseMoveEvent(selectionPosNode3, selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Select Node2 by clicking on it and pressing Ctrl
-            helpers.MouseDownEvent(selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDownEvent(selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Move Node2 toward reference Node1 within the snapping range
@@ -363,18 +363,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             float offSetY = k_SnapDistance - topToTopDistance;
             Vector2 moveOffset = new Vector2(0, offSetY);
             Vector2 end = selectionPosNode2 + moveOffset;
-            helpers.MouseDragEvent(selectionPosNode2, end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDragEvent(selectionPosNode2, end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
-            helpers.MouseUpEvent(end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseUpEvent(end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Get the UI ports
-            var node1OutputPortUI = node1OutputPort.GetUI<Port>(graphView);
-            var node2InputPortUI = node2InputPort.GetUI<Port>(graphView);
-            var node2OutputPortUI = node2OutputPort.GetUI<Port>(graphView);
-            var node3InputPortUI = node3InputPort.GetUI<Port>(graphView);
-            var node3 = secondSelectedNodeModel.GetUI<Node>(graphView);
+            var node1OutputPortUI = node1OutputPort.GetView<Port>(GraphView);
+            var node2InputPortUI = node2InputPort.GetView<Port>(GraphView);
+            var node2OutputPortUI = node2OutputPort.GetView<Port>(GraphView);
+            var node3InputPortUI = node3InputPort.GetView<Port>(GraphView);
+            var node3 = secondSelectedNodeModel.GetView<Node>(GraphView);
             Assert.IsNotNull(node1OutputPortUI);
             Assert.IsNotNull(node2InputPortUI);
             Assert.IsNotNull(node2OutputPortUI);
@@ -432,7 +432,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Vector2 worldNodePos = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
 
             // We move the snapping node closer to the first output port within the snapping range
@@ -440,20 +440,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Vector2 moveOffset = new Vector2(0, offSetY);
 
             // Move the snapping node.
-            helpers.MouseDownEvent(start);
+            Helpers.MouseDownEvent(start);
             yield return null;
 
             Vector2 end = start + moveOffset;
-            helpers.MouseDragEvent(start, end);
+            Helpers.MouseDragEvent(start, end);
             yield return null;
 
-            helpers.MouseUpEvent(end);
+            Helpers.MouseUpEvent(end);
             yield return null;
 
             // Get the UI ports
-            var node1FirstOutputPortUI = node1FirstOutputPort.GetUI<Port>(graphView);
-            var node1SecondOutputPortUI = node1SecondOutputPort.GetUI<Port>(graphView);
-            var node2InputPortUI = node2InputPort.GetUI<Port>(graphView);
+            var node1FirstOutputPortUI = node1FirstOutputPort.GetView<Port>(GraphView);
+            var node1SecondOutputPortUI = node1SecondOutputPort.GetView<Port>(GraphView);
+            var node2InputPortUI = node2InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(node1FirstOutputPortUI);
             Assert.IsNotNull(node1SecondOutputPortUI);
             Assert.IsNotNull(node2InputPortUI);
@@ -467,14 +467,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             moveOffset = new Vector2(0, offSetY);
 
             // Move the snapping node.
-            helpers.MouseDownEvent(start);
+            Helpers.MouseDownEvent(start);
             yield return null;
 
             end = start + moveOffset;
-            helpers.MouseDragEvent(start, end);
+            Helpers.MouseDragEvent(start, end);
             yield return null;
 
-            helpers.MouseUpEvent(end);
+            Helpers.MouseUpEvent(end);
             yield return null;
 
             // The snapping Node2's port should snap to Node1's second output port

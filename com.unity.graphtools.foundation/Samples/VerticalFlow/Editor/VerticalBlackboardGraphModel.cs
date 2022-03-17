@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
 {
@@ -13,7 +12,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
         /// <inheritdoc />
         public override string GetBlackboardTitle()
         {
-            return "Vertical Flow";
+            var title = base.GetBlackboardTitle();
+            if (string.IsNullOrEmpty(title))
+                return "Vertical Flow";
+            return title + " Vertical Flow";
         }
     }
 }

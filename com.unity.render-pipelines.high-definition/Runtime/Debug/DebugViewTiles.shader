@@ -48,6 +48,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
             uint _NumTiles;
             float _ClusterDebugDistance;
             int _ClusterDebugMode;
+            float4 _ClusterDebugLightViewportSize;
+
 
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;
@@ -120,7 +122,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     variant = -1;
 #endif
 
-                float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
+                float2 clipCoord = (pixelCoord * _ClusterDebugLightViewportSize.zw) * 2.0 - 1.0;
                 clipCoord.y *= -1;
 
                 Varyings output;
@@ -157,14 +159,15 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // For debug shaders, Viewport can be at a non zero (x,y) but the pipeline render targets all starts at (0,0)
                 // input.positionCS in in pixel coordinate relative to the render target origin so they will be offsted compared to internal render textures
                 // To solve that, we compute pixel coordinates from full screen quad texture coordinates which start correctly at (0,0)
-                uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
+                uint2 pixelCoord = uint2(input.texcoord.xy * _ClusterDebugLightViewportSize.xy);
 
                 float depth = GetTileDepth(pixelCoord);
 
-                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
+                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ClusterDebugLightViewportSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
 
+                float2 debugViewportScaling = _ClusterDebugLightViewportSize.xy / _ScreenSize.xy;
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
-                int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();
+                int2 mouseTileCoord = (_MousePixelCoord.xy * debugViewportScaling) / GetTileSize();
                 int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
 
                 int n = 0;
@@ -223,26 +226,34 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     result = AlphaBlend(result, result2);
                 }
 
+                {
+                    float catMenuScale = max(debugViewportScaling.x,debugViewportScaling.y);
+                    float scaledTileSize = GetTileSize() * catMenuScale;
+                    int2 catTileCoord = (int2)((pixelCoord) / scaledTileSize);
+                    float2 catPixelCoordUnscaled = input.texcoord.xy * _ClusterDebugLightViewportSize.xy;
+                    int2 catPixelCoord = (int2)((catPixelCoordUnscaled - 0.5) / catMenuScale);
+                    int2 catOffsetInTile = catPixelCoord - catTileCoord * GetTileSize();
+
                 // Print light lists for selected tile at the bottom of the screen
                 int maxAreaWidth = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT + 4;
-                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxAreaWidth)
+                    if (catTileCoord.y < LIGHTCATEGORY_COUNT && catTileCoord.x < maxAreaWidth)
                 {
                     float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
+                        PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ClusterDebugLightViewportSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
 
-                    uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
+                        uint category = (LIGHTCATEGORY_COUNT - 1) - catTileCoord.y;
                     uint start;
                     uint count;
 
                     GetCountAndStart(mousePosInput, category, start, count);
 
                     float4 result2 = float4(.1,.1,.1,.9);
-                    int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
-                    int lightListIndex = tileCoord.x - 2;
+                        int2 fontCoord = int2(catPixelCoord.x, catOffsetInTile.y);
+                        int lightListIndex = catTileCoord.x - 2;
 
                     int n = -1;
-                    if(tileCoord.x == 0)
+                        if(catTileCoord.x == 0)
                     {
                         n = (int)count;
                     }
@@ -253,13 +264,14 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     if (n >= 0)
                     {
-                        if (SampleDebugFontNumber(offsetInTile, n))
+                        if (SampleDebugFontNumber2Digits(catOffsetInTile, n))
                             result2 = float4(0.0, 0.0, 0.0, 1.0);
-                        if (SampleDebugFontNumber(offsetInTile + 1, n))
+                        if (SampleDebugFontNumber2Digits(catOffsetInTile + 1, n))
                             result2 = float4(1.0, 1.0, 1.0, 1.0);
                     }
 
                     result = AlphaBlend(result, result2);
+                }
                 }
 #endif
 #endif

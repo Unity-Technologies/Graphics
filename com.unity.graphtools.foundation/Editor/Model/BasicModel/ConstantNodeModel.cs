@@ -48,8 +48,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public void PredefineSetup() =>
-            m_Value.ObjectValue = m_Value.DefaultValue;
+        public void Initialize(TypeHandle constantTypeHandle) => m_Value.Initialize(constantTypeHandle);
 
         /// <summary>
         /// Clones this instance.
@@ -59,7 +58,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             if (GetType() == typeof(ConstantNodeModel))
             {
-                return new ConstantNodeModel { Value = Value.CloneConstant() };
+                return new ConstantNodeModel { Value = Value.Clone() };
             }
             var clone = Activator.CreateInstance(GetType());
             EditorUtility.CopySerializedManagedFieldsOnly(this, clone);
@@ -85,7 +84,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             base.OnDefineNode();
 
-            this.AddDataOutputPort(null, Value.Type.GenerateTypeHandle(), k_OutputPortId);
+            this.AddDataOutputPort(null, Value.GetTypeHandle(), k_OutputPortId);
         }
     }
 }

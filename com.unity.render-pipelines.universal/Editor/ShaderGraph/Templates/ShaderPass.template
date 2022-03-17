@@ -49,7 +49,6 @@ $Varyings.texCoord3: #define VARYINGS_NEED_TEXCOORD3
 $Varyings.color: #define VARYINGS_NEED_COLOR
 $Varyings.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
 $Varyings.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
-$Varyings.viewDirectionWS: #define VARYINGS_NEED_VIEWDIRECTION_WS
 $Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
 $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT

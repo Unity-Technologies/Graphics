@@ -8,8 +8,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
     {
         public override VisualElement CreateOnboardingElements(Dispatcher dispatcher)
         {
-            var template = new GraphTemplate<MathBookStencil>(MathBookStencil.GraphName);
-            return AddNewGraphButton<MathBookAsset>(template);
+            var graphButtonsContainer = new VisualElement();
+
+            var containerGraphTemplate = new GraphTemplate<MathBookStencil>("Container " + MathBookStencil.GraphName);
+            graphButtonsContainer.Add(AddNewGraphButton<ContainerMathBookAsset>(containerGraphTemplate));
+
+            var assetGraphTemplate = new GraphTemplate<MathBookStencil>(MathBookStencil.GraphName);
+            graphButtonsContainer.Add(AddNewGraphButton<MathBookAsset>(assetGraphTemplate));
+
+            return graphButtonsContainer;
         }
     }
 }

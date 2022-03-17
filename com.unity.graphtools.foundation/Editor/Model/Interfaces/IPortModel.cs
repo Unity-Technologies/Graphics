@@ -52,17 +52,54 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public interface IPortModel : IGraphElementModel
     {
+        /// <summary>
+        /// The node model that owns this port.
+        /// </summary>
         IPortNodeModel NodeModel { get; set; }
+
+        /// <summary>
+        /// The port direction (input, output, undetermined).
+        /// </summary>
         PortDirection Direction { get; set; }
+
+        /// <summary>
+        /// The port type (data, execution, etc.).
+        /// </summary>
         PortType PortType { get; set; }
+
+        /// <summary>
+        /// The orientation of the port (horizontal, vertical).
+        /// </summary>
         PortOrientation Orientation { get; set; }
-        PortCapacity Capacity { get; }
+
+        /// <summary>
+        /// The capacity of the port in term of connected edges.
+        /// </summary>
+        PortCapacity Capacity { get; set; }
+
+        /// <summary>
+        /// The port data type.
+        /// </summary>
         Type PortDataType { get; }
+
+        /// <summary>
+        /// Port options.
+        /// </summary>
         PortModelOptions Options { get; set; }
 
+        /// <summary>
+        /// The port data type handle.
+        /// </summary>
         TypeHandle DataTypeHandle { get; set; }
+
+        /// <summary>
+        /// The tooltip for the port.
+        /// </summary>
         string ToolTip { get; set; }
 
+        /// <summary>
+        /// Should the port create a default embedded constant.
+        /// </summary>
         bool CreateEmbeddedValueIfNeeded { get; }
 
         /// <summary>
@@ -70,11 +107,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <returns>The ports connected to this port.</returns>
         IEnumerable<IPortModel> GetConnectedPorts();
+
         /// <summary>
         /// Gets the edges connected to this port.
         /// </summary>
         /// <returns>The edges connected to this port.</returns>
         IReadOnlyList<IEdgeModel> GetConnectedEdges();
+
         /// <summary>
         /// Checks whether two ports are connected.
         /// </summary>
@@ -82,10 +121,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>True if there is at least one edge that connects the two ports.</returns>
         bool IsConnectedTo(IPortModel otherPort);
 
-        PortCapacity GetDefaultCapacity();
+        /// <summary>
+        /// A constant representing the port default value.
+        /// </summary>
         IConstant EmbeddedValue { get; }
-        bool DisableEmbeddedValueEditor { get; }
 
+        /// <summary>
+        /// The port unique name.
+        /// </summary>
+        /// <remarks>The name should only be unique within a node.</remarks>
         string UniqueName { get; }
     }
 }

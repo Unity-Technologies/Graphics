@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
         private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
-        private static readonly int k_CameraSortingLayerTextureID = Shader.PropertyToID("_CameraSortingLayerTexture");
 
         private static readonly int[] k_ShapeLightTextureIDs =
         {
@@ -77,17 +76,19 @@ namespace UnityEngine.Rendering.Universal
 
         private void CopyCameraSortingLayerRenderTexture(ScriptableRenderContext context, RenderingData renderingData, RenderBufferStoreAction mainTargetStoreAction)
         {
-            var cmd = CommandBufferPool.Get();
-            cmd.Clear();
+            var cmd = renderingData.commandBuffer;
+
             this.CreateCameraSortingLayerRenderTexture(renderingData, cmd, m_Renderer2DData.cameraSortingLayerDownsamplingMethod);
 
             Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
-            RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction,
-                depthAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction);
-            cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
+            RenderingUtils.Blit(cmd, colorAttachmentHandle, m_Renderer2DData.cameraSortingLayerRenderTarget, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            CoreUtils.SetRenderTarget(cmd,
+                colorAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
+                depthAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
+                ClearFlag.None, Color.clear);
+            cmd.SetGlobalTexture(m_Renderer2DData.cameraSortingLayerRenderTargetId, m_Renderer2DData.cameraSortingLayerRenderTarget.nameID);
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
         }
 
         private short GetCameraSortingLayerBoundsIndex()
@@ -211,8 +212,8 @@ namespace UnityEngine.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_NeedsDepth ? depthAttachment : BuiltinRenderTextureType.None;
-                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
+                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
+                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, layerBatch.lightStats);
                     }
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))
@@ -240,7 +241,10 @@ namespace UnityEngine.Rendering.Universal
                     initialStoreAction = resolveDuringBatch < startIndex ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve;
                 else
                     initialStoreAction = RenderBufferStoreAction.Store;
-                cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, initialStoreAction, depthAttachment, RenderBufferLoadAction.Load, initialStoreAction);
+                CoreUtils.SetRenderTarget(cmd,
+                    colorAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
+                    depthAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
+                    ClearFlag.None, Color.clear);
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -314,7 +318,7 @@ namespace UnityEngine.Rendering.Universal
                                 storeAction = resolveDuringBatch == i && !resolveIsAfterCopy ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve;
                             else
                                 storeAction = RenderBufferStoreAction.Store;
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment,
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachmentHandle.nameID, depthAttachmentHandle.nameID,
                                 RenderBufferStoreAction.Store, storeAction, false, m_Renderer2DData.lightCullResult.visibleLights);
 
                             cmd.EndSample(sampleName);
@@ -364,7 +368,7 @@ namespace UnityEngine.Rendering.Universal
                 combinedDrawSettings.sortingSettings = sortSettings;
                 normalsDrawSettings.sortingSettings = sortSettings;
 
-                var cmd = CommandBufferPool.Get();
+                var cmd = renderingData.commandBuffer;
                 cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
@@ -382,7 +386,7 @@ namespace UnityEngine.Rendering.Universal
                 this.DisableAllKeywords(cmd);
                 this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.Clear();
             }
             else
             {
@@ -394,10 +398,13 @@ namespace UnityEngine.Rendering.Universal
                 GetTransparencySortingMode(camera, ref sortSettings);
                 unlitDrawSettings.sortingSettings = sortSettings;
 
-                var cmd = CommandBufferPool.Get();
+                var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {
-                    cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, storeAction, depthAttachment, RenderBufferLoadAction.Load, storeAction);
+                    CoreUtils.SetRenderTarget(cmd,
+                        colorAttachmentHandle, RenderBufferLoadAction.Load, storeAction,
+                        depthAttachmentHandle, RenderBufferLoadAction.Load, storeAction,
+                        ClearFlag.None, Color.clear);
 
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
@@ -413,6 +420,7 @@ namespace UnityEngine.Rendering.Universal
 
                 this.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 Profiler.BeginSample("Render Sprites Unlit");
                 if (m_Renderer2DData.useCameraSortingLayerTexture)
@@ -430,8 +438,6 @@ namespace UnityEngine.Rendering.Universal
                     Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings);
                 }
                 Profiler.EndSample();
-
-                CommandBufferPool.Release(cmd);
             }
 
             filterSettings.sortingLayerRange = SortingLayerRange.all;

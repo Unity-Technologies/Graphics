@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
@@ -7,7 +8,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
     /// </summary>
     public interface IRebuildNodeOnConnection
     {
-        bool RebuildOnEdgeConnected(IEdgeModel connectedEdge);
+        /// <summary>
+        /// Callback for when an edge is connected.
+        /// </summary>
+        /// <param name="connectedEdge">The connected edge.</param>
+        /// <returns>The edges that were deleted as the result of the new connection.</returns>
+        IEnumerable<IEdgeModel> RebuildOnEdgeConnected(IEdgeModel connectedEdge);
     }
 
     /// <summary>
@@ -15,35 +21,49 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
     /// </summary>
     public interface IRebuildNodeOnDisconnection
     {
-        bool RebuildOnEdgeDisconnected(IEdgeModel disconnectedEdge);
+        /// <summary>
+        /// Callback for when an edge is disconnected.
+        /// </summary>
+        /// <param name="disconnectedEdge">The disconnected edge.</param>
+        /// <returns>The edges that were deleted as the result of the disconnection.</returns>
+        IEnumerable<IEdgeModel> RebuildOnEdgeDisconnected(IEdgeModel disconnectedEdge);
     }
 
     public static class EdgeCommandOverrides
     {
-        public static void HandleCreateEdge(UndoStateComponent undoState, GraphViewStateComponent graphViewState, Preferences preferences, CreateEdgeCommand command)
+        public static void HandleCreateEdge(UndoStateComponent undoState, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState, Preferences preferences, CreateEdgeCommand command)
         {
-            CreateEdgeCommand.DefaultCommandHandler(undoState, graphViewState, preferences, command);
+            CreateEdgeCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, preferences, command);
 
             var createdEdge = command.ToPortModel.GraphModel.GetEdgeConnectedToPorts(command.ToPortModel, command.FromPortModel);
 
-            if (createdEdge != null
-                && createdEdge.ToPort.NodeModel is IRebuildNodeOnConnection needsRebuild
-                && needsRebuild.RebuildOnEdgeConnected(createdEdge))
-                using (var graphUpdater = graphViewState.UpdateScope)
-                    graphUpdater.MarkChanged(command.ToPortModel.NodeModel);
+            if (createdEdge?.ToPort.NodeModel is IRebuildNodeOnConnection needsRebuild)
+            {
+                var deletedEdges = needsRebuild.RebuildOnEdgeConnected(createdEdge);
+                using (var graphUpdater = graphModelState.UpdateScope)
+                {
+                    graphUpdater.MarkDeleted(deletedEdges);
+                    graphUpdater.MarkChanged(command.ToPortModel.NodeModel, ChangeHint.GraphTopology);
+                }
+            }
         }
 
-        public static void HandleDeleteEdge(UndoStateComponent undoState, GraphViewStateComponent graphViewState, SelectionStateComponent selectionState, DeleteElementsCommand command)
+        public static void HandleDeleteEdge(UndoStateComponent undoState, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState, DeleteElementsCommand command)
         {
             foreach (var edgeModel in command.Models.OfType<IEdgeModel>())
             {
-                if (edgeModel.ToPort.NodeModel is IRebuildNodeOnDisconnection needsRebuild
-                    && needsRebuild.RebuildOnEdgeDisconnected(edgeModel))
-                    using (var graphUpdater = graphViewState.UpdateScope)
-                        graphUpdater.MarkChanged(edgeModel.ToPort.NodeModel);
+                if (edgeModel.ToPort.NodeModel is IRebuildNodeOnDisconnection needsRebuild)
+                {
+                    var deletedEdges = needsRebuild.RebuildOnEdgeDisconnected(edgeModel);
+                    using (var graphUpdater = graphModelState.UpdateScope)
+                    {
+                        graphUpdater.MarkDeleted(deletedEdges);
+                        graphUpdater.MarkChanged(edgeModel.ToPort.NodeModel, ChangeHint.GraphTopology);
+                    }
+                }
             }
 
-            DeleteElementsCommand.DefaultCommandHandler(undoState, graphViewState, selectionState, command);
+            DeleteElementsCommand.DefaultCommandHandler(undoState, graphModelState, selectionState, command);
         }
     }
 }

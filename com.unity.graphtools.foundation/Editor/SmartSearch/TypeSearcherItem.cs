@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -22,11 +21,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Initializes a new instance of the TypeSearcherItem class.
         /// </summary>
-        /// <param name="type">The type represented by the item.</param>
-        /// <param name="name">The name to give this item in the search.</param>
-        /// <param name="children">Other items to nest under this one in the search</param>
-        public TypeSearcherItem(TypeHandle type, string name, List<SearcherItem> children = null)
-            : base(name, string.Empty, children)
+        /// <param name="name">The name used to search the item.</param>
+        /// <param name="type">The type represented by the item.</param>=
+        public TypeSearcherItem(string name, TypeHandle type)
+            :base(name)
         {
             Data = new TypeSearcherItemData(type);
         }

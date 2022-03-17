@@ -69,7 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Path Tracing
         [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMain.raytrace")]
-        public RayTracingShader pathTracing;
+        public RayTracingShader pathTracingRT;
+        [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySamplingData.compute")]
+        public ComputeShader pathTracingSkySamplingDataCS;
 
         // Ray Marching
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayMarching.compute")]
@@ -86,5 +88,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
+
+        // Ray tracing Debug
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RTASDebug.raytrace")]
+        public RayTracingShader rtasDebug;
     }
 }

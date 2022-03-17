@@ -16,7 +16,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
         protected override void InitState()
         {
             base.InitState();
-            Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(375, 300), 2.0f);
+            Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(375, 300), 2.0f);
         }
     }
 }

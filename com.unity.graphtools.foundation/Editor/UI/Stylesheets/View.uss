@@ -1,0 +1,126 @@
+.ge-view {
+
+    --graph-color-selection: #505050;
+    --graph-color-selection-counterpart: #FF8000;
+    --graph-color-hover-highlight: rgba(68,192,255, 0.5);
+    --graph-color-disabled-tint: rgba(18, 18, 18, 0.45);
+
+    /*Blackboard.uss*/
+    --blackboard-title-text: var(--unity-colors-label-text);
+    --blackboard-subtitle-text: var(--unity-colors-label-text);
+    --blackboard-section-header-text: var(--unity-colors-label-text);
+    --blackboard-group-text: var(--unity-colors-helpbox-text);
+
+    --blackboard-header-border: var(--graph-color-borders);
+    --blackboard-capsule-border: var(--graph-color-borders);
+    --blackboard-capsule-selection-counterpart-border: var(--graph-color-selection-counterpart);
+    --blackboard-drag-indicator: var(--graph-color-selection);
+
+    /*BlockNode.uss (Context Blocks)*/
+    --block-node-body-background: var(--graph-color-node-light);
+    --block-node-etch: var(--graph-color-node-dark);
+    --block-node-etch-border: var(--graph-color-borders);
+    --block-node-etch-highlight: var(--graph-color-selection);
+    --block-node-etch-highlight-hover: var(--graph-color-hover-highlight);
+    --block-node-header-tint: transparent;
+    --block-node-disabled-tint: var(--graph-color-disabled-tint);
+    --block-node-body-border: var(--graph-color-borders);
+
+    /*CollapseButton.uss*/
+    --node-collapse-background: var(--graph-color-node-dark);
+
+    /*ContextNode.uss*/
+    --context-header-background: transparent;
+    --context-border-top-border: var(--graph-color-node-dark);
+    --context-border-bottom-border: var(--graph-color-node-dark);
+    --context-border: var(--graph-color-borders);
+    --context-background: var(--graph-color-node-light);
+    --context-block-container-background: var(--unity-colors-default-background);
+    --context-settings-input-background: var(--graph-color-node-light);
+    --context-settings-output-background: var(--graph-color-node-light);
+    --context-drag-accepted: var(--graph-color-selection);
+    --context-drag-refused: var(--unity-colors-error-text);
+    --context-etch: var(--graph-color-node-light);
+    --context-etch-border: var(--graph-color-borders);
+    --context-addblock-text: var(--unity-colors-helpbox-text);
+    --context-addblock-icon: var(--unity-colors-helpbox-text);
+    --context-highlight-hover: var(--graph-color-hover-highlight);
+    --context-highlight: var(--graph-color-selection);
+    --context-disabled-tint: var(--graph-color-disabled-tint);
+
+    /*Edge.uss*/
+    --edge-highlight: var(--graph-color-selection);
+    --edge-selected: var(--graph-color-selection);
+    --edge-ghost: #929292;
+
+    /*EdgeBubble.uss*/
+    --edge-bubble-text: var(--unity-colors-helpbox-text);
+    --edge-bubble-border: var(--graph-color-borders);
+
+    /*ErrorBadge.uss -- need to revisit later when it's available in samples*/
+
+    /*ErrorToolbar.uss*/
+    --error-toolbar-background: var(--unity-colors-toolbar-background);
+
+    /*GraphView.uss*/
+    --graph-background: var(--graph-color-background);
+    --selection-delete: #FF0000;
+
+    --dragndrop-highlight-color: rgb(37, 107, 145);
+    --dragndrop-highlight-background-color: rgba(38, 108, 145, 0.33);
+    --dragndrop-denied-color: rgb(145, 29, 19);
+    --dragndrop-denied-background-color: rgba(145, 29, 19, 0.33);
+
+    /*LineView.uss*/
+    --snapping-line: var(--graph-color-hover-highlight);
+
+    /*ModelInspector.uss*/
+    --inspector-border: var(--unity-colors-default-border);
+    --inspector-inside-border: var(--unity-colors-window-border);
+
+    /*Minimap.uss*/
+    --minimap-selection-counterpart-border: var(--graph-color-selection-counterpart);
+    --minimap-placemat-border: var(--graph-color-borders);
+
+    /*Node.uss*/
+    --node-background: var(--graph-color-node-light);
+    --node-border: var(--graph-color-borders);
+    --node-background-header: var(--graph-color-node-light);
+    --node-disabled-tint: var(--graph-color-disabled-tint);
+    --node-selection-counterpart-border: var(--graph-color-selection-counterpart);
+    --node-title-text: var(--unity-colors-label-text);
+
+    /*Placemat.us*/
+    --placemat-border: var(--graph-color-borders);
+
+    /*Port.uss*/
+    --port-default: var(--port-type-gameobject);
+    --port-compatible-highlight: #ffa500;
+    --port-will-connect: #ffff00;
+    --port-background: var(--graph-color-node-light);
+    --port-text: var(--unity-colors-label-text);
+    --port-text-missing: var(--unity-colors-error-text);
+
+    /*PortContainer.uss*/
+    --node-background-output: var(--graph-color-node-dark);
+
+    /*PortContainerPart.uss*/
+    --vertical-node-port-background: var(--graph-color-node-dark);
+
+    /*SelectionBorder.uss*/
+    --selection-hover: var(--graph-color-hover-highlight);
+    --selection-checked: var(--graph-color-selection);
+    --selection-checked-hover: var(--graph-color-selection);
+
+    /*TokenNode.uss*/
+    --node-token-background: var(--graph-color-node-light);
+
+}
+
+.hidden {
+    display: none;
+}
+
+.ge-view--focused {
+    --graph-color-selection: #44C0FF;
+}

@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ConversionEdgePart : EdgeBubblePart
     {
-        public ConversionEdgePart(string name, IGraphElementModel model, IModelUI ownerElement,
+        public ConversionEdgePart(string name, IGraphElementModel model, IModelView ownerElement,
             string parentClassName) : base(name, model, ownerElement, parentClassName)
         {
         }

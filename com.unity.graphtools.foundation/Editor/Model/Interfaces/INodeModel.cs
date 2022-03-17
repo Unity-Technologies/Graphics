@@ -43,10 +43,5 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="sourceNode">Model of the node duplicated.</param>
         void OnDuplicateNode(INodeModel sourceNode);
-
-        /// <summary>
-        /// Instantiates the ports of the nodes.
-        /// </summary>
-        void DefineNode();
     }
 }

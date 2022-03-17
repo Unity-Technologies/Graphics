@@ -9,24 +9,55 @@ namespace UnityEditor.ShaderFoundry
     {
         internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst);
 
-        internal static void Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
+        // returns all of the shader IDs produced by the given target
+        internal static IEnumerable<string> AllShaderIDs(Target target, ShaderContainer container = null)
         {
-            var target = GetTarget();
-            Build(container, target, shaderName, buildCallback, shaderBuilder);
-        }
-
-        internal static void Build(ShaderContainer container, Target target, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
-        {
+            // ideally the settings for this provider would be provided through the same interface as workflow settings
+            // but for now it is directly populated by this special constructor
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
-            var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName);
-            
-            foreach(var template in provider.GetTemplates(container))
+            if (container == null)
+                container = new ShaderContainer();
+
+            var foundShaderIDs = new HashSet<string>();
+
+            var templates = provider.GetTemplates(container);
+
+            // return BlockSurfaceShaderBuilder.AllShaderIDs(templates); // ideally we call this here instead
+            foreach (var template in templates)
             {
+                if (!foundShaderIDs.Contains(template.AdditionalShaderID))
+                {
+                    yield return template.AdditionalShaderID;
+                    foundShaderIDs.Add(template.AdditionalShaderID);
+                }
+            }
+        }
+
+        // builds a specific shader ID (null builds the primary shader) on the gi
+        internal static GeneratedShader Build(ShaderContainer container, string shaderName, BuildCallback buildCallback, string additionalShaderID = null)
+        {
+            var target = GetTarget();
+            return Build(container, target, shaderName, buildCallback, additionalShaderID);
+        }
+
+        internal static GeneratedShader Build(ShaderContainer container, Target target, string shaderName, BuildCallback buildCallback, string additionalShaderID = null)
+        {
+            // ideally the settings for this provider would be provided through the same interface as workflow settings
+            // but for now it is directly populated by this special constructor
+            ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
+
+            var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName, additionalShaderID);
+
+            foreach (var template in provider.GetTemplates(container))
+            {
+                if (template.AdditionalShaderID != additionalShaderID)
+                    continue;
+
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
                 // Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
-                var customizationPoints = template.CustomizationPoints.ToList();
+                var customizationPoints = template.CustomizationPoints().ToList();
                 var vertexCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.VertexDescriptionCPName));
                 var surfaceCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.SurfaceDescriptionCPName));
 
@@ -39,27 +70,45 @@ namespace UnityEditor.ShaderFoundry
                 var templateInstance = templateInstanceBuilder.Build();
                 shaderInstBuilder.TemplateInstances.Add(templateInstance);
             }
-            
+
             var shaderInst = shaderInstBuilder.Build();
-            var generator = new ShaderGenerator();
-            generator.Generate(shaderBuilder, container, shaderInst);
+
+            var generatedShader = ShaderGenerator.Generate(container, shaderInst);
+            return generatedShader;
         }
 
-        // Simple helper to make a type from a bunch of variables
-        internal static ShaderType BuildStructFromVariables(ShaderContainer container, string typeName, IEnumerable<BlockVariable> variables)
+        internal class PropertyAttributeData
         {
-            var typeBuilder = new ShaderType.StructBuilder(container, typeName);
-            foreach (var variable in variables)
-                typeBuilder.AddField(variable.Type, variable.ReferenceName);
-            return typeBuilder.Build();
+            internal string DefaultValue;
+            // The type of the property. Can be overridden in some cases (e.g. Color)
+            internal string Type;
+            internal string UniformName;
+            internal string DisplayName;
+            // Any extra tags to apply to the property (e.g. [MainTex])
+            internal string Tags;
+            // The declaration mode ("DoNotDeclare", "Global", "UnityPerMaterial", "HybridPerInstance")
+            internal string Mode;
+            internal bool Exposed = true;
         }
 
-        internal static void MarkAsProperty(ShaderContainer container, BlockVariable.Builder variableBuilder, string propertyType)
+        internal static void MarkAsProperty(ShaderContainer container, StructField.Builder fieldBuilder, PropertyAttributeData propertyAttributeData)
         {
-            // An input tagged with 'Property' is auto added as a property
-            variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Property).Build());
-            // [PropertyType(propertyTypeName)] is used to fill out the type in the material attribute.
-            variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType).Build());
+            var propAttributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.Property);
+            if (!string.IsNullOrEmpty(propertyAttributeData.UniformName))
+                propAttributeBuilder.Param("uniformName", propertyAttributeData.UniformName);
+            if (!string.IsNullOrEmpty(propertyAttributeData.DisplayName))
+                propAttributeBuilder.Param("displayName", propertyAttributeData.DisplayName);
+            if (!string.IsNullOrEmpty(propertyAttributeData.Type))
+                propAttributeBuilder.Param("type", propertyAttributeData.Type);
+            if (!string.IsNullOrEmpty(propertyAttributeData.DefaultValue))
+                propAttributeBuilder.Param("defaultValue", propertyAttributeData.DefaultValue);
+            if (!string.IsNullOrEmpty(propertyAttributeData.Tags))
+                propAttributeBuilder.Param("tags", propertyAttributeData.Tags);
+            if (!string.IsNullOrEmpty(propertyAttributeData.Mode))
+                propAttributeBuilder.Param("mode", propertyAttributeData.Mode);
+            if (!propertyAttributeData.Exposed)
+                propAttributeBuilder.Param("exposed", "false");
+            fieldBuilder.AddAttribute(propAttributeBuilder.Build());
         }
 
         internal static BlockInstance BuildSimpleBlockInstance(ShaderContainer container, Block block)
@@ -68,88 +117,47 @@ namespace UnityEditor.ShaderFoundry
             return blockInstBuilder.Build();
         }
 
-        internal static void BuildTexture2D(ShaderContainer container, string referenceName, string displayName, List<BlockVariable> inputs, List<BlockVariable> properties)
+        internal static void BuildCommonTypes(ShaderContainer container)
         {
-            // Textures are big and complicated right now. To declare a texture,
-            // we need the material declaration for the texture, and the 4 uniforms (texture, sampler, ST, TexelSize).
-            // Not all of these are required, but this is showing a full example.
+            var unitySamplerStateBuilder = new ShaderType.StructBuilder(container, "UnitySamplerState");
+            unitySamplerStateBuilder.DeclaredExternally();
+            unitySamplerStateBuilder.Build();
 
-            var propertyBuilder = new BlockVariable.Builder(container);
-            propertyBuilder.ReferenceName = referenceName;
-            propertyBuilder.DisplayName = displayName;
-            propertyBuilder.Type = container._Texture2D;
-            
-            // Add [MaterialProperty] to define the property block variable
-            AddMaterialPropertyAttribute(propertyBuilder, referenceName, displayName, "2D", "\"white\" {}");
-            var textureProperty = propertyBuilder.Build();
-            properties.Add(textureProperty);
+            var vtPropBuilder = new ShaderType.StructBuilder(container, "VTPropertyWithTextureType");
+            vtPropBuilder.DeclaredExternally();
+            vtPropBuilder.Build();
 
-            // Currently, attributes are used to describe where each uniform is declared. The only two supported ones right now are [Global] and [PerMaterial].
-            var globalLocationAttribute = new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build();
-            var perMaterialLocationAttribute = new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build();
+            var unityTexture3DBuilder = new ShaderType.StructBuilder(container, "UnityTexture3D");
+            unityTexture3DBuilder.DeclaredExternally();
+            unityTexture3DBuilder.Build();
 
-            var texture2DInputBuilder = new BlockVariable.Builder(container);
-            texture2DInputBuilder.ReferenceName = referenceName;
-            texture2DInputBuilder.Type = container._Texture2D;
-            AddUniformDeclarationAttribute(texture2DInputBuilder, texture2DInputBuilder.ReferenceName, $"TEXTURE2D({referenceName})");
-            texture2DInputBuilder.AddAttribute(globalLocationAttribute);
-            var texture2DInput = texture2DInputBuilder.Build();
-            inputs.Add(texture2DInput);
+            var unityTextureCubeBuilder = new ShaderType.StructBuilder(container, "UnityTextureCube");
+            unityTextureCubeBuilder.DeclaredExternally();
+            unityTextureCubeBuilder.Build();
 
-            var samplerBuilder = new BlockVariable.Builder(container);
-            samplerBuilder.ReferenceName = $"sampler{referenceName}";
-            samplerBuilder.Type = container._SamplerState;
-            AddUniformDeclarationAttribute(samplerBuilder, samplerBuilder.ReferenceName, "SAMPLER(#)");
-            samplerBuilder.AddAttribute(globalLocationAttribute);
-            var sampler = samplerBuilder.Build();
-            inputs.Add(sampler);
+            var unityTexture2DArrayBuilder = new ShaderType.StructBuilder(container, "UnityTexture2DArray");
+            unityTexture2DArrayBuilder.DeclaredExternally();
+            unityTexture2DArrayBuilder.Build();
 
-            var texelSizeBuilder = new BlockVariable.Builder(container);
-            texelSizeBuilder.ReferenceName = $"{referenceName}_TexelSize";
-            texelSizeBuilder.Type = container._float4;
-            texelSizeBuilder.AddAttribute(perMaterialLocationAttribute);
-            var texelSize = texelSizeBuilder.Build();
-            inputs.Add(texelSize);
+            var unityTextureBuilder = new ShaderType.StructBuilder(container, "UnityTexture2D");
+            unityTextureBuilder.DeclaredExternally();
 
-            var stBuilder = new BlockVariable.Builder(container);
-            stBuilder.ReferenceName = $"{referenceName}_ST";
-            stBuilder.Type = container._float4;
-            stBuilder.AddAttribute(perMaterialLocationAttribute);
-            var st = stBuilder.Build();
-            inputs.Add(st);
-        }
+            var texBuilder = new StructField.Builder(container, "tex", container._Texture2D);
+            unityTextureBuilder.AddField(texBuilder.Build());
 
-        static void AddMaterialPropertyAttribute(BlockVariable.Builder variableBuilder, string referenceName, string displayName, string propertyType, string defaultValueExpression, string attributes = null)
-        {
-            // [MaterialProperty("declaration")] is used to define the material property block statement.
-            // For instance, adding: [MaterialProperty("_tex(\"tex\", 2D)")] will declare `_tex("tex", 2D)`.
-            string attributesString = attributes != null ? $"[attributes]" : "";
-            string paramString = $"{attributesString}{referenceName}(\"{displayName}\", {propertyType})";
-            var attributeBuilder = new ShaderAttribute.Builder(variableBuilder.Container, CommonShaderAttributes.MaterialProperty);
-            var paramBuilder = new ShaderAttributeParam.Builder(variableBuilder.Container, null, paramString);
-            attributeBuilder.Param(paramBuilder.Build());
-            variableBuilder.AddAttribute(attributeBuilder.Build());
-            variableBuilder.DefaultExpression = defaultValueExpression;
-        }
+            var samplerBuilder = new StructField.Builder(container, "samplerstate", container._SamplerState);
+            unityTextureBuilder.AddField(samplerBuilder.Build());
 
-        static void AddUniformDeclarationAttribute(BlockVariable.Builder variableBuilder, string referenceName, string declarationString = null)
-        {
-            // [UniformDeclaration(name = "name", declaration = "declaration")] is used to define the uniform variable in the shader pass.
-            // Declaration is optional. If it's not declared then the variable type is used, otherwise the declaration string is used.
-            // [UniformDeclaration(name = "#")] float4 _data;
-            // Will declare: float4 _data;
-            // [UniformDeclaration(name = "#", declaration = "TEXTURE2D(#)")] Texture2D _tex;
-            // Will declare: TEXTURE2D(_tex);
-            // This is needed because the uniform declaration doesn't always match the runtime types.
-            var attributeBuilder = new ShaderAttribute.Builder(variableBuilder.Container, CommonShaderAttributes.UniformDeclaration);
-            var nameParamBuilder = new ShaderAttributeParam.Builder(variableBuilder.Container, "name", referenceName);
-            attributeBuilder.Param(nameParamBuilder.Build());
-            if (declarationString != null)
-            {
-                var declarationParamBuilder = new ShaderAttributeParam.Builder(variableBuilder.Container, "declaration", declarationString);
-                attributeBuilder.Param(declarationParamBuilder.Build());
-            }
-            variableBuilder.AddAttribute(attributeBuilder.Build());
+            var texelSizeBuilder = new StructField.Builder(container, "texelSize", container._float4);
+            unityTextureBuilder.AddField(texelSizeBuilder.Build());
+
+            var scaleTranslateBuilder = new StructField.Builder(container, "scaleTranslate", container._float4);
+            unityTextureBuilder.AddField(scaleTranslateBuilder.Build());
+            var unityTexture2D = unityTextureBuilder.Build();
+
+            var gradientBuilder = new ShaderType.StructBuilder(container, "Gradient");
+            gradientBuilder.DeclaredExternally();
+            var gradientType = gradientBuilder.Build();
         }
 
         // Cheat and do a hard-coded lookup of the UniversalTarget for testing.

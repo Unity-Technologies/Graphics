@@ -11,13 +11,20 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         readonly Material m_LutBuilderLdr;
         readonly Material m_LutBuilderHdr;
-        readonly GraphicsFormat m_HdrLutFormat;
-        readonly GraphicsFormat m_LdrLutFormat;
+        internal readonly GraphicsFormat m_HdrLutFormat;
+        internal readonly GraphicsFormat m_LdrLutFormat;
 
-        RenderTargetHandle m_InternalLut;
+        RTHandle m_InternalLut;
 
         bool m_AllowColorGradingACESHDR = true;
 
+        /// <summary>
+        /// Creates a new <c>ColorGradingLutPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="data">The <c>PostProcessData</c> resources to use.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        /// <seealso cref="PostProcessData"/>
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
             base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
@@ -43,6 +50,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, kFlags))
                 m_HdrLutFormat = GraphicsFormat.R16G16B16A16_SFloat;
             else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, kFlags))
+                // Precision can be too low, if FP16 primary renderTarget is requested by the user.
+                // But it's better than falling back to R8G8B8A8_UNorm in the worst case.
                 m_HdrLutFormat = GraphicsFormat.B10G11R11_UFloatPack32;
             else
                 // Obviously using this for log lut encoding is a very bad idea for precision but we
@@ -58,15 +67,38 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AllowColorGradingACESHDR = false;
         }
 
-        public void Setup(in RenderTargetHandle internalLut)
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="internalLut">The RTHandle to use to render to.</param>
+        /// <seealso cref="RTHandle"/>
+        public void Setup(in RTHandle internalLut)
         {
             m_InternalLut = internalLut;
+        }
+
+        /// <summary>
+        /// Get a descriptor and filter mode for the required texture for this pass
+        /// </summary>
+        /// <param name="postProcessingData"></param>
+        /// <param name="descriptor"></param>
+        /// <param name="filterMode"></param>
+        public void ConfigureDescriptor(in PostProcessingData postProcessingData, out RenderTextureDescriptor descriptor, out FilterMode filterMode)
+        {
+            bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
+            int lutHeight = postProcessingData.lutSize;
+            int lutWidth = lutHeight * lutHeight;
+            var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
+            descriptor = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
+            descriptor.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
+
+            filterMode = FilterMode.Bilinear;
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ColorGradingLUT)))
             {
                 // Fetch all color grading settings
@@ -84,13 +116,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
 
                 // Prepare texture & material
-                int lutHeight = postProcessingData.lutSize;
-                int lutWidth = lutHeight * lutHeight;
-                var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
                 var material = hdr ? m_LutBuilderHdr : m_LutBuilderLdr;
-                var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
-                desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
-                cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
 
                 // Prepare data
                 var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(whiteBalance.temperature.value, whiteBalance.tint.value);
@@ -124,6 +150,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     splitToning.balance.value
                 );
 
+                int lutHeight = postProcessingData.lutSize;
+                int lutWidth = lutHeight * lutHeight;
                 var lutParameters = new Vector4(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight,
                     lutHeight / (lutHeight - 1f));
 
@@ -172,22 +200,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_InternalLut);
+                CoreUtils.SetRenderTarget(cmd, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
                 // Render the lut
-                cmd.Blit(null, m_InternalLut.id, material);
+                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, material, 0);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
-        /// <inheritdoc/>
-        public override void OnFinishCameraStackRendering(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(m_InternalLut.id);
-        }
-
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
         public void Cleanup()
         {
             CoreUtils.Destroy(m_LutBuilderLdr);

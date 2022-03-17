@@ -27,11 +27,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="data">Data containing some of the required information to create a node.</param>
         /// <param name="nodeTypeToCreate">The type of the new node to create.</param>
-        /// <param name="nodeName">The name of the node to create.</param>
         /// <param name="initializationCallback">An initialization method to be called right after the node is created.</param>
         /// <param name="contextTypeToCreate">The type of context to create when the block is created for display in the searcher. Must not ne null in this case.</param>
         /// <returns>The newly created node.</returns>
-        public static INodeModel CreateBlock(this IGraphNodeCreationData data, Type nodeTypeToCreate, string nodeName = null, Action<INodeModel> initializationCallback = null, Type contextTypeToCreate = null)
+        public static INodeModel CreateBlock(this IGraphNodeCreationData data, Type nodeTypeToCreate, Action<INodeModel> initializationCallback = null, Type contextTypeToCreate = null)
         {
             if (data is GraphBlockCreationData blockData)
                 return blockData.ContextNodeModel.CreateAndInsertBlock(

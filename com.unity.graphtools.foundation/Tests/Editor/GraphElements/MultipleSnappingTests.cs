@@ -63,8 +63,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             // Get the UI ports
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
 
@@ -120,8 +120,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             // Get the UI ports
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
 
@@ -231,8 +231,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             // Get the UI ports
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
 
@@ -404,8 +404,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.AreEqual(m_SnappedNode.layout.y, m_ReferenceNode1.layout.y);
 
             // Get the UI ports
-            var outputPortUI = m_OutputPort.GetUI<Port>(graphView);
-            var inputPortUI = m_InputPort.GetUI<Port>(graphView);
+            var outputPortUI = m_OutputPort.GetView<Port>(GraphView);
+            var inputPortUI = m_InputPort.GetView<Port>(GraphView);
             Assert.IsNotNull(outputPortUI);
             Assert.IsNotNull(inputPortUI);
 

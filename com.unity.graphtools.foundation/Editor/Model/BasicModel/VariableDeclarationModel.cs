@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
@@ -35,7 +38,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     [MovedFrom(false, sourceAssembly: "Unity.GraphTools.Foundation.Overdrive.Editor")]
     public class VariableDeclarationModel : DeclarationModel, IVariableDeclarationModel
     {
-        [SerializeField]
+        [SerializeField, HideInInspector]
         TypeHandle m_DataType;
         [SerializeField]
         bool m_IsExposed;
@@ -45,13 +48,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeReference]
         IConstant m_InitializationValue;
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         int m_Modifiers;
+
+        [SerializeField, FormerlySerializedAs("variableFlags")]
+        VariableFlags m_VariableFlags;
 
         /// <summary>
         /// The variable flags.
         /// </summary>
-        public VariableFlags variableFlags;
+        public VariableFlags VariableFlags
+        {
+            get => m_VariableFlags;
+            set => m_VariableFlags = value;
+        }
 
         /// <inheritdoc />
         public ModifierFlags Modifiers
@@ -66,16 +76,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             if (!this.IsRenamable())
                 return;
 
-            Title = GraphModel.GenerateGraphVariableDeclarationUniqueName(newName, Guid);
+            GraphModel.RenameVariable(this, newName);
         }
 
         /// <inheritdoc />
         public virtual string GetVariableName() => Title.CodifyStringInternal();
 
-        /// <summary>
-        /// How we should call this variable.
-        /// </summary>
-        public string VariableString => IsExposed ? "Exposed variable" : "Variable";
+        /// <inheritdoc />
+        public virtual IEnumerable<IGraphElementModel> ContainedModels
+        {
+            get => Enumerable.Repeat(this, 1);
+        }
 
         /// <inheritdoc />
         public virtual TypeHandle DataType
@@ -114,7 +125,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public IGroupModel Group { get; set; }
+        public IGroupModel ParentGroup { get; set; }
 
         /// <inheritdoc />
         public virtual void CreateInitializationValue()
@@ -125,6 +136,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
                 EditorUtility.SetDirty((Object)AssetModel);
             }
+        }
+
+        public virtual bool IsUsed()
+        {
+            foreach (var node in GraphModel.NodeModels.OfType<IVariableNodeModel>())
+            {
+                if (node.VariableDeclarationModel == this && node.Ports.Any(t => t.IsConnected()))
+                    return true;
+            }
+
+            return false;
         }
 
         bool Equals(VariableDeclarationModel other)
@@ -153,6 +175,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 // ReSharper disable once NonReadonlyMemberInGetHashCode
                 hashCode = (hashCode * 397) ^ m_IsExposed.GetHashCode();
                 return hashCode;
+            }
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            if (Version <= SerializationVersion.GTF_V_0_13_0)
+            {
+                if (m_Modifiers == 1 << 2)
+                {
+                    m_Modifiers = (int)ModifierFlags.ReadWrite;
+                }
             }
         }
     }

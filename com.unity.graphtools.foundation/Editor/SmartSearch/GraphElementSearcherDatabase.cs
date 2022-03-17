@@ -23,7 +23,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         // TODO: our builder methods ("AddStack",...) all use this field. Users should be able to create similar methods. making it public until we find a better solution
         public readonly List<SearcherItem> Items;
         public readonly Stencil Stencil;
-        private IGraphModel m_GraphModel;
+        IGraphModel m_GraphModel;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphElementSearcherDatabase"/> class.
@@ -55,10 +55,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (typeof(IBlockNodeModel).IsAssignableFrom(type))
                     continue;
 
-                string nodeHelp = null;
                 var nodeHelpAttribute = type.GetCustomAttribute<SeacherHelpAttribute>();
-                if (nodeHelpAttribute != null)
-                    nodeHelp = nodeHelpAttribute.HelpText;
 
                 foreach (var attribute in attributes)
                 {
@@ -66,21 +63,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         continue;
 
                     var name = attribute.Path.Split('/').Last();
-                    var path = attribute.Path.Remove(attribute.Path.LastIndexOf('/') + 1);
 
                     switch (attribute.Context)
                     {
                         case SearcherContext.Graph:
                         {
                             var node = new GraphNodeModelSearcherItem(
-                                Stencil.GraphModel,
                                 new NodeSearcherItemData(type),
-                                data => data.CreateNode(type, name),
-                                name,
-                                help: nodeHelp
-                            );
+                                data => data.CreateNode(type, name))
+                                {
+                                    FullName = attribute.Path,
+                                    Help = nodeHelpAttribute?.HelpText,
+                                    StyleName = attribute.StyleName
+                                };
 
-                            Items.AddAtPath(node, path);
+                            Items.Add(node);
                             break;
                         }
 
@@ -103,18 +100,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>The database with the elements.</returns>
         public GraphElementSearcherDatabase AddStickyNote()
         {
-            var node = new GraphNodeModelSearcherItem(
-                Stencil.GraphModel,
+            var node = new GraphNodeModelSearcherItem(k_Sticky,
                 new TagSearcherItemData(CommonSearcherTags.StickyNote),
                 data =>
                 {
                     var rect = new Rect(data.Position, StickyNote.defaultSize);
                     var graphModel = data.GraphModel;
                     return graphModel.CreateStickyNote(rect, data.SpawnFlags);
-                },
-                k_Sticky
+                }
             );
-            Items.AddAtPath(node);
+            Items.Add(node);
 
             return this;
         }
@@ -143,14 +138,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             TypeHandle handle = type.GenerateTypeHandle();
 
-            SearcherItem parent = Items.GetItemFromPath(k_Constant);
-            parent.AddChild(new GraphNodeModelSearcherItem(
-                Stencil.GraphModel,
+            Items.Add(new GraphNodeModelSearcherItem($"{type.FriendlyName().Nicify()} {k_Constant}",
                 new TypeSearcherItemData(handle),
-                data => data.CreateConstantNode("", handle),
-                $"{type.FriendlyName().Nicify()} {k_Constant}"
-            ));
-
+                data => data.CreateConstantNode("", handle))
+                {
+                    CategoryPath = k_Constant,
+                    Help = $"Constant of type {type.FriendlyName().Nicify()}"
+                }
+            );
             return this;
         }
 
@@ -161,21 +156,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>The database with the elements.</returns>
         public GraphElementSearcherDatabase AddGraphVariables(IGraphModel graphModel)
         {
-            SearcherItem parent = null;
-
             foreach (var declarationModel in graphModel.VariableDeclarations)
             {
-                if (parent == null)
-                {
-                    parent = Items.GetItemFromPath(k_GraphVariables);
-                }
-
-                parent.AddChild(new GraphNodeModelSearcherItem(
-                    Stencil.GraphModel,
+                Items.Add(new GraphNodeModelSearcherItem(declarationModel.DisplayTitle,
                     new TypeSearcherItemData(declarationModel.DataType),
-                    data => data.CreateVariableNode(declarationModel),
-                    declarationModel.DisplayTitle
-                ));
+                    data => data.CreateVariableNode(declarationModel)));
             }
 
             return this;
@@ -184,30 +169,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Adds a searcher item for a Asset Graph Subgraph to the database.
         /// </summary>
-        /// <param name="graphModel">The GraphModel containing the variables.</param>
         /// <returns>The database with the elements.</returns>
-        public GraphElementSearcherDatabase AddAssetGraphSubgraphs(IGraphModel graphModel)
+        public GraphElementSearcherDatabase AddAssetGraphSubgraphs()
         {
-            SearcherItem parent = null;
             var assetPaths = AssetDatabase.FindAssets($"t:{typeof(GraphAssetModel)}").Select(AssetDatabase.GUIDToAssetPath).ToList();
             var assetGraphModels = assetPaths.Select(p => AssetDatabase.LoadAssetAtPath(p, typeof(object)) as GraphAssetModel)
-                .Where(g => g != null && g.GraphAssetType == GraphAssetType.AssetGraph);
+                .Where(g => g != null && !g.IsContainerGraph());
 
             var handle = Stencil.GetSubgraphNodeTypeHandle();
 
-            foreach (var assetGraphModel in assetGraphModels.Where(asset => asset.GraphModel.VariableDeclarations.Any(variable => variable.IsInputOrOutput())))
+            foreach (var assetGraphModel in assetGraphModels.Where(g => g != null && !g.IsContainerGraph() && g.CanBeSubgraph()))
             {
-                if (parent == null)
-                {
-                    parent = Items.GetItemFromPath(k_Subgraphs);
-                }
+                string name = null;
+                if (assetGraphModel != null)
+                    name = assetGraphModel.Name;
 
-                parent.AddChild(new GraphNodeModelSearcherItem(
-                    graphModel,
+                Items.Add(new GraphNodeModelSearcherItem(name ?? "UnknownAssetGraphModel",
                     new TypeSearcherItemData(handle),
-                    data => data.CreateSubgraphNode(assetGraphModel),
-                    assetGraphModel?.Name
-                ));
+                    data => data.CreateSubgraphNode(assetGraphModel))
+                {
+                    CategoryPath = k_Subgraphs
+                });
             }
 
             return this;

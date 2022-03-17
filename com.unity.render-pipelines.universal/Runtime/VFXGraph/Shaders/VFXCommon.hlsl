@@ -27,6 +27,11 @@ float4 VFXTransformFinalColor(float4 color)
     return color;
 }
 
+float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
+{
+    return GetNormalizedScreenSpaceUV(clipPos);
+}
+
 void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
 {
     //TODO : LWRP doesn't support motion vector & TAA yet

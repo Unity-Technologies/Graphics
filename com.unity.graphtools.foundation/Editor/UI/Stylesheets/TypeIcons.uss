@@ -1,0 +1,106 @@
+﻿/**************/
+/* Type icons */
+/**************/
+
+.ge-icon--data-type-object {
+    --unity-image: url("Icons/Port/GraphicScript@x3.png");
+}
+
+.ge-icon--data-type-texture2d {
+    --unity-image: url("Icons/Port/2DTexture@x3.png");
+}
+
+.ge-icon--data-type-float4,
+.ge-icon--data-type-vector4 {
+    --unity-image: url("Icons/Port/Vector4@x3.png");
+}
+
+.ge-icon--data-type-quaternion {
+    --unity-image: url("Icons/Port/Quaternion@x3.png");
+}
+
+.ge-icon--data-type-color {
+    --unity-image: url("Icons/Port/Color@x3.png");
+}
+
+.ge-icon--data-type-int {
+    --unity-image: url("Icons/Port/Integer1@x3.png");
+}
+
+.ge-icon--data-type-int32 {
+    --unity-image: url("Icons/Port/Integer32@x3.png");
+}
+
+.ge-icon--data-type-int64 {
+    --unity-image: url("Icons/Port/Integer64@x3.png");
+}
+
+.ge-icon--data-type-boolean {
+    --unity-image: url("Icons/Port/Boolean@x3.png");
+}
+
+.ge-icon--data-type-matrix,
+.ge-icon--data-type-matrix4x4 {
+    --unity-image: url("Icons/Port/Matrix@x3.png");
+}
+
+.ge-icon--data-type-game-object {
+    --unity-image: url("Icons/Port/GameObject@x3.png");
+}
+
+.ge-icon--data-type-float,
+.ge-icon--data-type-float1,
+.ge-icon--data-type-single,
+.ge-icon--data-type-double {
+    --unity-image: url("Icons/Port/Double@x3.png");
+}
+
+.ge-icon--data-type-float2,
+.ge-icon--data-type-vector2 {
+    --unity-image: url("Icons/Port/Vector2@x3.png");
+}
+
+.ge-icon--data-type-array {
+    --unity-image: url("Icons/Port/Array@x3.png");
+}
+
+.ge-icon--data-type-component {
+    --unity-image: url("Icons/Port/Component@x3.png");
+}
+
+.ge-icon--data-type-raycast-hit {
+    --unity-image: url("Icons/Port/RaycastHit@x3.png");
+}
+
+.ge-icon--data-type-advanced {
+    --unity-image: url("Icons/Port/Advanced@x3.png");
+}
+
+.ge-icon--data-type-float3,
+.ge-icon--data-type-vector3 {
+    --unity-image: url("Icons/Port/Vector3@x3.png");
+}
+
+.ge-icon--data-type-rigid-body {
+    --unity-image: url("Icons/Port/RigidBody@x3.png");
+}
+
+.ge-icon--data-type-string {
+    --unity-image: url("Icons/Port/String@x3.png");
+}
+
+.ge-icon--data-type-key-code {
+    --unity-image: url("Icons/Port/Keycode@x3.png");
+}
+
+.ge-icon--data-type-text {
+    --unity-image: url("Icons/Port/Text@x3.png");
+}
+
+.ge-icon--data-type-transform {
+    --unity-image: url("Icons/Port/Transform@x3.png");
+}
+
+.ge-icon--data-type-material {
+    --unity-image: url("Icons/Port/Material@x3.png");
+}

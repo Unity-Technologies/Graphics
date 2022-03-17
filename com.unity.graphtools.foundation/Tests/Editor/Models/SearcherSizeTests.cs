@@ -19,13 +19,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             m_Preferences = Preferences.CreateTransient(nameof(SearcherSizeTests));
             m_Preferences.ResetSearcherSizes();
             m_Preferences.SetInitialSearcherSize(null, k_DefaultSize, k_DefaultRatio);
-            m_Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, k_CreateNodeDefaultSize, k_CreateNodeDefaultRatio);
+            m_Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, k_CreateNodeDefaultSize, k_CreateNodeDefaultRatio);
         }
 
         [Test]
-        public void TestsSearcherSizeComputationAreOK()
+        public void TestsSearcherSizeComputationAreCorrect()
         {
-            var searcherSize = m_Preferences.GetSearcherSize(SearcherService.Usage.k_CreateNode);
+            var searcherSize = m_Preferences.GetSearcherSize(SearcherService.Usage.CreateNode);
             Assert.AreEqual(k_CreateNodeDefaultSize, searcherSize.Size);
             Assert.AreEqual(k_CreateNodeDefaultRatio, searcherSize.RightLeftRatio);
 
@@ -38,11 +38,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             Assert.AreEqual(k_DefaultSize, searcherSize.Size);
             Assert.AreEqual(k_DefaultRatio, searcherSize.RightLeftRatio);
 
-            Vector2 newSize = new Vector2(012.0f, 357.0f);
+            Vector2 newSize = new Vector2(312.0f, 357.0f);
             float newRatio = 1.1f;
 
-            m_Preferences.SetSearcherSize(SearcherService.Usage.k_CreateNode, newSize, newRatio);
-            searcherSize = m_Preferences.GetSearcherSize(SearcherService.Usage.k_CreateNode);
+            m_Preferences.SetSearcherSize(SearcherService.Usage.CreateNode, newSize, newRatio);
+            searcherSize = m_Preferences.GetSearcherSize(SearcherService.Usage.CreateNode);
             Assert.AreEqual(newSize, searcherSize.Size);
             Assert.AreEqual(newRatio, searcherSize.RightLeftRatio);
 

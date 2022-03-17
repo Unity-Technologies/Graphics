@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
@@ -26,9 +28,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
         void GetUI(out Node node1, out Node node2, out Node node3)
         {
-            node1 = m_Node1.GetUI<Node>(graphView);
-            node2 = m_Node2.GetUI<Node>(graphView);
-            node3 = m_Node3.GetUI<Node>(graphView);
+            node1 = m_Node1.GetView<Node>(GraphView);
+            node2 = m_Node2.GetView<Node>(GraphView);
+            node3 = m_Node3.GetView<Node>(GraphView);
         }
 
         Rect RectAroundNodes(Node node1, Node node2, Node node3)
@@ -46,7 +48,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
             GetUI(out var node1, out var node2, out var node3);
 
-            helpers.Click(node1);
+            Helpers.Click(node1);
 
             yield return null;
 
@@ -62,7 +64,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
             GetUI(out var node1, out var node2, out var node3);
 
-            helpers.Click(node1);
+            Helpers.Click(node1);
 
             yield return null;
 
@@ -93,7 +95,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GetUI(out var node1, out var node2, out var node3);
 
             // Select elem 1. All other elems should be unselected.
-            helpers.Click(node1);
+            Helpers.Click(node1);
 
             yield return null;
 
@@ -102,7 +104,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.False(node3.IsSelected());
 
             // Select elem 2. All other elems should be unselected.
-            helpers.Click(node2);
+            Helpers.Click(node2);
 
             yield return null;
 
@@ -121,12 +123,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GetUI(out var node1, out var node2, out var node3);
 
             // Select elem 1. All other elems should be unselected.
-            helpers.Click(node1);
+            Helpers.Click(node1);
 
             yield return null;
 
             // Select elem 2 with control. 1 and 2 should be selected
-            helpers.Click(node2, eventModifiers: CommandOrControl);
+            Helpers.Click(node2, eventModifiers: CommandOrControl);
 
             yield return null;
 
@@ -143,17 +145,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GetUI(out var node1, out var node2, out var node3);
 
             // Select elem 1. All other elems should be unselected.
-            helpers.Click(node1);
+            Helpers.Click(node1);
 
             yield return null;
 
             // Select elem 2 with control. 1 and 2 should be selected
-            helpers.Click(node2, eventModifiers: CommandOrControl);
+            Helpers.Click(node2, eventModifiers: CommandOrControl);
 
             yield return null;
 
             // Select elem 1 with control. Only 2 should be selected
-            helpers.Click(node1, eventModifiers: CommandOrControl);
+            Helpers.Click(node1, eventModifiers: CommandOrControl);
 
             yield return null;
 
@@ -191,13 +193,31 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Rect intersection;
             Assert.IsTrue(Intersection(node2.worldBound, node3.worldBound, out intersection), "Expected rectangles to intersect");
 
-            helpers.Click(intersection.center);
+            Helpers.Click(intersection.center);
 
             yield return null;
 
             Assert.False(node1.IsSelected());
             Assert.False(node2.IsSelected());
             Assert.True(node3.IsSelected());
+        }
+
+        [UnityTest]
+        public IEnumerator ClickOnPortDoesNotSelectNode()
+        {
+            var node = CreateNode("Node 1", new Vector2(10, 30), 2, 2);
+
+            MarkGraphViewStateDirty();
+            yield return null;
+
+            var portUI = node.GetInputPorts().First().GetView(GraphView);
+            Assert.IsNotNull(portUI);
+            var clickLocation = portUI.parent.LocalToWorld(portUI.layout.center);
+            Helpers.Click(clickLocation);
+            yield return null;
+
+            var nodeSelected = GraphView.GraphViewModel.SelectionState.IsSelected(node);
+            Assert.False(nodeSelected);
         }
 
         [UnityTest]
@@ -209,7 +229,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             Rect rectangle = RectAroundNodes(node1, node2, node3);
 
-            helpers.DragTo(rectangle.max, rectangle.min);
+            Helpers.DragTo(rectangle.max, rectangle.min);
 
             yield return null;
 
@@ -221,14 +241,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         [UnityTest]
         public IEnumerator RectangleSelectionWithActionKeyWorks()
         {
-            graphView.DispatchFrameAllCommand();
+            GraphView.DispatchFrameAllCommand();
             yield return null;
 
             MarkGraphViewStateDirty();
             yield return null;
             GetUI(out var node1, out var node2, out var node3);
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1));
             Assert.True(node1.IsSelected());
             Assert.False(node2.IsSelected());
             Assert.False(node3.IsSelected());
@@ -237,7 +257,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Rect rectangle = RectAroundNodes(node1, node2, node3);
 
             // Reselect all.
-            helpers.DragTo(rectangle.min, rectangle.max, eventModifiers: CommandOrControl);
+            Helpers.DragTo(rectangle.min, rectangle.max, eventModifiers: CommandOrControl);
             yield return null;
 
             GetUI(out node1, out node2, out node3);
@@ -258,7 +278,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             float lineAcrossNodes = rectangle.y + (rectangle.yMax - rectangle.y) * 0.5f;
             Vector2 startPoint = new Vector2(rectangle.xMax, lineAcrossNodes);
             Vector2 endPoint = new Vector2(rectangle.xMin, lineAcrossNodes);
-            helpers.DragTo(startPoint, endPoint, eventModifiers: EventModifiers.Shift, steps: 10);
+            Helpers.DragTo(startPoint, endPoint, eventModifiers: EventModifiers.Shift, steps: 10);
 
             yield return null;
 
@@ -279,55 +299,53 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             float lineAcrossNodes = rectangle.y + (rectangle.yMax - rectangle.y) * 0.5f;
             Vector2 startPoint = new Vector2(rectangle.xMax, lineAcrossNodes);
             Vector2 endPoint = new Vector2(rectangle.xMin, lineAcrossNodes);
-            helpers.DragTo(startPoint, endPoint, eventModifiers: EventModifiers.Shift | EventModifiers.Alt, steps: 10);
+            Helpers.DragTo(startPoint, endPoint, eventModifiers: EventModifiers.Shift | EventModifiers.Alt, steps: 10);
 
             yield return null;
 
             // After manipulation we should have only zero elements left.
-            var allUIs = new List<ModelUI>();
-            GraphModel.GraphElementModels.GetAllUIsInList(graphView, null, allUIs);
+            var allUIs = new List<ModelView>();
+            GraphModel.GraphElementModels.GetAllViewsInList(GraphView, null, allUIs);
             Assert.IsEmpty(allUIs);
         }
 
         [Test]
         public void AddingElementToSelectionTwiceDoesNotAddTheSecondTime()
         {
-            graphView.RebuildUI();
-            GetUI(out var node1, out var node2, out _);
+            GraphView.RebuildUI();
 
-            Assert.AreEqual(0, graphView.GetSelection().Count);
+            Assert.AreEqual(0, GraphView.GetSelection().Count);
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1));
-            Assert.AreEqual(1, graphView.GetSelection().Count);
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1));
+            Assert.AreEqual(1, GraphView.GetSelection().Count);
 
             // Add same element again, should have no impact on selection
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1));
-            Assert.AreEqual(1, graphView.GetSelection().Count);
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1));
+            Assert.AreEqual(1, GraphView.GetSelection().Count);
 
             // Add other element
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node2));
-            Assert.AreEqual(2, graphView.GetSelection().Count);
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node2));
+            Assert.AreEqual(2, GraphView.GetSelection().Count);
         }
 
         [Test]
         public void RemovingElementFromSelectionTwiceDoesThrowException()
         {
-            graphView.RebuildUI();
-            GetUI(out var node1, out var node2, out _);
+            GraphView.RebuildUI();
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1, m_Node2));
-            Assert.AreEqual(2, graphView.GetSelection().Count);
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, m_Node1, m_Node2));
+            Assert.AreEqual(2, GraphView.GetSelection().Count);
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Remove, m_Node2));
-            Assert.AreEqual(1, graphView.GetSelection().Count);
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Remove, m_Node2));
+            Assert.AreEqual(1, GraphView.GetSelection().Count);
 
             // Remove the same item again, should have no impact on selection
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Remove, m_Node2));
-            Assert.AreEqual(1, graphView.GetSelection().Count);
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Remove, m_Node2));
+            Assert.AreEqual(1, GraphView.GetSelection().Count);
 
             // Remove other element
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Remove, m_Node1));
-            Assert.AreEqual(0, graphView.GetSelection().Count);
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Remove, m_Node1));
+            Assert.AreEqual(0, GraphView.GetSelection().Count);
         }
     }
 }

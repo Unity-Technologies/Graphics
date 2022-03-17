@@ -5,7 +5,7 @@ using System.Globalization;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.SceneManagement;
-using UnityEditor.UIElements;
+
 using UnityEditor.VFX.UIElements;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -355,6 +355,7 @@ namespace UnityEditor.VFX.UI
             if (m_BoundsRecorder != null)
             {
                 m_BoundsRecorder.isRecording = false;
+                m_BoundsRecorder.CleanUp();
                 m_BoundsRecorder = null;
             }
         }
@@ -500,7 +501,9 @@ namespace UnityEditor.VFX.UI
                 m_EventsContainer.Clear();
             m_Events.Clear();
             if (m_DebugUI != null)
-                m_DebugUI.Clear();
+            {
+                m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
+            }
 
             DeleteBoundsRecorder();
             RefreshInitializeErrors();
@@ -522,6 +525,16 @@ namespace UnityEditor.VFX.UI
             {
                 context.controller.model.RefreshErrors(m_View.controller.graph);
             }
+        }
+
+        public void LockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(false);
+        }
+
+        public void UnlockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(true);
         }
 
         public bool Attach(VisualEffect effect = null)
@@ -603,7 +616,7 @@ namespace UnityEditor.VFX.UI
                 current = current.parent;
             }
 
-            if (EditorSceneManager.loadedSceneCount > 1)
+            if (UnityEngine.SceneManagement.SceneManager.loadedSceneCount > 1)
             {
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }
@@ -624,7 +637,6 @@ namespace UnityEditor.VFX.UI
             UpdatePlayRate();
             UpdatePlayButton();
             UpdateBoundsModes();
-            m_ApplyBoundsButton.SetEnabled(m_BoundsRecorder.bounds.Any() && m_View.IsAssetEditable());
             UpdateRecordingButton();
         }
 

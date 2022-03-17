@@ -774,7 +774,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                StructFields.Varyings.viewDirectionWS,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -789,7 +788,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                StructFields.Varyings.viewDirectionWS,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -823,6 +821,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment
             };
 
             public static readonly KeywordDescriptor SpecularSetup = new KeywordDescriptor()
@@ -856,6 +855,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
+                stages = KeywordShaderStage.Fragment,
             };
 
             public static readonly KeywordCollection Forward = new KeywordCollection
@@ -889,6 +889,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.GBufferNormalsOct },

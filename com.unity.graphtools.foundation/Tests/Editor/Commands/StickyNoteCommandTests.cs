@@ -9,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 {
     [Category("Sticky Notes")]
     [Category("Command")]
-    class StickyNoteCommandTests : BaseFixture
+    class StickyNoteCommandTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
         protected override Type CreatedGraphType => typeof(ClassStencil);

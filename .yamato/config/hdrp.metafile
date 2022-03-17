@@ -14,12 +14,13 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: Standalone
+    allow_cache: False
     utr_flags:
       - [OSX_Metal]: --timeout=2400
   - type: Standalone
     name: Standalone_XR
+    allow_cache: False
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.call_utr>
@@ -42,22 +43,22 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       standalone:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
   - name: OSX
     apis:
@@ -65,6 +66,19 @@ platforms:
         exclude_test_platforms:
           - name: editmode
           - name: editmode_XR
+          - name: playmode_XR
+          - name: Standalone_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: OSX_Apple_Silicon
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+          - name: editmode_XR
+          - name: playmode
           - name: playmode_XR
           - name: Standalone_XR
     build_configs:
@@ -133,7 +147,6 @@ jobs:
           - playmode
           - Standalone
       - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
-      # - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
       - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
       - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
@@ -170,6 +183,12 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+      - platform: OSX_Apple_Silicon
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
@@ -177,6 +196,6 @@ jobs:
   - name: Nightly <PROJECT_NAME>
     dependencies:
       - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>
-#      - .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_<TRACK>
+      #- .yamato/all-hdrp_BatchRendererGroup.yml#HDRP_BatchRendererGroup_<TRACK>
       - .yamato/all-hdrp_dxr.yml#HDRP_DXR_<TRACK>
       - .yamato/all-hdrp.yml#HDRP_<TRACK>

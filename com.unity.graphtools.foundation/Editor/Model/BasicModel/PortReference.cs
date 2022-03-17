@@ -17,14 +17,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField, FormerlySerializedAs("NodeModelGuid")]
         SerializableGUID m_NodeModelGuid;
 
-        //[SerializeField, FormerlySerializedAs("GraphAssetModel")] // NUKE THIS
+        // [SerializeField, FormerlySerializedAs("GraphAssetModel")]
         IGraphAssetModel m_GraphAssetModel;
 
         [SerializeField, FormerlySerializedAs("UniqueId")]
         string m_UniqueId;
 
-        public void InitAssetModel(IGraphAssetModel model) => m_GraphAssetModel = model;
+        [SerializeField]
+        string m_Title;
 
+        public void InitAssetModel(IGraphAssetModel model) => m_GraphAssetModel = model;
 
         INodeModel m_NodeModel;
 
@@ -41,6 +43,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             get => m_UniqueId;
             // for tests
             internal set => m_UniqueId = value;
+        }
+
+        /// <summary>
+        /// The title of the port referenced by this instance.
+        /// </summary>
+        public string Title
+        {
+            get => m_Title;
+            // for tests
+            internal set => m_Title = value;
         }
 
         /// <summary>
@@ -78,6 +90,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             Assert.IsNotNull(portModel);
             NodeModel = portModel.NodeModel;
             m_UniqueId = portModel.UniqueName;
+            m_Title = (portModel as IHasTitle)?.Title;
         }
 
         public IPortModel GetPortModel(PortDirection direction, ref IPortModel previousValue)
@@ -139,7 +152,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             if (!(NodeModel is NodeModel n))
                 return false;
-            n.AddPlaceHolderPort(direction, UniqueId);
+            n.AddPlaceHolderPort(direction, UniqueId, portName: Title);
             return true;
         }
     }

@@ -10,6 +10,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests
         {
             public static readonly BaseColors Red = new BaseColors(0, nameof(Red));
             public static readonly BaseColors Green = new BaseColors(1, nameof(Green));
+            // ReSharper disable once UnusedMember.Local
             public static readonly BaseColors Blue = new BaseColors(2, nameof(Blue));
 
             protected BaseColors(int id, string name)
@@ -21,6 +22,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests
         class MoreColors : BaseColors
         {
             public static readonly MoreColors Yellow = new MoreColors(3, nameof(Yellow));
+            // ReSharper disable once UnusedMember.Local
             public static readonly MoreColors Cyan = new MoreColors(4, nameof(Cyan));
 
             protected MoreColors(int id, string name)
@@ -32,6 +34,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests
         class Shapes : Enumeration
         {
             public static readonly Shapes Circle = new Shapes(0, nameof(Circle));
+            // ReSharper disable once UnusedMember.Local
             public static readonly Shapes Triangle = new Shapes(1, nameof(Triangle));
 
             protected Shapes(int id, string name)

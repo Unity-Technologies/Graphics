@@ -12,19 +12,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
         {
         }
 
-        public static void DefaultHandler(UndoStateComponent undoState, GraphViewStateComponent graphViewState, AddPortCommand command)
+        public static void DefaultHandler(UndoStateComponent undoState, GraphModelStateComponent graphModelState, AddPortCommand command)
         {
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphViewState, command);
+                undoStateUpdater.SaveSingleState(graphModelState, command);
             }
 
-            using (var graphUpdater = graphViewState.UpdateScope)
+            using (var graphUpdater = graphModelState.UpdateScope)
             {
                 foreach (var nodeModel in command.Models)
                 {
-                    nodeModel.AddIngredientPort();
-                    graphUpdater.MarkChanged(nodeModel);
+                    nodeModel.SetIngredientCount(nodeModel.IngredientCount + 1, out var _, out var __, out var ___);
+
+                    graphUpdater.MarkChanged(nodeModel, ChangeHint.GraphTopology);
                 }
             }
         }

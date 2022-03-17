@@ -1,0 +1,22 @@
+.ge-in-out-port-container-part,
+.ge-port-container-part {
+    flex-direction: row;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.ge-vertical-port-container-part {
+    background-color: var(--vertical-node-port-background);
+}
+
+.ge-node__top-vertical-port-container {
+    justify-content: center;
+    border-bottom-width: 1px;
+    border-color: var(--graph-color-dividers);
+}
+
+.ge-node__bottom-vertical-port-container {
+    justify-content: center;
+    border-top-width: 1px;
+    border-color: var(--graph-color-dividers);
+}

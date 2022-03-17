@@ -1,0 +1,23 @@
+.item-library-custom-item-math-functions__icon {
+    background-image: url("Icons/math_functions.png");
+}
+
+.item-library-custom-item-boolean-operators__icon {
+    background-image: url("Icons/boolean.png");
+}
+
+.item-library-custom-item-operator-add__icon {
+    background-image: url("Icons/operator-add.png");
+}
+
+.item-library-custom-item-operator-mult__icon {
+    background-image: url("Icons/operator-mult.png");
+}
+
+.item-library-custom-item-operator-sub__icon {
+    background-image: url("Icons/operator-sub.png");
+}
+
+.item-library-custom-item-operator-div__icon {
+    background-image: url("Icons/operator-div.png");
+}

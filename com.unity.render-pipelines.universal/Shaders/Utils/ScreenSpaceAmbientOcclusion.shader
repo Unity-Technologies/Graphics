@@ -1,6 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 {
     HLSLINCLUDE
+        #pragma editor_sync_compilation
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
@@ -31,7 +32,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             output.positionCS = float4(input.positionHCS.xyz, 1.0);
 
             #if UNITY_UV_STARTS_AT_TOP
-            output.positionCS.y *= -1;
+            output.positionCS.y *= _ScaleBiasRt.x;
             #endif
 
             output.uv = input.uv;

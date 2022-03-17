@@ -1,0 +1,20 @@
+.ge-collapse-button {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.ge-collapse-button__icon {
+    width: 12px;
+    height: 12px;
+    align-self: center;
+    border-radius: 2px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.ge-collapse-button:disabled .ge-collapse-button__icon {
+    opacity: 0.15;
+}
+
+.ge-collapse-button:hover:enabled .ge-collapse-button__icon {
+    background-color: var(--node-collapse-background);
+}

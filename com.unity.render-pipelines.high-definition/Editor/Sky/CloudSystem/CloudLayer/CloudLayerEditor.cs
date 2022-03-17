@@ -7,17 +7,15 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(CloudLayer))]
+    [CustomEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
-        readonly GUIContent scrollOrientationLabel = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
-        readonly GUIContent scrollSpeedLabel = new GUIContent("Speed", "Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
-
         struct CloudMapParameter
         {
             public SerializedDataParameter cloudMap;
             public SerializedDataParameter[] opacities;
 
+            public SerializedDataParameter altitude;
             public SerializedDataParameter rotation;
             public SerializedDataParameter tint;
             public SerializedDataParameter exposure;
@@ -27,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter scrollSpeed;
             public SerializedDataParameter flowmap;
 
-            public SerializedDataParameter lighting;
+            public SerializedDataParameter raymarching;
             public SerializedDataParameter steps;
             public SerializedDataParameter thickness;
 
@@ -49,15 +47,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     Unpack(p.Find(x => x.opacityA))
                 },
 
+                altitude = Unpack(p.Find(x => x.altitude)),
                 rotation = Unpack(p.Find(x => x.rotation)),
                 tint = Unpack(p.Find(x => x.tint)),
                 exposure = Unpack(p.Find(x => x.exposure)),
+
                 distortion = Unpack(p.Find(x => x.distortionMode)),
                 scrollOrientation = Unpack(p.Find(x => x.scrollOrientation)),
                 scrollSpeed = Unpack(p.Find(x => x.scrollSpeed)),
                 flowmap = Unpack(p.Find(x => x.flowmap)),
 
-                lighting = Unpack(p.Find(x => x.lighting)),
+                raymarching = Unpack(p.Find(x => x.lighting)),
                 steps = Unpack(p.Find(x => x.steps)),
                 thickness = Unpack(p.Find(x => x.thickness)),
                 castShadows = Unpack(p.Find(x => x.castShadows)),
@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(map.opacities[i]);
             }
 
+            PropertyField(map.altitude);
             PropertyField(map.rotation);
             PropertyField(map.tint);
             PropertyField(map.exposure);
@@ -110,17 +111,19 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(map.distortion);
             if (map.distortion.value.intValue != (int)CloudDistortionMode.None)
             {
-                EditorGUI.indentLevel++;
-                PropertyField(map.scrollOrientation, scrollOrientationLabel);
-                PropertyField(map.scrollSpeed, scrollSpeedLabel);
-                if (map.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
+                using (new IndentLevelScope())
                 {
-                    PropertyField(map.flowmap);
+                    PropertyField(map.scrollOrientation);
+                    PropertyField(map.scrollSpeed);
+                    if (map.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
+                    {
+                        PropertyField(map.flowmap);
+                    }
+
                 }
-                EditorGUI.indentLevel--;
             }
 
-            PropertyField(map.lighting);
+            PropertyField(map.raymarching);
             using (new IndentLevelScope())
             {
                 PropertyField(map.steps);

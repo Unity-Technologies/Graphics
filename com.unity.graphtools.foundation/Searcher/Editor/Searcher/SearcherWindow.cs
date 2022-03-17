@@ -33,11 +33,23 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
 
         const string k_DatabaseDirectory = "/../Library/Searcher";
 
+        const string k_StylesheetName = "SearcherWindow.uss";
+        const string k_WindowClassName = "unity-item-library-window";
+        const string k_PopupWindowClassName = k_WindowClassName + "--popup";
+
         static Vector2 s_DefaultSize = new Vector2(300, 300);
 
         static IEnumerable<SearcherItem> s_Items;
         static Searcher s_Searcher;
         static Func<SearcherItem, bool> s_ItemSelectedDelegate;
+
+        static readonly public Vector2 MinSize = new Vector2(120, 130);
+
+        // TODO remove when access to internals
+        enum ShowMode
+        {
+            NormalWindow, PopupMenu
+        };
 
         Action<Searcher.AnalyticsEvent> m_AnalyticsDataDelegate;
         SearcherControl m_SearcherControl;
@@ -128,10 +140,9 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         {
             UpdateDefaultSize(searcher);
 
-            var position = GetPosition(host, displayPosition, s_DefaultSize);
-            var rect = new Rect(GetPositionWithAlignment(position + host.position.position, s_DefaultSize, align), s_DefaultSize);
+            var rect = new Rect(displayPosition, s_DefaultSize);
 
-            Show(host, searcher, itemSelectedDelegate, analyticsDataDelegate, rect);
+            Show(host, searcher, itemSelectedDelegate, analyticsDataDelegate, rect, align);
         }
 
         public static void Show(
@@ -139,14 +150,28 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             Searcher searcher,
             Func<SearcherItem, bool> itemSelectedDelegate,
             Action<Searcher.AnalyticsEvent> analyticsDataDelegate,
-            Rect rect)
+            Rect rect,
+            Alignment align = default)
         {
             s_ItemSelectedDelegate = itemSelectedDelegate;
+#if UNITY_EDITOR_OSX
+            // Workaround for bug https://jira.unity3d.com/browse/GTF-642 to be fixed by the uitoolkit team
+            host.SendEvent(
+                new Event
+                {
+                    type = EventType.MouseUp,
+                    mousePosition = Vector2.zero,
+                    clickCount = 1,
+                    button = (int)MouseButton.RightMouse
+                });
+#endif
+
 
             var window = CreateInstance<SearcherWindow>();
             window.m_AnalyticsDataDelegate = analyticsDataDelegate;
-            window.position = rect;
-            window.SetupSearcher(searcher);
+            window.position = GetRectStartingInWindow(rect, host, align);
+            window.minSize = MinSize;
+            window.Initialize(searcher, ShowMode.PopupMenu);
             window.ShowPopup();
             window.Focus();
         }
@@ -175,60 +200,49 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
                 window.position = rect;
 
             window.m_AnalyticsDataDelegate = analyticsDataDelegate;
-            window.SetupSearcher(searcher);
+            window.Initialize(searcher, ShowMode.NormalWindow);
             return window;
         }
 
-        public static Vector2 GetPositionWithAlignment(Vector2 pos, Vector2 size, Alignment align)
+        static Rect GetRectStartingInWindow(Rect rect, EditorWindow host, Alignment align = default)
         {
-            var x = pos.x;
-            var y = pos.y;
+            var pos = rect.position;
+            pos.x = Mathf.Max(0, Mathf.Min(host.position.size.x, pos.x));
+            pos.y = Mathf.Max(0, Mathf.Min(host.position.size.y, pos.y));
 
             switch (align.horizontal)
             {
                 case Alignment.Horizontal.Center:
-                    x -= size.x / 2;
+                    pos.x -= rect.size.x / 2;
                     break;
 
                 case Alignment.Horizontal.Right:
-                    x -= size.x;
+                    pos.x -= rect.size.x;
                     break;
             }
 
             switch (align.vertical)
             {
                 case Alignment.Vertical.Center:
-                    y -= size.y / 2;
+                    pos.y -= rect.size.y / 2;
                     break;
 
                 case Alignment.Vertical.Bottom:
-                    y -= size.y;
+                    pos.y -= rect.size.y;
                     break;
             }
 
-            return new Vector2(x, y);
+            return new Rect(pos + host.position.position, rect.size);
         }
 
-        static Vector2 GetPosition(EditorWindow host, Vector2 displayPosition, Vector2 size)
+        void Initialize(Searcher searcher, ShowMode showMode)
         {
-            var x = displayPosition.x;
-            var y = displayPosition.y;
+            rootVisualElement.AddStylesheet(k_StylesheetName);
+            rootVisualElement.AddToClassList(k_WindowClassName);
+            rootVisualElement.AddToClassList("unity-theme-env-variables");
+            rootVisualElement.EnableInClassList(k_PopupWindowClassName, showMode == ShowMode.PopupMenu);
 
-            // Searcher overlaps with the right boundary.
-            if (x + size.x >= host.position.size.x)
-                x -= size.x;
-
-            // The displayPosition should be in window world space but the
-            // EditorWindow.position is actually the rootVisualElement
-            // rectangle, not including the tabs area. So we need to do a
-            // small correction here.
-            y -= host.rootVisualElement.resolvedStyle.top;
-
-            // Searcher overlaps with the bottom boundary.
-            if (y + size.y >= host.position.size.y)
-                y -= size.y;
-
-            return new Vector2(x, y);
+            SetupSearcher(searcher);
         }
 
         void SetupSearcher(Searcher searcher)
@@ -363,6 +377,11 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         {
             var delta = evt.mousePosition - m_OriginalMousePos;
             m_Size = m_OriginalWindowPos.size + delta;
+
+            if (m_Size.x < minSize.x)
+                m_Size.x = minSize.x;
+            if (m_Size.y < minSize.y)
+                m_Size.y = minSize.y;
 
             // TODO Temporary fix for Visual Scripting 1st drop. Find why position.position is 0,0 on MacOs in MouseMoveEvent
             // Bug occurs with Unity 2019.2.0a13

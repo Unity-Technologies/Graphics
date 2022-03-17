@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 
-namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
+namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 {
-    public class PortalCommandTests : BaseFixture
+    [SuppressMessage("ReSharper", "AccessToStaticMemberViaDerivedType")]
+    public class PortalCommandTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
 
@@ -41,6 +43,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
                     Assert.That(node1.ExeOutput0, Is.Not.ConnectedTo(node2.ExeInput0));
                     Assert.That(node1.ExeOutput0, Is.ConnectedTo(entry.InputPort));
                     Assert.That(exit.OutputPort, Is.ConnectedTo(node2.ExeInput0));
+                    Assert.That(GraphTool.GraphViewSelectionState.GetSelection(GraphModel).Count, Is.EqualTo(2));
+                    Assert.True(GraphTool.GraphViewSelectionState.IsSelected(GetNode(2)));
+                    Assert.True(GraphTool.GraphViewSelectionState.IsSelected(GetNode(3)));
                 }
             );
         }
@@ -56,18 +61,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
             };
         }
 
-        private static bool PortalCanBeDupped(Type portalType)
+        static bool PortalCanBeDupped(Type portalType)
         {
             return portalType != typeof(DataEdgePortalEntryModel);
         }
 
-        private static (Type entryType, Type exitType)[] s_EntryExitTypes =
+        static (Type entryType, Type exitType)[] s_EntryExitTypes =
         {
             (typeof(DataEdgePortalEntryModel), typeof(DataEdgePortalExitModel)),
             (typeof(ExecutionEdgePortalEntryModel), typeof(ExecutionEdgePortalExitModel)),
         };
 
-        private static Type GetOppositeType(Type portalType)
+        static Type GetOppositeType(Type portalType)
         {
             return typeof(IEdgePortalEntryModel).IsAssignableFrom(portalType)
                 ? s_EntryExitTypes.Single(e => e.entryType == portalType).exitType
@@ -95,10 +100,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
                         // Once GTF-400 is addressed, we should just pass the portal to copy to the command and not
                         // remove it manually.
                         if (!portalToCopy.IsCopiable())
-                            elementsToCopy = new IEdgePortalModel[] {};
+                            elementsToCopy = new INodeModel[] {};
                     }
-                    var copyData = CopyPasteData.GatherCopiedElementsData(elementsToCopy);
-                    return new PasteSerializedDataCommand("Duplicate", Vector2.one, copyData);
+                    var copyData = CopyPasteData.GatherCopiedElementsData(null, elementsToCopy);
+                    return new PasteSerializedDataCommand(PasteOperation.Duplicate,"Duplicate", Vector2.one, copyData);
                 },
                 () =>
                 {
@@ -109,7 +114,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
                 });
         }
 
-        private void CreateNodesWithEachPortal(bool createDataPortals = true, bool createExecPortals = true)
+        void CreateNodesWithEachPortal(bool createDataPortals = true, bool createExecPortals = true)
         {
             var node1 = GraphModel.CreateNode<Type0FakeNodeModel>();
             var node2 = GraphModel.CreateNode<Type0FakeNodeModel>();
@@ -166,6 +171,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
                     Assert.That(GetNodeCount(), Is.EqualTo(6)); // 2 nodes and 4 portals
                     Assert.That(GetEdgeCount(), Is.EqualTo(3)); // still 3 connected portals because we didn't connect the new one
                     Assert.That(GraphModel.NodeModels.Count(n => n.GetType() == GetOppositeType(portalType)), Is.EqualTo(1));
+                    Assert.That(GraphTool.GraphViewSelectionState.GetSelection(GraphModel).Count, Is.EqualTo(1));
+                    Assert.True(GraphTool.GraphViewSelectionState.IsSelected(GetNode(5)));
                 });
         }
 
@@ -218,6 +225,65 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
 
                     Assert.That(GraphModel.NodeModels.OfType<IEdgePortalModel>().Count(), Is.Zero);
                     Assert.That(GraphModel.PortalDeclarations.Count, Is.Zero);
+                });
+        }
+
+        [Test]
+        public void PortalsShouldKeepDataType([Values] TestingMode mode)
+        {
+            var node1 = GraphModel.CreateNode<Type0FakeNodeModel>();
+            var node2 = GraphModel.CreateNode<Type0FakeNodeModel>();
+            GraphModel.CreateEdge(node2.Input0, node1.Output0);
+
+            var expectedDataType = node2.Input0.DataTypeHandle;
+            Assert.That(expectedDataType, Is.EqualTo(node1.Output0.DataTypeHandle));
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    Assert.That(GetNodeCount(), Is.EqualTo(2));
+                    Assert.That(GetEdgeCount(), Is.EqualTo(1));
+                    Assert.That(GraphModel.NodeModels.All(n => n is Type0FakeNodeModel));
+                    Assert.That(node1.Output0, Is.ConnectedTo(node2.Input0));
+
+                    var allPortalData = new List<(IEdgeModel, Vector2, Vector2)> {(GetEdge(0), Vector2.left, Vector2.right)};
+                    return new ConvertEdgesToPortalsCommand(allPortalData);
+                },
+                () =>
+                {
+                    Assert.That(GetNodeCount(), Is.EqualTo(4));
+                    Assert.That(GetEdgeCount(), Is.EqualTo(2));
+                    Assert.That(GraphModel.NodeModels.OfType<Type0FakeNodeModel>().Count(), Is.EqualTo(2));
+                    Assert.That(GraphModel.NodeModels.OfType<IEdgePortalEntryModel>().Count(), Is.EqualTo(1));
+                    Assert.That(GraphModel.NodeModels.OfType<IEdgePortalExitModel>().Count(), Is.EqualTo(1));
+                    var entry = GraphModel.NodeModels.OfType<IEdgePortalEntryModel>().Single();
+                    var exit = GraphModel.NodeModels.OfType<IEdgePortalExitModel>().Single();
+                    Assert.That(node1.Output0, Is.Not.ConnectedTo(node2.Input0));
+                    Assert.That(node1.Output0, Is.ConnectedTo(entry.InputPort));
+                    Assert.That(exit.OutputPort, Is.ConnectedTo(node2.Input0));
+                    Assert.That(entry.InputPort.DataTypeHandle, Is.EqualTo(expectedDataType));
+                    Assert.That(exit.OutputPort.DataTypeHandle, Is.EqualTo(expectedDataType));
+                }
+            );
+
+            var entryPortal = GraphModel.NodeModels.OfType<IEdgePortalEntryModel>().Single();
+            var exitPortal = GraphModel.NodeModels.OfType<IEdgePortalExitModel>().Single();
+
+            GraphModel.DeleteNode(entryPortal, true);
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    Assert.That(GetNodeCount(), Is.EqualTo(3)); // 2 nodes and 1 portal
+                    Assert.That(GetEdgeCount(), Is.EqualTo(1));
+                    return new CreateOppositePortalCommand(exitPortal);
+                },
+                () =>
+                {
+                    Assert.That(GetNodeCount(), Is.EqualTo(4)); // 2 nodes and 2 portals
+                    Assert.That(GetEdgeCount(), Is.EqualTo(1)); // still 1 connected portal because we didn't connect the new one
+                    var newPortal = GraphModel.NodeModels.OfType<IEdgePortalEntryModel>().Single();
+                    Assert.That(newPortal.PortDataTypeHandle, Is.EqualTo(expectedDataType));
                 });
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.SmartSearch
         public static void DoNothing3(this GraphElementSearcherDatabaseTests o) {}
     }
 
-    class GraphElementSearcherDatabaseTests : BaseFixture
+    class GraphElementSearcherDatabaseTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
 
@@ -57,7 +58,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.SmartSearch
             var initialNodes = GraphModel.NodeModels.ToList();
             var initialEdges = GraphModel.EdgeModels.ToList();
 
-            item.CreateElements.Invoke(new GraphNodeCreationData(GraphModel, Vector2.zero, mode));
+            item.CreateElement.Invoke(new GraphNodeCreationData(GraphModel, Vector2.zero, mode));
 
             // If nodes are created as Orphan, graphModel should not be modified
             if (mode.IsOrphan())
@@ -99,6 +100,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.SmartSearch
         }
 
         [TestCase(SearcherContext.Graph, "sti", CommonSearcherTags.StickyNote)]
+        [SuppressMessage("ReSharper", "AccessToStaticMemberViaDerivedType")]
         public void TestSingleItem(SearcherContext context, string query, CommonSearcherTags expectedTag)
         {
             var db = new GraphElementSearcherDatabase(Stencil, GraphModel)
@@ -109,11 +111,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.SmartSearch
 
             if (context == SearcherContext.Graph)
             {
-                Assert.That(results[0], NUnit.Framework.Is.TypeOf<GraphNodeModelSearcherItem>());
+                Assert.That(results[0], Is.TypeOf<GraphNodeModelSearcherItem>());
                 var item = (GraphNodeModelSearcherItem)results[0];
-                Assert.That(item.Data, NUnit.Framework.Is.TypeOf<TagSearcherItemData>());
+                Assert.That(item.Data, Is.TypeOf<TagSearcherItemData>());
                 var tag = (TagSearcherItemData)item.Data;
-                Assert.That(tag.Tag, NUnit.Framework.Is.EqualTo(expectedTag));
+                Assert.That(tag.Tag, Is.EqualTo(expectedTag));
             }
         }
 
