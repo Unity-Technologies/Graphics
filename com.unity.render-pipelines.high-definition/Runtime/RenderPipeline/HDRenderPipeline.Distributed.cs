@@ -46,6 +46,14 @@ namespace UnityEngine.Rendering.HighDefinition
             set => FrameID = value;
         }
 
+        private static GetColorBufferEvent getColorBufferAction = null;
+
+        public static GetColorBufferEvent GetColorBuffer
+        {
+            get => getColorBufferAction;
+            set => getColorBufferAction = value;
+        }
+
         class ReceiveData
         {
             public TextureHandle whiteTexture;
@@ -181,13 +189,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(context.cmd, new ProfilingSampler($"Load Data {i}")))
                             {
                                 Datagram datagram = null;
-                                datagram = SocketServer.Instance.ReceiveReadyFrame(i);
+                                if(GetColorBuffer != null)
+                                    datagram = GetColorBuffer(i);
+
                                 if (datagram == null)
                                     continue;
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
                                     0, 0, datagram.length);
-                                SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame,
-                                    in datagram);
                             }
 
                             // Use compute shader to move the data to YUV textures
@@ -434,4 +442,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
     }
+    public delegate Datagram GetColorBufferEvent(int userID);
 }
