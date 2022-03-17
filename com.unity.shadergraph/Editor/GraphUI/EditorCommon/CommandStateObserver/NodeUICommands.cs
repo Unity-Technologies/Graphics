@@ -1,4 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
@@ -66,6 +67,43 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, propertyBlockValue);
+
+            using (var graphUpdater = graphViewState.UpdateScope)
+            {
+                graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
+            }
+        }
+    }
+
+    class SetGradientTypeValueCommand : UndoableCommand
+    {
+        GraphDataNodeModel m_GraphDataNodeModel;
+        string m_PortName;
+        Gradient m_Value;
+
+        public SetGradientTypeValueCommand(GraphDataNodeModel graphDataNodeModel, string portName, Gradient value)
+        {
+            m_GraphDataNodeModel = graphDataNodeModel;
+            m_PortName = portName;
+            m_Value = value;
+        }
+
+        public static void DefaultCommandHandler(UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            PreviewManager previewManager,
+            SetGradientTypeValueCommand command
+        )
+        {
+            using (var undoUpdater = undoState.UpdateScope)
+            {
+                undoUpdater.SaveSingleState(graphViewState, command);
+            }
+
+            if (!command.m_GraphDataNodeModel.TryGetNodeWriter(out var nodeWriter)) return;
+            var portWriter = nodeWriter.GetPort(command.m_PortName);
+
+            GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
+            previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, command.m_Value);
 
             using (var graphUpdater = graphViewState.UpdateScope)
             {

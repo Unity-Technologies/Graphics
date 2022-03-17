@@ -1,0 +1,3 @@
+.sg-gradient-constant-field, .sg-color-constant-field {
+    width: 60px;
+}

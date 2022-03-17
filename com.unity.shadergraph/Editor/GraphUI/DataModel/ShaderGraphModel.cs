@@ -18,13 +18,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class ShaderGraphModel : GraphModel
     {
-        GraphHandler m_GraphHandler;
-
         // TODO: This will eventually delegate to real serialized data. For now, it's kept here ephemerally. Until
         //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
-        public GraphHandler GraphHandler => m_GraphHandler ??= new GraphHandler();
+        public GraphHandler GraphHandler => ShaderGraphAssetModel.GraphHandler;
+
+        public ShaderGraphAssetModel ShaderGraphAssetModel => AssetModel as ShaderGraphAssetModel;
 
         public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
+
+        protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
+        {
+            return typeof(GraphDataEdgeModel);
+        }
 
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.

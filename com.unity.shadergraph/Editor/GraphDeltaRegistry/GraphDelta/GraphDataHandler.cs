@@ -26,6 +26,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal string DefaultLayer { get; set; }
         internal DataReader Reader => Owner.Search(ID);
 
+        [Obsolete("GetName is Obsolete - use ID.LocalPath instead", false)]
+        public string GetName() => ID.LocalPath;
+
         internal virtual DataWriter GetWriter(string layerName)
         {
             var elem = Owner.SearchRelative(Owner.GetLayerRoot(layerName), ID);

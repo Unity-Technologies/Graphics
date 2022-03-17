@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using System.Linq;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -165,12 +167,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID node)
         {
-            throw new System.NotImplementedException();
+            var nodeHandler = m_data.GetHandler(node)?.ToNodeHandler();
+            if (nodeHandler != null)
+            {
+                foreach (var port in nodeHandler.GetPorts())
+                {
+                    foreach(var connected in GetConnectedPorts(port.ID))
+                    {
+                        yield return connected.GetNode();
+                    }
+                }
+            }
         }
 
         public IEnumerable<PortHandler> GetConnectedPorts(ElementID port)
         {
-            throw new System.NotImplementedException();
+            bool isInput = m_data.GetMetadata<bool>(port, PortHeader.kInput);
+            foreach(var edge in m_data.edges)
+            {
+                if(isInput && edge.input.Equals(port))
+                {
+                    yield return new PortHandler(edge.output, m_data);
+                }
+                else if (!isInput && edge.output.Equals(port))
+                {
+                    yield return new PortHandler(edge.input, m_data);
+                }
+
+            }
+
         }
 
         public void RemoveNode(string id)

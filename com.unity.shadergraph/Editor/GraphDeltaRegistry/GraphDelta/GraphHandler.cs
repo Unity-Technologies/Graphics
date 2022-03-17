@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Registry;
+using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -18,6 +19,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public GraphHandler(string serializedData)
         {
             graphDelta = new GraphDelta(serializedData);
+        }
+
+        static public GraphHandler FromSerializedFormat(string json)
+        {
+            return new GraphHandler(json);
         }
 
         public string ToSerializedFormat()
@@ -39,11 +45,31 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public NodeHandler GetNode(ElementID name) => graphDelta.GetNode(name);
         public void RemoveNode(string name) => graphDelta.RemoveNode(name);
         public IEnumerable<NodeHandler> GetNodes() => graphDelta.GetNodes();
-
-        public EdgeHandler AddEdge(ElementID output, ElementID input) => graphDelta.AddEdge(output, input);
-
+		public EdgeHandler AddEdge(ElementID output, ElementID input) => graphDelta.AddEdge(output, input);
         public void RemoveEdge(ElementID output, ElementID input) => graphDelta.RemoveEdge(output, input);
+        public void ReconcretizeAll(Registry.Registry registry)
+        {
+            foreach (var name in GetNodes().Select(e => e.GetName()).ToList())
+            {
+                var node = GetNodeReader(name);
+                if (node != null)
+                {
+                    var builder = registry.GetNodeBuilder(node.GetRegistryKey());
+                    if (builder != null)
+                    {
+                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                        {
+                            ReconcretizeNode(node.GetName(), registry);
+                        }
+                    }
 
+                }
+            }
+        }
+
+        public IEnumerable<PortHandler> GetConnectedPorts(ElementID portID) => graphDelta.GetConnectedPorts(portID);
+
+        public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID);
         //public TargetRef AddTarget(TargetType targetType)
 
         //public void RemoveTarget(TargetRef targetRef)

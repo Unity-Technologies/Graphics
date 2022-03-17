@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -10,6 +12,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             : base(elementID, owner, defaultLayer)
         {
         }
+
+        [Obsolete("This should probably be an extension method", false)]
+        public bool GetField<T>(string localID, out T data)
+        {
+            var nested = GetSubField<T>(localID);
+            if(nested != null)
+            {
+                data = nested.GetData();
+                return true;
+            }
+            data = default;
+            return false;
+        }
+
+        [Obsolete("This should probably be an extension method", false)]
+        internal void SetField<T>(string localID, T data)
+        {
+            var nested = GetSubField(localID);
+            if(nested != null)
+            {
+                nested.ToFieldHandler<T>().SetData(data);
+            }
+            else
+            {
+                AddSubField(localID, data);
+            }
+        }
+
+
 
         internal override DataHeader GetDefaultHeader()
         {

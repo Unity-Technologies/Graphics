@@ -3,8 +3,10 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.UIElements;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
+using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI;
+using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
@@ -19,6 +21,33 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public void Setup()
         {
             //m_EditorWindow = EditorWindow.GetWindowWithRect<ShaderGraphEditorWindow>(k_WindowRect);
+        }
+
+        [Test]
+        public void CreateGraphAssetTest()
+        {
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateAssetAction>();
+            var assetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
+            newGraphAction.Action(0, assetPath, "");
+            var newAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(assetPath);
+            Assert.IsNotNull(newAsset);
+        }
+
+        [Test]
+        public void GraphSubAssetAssociationTest()
+        {
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateAssetAction>();
+            var assetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
+            newGraphAction.Action(0, assetPath, "");
+            var materialAsset = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+            Assert.IsNotNull(materialAsset);
+            var shaderAsset = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+            Assert.IsNotNull(shaderAsset);
+            var assetModel = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(assetPath);
+            Assert.IsNotNull(assetModel);
+            var shaderGraphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(assetPath);
+            Assert.IsNotNull(shaderGraphAsset);
+
         }
 
         [TearDown]

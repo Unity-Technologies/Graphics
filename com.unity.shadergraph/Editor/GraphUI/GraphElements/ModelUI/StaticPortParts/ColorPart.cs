@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.BuildPartUI(parent);
             m_Field.showAlpha = m_IncludeAlpha;
+            m_Field.AddStylesheet("StaticPortParts/ColorPart.uss");
         }
 
         protected override void UpdatePartFromPortReader(PortHandler port)

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -19,6 +20,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
     }
     public static class ShaderGraphExampleTypes
     {
+
+        // This is a sister function used with ShaderGraphStencil.GetConstantNodeValueType--
+        // TypeHandles are primarily used to setup the icon that GTF will use,
+        // but the TypeHandle then gets routed through GetConstantNodeValueType where a type handle is
+        // mapped to an IConstant type-- it's a bit round about, but for SG's purposes, we only care about
+        // having an IConstant impl for the type if it has an inline editor for the port.
+        // If the IConstant return type doesn't have one setup by default,
+        // It can be expressed such as:
+        //    [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
+        //    static class GDSExt
+        //    {
+        //        public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
+        //
         public static TypeHandle GetGraphType(GraphDelta.PortHandler reader)
         {
             var len = Registry.Types.GraphTypeHelpers.GetLength(reader.GetTypeField());
@@ -26,16 +40,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 case 1:
                     var prim = Registry.Types.GraphTypeHelpers.GetPrimitive(reader.GetTypeField());
-                    switch(prim)
-                    {
-                        case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
-                        case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
-                        default: return TypeHandle.Float;
-                    }
+                        switch(prim)
+                        {
+                            case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
+                            case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
+                            default: return TypeHandle.Float;
+                        }
                 case 2: return TypeHandle.Vector2;
                 case 3: return TypeHandle.Vector3;
-                default: return TypeHandle.Vector4;
+                case 4: return TypeHandle.Vector4;
+                
             }
+
+
+            return GradientTypeHandle;
         }
 
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
@@ -44,6 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle Texture2D = typeof(Texture2D).GenerateTypeHandle();
         public static readonly TypeHandle Texture3D = typeof(Texture3D).GenerateTypeHandle();
         public static readonly TypeHandle DayOfWeek = typeof(DayOfWeek).GenerateTypeHandle();
+        public static readonly TypeHandle GradientTypeHandle = typeof(Gradient).GenerateTypeHandle();
 
         public static readonly Dictionary<string, TypeHandle> TypeHandlesByName = new()
         {
@@ -72,6 +91,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             { "Texture2D", Texture2D },
             { "Texture3D", Texture3D },
             { "DayOfWeek", DayOfWeek },
+            { "Gradient", GradientTypeHandle }
         };
 
         public static IEnumerable<string> TypeHandleNames => TypeHandlesByName.Keys;
@@ -140,14 +160,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
     //    public object DefaultValue => default(T);
     //}
 
-    public class GraphTypeConstant : IConstant
+
+    interface ICLDSConstant
+    {
+        void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName);
+    }
+
+    public class GraphTypeConstant : IConstant, ICLDSConstant
     {
         public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName;
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
 
-        private int GetLength()
+        internal int GetLength()
         {
             if (!IsInitialized) return -1;
             var nodeReader = graphHandler.GetNode(nodeName);
@@ -184,6 +210,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
         {
+            if (IsInitialized) return;
             graphHandler = handler;
             this.nodeName = nodeName;
             this.portName = portName;
@@ -246,6 +273,105 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public object DefaultValue => Activator.CreateInstance(Type);
+    }
+
+    public class GradientTypeConstant : IConstant, ICLDSConstant
+    {
+        // Most of this should be genericized, as it'll be identical across types.
+        public GraphDelta.GraphHandler graphHandler;
+        public string nodeName, portName;
+
+        bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
+
+        private GraphDelta.FieldHandler GetFieldReader()
+        {
+            if (!IsInitialized) return null;
+            var nodeReader = graphHandler.GetNodeReader(nodeName);
+            var portReader = nodeReader.GetPort(portName);
+            return portReader.GetTypeField();
+        }
+
+        private GraphDelta.FieldHandler GetFieldWriter()
+        {
+            return GetFieldReader();
+        }
+
+        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
+        {
+            graphHandler = handler;
+            this.nodeName = nodeName;
+            this.portName = portName;
+        }
+
+        public object ObjectValue
+        {
+            get => IsInitialized ? Registry.Types.GradientTypeHelpers.GetGradient(GetFieldReader()) : DefaultValue;
+            set
+            {
+                if (IsInitialized)
+                    Registry.Types.GradientTypeHelpers.SetGradient(GetFieldWriter(), (Gradient)value);
+            }
+        }
+
+        public Type Type => typeof(Gradient);
+
+        public object DefaultValue => Activator.CreateInstance(Type);
+    }
+
+    [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
+    static class GDSExt
+    {
+        public static VisualElement BuildGradientTypeConstantEditor(this IConstantEditorBuilder builder, GradientTypeConstant constant)
+        {
+            var editor = new GradientField();
+            editor.AddToClassList("sg-gradient-constant-field");
+            editor.AddStylesheet("ConstantEditors.uss");
+            editor.RegisterValueChangedCallback(change => builder.OnValueChanged(change));
+
+            return editor;
+        }
+
+        public static VisualElement BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
+        {
+            if (builder.PortModel is not GraphDataPortModel graphDataPort)
+                return builder.BuildDefaultConstantEditor(constant);
+
+            var length = constant.GetLength();
+            var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
+            var uiHints = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+
+            if (length >= 3 && uiHints.ContainsKey(constant.portName + ".UseColor"))
+            {
+                var editor = new ColorField();
+                editor.showAlpha = length == 4;
+
+                editor.AddToClassList("sg-color-constant-field");
+                editor.AddStylesheet("ConstantEditors.uss");
+
+                // IConstantEditorBuilder will cast an incoming ChangeEvent's type to the constant's underlying type,
+                // so we have to supply it with the right ChangeEvent type.
+
+                void OnValueChangedVec4(ChangeEvent<Color> change)
+                {
+                    // Implicit conversion from Color to Vector4
+                    using var changeEvent = ChangeEvent<Vector4>.GetPooled(change.previousValue, change.newValue);
+                    builder.OnValueChanged(changeEvent);
+                }
+
+                void OnValueChangedVec3(ChangeEvent<Color> change)
+                {
+                    // Implicit conversion from Vector4 to Vector3
+                    using var changeEvent = ChangeEvent<Vector3>.GetPooled((Vector4)change.previousValue, (Vector4)change.newValue);
+                    builder.OnValueChanged(changeEvent);
+                }
+
+                editor.RegisterValueChangedCallback(length == 4 ? OnValueChangedVec4 : OnValueChangedVec3);
+
+                return editor;
+            }
+
+            return builder.BuildDefaultConstantEditor(constant);
+        }
     }
 }
 

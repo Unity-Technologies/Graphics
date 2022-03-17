@@ -90,6 +90,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return base.SearchRelative(element, elementID);
         }
 
+        internal IEnumerable<NodeHandler> GetAllChildReaders()
+        {
+            foreach (var data in m_flatStructureLookup.Values)
+            {
+                if (data.Header is NodeHeader)
+                {
+                    yield return new NodeHandler(data.ID, this);
+                }
+            }
+        }
+
         new internal Element AddElementToLayer(string layer, ElementID elementID)
         {
             return base.AddElementToLayer(layer, elementID);

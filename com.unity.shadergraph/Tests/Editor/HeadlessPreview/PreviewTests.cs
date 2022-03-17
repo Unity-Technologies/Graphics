@@ -495,7 +495,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveGraph(m_InterpreterTestsGraph);
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
-            var shaderString = m_PreviewManager.RequestNodePreviewShaderCode(m_InterpreterTestsGraph.GetNodeReader(input.nodeToCompile).ID.LocalPath, out var shaderMessages);
+            var shaderString = m_PreviewManager.RequestNodePreviewShaderCode(m_InterpreterTestsGraph.GetNodeReader(input.nodeToCompile).GetName(), out var shaderMessages);
             bool tmp = ShaderUtil.allowAsyncCompilation;
             ShaderUtil.allowAsyncCompilation = false;
             Shader shaderObject = ShaderUtil.CreateShaderAsset(shaderString, true);
@@ -595,6 +595,66 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             previewMgr.NotifyNodeFlowChanged("AppendNodeInstance");
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("AppendNodeInstance");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
+        }
+        
+        [Test]
+        public void Gradients_TestAll()
+        {
+            var graphHandler = new GraphHandler();
+            var registry = new Registry.Registry();
+            var previewMgr = new HeadlessPreviewManager();
+        
+            registry.Register<Types.GraphType>();
+            registry.Register<Types.GraphTypeAssignment>();
+            registry.Register<Types.GradientType>();
+            registry.Register<Types.GradientNode>();
+            registry.Register<Types.SampleGradientNode>();
+
+            previewMgr.SetActiveGraph(graphHandler);
+            previewMgr.SetActiveRegistry(registry);
+
+            var nodeWriter = graphHandler.AddNode<Types.SampleGradientNode>("SampleGradientNode", registry);
+            previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
+
+            // Default 0 time color on a gradient is black.
+            var nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
+
+            // default 1 time color is white.
+            nodeWriter.SetPortField(Types.SampleGradientNode.kTime, "c0", 1f);
+            previewMgr.SetLocalProperty("SampleGradientNode", Types.SampleGradientNode.kTime, 1f);
+            nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
+            Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
+
+            // our gradient comes from a connection now, let's pick a fun color (time is still 1).
+            var gradientNode = graphHandler.AddNode<Types.GradientNode>("GradientNode", registry);
+            var portField = gradientNode.GetPort(Types.GradientNode.kInlineStatic).GetTypeField();
+
+            // Setup the end color to be yellow.
+            var gradient = new Gradient();
+            gradient.mode = GradientMode.Blend;
+            gradient.SetKeys(
+                new GradientColorKey[]
+                {
+                    new GradientColorKey(new Color(0,0,0), 0),
+                    new GradientColorKey(new Color(1,1,0), 1)
+                },
+                new GradientAlphaKey[]
+                {
+                    new GradientAlphaKey(1, 0),
+                    new GradientAlphaKey(1, 1)
+                });
+
+            Types.GradientTypeHelpers.SetGradient(portField, gradient);
+
+            graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient", registry);
+            previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
+            nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
+
+            previewMgr.RequestNodePreviewShaderCodeStrings("SampleGradientNode", out _, out _, out string block, out _);
+            Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(nodePreviewMaterial));
+
+            // TODO: split these tests up into fixtures and also move these sort of tests out of PreviewTests.cs
         }
     }
 }

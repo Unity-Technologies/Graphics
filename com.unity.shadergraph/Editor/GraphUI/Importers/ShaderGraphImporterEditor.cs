@@ -1,7 +1,12 @@
 using System;
+using System.Text;
+using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Generation;
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.GraphDelta.Utils;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
 
@@ -13,7 +18,22 @@ namespace UnityEditor.ShaderGraph
         MaterialEditor materialEditor = null;
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("WIP", MessageType.Info);
+            if (GUILayout.Button("View Generated Shader"))
+            {
+                AssetImporter importer = target as AssetImporter;
+                var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
+                var graph = asset.ResolveGraph();
+
+
+                var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+                var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
+                var node = graph.GetNodeReader(key.Name);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
+                string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
+                string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
+                if (FileHelpers.WriteToFile(path, shaderCode))
+                    FileHelpers.OpenFile(path);
+            }
 
             ApplyRevertGUI();
             if (materialEditor != null)
@@ -32,7 +52,6 @@ namespace UnityEditor.ShaderGraph
             if (material)
                 materialEditor = (MaterialEditor)CreateEditor(material);
         }
-
         public override void OnDisable()
         {
             base.OnDisable();
@@ -44,17 +63,21 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
-            var assetModel = AssetDatabase.LoadAssetAtPath(path, typeof(ShaderGraphAssetModel)) as ShaderGraphAssetModel;
-            if(assetModel == null)
-            {
-                return false;
-            }
+            var assetModel = ShaderGraphAsset.HandleLoad(path);
             return ShowWindow(path, assetModel);
         }
 
         private static bool ShowWindow(string path, ShaderGraphAssetModel model)
         {
-            var shaderGraphEditorWindow = GraphViewEditorWindow.FindOrCreateGraphWindow<ShaderGraphEditorWindow>();
+            // Prevents the same graph asset from being opened in two separate editor windows
+            var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
+            foreach (var existingEditorWindow in existingEditorWindows)
+            {
+                if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.AssetModel, model))
+                    return true;
+            }
+
+            var shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             if(shaderGraphEditorWindow == null)
             {
                 return false;
