@@ -1046,6 +1046,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     positionOffset -= cameraPosition;
 
                                 // TODO: move this to a compute buffer and output to an indirect argument buffer
+                                // TODO: XR _WorldSpaceCameraPosViewOffset
                                 Vector4 p0 = new Vector3(-halfSize.x, halfSize.y, halfSize.z);
                                 Vector4 p1 = new Vector3(halfSize.x, halfSize.y, halfSize.z);
                                 Vector4 p2 = new Vector3(-halfSize.x, -halfSize.y, halfSize.z);
@@ -1066,25 +1067,29 @@ namespace UnityEngine.Rendering.HighDefinition
                                 p6 = volume.transform.localToWorldMatrix.MultiplyPoint(p6) + positionOffset;
                                 p7 = volume.transform.localToWorldMatrix.MultiplyPoint(p7) + positionOffset;
 
-                                var j0 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p0);
-                                var j1 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p1);
-                                var j2 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p2);
-                                var j3 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p3);
+                                var currentView = hdCamera.mainViewConstants;
+                                if (hdCamera.xr.enabled)
+                                    currentView = hdCamera.m_XRViewConstants[0];
 
-                                var j4 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p4);
-                                var j5 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p5);
-                                var j6 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p6);
-                                var j7 = hdCamera.mainViewConstants.viewProjMatrix.MultiplyPoint(p7);
+                                var j0 = currentView.viewProjMatrix.MultiplyPoint(p0);
+                                var j1 = currentView.viewProjMatrix.MultiplyPoint(p1);
+                                var j2 = currentView.viewProjMatrix.MultiplyPoint(p2);
+                                var j3 = currentView.viewProjMatrix.MultiplyPoint(p3);
 
-                                p0 = hdCamera.mainViewConstants.viewMatrix * p0;
-                                p1 = hdCamera.mainViewConstants.viewMatrix * p1;
-                                p2 = hdCamera.mainViewConstants.viewMatrix * p2;
-                                p3 = hdCamera.mainViewConstants.viewMatrix * p3;
+                                var j4 = currentView.viewProjMatrix.MultiplyPoint(p4);
+                                var j5 = currentView.viewProjMatrix.MultiplyPoint(p5);
+                                var j6 = currentView.viewProjMatrix.MultiplyPoint(p6);
+                                var j7 = currentView.viewProjMatrix.MultiplyPoint(p7);
 
-                                p4 = hdCamera.mainViewConstants.viewMatrix * p4;
-                                p5 = hdCamera.mainViewConstants.viewMatrix * p5;
-                                p6 = hdCamera.mainViewConstants.viewMatrix * p6;
-                                p7 = hdCamera.mainViewConstants.viewMatrix * p7;
+                                p0 = currentView.viewMatrix * p0;
+                                p1 = currentView.viewMatrix * p1;
+                                p2 = currentView.viewMatrix * p2;
+                                p3 = currentView.viewMatrix * p3;
+
+                                p4 = currentView.viewMatrix * p4;
+                                p5 = currentView.viewMatrix * p5;
+                                p6 = currentView.viewMatrix * p6;
+                                p7 = currentView.viewMatrix * p7;
 
                                 // Reverse Z
                                 float minViewSpaceDepth = -(Mathf.Max(p0.z, p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z));
@@ -1144,10 +1149,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 props.SetInt("_VolumeIndex", m_VisibleVolumeBoundsCount + i);
                                 props.SetBuffer(HDShaderIDs._VolumeBounds, visibleVolumeBoundsBuffer);
                                 props.SetBuffer(HDShaderIDs._VolumeData, visibleVolumeDataBuffer);
+                                props.SetInt("_SliceCount", sliceCount);
+                                props.SetInt("_VolumetricSliceCountPerView", maxSliceCount);
 
                                 CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
                                 ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
-                                sliceCount += 50; // TODO: compute correctly the slice count using the world space distance instead of view space
                                 ctx.cmd.DrawProcedural(volume.transform.localToWorldMatrix, volume.parameters.materialMask, 0, MeshTopology.Quads, 4, sliceCount, props);
                             }
                         });

@@ -25,6 +25,8 @@ float _RcpDistanceFadeLength;
 float _EndTimesRcpDistanceFadeLength;
 float4 _AlbedoMask;
 uint _VolumeIndex;
+uint _SliceCount;
+uint _VolumetricSliceCountPerView;
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
 StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
 
@@ -35,7 +37,7 @@ struct VertexToFragment
     float3 positionOS : TEXCOORD1;
     float depth : TEXCOORD2; // TODO: packing
     uint depthSlice : SV_RenderTargetArrayIndex;
-    // TODO: figure out what to do for VR because UNITY_VERTEX_OUTPUT_STEREO uses SV_RenderTargetArrayIndex on some platforms
+    uint xrViewIndex : BLENDINDICES0;
 };
 
 float ComputeSliceDepth(uint sliceIndex)
@@ -43,10 +45,8 @@ float ComputeSliceDepth(uint sliceIndex)
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
-    float e1 = sliceIndex * de + de;
-    float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams) + t0;
-    float dt = t1 - t0;
-    return t1 - t0;
+    float e1 = ((float)sliceIndex + 0.5) * de + de;
+    return DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
 }
 
 float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
@@ -62,11 +62,9 @@ VertexToFragment Vert(Attributes input, uint instanceId : INSTANCEID_SEMANTIC, u
 {
     VertexToFragment output;
 
-    // UNITY_SETUP_INSTANCE_ID(input);
-    // UNITY_TRANSFER_INSTANCE_ID(input, output);
-    // UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    output.xrViewIndex = instanceId / _SliceCount;
 
-    output.depthSlice = _SliceOffset + instanceId;
+    output.depthSlice = _SliceOffset + (instanceId % _SliceCount) + output.xrViewIndex * _VolumetricSliceCountPerView;
 
     float sliceDistance = ComputeSliceDepth(output.depthSlice);
     float depthViewSpace = sliceDistance;
@@ -76,6 +74,7 @@ VertexToFragment Vert(Attributes input, uint instanceId : INSTANCEID_SEMANTIC, u
     output.positionCS.xy += _ViewSpaceBounds.xy;
     output.positionCS.z = EyeDepthToLinear(depthViewSpace, _ZBufferParams);
     output.positionCS.w = 1;
+
 
     float3 positionWS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
     output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
@@ -114,8 +113,10 @@ float ComputeFadeFactor(float3 coordNDC, float distance)
 
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
 {
-    // UNITY_SETUP_INSTANCE_ID(v2f);
-    // UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v2f);
+    // Setup VR storeo eye index manually because we use the SV_RenderTargetArrayIndex semantic which conflicts with XR macros
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    unity_StereoEyeIndex = v2f.xrViewIndex;
+#endif
 
     float3 albedo;
     float extinction;

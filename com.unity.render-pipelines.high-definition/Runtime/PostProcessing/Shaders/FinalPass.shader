@@ -99,7 +99,6 @@ Shader "Hidden/HDRP/FinalPass"
 
         float4 Frag(Varyings input) : SV_Target0
         {
-
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 positionNDC = input.texcoord;
