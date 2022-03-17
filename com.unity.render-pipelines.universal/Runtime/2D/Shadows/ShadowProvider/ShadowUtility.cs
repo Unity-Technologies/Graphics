@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
             NativeArray<int> tmpShapeStartingEdge = new NativeArray<int>(inShapeStartingEdge.Length, Allocator.Temp);
 
-            ShadowPathClipper.Clear();
+            ShadowShape2DClipper.Clear();
 
             for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
                 tmpShapeStartingEdge[i] = -1;
@@ -514,7 +514,7 @@ namespace UnityEngine.Rendering.Universal
 
                     verticesToClip[numberOfEdges] = inVertices[inEdges[numberOfEdges + currentShapeStart - 1].v1];
 
-                    ShadowPathClipper.AddInputPath(verticesToClip);
+                    ShadowShape2DClipper.AddInputPath(verticesToClip);
                 }
                 // If its an open shape just copy it to our output
                 else
@@ -536,17 +536,17 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            ShadowPathClipper.ContractPath(-contractEdge);
+            ShadowShape2DClipper.ContractPath(-contractEdge);
 
             // If we have an output path copy it out
-            int outputPaths = ShadowPathClipper.GetOutputPaths();
+            int outputPaths = ShadowShape2DClipper.GetOutputPaths();
             for (int outputPath = 0; outputPath < outputPaths; outputPath++)
             {
-                int outputPathLength = ShadowPathClipper.GetOutputPathLength(outputPath);
+                int outputPathLength = ShadowShape2DClipper.GetOutputPathLength(outputPath);
                 if (outputPathLength > 0 && tmpShapeStartingEdge.Length > outputPath)
                 {
                     tmpShapeStartingEdge[outputPath] = currentTempEdgeIndex;
-                    ShadowPathClipper.GetOutputPath(outputPath, tempVertices, currentTempVertexIndex);
+                    ShadowShape2DClipper.GetOutputPath(outputPath, tempVertices, currentTempVertexIndex);
 
                     // Create edges
                     int lastVertexIndex = (outputPathLength - 1) + currentTempVertexIndex;
