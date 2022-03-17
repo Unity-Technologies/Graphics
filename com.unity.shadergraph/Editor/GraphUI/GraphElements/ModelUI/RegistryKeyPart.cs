@@ -3,9 +3,9 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class RegistryKeyPart : BaseModelUIPart
+    public class RegistryKeyPart : BaseModelViewPart
     {
-        public RegistryKeyPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName) :
+        public RegistryKeyPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName) :
             base(name, model, ownerElement, parentClassName)
         {
         }

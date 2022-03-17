@@ -31,17 +31,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
             var variableDeclaration = graphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "varDecl", ModifierFlags.None, true);
             var variable = graphModel.CreateVariableNode(variableDeclaration, new Vector2(-76, 245));
             var portal = graphModel.CreateEntryPortalFromEdge(edge);
-            var badge = new BadgeModel(node1);
-            graphModel.AddBadge(badge);
 
-            var graphElements = new IGraphElementModel[] { node1, node2, edge, placemat, stickyNote, constant, variableDeclaration, variable, portal, badge };
+            var graphElements = new IGraphElementModel[] { node1, node2, edge, placemat, stickyNote, constant, variableDeclaration, variable, portal };
             foreach (var element in graphElements)
             {
                 Assert.IsTrue(graphModel.TryGetModelFromGuid(element.Guid, out var retrieved), element + " was not found");
                 Assert.AreSame(element, retrieved);
             }
 
-            graphModel.DeleteBadges();
             graphModel.DeleteEdges(new[] { edge });
             graphModel.DeleteNodes(new IInputOutputPortsNodeModel[] { node1, node2, constant, variable, portal }, true);
             graphModel.DeletePlacemats(new[] { placemat });
@@ -141,14 +138,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
 
                 this.AddDataOutputPort<float>("out");
             }
-
-            public void ClearPorts()
-            {
-                m_InputsById = new OrderedPorts();
-                m_OutputsById = new OrderedPorts();
-                m_PreviousInputs = null;
-                m_PreviousOutputs = null;
-            }
         }
 
         [Test]
@@ -200,6 +189,191 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
             Assert.AreEqual(expectedEdges12, graphModel.GetEdgesForPort(port2));
             Assert.AreEqual(expectedEdges34, graphModel.GetEdgesForPort(port3));
             Assert.AreEqual(expectedEdges34, graphModel.GetEdgesForPort(port4));
+        }
+
+
+        class NodeThatHaveAnInputAndAnOutputWithTheSameUniqueName : NodeModel, IFakeNode
+        {
+            protected override void OnDefineNode()
+            {
+                base.OnDefineNode();
+
+                this.AddDataInputPort<float>("sameName");
+                this.AddDataOutputPort<float>("sameName");
+            }
+        }
+
+        [Test]
+        public void NodeThatHaveAnInputAndAnOutputWithTheSameUniqueNameWorks()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+            var node1 = graphModel.CreateNode<NodeThatHaveAnInputAndAnOutputWithTheSameUniqueName>();
+            var node2 = graphModel.CreateNode<NodeThatHaveAnInputAndAnOutputWithTheSameUniqueName>();
+
+            graphModel.CreateEdge(node2.GetInputPorts().First(), node1.GetOutputPorts().First());
+
+            Assert.AreEqual(1,node2.GetInputPorts().First().GetConnectedEdges().Count);
+            Assert.AreEqual(1,node1.GetOutputPorts().First().GetConnectedEdges().Count);
+            Assert.AreEqual(0,node1.GetInputPorts().First().GetConnectedEdges().Count);
+            Assert.AreEqual(0,node2.GetOutputPorts().First().GetConnectedEdges().Count);
+        }
+
+        [Test]
+        public void GraphModelNodesRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var nodeProp = assetAccess.FindProperty("m_GraphModel.m_GraphNodeModels");
+            nodeProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsTrue(graphModel.NodeModels.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(graphModel.NodeModels.Any(t=> t == null));
+        }
+
+        [Test]
+        public void GraphModelContextsRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            var context = graphModel.CreateNode<ContextNodeModel>("context");
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var nodesProp = assetAccess.FindProperty("m_GraphModel.m_GraphNodeModels");
+            int count = nodesProp.arraySize;
+
+            var contextProp = nodesProp.GetArrayElementAtIndex(count-1);
+
+            var blocksProp = contextProp.FindPropertyRelative("m_Blocks");
+
+            blocksProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+
+            Assert.IsTrue(context.GraphElementModels.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(context.GraphElementModels.Any(t=> t == null));
+        }
+
+        [Test]
+        public void GraphModelBadgesRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var badgeProp = assetAccess.FindProperty("m_GraphModel.m_BadgeModels");
+            badgeProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsTrue(graphModel.BadgeModels.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(graphModel.BadgeModels.Any(t=> t == null));
+        }
+
+        [Test]
+        public void GraphModelEdgesRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+            var node1 = graphModel.CreateNode<NodeThatHaveAnInputAndAnOutputWithTheSameUniqueName>();
+
+            Assert.AreEqual(0,graphModel.EdgeModels.Count);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var edgesProp = assetAccess.FindProperty("m_GraphModel.m_GraphEdgeModels");
+            edgesProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsTrue(graphModel.EdgeModels.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(graphModel.EdgeModels.Any(t=> t == null));
+
+            assetAccess.Update();
+            edgesProp.InsertArrayElementAtIndex(0);
+            var edgeProp = edgesProp.GetArrayElementAtIndex(0);
+
+            edgeProp.managedReferenceValue = new EdgeModel();
+
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+
+            Assert.AreEqual(1,graphModel.EdgeModels.Count);
+
+            graphModel.Repair();
+
+            Assert.AreEqual(0,graphModel.EdgeModels.Count);
+        }
+
+        [Test]
+        public void GraphModelStickyNotesRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var stickyNotesProp = assetAccess.FindProperty("m_GraphModel.m_GraphStickyNoteModels");
+            stickyNotesProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsTrue(graphModel.StickyNoteModels.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(graphModel.StickyNoteModels.Any(t=> t == null));
+        }
+
+        [Test]
+        public void GraphModelPlacematsRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var placematProp = assetAccess.FindProperty("m_GraphModel.m_GraphPlacematModels");
+            placematProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsTrue(graphModel.PlacematModels.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(graphModel.PlacematModels.Any(t=> t == null));
+        }
+
+        [Test]
+        public void GraphModelVariablesRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var variableProp = assetAccess.FindProperty("m_GraphModel.m_GraphVariableModels");
+            variableProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsTrue(graphModel.VariableDeclarations.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(graphModel.VariableDeclarations.Any(t=> t == null));
+        }
+
+        [Test]
+        public void GraphModelPortalsRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var portalProp = assetAccess.FindProperty("m_GraphModel.m_GraphPortalModels");
+            portalProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsTrue(graphModel.PortalDeclarations.Any(t=> t == null));
+            graphModel.Repair();
+            Assert.IsFalse(graphModel.PortalDeclarations.Any(t=> t == null));
+        }
+
+        [Test]
+        public void GraphModelSectionsRepairTest()
+        {
+            var graphModel = m_GraphAsset.GraphModel;
+
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+
+            var sectionProp = assetAccess.FindProperty("m_GraphModel.m_SectionModels");
+            sectionProp.InsertArrayElementAtIndex(0);
+            assetAccess.ApplyModifiedPropertiesWithoutUndo();
+            Assert.IsFalse(graphModel.SectionModels.Any(t=> t == null));
         }
     }
 }

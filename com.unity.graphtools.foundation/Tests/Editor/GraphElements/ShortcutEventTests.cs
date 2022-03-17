@@ -58,12 +58,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         public ShortcutTestGraphViewWindow()
         {
             this.SetDisableInputEvents(true);
+#if !UNITY_2022_2_OR_NEWER
             WithSidePanel = false;
+#endif
         }
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            return CsoTool.Create<GraphViewTestGraphTool>();
+            return CsoTool.Create<GraphViewTestGraphTool>(WindowID);
         }
 
         protected override GraphView CreateGraphView()
@@ -88,6 +90,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         public void SetUp()
         {
             m_Window = EditorWindow.GetWindow<ShortcutTestGraphViewWindow>();
+            m_Window.CloseAllOverlays();
             m_Helper = new TestEventHelpers(m_Window);
 
             var graphAsset = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
@@ -151,7 +154,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.IsFalse(ShortcutManager.instance.GetAvailableShortcutIds().Contains(TestShortcutEventUnused.otherToolName + "/" + TestShortcutEventUnused.id));
         }
 
-        public static EventModifiers ConvertModifiers(ShortcutModifiers modifiers)
+        static EventModifiers ConvertModifiers(ShortcutModifiers modifiers)
         {
             var m = EventModifiers.None;
 

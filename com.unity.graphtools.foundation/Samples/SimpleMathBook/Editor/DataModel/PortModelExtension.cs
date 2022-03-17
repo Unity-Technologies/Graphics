@@ -18,8 +18,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
                 case MathSubgraphNode subgraphNode:
                     return subgraphNode.Evaluate(self.GetConnectedEdges().FirstOrDefault()?.FromPort);
                 case MathNode mathNode:
-                    if (!mathNode.CheckInputs(out var errorMessage))
-                        Debug.LogError(errorMessage);
                     return mathNode.Evaluate();
                 case IVariableNodeModel varNode:
                     return varNode.VariableDeclarationModel.InitializationModel.GetValue();

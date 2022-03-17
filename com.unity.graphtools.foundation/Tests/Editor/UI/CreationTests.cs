@@ -11,7 +11,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
     class CreationTests : BaseUIFixture
     {
         protected override bool CreateGraphOnStartup => true;
-        protected override Type CreatedGraphType => typeof(ClassStencil);
 
         [UnityTest]
         public IEnumerator Test_CreateEmptyGraphClassStencil()

@@ -11,13 +11,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string UXMLTemplateName => "StaticPortParts/IntPart";
         protected override string FieldName => "sg-int-field";
 
-        public IntPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName)
+        public IntPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<int> change)
         {
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+            m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
                 m_PortName,
                 GraphType.Length.One,
                 GraphType.Height.One,

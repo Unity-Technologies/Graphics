@@ -80,10 +80,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             // Get the UI nodes
-            m_FirstNode = FirstNodeModel.GetUI<Node>(graphView);
-            m_SecondNode = SecondNodeModel.GetUI<Node>(graphView);
-            m_ThirdNode = ThirdNodeModel.GetUI<Node>(graphView);
-            m_FourthNode = FourthNodeModel.GetUI<Node>(graphView);
+            m_FirstNode = FirstNodeModel.GetView<Node>(GraphView);
+            m_SecondNode = SecondNodeModel.GetView<Node>(GraphView);
+            m_ThirdNode = ThirdNodeModel.GetView<Node>(GraphView);
+            m_FourthNode = FourthNodeModel.GetView<Node>(GraphView);
             Assert.IsNotNull(m_FirstNode);
             Assert.IsNotNull(m_SecondNode);
             Assert.IsNotNull(m_ThirdNode);
@@ -101,10 +101,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // Get the UI elements
-            m_FirstNode = FirstNodeModel.GetUI<Node>(graphView);
-            m_SecondNode = SecondNodeModel.GetUI<Node>(graphView);
-            m_Placemat = PlacematModel.GetUI<Placemat>(graphView);
-            m_StickyNote = StickyNoteModel.GetUI<StickyNote>(graphView);
+            m_FirstNode = FirstNodeModel.GetView<Node>(GraphView);
+            m_SecondNode = SecondNodeModel.GetView<Node>(GraphView);
+            m_Placemat = PlacematModel.GetView<Placemat>(GraphView);
+            m_StickyNote = StickyNoteModel.GetView<StickyNote>(GraphView);
             Assert.IsNotNull(m_FirstNode);
             Assert.IsNotNull(m_SecondNode);
             Assert.IsNotNull(m_Placemat);
@@ -113,19 +113,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
         protected void SelectConnectedNodes()
         {
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, FirstNodeModel, SecondNodeModel, ThirdNodeModel, FourthNodeModel));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, FirstNodeModel, SecondNodeModel, ThirdNodeModel, FourthNodeModel));
         }
 
         void SelectElements()
         {
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, FirstNodeModel, SecondNodeModel, PlacematModel, StickyNoteModel));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, FirstNodeModel, SecondNodeModel, PlacematModel, StickyNoteModel));
         }
 
         protected IEnumerator SelectElement(Vector2 selectedElementPos)
         {
-            helpers.MouseDownEvent(selectedElementPos, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDownEvent(selectedElementPos, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
-            helpers.MouseUpEvent(selectedElementPos, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseUpEvent(selectedElementPos, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
         }
     }

@@ -3,6 +3,7 @@ using UnityEngine.Jobs;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Burst.CompilerServices;
 using System.Threading;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -123,6 +124,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<int> gpuLightCounters;
             #endregion
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private ref HDLightRenderData GetLightData(int dataIndex)
             {
 #if DEBUG
@@ -336,6 +340,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private void StoreAndConvertLightToGPUFormat(
                 int outputIndex, int lightIndex,
                 LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType)
@@ -386,6 +393,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 lights[outputIndex] = lightData;
             }
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private void ComputeLightVolumeDataAndBound(
                 LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
                 in VisibleLight light, in LightData lightData, in Vector3 lightDimensions, in Matrix4x4 worldToView, int outputIndex)
@@ -568,6 +578,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private void ConvertDirectionalLightToGPUFormat(
                 int outputIndex, int lightIndex, LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType)
             {
@@ -670,6 +683,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightData.flareSize = Mathf.Max(lightRenderData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
                 lightData.flareFalloff = lightRenderData.flareFalloff;
+
+                // On some vendors trigonometry has very bad precision, so we precompute what we can on CPU to avoid precision issues (case 1369376).
+                float radInner = 0.5f * lightData.angularDiameter;
+                lightData.flareCosInner = Mathf.Cos(radInner);
+                lightData.flareCosOuter = Mathf.Cos(radInner + lightData.flareSize);
+
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
 
@@ -725,7 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 outputDirectionalLightCounts = m_DirectionalLightCount,
                 outputLightBoundsCount = m_LightBoundsCount,
                 globalConfig = CreateGpuLightDataJobGlobalConfig.Create(hdCamera, hdShadowSettings),
-                cameraPos = hdCamera.camera.transform.position,
+                cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos,
                 directionalSortedLightCounts = visibleLights.sortedDirectionalLightCounts,
                 isPbrSkyActive = isPbrSkyActive,
                 precomputedAtmosphericAttenuation = ShaderConfig.s_PrecomputedAtmosphericAttenuation,

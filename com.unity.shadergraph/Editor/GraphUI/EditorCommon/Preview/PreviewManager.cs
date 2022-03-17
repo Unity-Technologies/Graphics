@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         HeadlessPreviewManager m_PreviewHandlerInstance;
 
-        GraphViewStateComponent m_GraphViewStateComponent;
+        GraphModelStateComponent m_GraphModelStateComponent;
 
         HashSet<string> m_DirtyNodes;
 
@@ -26,9 +26,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Dictionary<string, SerializableGUID> m_NodeLookupTable;
 
-        public PreviewManager(GraphViewStateComponent graphViewStateComponent)
+        public PreviewManager(GraphModelStateComponent graphModelStateComponent)
         {
-            m_GraphViewStateComponent = graphViewStateComponent;
+            m_GraphModelStateComponent = graphModelStateComponent;
 
             m_PreviewHandlerInstance = new HeadlessPreviewManager();
 
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // We just need to update the texture on this side regardless of what happens
                         graphDataNodeModel.OnPreviewTextureUpdated(nodeRenderOutput);
 
-                        using var graphUpdater = m_GraphViewStateComponent.UpdateScope;
+                        using var graphUpdater = m_GraphModelStateComponent.UpdateScope;
                         {
                             graphUpdater.MarkChanged(nodeModel);
                         }

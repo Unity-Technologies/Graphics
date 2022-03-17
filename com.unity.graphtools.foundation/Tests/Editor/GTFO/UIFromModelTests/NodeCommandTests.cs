@@ -15,10 +15,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
         public IEnumerator CollapsibleNodeCollapsesOnValueChange()
         {
             var nodeModel = GraphModel.CreateNode<IONodeModel>();
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var node = nodeModel.GetUI<GraphElement>(GraphView);
+            var node = nodeModel.GetView<GraphElement>(GraphView);
             var collapseButton = node.SafeQ<CollapseButton>(CollapsibleInOutNode.collapseButtonPartName);
             Assert.IsNotNull(collapseButton);
             Assert.IsFalse(collapseButton.value);
@@ -36,10 +36,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             var nodeModel = GraphModel.CreateNode<IONodeModel>();
             // Add a port to make the node collapsible.
             nodeModel.AddInputPort("port", PortType.Data, TypeHandle.Void, null, PortOrientation.Horizontal, PortModelOptions.NoEmbeddedConstant);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var node = nodeModel.GetUI<GraphElement>(GraphView);
+            var node = nodeModel.GetView<GraphElement>(GraphView);
             var collapseButton = node.SafeQ<CollapseButton>(CollapsibleInOutNode.collapseButtonPartName);
             Assert.IsNotNull(collapseButton);
             Assert.IsFalse(collapseButton.value);
@@ -63,10 +63,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             const string newName = "New Name";
 
             var nodeModel = GraphModel.CreateNode<NodeModel>("Node");
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var node = nodeModel.GetUI<GraphElement>(GraphView);
+            var node = nodeModel.GetView<GraphElement>(GraphView);
             var label = node.SafeQ(CollapsibleInOutNode.titleIconContainerPartName).SafeQ(EditableLabel.labelName);
             var clickPosition = label.parent.LocalToWorld(label.layout.center);
             Helpers.Click(clickPosition, clickCount: 2);

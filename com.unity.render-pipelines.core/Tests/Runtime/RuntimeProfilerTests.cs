@@ -21,10 +21,11 @@ namespace UnityEngine.Rendering.Tests
         [SetUp]
         public void Setup()
         {
-#if UNITY_EDITOR
-            if (!UnityEditor.PlayerSettings.enableFrameTimingStats)
+            if (!FrameTimingManager.IsFeatureEnabled())
                 Assert.Ignore("Frame timing stats are disabled in Player Settings, skipping test.");
-#endif
+
+            if (Application.isBatchMode)
+                Assert.Ignore("Frame timing tests are not supported in batch mode, skipping test.");
 
             // HACK #1 - really shouldn't have to do this here, but previous tests are leaking gameobjects
             var objects = GameObject.FindObjectsOfType<GameObject>();
@@ -48,37 +49,34 @@ namespace UnityEngine.Rendering.Tests
         protected IEnumerator Warmup()
         {
             for (int i = 0; i < k_NumWarmupFrames; i++)
-                yield return new WaitForEndOfFrame();
+                yield return null;
 
             m_DebugFrameTiming.Reset();
         }
     }
 
-    // FIXME: Tests are disabled in player builds for now, since there's no API that tells whether frame timing is
-    //        enabled or not. Re-enable if that changes.
-#if UNITY_EDITOR
-    class RuntimeProfilerTests : RuntimeProfilerTestBase
-    {
-        [UnityTest]
-        public IEnumerator RuntimeProfilerGivesNonZeroOutput()
-        {
-            yield return Warmup();
+    // [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
+    // class RuntimeProfilerTests : RuntimeProfilerTestBase
+    // {
+    //     [UnityTest]
+    //     public IEnumerator RuntimeProfilerGivesNonZeroOutput()
+    //     {
+    //         yield return Warmup();
 
-            m_ToCleanup = new GameObject();
-            var camera = m_ToCleanup.AddComponent<Camera>();
-            for (int i = 0; i < k_NumFramesToRender; i++)
-            {
-                m_DebugFrameTiming.UpdateFrameTiming();
-                camera.Render();
-                yield return new WaitForEndOfFrame();
-            }
+    //         m_ToCleanup = new GameObject();
+    //         var camera = m_ToCleanup.AddComponent<Camera>();
+    //         for (int i = 0; i < k_NumFramesToRender; i++)
+    //         {
+    //             m_DebugFrameTiming.UpdateFrameTiming();
+    //             camera.Render();
+    //             yield return null;
+    //         }
 
-            Assert.True(
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.Balanced > 0 ||
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.CPU > 0 ||
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.GPU > 0 ||
-                m_DebugFrameTiming.m_BottleneckHistory.Histogram.PresentLimited > 0);
-        }
-    }
-#endif
+    //         Assert.True(
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.Balanced > 0 ||
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.CPU > 0 ||
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.GPU > 0 ||
+    //             m_DebugFrameTiming.m_BottleneckHistory.Histogram.PresentLimited > 0);
+    //     }
+    // }
 }

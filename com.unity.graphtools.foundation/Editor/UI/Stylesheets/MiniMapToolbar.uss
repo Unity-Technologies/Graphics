@@ -1,0 +1,4 @@
+.ge-zoom-label {
+    flex-grow: 1;
+    -unity-text-align: middle-right;
+}

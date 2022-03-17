@@ -500,14 +500,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
 
-            // We need to pass it over instead of computing it here because on some vendors trigonometry has very bad precision, so we precompute what we can on CPU to have better precision.
-            // We can safely retrieve HDAdditionalLightData as for PBR sky the sunlight is always going to be an HDRP light.
-            var lightData = builtinParams.sunLight.gameObject.GetComponent<HDAdditionalLightData>();
-            float radInner = 0.5f * lightData.angularDiameter * Mathf.Deg2Rad;
-            float cosInner = Mathf.Cos(radInner);
-            float cosOuter = Mathf.Cos(radInner + lightData.flareSize);
-            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._SunDiskCosines, new Vector4(cosInner, cosOuter, 0, 0));
-
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
             int pass = (renderForCubemap ? 0 : 2);

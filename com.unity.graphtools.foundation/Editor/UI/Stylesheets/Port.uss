@@ -1,0 +1,190 @@
+.ge-port {
+    height: 24px;
+    align-items: center;
+    justify-content: space-between; /* Connector container to the left, value editor to the right. */
+    --port-color: var(--port-default);
+}
+
+.ge-port--vertical {
+    height: 14px;
+    margin-right: 14px;
+    margin-left: 14px;
+}
+
+.ge-port__connector-container {
+    min-height: 24px;
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Make this more specific than the data type color. Not super nice. */
+.ge-port.ge-port--highlighted {
+    --port-color: var(--port-compatible-highlight);
+}
+
+.ge-port--hidden {
+    display: none;
+}
+
+/* Make this more specific than the data type color. Not super nice. */
+.ge-port.ge-port--will-connect {
+    --port-color: var(--port-will-connect);
+}
+
+.ge-port--drop-highlighted {
+    border-color: var(--dragndrop-highlight-color);
+    background-color: var(--dragndrop-highlight-background-color);
+}
+
+.ge-port--drop-highlighted--denied {
+    border-color: var(--dragndrop-denied-color);
+    background-color: var(--dragndrop-denied-background-color);
+}
+
+.ge-port--direction-input {
+    flex-direction: row;
+}
+
+.ge-port--direction-output .ge-port__connector-container {
+    flex-direction: row-reverse;
+}
+
+.ge-port__connector {
+    border-color: var(--port-color);
+    background-color: var(--port-background);
+}
+
+.ge-port__cap {
+    background-color: var(--port-color);
+}
+
+.ge-port--will-connect .ge-port-connector-part__cap,
+.ge-port--connected .ge-port-connector-part__cap {
+    /* visibility: unset; => should be `unset` or `inherit` */
+}
+
+.ge-port--data-type-execution-flow .ge-port__connector
+{
+    border-radius: 0;
+    width: 8px;
+    height: 8px;
+}
+
+.ge-port--data-type-execution-flow .ge-port__cap
+{
+    border-radius: 0;
+    width: 4px;
+    height: 4px;
+}
+
+.ge-port__label {
+    color: var(--port-text);
+    font-size: var(--unity-font-size-semi-small);
+    height: 16px;
+}
+
+.ge-port--vertical .ge-port__label {
+    display: none;
+}
+
+.ge-port--direction-input .ge-port__label {
+    -unity-text-align: middle-left;
+}
+
+.ge-port--direction-output .ge-port__label {
+    -unity-text-align:middle-right;
+}
+
+.ge-port__constant-editor .unity-property-field {
+    font-size: var(--unity-font-size-semi-small);
+    flex: 1 0 auto;
+}
+
+/*******************************/
+/* Ports colors by types */
+/*******************************/
+
+.ge-port--data-type-execution-flow {
+    --port-color: var(--port-type-execution);
+}
+
+.ge-port--data-type-texture,
+.ge-port--data-type-texture2d {
+    --port-color: var(--port-type-textures);
+}
+
+.ge-port--data-type-float4,
+.ge-port--data-type-vector4,
+.ge-port--data-type-quaternion,
+.ge-port--data-type-color {
+    --port-color: var(--port-type-float4);
+}
+
+.ge-port--data-type-int,
+.ge-port--data-type-int32,
+.ge-port--data-type-int64 {
+    --port-color: var(--port-type-integer);
+}
+
+.ge-port--data-type-bool,
+.ge-port--data-type-boolean {
+    --port-color: var(--port-type-boolean);
+}
+
+.ge-port--data-type-matrix,
+.ge-port--data-type-matrix4x4 {
+    --port-color: var(--port-type-matrix);
+}
+
+.ge-port--data-type-game-object {
+    --port-color: var(--port-type-gameobject);
+}
+
+.ge-port--data-type-single,
+.ge-port--data-type-double,
+.ge-port--data-type-float,
+.ge-port--data-type-float1 {
+    --port-color: var(--port-type-float);
+}
+
+.ge-port--data-type-float2,
+.ge-port--data-type-vector2 {
+    --port-color: var(--port-type-float2);
+}
+
+.ge-port--data-type-component {
+    --port-color:var(--port-type-component);
+}
+
+.ge-port--data-type-float3,
+.ge-port--data-type-vector3 {
+    --port-color: var(--port-type-float3);
+}
+
+.ge-port--data-type-string {
+    --port-color: var(--port-type-string);
+}
+
+.ge-port--data-type-missing-port {
+    --port-color: var(--port-type-missing);
+}
+
+.ge-port--data-type-missing-port Label {
+    color: var(--port-text-missing);
+}
+
+/**************/
+/* Port icons */
+/**************/
+
+.ge-node__inputs .ge-port__icon {
+    margin-left: 4px;
+}
+
+.ge-node__outputs .ge-port__icon {
+    margin-right: 4px;
+}
+
+.ge-port--data-type-execution-flow .ge-port__icon {
+    display: none;
+}

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.031361535, g: 0.040105373, b: 0.05148928, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -217,6 +217,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.25, y: 0.39, z: 0.76}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -270,6 +271,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: a435593e8df5fec4ab2279b9647b1816, type: 2}
   m_StaticLightingSkyUniqueID: 2
+  m_StaticLightingCloudsUniqueID: 0
+  m_StaticLightingVolumetricClouds: 0
 --- !u!114 &1126674575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -282,7 +285,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isGlobal: 1
+  m_IsGlobal: 1
   priority: 0
   blendDistance: 0
   weight: 1
@@ -297,6 +300,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -349,14 +353,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 11
-  m_ObsoleteShadowResolutionTier: 1
-  m_ObsoleteUseShadowQualitySettings: 0
-  m_ObsoleteCustomShadowResolution: 512
-  m_ObsoleteContactShadows: 0
-  m_PointlightHDType: 0
-  m_SpotLightShape: 0
-  m_AreaLightShape: 0
   m_Intensity: 600
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -440,6 +436,7 @@ MonoBehaviour:
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
   m_preserveCachedShadow: 0
+  m_OnDemandShadowRenderOnPlacement: 1
   m_ShadowCascadeRatios:
   - 0.05
   - 0.2
@@ -455,10 +452,17 @@ MonoBehaviour:
   useOldInspector: 0
   useVolumetric: 1
   featuresFoldout: 1
-  showAdditionalSettings: 0
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
+  m_Version: 11
+  m_ObsoleteShadowResolutionTier: 1
+  m_ObsoleteUseShadowQualitySettings: 0
+  m_ObsoleteCustomShadowResolution: 512
+  m_ObsoleteContactShadows: 0
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
 --- !u!108 &1319476899
 Light:
   m_ObjectHideFlags: 0
@@ -531,6 +535,7 @@ Transform:
   m_LocalRotation: {x: -0.5780006, y: -0, z: -0, w: -0.8160363}
   m_LocalPosition: {x: -0.26, y: 3.5, z: -0.76}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -628,6 +633,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -2.85, y: 0.39, z: 0.76}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -654,6 +660,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
@@ -707,12 +714,17 @@ PrefabInstance:
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Version
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
       value: 70005818916701
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: waitFrames
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -726,6 +738,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 84e0c51f1b83abb43871f211647a1da2,
         type: 2}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &2115918006
 GameObject:
@@ -820,6 +833,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3.1526, y: 1, z: 1.799}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0

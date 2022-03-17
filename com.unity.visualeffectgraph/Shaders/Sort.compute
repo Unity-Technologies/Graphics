@@ -5,7 +5,7 @@
 #pragma kernel MergePass MERGE_PASS=MergePass FINAL_PASS=0
 #pragma kernel MergeFinalPass MERGE_PASS=MergeFinalPass FINAL_PASS=1
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
 
 #pragma multi_compile __ VFX_SORT_USE_ELEMENT_COUNT_BUFFER
 

@@ -20,11 +20,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         string FriendlyScriptName { get; }
 
         /// <summary>
-        /// The type of the graph asset.
-        /// </summary>
-        GraphAssetType GraphAssetType { get; set; }
-
-        /// <summary>
         /// The graph model stored in the asset.
         /// </summary>
         IGraphModel GraphModel { get; }
@@ -35,13 +30,31 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         bool Dirty { get; set; }
 
         /// <summary>
+        /// Checks whether the graph is a Container Graph or not. If it is not a Container Graph, it is an Asset Graph.
+        /// </summary>
+        /// <remarks>
+        /// A Container Graph is a graph asset that cannot be nested inside of another graph asset, and can be referenced by a game object or scene.
+        /// An Asset Graph is a graph asset that can have exposed inputs/outputs, making it so that it can be nested inside of another graph asset, and can be referenced by a game object or scene.
+        /// </remarks>
+        /// <returns>True if the graph is a container graph, false otherwise.</returns>
+        bool IsContainerGraph();
+
+        /// <summary>
+        /// Checks the conditions to specify whether the Asset Graph can be a subgraph or not.
+        /// </summary>
+        /// <remarks>
+        /// A subgraph is an Asset Graph that is nested inside of another graph asset, and can be referenced by a game object or scene.
+        /// </remarks>
+        /// <returns>True if the Asset Graph can be a subgraph, false otherwise.</returns>
+        bool CanBeSubgraph();
+
+        /// <summary>
         /// Initializes <see cref="GraphModel"/> to a new graph.
         /// </summary>
         /// <param name="graphName">The name of the graph.</param>
         /// <param name="stencilType">The type of <see cref="IStencil"/> associated with the new graph.</param>
         /// <param name="markAssetDirty">Whether the asset should be marked dirty.</param>
-        /// <param name="graphAssetType">The type of the newly created graph asset.</param>
-        void CreateGraph(string graphName, Type stencilType = null, bool markAssetDirty = true, GraphAssetType graphAssetType = GraphAssetType.AssetGraph);
+        void CreateGraph(string graphName, Type stencilType = null, bool markAssetDirty = true);
 
         /// <summary>
         /// Called after an undo or redo was executed.
@@ -87,15 +100,5 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             asset.name = assetName;
             return asset as IGraphAssetModel;
         }
-    }
-
-    /// <summary>
-    /// Types of graph assets.
-    /// </summary>
-    public enum GraphAssetType
-    {
-        ContainerGraph,
-        AssetGraph,
-        EmbeddedGraph
     }
 }

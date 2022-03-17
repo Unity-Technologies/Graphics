@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class NodePreviewPart : BaseModelUIPart
+    public class NodePreviewPart : BaseModelViewPart
     {
         VisualElement m_Root;
         VisualElement m_CollapseButton;
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override VisualElement Root => m_Root;
 
-        public NodePreviewPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
+        public NodePreviewPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
             m_GraphDataNodeModel = model as GraphDataNodeModel;
@@ -72,12 +72,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            m_OwnerElement.View.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
+            // m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
         }
 
         void OnExpandButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            m_OwnerElement.View.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
+            // m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
         }
 
         void HandlePreviewExpansionStateChanged(bool previewExpanded)

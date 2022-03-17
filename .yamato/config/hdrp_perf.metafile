@@ -16,10 +16,10 @@ reuse_blocks:
 test_platforms:
   - type: playmode
     name: performance_memory
+    allow_cache: False
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]:
@@ -32,11 +32,11 @@ test_platforms:
           - [all]: --platform=StandaloneWindows64
           - [all]: --loglevel=verbose
   - type: playmode
+    allow_cache: False
     name: performance_counters
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan]:
@@ -48,16 +48,15 @@ test_platforms:
           - [all]: --testfilter=Counters
           - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
           - [all]: --timeout=7200
-          - [Win]: --platform=StandaloneWindows64
-          - [Linux]: --platform=StandaloneLinux64
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
+          - [Linux_Vulkan, Linux_OpenGlCore]: --platform=StandaloneLinux64
           - [all]: --loglevel=verbose
   - type: editmode
     name: performance_run_build
-    allow_cache: True
+    allow_cache: False
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]:
@@ -81,15 +80,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
   - name: Linux
     apis:

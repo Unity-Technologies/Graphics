@@ -18,7 +18,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Graph
         }
     }
 
-    class GraphSerialization : BaseFixture
+    class GraphSerialization : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => false;
 
@@ -30,7 +30,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Graph
 
             AssetDatabase.SaveAssets();
             Resources.UnloadAsset(GraphTool.ToolState.AssetModel as Object);
-            GraphTool.Dispatch(new LoadGraphAssetCommand(k_GraphPath, 0, null));
+            GraphTool.Dispatch(new LoadGraphAssetCommand(k_GraphPath, 0));
             Assert.AreEqual(k_GraphPath, AssetDatabase.GetAssetPath((Object)GraphModel.AssetModel));
             AssertIntegrity();
 
@@ -60,7 +60,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Graph
 
             GraphModel graph = AssetDatabase.LoadAssetAtPath<GraphAssetModel>(k_GraphPath)?.GraphModel as GraphModel;
             Resources.UnloadAsset((Object)graph?.AssetModel);
-            GraphTool.Dispatch(new LoadGraphAssetCommand(k_GraphPath, 0, null));
+            GraphTool.Dispatch(new LoadGraphAssetCommand(k_GraphPath, 0));
 
             AssertIntegrity();
 
@@ -90,7 +90,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Graph
             Resources.UnloadAsset(GraphTool.ToolState.AssetModel as Object);
 
             // Load the second asset.
-            GraphTool.Dispatch(new LoadGraphAssetCommand(k_GraphPath, localId, null));
+            GraphTool.Dispatch(new LoadGraphAssetCommand(k_GraphPath, localId));
 
             // Check that we loaded the second asset.
             Assert.AreEqual(guid, GraphTool.ToolState.CurrentGraph.GraphModelAssetGuid);
@@ -98,11 +98,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Graph
 
             // Call GetGraphAssetModelPath(), which was reloading the wrong asset (GTF-350).
             GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
-            Assert.AreEqual(subAsset, GraphTool.ToolState.CurrentGraph.m_GraphAssetModel);
+            Assert.AreEqual(subAsset, GraphTool.ToolState.CurrentGraph.GetGraphAssetModelWithoutLoading());
 
             // Call GetGraphAssetModel(), which was reloading the wrong asset (GTF-350).
             GraphTool.ToolState.CurrentGraph.GetGraphAssetModel();
-            Assert.AreEqual(subAsset, GraphTool.ToolState.CurrentGraph.m_GraphAssetModel);
+            Assert.AreEqual(subAsset, GraphTool.ToolState.CurrentGraph.GetGraphAssetModelWithoutLoading());
 
             AssetDatabase.DeleteAsset(k_GraphPath);
         }

@@ -1,5 +1,0 @@
-/* TODO VladN: fix for light skin, remove when GTF supports light skin */
-.ge-editable-label > .unity-label,
-.ge-editable-label > .unity-text-field > .unity-base-text-field__input{
-    color: #CCCCCC;
-}

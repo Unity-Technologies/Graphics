@@ -1,12 +1,21 @@
-using System.Collections.Generic;
-using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
-
 namespace UnityEditor.ShaderFoundry
 {
-    internal class ShaderGenerator
+    internal struct GeneratedShader
     {
-        internal void Generate(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        public string shaderName;
+        public bool isPrimaryShader;
+        public string codeString;
+        // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO: needed for populating compiled shader
+        public string errorMessage;
+    }
+
+    internal static class ShaderGenerator
+    {
+        internal static GeneratedShader Generate(ShaderContainer container, ShaderInstance shaderInst, ShaderBuilder builder = null)
         {
+            if (builder == null)
+                builder = new ShaderBuilder();
+
             builder.AddLine(string.Format(@"Shader ""{0}""", shaderInst.Name));
             using (builder.BlockScope())
             {
@@ -15,76 +24,76 @@ namespace UnityEditor.ShaderFoundry
                 if (!string.IsNullOrEmpty(shaderInst.FallbackShader))
                     builder.AddLine(shaderInst.FallbackShader);
             }
+
+            GeneratedShader result = new GeneratedShader()
+            {
+                shaderName = shaderInst.Name,
+                isPrimaryShader = shaderInst.IsPrimaryShader,
+                codeString = builder.ToString(),
+                errorMessage = null
+            };
+            return result;
         }
 
-        void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        static void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            var propertiesMap = new Dictionary<string, BlockProperty>();
-            var propertiesList = new List<BlockProperty>();
+            ShaderPropertyCollection exposedShaderProperties = new ShaderPropertyCollection();
 
-            void CollectUniqueProperties(Block block)
+            void CollectUniqueProperties(BlockInstance blockInstance)
             {
-                var properties = block.Properties;
+                if (!blockInstance.IsValid)
+                    return;
+                var block = blockInstance.Block;
+                var properties = block.Properties();
                 if (properties != null)
                 {
                     foreach (var prop in properties)
                     {
-                        if (!propertiesMap.ContainsKey(prop.ReferenceName))
-                        {
-                            propertiesMap.Add(prop.ReferenceName, prop);
-                            propertiesList.Add(prop);
-                        }
-                    }
-                }
-
-                var inputs = block.Inputs;
-                if (inputs != null)
-                {
-                    foreach (var input in inputs)
-                    {
-                        var decl = input.Attributes.GetDeclaration();
-                        if (decl == UnityEditor.ShaderGraph.Internal.HLSLDeclaration.DoNotDeclare)
+                        var propertyAttribute = PropertyAttribute.FindFirst(prop.Attributes);
+                        if (propertyAttribute != null && !propertyAttribute.Exposed)
                             continue;
 
-                        if (!propertiesMap.ContainsKey(input.ReferenceName))
-                        {
-                            var prop = input.Clone(container);
-                            propertiesList.Add(prop);
-                            propertiesMap.Add(prop.ReferenceName, prop);
-                        }
+                        exposedShaderProperties.Add(prop);
                     }
                 }
+            }
+
+            void CollectUniqueStageElementProperties(TemplatePassStageElement stageElement)
+            {
+                CollectUniqueProperties(stageElement.BlockInstance);
+                if (!stageElement.CustomizationPoint.IsValid)
+                    return;
+                foreach (var blockInstance in stageElement.CustomizationPoint.DefaultBlockInstances)
+                    CollectUniqueProperties(blockInstance);
             }
 
             foreach (var templateInst in shaderInst.TemplateInstances)
             {
                 foreach (var pass in templateInst.Template.Passes)
                 {
-                    foreach (var block in pass.VertexBlocks)
-                        CollectUniqueProperties(block.Block);
-                    foreach (var block in pass.FragmentBlocks)
-                        CollectUniqueProperties(block.Block);
+                    foreach (var stageElement in pass.VertexStageElements)
+                        CollectUniqueStageElementProperties(stageElement);
+                    foreach (var stageElement in pass.FragmentStageElements)
+                        CollectUniqueStageElementProperties(stageElement);
                 }
                 foreach (var cpInst in templateInst.CustomizationPointInstances)
                 {
-                    foreach(var blockInst in cpInst.BlockInstances)
-                        CollectUniqueProperties(blockInst.Block);
+                    foreach (var blockInst in cpInst.BlockInstances)
+                        CollectUniqueProperties(blockInst);
                 }
             }
 
             builder.AddLine("Properties");
             using (builder.BlockScope())
             {
-                foreach (var prop in propertiesList)
+                foreach (var prop in exposedShaderProperties.Properties)
                 {
-                    builder.Indentation();
-                    prop.DeclareMaterialProperty(builder);
-                    builder.AddLine("");
+                    MaterialPropertyDeclaration.Declare(builder, prop);
                 }
             }
         }
 
-        void GenerateSubShaders(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        static void GenerateSubShaders(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
             foreach (var templateInst in shaderInst.TemplateInstances)
             {

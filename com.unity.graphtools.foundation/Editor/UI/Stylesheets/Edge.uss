@@ -1,0 +1,24 @@
+
+.ge-edge {
+    position: absolute;
+    --layer:-10;
+}
+
+.ge-edge__edge-control {
+    --edge-color: var(--edge-ghost);
+    /*--ghost-edge-color: #555555;*/
+    --edge-width: 4;
+}
+
+.ge-edge:checked .ge-edge__edge-control {
+    --edge-color: var(--edge-selected);
+}
+
+.ge-edge:hover .ge-edge__edge-control {
+    --edge-color: var(--edge-highlight);
+    --edge-width: 6;
+}
+
+.ge-edge--ghost .ge-edge__edge-bubble {
+    opacity: .5;
+}

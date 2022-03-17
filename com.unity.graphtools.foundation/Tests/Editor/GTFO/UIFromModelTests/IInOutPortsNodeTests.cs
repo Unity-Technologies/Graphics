@@ -7,7 +7,7 @@ using UnityEngine.TestTools;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 {
-    public class IHasPortsTests : GtfTestFixture
+    public class HasPortsTests : GtfTestFixture
     {
         IInputOutputPortsNodeModel m_SourceNodeModel;
         IInputOutputPortsNodeModel m_DestinationNodeModel1;

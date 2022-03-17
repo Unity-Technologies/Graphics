@@ -12,6 +12,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     [PublicAPI]
     public static class TypeSearcherExtensions
     {
+        const string k_Class = "Classes";
+
         /// <summary>
         /// Creates a <see cref="SearcherDatabase"/> for types.
         /// </summary>
@@ -19,12 +21,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>A database containing the types passed in parameter.</returns>
         public static SearcherDatabase ToSearcherDatabase(this IEnumerable<Type> types)
         {
-            List<SearcherItem> searcherItems = new List<SearcherItem>();
+            var searcherItems = new List<SearcherItem>();
             foreach (var type in types)
             {
-                var typeMetadata = new TypeMetadata(type.GenerateTypeHandle(), type);
-                var classItem = new TypeSearcherItem(type.GenerateTypeHandle(), typeMetadata.FriendlyName);
-                searcherItems.TryAddClassItem(classItem, typeMetadata);
+                var typeHandle = type.GenerateTypeHandle();
+                var meta = new TypeMetadata(typeHandle, type);
+                if ((meta.IsClass || meta.IsValueType) && !meta.IsEnum)
+                {
+                    var path = k_Class + "/" + meta.Namespace.Replace(".", "/");
+                    var classItem = new TypeSearcherItem(meta.FriendlyName, typeHandle) { CategoryPath = path};
+                    searcherItems.Add(classItem);
+                }
             }
             return new SearcherDatabase(searcherItems);
         }

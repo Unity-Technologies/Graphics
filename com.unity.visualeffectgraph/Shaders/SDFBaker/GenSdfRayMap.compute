@@ -20,7 +20,7 @@
 #pragma kernel ChooseDirectionTriangleOnly
 #pragma kernel SurfaceClosing
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
 
 #include "Packages/com.unity.visualeffectgraph/Shaders/SDFBaker/SdfUtils.hlsl"
 
@@ -190,9 +190,9 @@ RWStructuredBuffer<uint> Result ;
 #define groupthreads 512
 groupshared uint2 bucket[groupthreads];
 
-void PrefixSum(uint3 id, uint gid, uint x) // Change the type of x here if scan other types
+void PrefixSum(uint id, uint gid, uint x)
 {
-    uint thid = id.x;
+    uint thid = id;
     //load input into shared memory
     bucket[gid].x = x;
     bucket[gid].y = 0;
@@ -257,24 +257,28 @@ void PrefixSum(uint3 id, uint gid, uint x) // Change the type of x here if scan 
     Result[thid] = bucket[gid].y; //Careful, works for groupthreads = 512 (2^(2n+1))
 }
 uint numElem;
+uint dispatchWidth;
 [numthreads(groupthreads, 1, 1)]
-void InBucketSum(uint3 DTid: SV_DispatchThreadID, uint3 GTid: SV_GroupThreadID, uint GI: SV_GroupIndex) {
-    uint x ;
-    if(DTid.x >= numElem)
+void InBucketSum(uint3 GTid: SV_GroupThreadID, uint GI: SV_GroupIndex, uint3 groupId: SV_GroupID)
+{
+    uint x;
+    const uint id = GTid.x + groupId.x * groupthreads + groupId.y * dispatchWidth * groupthreads;
+
+    if(id >= numElem)
     {
         x = 0u;
     }
     else{
-        x = Input[DTid.x];
+        x = Input[id];
     }
-    PrefixSum(DTid, GI, x);
+    PrefixSum(id, GI, x);
 }
 
 [numthreads(groupthreads, 1, 1)]
-void BlockSums(uint3 DTid: SV_DispatchThreadID, uint3 GTid: SV_GroupThreadID, uint GI: SV_GroupIndex)
+void BlockSums(uint3 DTid: SV_DispatchThreadID, uint GI: SV_GroupIndex)
 {
     uint x ;
-    if(((DTid.x + 1) * groupthreads -1 ) >= numElem )
+    if((DTid.x + 1) * groupthreads -1  >= numElem )
     {
         x = 0u;
     }
@@ -283,20 +287,23 @@ void BlockSums(uint3 DTid: SV_DispatchThreadID, uint3 GTid: SV_GroupThreadID, ui
         uint id = (DTid.x + 1) * groupthreads - 1;
         x = Input[id] + inputCounter[id]; // Change the type of x here if scan other types
     }
-    PrefixSum(DTid, GI, x);
+    PrefixSum(DTid.x, GI, x);
 }
 
 bool exclusive;
 // add the bucket scanned result to each bucket to get the final result
 [numthreads(groupthreads, 1, 1)]
-void FinalSum(uint3 Gid: SV_GroupID, uint3 DTid: SV_DispatchThreadID) {
-    if(DTid.x >= numElem)
+void FinalSum(uint3 GTid: SV_GroupThreadID, uint3 groupId: SV_GroupID) {
+    const uint id = GTid.x + groupId.x * groupthreads + groupId.y * dispatchWidth * groupthreads;
+    const uint flattenedGroupID = groupId.x + dispatchWidth * groupId.y;
+
+    if(id >= numElem)
         return;
     if(exclusive)
-        Result[DTid.x] = Input[DTid.x] + auxBuffer[Gid.x] - inputCounter[DTid.x]; //Exclusive prefix sum by subtracting the initial value of the counter
+        Result[id] = Input[id] + auxBuffer[flattenedGroupID] - inputCounter[id]; //Exclusive prefix sum by subtracting the initial value of the counter
     else
     {
-        Result[DTid.x] = Input[DTid.x] + auxBuffer[Gid.x];
+        Result[id] = Input[id] + auxBuffer[flattenedGroupID];
     }
 
 }
@@ -304,7 +311,7 @@ void FinalSum(uint3 Gid: SV_GroupID, uint3 DTid: SV_DispatchThreadID) {
 [numthreads(groupthreads, 1, 1)]
 void ToBlockSumBuffer(uint3 DTid : SV_DispatchThreadID)
 {
-    if (((DTid.x + 1) * groupthreads - 1) >= numElem)
+    if ((DTid.x + 1) * groupthreads - 1 >= numElem)
         return;
     uint id = (DTid.x + 1) * groupthreads - 1;
     Result[DTid.x] = Input[id] + inputCounter[id];
@@ -313,7 +320,7 @@ void ToBlockSumBuffer(uint3 DTid : SV_DispatchThreadID)
 [numthreads(4, 4, 4)]
 void ToTextureNormalized(uint3 id: SV_DispatchThreadID)
 {
-    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+    if (id.x >= size.x || id.y >= size.y || id.z >= size.z)
         return;
     if (voxelsBuffer[id3(id.xyz)].x != 0.0f || voxelsBuffer[id3(id.xyz)].y != 0.0f || voxelsBuffer[id3(id.xyz)].z != 0.0f)
     {
@@ -348,14 +355,27 @@ void CopyTextures(uint3 id: SV_DispatchThreadID)
 [numthreads(4, 4, 4)]
 void SurfaceClosing(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= (uint)size.x-1 || id.y >= (uint)size.y-1 || id.z >= (uint)size.z-1)
+    if (id.x >= size.x-1 || id.y >= size.y-1 || id.z >= size.z-1)
         return;
-    uint size_max = Max3(size.x, size.y, size.z);
-    if(  (signMap[id.xyz]-threshold)*(signMap[id.xyz + uint3(1,0,0)] - threshold) < 0
-        || (signMap[id.xyz] - threshold) * (signMap[id.xyz + uint3(0, 1, 0)] - threshold) < 0
-        || (signMap[id.xyz] - threshold) * (signMap[id.xyz + uint3(0, 0, 1)] - threshold) < 0)
+    const uint size_max = Max3(size.x, size.y, size.z);
+    const float currentSignScore = signMap[id.xyz]-threshold;
+    if(abs(currentSignScore/threshold) < 0.1f)
     {
-        voxels[id.xyz] = float4 ((float3(id.xyz) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+        if(currentSignScore*(signMap[id.xyz + uint3(1,0,0)] - threshold) < 0)
+        {
+            const uint3 writeCoord = id.xyz + (currentSignScore < 0 ? uint3(1,0,0) : uint3(0,0,0));
+            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+        }
+        if(currentSignScore*(signMap[id.xyz + uint3(0,1,0)] - threshold) < 0)
+        {
+            const uint3 writeCoord = id.xyz + (currentSignScore < 0 ? uint3(0,1,0) : uint3(0,0,0));
+            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+        }
+        if(currentSignScore*(signMap[id.xyz + uint3(0,0,1)] - threshold) < 0)
+        {
+            const uint3 writeCoord = id.xyz + (currentSignScore < 0 ? uint3(0,0,1) : uint3(0,0,0));
+            voxels[writeCoord.xyz] = float4 ((float3(writeCoord) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
+        }
     }
 }
 
@@ -364,7 +384,7 @@ uint offset;
 [numthreads(4,4,4)]
 void JFA(uint3 id: SV_DispatchThreadID)
 {
-    if (id.x >= (uint)size.x || id.y >= (uint)size.y || id.z >= (uint)size.z)
+    if (id.x >= size.x || id.y >= size.y || id.z >= size.z)
         return;
     uint size_max = Max3(size.x, size.y, size.z);
     float bestDistance = 9999.0f;

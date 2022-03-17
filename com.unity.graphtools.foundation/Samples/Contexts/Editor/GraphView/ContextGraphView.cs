@@ -5,20 +5,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI
 {
     class ContextGraphView : GraphView
     {
-        ContextGraphViewWindow m_SimpleGraphViewWindow;
-
-        public ContextGraphViewWindow window
+        public ContextGraphView(ContextGraphViewWindow simpleGraphViewWindow, BaseGraphTool graphTool, string name,
+            GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
+            : base(simpleGraphViewWindow, graphTool, name, displayMode)
         {
-            get { return m_SimpleGraphViewWindow; }
         }
 
-        public ContextGraphView(ContextGraphViewWindow simpleGraphViewWindow, BaseGraphTool graphTool, string name)
-            : base(simpleGraphViewWindow, graphTool, name)
-        {
-            m_SimpleGraphViewWindow = simpleGraphViewWindow;
-        }
-
-        private VisualElement m_LeftElement;
+        VisualElement m_LeftElement;
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {

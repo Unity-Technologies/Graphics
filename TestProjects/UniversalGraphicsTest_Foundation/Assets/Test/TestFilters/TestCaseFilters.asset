@@ -44,6 +44,26 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 6e7a83866a1e446b3becf7972371c5d0, type: 3}
+    - {fileID: 102900000, guid: 773767ac5b09198408c0c084dc243abc, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Reflection probe missing sometimes.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6e7a83866a1e446b3becf7972371c5d0, type: 3}
+    - {fileID: 102900000, guid: 773767ac5b09198408c0c084dc243abc, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Reflection probe missing sometimes.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -69,6 +89,15 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1394999/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: a13b9207cccbd4cbb99cf2a72b761eef, type: 3}
@@ -212,21 +241,47 @@ MonoBehaviour:
     Reason: Decals not supported
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 6e7a83866a1e446b3becf7972371c5d0, type: 3}
-    - {fileID: 102900000, guid: 773767ac5b09198408c0c084dc243abc, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: Reflection probe missing sometimes.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 6e7a83866a1e446b3becf7972371c5d0, type: 3}
-    - {fileID: 102900000, guid: 773767ac5b09198408c0c084dc243abc, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: Reflection probe missing sometimes.
+    Reason: https://jira.unity3d.com/browse/URP-1313
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/URP-1313    
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: URP-1199
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: URP-1199
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c8a775519652940ac936ad7b75d2c615, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Bug: iPhone yamato instability for unknown reason.'
+    

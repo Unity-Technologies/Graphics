@@ -9,12 +9,26 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public class DefaultSearcherDatabaseProvider : ISearcherDatabaseProvider
     {
-        Stencil m_Stencil;
+        protected static readonly IReadOnlyList<SearcherDatabaseBase> k_NoDatabase = new List<SearcherDatabaseBase>();
+        protected static readonly IReadOnlyList<Type> k_NoTypeList = new List<Type>();
+
+        /// <summary>
+        /// List of types supported for variables and constants.
+        /// <remarks>Will populate the default implementation of <see cref="GetVariableTypesSearcherDatabases"/>.</remarks>
+        /// </summary>
+        protected virtual IReadOnlyList<Type> SupportedTypes => k_NoTypeList;
+
         List<SearcherDatabaseBase> m_GraphElementsSearcherDatabases;
+        List<SearcherDatabaseBase> m_GraphVariablesSearcherDatabases;
+        List<SearcherDatabaseBase> m_TypeSearcherDatabases;
 
-        Dictionary<Type, List<SearcherDatabaseBase>> m_GraphElementContainersSearcherDatabases;
 
-        static readonly List<SearcherDatabaseBase> EmptyResults = new List<SearcherDatabaseBase>();
+        protected Dictionary<Type, List<SearcherDatabaseBase>> m_GraphElementContainersSearcherDatabases;
+
+        /// <summary>
+        /// The graph stencil.
+        /// </summary>
+        public Stencil Stencil { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultSearcherDatabaseProvider"/> class.
@@ -22,11 +36,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="stencil">The stencil.</param>
         public DefaultSearcherDatabaseProvider(Stencil stencil)
         {
-            m_Stencil = stencil;
+            Stencil = stencil;
         }
 
         /// <inheritdoc />
-        public virtual List<SearcherDatabaseBase> GetGraphElementsSearcherDatabases(IGraphModel graphModel)
+        public virtual IReadOnlyList<SearcherDatabaseBase> GetGraphElementsSearcherDatabases(IGraphModel graphModel)
         {
             return m_GraphElementsSearcherDatabases ??= new List<SearcherDatabaseBase>
             {
@@ -34,67 +48,97 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             };
         }
 
+        /// <summary>
+        /// Creates the initial database used for graph elements.
+        /// </summary>
+        /// <param name="graphModel">The graph in which to search for elements.</param>
+        /// <returns>A database containing the searcher items for graph elements.</returns>
         public virtual GraphElementSearcherDatabase InitialGraphElementDatabase(IGraphModel graphModel)
         {
-            return new GraphElementSearcherDatabase(m_Stencil, graphModel)
+            return new GraphElementSearcherDatabase(Stencil, graphModel)
                 .AddNodesWithSearcherItemAttribute()
                 .AddStickyNote();
         }
 
         /// <inheritdoc />
-        public virtual List<SearcherDatabaseBase> GetGraphElementContainerSearcherDatabases(IGraphModel graphModel, IGraphElementContainer container)
+        public virtual IReadOnlyList<SearcherDatabaseBase> GetGraphElementContainerSearcherDatabases(
+            IGraphModel graphModel, IGraphElementContainer container)
         {
-            m_GraphElementContainersSearcherDatabases.TryGetValue(container.GetType(), out List<SearcherDatabaseBase> databases);
+            List<SearcherDatabaseBase> databases;
+            if (m_GraphElementContainersSearcherDatabases != null)
+            {
+                m_GraphElementContainersSearcherDatabases.TryGetValue(container.GetType(), out databases);
 
-            if (databases != null)
-                return databases;
+                if (databases != null)
+                    return databases;
+            }
 
             if (container is IContextNodeModel)
-            {
-                databases = new List<SearcherDatabaseBase>
+                return m_GraphElementsSearcherDatabases ??= new List<SearcherDatabaseBase>
                 {
-                    new ContextSearcherDatabase(m_Stencil, graphModel, container.GetType())
+                    new ContextSearcherDatabase(Stencil, container.GetType())
                         .Build()
                 };
-                m_GraphElementContainersSearcherDatabases[container.GetType()] = databases;
-                return databases;
-            }
 
             return null;
         }
 
         /// <inheritdoc />
-        public virtual List<SearcherDatabaseBase> GetVariableTypesSearcherDatabases()
+        public virtual IReadOnlyList<SearcherDatabaseBase> GetVariableTypesSearcherDatabases()
         {
-            return EmptyResults;
-        }
-
-        /// <inheritdoc />
-        public virtual List<SearcherDatabaseBase> GetGraphVariablesSearcherDatabases(IGraphModel graphModel)
-        {
-            return new List<SearcherDatabaseBase>
+            return m_TypeSearcherDatabases ??= new List<SearcherDatabaseBase>
             {
-                BuildInitialGraphVariablesDatabase(graphModel)
+                SupportedTypes.ToSearcherDatabase()
             };
         }
 
-        public virtual SearcherDatabaseBase BuildInitialGraphVariablesDatabase(IGraphModel graphModel)
+        /// <inheritdoc />
+        public virtual IReadOnlyList<SearcherDatabaseBase> GetGraphVariablesSearcherDatabases(IGraphModel graphModel)
         {
-            return new GraphElementSearcherDatabase(m_Stencil, graphModel)
-                .AddGraphVariables(graphModel)
-                .Build();
+            return m_GraphVariablesSearcherDatabases ??= new List<SearcherDatabaseBase>
+            {
+                InitialGraphVariablesDatabase(graphModel).Build()
+            };
+        }
+
+        /// <summary>
+        /// Creates the initial database used for graph variables.
+        /// </summary>
+        /// <param name="graphModel">The graph in which to search for variables.</param>
+        /// <returns>A database containing the searcher items for variables.</returns>
+        public virtual GraphElementSearcherDatabase InitialGraphVariablesDatabase(IGraphModel graphModel)
+        {
+            return new GraphElementSearcherDatabase(Stencil, graphModel)
+                .AddGraphVariables(graphModel);
         }
 
         /// <inheritdoc />
-        public virtual List<SearcherDatabaseBase> GetDynamicSearcherDatabases(IPortModel portModel)
+        public virtual IReadOnlyList<SearcherDatabaseBase> GetDynamicSearcherDatabases(IPortModel portModel)
         {
-            return EmptyResults;
+            return k_NoDatabase;
         }
 
         /// <inheritdoc />
-        public virtual List<SearcherDatabaseBase> GetDynamicSearcherDatabases(IEnumerable<IPortModel> portModel)
+        public virtual IReadOnlyList<SearcherDatabaseBase> GetDynamicSearcherDatabases(
+            IEnumerable<IPortModel> portModel)
         {
-            return EmptyResults;
+            return k_NoDatabase;
+        }
+
+        /// <summary>
+        /// Resets Graph Elements Searcher Databases to force invalidating the cached version.
+        /// </summary>
+        protected void ResetGraphElementsSearcherDatabases()
+        {
+            m_GraphElementsSearcherDatabases = null;
+        }
+
+        /// <summary>
+        /// Resets Graph Variable Searcher Databases to force invalidating the cached version.
+        /// </summary>
+        protected void ResetGraphVariablesSearcherDatabases()
+        {
+            m_GraphVariablesSearcherDatabases = null;
         }
     }
 }

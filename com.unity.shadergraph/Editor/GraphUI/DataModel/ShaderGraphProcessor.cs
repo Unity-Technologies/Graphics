@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         const string k_RedirectMissingInputMessage = "Node has no input and default value will be 0.";
 
-        public GraphProcessingResult ProcessGraph(IGraphModel graphModel)
+        public GraphProcessingResult ProcessGraph(IGraphModel graphModel, GraphChangeDescription changes)
         {
             var result = new GraphProcessingResult();
 

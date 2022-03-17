@@ -38,7 +38,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         {
         }
 
-        public SearcherDatabase(List<SearcherItem> db)
+        public SearcherDatabase(IReadOnlyList<SearcherItem> db)
             : base(db)
         {
         }
@@ -90,7 +90,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         protected virtual bool Match(string query, IReadOnlyList<string> tokenizedQuery, SearcherItem item, out float score)
         {
             var filter = MatchFilter?.Invoke(item) ?? true;
-            return Match(tokenizedQuery, item.Path, out score) && filter;
+            return Match(tokenizedQuery, item, out score) && filter;
         }
 
         void SearchSingleThreaded(string query, IReadOnlyList<SearcherItem> items,
@@ -185,7 +185,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             var result = base.PerformIndex(itemsToIndex, estimateIndexSize);
             foreach (var item in result)
             {
-                if (!m_Index.ContainsKey(item.Path))
+                if (!m_Index.ContainsKey(item.FullName))
                 {
                     List<ValueTuple<string, float>> terms = new List<ValueTuple<string, float>>();
 
@@ -222,7 +222,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
                     if (!string.IsNullOrEmpty(initials))
                         terms.Add(new ValueTuple<string, float>(initials.ToLower(), 0.5f));
 
-                    m_Index.Add(item.Path, terms);
+                    m_Index.Add(item.FullName, terms);
                 }
             }
 
@@ -253,9 +253,9 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             return tokens;
         }
 
-        bool Match(IReadOnlyList<string> tokenizedQuery, string itemPath, out float score)
+        bool Match(IReadOnlyList<string> tokenizedQuery, SearcherItem item, out float score)
         {
-            itemPath = itemPath.Trim();
+            var itemPath = item.FullName.Trim();
             if (itemPath == "")
             {
                 if (tokenizedQuery.Count == 0)
@@ -310,6 +310,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             }
 
             score = maxScore;
+            LastSearchData[item] = new SearchData { Score = (long)score };
             return score > 0;
         }
     }

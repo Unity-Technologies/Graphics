@@ -38,6 +38,10 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
 
+            [Reload("Shaders/Utils/FallbackLoading.shader")]
+            public Shader fallbackLoadingPS;
+
+            [Obsolete("Use fallbackErrorPS instead")]
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
 

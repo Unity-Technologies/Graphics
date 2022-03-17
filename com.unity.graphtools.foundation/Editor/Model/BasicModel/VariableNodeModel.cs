@@ -41,7 +41,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public IVariableDeclarationModel VariableDeclarationModel => DeclarationModel as IVariableDeclarationModel;
+        public IVariableDeclarationModel VariableDeclarationModel
+        {
+            get => DeclarationModel as IVariableDeclarationModel;
+            set => DeclarationModel = value;
+        }
 
         /// <inheritdoc />
         public IPortModel InputPort => m_MainPortModel?.Direction == PortDirection.Input ? m_MainPortModel : null;
@@ -75,7 +79,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             base.OnDefineNode();
 
             // used by macro outputs
-            if (m_DeclarationModel != null /* this node */ && m_DeclarationModel.Modifiers.HasFlag(ModifierFlags.WriteOnly))
+            if (m_DeclarationModel != null /* this node */ && m_DeclarationModel.Modifiers.HasFlag(ModifierFlags.Write))
             {
                 if (this.GetDataType() == TypeHandle.ExecutionFlow)
                     m_MainPortModel = this.AddExecutionInputPort(null);

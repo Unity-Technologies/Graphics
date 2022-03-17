@@ -1,3 +1,6 @@
+using System;
+using UnityEditor;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -5,6 +8,11 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public class HDVolumeDebugSettings : VolumeDebugSettings<HDAdditionalCameraData>
     {
+        /// <summary>
+        /// Specifies the render pipeline for this volume settings
+        /// </summary>
+        public override Type targetRenderPipeline => typeof(HDRenderPipeline);
+
         /// <summary>Selected camera volume stack.</summary>
         public override VolumeStack selectedCameraVolumeStack
         {
@@ -25,23 +33,21 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+                if (selectedCamera == null)
+                    return (LayerMask)0;
+
 #if UNITY_EDITOR
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
-                    return 0;
-                if (m_SelectedCameraIndex == 1)
+                // For scene view, use main camera volume layer mask. See HDCamera.cs
+                if (selectedCamera == SceneView.lastActiveSceneView.camera)
                 {
-                    // For scene view, use main camera volum layer mask. See HDCamera.cs
                     var mainCamera = Camera.main;
                     if (mainCamera != null && mainCamera.TryGetComponent<HDAdditionalCameraData>(out var mainCamAdditionalData))
                         return mainCamAdditionalData.volumeLayerMask;
                     return HDCamera.GetSceneViewLayerMaskFallback();
                 }
-                return additionalCameraDatas[m_SelectedCameraIndex - 2].volumeLayerMask;
-#else
-                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
-                    return (LayerMask)0;
-                return additionalCameraDatas[m_SelectedCameraIndex - 1].volumeLayerMask;
 #endif
+
+                return selectedCamera.GetComponent<HDAdditionalCameraData>().volumeLayerMask;
             }
         }
 

@@ -65,10 +65,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public IEnumerable<IGraphElementModel> GraphElementModels
-        {
-            get => m_Blocks.Cast<IGraphElementModel>();
-        }
+        public IEnumerable<IGraphElementModel> GraphElementModels => m_Blocks;
 
         void IGraphElementContainer.RemoveElements(IReadOnlyCollection<IGraphElementModel> elementModels)
         {
@@ -90,6 +87,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             {
                 (block as BlockNodeModel)?.DefineNode();
             }
+        }
+
+        public void Repair()
+        {
+            m_Blocks.RemoveAll(t => t == null);
         }
     }
 }

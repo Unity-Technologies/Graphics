@@ -5,10 +5,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.12.2-preview] - 2021-11-03
+
+### Fixed
+- Fixed conflicting GUID
+- Fixed missing icons
+
+## [0.12.1-preview] - 2021-11-03
+
+## [0.12.0-preview] - 2021-11-02
 
 ### Added
-- `GraphModel.GenerateGraphVariableDeclarationUniqueName`, implemented to get a unique variable declaration name.
 - `IGraphModel.GetEdgesForPort()`
 - `GraphModel.GetEdgesForPort()`, implemented as a fast way to get the edge models connected to a port.
 - `GraphModel.GetEdgeConnectedToPorts` extension method to find the edge connected to a pair of ports.
@@ -18,21 +25,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - State of preview panel visibility is stored per user per tool.
 - `SearcherWindow.ShowReusableWindow` allows re-using a `NormalWindow` instead of creating a popup window.
 - `CreateNodeCommandExtensions` are helped methods to generate commands creating nodes on a graph, edge or port.
-- `CsoTool`, the base class for tools that use the command-state-observer system.
-- `BaseGraphTool`, derived from `CsoTool`.
-- `UnloadGraphAssetCommand`, used to unload a graph asset from the graph tool.
-- `BaseView`: a base class for views.
-- `IModelView.GraphTool`, the tool that owns the view.
-- `Stencil.GetDebugInstrumentationHandler()`, to get the `DebugInstrumentationHandler`.
-- `ICommandTarget`, an interface for classes that can receive a command.
-- `IState.AddStateComponent()`, to add a state component to the state.
-- `IState.RemoveStateComponent()`, to remove a state component from the state.
-- `IStateComponentUpdater.Move(IStateComponent source)`, to move data from a state component to an other. The source state component will not be used after the move.
-- `IUndoableStateComponent`, a state component that can be pushed on the undo stack.
-- `UndoData`, used to hold serialized data for undoable operations.
-- `Dispatcher.GetCommandHandler<>`, used to get the current command handler for a command type.
-- Extension methods on `Dispatcher` to register command handlers that accept from 0 to 4 parameters, in addition to the command parameter.
-- `ObserverManager`, the class now responsible for managing observer. Extracted from the `Dispatcher` class.
 
 
 ### Removed
@@ -44,30 +36,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed `HighlightHelper` class.
 - Removed `IHighlightable` interface and implementations in `BlackboardField`, `Node` and `TokenNode`.
 - `Stencil.OnDragAndDropVariableDeclarations` removed, the caller (Blackboard) now dispatches a `CreateNodeCommand` with all variables.
-- `GraphToolState`: use `State` instead. Add state components to the State.
-  - `GraphToolState.BlackboardState` is now accessible from `Blackboard`.
-  - `GraphToolState.GraphViewState` is now accessible from `GraphView`.
-  - `GraphToolState.SelectionState` is now accessible from `GraphView`.
-  - `GraphToolState.WindowState` is now accessible from `BaseGraphTool.ToolState`.
-  - `GraphToolState.GraphProcessingState` is now accessible from `BaseGraphTool`.
-  - `GraphToolState.TracingStatusState` is now accessible from `DebugInstrumentationHandler`.
-  - `GraphToolState.TracingControlState` is now accessible from `DebugInstrumentationHandler`.
-  - `GraphToolState.TracingDataState` is now accessible from `DebugInstrumentationHandler`.
-  - `GraphToolState.ModelInspectorState` is now accessible from `ModelInspectorView`.
-- `IDebugger.OnToggleTracing`: use an observer on `TracingStatusStateComponent` and watch its `TracingEnabled` property.
-- `IModelView.CommandDispatcher`: use `BaseView.Dispatch()` to dispatch commands; use `BaseView.Dispatcher` for other purposes, like registering command handlers.
-- `GraphViewEditorWindow.EditorToolName`: use `GraphViewEditorWindow.GraphTool.Name` instead.
-- `IStencil.ToolName`: use `BaseGraphTool.Name` instead.
-- `GraphViewEditorWindow.CommandDispatcher`: use `GraphViewEditorWindow.GraphTool.Dispatch` or `GraphViewEditorWindow.GraphTool.Dispatcher` instead. Be aware that some command handlers may be registered on a view (for example the `GraphView`) and you may need to dispatch your command to the view.
-- `Stencil.OnDragAndDropVariableDeclarations()`: register your own command handler for `CreateVariableNodesCommand` instead of overriding.
-- `IState.RegisterCommandHandlers()`: see the upgrade guide on how to register command handlers.
-- `IStateComponent.StateSlotName`: implementation replaced by `StateComponent.ComponentName`.
-- `IStateComponent.BeforeSerialize()`: not needed anymore.
-- `IStateComponent.AfterDeserialize()`: not needed anymore.
-- `StateComponent.ValidateAfterDeserialize()`: not needed anymore.
+
 
 ### Changed
-- `GraphModel.InstantiateVariableDeclaration` generates a unique name for the new instantiated variable declaration.
 - `ModelUIPartList` no longer implements `IEnumerable<IModelUIPart>`. To enumerate the parts, use `ModelUIPartList.Parts`.
 - `GraphModel.InstantiatePortal` has been renamed `GraphModel.InstantiatePortalDeclaration`
 - Renamed `GraphElementMapping.GetAllUIForModel` to `AppendAllUIs`; method now appends elements to a caller supplied list.
@@ -80,29 +51,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deprecated `CreateNodeOnEdgeCommand` to encourage using `CreateNodeCommand`.
 - Deprecated `CreateVariableNodesCommand` to encourage using `CreateNodeCommand`.
 - Made the hit box to drag ports larger than the connector.
-- `WindowStateComponent` was renamed to `ToolStateComponent`.
-- Command handlers now receive zero or more `StateComponent`s as parameters, instead of the `GraphToolState`.
-- `CreateUI<>()` and UI factory methods do not take a `Dispatcher`/`CommandDispatcher` parameter anymore.
-- `EdgeConnector` constructor now takes a `GraphView` as its first parameter.
-- `EdgeDragHelper` constructor now takes a `GraphView` as its first parameter.
-- `EdgeConnector.SetDropOutsideDelegate` delegate's first parameter is now a `GraphView`.
-- `EdgeConnector.SetDropDelegate` delegate's first parameter is now a `GraphView`.
-- `GraphView.RebuildUI()`: removed the `Dispatcher` parameter.
-- Observers observed components and modified components are now specified using objects, not names.
-- `ICustomPropertyField.Build()` now takes a `ICommandTarget` as first parameter.
-- `IModelUI.Setup()` and `IModelUI.SetupBuildAndUpdate()` do not have a `Dispatcher` parameter anymore.
-- `PortContainer.UpdatePorts()` does not have a `Dispatcher` parameter anymore.
-- `GraphViewEditorWindow.CreateInitialState()` renamed to `GraphViewEditorWindow.InitState()`.
-- `Stencil.CreateNodesFromPort()` parameters changed.
-- `IStateObserver.ObservedStateComponents` changed from `IEnumerable<string>` to `IEnumerable<IStateComponent>`.
-- `IStateObserver.ModifiedStateComponents` changed from `IEnumerable<string>` to `IEnumerable<IStateComponent>`.
-- `IStateObserver.Observe()` does not need an `IState` anymore.
-- `StateObserver` is not generic anymore.
-- `StateComponent.StateSlotName` was replaced by `StateComponent.ComponentName`.
-- `StateComponent` now implements `IUndoableStateComponent`.
-- `CommandHandlerFunctorBase` and `CommandHandlerFunctor<>` were moved out of the `Dispatcher` class.
-- All observer related API from `Dispatcher` was moved into the new `ObserverManager` class.
-- `Dispatcher` is not an `IDisposable` anymore.
 
 
 ## [0.11.2-preview] - 2021-07-06

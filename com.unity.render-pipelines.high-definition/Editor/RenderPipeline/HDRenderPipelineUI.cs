@@ -49,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RTRQuality = 1 << 32,
             RTGIQuality = 1 << 33,
             SSGIQuality = 1 << 34,
+            Water = 1 << 35,
         }
 
         enum ExpandableShadows
@@ -119,12 +120,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
                     CED.FoldoutGroup(Styles.decalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
                     CED.FoldoutGroup(Styles.dynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
-                    CED.FoldoutGroup(Styles.lowResTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings)
+                    CED.FoldoutGroup(Styles.lowResTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings),
+                    CED.FoldoutGroup(Styles.waterSubTitle, Expandable.Water, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionWaterSettings)
                     ),
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
                     CED.FoldoutGroup(Styles.volumetricSubTitle, Expandable.Volumetric, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_Volumetric),
-                    CED.FoldoutGroup(Styles.probeVolumeSubTitle, Expandable.ProbeVolume, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionProbeVolume),
+                    CED.FoldoutGroup(Styles.lightProbeSubTitle, Expandable.ProbeVolume, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionProbeVolume),
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
                     CED.FoldoutGroup(Styles.skySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
@@ -212,28 +214,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
-            if (globalSettings.supportProbeVolumes)
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightProbeSystem, Styles.lightProbeSystemContent);
+            if (serialized.renderPipelineSettings.lightProbeSystem.intValue == (int)LightProbeSystem.ProbeVolumes)
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeBlendingTextureSize, Styles.probeVolumeBlendingMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)
                 {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
+                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost: 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
+                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost: {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
                 }
-            }
-            else
-            {
-                HDEditorUtils.GlobalSettingsHelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.",
-                    MessageType.Info, "supportProbeVolumes");
             }
         }
 
@@ -581,6 +578,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     ++EditorGUI.indentLevel;
                 }
 #endif
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.hasMultipleDifferentValues)
                 {
@@ -589,6 +587,26 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, showUpsampleFilterAsFallback ? Styles.fallbackUpsampleFilter : Styles.upsampleFilter);
+
+                // When the FSR upscaling filter is selected, allow the user to configure its sharpness.
+                DynamicResUpscaleFilter currentUpscaleFilter = (DynamicResUpscaleFilter)serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter.intValue;
+                bool isFsrEnabled = (currentUpscaleFilter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres);
+                if (isFsrEnabled)
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
+
+                        // We put the FSR sharpness override value behind a top-level override checkbox so we can tell when the user intends to use a custom value rather than the default.
+                        if (serialized.renderPipelineSettings.dynamicResolutionSettings.fsrOverrideSharpness.boolValue)
+                        {
+                            using (new EditorGUI.IndentLevelScope())
+                            {
+                                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness, Styles.fsrSharpnessText);
+                            }
+                        }
+                    }
+                }
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);
 
@@ -687,6 +705,16 @@ namespace UnityEditor.Rendering.HighDefinition
             */
         }
 
+        static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWater, Styles.supportWaterContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWater.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterSimulationResolution, Styles.waterSimulationResolutionContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterCPUSimulation, Styles.cpuSimulationContent);
+            }
+        }
+
         static void Drawer_SectionPostProcessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
@@ -703,6 +731,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.singlePass, Styles.XRSinglePass);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.occlusionMesh, Styles.XROcclusionMesh);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.cameraJitter, Styles.XRCameraJitter);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.allowMotionBlur, Styles.XRMotionBlur);
         }
 
         static void Drawer_SectionVTSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -732,6 +761,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFResolution.GetArrayElementAtIndex(tier), Styles.resolutionQuality);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFHighFilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityFiltering);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFPhysicallyBased.GetArrayElementAtIndex(tier), Styles.dofPhysicallyBased);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.LimitManualRangeNearBlur.GetArrayElementAtIndex(tier), Styles.limitNearBlur);
         }
 
         static void DrawMotionBlurQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
@@ -1008,7 +1038,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
-            AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.lightProbeSystem, Styles.lightProbeSystemContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);

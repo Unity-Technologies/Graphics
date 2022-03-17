@@ -12,7 +12,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
 {
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-    class NodeModelPortsOrderTests : BaseFixture
+    class NodeModelPortsOrderTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
 
@@ -23,13 +23,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
                 initializationCallback: model => model.MakePortsFromNames(new List<string> { "A", "B", "C" }));
             Assert.That(node.InputsById.Count, Is.EqualTo(3));
 
-            var A = node.InputsById["A"];
-            var B = node.InputsById["B"];
-            var C = node.InputsById["C"];
+            var a = node.InputsById["A"];
+            var b = node.InputsById["B"];
+            var c = node.InputsById["C"];
 
-            Assert.That(A, Is.Not.Null);
-            Assert.That(B, Is.Not.Null);
-            Assert.That(C, Is.Not.Null);
+            Assert.That(a, Is.Not.Null);
+            Assert.That(b, Is.Not.Null);
+            Assert.That(c, Is.Not.Null);
 
             Assert.That(node.IsSorted, Is.True);
             node.RandomizePorts();
@@ -37,9 +37,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
 
             node.DefineNode();
             Assert.That(node.InputsById.Count, Is.EqualTo(3));
-            Assert.That(ReferenceEquals(A, node.InputsById["A"]), Is.True);
-            Assert.That(ReferenceEquals(B, node.InputsById["B"]), Is.True);
-            Assert.That(ReferenceEquals(C, node.InputsById["C"]), Is.True);
+            Assert.That(ReferenceEquals(a, node.InputsById["A"]), Is.True);
+            Assert.That(ReferenceEquals(b, node.InputsById["B"]), Is.True);
+            Assert.That(ReferenceEquals(c, node.InputsById["C"]), Is.True);
         }
 
         [Test]
@@ -49,17 +49,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
                 initializationCallback: model => model.MakePortsFromNames(new List<string> { "A", "B", "C" }));
             Assert.That(node.InputsById.Count, Is.EqualTo(3));
 
-            var A = node.InputsById["A"];
-            var B = node.InputsById["B"];
-            var C = node.InputsById["C"];
+            var a = node.InputsById["A"];
+            var b = node.InputsById["B"];
+            var c = node.InputsById["C"];
 
             node.MakePortsFromNames(new List<string> { "A", "D", "B" });
             node.DefineNode();
             Assert.That(node.InputsById.Count, Is.EqualTo(3));
 
-            Assert.That(ReferenceEquals(A, node.InputsById["A"]), Is.True);
-            Assert.That(ReferenceEquals(B, node.InputsById["B"]), Is.True);
-            Assert.That(ReferenceEquals(C, node.InputsById["D"]), Is.False);
+            Assert.That(ReferenceEquals(a, node.InputsById["A"]), Is.True);
+            Assert.That(ReferenceEquals(b, node.InputsById["B"]), Is.True);
+            Assert.That(ReferenceEquals(c, node.InputsById["D"]), Is.False);
         }
 
         [Test]

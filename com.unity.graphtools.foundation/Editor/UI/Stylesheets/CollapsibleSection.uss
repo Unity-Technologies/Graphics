@@ -1,0 +1,31 @@
+.ge-collapsible-section {
+    border-top-width: 1px;
+    border-color: var(--unity-colors-inspector_titlebar-border);
+}
+
+.ge-collapsible-section.first-child {
+    border-top-width: 0;
+}
+
+.ge-collapsible-section.last-child {
+    border-bottom-width: 1px;
+}
+
+.ge-collapsible-section__header {
+    flex: 1 0 0;
+    flex-direction: column;
+    border-bottom-width: 1px;
+    border-color: var(--unity-colors-inspector_titlebar-border_accent);
+}
+
+.ge-collapsible-section__content-container {
+    margin: 5px 1px 8px 16px;
+}
+
+.ge-collapsible-section--collapsed .ge-collapsible-section__header {
+    border-bottom-width: 0;     /* Collapse the bottom border with the following section top border. */
+}
+
+.ge-collapsible-section--collapsed .ge-collapsible-section__content-container {
+    display: none;
+}

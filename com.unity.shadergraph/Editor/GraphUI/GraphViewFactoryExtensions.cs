@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [GraphElementsExtensionMethodsCache(typeof(GraphView))]
     public static class GraphViewFactoryExtensions
     {
-        public static IModelUI CreateNode(
+        public static IModelView CreateNode(
             this ElementBuilder elementBuilder,
             GraphDataNodeModel model)
         {
@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ui;
         }
 
-        public static IModelUI CreateRedirectNode(
+        public static IModelView CreateRedirectNode(
             this ElementBuilder elementBuilder,
             RedirectNodeModel model)
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ui;
         }
 
-        public static IModelUI CreateEdge(
+        public static IModelView CreateEdge(
             this ElementBuilder elementBuilder,
             EdgeModel model)
         {

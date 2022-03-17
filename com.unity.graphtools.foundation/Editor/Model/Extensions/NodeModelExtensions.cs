@@ -37,15 +37,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="direction">The direction of the port the create.</param>
         /// <param name="uniqueId">The ID of the port to create.</param>
         /// <param name="orientation">The orientation of the port to create.</param>
+        /// <param name="portName">The name of the port to create.</param>
         /// <returns>The newly created placeholder port.</returns>
         public static IPortModel AddPlaceHolderPort(this IInputOutputPortsNodeModel self, PortDirection direction, string uniqueId,
-            PortOrientation orientation = PortOrientation.Horizontal)
+            PortOrientation orientation = PortOrientation.Horizontal, string portName = null)
         {
             if (direction == PortDirection.Input)
-                return self.AddInputPort(uniqueId, PortType.MissingPort, TypeHandle.MissingPort, uniqueId, orientation,
+                return self.AddInputPort(portName ?? uniqueId, PortType.MissingPort, TypeHandle.MissingPort, uniqueId, orientation,
                     PortModelOptions.NoEmbeddedConstant);
 
-            return self.AddOutputPort(uniqueId, PortType.MissingPort, TypeHandle.MissingPort, uniqueId, orientation,
+            return self.AddOutputPort(portName ?? uniqueId, PortType.MissingPort, TypeHandle.MissingPort, uniqueId, orientation,
                 PortModelOptions.NoEmbeddedConstant);
         }
 

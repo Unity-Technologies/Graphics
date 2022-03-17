@@ -39,18 +39,18 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
             Assert.AreEqual(TestChangeset.defaultSentinelValue, cm.CurrentChangeset.Sentinel);
         }
 
-        const int firstVersion = 10;
-        const int currentVersion = 128;
+        const int k_FirstVersion = 10;
+        const int k_CurrentVersion = 128;
         ChangesetManager<TestChangeset> SetupChangesets()
         {
             var cm = new ChangesetManager<TestChangeset>();
-            for (uint i = firstVersion; i < currentVersion; i++)
+            for (uint i = k_FirstVersion; i < k_CurrentVersion; i++)
             {
                 cm.CurrentChangeset.Sentinel = (int)i;
                 cm.PushChangeset(i);
             }
 
-            cm.CurrentChangeset.Sentinel = currentVersion;
+            cm.CurrentChangeset.Sentinel = k_CurrentVersion;
             return cm;
         }
 
@@ -60,13 +60,13 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
             var cm = SetupChangesets();
 
             // Remove nothing, current changeset not affected
-            cm.PurgeOldChangesets(0, currentVersion);
-            var aggregatedChangeset = cm.GetAggregatedChangeset(0, currentVersion);
+            cm.PurgeOldChangesets(0, k_CurrentVersion);
+            var aggregatedChangeset = cm.GetAggregatedChangeset(0, k_CurrentVersion);
 
             Assert.IsNotNull(aggregatedChangeset);
-            Assert.AreEqual(firstVersion, LastAggregatedChangesetList.First().Sentinel);
-            Assert.AreEqual(currentVersion - firstVersion + 1, LastAggregatedChangesetList.Count);
-            Assert.AreEqual(currentVersion, cm.CurrentChangeset.Sentinel);
+            Assert.AreEqual(k_FirstVersion, LastAggregatedChangesetList.First().Sentinel);
+            Assert.AreEqual(k_CurrentVersion - k_FirstVersion + 1, LastAggregatedChangesetList.Count);
+            Assert.AreEqual(k_CurrentVersion, cm.CurrentChangeset.Sentinel);
         }
 
         [Test]
@@ -77,13 +77,13 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
             var cm = SetupChangesets();
 
             // Remove some, current changeset not affected
-            cm.PurgeOldChangesets(theVersion, currentVersion);
-            var aggregatedChangeset = cm.GetAggregatedChangeset(0, currentVersion);
+            cm.PurgeOldChangesets(theVersion, k_CurrentVersion);
+            var aggregatedChangeset = cm.GetAggregatedChangeset(0, k_CurrentVersion);
 
             Assert.IsNotNull(aggregatedChangeset);
             Assert.AreEqual(theVersion + 1, LastAggregatedChangesetList.First().Sentinel);
-            Assert.AreEqual(currentVersion - (theVersion + 1) + 1, LastAggregatedChangesetList.Count);
-            Assert.AreEqual(currentVersion, cm.CurrentChangeset.Sentinel);
+            Assert.AreEqual(k_CurrentVersion - (theVersion + 1) + 1, LastAggregatedChangesetList.Count);
+            Assert.AreEqual(k_CurrentVersion, cm.CurrentChangeset.Sentinel);
         }
 
         [Test]
@@ -91,13 +91,13 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
         {
             var cm = SetupChangesets();
             // Remove some, current changeset not affected
-            cm.PurgeOldChangesets(currentVersion - 2, currentVersion);
-            var aggregatedChangeset = cm.GetAggregatedChangeset(0, currentVersion);
+            cm.PurgeOldChangesets(k_CurrentVersion - 2, k_CurrentVersion);
+            var aggregatedChangeset = cm.GetAggregatedChangeset(0, k_CurrentVersion);
 
             Assert.IsNotNull(aggregatedChangeset);
-            Assert.AreEqual(currentVersion - 1, LastAggregatedChangesetList.First().Sentinel);
+            Assert.AreEqual(k_CurrentVersion - 1, LastAggregatedChangesetList.First().Sentinel);
             Assert.AreEqual(1 + 1, LastAggregatedChangesetList.Count);
-            Assert.AreEqual(currentVersion, cm.CurrentChangeset.Sentinel);
+            Assert.AreEqual(k_CurrentVersion, cm.CurrentChangeset.Sentinel);
         }
 
         [Test]
@@ -106,8 +106,8 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
             var cm = SetupChangesets();
 
             // Remove all, current changeset cleared
-            cm.PurgeOldChangesets(currentVersion, currentVersion);
-            var aggregatedChangeset = cm.GetAggregatedChangeset(0, currentVersion);
+            cm.PurgeOldChangesets(k_CurrentVersion, k_CurrentVersion);
+            var aggregatedChangeset = cm.GetAggregatedChangeset(0, k_CurrentVersion);
 
             Assert.AreEqual(cm.CurrentChangeset, aggregatedChangeset);
             Assert.AreEqual(TestChangeset.clearSentinelValue, cm.CurrentChangeset.Sentinel);
@@ -117,8 +117,8 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
         public void AggregatedChangesetCacheIsReturnedIfVersionsAreTheSame()
         {
             var cm = SetupChangesets();
-            var aggregatedChangset1 = cm.GetAggregatedChangeset(0, currentVersion);
-            var aggregatedChangset2 = cm.GetAggregatedChangeset(0, currentVersion);
+            var aggregatedChangset1 = cm.GetAggregatedChangeset(0, k_CurrentVersion);
+            var aggregatedChangset2 = cm.GetAggregatedChangeset(0, k_CurrentVersion);
             Assert.IsTrue(ReferenceEquals(aggregatedChangset1, aggregatedChangset2));
         }
 
@@ -126,8 +126,8 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
         public void AggregatedChangesetCacheIsNotReturnedIfVersionsAreNotTheSame()
         {
             var cm = SetupChangesets();
-            var aggregatedChangset1 = cm.GetAggregatedChangeset(0, currentVersion);
-            var aggregatedChangset2 = cm.GetAggregatedChangeset(1, currentVersion);
+            var aggregatedChangset1 = cm.GetAggregatedChangeset(0, k_CurrentVersion);
+            var aggregatedChangset2 = cm.GetAggregatedChangeset(1, k_CurrentVersion);
             Assert.IsFalse(ReferenceEquals(aggregatedChangset1, aggregatedChangset2));
         }
     }

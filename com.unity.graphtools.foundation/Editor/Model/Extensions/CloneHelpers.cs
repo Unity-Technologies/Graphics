@@ -34,19 +34,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         }
 
         /// <summary>
-        /// Clones a constant.
-        /// </summary>
-        /// <param name="element">The constant to clone.</param>
-        /// <typeparam name="T">The type of the constant.</typeparam>
-        /// <returns>A clone of the constant.</returns>
-        public static T CloneConstant<T>(this T element) where T : IConstant
-        {
-            T copy = (T)Activator.CreateInstance(element.GetType());
-            copy.ObjectValue = element.ObjectValue;
-            return copy;
-        }
-
-        /// <summary>
         /// Clones a graph element model.
         /// </summary>
         /// <param name="element">The element to clone.</param>

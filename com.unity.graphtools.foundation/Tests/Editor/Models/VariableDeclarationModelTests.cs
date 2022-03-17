@@ -53,7 +53,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             const int customValue = 42;
             var variableDeclaration = graphModel.CreateGraphVariableDeclaration<TestVariableDeclarationModel>(
                 TypeHandle.Float, "asd", ModifierFlags.None, true,
-                initializationCallback: (v, c) =>
+                initializationCallback: (v, _) =>
                 {
                     v.Tooltip = tooltip;
                     v.CustomValue = customValue;
@@ -74,7 +74,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             const int customValue = 42;
             var variableDeclaration = graphModel.CreateGraphVariableDeclaration<TestVariableDeclarationModel>(
                 TypeHandle.Float, "asd", ModifierFlags.None, true,
-                initializationCallback: (v, c) =>
+                initializationCallback: (v, _) =>
                 {
                     v.Tooltip = tooltip;
                     v.CustomValue = customValue;

@@ -3,7 +3,6 @@ using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels;
-using UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -24,7 +23,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             var portModel = model.GetInputPorts().First();
             Assert.IsNotNull(portModel);
 
-            var port = portModel.GetUI<Port>(graphView);
+            var port = portModel.GetView<Port>(graphView);
             Assert.IsNotNull(port);
             Assert.IsTrue(port.ClassListContains(Port.inputModifierUssClassName));
             Assert.IsTrue(port.ClassListContains(Port.notConnectedModifierUssClassName));
@@ -45,7 +44,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             var portModel = model.GetOutputPorts().First();
             Assert.IsNotNull(portModel);
 
-            var port = portModel.GetUI<Port>(graphView);
+            var port = portModel.GetView<Port>(graphView);
             Assert.IsNotNull(port);
             Assert.IsTrue(port.ClassListContains(Port.outputModifierUssClassName));
             Assert.IsTrue(port.ClassListContains(Port.notConnectedModifierUssClassName));
@@ -62,11 +61,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
         {
             var nodeModel = GraphModel.CreateNode<SingleOutputNodeModel>();
             nodeModel.DefineNode();
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             var portModel = nodeModel.Ports.First();
-            var port = portModel.GetUI<Port>(GraphView);
+            var port = portModel.GetView<Port>(GraphView);
             Assert.IsNotNull(port);
             var connector = port.SafeQ(PortConnectorPart.connectorUssName);
             var connectorCap = port.SafeQ(PortConnectorPart.connectorCapUssName);

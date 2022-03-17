@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderFoundry;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
@@ -30,9 +30,9 @@ namespace UnityEditor.ShaderFoundry
             m_LegacySubShader = legacySubShader;
         }
 
-        bool FindLegacyPass(string referenceName, ref UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor)
+        internal bool FindLegacyPass(string referenceName, ref UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor)
         {
-            foreach(var legacyPass in m_LegacySubShader.passes)
+            foreach (var legacyPass in m_LegacySubShader.passes)
             {
                 if (legacyPass.descriptor.referenceName == referenceName)
                 {
@@ -50,62 +50,90 @@ namespace UnityEditor.ShaderFoundry
             builder.AddLine("SubShader");
             using (builder.BlockScope())
             {
-                GenerateSubShaderTags(m_LegacySubShader, builder);
+                GenerateSubShaderTags(m_LegacySubShader, templateInstance, builder);
 
                 var template = templateInstance.Template;
+
+                // To be SRP Batch compatible, we need to gather all properties up-front.
+                // Generate all pass blocks, then unify properties, then declare each pass with the unified properties.
+                var legacyEntryPointsList = new List<LegacyEntryPoints>();
                 foreach (var pass in template.Passes)
-                    GenerateShaderPass(template, pass, templateInstance.CustomizationPointInstances, builder);
+                {
+                    var entryPoints = GeneratePassBlocks(template, pass, templateInstance.CustomizationPointInstances);
+                    legacyEntryPointsList.Add(entryPoints);
+                }
+
+                var shaderProperties = new ShaderPropertyCollection();
+                BuildShaderProperties(legacyEntryPointsList, shaderProperties);
+                shaderProperties.SetReadOnly();
+
+                var passIndex = 0;
+                foreach (var pass in template.Passes)
+                {
+                    var entryPoints = legacyEntryPointsList[passIndex];
+                    GenerateShaderPass(template, pass, entryPoints, shaderProperties, builder);
+                    ++passIndex;
+                }
             }
         }
 
-        void GenerateSubShaderTags(UnityEditor.ShaderGraph.SubShaderDescriptor descriptor, ShaderBuilder builder)
+        void GenerateSubShaderTags(UnityEditor.ShaderGraph.SubShaderDescriptor descriptor, TemplateInstance templateInstance, ShaderBuilder builder)
         {
             builder.AppendLine("Tags");
             using (builder.BlockScope())
             {
-                // Pipeline tag
-                if (!string.IsNullOrEmpty(descriptor.pipelineTag))
-                    builder.AppendLine($"\"RenderPipeline\"=\"{descriptor.pipelineTag}\"");
-                else
-                    builder.AppendLine("// RenderPipeline: <None>");
-
-                // Render Type
-                if (!string.IsNullOrEmpty(descriptor.renderType))
-                    builder.AppendLine($"\"RenderType\"=\"{descriptor.renderType}\"");
-                else
-                    builder.AppendLine("// RenderType: <None>");
-
                 // Custom shader tags.
                 if (!string.IsNullOrEmpty(descriptor.customTags))
                     builder.AppendLine(descriptor.customTags);
 
-                // Render Queue
-                if (!string.IsNullOrEmpty(descriptor.renderQueue))
-                    builder.AppendLine($"\"Queue\"=\"{descriptor.renderQueue}\"");
-                else
-                    builder.AppendLine("// Queue: <None>");
+                var template = templateInstance.Template;
 
-                // ShaderGraphShader tag (so we can tell what shadergraph built)
-                builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
+                // Emit the template tags then the template instance tags
+                foreach (var tagDescriptor in template.TagDescriptors)
+                    builder.AppendLine($"\"{tagDescriptor.Name}\"=\"{tagDescriptor.Value}\"");
+                foreach (var tagDescriptor in templateInstance.TagDescriptors)
+                    builder.AppendLine($"\"{tagDescriptor.Name}\"=\"{tagDescriptor.Value}\"");
             }
         }
-        
-        void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances, ShaderBuilder builder)
-        {
-            UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
-            if (!FindLegacyPass(pass.ReferenceName, ref legacyPass))
-                throw new Exception("Shouldn't happen");
 
+        LegacyEntryPoints GeneratePassBlocks(Template template, TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances)
+        {
             var passCustomizationPointInstances = FindCustomizationPointsForPass(pass, customizationPointInstances);
 
             var legacyBlockLinker = new SimpleLegacyBlockLinker(Container);
             var legacyEntryPoints = legacyBlockLinker.GenerateLegacyEntryPoints(template, pass, passCustomizationPointInstances);
+            return legacyEntryPoints;
+        }
+
+        void BuildShaderProperties(IEnumerable<LegacyEntryPoints> legacyEntryPoints, ShaderPropertyCollection shaderProperties)
+        {
+            void AddBlockInstanceProperties(BlockInstance blockInstance)
+            {
+                if (!blockInstance.IsValid)
+                    return;
+
+                foreach (var property in blockInstance.Block.Properties())
+                    shaderProperties.Add(property);
+            }
+
+            foreach (var legacyEntryPoint in legacyEntryPoints)
+            {
+                AddBlockInstanceProperties(legacyEntryPoint.vertexDescBlockInstance);
+                AddBlockInstanceProperties(legacyEntryPoint.fragmentDescBlockInstance);
+            }
+        }
+
+        void GenerateShaderPass(Template template, TemplatePass pass, LegacyEntryPoints legacyEntryPoints, ShaderPropertyCollection shaderProperties, ShaderBuilder builder)
+        {
+            UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
+            if (!FindLegacyPass(pass.ReferenceName, ref legacyPass))
+                throw new Exception($"Unable to find legacy pass with reference name '{pass.ReferenceName}'");
 
             ActiveFields targetActiveFields, shaderGraphActiveFields;
             var customInterpolatorFields = new List<FieldDescriptor>();
             BuildLegacyActiveFields(legacyPass, legacyEntryPoints, out targetActiveFields, out shaderGraphActiveFields, customInterpolatorFields);
 
-            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, customInterpolatorFields, new PropertyCollector());
+            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, customInterpolatorFields, shaderProperties);
         }
 
         List<CustomizationPointInstance> FindCustomizationPointsForPass(TemplatePass pass, IEnumerable<CustomizationPointInstance> customizationPointInstances)
@@ -151,7 +179,7 @@ namespace UnityEditor.ShaderFoundry
             BuildLookups(legacyPass, out vertexInLookup, out vertexOutLookup, out fragmentInLookup, out fragmentOutLookup);
 
             targetActiveFields = new ActiveFields();
-            if(legacyEntryPoints.vertexDescBlockInstance.IsValid)
+            if (legacyEntryPoints.vertexDescBlockInstance.IsValid)
                 targetActiveFields.baseInstance.Add(Fields.GraphVertex);
             targetActiveFields.baseInstance.Add(Fields.GraphPixel);
             GetTargetActiveFields(legacyPass, targetActiveFields);
@@ -159,7 +187,7 @@ namespace UnityEditor.ShaderFoundry
 
             void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, FieldDescriptorLookupMap lookups)
             {
-                foreach(var descriptor in lookups.Find(prop.ReferenceName))
+                foreach (var descriptor in lookups.Find(prop.Name))
                     activeFields.baseInstance.Add(descriptor);
             }
 
@@ -191,7 +219,7 @@ namespace UnityEditor.ShaderFoundry
             Dictionary<string, List<FieldDescriptor>> Lookups = new Dictionary<string, List<FieldDescriptor>>();
             internal void Add(string name, FieldDescriptor descriptor)
             {
-                if(!Lookups.TryGetValue(name, out var descriptors))
+                if (!Lookups.TryGetValue(name, out var descriptors))
                 {
                     descriptors = new List<FieldDescriptor>();
                     Lookups.Add(name, descriptors);
@@ -262,7 +290,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void BuildTypeAndFunctionGroups(Block block,  VisitedRegistry visitedRegistry, out List<(Block Block, List<ShaderType> Types)> typeGroups, out List<(Block Block, List<ShaderFunction> Functions)> functionGroups)
+        void BuildTypeAndFunctionGroups(Block block, VisitedRegistry visitedRegistry, out List<(Block Block, List<ShaderType> Types)> typeGroups, out List<(Block Block, List<ShaderFunction> Functions)> functionGroups)
         {
             List<ShaderType> allTypes = new List<ShaderType>();
             List<ShaderFunction> allFunctions = new List<ShaderFunction>();
@@ -278,11 +306,13 @@ namespace UnityEditor.ShaderFoundry
 
                 allTypes.Add(type);
             }
+
             void TraverseTypes(IEnumerable<ShaderType> types)
             {
                 foreach (var type in types)
                     TraverseType(type);
             }
+
             void TraverseFunction(ShaderFunction function)
             {
                 if (!visitedRegistry.TryVisit(function))
@@ -293,11 +323,13 @@ namespace UnityEditor.ShaderFoundry
                     TraverseType(param.Type);
                 allFunctions.Add(function);
             }
+
             void TraverseFunctions(IEnumerable<ShaderFunction> functions)
             {
                 foreach (var function in functions)
                     TraverseFunction(function);
             }
+
             TraverseTypes(block.ReferencedTypes);
             TraverseTypes(block.Types);
             TraverseFunctions(block.ReferencedFunctions);
@@ -339,6 +371,7 @@ namespace UnityEditor.ShaderFoundry
                 foreach (var type in types)
                     builder.AddTypeDeclarationString(type);
             }
+
             void DeclareFunctions(ShaderBuilder builder, IEnumerable<ShaderFunction> functions)
             {
                 foreach (var function in functions)
@@ -348,7 +381,7 @@ namespace UnityEditor.ShaderFoundry
             BuildTypeAndFunctionGroups(blockInst.Block, visitedRegistry, out var typeGroups, out var functionGroups);
             foreach (var groupContext in typeGroups)
             {
-                if(!groupContext.Block.IsValid)
+                if (!groupContext.Block.IsValid)
                 {
                     DeclareTypes(builder, groupContext.Types);
                     continue;
@@ -376,6 +409,28 @@ namespace UnityEditor.ShaderFoundry
                 {
                     DeclareFunctions(builder, groupContext.Functions);
                 }
+            }
+        }
+
+        void ExtractKeywordDescriptors(Block block, List<UnityEditor.ShaderFoundry.KeywordDescriptor> shaderKeywords)
+        {
+            // Check all inputs for any keywords
+            foreach (var input in block.Inputs)
+            {
+                // Skip anything that isn't a property (needed for the uniform name)
+                var propertyAttribute = PropertyAttribute.FindFirst(input.Attributes);
+                if (propertyAttribute == null)
+                    continue;
+
+                var uniformName = propertyAttribute.UniformName ?? input.Name;
+
+                var boolKeywordAttribute = BoolKeywordAttribute.FindFirst(input.Attributes);
+                if (boolKeywordAttribute != null)
+                    shaderKeywords.Add(boolKeywordAttribute.BuildDescriptor(Container, uniformName));
+
+                var enumKeywordAttribute = EnumKeywordAttribute.FindFirst(input.Attributes);
+                if (enumKeywordAttribute != null)
+                    shaderKeywords.Add(enumKeywordAttribute.BuildDescriptor(Container, uniformName));
             }
         }
 
@@ -441,6 +496,31 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
+        void AddPerInstanceMacros(ShaderUniformCollection shaderUniforms, ShaderBuilder propertyBuilder)
+        {
+            // Handle per instance properties.
+            // TODO @ SHADERS: This should ideally get refactored later to be part of building uniforms.
+            bool hasPerInstanceProperties = shaderUniforms.HasPerInstanceProperties;
+            if (hasPerInstanceProperties)
+            {
+                propertyBuilder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
+
+                propertyBuilder.AppendLine("// DOTS instancing definitions");
+                propertyBuilder.AppendLine("UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)");
+                foreach (var uniform in shaderUniforms.Uniforms.Where(u => u.DataSource == UniformDataSource.PerInstance))
+                {
+                    propertyBuilder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({uniform.Type.Name}, {uniform.Name})");
+                }
+                propertyBuilder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
+
+                propertyBuilder.AppendLine("// DOTS instancing usage macros");
+                propertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var)");
+                propertyBuilder.AppendLine("#else");
+                propertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
+                propertyBuilder.AppendLine("#endif");
+            }
+        }
+
         ShaderValueType ShaderValueTypeFrom(int width)
         {
             switch (width)
@@ -456,18 +536,21 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, List<FieldDescriptor> customInterpolatorFields, PropertyCollector subShaderProperties)
+        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, List<FieldDescriptor> customInterpolatorFields, ShaderPropertyCollection shaderProperties)
         {
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
             var sharedFunctions = "// GraphFunctions: <None>";
-            var shaderProperties = Enumerable.Empty<BlockProperty>();
-            var shaderCommands = Enumerable.Empty<CommandDescriptor>();
-            var shaderDefines = Enumerable.Empty<DefineDescriptor>();
-            var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderFoundry.IncludeDescriptor>();
-            var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderFoundry.KeywordDescriptor>();
-            var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderFoundry.PragmaDescriptor>();
-            
+            var shaderCommands = new List<CommandDescriptor>();
+            var shaderDefines = new List<DefineDescriptor>();
+            var shaderIncludes = new List<UnityEditor.ShaderFoundry.IncludeDescriptor>();
+            var shaderKeywords = new List<UnityEditor.ShaderFoundry.KeywordDescriptor>();
+            var shaderPragmas = new List<UnityEditor.ShaderFoundry.PragmaDescriptor>();
+
+            var shaderUniforms = new ShaderUniformCollection();
+            shaderUniforms.Add(shaderProperties);
+            shaderUniforms.SetReadOnly();
+
             void ProcessBlockInstance(BlockInstance blockInstance, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
             {
                 if (blockInstance.IsValid)
@@ -477,12 +560,12 @@ namespace UnityEditor.ShaderFoundry
                     code = blockBuilder.ToString();
 
                     var block = blockInstance.Block;
-                    shaderProperties = shaderProperties.Concat(block.Properties);
-                    shaderCommands = shaderCommands.Concat(block.Commands);
-                    shaderDefines = shaderDefines.Concat(block.Defines);
-                    shaderIncludes = shaderIncludes.Concat(block.Includes);
-                    shaderKeywords = shaderKeywords.Concat(block.Keywords);
-                    shaderPragmas = shaderPragmas.Concat(block.Pragmas);
+                    shaderCommands.AddRange(block.Commands);
+                    shaderDefines.AddRange(block.Defines);
+                    shaderIncludes.AddRange(block.Includes);
+                    shaderKeywords.AddRange(block.Keywords);
+                    shaderPragmas.AddRange(block.Pragmas);
+                    ExtractKeywordDescriptors(block, shaderKeywords);
                 }
             }
 
@@ -576,13 +659,22 @@ namespace UnityEditor.ShaderFoundry
             }
 
             // Tags
-            if (!string.IsNullOrEmpty(pass.lightMode))
+            using (var tagBuilder = new ShaderStringBuilder())
             {
-                spliceCommands.Add("LightMode", $"\"LightMode\" = \"{pass.lightMode}\"");
-            }
-            else
-            {
-                spliceCommands.Add("LightMode", "// LightMode: <None>");
+                if (!string.IsNullOrEmpty(pass.lightMode))
+                {
+                    tagBuilder.AddLine($"\"LightMode\" = \"{pass.lightMode}\"");
+                }
+                else
+                {
+                    tagBuilder.AddLine("// LightMode: <None>");
+                }
+
+                // Currently there is no location to insert pass tags. For now, insert all of the pass tags into the "LightMode" splice point.
+                foreach (var tagDescriptor in templatePass.TagDescriptors)
+                    tagBuilder.AppendLine($"\"{tagDescriptor.Name}\"=\"{tagDescriptor.Value}\"");
+
+                spliceCommands.Add("LightMode", tagBuilder.ToString());
             }
 
             // --------------------------------------------------
@@ -770,21 +862,12 @@ namespace UnityEditor.ShaderFoundry
             // Graph Properties
 
             {
-                var propertyBuilder = new ShaderBuilder();
-                UniformDeclarationContext context = new UniformDeclarationContext
-                {
-                    PerMaterialBuilder = new ShaderBuilder(),
-                    GlobalBuilder = new ShaderBuilder(),
-                };
+                var uniformBufferCollection = new UniformBufferCollection();
+                uniformBufferCollection.Add(shaderUniforms);
 
-                var visitedProperties = new HashSet<string>();
-                foreach (var prop in shaderProperties)
-                {
-                    if (visitedProperties.Contains(prop.ReferenceName))
-                        continue;
-                    visitedProperties.Add(prop.ReferenceName);
-                    prop.DeclarePassProperty(context);
-                }
+                var propertyBuilder = new ShaderBuilder();
+                uniformBufferCollection.AddDeclarations(propertyBuilder);
+                AddPerInstanceMacros(shaderUniforms, propertyBuilder);
 
                 //if (m_Mode == GenerationMode.VFX)
                 //{
@@ -800,95 +883,10 @@ namespace UnityEditor.ShaderFoundry
                 //    }
                 //}
 
-
-                propertyBuilder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-                propertyBuilder.Append(context.PerMaterialBuilder.ToString());
-                propertyBuilder.AppendLine("CBUFFER_END");
-                propertyBuilder.Append(context.GlobalBuilder.ToString());
-
                 var propertiesStr = propertyBuilder.ToString();
                 if (string.IsNullOrEmpty(propertiesStr))
                     propertiesStr = "// GraphProperties: <None>";
                 spliceCommands.Add("GraphProperties", propertiesStr);
-            }
-
-            // --------------------------------------------------
-            // Dots Instanced Graph Properties
-
-            bool hasDotsProperties = false;
-            {
-                foreach (var h in shaderProperties)
-                {
-                    if (h.Attributes.GetDeclaration() == HLSLDeclaration.HybridPerInstance)
-                        hasDotsProperties = true;
-                }
-            }
-            //subShaderProperties.HasDotsProperties();
-
-            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
-            {
-                if (hasDotsProperties)
-                {
-                    if (hasDotsProperties)
-                    {
-                        dotsInstancedPropertyBuilder.AppendLine("#if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED)");
-                        dotsInstancedPropertyBuilder.AppendLine("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
-
-                        int count = 0;
-                        foreach (var prop in shaderProperties)
-                        {
-                            if (prop.Attributes.GetDeclaration() != HLSLDeclaration.HybridPerInstance)
-                                continue;
-
-                            // Combine multiple UNITY_DEFINE_INSTANCED_PROP lines with \ so the generated
-                            // macro expands into multiple definitions if there are more than one.
-                            if (count > 0)
-                            {
-                                dotsInstancedPropertyBuilder.Append("\\");
-                                dotsInstancedPropertyBuilder.AppendNewLine();
-                            }
-                            dotsInstancedPropertyBuilder.Append("UNITY_DEFINE_INSTANCED_PROP(");
-                            dotsInstancedPropertyBuilder.Append(prop.Type.Name);
-                            dotsInstancedPropertyBuilder.Append(", ");
-                            dotsInstancedPropertyBuilder.Append(prop.ReferenceName);
-                            dotsInstancedPropertyBuilder.Append(")");
-                            count++;
-                        }
-                        dotsInstancedPropertyBuilder.AppendNewLine();
-                    }
-                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, var)");
-                    dotsInstancedPropertyBuilder.AppendLine("#else");
-                    dotsInstancedPropertyBuilder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
-                    dotsInstancedPropertyBuilder.AppendLine("#endif");
-                }
-                else
-                    dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
-                spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Dots Instancing Options
-
-            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder())
-            {
-                // Hybrid Renderer V1 requires some magic defines to work, which we enable
-                // if the shader graph has a nonzero amount of DOTS instanced properties.
-                // This can be removed once Hybrid V1 is removed.
-    #if !ENABLE_HYBRID_RENDERER_V2
-                if (hasDotsProperties)
-                {
-                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                    dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                }
-    #endif
-
-                if (dotsInstancingOptionsBuilder.length == 0)
-                    dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
-                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -1006,9 +1004,9 @@ namespace UnityEditor.ShaderFoundry
             foreach (var field in targetActiveFields.baseInstance.fields)
                 blockActiveFields.baseInstance.Add(field);
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(blockActiveFields, spliceCommands,
-                    isDebug, sharedTemplateDirectories, m_assetCollection, true);
+                isDebug, sharedTemplateDirectories, m_assetCollection, true);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
-            subPassBuilder.Add(templatePreprocessor.GetShaderCode().ToString());
+            subPassBuilder.AppendLines(templatePreprocessor.GetShaderCode().ToString());
 
             // Turn off the skip flag so other passes behave correctly correctly.
             CustomInterpolatorUtils.generatorSkipFlag = false;

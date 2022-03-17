@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         IGraphModel m_GraphModel;
         bool m_IsDirty;
-        Dictionary<(SerializableGUID nodeGUID, string portUniqueName), List<IEdgeModel>> m_EdgesByPort;
+        Dictionary<(SerializableGUID nodeGUID, string portUniqueName, PortDirection direction), List<IEdgeModel>> m_EdgesByPort;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PortEdgeIndex"/> class.
@@ -27,7 +27,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public PortEdgeIndex(IGraphModel graphModel)
         {
             m_GraphModel = graphModel;
-            m_EdgesByPort = new Dictionary<(SerializableGUID nodeGUID, string portUniqueName), List<IEdgeModel>>();
+            m_EdgesByPort = new Dictionary<(SerializableGUID nodeGUID, string portUniqueName, PortDirection direction), List<IEdgeModel>>();
             m_IsDirty = true;
         }
 
@@ -44,7 +44,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             if (m_IsDirty)
                 Reindex();
 
-            var key = (portModel.NodeModel.Guid, portModel.UniqueName);
+            var key = (portModel.NodeModel.Guid, portModel.UniqueName, portModel.Direction);
             return m_EdgesByPort.TryGetValue(key, out var edgeList) ? edgeList : s_EmptyEdgeModelList;
         }
 
@@ -70,17 +70,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             if (edgeModel.FromPort != null)
             {
-                var key = (edgeModel.FromPort.NodeModel.Guid, edgeModel.FromPort.UniqueName);
+                var key = (edgeModel.FromPort.NodeModel.Guid, edgeModel.FromPort.UniqueName, edgeModel.FromPort.Direction);
                 AddKeyEdge(key, edgeModel);
             }
 
             if (edgeModel.ToPort != null)
             {
-                var key = (edgeModel.ToPort.NodeModel.Guid, edgeModel.ToPort.UniqueName);
+                var key = (edgeModel.ToPort.NodeModel.Guid, edgeModel.ToPort.UniqueName, edgeModel.ToPort.Direction);
                 AddKeyEdge(key, edgeModel);
             }
 
-            void AddKeyEdge((SerializableGUID, string) key, IEdgeModel edge)
+            void AddKeyEdge((SerializableGUID, string, PortDirection) key, IEdgeModel edge)
             {
                 if (!m_EdgesByPort.TryGetValue(key, out var edgeList))
                 {
@@ -109,7 +109,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             if (oldPort != null)
             {
-                var key = (oldPort.NodeModel.Guid, oldPort.UniqueName);
+                var key = (oldPort.NodeModel.Guid, oldPort.UniqueName, oldPort.Direction);
                 if (m_EdgesByPort.TryGetValue(key, out var edgeList))
                 {
                     edgeList.Remove(edgeModel);
@@ -117,7 +117,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
             if (newPort != null)
             {
-                var key = (newPort.NodeModel.Guid, newPort.UniqueName);
+                var key = (newPort.NodeModel.Guid, newPort.UniqueName, newPort.Direction);
                 if (!m_EdgesByPort.TryGetValue(key, out var edgeList))
                 {
                     edgeList = new List<IEdgeModel>();
@@ -143,13 +143,37 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 return;
             }
 
-            var key = (portModel.NodeModel.Guid, oldName);
+            var key = (portModel.NodeModel.Guid, oldName, portModel.Direction);
             if (m_EdgesByPort.TryGetValue(key, out var edgeList))
             {
                 m_EdgesByPort.Remove(key);
             }
 
-            var newKey = (portModel.NodeModel.Guid, newName);
+            var newKey = (portModel.NodeModel.Guid, newName, portModel.Direction);
+            m_EdgesByPort[newKey] = edgeList;
+        }
+
+        /// <summary>
+        /// Updates the index when the port direction changes.
+        /// </summary>
+        /// <param name="portModel">The port model to update.</param>
+        /// <param name="oldDirection">The old direction of the port.</param>
+        /// <param name="newDirection">The new direction of the port.</param>
+        public void UpdatePortDirection(IPortModel portModel, PortDirection oldDirection, PortDirection newDirection)
+        {
+            if (m_IsDirty || oldDirection == newDirection)
+            {
+                // Do not bother if index is already dirty: index will be rebuilt soon.
+                return;
+            }
+
+            var key = (portModel.NodeModel.Guid, portModel.UniqueName, oldDirection);
+            if (m_EdgesByPort.TryGetValue(key, out var edgeList))
+            {
+                m_EdgesByPort.Remove(key);
+            }
+
+            var newKey = (portModel.NodeModel.Guid, portModel.UniqueName, newDirection);
             m_EdgesByPort[newKey] = edgeList;
         }
 
@@ -167,17 +191,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             if (edgeModel.FromPort != null)
             {
-                var key = (edgeModel.FromPort.NodeModel.Guid, edgeModel.FromPort.UniqueName);
+                var key = (edgeModel.FromPort.NodeModel.Guid, edgeModel.FromPort.UniqueName, edgeModel.FromPort.Direction);
                 RemoveKeyEdge(key, edgeModel);
             }
 
             if (edgeModel.ToPort != null)
             {
-                var key = (edgeModel.ToPort.NodeModel.Guid, edgeModel.ToPort.UniqueName);
+                var key = (edgeModel.ToPort.NodeModel.Guid, edgeModel.ToPort.UniqueName, edgeModel.ToPort.Direction);
                 RemoveKeyEdge(key, edgeModel);
             }
 
-            void RemoveKeyEdge((SerializableGUID, string) key, IEdgeModel edge)
+            void RemoveKeyEdge((SerializableGUID, string, PortDirection) key, IEdgeModel edge)
             {
                 if (m_EdgesByPort.TryGetValue(key, out var edgeList))
                 {
@@ -205,12 +229,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 AddEdge(edgeModel);
             }
 
-            List<(SerializableGUID nodeGUID, string portUniqueName)> toRemove = null;
+            List<(SerializableGUID nodeGUID, string portUniqueName, PortDirection direction)> toRemove = null;
             foreach (var pair in m_EdgesByPort)
             {
                 if (pair.Value.Count == 0)
                 {
-                    toRemove ??= new List<(SerializableGUID nodeGUID, string portUniqueName)>();
+                    toRemove ??= new List<(SerializableGUID nodeGUID, string portUniqueName, PortDirection direction)>();
                     toRemove.Add(pair.Key);
                 }
             }

@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             var nodeModel3 = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", new Vector2(210, 210));
             var edge1 = GraphModel.CreateEdge(nodeModel2.ExeInput0, nodeModel1.ExeOutput0);
             var edge2 = GraphModel.CreateEdge(nodeModel3.ExeInput0, nodeModel1.ExeOutput0);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             Assert.IsTrue(string.IsNullOrEmpty(edge1.EdgeLabel));
@@ -40,7 +40,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             var nodeModel3 = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", new Vector2(210, 210));
             var edge1 = GraphModel.CreateEdge(nodeModel2.ExeInput0, nodeModel1.ExeOutput0);
             var edge2 = GraphModel.CreateEdge(nodeModel3.ExeInput0, nodeModel1.ExeOutput0);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             Assert.IsTrue(string.IsNullOrEmpty(edge1.EdgeLabel));
@@ -61,7 +61,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             var nodeModel3 = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", new Vector2(210, 210));
             var edge1 = GraphModel.CreateEdge(nodeModel2.ExeInput0, nodeModel1.ExeOutput0);
             var edge2 = GraphModel.CreateEdge(nodeModel3.ExeInput0, nodeModel1.ExeOutput0);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             Assert.IsTrue(string.IsNullOrEmpty(edge1.EdgeLabel));

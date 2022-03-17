@@ -15,12 +15,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         public TestGraphViewWindow()
         {
             this.SetDisableInputEvents(true);
+#if !UNITY_2022_2_OR_NEWER
             WithSidePanel = false;
+#endif
         }
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            return CsoTool.Create<GraphViewTestGraphTool>();
+            return CsoTool.Create<GraphViewTestGraphTool>(WindowID);
         }
 
         protected override GraphView CreateGraphView()
@@ -31,6 +33,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         protected override bool CanHandleAssetType(IGraphAssetModel asset)
         {
             return true;
+        }
+    }
+
+    class NonInteractiveTestGraphViewWindow : TestGraphViewWindow
+    {
+        protected override GraphView CreateGraphView()
+        {
+            return new TestGraphView(this, GraphTool, GraphViewDisplayMode.NonInteractive);
         }
     }
 }

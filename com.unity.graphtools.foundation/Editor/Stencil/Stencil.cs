@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using UnityEditor.GraphToolsFoundation.Overdrive.Plugins.Debugging;
-using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Searcher;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
@@ -15,14 +13,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public abstract class Stencil : IStencil
     {
+        static readonly IReadOnlyDictionary<string, string> k_NoCategoryStyle = new Dictionary<string, string>();
+
         ITypeMetadataResolver m_TypeMetadataResolver;
 
         List<ITypeMetadata> m_AssembliesTypes;
 
-        protected IToolbarProvider m_ToolbarProvider;
         protected ISearcherDatabaseProvider m_SearcherDatabaseProvider;
 
-        protected DebugInstrumentationHandler m_DebugInstrumentationHandler;
+        GraphProcessorContainer m_GraphProcessorContainer;
 
         /// <inheritdoc />
         public IGraphModel GraphModel { get; set; }
@@ -35,16 +34,39 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         public ITypeMetadataResolver TypeMetadataResolver => m_TypeMetadataResolver ??= new TypeMetadataResolver();
 
-        public virtual IGraphProcessor CreateGraphProcessor()
+        protected virtual IReadOnlyDictionary<string, string> CategoryPathStyleNames => k_NoCategoryStyle;
+
+        /// <summary>
+        /// Extra stylesheet(s) to load when displaying the searcher.
+        /// </summary>
+        /// <remarks>(FILENAME)_dark.uss and (FILENAME)_light.uss will be loaded as well if existing.</remarks>
+        protected virtual string CustomSearcherStylesheetPath => null;
+
+        /// <inheritdoc />
+        public virtual IEnumerable<string> SectionNames { get; } = new List<string>() { "Graph Variables" };
+
+        /// <summary>
+        /// Gets the graph processor container.
+        /// </summary>
+        /// <returns>The graph processor container.</returns>
+        public GraphProcessorContainer GetGraphProcessorContainer()
         {
-            return new NoOpGraphProcessor();
+            if (m_GraphProcessorContainer == null)
+            {
+                m_GraphProcessorContainer = new GraphProcessorContainer();
+                CreateGraphProcessors();
+            }
+
+            return m_GraphProcessorContainer;
         }
 
-        public virtual IToolbarProvider GetToolbarProvider()
+        protected virtual void CreateGraphProcessors()
         {
-            return m_ToolbarProvider ??= new ToolbarProvider();
+            if (!AllowMultipleDataOutputInstances)
+                GetGraphProcessorContainer().AddGraphProcessor(new VariableNodeGraphProcessor());
         }
 
+        // PF FIXME unused.
         public virtual List<ITypeMetadata> GetAssembliesTypesMetadata()
         {
             if (m_AssembliesTypes != null)
@@ -61,17 +83,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         }
 
         /// <summary>
-        /// Gets the <see cref="IGTFSearcherAdapter"/> used to search for elements.
+        /// Gets the <see cref="ISearcherAdapter"/> used to search for elements.
         /// </summary>
         /// <param name="graphModel">The graph where to search for elements.</param>
         /// <param name="title">The title to display when searching.</param>
         /// <param name="toolName">The name of the tool requesting the searcher, for display purposes.</param>
+        /// <param name="searcherGraphViewType">The type of <see cref="GraphView"/> to use in the preview section of the searcher.</param>
         /// <param name="contextPortModel">The ports used for the search, if any.</param>
         /// <returns></returns>
         [CanBeNull]
-        public virtual IGTFSearcherAdapter GetSearcherAdapter(IGraphModel graphModel, string title, string toolName, IEnumerable<IPortModel> contextPortModel = null)
+        public virtual ISearcherAdapter GetSearcherAdapter(IGraphModel graphModel, string title, string toolName, Type searcherGraphViewType, IEnumerable<IPortModel> contextPortModel = null)
         {
-            return new GraphNodeSearcherAdapter(graphModel, title, toolName);
+            var adapter = new GraphNodeSearcherAdapter(graphModel, title, toolName, searcherGraphViewType);
+            if (adapter is SearcherAdapter searcherAdapter)
+            {
+                searcherAdapter.CategoryPathStyleNames = CategoryPathStyleNames;
+                searcherAdapter.CustomStyleSheetPath = CustomSearcherStylesheetPath;
+            }
+            return adapter;
         }
 
         public virtual ISearcherDatabaseProvider GetSearcherDatabaseProvider()
@@ -83,22 +112,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public virtual void OnGraphProcessingSucceeded(IGraphModel graphModel, GraphProcessingResult results) {}
         public virtual void OnGraphProcessingFailed(IGraphModel graphModel, GraphProcessingResult results) {}
 
-        public virtual IEnumerable<IPluginHandler> GetGraphProcessingPluginHandlers(GraphProcessingOptions getGraphProcessingOptions)
-        {
-            if (getGraphProcessingOptions.HasFlag(GraphProcessingOptions.Tracing))
-            {
-                if (m_DebugInstrumentationHandler == null)
-                    m_DebugInstrumentationHandler = new DebugInstrumentationHandler();
-
-                yield return m_DebugInstrumentationHandler;
-            }
-        }
-
-        public virtual DebugInstrumentationHandler GetDebugInstrumentationHandler()
-        {
-            return m_DebugInstrumentationHandler;
-        }
-
         public virtual bool RequiresInitialization(IVariableDeclarationModel decl) => decl.RequiresInitialization();
 
         /// <inheritdoc />
@@ -106,8 +119,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         // PF: To preference
         public virtual bool MoveNodeDependenciesByDefault => false;
-
-        public virtual IDebugger Debugger => null;
 
         /// <inheritdoc />
         public virtual Type GetConstantNodeValueType(TypeHandle typeHandle)
@@ -125,29 +136,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             var nodeType = GetConstantNodeValueType(constantTypeHandle);
             var instance = (IConstant)Activator.CreateInstance(nodeType);
-            instance.ObjectValue = instance.DefaultValue;
+            instance.Initialize(constantTypeHandle);
             return instance;
         }
 
-        public virtual void CreateNodesFromPort(IModelView view, Preferences preferences, IGraphModel graphModel, IPortModel portModel, Vector2 localPosition, Vector2 worldPosition,
-            IReadOnlyList<IEdgeModel> edgesToDelete)
+        public virtual void CreateNodesFromPort(IRootView view, Preferences preferences, IGraphModel graphModel, IPortModel portModel, Vector2 localPosition, Vector2 worldPosition)
         {
             Action<GraphNodeModelSearcherItem> createNode = item =>
                 view.Dispatch(CreateNodeCommand.OnPort(item, portModel, localPosition));
             switch (portModel.Direction)
             {
                 case PortDirection.Output:
-                    SearcherService.ShowOutputToGraphNodes(this, view.GraphTool.Name, preferences, graphModel, portModel, worldPosition, createNode);
+                    SearcherService.ShowOutputToGraphNodes(this, view.GraphTool.Name, view.GetType(), preferences, graphModel, portModel, worldPosition, createNode, view.Window);
                     break;
 
                 case PortDirection.Input:
-                    SearcherService.ShowInputToGraphNodes(this, view.GraphTool.Name, preferences, graphModel, Enumerable.Repeat(portModel, 1), worldPosition, createNode);
+                    SearcherService.ShowInputToGraphNodes(this, view.GraphTool.Name, view.GetType(), preferences, graphModel, Enumerable.Repeat(portModel, 1), worldPosition, createNode, view.Window);
                     break;
             }
         }
 
-        public virtual void CreateNodesFromPort(IModelView view, Preferences preferences, IGraphModel graphModel, IReadOnlyList<IPortModel> portModels, Vector2 localPosition, Vector2 worldPosition,
-            IReadOnlyList<IEdgeModel> edgesToDelete)
+        public virtual void CreateNodesFromPort(IRootView view, Preferences preferences, IGraphModel graphModel, IReadOnlyList<IPortModel> portModels, Vector2 localPosition, Vector2 worldPosition)
         {
             if (portModels.Count > 1)
                 Debug.LogWarning("Unhandled node creation on multiple ports");
@@ -159,11 +168,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             switch (portModels.First().Direction)
             {
                 case PortDirection.Output:
-                    SearcherService.ShowOutputToGraphNodes(this, view.GraphTool.Name, preferences, graphModel, portModels, worldPosition, createNode);
+                    SearcherService.ShowOutputToGraphNodes(this, view.GraphTool.Name, view.GetType(), preferences, graphModel, portModels, worldPosition, createNode, view.Window);
                     break;
 
                 case PortDirection.Input:
-                    SearcherService.ShowInputToGraphNodes(this, view.GraphTool.Name, preferences, graphModel, portModels, worldPosition, createNode);
+                    SearcherService.ShowInputToGraphNodes(this, view.GraphTool.Name, view.GetType(), preferences, graphModel, portModels, worldPosition, createNode, view.Window);
                     break;
             }
         }
@@ -217,33 +226,26 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {}
 
         /// <summary>
-        /// Authorizes the creation of a variable in the graph or not.
+        /// Indicates whether a variable is allowed in the graph or not.
         /// </summary>
-        /// <param name="variable">The variable to create in the graph.</param>
-        /// <param name="graphModel">The graph in which to create the variable.</param>
-        /// <returns><c>true</c> if the variable can be created, <c>false</c> otherwise.</returns>
-        public virtual bool CanCreateVariableInGraph(IVariableDeclarationModel variable, IGraphModel graphModel)
+        /// <param name="variable">The variable in the graph.</param>
+        /// <param name="graphModel">The graph of the variable.</param>
+        /// <returns><c>true</c> if the variable is allowed, <c>false</c> otherwise.</returns>
+        public virtual bool CanAllowVariableInGraph(IVariableDeclarationModel variable, IGraphModel graphModel)
         {
             var allowMultipleDataOutputInstances = AllowMultipleDataOutputInstances;
 
             return allowMultipleDataOutputInstances
-                   || variable.Modifiers != ModifierFlags.WriteOnly
+                   || variable.Modifiers != ModifierFlags.Write
                    || variable.IsInputOrOutputTrigger()
-                   || !graphModel.FindReferencesInGraph<IVariableNodeModel>(variable).Any();
+                   || graphModel.FindReferencesInGraph<IVariableNodeModel>(variable).Count() == 1;
         }
 
         /// <inheritdoc />
-        public virtual bool GetPortCapacity(IPortModel portModel, out PortCapacity capacity)
-        {
-            capacity = default;
-            return false;
-        }
+        public abstract bool CanPasteNode(INodeModel originalModel, IGraphModel graph);
 
         /// <inheritdoc />
-        public virtual bool CanPasteNode(INodeModel originalModel, IGraphModel graph) => true;
-
-        public virtual string GetNodeDocumentation(SearcherItem node, IGraphElementModel model) =>
-            null;
+        public abstract bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph);
 
         /// <summary>
         /// Converts a <see cref="GraphProcessingError"/> to a <see cref="IGraphProcessingErrorModel"/>.
@@ -261,36 +263,52 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         public abstract IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel);
 
-        /// <summary>
-        /// Populates the given <paramref name="menu"/> with the section to create variable declaration models for a blackboard.
-        /// </summary>
-        /// <param name="sectionName">The name of the section in which the menu is added.</param>
-        /// <param name="menu">The menu to fill.</param>
-        /// <param name="view">The view tasked with dispatching the creation command.</param>
-        /// <param name="graphModel">The graph model.</param>
-        /// <param name="selectedGroup">The currently selection variable group model.</param>
-        public virtual void PopulateBlackboardCreateMenu(string sectionName, GenericMenu menu, IModelView view, IGraphModel graphModel, IGroupModel selectedGroup = null)
+        /// <inheritdoc />
+        public abstract IInspectorModel CreateInspectorModel(IModel inspectedModel);
+
+        public class MenuItem
         {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Create Group"), false, () =>
-            {
-                view.Dispatch(new BlackboardGroupCreateCommand(selectedGroup ?? GraphModel.GetSectionModel(sectionName)));
-            });
-
-            menu.AddSeparator("");
-
-            menu.AddItem(new GUIContent("Create Variable"), false, () =>
-            {
-                view.Dispatch(new CreateGraphVariableDeclarationCommand("variable", true, TypeHandle.Float, selectedGroup ?? GraphModel.GetSectionModel(sectionName)));
-            });
+            public string name;
+            public Action action;
         }
 
+        /// <summary>
+        /// Populates the given <paramref name="menuItems"/> given a section, to create variable declaration models for a blackboard.
+        /// </summary>
+        /// <param name="sectionName">The name of the section in which the menu is added.</param>
+        /// <param name="menuItems">An array of <see cref="MenuItem"/> to fill.</param>
+        /// <param name="view">The view.</param>
+        /// <param name="selectedGroup">The currently selected group model.</param>
+        public virtual void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menuItems, IRootView view, IGroupModel selectedGroup = null)
+        {
+            menuItems.Add(new MenuItem{name ="Create Variable",action = () =>
+            {
+                view.Dispatch(new CreateGraphVariableDeclarationCommand("variable", true, TypeHandle.Float, selectedGroup ?? GraphModel.GetSectionModel(sectionName)));
+            }});
+        }
+
+        /// <inheritdoc />
         public virtual string GetVariableSection(IVariableDeclarationModel variable)
         {
             return SectionNames.First();
         }
 
         /// <inheritdoc />
-        public virtual IEnumerable<string> SectionNames =>
-            new List<string>() { "Graph Variables" };
+        public virtual bool CanConvertVariable(IVariableDeclarationModel variable, string sectionName)
+        {
+            return false;
+        }
+
+        /// <inheritdoc />
+        public virtual IVariableDeclarationModel ConvertVariable(IVariableDeclarationModel variable, string sectionName)
+        {
+            return null;
+        }
+
+        /// <inheritdoc />
+        public virtual bool CanAssignTo(TypeHandle destination, TypeHandle source)
+        {
+            return destination == TypeHandle.Unknown || source.IsAssignableFrom(destination, this);
+        }
     }
 }

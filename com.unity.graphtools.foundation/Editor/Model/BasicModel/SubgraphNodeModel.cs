@@ -11,22 +11,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     [Serializable]
     public class SubgraphNodeModel : NodeModel, ISubgraphNodeModel
     {
-        [SerializeField]
+        [SerializeField, HideInInspector, Obsolete]
         GraphAssetModel m_ReferenceGraphAssetModel;
 
-        /// <inheritdoc />
-        public override string Title => m_ReferenceGraphAssetModel != null ? m_ReferenceGraphAssetModel.Name : "<Missing Subgraph>";
+        [SerializeReference]
+        Subgraph m_Subgraph;
 
         /// <inheritdoc />
-        public GraphAssetModel ReferenceGraphAssetModel
+        public override string Title => m_Subgraph.Title;
+
+        /// <inheritdoc />
+        public IGraphAssetModel SubgraphAssetModel
         {
-            get => m_ReferenceGraphAssetModel;
+            get => m_Subgraph.GraphAssetModel;
+
             set
             {
-                m_ReferenceGraphAssetModel = value;
+                m_Subgraph ??= new Subgraph();
+                m_Subgraph.GraphAssetModel = value;
                 DefineNode();
             }
         }
+
+        /// <inheritdoc />
+        public string SubgraphGuid => m_Subgraph.AssetGuid;
 
         /// <inheritdoc />
         public Dictionary<IPortModel, IVariableDeclarationModel> DataInputPortToVariableDeclarationDictionary { get; } = new Dictionary<IPortModel, IVariableDeclarationModel>();
@@ -41,6 +49,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public Dictionary<IPortModel, IVariableDeclarationModel> ExecutionOutputPortToVariableDeclarationDictionary { get; } = new Dictionary<IPortModel, IVariableDeclarationModel>();
 
         /// <inheritdoc />
+        public void Update()
+        {
+            DefineNode();
+        }
+
+        /// <inheritdoc />
         protected override void OnDefineNode()
         {
             base.OnDefineNode();
@@ -48,34 +62,58 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             ProcessVariables();
         }
 
+        /// <inheritdoc />
+        protected override void DisconnectPort(IPortModel portModel)
+        {}
+
         void ProcessVariables()
         {
-            foreach (var variableDeclaration in m_ReferenceGraphAssetModel.GraphModel.VariableDeclarations.Where(v => v.IsInputOrOutput()))
-            {
-                var isData = !variableDeclaration.IsInputOrOutputTrigger();
+            if (SubgraphAssetModel == null)
+                return;
 
-                if (variableDeclaration.Modifiers == ModifierFlags.ReadOnly)
-                {
-                    if (isData)
-                    {
-                        DataInputPortToVariableDeclarationDictionary[this.AddDataInputPort(variableDeclaration.Title, variableDeclaration.DataType, options: PortModelOptions.NoEmbeddedConstant)] = variableDeclaration;
-                    }
-                    else
-                    {
-                        ExecutionInputPortToVariableDeclarationDictionary[this.AddExecutionInputPort(variableDeclaration.Title)] = variableDeclaration;
-                    }
-                }
+            foreach (var variableDeclaration in GetInputOutputVariables())
+                AddPort(variableDeclaration, variableDeclaration.Guid.ToString(), variableDeclaration.Modifiers == ModifierFlags.Read, !variableDeclaration.IsInputOrOutputTrigger());
+        }
+
+        List<IVariableDeclarationModel> GetInputOutputVariables()
+        {
+            var inputOutputVariableDeclarations = new List<IVariableDeclarationModel>();
+
+            // Get the input/output variable declarations from the section models to preserve their displayed order in the Blackboard
+            foreach (var section in SubgraphAssetModel.GraphModel.SectionModels)
+                GetInputOutputVariable(section, ref inputOutputVariableDeclarations);
+
+            return inputOutputVariableDeclarations;
+        }
+
+        void GetInputOutputVariable(IGroupItemModel groupItem, ref List<IVariableDeclarationModel> inputOutputVariables)
+        {
+            if (groupItem is IVariableDeclarationModel variable && variable.IsInputOrOutput())
+            {
+                inputOutputVariables.Add(variable);
+            }
+            else if (groupItem is IGroupModel groupModel)
+            {
+                foreach (var item in groupModel.Items)
+                    GetInputOutputVariable(item, ref inputOutputVariables);
+            }
+        }
+
+        void AddPort(IVariableDeclarationModel variableDeclaration, string portId, bool isInput, bool isData)
+        {
+            if (isInput)
+            {
+                if (isData)
+                    DataInputPortToVariableDeclarationDictionary[this.AddDataInputPort(variableDeclaration.Title, variableDeclaration.DataType, portId, options: PortModelOptions.NoEmbeddedConstant)] = variableDeclaration;
                 else
-                {
-                    if (isData)
-                    {
-                        DataOutputPortToVariableDeclarationDictionary[this.AddDataOutputPort(variableDeclaration.Title, variableDeclaration.DataType)] = variableDeclaration;
-                    }
-                    else
-                    {
-                        ExecutionOutputPortToVariableDeclarationDictionary[this.AddExecutionOutputPort(variableDeclaration.Title)] = variableDeclaration;
-                    }
-                }
+                    ExecutionInputPortToVariableDeclarationDictionary[this.AddExecutionInputPort(variableDeclaration.Title, portId)] = variableDeclaration;
+            }
+            else
+            {
+                if (isData)
+                    DataOutputPortToVariableDeclarationDictionary[this.AddDataOutputPort(variableDeclaration.Title, variableDeclaration.DataType, portId, options: PortModelOptions.NoEmbeddedConstant)] = variableDeclaration;
+                else
+                    ExecutionOutputPortToVariableDeclarationDictionary[this.AddExecutionOutputPort(variableDeclaration.Title, portId)] = variableDeclaration;
             }
         }
     }

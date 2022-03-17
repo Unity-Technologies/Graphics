@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
@@ -18,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         protected override void OnDefineNode()
         {
             base.OnDefineNode();
-            InputPort = this.AddDataInputPort("", TypeHandle.Unknown);
+            InputPort = this.AddDataInputPort("", PortDataTypeHandle);
         }
 
         /// <summary>

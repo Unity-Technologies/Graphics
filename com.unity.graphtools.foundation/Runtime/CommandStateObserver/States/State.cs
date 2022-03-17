@@ -12,6 +12,9 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
 
         List<IStateComponent> m_StateComponents;
 
+        /// <inheritdoc />
+        public Action<IState, IStateComponent> OnStateComponentListModified { get; set; } = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="State" /> class.
         /// </summary>
@@ -58,12 +61,16 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         public void AddStateComponent(IStateComponent stateComponent)
         {
             m_StateComponents.Add(stateComponent);
+            stateComponent.OnAddedToState(this);
+            OnStateComponentListModified?.Invoke(this, stateComponent);
         }
 
         /// <inheritdoc />
         public void RemoveStateComponent(IStateComponent stateComponent)
         {
             m_StateComponents.RemoveAll(c => c == stateComponent);
+            stateComponent.OnRemovedFromState(this);
+            OnStateComponentListModified?.Invoke(this, stateComponent);
         }
 
         /// <inheritdoc />

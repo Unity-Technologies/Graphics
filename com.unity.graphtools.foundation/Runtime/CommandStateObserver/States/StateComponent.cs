@@ -82,6 +82,16 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
                 }
             }
 
+            /// <summary>
+            /// Whether this updater is associated with the stateComponent.
+            /// </summary>
+            /// <param name="stateComponent">The state component.</param>
+            /// <returns>True if this updater is associated with the stateComponent, false otherwise.</returns>
+            public bool IsUpdaterForState(IStateComponent stateComponent)
+            {
+                return m_State == stateComponent;
+            }
+
             void BeginStateChange()
             {
                 Assert.IsTrue(
@@ -132,6 +142,16 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         TUpdater m_Updater;
 
         /// <summary>
+        /// The state from which this state component is part of.
+        /// </summary>
+        public IState State { get; private set; }
+
+        /// <summary>
+        /// The changeset manager, if any changesets are recorded.
+        /// </summary>
+        protected virtual IChangesetManager ChangesetManager => null;
+
+        /// <summary>
         /// The state component name.
         /// </summary>
         public virtual string ComponentName => GetType().FullName;
@@ -140,11 +160,6 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         /// The earliest changeset version held by this state component.
         /// </summary>
         protected uint EarliestChangeSetVersion { get; set; }
-
-        /// <summary>
-        /// The update type for observers that are out of date but not too much as to be unable to use changesets.
-        /// </summary>
-        protected UpdateType UpdateType => m_UpdateType;
 
         /// <inheritdoc />
         public uint CurrentVersion { get; private set; } = 1;
@@ -198,14 +213,19 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         /// Push the current changeset and tag it with <paramref name="version"/>.
         /// </summary>
         /// <param name="version">The version number associated with the changeset.</param>
-        protected virtual void PushChangeset(uint version) {}
+        protected virtual void PushChangeset(uint version)
+        {
+            // If update type is Complete, there is no need to push the changeset, as they cannot be used for an update.
+            if (m_UpdateType != UpdateType.Complete)
+                ChangesetManager?.PushChangeset(version);
+        }
 
         /// <inheritdoc />
         public virtual void PurgeOldChangesets(uint untilVersion)
         {
             // StateComponent default implementation does not record changesets,
             // so m_EarliestChangeSetVersion is set to the CurrentVersion.
-            EarliestChangeSetVersion = CurrentVersion;
+            EarliestChangeSetVersion = ChangesetManager?.PurgeOldChangesets(untilVersion, CurrentVersion) ?? CurrentVersion;
             ResetUpdateType();
         }
 
@@ -235,6 +255,12 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         {
             if (type > m_UpdateType || force)
                 m_UpdateType = type;
+
+            // If update type is Complete, there is no need to keep the changesets, as they cannot be used for an update.
+            if (m_UpdateType == UpdateType.Complete)
+            {
+                ChangesetManager?.PurgeOldChangesets(CurrentVersion, CurrentVersion);
+            }
         }
 
         /// <inheritdoc/>
@@ -252,7 +278,19 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
             }
 
             // This is safe even if Version wraps around after an overflow.
-            return observerVersion.Version == CurrentVersion ? UpdateType.None : UpdateType;
+            return observerVersion.Version == CurrentVersion ? UpdateType.None : m_UpdateType;
+        }
+
+        /// <inheritdoc />
+        public void OnAddedToState(IState state)
+        {
+            State = state;
+        }
+
+        /// <inheritdoc />
+        public void OnRemovedFromState(IState state)
+        {
+            State = null;
         }
 
         /// <inheritdoc  cref="IStateComponentUpdater.Move"/>

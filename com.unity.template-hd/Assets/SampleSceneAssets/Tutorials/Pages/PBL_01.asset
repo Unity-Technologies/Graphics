@@ -39,16 +39,16 @@ MonoBehaviour:
       Text:
         m_Untranslated: "<b>Physically based lighting</b> attempts to simulate the
           correct behavior of light, it is a key requirement to achieve believable
-          lighting results, especially when targetting a photorealistic look.\r\n\nOne
-          important factor is the intensity of the lighting. HDRP relies on real-life
-          lighting units, such as Lux and Lumen. \n\r\nWorking with real-life units
+          lighting results, especially when targetting a photorealistic look. One
+          important factor is the intensity of the lighting: HDRP relies on real-life
+          lighting units, such as Lux and Lumen.\n\nWorking with real-life units
           and intensties will improve the consistenty of the lighting and facilitate
           the calibration between different types of lighting, especially between
-          natural and artificial lighting.\n\r\nThese intensities can easily be found
+          natural and artificial lighting. These intensities can easily be found
           online (e.g. online shopping and manufacaturers websites). \n\nIn addition,
           relying on these real-world values greatly reduces the burden on beginners
-          when it comes to selecting the correct light intensities.\n\r\nHere are
-          some href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Physical-Light-Units.html\"<a>examples</a>
+          when it comes to selecting the correct light intensities.\n\nHere are some
+          href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Physical-Light-Units.html%23lighting-and-exposure-diagram\"<a>examples</a>
           of different light sources and their respective lighting values."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}

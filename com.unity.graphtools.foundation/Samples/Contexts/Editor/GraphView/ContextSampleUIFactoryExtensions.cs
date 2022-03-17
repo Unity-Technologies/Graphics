@@ -4,26 +4,26 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI
 {
-    [GraphElementsExtensionMethodsCache(typeof(GraphView))]
+    [GraphElementsExtensionMethodsCache(typeof(ContextGraphView))]
     static class ContextSampleUIFactoryExtensions
     {
-        public static IModelUI CreateNode(this ElementBuilder elementBuilder, Dispatcher store, SampleNodeModel model)
+        public static IModelView CreateNode(this ElementBuilder elementBuilder, SampleNodeModel model)
         {
-            IModelUI ui = new SampleNode();
+            IModelView ui = new SampleNode();
             ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
-        public static IModelUI CreateNode(this ElementBuilder elementBuilder, Dispatcher store, SampleContextModelBase model)
+        public static IModelView CreateNode(this ElementBuilder elementBuilder, SampleContextModelBase model)
         {
-            IModelUI ui = new SampleContext();
+            IModelView ui = new SampleContext();
             ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
-        public static IModelUI CreateNode(this ElementBuilder elementBuilder, Dispatcher store, SampleBlockModelBase model)
+        public static IModelView CreateNode(this ElementBuilder elementBuilder, SampleBlockModelBase model)
         {
-            IModelUI ui = new SampleBlock();
+            IModelView ui = new SampleBlock();
             ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
@@ -32,74 +32,89 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI
         {
             bool canHaveVertical = !(sampleNodeModel is IBlockNodeModel);
 
-            evt.menu.AppendAction(prefix + "Input/Add Port (Vector2)", action =>
+            evt.menu.AppendAction(prefix + "Input/Add Port (Vector2)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Vector2));
             });
-            evt.menu.AppendAction(prefix + "Input/Add Port (Vector4)", action =>
+
+            evt.menu.AppendAction(prefix + "Input/Add Port (Vector3)", _ =>
+            {
+                graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Vector3));
+            });
+            evt.menu.AppendAction(prefix + "Input/Add Port (Vector4)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Vector4));
             });
-            evt.menu.AppendAction(prefix + "Input/Add Port (int)", action =>
+            evt.menu.AppendAction(prefix + "Input/Add Port (int)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Int));
             });
-            evt.menu.AppendAction(prefix + "Input/Add Port (float)", action =>
+            evt.menu.AppendAction(prefix + "Input/Add Port (float)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Float));
             });
 
+            evt.menu.AppendAction(prefix + "Input/Add Port (Quaternion)", _ =>
+            {
+                graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Quaternion));
+            });
+
+            evt.menu.AppendAction(prefix + "Input/Add Port (Object)", _ =>
+            {
+                graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Object));
+            });
+
             if (canHaveVertical)
-                evt.menu.AppendAction(prefix + "Input/Add Vertical Port", action =>
+                evt.menu.AppendAction(prefix + "Input/Add Vertical Port", _ =>
                 {
                     graphView.Dispatch(new AddPortCommand(PortDirection.Input, PortOrientation.Vertical, sampleNodeModel));
                 });
 
-            evt.menu.AppendAction(prefix + "Input/Remove Port", action =>
+            evt.menu.AppendAction(prefix + "Input/Remove Port", _ =>
             {
                 graphView.Dispatch(new RemovePortCommand(PortDirection.Input, PortOrientation.Horizontal, sampleNodeModel));
-            }, a => sampleNodeModel.InputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }, __ => sampleNodeModel.InputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
 
             if (canHaveVertical)
-                evt.menu.AppendAction(prefix + "Input/Remove Vertical Port", action =>
+                evt.menu.AppendAction(prefix + "Input/Remove Vertical Port", _ =>
                 {
                     graphView.Dispatch(new RemovePortCommand(PortDirection.Input, PortOrientation.Vertical, sampleNodeModel));
-                }, a => sampleNodeModel.VerticalInputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                }, __ => sampleNodeModel.VerticalInputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
 
-            evt.menu.AppendAction(prefix + "Output/Add Port (Vector2)", action =>
+            evt.menu.AppendAction(prefix + "Output/Add Port (Vector2)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Output, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Vector2));
             });
-            evt.menu.AppendAction(prefix + "Output/Add Port (Vector4)", action =>
+            evt.menu.AppendAction(prefix + "Output/Add Port (Vector4)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Output, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Vector4));
             });
-            evt.menu.AppendAction(prefix + "Output/Add Port (int)", action =>
+            evt.menu.AppendAction(prefix + "Output/Add Port (int)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Output, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Int));
             });
-            evt.menu.AppendAction(prefix + "Output/Add Port (float)", action =>
+            evt.menu.AppendAction(prefix + "Output/Add Port (float)", _ =>
             {
                 graphView.Dispatch(new AddPortCommand(PortDirection.Output, PortOrientation.Horizontal, sampleNodeModel, TypeHandle.Float));
             });
 
             if (canHaveVertical)
-                evt.menu.AppendAction(prefix + "Output/Add Vertical Port", action =>
+                evt.menu.AppendAction(prefix + "Output/Add Vertical Port", _ =>
                 {
                     graphView.Dispatch(new AddPortCommand(PortDirection.Output, PortOrientation.Vertical, sampleNodeModel));
                 });
 
-            evt.menu.AppendAction(prefix + "Output/Remove Port", action =>
+            evt.menu.AppendAction(prefix + "Output/Remove Port", _ =>
             {
                 graphView.Dispatch(new RemovePortCommand(PortDirection.Output, PortOrientation.Horizontal, sampleNodeModel));
-            }, a => sampleNodeModel.OutputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }, __ => sampleNodeModel.OutputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
 
 
             if (canHaveVertical)
-                evt.menu.AppendAction(prefix + "Output/Remove Vertical Port", action =>
+                evt.menu.AppendAction(prefix + "Output/Remove Vertical Port", _ =>
                 {
                     graphView.Dispatch(new RemovePortCommand(PortDirection.Output, PortOrientation.Vertical, sampleNodeModel));
-                }, a => sampleNodeModel.VerticalOutputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                }, __ => sampleNodeModel.VerticalOutputCount > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
         }
     }
 }

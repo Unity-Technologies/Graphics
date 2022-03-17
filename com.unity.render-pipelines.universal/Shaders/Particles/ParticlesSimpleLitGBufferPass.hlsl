@@ -23,9 +23,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
 
-#if SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
-#endif
 
     inputData.viewDirectionWS = viewDirWS;
 

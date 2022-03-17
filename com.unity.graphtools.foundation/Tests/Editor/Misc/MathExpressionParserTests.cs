@@ -6,7 +6,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Misc
     [TestFixture]
     public class MathExpressionParserTests
     {
-        private static string Format(IExpression n) => n.ToString();
+        static string Format(IExpression n) => n.ToString();
 
         [TestCase("float2(1,3)", "#float2(1, 3)")]
         [TestCase("float4(normalize(x + 2) + y,1,2,3 )", "#float4((#normalize(($x + 2)) + $y), 1, 2, 3)")]

@@ -17,5 +17,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="elementModels">The elements to remove.</param>
         void RemoveElements(IReadOnlyCollection<IGraphElementModel> elementModels);
+
+        /// <summary>
+        /// Repair the container by removing invalid or null references.
+        /// </summary>
+        void Repair();
     }
 }

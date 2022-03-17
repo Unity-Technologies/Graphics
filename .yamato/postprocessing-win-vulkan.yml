@@ -11,7 +11,7 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_trunk:
     name: PostProcessing on Win_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -21,10 +21,9 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -33,7 +32,7 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
     artifacts:
         logs:
             paths:
@@ -46,7 +45,7 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_trunk:
     name: PostProcessing on Win_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -55,10 +54,9 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -67,7 +65,7 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
     artifacts:
         logs:
             paths:
@@ -80,7 +78,7 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
     name: PostProcessing on Win_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -90,7 +88,6 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -98,7 +95,7 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -113,7 +110,7 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
     name: Build PostProcessing on Win_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -122,10 +119,9 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -134,7 +130,7 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -150,7 +146,7 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -160,10 +156,9 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -172,7 +167,7 @@ PostProcessing_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
     artifacts:
         logs:
             paths:
@@ -185,7 +180,7 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -194,10 +189,9 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -206,7 +200,7 @@ PostProcessing_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests
     artifacts:
         logs:
             paths:
@@ -219,7 +213,7 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -229,7 +223,6 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
@@ -237,7 +230,7 @@ PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -252,7 +245,7 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
+        image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -261,10 +254,9 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -273,7 +265,7 @@ Build_PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
+                utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=1200
     artifacts:
         logs:
             paths:

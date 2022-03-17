@@ -211,10 +211,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(CorePasses.SceneSelection(target));
-                result.passes.Add(CorePasses.ScenePicking(target));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
 
-                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(PassVariant(UnlitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
 
                 return result;
             }
@@ -319,8 +319,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 public static readonly FieldCollection Unlit = new FieldCollection()
                 {
                     StructFields.Varyings.positionWS,
-                    StructFields.Varyings.normalWS,
-                    StructFields.Varyings.viewDirectionWS,
+                    StructFields.Varyings.normalWS
                 };
 
                 public static readonly FieldCollection DepthNormalsOnly = new FieldCollection()

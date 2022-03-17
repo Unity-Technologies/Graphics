@@ -79,7 +79,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     }
                 }
 
-                m_State.CurrentChangeset.ChangedModels.AddRangeInternal(graphElementModels);
+                m_State.CurrentChangeset.ChangedModels.UnionWith(graphElementModels);
                 m_State.SetUpdateType(UpdateType.Partial);
             }
 
@@ -112,7 +112,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             /// </summary>
             public void ClearSelection(IGraphModel graphModel)
             {
-                m_State.CurrentChangeset.ChangedModels.AddRangeInternal(m_State.GetSelection(graphModel));
+                m_State.CurrentChangeset.ChangedModels.UnionWith(m_State.GetSelection(graphModel));
                 m_State.SetUpdateType(UpdateType.Partial);
 
                 // If m_SelectedModels is not null, we maintain it. Otherwise, we let GetSelection rebuild it.
@@ -130,44 +130,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        /// <summary>
-        /// Changeset class for <see cref="SelectionStateComponent"/>.
-        /// </summary>
-        public class Changeset : IChangeset
-        {
-            /// <summary>
-            /// The changed models.
-            /// </summary>
-            public HashSet<IGraphElementModel> ChangedModels { get; }
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="Changeset" /> class.
-            /// </summary>
-            public Changeset()
-            {
-                ChangedModels = new HashSet<IGraphElementModel>();
-            }
-
-            /// <inheritdoc/>
-            public void Clear()
-            {
-                ChangedModels.Clear();
-            }
-
-            /// <inheritdoc/>
-            public void AggregateFrom(IEnumerable<IChangeset> changesets)
-            {
-                Clear();
-                foreach (var cs in changesets)
-                {
-                    if (cs is Changeset changeset)
-                    {
-                        ChangedModels.AddRangeInternal(changeset.ChangedModels);
-                    }
-                }
-            }
-        }
-
         static IReadOnlyList<IGraphElementModel> s_EmptyList = new List<IGraphElementModel>();
 
         // Source of truth
@@ -177,8 +139,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         // Cache of selected models, built using m_Selection, for use by GetSelection().
         List<IGraphElementModel> m_SelectedModels;
 
-        ChangesetManager<Changeset> m_ChangesetManager = new ChangesetManager<Changeset>();
-        Changeset CurrentChangeset => m_ChangesetManager.CurrentChangeset;
+        ChangesetManager<SimpleChangeset<IGraphElementModel>> m_ChangesetManager = new ChangesetManager<SimpleChangeset<IGraphElementModel>>();
+
+        /// <inheritdoc />
+        protected override IChangesetManager ChangesetManager => m_ChangesetManager;
+
+        SimpleChangeset<IGraphElementModel> CurrentChangeset => m_ChangesetManager.CurrentChangeset;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SelectionStateComponent" /> class.
@@ -186,40 +152,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public SelectionStateComponent()
         {
             m_Selection = new List<SerializableGUID>();
-            m_SelectedModels = new List<IGraphElementModel>();
+            m_SelectedModels = null;
         }
 
-        /// <inheritdoc/>
-        protected override void PushChangeset(uint version)
-        {
-            base.PushChangeset(version);
-
-            // If update type is Complete, there is no need to push the changeset, as they cannot be used for an update.
-            if (UpdateType != UpdateType.Complete)
-                m_ChangesetManager.PushChangeset(version);
-        }
-
-        /// <inheritdoc/>
-        public override void PurgeOldChangesets(uint untilVersion)
-        {
-            EarliestChangeSetVersion = m_ChangesetManager.PurgeOldChangesets(untilVersion, CurrentVersion);
-            ResetUpdateType();
-        }
-
-        /// <inheritdoc />
-        public override void SetUpdateType(UpdateType type, bool force = false)
-        {
-            base.SetUpdateType(type, force);
-
-            // If update type is Complete, there is no need to keep the changesets, as they cannot be used for an update.
-            if (UpdateType == UpdateType.Complete)
-            {
-                m_ChangesetManager.PurgeOldChangesets(CurrentVersion, CurrentVersion);
-            }
-        }
-
-        /// <inheritdoc  cref="ChangesetManager{TChangeset}"/>
-        public Changeset GetAggregatedChangeset(uint sinceVersion)
+        /// <summary>
+        /// Gets a changeset that encompasses all changeset having a version larger than <paramref name="sinceVersion"/>.
+        /// </summary>
+        /// <param name="sinceVersion">The version from which to consider changesets.</param>
+        /// <returns>The aggregated changeset.</returns>
+        public SimpleChangeset<IGraphElementModel> GetAggregatedChangeset(uint sinceVersion)
         {
             return m_ChangesetManager.GetAggregatedChangeset(sinceVersion, CurrentVersion);
         }
@@ -276,6 +217,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 selectionStateComponent.m_Selection = null;
                 selectionStateComponent.m_SelectedModels = null;
             }
+        }
+
+        /// <inheritdoc />
+        public override void UndoRedoPerformed()
+        {
+            base.UndoRedoPerformed();
+            m_SelectedModels = null;
         }
     }
 }

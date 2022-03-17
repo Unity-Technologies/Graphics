@@ -116,7 +116,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
                     HDProbeUI.Drawer<TProvider>.DrawCustomSettings),
-                CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton)
+                CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton),
+                CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawSHNormalizationStatus)
             ).Draw(serialized, owner);
         }
 

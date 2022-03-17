@@ -25,9 +25,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         bool m_Collapsed;
 
         [SerializeField]
-        int m_ZOrder;
-
-        [SerializeField]
         List<string> m_HiddenElements;
 
         List<IGraphElementModel> m_CachedHiddenElementModels;

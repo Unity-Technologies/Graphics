@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            return CsoTool.Create<ContextGraphTool>();
+            return CsoTool.Create<ContextGraphTool>(WindowID);
         }
 
         protected override GraphView CreateGraphView()

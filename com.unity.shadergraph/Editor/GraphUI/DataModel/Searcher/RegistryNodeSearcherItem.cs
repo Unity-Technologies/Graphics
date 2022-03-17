@@ -14,6 +14,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public readonly RegistryKey registryKey;
 
+        public override string Name => registryKey.Name;
+
         public RegistryNodeSearcherItem(
             IGraphModel graphModel,
             RegistryKey registryKey,

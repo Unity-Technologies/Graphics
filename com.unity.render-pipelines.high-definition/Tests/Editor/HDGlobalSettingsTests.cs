@@ -27,6 +27,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         void EnsureHDRPIsActivePipeline()
         {
             Camera.main.Render();
+
+            // Skip test if project is not configured to be SRP project
+            if (RenderPipelineManager.currentPipeline == null)
+                Assert.Ignore("Test project has no SRP configured, skipping test");
+
             initialGlobalSettings = HDRenderPipelineGlobalSettings.instance;
             Assert.IsInstanceOf<HDRenderPipeline>(RenderPipelineManager.currentPipeline);
             Assert.IsNotNull(initialGlobalSettings);

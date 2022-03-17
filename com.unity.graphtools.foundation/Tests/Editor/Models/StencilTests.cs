@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             Assert.DoesNotThrow(() =>
             {
                 var types = AssemblyCache.CachedAssemblies
-                    .SelectMany(AssemblyExtensions.GetTypesSafe, (domainAssembly, assemblyType) => assemblyType)
+                    .SelectMany(AssemblyExtensions.GetTypesSafe, (_, assemblyType) => assemblyType)
                     .Where(t => !t.IsAbstract && !t.IsInterface);
                 Assert.IsNotNull(types);
             });

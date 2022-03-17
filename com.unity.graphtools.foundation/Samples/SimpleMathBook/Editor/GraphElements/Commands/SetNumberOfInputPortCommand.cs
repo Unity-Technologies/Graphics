@@ -10,24 +10,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         public SetNumberOfInputPortCommand(int inputCount, params MathOperator[] nodes)
             : base(k_UndoStringSingular, k_UndoStringSingular, inputCount, nodes) {}
 
-        public static void DefaultCommandHandler(UndoStateComponent undoState, GraphViewStateComponent graphViewState, SetNumberOfInputPortCommand command)
+        public static void DefaultCommandHandler(UndoStateComponent undoState, GraphModelStateComponent graphModelState, SetNumberOfInputPortCommand command)
         {
             if (!command.Models.Any())
                 return;
 
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphViewState, command);
+                undoStateUpdater.SaveSingleState(graphModelState, command);
             }
 
-            using (var graphUpdater = graphViewState.UpdateScope)
+            using (var graphUpdater = graphModelState.UpdateScope)
             {
                 foreach (var nodeModel in command.Models)
                 {
-                    nodeModel.InputPortCount = command.Value;
-                    nodeModel.DefineNode();
+                    nodeModel.SetInputPortCount(command.Value, out var _, out var __, out var deletedEdges);
+                    graphUpdater.MarkDeleted(deletedEdges);
                 }
-                graphUpdater.MarkChanged(command.Models);
+                graphUpdater.MarkChanged(command.Models, ChangeHint.GraphTopology);
             }
         }
     }

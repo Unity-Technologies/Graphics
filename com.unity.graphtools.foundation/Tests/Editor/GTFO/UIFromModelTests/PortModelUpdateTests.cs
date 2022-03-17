@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             node.SetupBuildAndUpdate(nodeModel, graphView);
 
             var portModel = nodeModel.Ports.First();
-            var port = portModel.GetUI<Port>(graphView);
+            var port = portModel.GetView<Port>(graphView);
             Assert.IsNotNull(port);
 
             var label = port.SafeQ<Label>();
@@ -44,7 +44,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 
             var portModel = nodeModel.Ports.First();
             Assert.IsNotNull(portModel as PortModel);
-            var port = portModel.GetUI<Port>(graphView);
+            var port = portModel.GetView<Port>(graphView);
             Assert.IsNotNull(port);
 
             Assert.AreEqual("", port.tooltip);
@@ -75,7 +75,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             public int InputCount { get; set; }
             public int OutputCount { get; set; }
 
-            public override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName, PortType portType,
+            protected override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName, PortType portType,
                 TypeHandle dataType, string portId, PortModelOptions options)
             {
                 return new FakePortModel
@@ -115,7 +115,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 
             var portModel = nodeModel.Ports.First() as FakePortModel;
             Assert.IsNotNull(portModel);
-            var port = portModel.GetUI<Port>(graphView);
+            var port = portModel.GetView<Port>(graphView);
             Assert.IsNotNull(port);
 
             Assert.IsTrue(port.ClassListContains(Port.notConnectedModifierUssClassName));

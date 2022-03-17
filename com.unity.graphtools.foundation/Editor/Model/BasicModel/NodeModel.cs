@@ -25,15 +25,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField, HideInInspector]
         SerializedReferenceDictionary<string, IConstant> m_InputConstantsById;
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         ModelState m_State;
 
-        internal OrderedPorts m_InputsById;
-        internal OrderedPorts m_OutputsById;
-        internal OrderedPorts m_PreviousInputs;
-        internal OrderedPorts m_PreviousOutputs;
+        protected OrderedPorts m_InputsById;
+        protected OrderedPorts m_OutputsById;
+        protected OrderedPorts m_PreviousInputs;
+        protected OrderedPorts m_PreviousOutputs;
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         bool m_Collapsed;
 
         /// <summary>
@@ -140,6 +140,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public void Destroy() => Destroyed = true;
 
+        internal void ClearPorts()
+        {
+            m_InputsById = new OrderedPorts();
+            m_OutputsById = new OrderedPorts();
+            m_PreviousInputs = null;
+            m_PreviousOutputs = null;
+        }
+
         /// <inheritdoc />
         public virtual void OnConnection(IPortModel selfConnectedPortModel, IPortModel otherConnectedPortModel)
         {
@@ -150,7 +158,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Instantiates the ports of the nodes.
+        /// </summary>
         public void DefineNode()
         {
             OnPreDefineNode();
@@ -162,7 +172,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             OnDefineNode();
 
-            RemoveUnusedPorts();
+            RemoveObsoleteEdgesAndConstants();
         }
 
         /// <summary>
@@ -193,7 +203,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             CloneInputConstants();
         }
 
-        void RemoveUnusedPorts()
+        void RemoveObsoleteEdgesAndConstants()
         {
             foreach (var kv in m_PreviousInputs
                      .Where<KeyValuePair<string, IPortModel>>(kv => !m_InputsById.ContainsKey(kv.Key)))
@@ -220,29 +230,36 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         static IPortModel ReuseOrCreatePortModel(IPortModel model, IReadOnlyDictionary<string, IPortModel> previousPorts, OrderedPorts newPorts)
         {
             // reuse existing ports when ids match, otherwise add port
-            string id = model.UniqueName;
-            IPortModel portModelToAdd = model;
-            if (previousPorts.TryGetValue(id, out var existingModel))
+            if (previousPorts.TryGetValue(model.UniqueName, out var portModelToAdd))
             {
-                portModelToAdd = existingModel;
                 if (portModelToAdd is IHasTitle toAddHasTitle && model is IHasTitle hasTitle)
+                {
                     toAddHasTitle.Title = hasTitle.Title;
+                }
                 portModelToAdd.DataTypeHandle = model.DataTypeHandle;
                 portModelToAdd.PortType = model.PortType;
             }
+            else
+            {
+                portModelToAdd = model;
+            }
+
             newPorts.Add(portModelToAdd);
             return portModelToAdd;
         }
 
-        /// <inheritdoc />
-        public virtual PortCapacity GetPortCapacity(IPortModel portModel)
-        {
-            PortCapacity cap = PortCapacity.Single;
-            return Stencil?.GetPortCapacity(portModel, out cap) ?? false ? cap : portModel?.GetDefaultCapacity() ?? PortCapacity.Multi;
-        }
-
-        /// <inheritdoc />
-        public virtual IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName, PortType portType,
+        /// <summary>
+        /// Creates a new port on the node.
+        /// </summary>
+        /// <param name="direction">The direction of the port to create.</param>
+        /// <param name="orientation">The orientation of the port to create.</param>
+        /// <param name="portName">The name of the port to create.</param>
+        /// <param name="portType">The type of port to create.</param>
+        /// <param name="dataType">The type of data the new port to create handles.</param>
+        /// <param name="portId">The ID of the port to create.</param>
+        /// <param name="options">The options of the port model to create.</param>
+        /// <returns>The newly created port model.</returns>
+        protected virtual IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName, PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {
             return new PortModel
@@ -259,8 +276,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             };
         }
 
-        /// <inheritdoc />
-        public void DisconnectPort(IPortModel portModel)
+        /// <summary>
+        /// Deletes all the edges connected to a given port.
+        /// </summary>
+        /// <param name="portModel">The port model to disconnect.</param>
+        protected virtual void DisconnectPort(IPortModel portModel)
         {
             if (GraphModel != null)
             {
@@ -349,7 +369,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             foreach (var id in m_InputConstantsById.Keys.ToList())
             {
                 IConstant inputConstant = m_InputConstantsById[id];
-                IConstant newConstant = inputConstant.CloneConstant();
+                IConstant newConstant = inputConstant.Clone();
                 m_InputConstantsById[id] = newConstant;
                 EditorUtility.SetDirty((Object)AssetModel);
             }
@@ -358,41 +378,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public IPortModel GetPortFitToConnectTo(IPortModel portModel)
         {
-            // PF: FIXME: This should be the same as GraphView.GetCompatiblePorts (which will move to GraphModel soon).
-            // It should also be coherent with the nodes presented in the searcher.
-
             var portsToChooseFrom = portModel.Direction == PortDirection.Input ? OutputsByDisplayOrder : InputsByDisplayOrder;
-            return GetFirstPortModelOfType(portModel.PortType, portModel.DataTypeHandle, portsToChooseFrom);
-        }
-
-        IPortModel GetFirstPortModelOfType(PortType portType, TypeHandle typeHandle, IReadOnlyList<IPortModel> portModels)
-        {
-            if (typeHandle != TypeHandle.Unknown && portModels.Any())
-            {
-                IStencil stencil = portModels.First().GraphModel.Stencil;
-                IPortModel unknownPortModel = null;
-
-                // Return the first matching Input portModel
-                // If no match was found, return the first Unknown typed portModel
-                // Else return null.
-                foreach (var portModel in portModels.Where(p => p.PortType == portType))
-                {
-                    if (portModel.DataTypeHandle == TypeHandle.Unknown && unknownPortModel == null)
-                    {
-                        unknownPortModel = portModel;
-                    }
-
-                    if (typeHandle.IsAssignableFrom(portModel.DataTypeHandle, stencil))
-                    {
-                        return portModel;
-                    }
-                }
-
-                if (unknownPortModel != null)
-                    return unknownPortModel;
-            }
-
-            return null;
+            return GraphModel.GetCompatiblePorts(portsToChooseFrom, portModel).FirstOrDefault();
         }
 
         /// <inheritdoc />
@@ -416,6 +403,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             base.OnAfterDeserialize();
             m_OutputsById = new OrderedPorts();
             m_InputsById = new OrderedPorts();
+        }
+
+        /// <inheritdoc />
+        public void RemoveUnusedMissingPort(IPortModel portModel)
+        {
+            if (portModel.PortType != PortType.MissingPort || portModel.GetConnectedEdges().Any())
+                return;
+
+            if (portModel.Direction == PortDirection.Input)
+                m_InputsById.Remove(portModel);
+            else
+                m_OutputsById.Remove(portModel);
         }
     }
 }

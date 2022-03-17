@@ -15,8 +15,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         public class FindSearcherItem : SearcherItem
         {
-            public FindSearcherItem(INodeModel node, string title, string help = "", List<SearcherItem> children = null)
-                : base(title, help, children)
+            public FindSearcherItem(string name, INodeModel node)
+                :base(name)
             {
                 Node = node;
             }

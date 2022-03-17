@@ -6,10 +6,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     public class SectionModel : GroupModel, ISectionModel
     {
         /// <summary>
-        /// Returns whether a Section model can receive the given variable group item.
+        /// Returns whether a Section model can receive the given group item.
         /// </summary>
         /// <param name="itemModel">The item.</param>
-        /// <returns>Whether a Section model can receive the given variable group item.</returns>
+        /// <returns>Whether a Section model can receive the given group item.</returns>
         public virtual bool AcceptsDraggedModel(IGroupItemModel itemModel)
         {
             return itemModel.GetSection() == this;
@@ -24,6 +24,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             this.SetCapability(Overdrive.Capabilities.Droppable, false);
             this.SetCapability(Overdrive.Capabilities.Selectable, false);
             this.SetCapability(Overdrive.Capabilities.Renamable, false);
+            this.SetCapability(Overdrive.Capabilities.Copiable, false);
         }
 
         public override IGraphElementContainer Container => GraphModel;

@@ -92,14 +92,31 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return m_NodeUIHints.GetValueOrDefault(nodeKey, new Dictionary<string, float>());
         }
 
-        public override IGraphProcessor CreateGraphProcessor()
+        protected override void CreateGraphProcessors()
         {
-            return new ShaderGraphProcessor();
+            if (!AllowMultipleDataOutputInstances)
+                GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
         }
 
-        public override void PopulateBlackboardCreateMenu(string sectionName, GenericMenu menu, IModelView view, IGraphModel graphModel, IGroupModel selectedGroup = null)
+        public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menu, IRootView view, IGroupModel selectedGroup = null)
         {
-            base.PopulateBlackboardCreateMenu(sectionName, menu, view, graphModel, selectedGroup);
+            base.PopulateBlackboardCreateMenu(sectionName, menu, view, selectedGroup);
+        }
+
+        public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
+        {
+            return null;
+            //throw new NotImplementedException();
         }
     }
 }

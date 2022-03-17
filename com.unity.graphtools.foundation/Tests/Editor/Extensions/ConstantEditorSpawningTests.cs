@@ -2,7 +2,6 @@ using System;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Extensions
 {
@@ -18,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Extensions
                 typeof(Vector2Constant), typeof(Vector3Constant), typeof(Vector4Constant), typeof(QuaternionConstant),
                 typeof(EnumConstant), typeof(ColorConstant),
                 typeof(AnimationClipConstant), typeof(MeshConstant), typeof(Texture2DConstant), typeof(Texture3DConstant),
-                typeof(EnumValueReference)
+                typeof(EnumConstant)
             };
             for (var i = 0; i < expectedTypes.Length; i++)
             {
