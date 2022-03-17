@@ -15,13 +15,10 @@ RW_TEXTURE2D_X(float, _FogVolumeDepth) : register(u2);
 float4 _ViewSpaceBounds;
 float3 _LocalDensityVolumeExtent;
 uint _SliceOffset;
-uint _SliceCount;
 float3 _RcpPositiveFade;
 float3 _RcpNegativeFade;
 float _Extinction;
 uint _InvertFade;
-float _MinDepth;
-float _MaxDepth;
 uint _FalloffMode;
 float4x4 _WorldToLocal; // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
 float _RcpDistanceFadeLength;
@@ -40,6 +37,17 @@ struct VertexToFragment
     uint depthSlice : SV_RenderTargetArrayIndex;
     // TODO: figure out what to do for VR because UNITY_VERTEX_OUTPUT_STEREO uses SV_RenderTargetArrayIndex on some platforms
 };
+
+float ComputeSliceDepth(uint sliceIndex)
+{
+    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+    float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
+
+    float e1 = sliceIndex * de + de;
+    float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams) + t0;
+    float dt = t1 - t0;
+    return t1 - t0;
+}
 
 float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
 {
@@ -60,11 +68,10 @@ VertexToFragment Vert(Attributes input, uint instanceId : INSTANCEID_SEMANTIC, u
 
     output.depthSlice = _SliceOffset + instanceId;
 
-    output.positionCS = GetQuadVertexPosition(vertexId);
+    float sliceDistance = ComputeSliceDepth(output.depthSlice);
+    float depthViewSpace = sliceDistance;
 
-    float s = float(instanceId) / float(_SliceCount);
-    float depthViewSpace = lerp(_MinDepth, _MaxDepth, s);
-
+    output.positionCS = GetQuadVertexPosition(vertexId); // TODO: replace this by cube slicing algorithm to avoid overdraw
     output.positionCS.xy *= _ViewSpaceBounds.zw;
     output.positionCS.xy += _ViewSpaceBounds.xy;
     output.positionCS.z = EyeDepthToLinear(depthViewSpace, _ZBufferParams);
@@ -103,17 +110,6 @@ float ComputeFadeFactor(float3 coordNDC, float distance)
         coordNDC, distance, _RcpPositiveFade, _RcpNegativeFade,
         _InvertFade, _RcpDistanceFadeLength, _EndTimesRcpDistanceFadeLength, _FalloffMode
     );
-}
-
-float ComputeSliceDepth(uint sliceIndex)
-{
-    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
-    float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
-
-    float e1 = sliceIndex * de + de; // (slice + 1) / sliceCount
-    float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams) + t0;
-    float dt = t1 - t0;
-    return t1 - t0;
 }
 
 void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)

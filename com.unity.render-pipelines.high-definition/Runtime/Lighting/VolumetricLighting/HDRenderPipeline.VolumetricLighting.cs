@@ -1133,9 +1133,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 props.SetVector("_RcpNegativeFade", rcpNegFade);
                                 props.SetFloat("_InvertFade", volume.parameters.invertFade ? 1 : 0);
                                 props.SetFloat("_Extinction", extinction);
-                                props.SetInteger("_SliceCount", sliceCount);
-                                props.SetFloat("_MinDepth", minViewSpaceDepth);
-                                props.SetFloat("_MaxDepth", maxViewSpaceDepth);
                                 props.SetInteger("_FalloffMode", (int)volume.parameters.falloffMode);
                                 props.SetMatrix("_WorldToLocal", volume.transform.worldToLocalMatrix); // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
                                 // TODO: use volume data instead of sending this
