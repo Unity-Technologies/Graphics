@@ -1,3 +1,4 @@
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.UI;
 
 namespace UnityEngine.Rendering.Universal
@@ -27,14 +28,21 @@ namespace UnityEngine.Rendering.Universal
                 filterSettings.sortingLayerRange = new SortingLayerRange(m_LayerBatch.layerRange.lowerBound, m_LayerBatch.layerRange.upperBound);
                 var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
-                CoreUtils.SetRenderTarget(cmd, m_Attachments.normalAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, RendererLighting.k_NormalClearColor);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                // CoreUtils.SetRenderTarget(cmd, m_Attachments.normalAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, RendererLighting.k_NormalClearColor);
+                // context.ExecuteCommandBuffer(cmd);
+                // cmd.Clear();
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(m_Attachments.normalAttachment, cameraTextureDescriptor.graphicsFormat);
+            // ConfigureDepthStoreAction(RenderBufferStoreAction.DontCare);
+            ConfigureClear(ClearFlag.All, RendererLighting.k_NormalClearColor);
         }
     }
 }

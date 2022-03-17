@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
             public Attachments()
             {
-                m_Buffers = new RTHandle[4];
+                m_Buffers = new RTHandle[2];
             }
 
             public void Init(ScriptableRenderContext context, ref RenderingData renderingData, Renderer2DData rendererData)

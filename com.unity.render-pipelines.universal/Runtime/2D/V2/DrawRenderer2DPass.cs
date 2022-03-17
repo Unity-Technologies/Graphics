@@ -41,6 +41,10 @@ namespace UnityEngine.Rendering.Universal
                 var drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
                 var blendStylesCount = rendererData.lightBlendStyles.Length;
 
+                cmd.SetGlobalColor("_GlobalLight0", m_LayerBatch.clearColors[0]);
+                cmd.SetGlobalColor("_GlobalLight1", m_LayerBatch.clearColors[1]);
+                cmd.SetGlobalColor("_GlobalLight2", m_LayerBatch.clearColors[2]);
+                cmd.SetGlobalColor("_GlobalLight3", m_LayerBatch.clearColors[3]);
                 cmd.SetGlobalFloat(k_HDREmulationScaleID, rendererData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, true ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
@@ -63,24 +67,20 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                cmd.SetGlobalColor("_GlobalLight0", m_LayerBatch.clearColors[0]);
-                cmd.SetGlobalColor("_GlobalLight1", m_LayerBatch.clearColors[1]);
-                cmd.SetGlobalColor("_GlobalLight2", m_LayerBatch.clearColors[2]);
-                cmd.SetGlobalColor("_GlobalLight3", m_LayerBatch.clearColors[3]);
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
-
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_Attachments.colorAttachment, m_Attachments.depthAttachment);
+            ConfigureTarget(m_Attachments.colorAttachment);//, m_Attachments.depthAttachment);
+            ConfigureDepthStoreAction(RenderBufferStoreAction.DontCare);
             ConfigureClear(ClearFlag.None, Color.black);
         }
     }
