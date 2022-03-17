@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
@@ -6,6 +7,8 @@ using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
 using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -79,6 +82,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
+    // TODO: Just for proof of concept -- should probably be generic like ModelPropertyField if possible
+    public class TestFloatPropertyField : ModelPropertyField<float>
+    {
+        public TestFloatPropertyField(ICommandTarget commandTarget, IModel model, string portName, string label, string fieldTooltip)
+            : base(commandTarget, model, portName, label, fieldTooltip)
+        {
+            SetValueGetterOrDefault(portName, (m) =>
+            {
+                if (m is not GraphDataNodeModel nodeModel) return default;
+                if (!nodeModel.TryGetNodeReader(out var nodeReader)) return default;
+                if (!nodeReader.TryGetPort(portName, out var portReader)) return default;
+                if (!portReader.GetField("c0", out float value)) return default;
+
+                return value;
+            });
+
+            m_Field.RegisterCallback<ChangeEvent<float>, ModelPropertyField<float>>(
+                (e, f) =>
+                {
+                    f.CommandTarget.Dispatch(new SetGraphTypeValueCommand(
+                            (GraphDataNodeModel)f.Model,
+                            portName,
+                            GraphType.Length.One,
+                            GraphType.Height.One,
+                            e.newValue
+                        ));
+                }, this);
+        }
+    }
+
     public class StaticPortNodeFieldsInspector : FieldsInspector
     {
         public StaticPortNodeFieldsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
@@ -94,7 +127,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (port.IsType<GraphType>())
                 {
                     if (!port.TryGetGraphTypeSize(out var length, out var height)) continue;
-                    switch ((length, height))
+                    switch (length, height)
                     {
                         // Invalid. This is matching against the actual "Any" value (-1), which should not be here.
                         case (_, GraphType.Height.Any):
@@ -108,7 +141,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                         // Scalar or vector.
                         case (GraphType.Length.One, GraphType.Height.One):
-                            yield return new ModelPropertyField<float>(
+                            yield return new TestFloatPropertyField(
                                 m_OwnerElement?.RootView,
                                 m_Model,
                                 port.GetName(),

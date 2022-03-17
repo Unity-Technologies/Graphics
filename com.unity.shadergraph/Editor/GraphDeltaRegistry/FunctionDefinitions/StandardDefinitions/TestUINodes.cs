@@ -162,7 +162,7 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TestUIProperties", // Name
-            "Out = In;",
+            "Out = StaticInspectorIn;",
             new ParameterDescriptor("PortIn", TYPE.Float, GraphType.Usage.In),
             new ParameterDescriptor("StaticBodyIn", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("StaticInspectorIn", TYPE.Float, GraphType.Usage.Static),
