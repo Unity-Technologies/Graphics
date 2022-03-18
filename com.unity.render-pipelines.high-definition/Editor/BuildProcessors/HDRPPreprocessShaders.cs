@@ -80,6 +80,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if ((!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                     return true;
+
+// TEMP Skip certain debug variants for build time saving
+if (shader.name.Contains("Hair/Mar") && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+    return true;
             }
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)

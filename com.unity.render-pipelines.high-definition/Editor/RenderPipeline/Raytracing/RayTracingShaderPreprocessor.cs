@@ -38,10 +38,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // If requested by the render pipeline settings, or if we are in a release build
                 // don't compile the DXR debug pass
+// TEMP This actually strips stuff that's needed, so disable it until it's investigated.
+#if false
                 bool isDebugDXR = snippet.passName == "DebugDXR";
                 if (isDebugDXR && (!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay))
                     return true;
+#endif
             }
+
+// TEMP Skip certain debug variants for build time saving
+if (shader.name.Contains("Hair/Mar") && snippet.passName.EndsWith("DXR"))
+    return true;
 
             return false;
         }
