@@ -169,8 +169,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case 1:
                     switch (GetPrimitive())
                     {
-                        case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
-                        case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
+                        case GraphType.Primitive.Int: return TypeHandle.Int;
+                        case GraphType.Primitive.Bool: return TypeHandle.Bool;
                         default: return TypeHandle.Float;
                     }
                 case 2: return TypeHandle.Vector2;

@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using UnityEditor.ShaderGraph.Defs;
 
-namespace UnityEditor.ShaderGraph.GraphDelta
+namespace UnityEditor.ShaderGraph.GraphDelta.Tests
 {
     [TestFixture]
     class TypeResolving

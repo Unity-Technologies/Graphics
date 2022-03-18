@@ -1,9 +1,9 @@
 ﻿using System;
-using NUnit.Framework;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Defs;
+using NUnit.Framework;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Defs;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 {

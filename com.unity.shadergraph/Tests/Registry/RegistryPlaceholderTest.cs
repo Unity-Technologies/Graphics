@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.TestTools.Utils;
 using UnityEditor.ShaderGraph.Defs;
 
-namespace UnityEditor.ShaderGraph.Registry.UnitTests
+namespace UnityEditor.ShaderGraph.GraphDelta.Tests
 {
     [TestFixture]
     class RegistryPlaceholderFixture
