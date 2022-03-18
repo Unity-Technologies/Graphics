@@ -959,7 +959,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 fixed (NeighborAxisLookup* sortedAxisPtr = &_sortedNeighborAxisLookups[sortedAxisStart])
                 {
-                    CoreUnsafeUtils.QuickSort<NeighborAxisLookup>(s_NeighborAxis.Length, sortedAxisPtr);
+                    CoreUnsafeUtils.QuickSort<NeighborAxisLookup, NeighborAxisLookup, NeighborAxisLookup.NeighborAxisLookupKeyGetter>(s_NeighborAxis.Length, sortedAxisPtr);
                 }
                 
                 // Renormalize so all weights still add up to 1 when using limited axis amount.
@@ -1125,6 +1125,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 float diff = propagationWeight - other.propagationWeight;
                 return diff < 0 ? 1 : diff > 0 ? -1 : 0;
+            }
+
+            public struct NeighborAxisLookupKeyGetter : CoreUnsafeUtils.IKeyGetter<NeighborAxisLookup, NeighborAxisLookup>
+            {
+                public NeighborAxisLookup Get(ref NeighborAxisLookup v) { return v; }
             }
         }
     }
