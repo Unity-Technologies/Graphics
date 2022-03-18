@@ -259,7 +259,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
         float3 incomingHitRadiance = 0;
         float3 incomingMissRadiance = 0;
-        float probeValidity = 0;
         int neighborAxisIndexOffset = axisIndex * NEIGHBOR_AXIS_COUNT;
 
         BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[axisIndex].xyz, _Sharpness);
@@ -275,7 +274,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             uint hitIndex = 0;
             float probeAxisValidity = 0;
             UnpackIndicesAndValidityOnly(neighbor.hitIndexValidity, hitIndex, probeAxisValidity);
-            probeValidity += probeAxisValidity;
 
             BasisAxisHit basisAxisNeighborHit = ComputeBasisAxisHit(neighborAxisLookup.neighborDirection, _Sharpness);
 
@@ -307,7 +305,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                         float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
 
                         float weight = neighborAxisLookup.propagationWeight;
-                        incomingMissRadiance += prevAxisRadiance * weight;
+                        incomingMissRadiance += prevAxisRadiance * weight * InvalidScale(probeAxisValidity);
                     #endif
                 }
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
@@ -338,9 +336,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             }
         }
 
-        probeValidity *= 1.0 / PROPAGATION_AXIS_AMOUNT;
-
-        float3 lighting = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
-        WritePropagationOutput(index, lighting, probeValidity);
+        _RadianceCacheAxis[index] = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
     }
 }

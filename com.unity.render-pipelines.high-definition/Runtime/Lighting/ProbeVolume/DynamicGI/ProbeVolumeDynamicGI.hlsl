@@ -34,11 +34,11 @@ struct NeighborAxis
 float4 UnpackAlbedoAndDistance(uint packedVal, float maxNeighborDistance)
 {
     float4 outVal;
-    outVal.r = ((packedVal >> 0) & 255) / 255.5f;
-    outVal.g = ((packedVal >> 8) & 255) / 255.5f;
-    outVal.b = ((packedVal >> 16) & 255) / 255.5f;
+    outVal.r = ((packedVal >> 0) & 255) / 255.0f;
+    outVal.g = ((packedVal >> 8) & 255) / 255.0f;
+    outVal.b = ((packedVal >> 16) & 255) / 255.0f;
 
-    outVal.a = ((packedVal >> 24) & 255) / 255.5f;
+    outVal.a = ((packedVal >> 24) & 255) / 255.0f;
     outVal.a *= maxNeighborDistance * sqrt(3.0f);
 
     return outVal;

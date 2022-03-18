@@ -199,10 +199,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return _stats;
         }
 
-        internal static void AllocateNeighbors(ref ProbeVolumePayload payload, int numMissedAxis, int numHitAxis, int numAxis)
+        internal static void AllocateNeighbors(ref ProbeVolumePayload payload, int numHitAxis, int numAxis)
         {
-            int totalAxis = numMissedAxis + numHitAxis;
-            int totalProbes = totalAxis / s_NeighborAxis.Length;
+            int totalProbes = numAxis / s_NeighborAxis.Length;
             int totalProbeNeighborCapacity = (1 << 19);
             Debug.Assert(totalProbes < totalProbeNeighborCapacity);
 
@@ -211,14 +210,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        internal static void EnsureNeighbors(ref ProbeVolumePayload payload, int missedNeighborAxis, int hitNeighborAxis, int neighborAxis)
+        internal static void EnsureNeighbors(ref ProbeVolumePayload payload, int hitNeighborAxis, int neighborAxis)
         {
             if (payload.hitNeighborAxis == null
                 || payload.neighborAxis == null
                 || payload.hitNeighborAxis.Length != hitNeighborAxis
                 || payload.neighborAxis.Length != neighborAxis)
             {
-                AllocateNeighbors(ref payload, missedNeighborAxis, hitNeighborAxis, neighborAxis);
+                AllocateNeighbors(ref payload, hitNeighborAxis, neighborAxis);
             }
         }
 
@@ -289,10 +288,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             uint packedOutput = 0;
 
-            packedOutput |= ((uint)(albedoR * 255.5f) << 0);
-            packedOutput |= ((uint)(albedoG * 255.5f) << 8);
-            packedOutput |= ((uint)(albedoB * 255.5f) << 16);
-            packedOutput |= ((uint)(normalizedDistance * 255.5f) << 24);
+            packedOutput |= (uint)(albedoR * 255f) << 0;
+            packedOutput |= (uint)(albedoG * 255f) << 8;
+            packedOutput |= (uint)(albedoB * 255f) << 16;
+            packedOutput |= (uint)(normalizedDistance * 255f) << 24;
 
             return packedOutput;
         }
@@ -324,8 +323,8 @@ namespace UnityEngine.Rendering.HighDefinition
             uint output = 0;
 
             output |= axisIndex;
-            output |= (((uint)(validity * 255.5f) & 31) << 5);
-            output |= (probeIndex << 13);
+            output |= ((uint)(validity * 255f) & 255) << 5;
+            output |= probeIndex << 13;
 
             return output;
         }
@@ -335,8 +334,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             uint output = 0;
 
-            output |= (((uint)(validity * 255.5f) & 255) << 8);
-            output |= (probeIndex << 8);
+            output |= (uint)(validity * 255f) & 255;
+            output |= probeIndex << 8;
 
             return output;
         }
