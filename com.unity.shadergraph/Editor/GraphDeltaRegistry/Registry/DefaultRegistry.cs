@@ -45,7 +45,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             reg.Register<GradientNode>();
             reg.Register<SampleGradientNode>();
             reg.Register<DefaultContext>();
-            //RegistryInstance.Register<Registry.AddNode>();
 
             // Register nodes from FunctionDescriptors in IStandardNode classes.
             var interfaceType = typeof(IStandardNode);

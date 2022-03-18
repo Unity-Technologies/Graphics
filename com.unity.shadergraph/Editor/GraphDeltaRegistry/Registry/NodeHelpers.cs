@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-
     public static class NodeHelpers
     {
         // all common math operations can probably use the same resolver.
@@ -52,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        internal static UnityEditor.ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(
+        internal static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(
             string OpName,
             string Op,
             INodeReader data,
@@ -67,7 +66,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             string funcName = $"{OpName}{count}_{shaderType.Name}";
 
-            var builder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(container, funcName);
+            var builder = new ShaderFoundry.ShaderFunction.Builder(container, funcName);
             string body = "";
             bool firstOperand = true;
             foreach (var port in data.GetPorts())

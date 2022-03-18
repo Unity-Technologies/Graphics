@@ -41,12 +41,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case 1:
                         reader.GetField(GraphType.kPrimitive, out GraphType.Primitive prim);
-                        switch(prim)
+                        return prim switch
                         {
-                            case GraphType.Primitive.Int: return TypeHandle.Int;
-                            case GraphType.Primitive.Bool: return TypeHandle.Bool;
-                            default: return TypeHandle.Float;
-                        }
+                            GraphType.Primitive.Int => TypeHandle.Int,
+                            GraphType.Primitive.Bool => TypeHandle.Bool,
+                            _ => TypeHandle.Float,
+                        };
                     case 2: return TypeHandle.Vector2;
                     case 3: return TypeHandle.Vector3;
                     case 4: return TypeHandle.Vector4;
@@ -164,39 +164,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public TypeHandle GetTypeHandle()
         {
-            switch (GetLength())
+            return GetLength() switch
             {
-                case 1:
-                    switch (GetPrimitive())
-                    {
-                        case GraphType.Primitive.Int: return TypeHandle.Int;
-                        case GraphType.Primitive.Bool: return TypeHandle.Bool;
-                        default: return TypeHandle.Float;
-                    }
-                case 2: return TypeHandle.Vector2;
-                case 3: return TypeHandle.Vector3;
-                default: return TypeHandle.Vector4;
-            }
+                1 => GetPrimitive() switch
+                {
+                    GraphType.Primitive.Int => TypeHandle.Int,
+                    GraphType.Primitive.Bool => TypeHandle.Bool,
+                    _ => TypeHandle.Float,
+                },
+                2 => TypeHandle.Vector2,
+                3 => TypeHandle.Vector3,
+                _ => TypeHandle.Vector4,
+            };
         }
 
         public object ObjectValue
         {
             get
             {
-                switch (GetLength())
+                return GetLength() switch
                 {
-                    case 1:
-                        switch(GetPrimitive())
-                        {
-                            case GraphType.Primitive.Int: return (int)gc(0);
-                            case GraphType.Primitive.Bool: return gc(0) != 0;
-                            default: return gc(0);
-                        }
-                    case 2: return new Vector2(gc(0), gc(1));
-                    case 3: return new Vector3(gc(0), gc(1), gc(2));
-                    case 4: return new Vector4(gc(0), gc(1), gc(2), gc(3));
-                    default: return 0;
-                }
+                    1 => GetPrimitive() switch
+                    {
+                        GraphType.Primitive.Int => (int)gc(0),
+                        GraphType.Primitive.Bool => gc(0) != 0,
+                        _ => gc(0),
+                    },
+                    2 => new Vector2(gc(0), gc(1)),
+                    3 => new Vector3(gc(0), gc(1), gc(2)),
+                    4 => new Vector4(gc(0), gc(1), gc(2), gc(3)),
+                    _ => 0,
+                };
             }
             set
             {
@@ -219,19 +217,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get
             {
-                switch (GetLength())
+                return GetLength() switch
                 {
-                    case 2: return typeof(Vector2);
-                    case 3: return typeof(Vector3);
-                    case 4: return typeof(Vector4);
-                    default:
-                        switch (GetPrimitive())
-                        {
-                            case GraphType.Primitive.Int: return typeof(int);
-                            case GraphType.Primitive.Bool: return typeof(bool);
-                            default: return typeof(float);
-                        }
-                }
+                    2 => typeof(Vector2),
+                    3 => typeof(Vector3),
+                    4 => typeof(Vector4),
+                    _ => GetPrimitive() switch
+                    {
+                        GraphType.Primitive.Int => typeof(int),
+                        GraphType.Primitive.Bool => typeof(bool),
+                        _ => typeof(float),
+                    },
+                };
             }
         }
 
@@ -318,8 +315,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (length >= 3 && uiHints.ContainsKey(constant.portName + ".UseColor"))
             {
-                var editor = new ColorField();
-                editor.showAlpha = length == 4;
+                var editor = new ColorField
+                {
+                    showAlpha = length == 4
+                };
 
                 editor.AddToClassList("sg-color-constant-field");
                 editor.AddStylesheet("ConstantEditors.uss");
