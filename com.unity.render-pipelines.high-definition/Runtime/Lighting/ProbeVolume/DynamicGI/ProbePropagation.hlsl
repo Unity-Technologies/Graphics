@@ -11,7 +11,7 @@ RWStructuredBuffer<float3> _RadianceCacheAxis;
 StructuredBuffer<float3> _PreviousRadianceCacheAxis;
 
 int _ProbeVolumeIndex;
-float _LeakMultiplier;
+float _LeakMitigation;
 
 bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float rangeBehindCamera)
 {
@@ -29,7 +29,7 @@ float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
 float InvalidScale(float probeValidity)
 {
     float validity = pow(1.0 - probeValidity, 8.0);
-    return 1.0f - lerp(_LeakMultiplier, 0.0f, validity);
+    return 1.0f - lerp(_LeakMitigation, 0.0f, validity);
 }
 
 #endif // endof PROBE_PROPAGATION

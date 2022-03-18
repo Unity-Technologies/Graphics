@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int radianceReadIndex;
         public int buffersDataVersion;
         public int simulationFrameTick;
-        
+
         public ComputeBuffer GetReadRadianceCacheAxis()
         {
             return (radianceReadIndex == 0) ? radianceCacheAxis0 : radianceCacheAxis1;
@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 new Vector4( 0, -s_2DDiagonal,  s_2DDiagonal, s_2DDiagonalDist),
                 new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
             };
-            
+
             s_AmbientProbe = new Vector4[7];
 
             _sortedNeighborAxisLookups = new NeighborAxisLookup[s_NeighborAxis.Length * s_NeighborAxis.Length];
@@ -525,13 +525,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIClear)))
                     DispatchClearPreviousRadianceCache(cmd, probeVolume);
             }
-            
+
             if (probeVolume.HitNeighborAxisLength != 0)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
                     DispatchPropagationHits(cmd, probeVolume, in giSettings, infiniteBounces, previousRadianceCacheInvalid);
             }
-            
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
                 DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid, propagationQuality, ambientProbe);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis0", propagationPipelineData.radianceCacheAxis0);
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis1", propagationPipelineData.radianceCacheAxis1);
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
-            
+
             var hitNeighborAxisLength = probeVolume.HitNeighborAxisLength;
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", hitNeighborAxisLength);
@@ -602,7 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_MaxAlbedo", giSettings.maxAlbedo.value);
             cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_RayBias", giSettings.bias.value);
-            cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
+            cmd.SetComputeFloatParam(shader, "_LeakMitigation", giSettings.leakMitigation.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
@@ -705,7 +705,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeNeighbors", propagationPipelineData.neighbors);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeNeighborsCount", propagationPipelineData.neighbors.count);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeProbeCount", propagationPipelineData.neighbors.count / s_NeighborAxis.Length);
-            cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
+            cmd.SetComputeFloatParam(shader, "_LeakMitigation", giSettings.leakMitigation.value);
             cmd.SetComputeFloatParam(shader, "_PropagationContribution", giSettings.propagationContribution.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
@@ -715,7 +715,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
             cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
-            
+
             UpdateAmbientProbe(ambientProbe, giSettings.skyMultiplier.value);
             cmd.SetComputeVectorArrayParam(shader, "_AmbientProbe", s_AmbientProbe);
 
@@ -816,7 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
-            
+
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
 
@@ -827,13 +827,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool CleanupPropagation(ProbeVolumeHandle probeVolume)
         {
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();
-            
+
             bool didDispose = ProbeVolume.CleanupBuffer(propagationPipelineData.neighborHits);
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.neighbors);
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis0);
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.radianceCacheAxis1);
             didDispose |= ProbeVolume.CleanupBuffer(propagationPipelineData.hitRadianceCache);
-            
+
             propagationPipelineData.buffersDataVersion = -1;
 
             return didDispose;
@@ -911,7 +911,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSofter => BasisAmbientDiceWrappedSofterEvaluate,
                     ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft => BasisAmbientDiceWrappedSuperSoftEvaluate,
                     ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedUltraSoft => BasisAmbientDiceWrappedUltraSoftEvaluate,
-                    
+
                     // No override, use the setting of the hit basis for miss propagation.
                     _ => basis switch
                     {
@@ -928,7 +928,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
 
                 PrecomputeAxisCacheLookup(axisAmount, basisFunction, sharpness, basisPropagationFunction, propagationSharpness);
-                
+
                 cmd.SetComputeBufferData(_sortedNeighborAxisLookupsBuffer, _sortedNeighborAxisLookups);
 
                 _propagationSettingsHash = settingsHash;
@@ -942,7 +942,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var axis = s_NeighborAxis[axisIndex];
                 var sortedAxisStart = axisIndex * s_NeighborAxis.Length;
-                
+
                 for (int neighborIndex = 0; neighborIndex < s_NeighborAxis.Length; ++neighborIndex)
                 {
                     var neighborDirection = s_NeighborAxis[neighborIndex];
@@ -960,7 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     CoreUnsafeUtils.QuickSort<NeighborAxisLookup, NeighborAxisLookup, NeighborAxisLookup.NeighborAxisLookupKeyGetter>(s_NeighborAxis.Length, sortedAxisPtr);
                 }
-                
+
                 // Renormalize so all weights still add up to 1 when using limited axis amount.
                 var hitWeights = 0f;
                 var propagationWeights = 0f;
@@ -996,13 +996,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var amplitude = ComputeSGClampedCosineWindowAmplitudeFromSharpnessAndAxisBasis26Fit(sgSharpness, mean);
             return SGClampedCosineWindowEvaluateFromDirection(amplitude, sgSharpness, mean, direction);
         }
-       
+
         static float BasisMissSGClampedCosineWindowEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
         {
             var amplitude = ComputeSGClampedCosineWindowAmplitudeFromSharpnessBasis26Fit(sgSharpness);
             return SGClampedCosineWindowEvaluateFromDirection(amplitude, sgSharpness, mean, direction);
         }
-       
+
         static float BasisAmbientDiceSharpEvaluate(Vector3 mean, Vector3 direction, float sgSharpness)
         {
             ComputeAmbientDiceSharpAmplitudeAndSharpnessFromAxisDirectionBasis26Fit(out var amplitude, out var sharpness, mean);
@@ -1088,7 +1088,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maxSimulationsPerFrame = maxSimulationsPerFrameOverride;
             else
                 maxSimulationsPerFrame = MAX_SIMULATIONS_PER_FRAME;
-            
+
             numSimulationRequests = Mathf.Min(_probeVolumeSimulationRequestCount, maxSimulationsPerFrame);
 
             return _probeVolumeSimulationRequests;
@@ -1103,12 +1103,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return other.simulationFrameDelta - simulationFrameDelta;
             }
-            
+
             public struct ProbeVolumeSimulationRequestKeyGetter : CoreUnsafeUtils.IKeyGetter<ProbeVolumeSimulationRequest, ProbeVolumeSimulationRequest>
             {
                 public ProbeVolumeSimulationRequest Get(ref ProbeVolumeSimulationRequest v) { return v; }
             }
-            
+
         }
 
         struct NeighborAxisLookup : IComparable<NeighborAxisLookup>
