@@ -1081,7 +1081,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             fixed (ProbeVolumeSimulationRequest* requestPtr = &_probeVolumeSimulationRequests[0])
             {
-                CoreUnsafeUtils.QuickSort<ProbeVolumeSimulationRequest>(_probeVolumeSimulationRequestCount, requestPtr);
+                CoreUnsafeUtils.QuickSort<ProbeVolumeSimulationRequest, ProbeVolumeSimulationRequest, ProbeVolumeSimulationRequest.ProbeVolumeSimulationRequestKeyGetter>(_probeVolumeSimulationRequestCount, requestPtr);
             }
 
             int maxSimulationsPerFrame;
@@ -1104,6 +1104,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return other.simulationFrameDelta - simulationFrameDelta;
             }
+            
+            public struct ProbeVolumeSimulationRequestKeyGetter : CoreUnsafeUtils.IKeyGetter<ProbeVolumeSimulationRequest, ProbeVolumeSimulationRequest>
+            {
+                public ProbeVolumeSimulationRequest Get(ref ProbeVolumeSimulationRequest v) { return v; }
+            }
+            
         }
 
         struct NeighborAxisLookup : IComparable<NeighborAxisLookup>
