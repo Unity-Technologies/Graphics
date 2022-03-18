@@ -88,8 +88,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
             context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
 
-            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
-            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.GenerateBaseMap(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
 
             //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
             //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
@@ -239,6 +238,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     overrideReferenceName = "_TerrainHolesTexture",
                     displayName = "Holes Map (RGB)",
                     useTilingAndOffset = true,
+                });
+
+                collector.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    floatType = FloatType.Default,
+                    value = 0.0f,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_DstBlend",
+                    displayName = "DstBlend",
                 });
 
                 // if using material control, add the material property to control workflow mode
@@ -1308,6 +1318,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
             };
+
+            public static readonly KeywordDescriptor TerrainBaseMapGen = new KeywordDescriptor()
+            {
+                displayName = "Terrain Base Map Generation",
+                referenceName = "_TERRAIN_BASEMAP_GEN",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
         }
         #endregion
 
@@ -1374,19 +1393,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Includes
         static class TerrainCoreIncludes
         {
-            const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
-            const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
-            const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/DepthOnlyPass.hlsl";
-            const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/DepthNormalsOnlyPass.hlsl";
-            const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/ShadowCasterPass.hlsl";
-            const string kForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/PBRForwardPass.hlsl";
-            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
-            const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/PBRGBufferPass.hlsl";
-            const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
-            const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
+            public static readonly string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
+            public static readonly string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
+            public static readonly string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/DepthOnlyPass.hlsl";
+            public static readonly string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/DepthNormalsOnlyPass.hlsl";
+            public static readonly string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/ShadowCasterPass.hlsl";
+            public static readonly string kForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/PBRForwardPass.hlsl";
+            public static readonly string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
+            public static readonly string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/PBRGBufferPass.hlsl";
+            public static readonly string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
+            public static readonly string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
 
-            const string kTerrainLitInput = "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl";
-            const string kTerrainPassUtils = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainPassUtils.hlsl";
+            public static readonly string kTerrainLitInput = "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl";
+            public static readonly string kTerrainPassUtils = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainPassUtils.hlsl";
 
             public static readonly IncludeCollection Forward = new IncludeCollection
             {

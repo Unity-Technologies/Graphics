@@ -1,16 +1,15 @@
 Pass
 {
-    $splice(PassName)
     Tags
     {
-        $splice(LightMode)
+        $splice(BaseGenName)
+        $splice(BaseGenTexFormat)
+        $splice(BaseGenTexSize)
+        $splice(BaseGenEmptyColor)
     }
 
     // Render State
     $splice(RenderState)
-
-    // Debug
-    $splice(Debug)
 
     // --------------------------------------------------
     // Pass
@@ -56,9 +55,6 @@ Pass
     $splice(GraphDefines)
     $splice(DotsInstancingVars)
 
-    // custom interpolator pre-include
-    $splice(sgci_CustomInterpolatorPreInclude)
-
     // Includes
     $splice(PreGraphIncludes)
 
@@ -81,22 +77,11 @@ Pass
     // Graph Includes
     $splice(GraphIncludes)
 
-    // -- Property used by ScenePickingPass
-    #ifdef SCENEPICKINGPASS
-    float4 _SelectionID;
-    #endif
-
     // Graph Functions
     $splice(GraphFunctions)
 
-    // Custom interpolators pre vertex
-    $splice(CustomInterpolatorPreVertex)
-
     // Graph Vertex
     $splice(GraphVertex)
-
-    // Custom interpolators, pre surface
-    $splice(CustomInterpolatorPreSurface)
 
     // Graph Pixel
     $splice(GraphPixel)
