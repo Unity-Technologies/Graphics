@@ -27,8 +27,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
-                        var inspectorFields = new StaticPortNodeFieldsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
-                        ui.PartList.AppendPart(inspectorFields);
+                        var s = new StaticPortNodeFieldsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(s);
                         break;
                     }
                     case SectionType.Properties:
@@ -82,40 +82,127 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    // TODO: Just for proof of concept -- should probably be generic like ModelPropertyField if possible
-    public class TestFloatPropertyField : ModelPropertyField<float>
+    public class TempShimField : CustomizableModelPropertyField
     {
-        public TestFloatPropertyField(ICommandTarget commandTarget, IModel model, string portName, string label, string fieldTooltip)
-            : base(commandTarget, model, portName, label, fieldTooltip)
+        readonly GraphDataNodeModel m_Model;
+        readonly string m_PortName;
+
+        BaseModelViewPart m_Part;
+
+        public TempShimField(ICommandTarget commandTarget, GraphDataNodeModel model, string portName)
+            : base(commandTarget, portName)
         {
-            SetValueGetterOrDefault(portName, (m) =>
+            m_Model = model;
+            m_PortName = portName;
+
+            BuildEditor();
+        }
+
+        void BuildEditor()
+        {
+            if (!m_Model.TryGetNodeReader(out var nodeReader)) return;
+            if (!nodeReader.TryGetPort(m_PortName, out var portReader)) return;
+
+            var stencil = (ShaderGraphStencil)m_Model.GraphModel.Stencil;
+            var hints = stencil.GetUIHints(m_Model.registryKey);
+
+            if (portReader.IsType<GraphType>())
             {
-                if (m is not GraphDataNodeModel nodeModel) return default;
-                if (!nodeModel.TryGetNodeReader(out var nodeReader)) return default;
-                if (!nodeReader.TryGetPort(portName, out var portReader)) return default;
-                if (!portReader.GetField("c0", out float value)) return default;
+                if (!portReader.TryGetGraphTypeSize(out var length, out var height)) return;
+                if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) return;
 
-                return value;
-            });
-
-            m_Field.RegisterCallback<ChangeEvent<float>, ModelPropertyField<float>>(
-                (e, f) =>
+                // TODO: Still experimenting with nice ways to do this.
+                switch (new {length, height, primitive})
                 {
-                    f.CommandTarget.Dispatch(new SetGraphTypeValueCommand(
-                            (GraphDataNodeModel)f.Model,
-                            portName,
-                            GraphType.Length.One,
-                            GraphType.Height.One,
-                            e.newValue
-                        ));
-                }, this);
+                    // Invalid. This is matching against the actual "Any" value (-1), which should not be here.
+                    case {length: GraphType.Length.Any} or {height: GraphType.Height.Any}:
+                        Debug.LogWarning($"Port {portReader.GetName()} on {nodeReader.GetName()}: expected concrete GraphType size, but got Any when displaying node inspector. Ignoring this field.");
+                        return;
+
+                    // Matrix.
+                    case {height: > GraphType.Height.One}:
+                        m_Part = new MatrixPart("sg-matrix", m_Model, null, "", m_PortName, (int)length);
+                        m_Part.BuildUI(this);
+                        hierarchy.Add(m_Part.Root);
+                        break;
+
+                    // Vectors.
+                    case {length: GraphType.Length.Four} when hints.ContainsKey(m_PortName + ".UseColor"):
+                        m_Part = new ColorPart("sg-color", m_Model, null, ussClassName, portReader.GetName(), includeAlpha: true);
+                        m_Part.BuildUI(this);
+                        hierarchy.Add(m_Part.Root);
+                        break;
+
+                    case {length: GraphType.Length.Four}:
+                        m_Part = new Vector4Part("sg-vec4", m_Model, null, ussClassName, portReader.GetName());
+                        m_Part.BuildUI(this);
+                        hierarchy.Add(m_Part.Root);
+                        break;
+
+                    case {length: GraphType.Length.Three} when hints.ContainsKey(m_PortName + ".UseColor"):
+                        m_Part = new ColorPart("sg-color", m_Model, null, ussClassName, portReader.GetName(), includeAlpha: false);
+                        m_Part.BuildUI(this);
+                        hierarchy.Add(m_Part.Root);
+                        break;
+
+                    case {length: GraphType.Length.Three}:
+                        m_Part = new Vector3Part("sg-vec3", m_Model, null, ussClassName, portReader.GetName());
+                        m_Part.BuildUI(this);
+                        hierarchy.Add(m_Part.Root);
+                        break;
+
+                    case {length: GraphType.Length.Two}:
+                        m_Part = new Vector2Part("sg-vec2", m_Model, null, ussClassName, portReader.GetName());
+                        m_Part.BuildUI(this);
+                        hierarchy.Add(m_Part.Root);
+                        break;
+
+                    // Scalars.
+                    case {primitive: GraphType.Primitive.Float} when hints.ContainsKey(m_PortName + ".UseSlider"):
+                        m_Part = new SliderPart("sg-slider", m_Model, null, "", m_PortName);
+                        m_Part.BuildUI(this);
+                        break;
+
+                    case {primitive: GraphType.Primitive.Float}:
+                        m_Part = new FloatPart("sg-float", m_Model, null, "", m_PortName);
+                        m_Part.BuildUI(this);
+                        break;
+
+                    case {primitive: GraphType.Primitive.Bool}:
+                        m_Part = new BoolPart("sg-bool", m_Model, null, "", m_PortName);
+                        m_Part.BuildUI(this);
+                        break;
+
+                    case {primitive: GraphType.Primitive.Int}:
+                        m_Part = new IntPart("sg-int", m_Model, null, "", m_PortName);
+                        m_Part.BuildUI(this);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            if (portReader.IsType<GradientType>()) { }
+        }
+
+        public override bool UpdateDisplayedValue()
+        {
+            if (m_Part == null) return false;
+            m_Part.UpdateFromModel();
+            return true;
         }
     }
 
     public class StaticPortNodeFieldsInspector : FieldsInspector
     {
-        public StaticPortNodeFieldsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
-            : base(name, model, ownerElement, parentClassName) { }
+        readonly bool m_InspectorOnly;
+
+        public StaticPortNodeFieldsInspector(string name, IModel model, IModelView ownerElement, string parentClassName, bool inspectorOnly = false)
+            : base(name, model, ownerElement, parentClassName)
+        {
+            m_InspectorOnly = inspectorOnly;
+        }
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
@@ -124,41 +211,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var port in nodeReader.GetStaticPorts())
             {
-                if (port.IsType<GraphType>())
-                {
-                    if (!port.TryGetGraphTypeSize(out var length, out var height)) continue;
-                    switch (length, height)
-                    {
-                        // Invalid. This is matching against the actual "Any" value (-1), which should not be here.
-                        case (_, GraphType.Height.Any):
-                        case (GraphType.Length.Any, _):
-                            Debug.LogWarning($"Port {port.GetName()} on {nodeReader.GetName()}: expected concrete GraphType size, but got Any when displaying node inspector. Ignoring this field.");
-                            continue;
-
-                        // Matrix.
-                        case (_, >GraphType.Height.One):
-                            break;
-
-                        // Scalar or vector.
-                        case (GraphType.Length.One, GraphType.Height.One):
-                            yield return new TestFloatPropertyField(
-                                m_OwnerElement?.RootView,
-                                m_Model,
-                                port.GetName(),
-                                port.GetName(),
-                                "asdf"
-                            );
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-
-                if (port.IsType<GradientType>())
-                {
-
-                }
+                // if (m_InspectorOnly == hints.ContainsKey(port.GetName() + ".InspectorOnly")) continue;
+                // Debug.Log($"Adding a port: {port.GetName()}");
+                yield return new TempShimField(m_OwnerElement?.RootView, nodeModel, port.GetName());
             }
         }
     }
