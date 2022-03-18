@@ -4,6 +4,7 @@ using System.Linq;
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 {
     [Serializable]
+    [SearcherItem(typeof(MathBookStencil), SearcherContext.Graph, "Operators/Multiply", "operator-mult")]
     public class MathMultiplicationOperator : MathFloatOperator
     {
         public override string Title
@@ -21,6 +22,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         {
             for (var i = 0; i < InputPortCount; ++i)
                 this.AddDataInputPort<float>("Factor " + (i + 1));
+        }
+
+        /// <inheritdoc />
+        protected override (string op, bool isInfix) GetCSharpOperator()
+        {
+            return ("*", true);
         }
     }
 }

@@ -24,9 +24,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         // 3 was BoundObjectLogging, now unused
 
         /// <summary>
-        /// Toggles automatic processing of graph model when user stops moving the mouse for a while.
+        /// Only process the graph model when user stops moving the mouse for a while. Otherwise, graph is processed after each change.
         /// </summary>
-        public static readonly BoolPref AutoProcess = new BoolPref(4, nameof(AutoProcess), new[] { "AutoRecompile" });
+        public static readonly BoolPref OnlyProcessWhenIdle = new BoolPref(4, nameof(OnlyProcessWhenIdle), new[] { "AutoRecompile", "AutoProcess" });
 
         /// <summary>
         /// Toggles automatic alignment of nodes created from a port.

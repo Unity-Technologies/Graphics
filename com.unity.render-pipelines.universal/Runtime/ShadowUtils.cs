@@ -22,6 +22,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Various utility functions used for shadows.
+    /// </summary>
     public static class ShadowUtils
     {
         private static readonly bool m_ForceShadowPointSampling;
@@ -32,6 +35,22 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
         }
 
+        /// <summary>
+        /// Extracts the directional light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="cascadeIndex"></param>
+        /// <param name="shadowmapWidth"></param>
+        /// <param name="shadowmapHeight"></param>
+        /// <param name="shadowResolution"></param>
+        /// <param name="shadowNearPlane"></param>
+        /// <param name="cascadeSplitDistance"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="viewMatrix"></param>
+        /// <param name="projMatrix"></param>
+        /// <returns></returns>
         public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
             bool result = ExtractDirectionalLightMatrix(ref cullResults, ref shadowData, shadowLightIndex, cascadeIndex, shadowmapWidth, shadowmapHeight, shadowResolution, shadowNearPlane, out cascadeSplitDistance, out shadowSliceData);
@@ -40,6 +59,20 @@ namespace UnityEngine.Rendering.Universal
             return result;
         }
 
+        /// <summary>
+        /// Extracts the directional light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="cascadeIndex"></param>
+        /// <param name="shadowmapWidth"></param>
+        /// <param name="shadowmapHeight"></param>
+        /// <param name="shadowResolution"></param>
+        /// <param name="shadowNearPlane"></param>
+        /// <param name="cascadeSplitDistance"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <returns></returns>
         public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData)
         {
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
@@ -64,6 +97,17 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
+        /// <summary>
+        /// Extracts the spot light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="shadowMatrix"></param>
+        /// <param name="viewMatrix"></param>
+        /// <param name="projMatrix"></param>
+        /// <param name="splitData"></param>
+        /// <returns></returns>
         public static bool ExtractSpotLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
         {
             bool success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
@@ -71,6 +115,19 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
+        /// <summary>
+        /// Extracts the spot light matrix.
+        /// </summary>
+        /// <param name="cullResults"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="cubemapFace"></param>
+        /// <param name="fovBias"></param>
+        /// <param name="shadowMatrix"></param>
+        /// <param name="viewMatrix"></param>
+        /// <param name="projMatrix"></param>
+        /// <param name="splitData"></param>
+        /// <returns></returns>
         public static bool ExtractPointLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, CubemapFace cubemapFace, float fovBias, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
         {
             bool success = cullResults.ComputePointShadowMatricesAndCullingPrimitives(shadowLightIndex, cubemapFace, fovBias, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
@@ -95,6 +152,15 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="context"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="settings"></param>
+        /// <param name="proj"></param>
+        /// <param name="view"></param>
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
             Matrix4x4 proj, Matrix4x4 view)
@@ -113,6 +179,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
         }
 
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="context"></param>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="settings"></param>
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
         {
@@ -120,6 +193,13 @@ namespace UnityEngine.Rendering.Universal
                 shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
         }
 
+        /// <summary>
+        /// Calculates the maximum tile resolution in an Atlas.
+        /// </summary>
+        /// <param name="atlasWidth"></param>
+        /// <param name="atlasHeight"></param>
+        /// <param name="tileCount"></param>
+        /// <returns>The maximum tile resolution in an Atlas.</returns>
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
         {
             int resolution = Mathf.Min(atlasWidth, atlasHeight);
@@ -132,6 +212,12 @@ namespace UnityEngine.Rendering.Universal
             return resolution;
         }
 
+        /// <summary>
+        /// Used for baking bake cascade transforms in each shadow matrix.
+        /// </summary>
+        /// <param name="shadowSliceData"></param>
+        /// <param name="atlasWidth"></param>
+        /// <param name="atlasHeight"></param>
         public static void ApplySliceTransform(ref ShadowSliceData shadowSliceData, int atlasWidth, int atlasHeight)
         {
             Matrix4x4 sliceTransform = Matrix4x4.identity;
@@ -146,6 +232,15 @@ namespace UnityEngine.Rendering.Universal
             shadowSliceData.shadowTransform = sliceTransform * shadowSliceData.shadowTransform;
         }
 
+        /// <summary>
+        /// Calculates the depth and normal bias from a light.
+        /// </summary>
+        /// <param name="shadowLight"></param>
+        /// <param name="shadowLightIndex"></param>
+        /// <param name="shadowData"></param>
+        /// <param name="lightProjectionMatrix"></param>
+        /// <param name="shadowResolution"></param>
+        /// <returns>The depth and normal bias from a visible light.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
             if (shadowLightIndex < 0 || shadowLightIndex >= shadowData.bias.Count)
@@ -204,12 +299,25 @@ namespace UnityEngine.Rendering.Universal
 
             if (shadowData.supportsSoftShadows && shadowLight.light.shadows == LightShadows.Soft)
             {
+                SoftShadowQuality softShadowQuality = SoftShadowQuality.Medium;
+                if (shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                    softShadowQuality = additionalLightData.softShadowQuality;
+
                 // TODO: depth and normal bias assume sample is no more than 1 texel away from shadowmap
                 // This is not true with PCF. Ideally we need to do either
                 // cone base bias (based on distance to center sample)
                 // or receiver place bias based on derivatives.
                 // For now we scale it by the PCF kernel size of non-mobile platforms (5x5)
-                const float kernelRadius = 2.5f;
+                float kernelRadius = 2.5f;
+
+                switch (softShadowQuality)
+                {
+                    case SoftShadowQuality.High: kernelRadius = 3.5f; break; // 7x7
+                    case SoftShadowQuality.Medium: kernelRadius = 2.5f; break; // 5x5
+                    case SoftShadowQuality.Low: kernelRadius = 1.5f; break; // 3x3
+                    default: break;
+                }
+
                 depthBias *= kernelRadius;
                 normalBias *= kernelRadius;
             }
@@ -245,6 +353,12 @@ namespace UnityEngine.Rendering.Universal
             bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
         }
 
+        /// <summary>
+        /// Sets up the shadow bias, light direction and position for rendering.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="shadowLight"></param>
+        /// <param name="shadowBias"></param>
         public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
@@ -258,17 +372,92 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector("_LightPosition", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
         }
 
-        public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
+        private static RenderTextureDescriptor GetTemporaryShadowTextureDescriptor(int width, int height, int bits)
         {
             var format = Experimental.Rendering.GraphicsFormatUtility.GetDepthStencilFormat(bits, 0);
             RenderTextureDescriptor rtd = new RenderTextureDescriptor(width, height, Experimental.Rendering.GraphicsFormat.None, format);
             rtd.shadowSamplingMode = (RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
-                && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)) ?
+                                      && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)) ?
                 ShadowSamplingMode.CompareDepths : ShadowSamplingMode.None;
+            return rtd;
+        }
+
+        [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded")]
+        public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
+        {
+            var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);
             var shadowTexture = RenderTexture.GetTemporary(rtd);
             shadowTexture.filterMode = m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear;
             shadowTexture.wrapMode = TextureWrapMode.Clamp;
             return shadowTexture;
+        }
+
+        /// <summary>
+        /// Return true if handle does not match the requirements
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null).</param>
+        /// <param name="width">Width of the RTHandle to match.</param>
+        /// <param name="height">Height of the RTHandle to match.</param>
+        /// <param name="bits">Depth bits of the RTHandle to match.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level of the RTHandle to match.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering of the RTHandle to match.</param>
+        /// <param name="name">Name of the RTHandle of the RTHandle to match.</param>
+        /// <returns>If the RTHandle needs to be re-allocated</returns>
+        public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
+        {
+            if (handle == null)
+                return true;
+            var descriptor = GetTemporaryShadowTextureDescriptor(width, height, bits);
+            if (m_ForceShadowPointSampling)
+            {
+                if (handle.rt.filterMode != FilterMode.Point)
+                    return true;
+            }
+            else
+            {
+                if (handle.rt.filterMode != FilterMode.Bilinear)
+                    return true;
+            }
+            return RenderingUtils.RTHandleNeedsReAlloc(handle, descriptor, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, true, anisoLevel, mipMapBias, name, false);
+        }
+
+        /// <summary>
+        /// Allocate a Shadow Map
+        /// </summary>
+        /// <param name="width">Width of the Shadow Map.</param>
+        /// <param name="height">Height of the Shadow Map.</param>
+        /// <param name="bits">Minimum depth bits of the Shadow Map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level of the Shadow Map.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering of the Shadow Map.</param>
+        /// <param name="name">Name of the Shadow Map.</param>
+        /// <returns>If an RTHandle for the Shadow Map</returns>
+        public static RTHandle AllocShadowRT(int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
+        {
+            var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);
+            return RTHandles.Alloc(rtd, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, isShadowMap: true, name: name);
+        }
+
+        /// <summary>
+        /// Allocate a Shadow Map or re-allocate if it doesn't match requirements.
+        /// For use only if the map requirements changes at runtime.
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null).</param>
+        /// <param name="width">Width of the Shadow Map.</param>
+        /// <param name="height">Height of the Shadow Map.</param>
+        /// <param name="bits">Minimum depth bits of the Shadow Map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level of the Shadow Map.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering of the Shadow Map.</param>
+        /// <param name="name">Name of the Shadow Map.</param>
+        /// <returns>If the RTHandle was re-allocated</returns>
+        public static bool ShadowRTReAllocateIfNeeded(ref RTHandle handle, int width, int height, int bits, int anisoLevel = 1, float mipMapBias = 0, string name = "")
+        {
+            if (ShadowRTNeedsReAlloc(handle, width, height, bits, anisoLevel, mipMapBias, name))
+            {
+                handle?.Release();
+                handle = AllocShadowRT(width, height, bits, anisoLevel, mipMapBias, name);
+                return true;
+            }
+            return false;
         }
 
         static Matrix4x4 GetShadowTransform(Matrix4x4 proj, Matrix4x4 view)

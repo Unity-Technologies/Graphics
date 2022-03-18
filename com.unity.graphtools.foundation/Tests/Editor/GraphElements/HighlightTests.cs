@@ -13,19 +13,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
     {
         protected override bool CreateGraphOnStartup => true;
 
-        IEnumerator RunTestFor<M, E>(TypeHandle typeHandle, Func<IVariableDeclarationModel, Vector2, M> creator)
-            where M : IGraphElementModel
-            where E : GraphElement
+        IEnumerator RunTestFor<TModel, TGraphElement>(TypeHandle typeHandle, Func<IVariableDeclarationModel, Vector2, TModel> creator)
+            where TModel : IGraphElementModel
+            where TGraphElement : GraphElement
         {
             var declarationModel = GraphModel.CreateGraphVariableDeclaration(typeHandle, "Foo", ModifierFlags.None, true);
             var model1 = creator(declarationModel, Vector2.zero);
             var model2 = creator(declarationModel, Vector2.one * 50);
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
-            var token1 = model1.GetUI<E>(GraphView);
-            var token2 = model2.GetUI<E>(GraphView);
+            var token1 = model1.GetView<TGraphElement>(GraphView);
+            var token2 = model2.GetView<TGraphElement>(GraphView);
 
             Assert.IsNotNull(token1);
             Assert.IsNotNull(token2);
@@ -43,8 +43,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, model1));
             yield return null;
 
-            token1 = model1.GetUI<E>(GraphView);
-            token2 = model2.GetUI<E>(GraphView);
+            token1 = model1.GetView<TGraphElement>(GraphView);
+            token2 = model2.GetView<TGraphElement>(GraphView);
 
             selectionBorder1 = token1.SafeQ(null, "ge-selection-border");
             selectionBorder2 = token2.SafeQ(null, "ge-selection-border");

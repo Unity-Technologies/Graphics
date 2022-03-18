@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         Auto,
         /// <summary>
-        /// Forces rendering via an intermediate texture. Use this option only for compatibility with Renderer Features that do not declare their inputs with <see cref="ScriptableRenderPass.ConfigureInput"/>. Using this option might have a significant performance impact on some platforms.
+        /// Forces rendering via an intermediate texture if any Render Feature is active. Use this option for compatibility with Renderer Features that do not support rendering directly to backbuffer or RenderFeatures that do not declare their inputs with <see cref="ScriptableRenderPass.ConfigureInput"/>. Using this option might have a significant performance impact on some platforms such as Quest.
         /// </summary>
         Always
     }

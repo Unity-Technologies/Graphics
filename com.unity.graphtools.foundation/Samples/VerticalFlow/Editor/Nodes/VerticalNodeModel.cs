@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -66,8 +67,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
             DefineNode();
         }
 
-        public void RemovePort(PortOrientation orientation, PortDirection direction)
+        public IEnumerable<IEdgeModel> RemovePort(PortOrientation orientation, PortDirection direction)
         {
+            var edgeDiff = new NodeEdgeDiff(this, direction);
+
             if (orientation == PortOrientation.Horizontal)
             {
                 if (direction == PortDirection.Input)
@@ -84,6 +87,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
             }
 
             DefineNode();
+
+            return edgeDiff.GetDeletedEdges();
         }
     }
 }

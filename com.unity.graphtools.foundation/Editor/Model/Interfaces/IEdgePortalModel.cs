@@ -1,3 +1,5 @@
+using UnityEngine.GraphToolsFoundation.Overdrive;
+
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     /// <summary>
@@ -15,6 +17,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <returns>True if we can create an opposite portal for this portal.</returns>
         bool CanCreateOppositePortal();
+
+        /// <summary>
+        /// The type of the portal's port.
+        /// </summary>
+        TypeHandle PortDataTypeHandle { get; }
     }
 
     /// <summary>

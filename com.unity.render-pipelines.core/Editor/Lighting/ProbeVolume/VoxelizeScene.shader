@@ -11,82 +11,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
         Pass
         {
-            Name "Voxelize Mesh"
-
-            Cull Off
-            ColorMask 0
-            ZWrite Off
-            ZClip Off
-
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma target 4.5
-            // #pragma enable_d3d11_debug_symbols
-
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            float4x4 unity_ObjectToWorld;
-
-            RWTexture3D<float>  _Output : register(u4);
-            float3              _OutputSize;
-            float3              _VolumeWorldOffset;
-            float3              _VolumeSize;
-            uint                _AxisSwizzle;
-
-            struct VertexToFragment
-            {
-                float4 vertex : SV_POSITION;
-                float3 cellPos01 : TEXCOORD0;
-            };
-
-            VertexToFragment vert(float4 vertex : POSITION)
-            {
-                VertexToFragment o;
-
-                float3 cellPos = mul(unity_ObjectToWorld, vertex).xyz;
-                cellPos -= _VolumeWorldOffset;
-                o.cellPos01 = (cellPos / _VolumeSize);
-
-                float4 p = float4(cellPos, 1);
-
-                switch (_AxisSwizzle)
-                {
-                    default:
-                    case 0: // top
-                        p.xyz = p.zxy;
-                        break;
-                    case 1: // right
-                        p.xyz = p.yzx;
-                        break;
-                    case 2: // forward
-                        p.xyz = p.xyz;
-                        break;
-                }
-                o.vertex = float4(p.xyz / _VolumeSize, 1);
-
-                // trasnform pos from 0 1 to -1 1
-                o.vertex.xyz = o.vertex.xyz * 2 - 1;
-
-                return o;
-            }
-
-            float4 frag(VertexToFragment i) : COLOR
-            {
-                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
-                    return 0;
-
-                uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
-
-                _Output[pos] = 1;
-
-                return float4(i.cellPos01, 1);
-            }
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Voxelize Terrain"
+            Name "VoxelizeTerrain"
 
             Cull Off
             // ColorMask 0
@@ -94,95 +19,86 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             ZClip Off
 
             HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex TerrainVert
+            #pragma fragment TerrainFrag
             #pragma target 4.5
             // #pragma enable_d3d11_debug_symbols
 
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VoxelizeScene.hlsl"
 
-            float4x4 unity_ObjectToWorld;
-            sampler s_point_clamp_sampler;
+            ENDHLSL
+        }
 
-            RWTexture3D<float>  _Output : register(u4);
-            float3              _OutputSize;
-            float3              _VolumeWorldOffset;
-            float3              _VolumeSize;
-            uint                _AxisSwizzle;
-            TEXTURE2D(_TerrainHeightmapTexture);
-            TEXTURE2D(_TerrainHolesTexture);
-            float4              _TerrainSize;
-            float               _TerrainHeightmapResolution;
+        Pass
+        {
+            Name "VoxelizeMesh"
 
-            struct VertexToFragment
-            {
-                float4 vertex : SV_POSITION;
-                float3 cellPos01 : TEXCOORD0;
-                float2 uv : TEXCOORD1;
-            };
+            Cull Off
+            ColorMask 0
+            ZWrite Off
+            ZClip Off
+            Conservative True
 
-            VertexToFragment vert(uint vertexID : SV_VERTEXID, uint instanceID : SV_InstanceID)
-            {
-                VertexToFragment o;
+            HLSLPROGRAM
+            #pragma vertex ConservativeVertex
+            #pragma geometry ConservativeGeom
+            #pragma fragment ConservativeFrag
+            #pragma target 4.5
+            #pragma require geometry
+            // #pragma enable_d3d11_debug_symbols
 
-                uint quadID = vertexID / 4;
-                uint2 quadPos = uint2(quadID % uint(_TerrainHeightmapResolution), quadID / uint(_TerrainHeightmapResolution));
-                float4 vertex = GetQuadVertexPosition(vertexID % 4);
-                uint2 heightmapLoadPosition = quadPos + vertex.xy;
+            #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VoxelizeScene.hlsl"
+            ENDHLSL
+        }
+    }
 
-                // flip quad to xz axis (default terrain orientation without rotation)
-                vertex = float4(vertex.x, 0, vertex.y, 1);
+    // Fallback subshader for platform that don't support geometry shaders
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" }
+        LOD 100
 
-                // Offset quad to create the plane terrain
-                vertex.xz += (float2(quadPos) / float(_TerrainHeightmapResolution)) * _TerrainSize.xz;
+        HLSLINCLUDE
+        #define EPSILON (1e-10)
+        ENDHLSL
 
-                uint2 id = (quadPos / _TerrainSize.xz) * _TerrainHeightmapResolution;
-                float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(uint3(heightmapLoadPosition, 0)));
-                vertex.y += height * _TerrainSize.y * 2;
+        Pass
+        {
+            Name "VoxelizeTerrain"
 
-                o.uv = heightmapLoadPosition / _TerrainHeightmapResolution;
+            Cull Off
+            // ColorMask 0
+            ZWrite Off
+            ZClip Off
 
-                float3 cellPos = mul(unity_ObjectToWorld, vertex).xyz;
-                cellPos -= _VolumeWorldOffset;
-                o.cellPos01 = (cellPos / _VolumeSize);
+            HLSLPROGRAM
+            #pragma vertex TerrainVert
+            #pragma fragment TerrainFrag
+            #pragma target 4.5
+            // #pragma enable_d3d11_debug_symbols
 
-                float4 p = float4(cellPos, 1);
+            #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VoxelizeScene.hlsl"
 
-                switch (_AxisSwizzle)
-                {
-                    default:
-                    case 0: // top
-                        p.xyz = p.zxy;
-                        break;
-                    case 1: // right
-                        p.xyz = p.yzx;
-                        break;
-                    case 2: // forward
-                        p.xyz = p.xyz;
-                        break;
-                }
-                o.vertex = float4(p.xyz / _VolumeSize, 1);
+            ENDHLSL
+        }
 
-                // trasnform pos between 0 1 to -1 1
-                o.vertex.xyz = o.vertex.xyz * 2 - 1;
+        Pass
+        {
+            Name "VoxelizeMeshFallback"
 
-                return o;
-            }
+            Cull Off
+            ColorMask 0
+            ZWrite Off
+            ZClip Off
 
-            float4 frag(VertexToFragment i) : COLOR
-            {
-                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
-                    return 0;
+            HLSLPROGRAM
+            #pragma vertex MeshVert
+            #pragma fragment MeshFrag
+            #pragma target 4.5
+            // #pragma enable_d3d11_debug_symbols
 
-                // Offset the cellposition with the heightmap
-                float hole = _TerrainHolesTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0));
-                clip(hole == 0.0f ? -1 : 1);
+            #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VoxelizeScene.hlsl"
 
-                uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
-                _Output[pos] = 1;
-
-                return float4(i.cellPos01.xyz, 1);
-            }
             ENDHLSL
         }
     }

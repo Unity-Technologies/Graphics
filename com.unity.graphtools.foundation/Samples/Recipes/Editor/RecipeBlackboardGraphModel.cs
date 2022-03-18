@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 {
@@ -12,7 +11,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 
         public override string GetBlackboardTitle()
         {
-            return AssetModel?.FriendlyScriptName == null ? "Recipe" : AssetModel?.FriendlyScriptName + " Recipe";
+            var title = base.GetBlackboardTitle();
+            if (string.IsNullOrEmpty(title))
+                return "Recipe";
+            return title + " Recipe";
         }
 
         public override string GetBlackboardSubTitle()

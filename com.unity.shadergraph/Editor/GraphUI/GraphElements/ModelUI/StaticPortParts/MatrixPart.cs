@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override VisualElement Root => m_Root;
 
-        public MatrixPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName, int size)
+        public MatrixPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, int size)
             : base(name, model, ownerElement, parentClassName, portName)
         {
             m_Size = size;
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+            m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
                 m_PortName,
                 (GraphType.Length)m_Size,
                 (GraphType.Height)m_Size,

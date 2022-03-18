@@ -20,6 +20,13 @@ struct PathIntersection
     uint2 pixelCoord;
     // Max roughness encountered along the path
     float maxRoughness;
+
+    float2 motionVector;
 };
+
+int GetCurrentDepth(PathIntersection pathIntersection)
+{
+    return _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+}
 
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED

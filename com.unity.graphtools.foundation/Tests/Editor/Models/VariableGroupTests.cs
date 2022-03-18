@@ -5,7 +5,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
 {
-    public class VariableGroupTests : BaseFixture
+    public class VariableGroupTests : BaseFixture<NoUIBlackboardTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
 
@@ -17,6 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             Assert.IsTrue(model.IsCollapsible());
             Assert.IsTrue(model.IsSelectable());
             Assert.IsTrue(model.IsDeletable());
+            Assert.IsTrue(model.IsCopiable());
             Assert.IsTrue(model.IsDroppable());
             Assert.IsTrue(model.IsRenamable());
         }
@@ -31,6 +32,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             Assert.IsTrue(!model.IsDeletable());
             Assert.IsTrue(!model.IsDroppable());
             Assert.IsTrue(!model.IsRenamable());
+            Assert.IsTrue(!model.IsCopiable());
         }
 
         [Test]
@@ -55,6 +57,56 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             Assert.AreEqual(child1, parent.Items[0]);
             Assert.AreEqual(child2, parent.Items[1]);
             Assert.AreEqual(child3, parent.Items[2]);
+        }
+
+        [Test]
+        public void TestVariableGroupCantInsertIntoItself()
+        {
+            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(TestGraphAssetModel));
+            graphAssetModel.CreateGraph("test");
+
+            GroupModel parent = new GroupModel();
+
+            var child1 = new GroupModel();
+
+            parent.InsertItem(child1);
+
+            Assert.AreEqual(child1, parent.Items[0]);
+
+            //try to put the parent into the child
+            var changed = child1.InsertItem(child1);
+
+            Assert.IsFalse(changed.Any());
+            Assert.AreEqual(child1, parent.Items[0]);
+
+
+        }
+
+        [Test]
+        public void TestVariableGroupRecursiveInsertion()
+        {
+            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(TestGraphAssetModel));
+            graphAssetModel.CreateGraph("test");
+
+            GroupModel parent = new GroupModel();
+
+            var child1 = new GroupModel();
+            var child2 = new GroupModel();
+
+            parent.InsertItem(child1);
+            child1.InsertItem(child2);
+
+            Assert.AreEqual(child2, child1.Items[0]);
+            Assert.AreEqual(child1, parent.Items[0]);
+
+            //try to put the parent into the child
+            var changed = child2.InsertItem(child1);
+
+            Assert.IsFalse(changed.Any());
+            Assert.AreEqual(child2, child1.Items[0]);
+            Assert.AreEqual(child1, parent.Items[0]);
+
+
         }
 
         [Test]
@@ -111,6 +163,42 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
                     Assert.AreEqual("Toto", newGroup.Title);
                     Assert.AreEqual(1, newGroup.Items.Count); // The variable declaration
                     Assert.AreEqual(declaration, newGroup.Items[0]);
+                });
+        }
+
+        [Test]
+        public void Test_CreateGroupCommandExpandsParentGroup([Values] TestingMode mode)
+        {
+            (GraphModel as GraphModel)?.CheckGroupConsistency();
+
+            var declaration = GraphModel.CreateGraphVariableDeclaration(typeof(int).GenerateTypeHandle(), "decl0", ModifierFlags.None, true);
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    declaration = GetVariableDeclaration(0);
+                    var rootGroup = GraphModel.GetSectionModel(GraphModel.Stencil.SectionNames.First());
+
+                    using (var bbUpdater = GraphTool.BlackboardViewState.UpdateScope)
+                    {
+                        bbUpdater.SetGroupModelExpanded(rootGroup,false);
+                    }
+
+                    return new BlackboardGroupCreateCommand
+                        (rootGroup, null, "Toto", new[] {declaration});
+                },
+                () =>
+                {
+                    declaration = GetVariableDeclaration(0);
+                    var rootGroup = GraphModel.GetSectionModel(GraphModel.Stencil.SectionNames.First());
+                    Assert.AreEqual(1, rootGroup.Items.Count); // The group
+
+                    var newGroup = rootGroup.Items[0] as IGroupModel;
+                    Assert.NotNull(newGroup);
+                    Assert.AreEqual("Toto", newGroup.Title);
+                    Assert.AreEqual(1, newGroup.Items.Count); // The variable declaration
+                    Assert.AreEqual(declaration, newGroup.Items[0]);
+                    Assert.IsTrue(GraphTool.BlackboardViewState.GetGroupExpanded(newGroup.ParentGroup));
                 });
         }
 

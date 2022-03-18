@@ -22,7 +22,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
         /// <inheritdoc />
         protected override BaseGraphTool CreateGraphTool()
         {
-            return CsoTool.Create<RecipeGraphTool>();
+            return CsoTool.Create<RecipeGraphTool>(WindowID);
         }
 
         protected override GraphView CreateGraphView()

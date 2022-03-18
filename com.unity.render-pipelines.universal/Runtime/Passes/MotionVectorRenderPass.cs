@@ -10,12 +10,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
         const string kPreviousViewProjectionMatrixStero = "_PrevViewProjMStereo";
 #endif
-        const string kMotionVectorTexture = "_MotionVectorTexture";
-        const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
+        internal static readonly GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
         static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
 
-        RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?
+        RTHandle m_Color;
+        RTHandle m_Depth;
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
 
@@ -34,19 +34,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region State
-        internal void Setup(PreviousFrameData frameData)
+        internal void Setup(RTHandle color, RTHandle depth, PreviousFrameData frameData)
         {
             m_MotionData = frameData;
+            m_Color = color;
+            m_Depth = depth;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            var rtd = cameraTextureDescriptor;
-            rtd.graphicsFormat = m_TargetFormat;
-            // Configure Render Target
-            m_MotionVectorHandle.Init(kMotionVectorTexture);
-            cmd.GetTemporaryRT(m_MotionVectorHandle.id, rtd, FilterMode.Point);
-            ConfigureTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
+            cmd.SetGlobalTexture(m_Color.name, m_Color.nameID);
+            cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
+            ConfigureTarget(m_Color, m_Depth);
         }
 
         #endregion
@@ -66,7 +65,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             // Profiling command
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 ExecuteCommand(context, cmd);
@@ -91,8 +90,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 DrawCameraMotionVectors(context, cmd, camera);
                 DrawObjectMotionVectors(context, ref renderingData, camera);
             }
-            ExecuteCommand(context, cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         DrawingSettings GetDrawingSettings(ref RenderingData renderingData)
@@ -132,22 +129,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Draw Renderers
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
-        }
-
-        #endregion
-
-        #region Cleanup
-        public override void FrameCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            // Reset Render Target
-            if (m_MotionVectorHandle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(m_MotionVectorHandle.id);
-                m_MotionVectorHandle = RenderTargetHandle.CameraTarget;
-            }
         }
 
         #endregion

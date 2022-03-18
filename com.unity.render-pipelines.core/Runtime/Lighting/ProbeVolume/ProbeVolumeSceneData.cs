@@ -1,23 +1,20 @@
-using System;
+using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using System.Reflection;
-using System.Linq;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     // Add Profile and baking settings.
-
-    [System.Serializable]
     /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>
+    [System.Serializable]
     public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
         static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
-        string GetSceneGUID(Scene scene)
+        internal string GetSceneGUID(Scene scene)
         {
             Debug.Assert(s_SceneGUID != null, "Reflection for scene GUID failed");
             return (string)s_SceneGUID.GetValue(scene);
@@ -47,8 +44,8 @@ namespace UnityEngine.Experimental.Rendering
         [System.Serializable]
         struct SerializablePVBakeSettings
         {
-            [SerializeField] public string sceneGUID;
-            [SerializeField] public ProbeVolumeBakingProcessSettings settings;
+            public string sceneGUID;
+            public ProbeVolumeBakingProcessSettings settings;
         }
 
         [System.Serializable]
@@ -58,6 +55,28 @@ namespace UnityEngine.Experimental.Rendering
             public List<string> sceneGUIDs = new List<string>();
             public ProbeVolumeBakingProcessSettings settings;
             public ProbeReferenceVolumeProfile profile;
+
+            public List<string> lightingScenarios = new List<string>();
+
+            internal string CreateScenario(string name)
+            {
+                if (lightingScenarios.Contains(name))
+                {
+                    string renamed;
+                    int index = 1;
+                    do
+                        renamed = $"{name} ({index++})";
+                    while (lightingScenarios.Contains(renamed));
+                    name = renamed;
+                }
+                lightingScenarios.Add(name);
+                return name;
+            }
+
+            internal bool RemoveScenario(string name)
+            {
+                return lightingScenarios.Remove(name);
+            }
         }
 
         [SerializeField] List<SerializableBoundItem> serializedBounds;
@@ -76,8 +95,69 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<string, ProbeVolumeBakingProcessSettings> sceneBakingSettings;
         internal List<BakingSet> bakingSets;
 
-        /// <summary>Constructor for ProbeVolumeSceneData. </summary>
-        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
+        [SerializeField] string m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
+        string m_OtherScenario = null;
+        float m_ScenarioBlendingFactor = 0.0f;
+
+        internal string lightingScenario => m_LightingScenario;
+        internal string otherScenario => m_OtherScenario;
+        internal float scenarioBlendingFactor => m_ScenarioBlendingFactor;
+
+        internal void SetActiveScenario(string scenario)
+        {
+            if (m_LightingScenario == scenario && m_ScenarioBlendingFactor == 0.0f)
+                return;
+
+            m_LightingScenario = scenario;
+            m_OtherScenario = null;
+            m_ScenarioBlendingFactor = 0.0f;
+
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+
+            if (ProbeBrickBlendingPool.isInitialized)
+            {
+                // Trigger blending system to replace old cells with the one from the new active scenario.
+                // Although we technically don't need blending for that, it is better than unloading all cells
+                // because it will replace them progressively. There is no real performance cost to using blending
+                // rather than regular load thanks to the bypassBlending branch in AddBlendingBricks.
+                ProbeReferenceVolume.instance.ScenarioBlendingChanged(true);
+            }
+            else
+                ProbeReferenceVolume.instance.UnloadAllCells();
+        }
+
+        internal void BlendLightingScenario(string otherScenario, float blendingFactor)
+        {
+            if (!ProbeBrickBlendingPool.isInitialized)
+            {
+                Debug.LogError("Blending between lighting scenarios is not supported by this render pipeline.");
+                return;
+            }
+
+            blendingFactor = Mathf.Clamp01(blendingFactor);
+
+            if (otherScenario == m_LightingScenario)
+                otherScenario = null;
+            if (otherScenario == null)
+                blendingFactor = 0.0f;
+            if (otherScenario == m_OtherScenario && Mathf.Approximately(blendingFactor, m_ScenarioBlendingFactor))
+                return;
+
+            bool requestUnloading = otherScenario != m_OtherScenario;
+            m_OtherScenario = otherScenario;
+            m_ScenarioBlendingFactor = blendingFactor;
+
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+
+            ProbeReferenceVolume.instance.ScenarioBlendingChanged(requestUnloading);
+        }
+
+        /// <summary>
+        /// Constructor for ProbeVolumeSceneData.
+        /// </summary>
+        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed.</param>
         /// <param name="parentSceneDataPropertyName">The name of the property holding the ProbeVolumeSceneData in the parentAsset.</param>
         public ProbeVolumeSceneData(Object parentAsset, string parentSceneDataPropertyName)
         {
@@ -98,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
-        /// <param name="parentAsset">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
+        /// <param name="parent">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
         /// <param name="parentSceneDataPropertyName">The name of the property holding the ProbeVolumeSceneData in the parentAsset.</param>
         public void SetParentObject(Object parent, string parentSceneDataPropertyName)
         {
@@ -143,8 +223,16 @@ namespace UnityEngine.Experimental.Rendering
                 sceneBakingSettings.Add(settingsItem.sceneGUID, settingsItem.settings);
             }
 
+            if (string.IsNullOrEmpty(m_LightingScenario))
+                m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
+
             foreach (var set in serializedBakingSets)
+            {
+                // Ensure baking set settings are up to date
+                set.settings.Upgrade();
+
                 bakingSets.Add(set);
+            }
         }
 
         // This function must not be called during the serialization (because of asset creation)
@@ -155,6 +243,8 @@ namespace UnityEngine.Experimental.Rendering
                 // Small migration code to ensure that old sets have correct settings
                 if (set.profile == null)
                     InitializeBakingSet(set, set.name);
+                if (set.lightingScenarios.Count == 0)
+                    InitializeScenarios(set);
             }
 
             // Initialize baking set in case it's empty:
@@ -239,23 +329,14 @@ namespace UnityEngine.Experimental.Rendering
 
             set.name = name;
             set.profile = newProfile;
-            set.settings = new ProbeVolumeBakingProcessSettings
-            {
-                dilationSettings = new ProbeDilationSettings
-                {
-                    enableDilation = true,
-                    dilationDistance = 1,
-                    dilationValidityThreshold = 0.25f,
-                    dilationIterations = 1,
-                    squaredDistWeighting = true,
-                },
-                virtualOffsetSettings = new VirtualOffsetSettings
-                {
-                    useVirtualOffset = true,
-                    outOfGeoOffset = 0.01f,
-                    searchMultiplier = 0.2f,
-                }
-            };
+            set.settings = ProbeVolumeBakingProcessSettings.Default;
+
+            InitializeScenarios(set);
+        }
+
+        void InitializeScenarios(BakingSet set)
+        {
+            set.lightingScenarios = new List<string>() { ProbeReferenceVolume.defaultLightingScenario };
         }
 
         internal void SyncBakingSetSettings()
@@ -412,7 +493,7 @@ namespace UnityEngine.Experimental.Rendering
             var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
             foreach (var volume in volumes)
             {
-                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID)
+                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID && volume.isActiveAndEnabled)
                 {
                     hasProbeVolumes[sceneGUID] = true;
                     return;
@@ -428,14 +509,13 @@ namespace UnityEngine.Experimental.Rendering
 
             if (hasProbeVolumes.ContainsKey(sceneGUID) && hasProbeVolumes[sceneGUID])
             {
-                var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-
                 bool foundPerSceneData = false;
-                foreach (var data in perSceneData)
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 {
                     if (GetSceneGUID(data.gameObject.scene) == sceneGUID)
                     {
                         foundPerSceneData = true;
+                        break;
                     }
                 }
 
@@ -502,11 +582,7 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneBakingSettings == null) sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
 
             var sceneGUID = GetSceneGUID(scene);
-
-            ProbeVolumeBakingProcessSettings settings = new ProbeVolumeBakingProcessSettings();
-            settings.dilationSettings = dilationSettings;
-            settings.virtualOffsetSettings = virtualOffsetSettings;
-            sceneBakingSettings[sceneGUID] = settings;
+            sceneBakingSettings[sceneGUID] = new ProbeVolumeBakingProcessSettings(dilationSettings, virtualOffsetSettings);
         }
 
         internal ProbeReferenceVolumeProfile GetProfileForScene(Scene scene)
@@ -530,7 +606,7 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneBakingSettings != null && sceneBakingSettings.ContainsKey(sceneGUID))
                 return sceneBakingSettings[sceneGUID];
 
-            return new ProbeVolumeBakingProcessSettings();
+            return ProbeVolumeBakingProcessSettings.Default;
         }
 
         // This is sub-optimal, but because is called once when kicking off a bake

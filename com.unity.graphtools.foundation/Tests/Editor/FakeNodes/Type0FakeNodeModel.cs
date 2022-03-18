@@ -1,6 +1,5 @@
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
@@ -8,15 +7,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
     [Serializable]
     class Type0FakeNodeModel : NodeModel, IFakeNode
     {
-        public static void AddToSearcherDatabase(IGraphModel graphModel, GraphElementSearcherDatabase db)
+        public static void AddToSearcherDatabase(GraphElementSearcherDatabase db)
         {
-            SearcherItem parent = db.Items.GetItemFromPath("Fake");
-
-            parent.AddChild(new GraphNodeModelSearcherItem(graphModel,
+            db.Items.Add(new GraphNodeModelSearcherItem(nameof(Type0FakeNodeModel),
                 new NodeSearcherItemData(typeof(Type0FakeNodeModel)),
-                data => data.CreateNode<Type0FakeNodeModel>(),
-                nameof(Type0FakeNodeModel)
-            ));
+                data => data.CreateNode<Type0FakeNodeModel>())
+            {
+                CategoryPath = "Fake"
+            });
         }
 
         public IPortModel ExeInput0 { get; private set; }

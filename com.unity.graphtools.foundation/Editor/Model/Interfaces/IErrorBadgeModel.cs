@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     /// <summary>
@@ -5,6 +7,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public interface IErrorBadgeModel : IBadgeModel
     {
+        LogType ErrorType { get; }
+
         /// <summary>
         /// The error message to display.
         /// </summary>

@@ -865,16 +865,16 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             get
             {
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH || UNITY_EDITOR
+#if !UNITY_2019_3_OR_NEWER && (UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_EDITOR)
                 RenderTextureFormat format = RenderTextureFormat.RGB111110Float;
 #if UNITY_EDITOR
                 var target = EditorUserBuildSettings.activeBuildTarget;
-                if (target != BuildTarget.Android && target != BuildTarget.iOS && target != BuildTarget.tvOS && target != BuildTarget.Switch)
+                if (target != BuildTarget.Android && target != BuildTarget.iOS && target != BuildTarget.tvOS)
                     return RenderTextureFormat.DefaultHDR;
 #endif // UNITY_EDITOR
                 if (format.IsSupported())
                     return format;
-#endif // UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH || UNITY_EDITOR
+#endif // #if !UNITY_2019_3_OR_NEWER && (UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_EDITOR)
                 return RenderTextureFormat.DefaultHDR;
             }
         }

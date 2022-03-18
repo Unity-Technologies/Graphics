@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -31,7 +30,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             GraphModel.CreateEdge(binary0.Input0, constantA.OutputPort);
             GraphModel.CreateEdge(binary1.Input0, binary0.Output0);
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             void RefreshModelReferences()
@@ -53,15 +52,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                     Assert.That(binary0.Input0, Is.ConnectedTo(constantA.OutputPort));
                     Assert.That(binary1.Input0, Is.ConnectedTo(binary0.Output0));
 
-                    var port0UI = binary0.Output0.GetUI<Port>(GraphView);
+                    var port0UI = binary0.Output0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port0UI);
-                    var port1UI = binary1.Input0.GetUI<Port>(GraphView);
+                    var port1UI = binary1.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port1UI);
                     Assert.AreNotEqual(GetPortY(port0UI), GetPortY(port1UI));
 
-                    var port2UI = constantA.OutputPort.GetUI<Port>(GraphView);
+                    var port2UI = constantA.OutputPort.GetView<Port>(GraphView);
                     Assert.IsNotNull(port2UI);
-                    var port3UI = binary0.Input0.GetUI<Port>(GraphView);
+                    var port3UI = binary0.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port3UI);
                     Assert.AreNotEqual(GetPortY(port2UI), GetPortY(port3UI));
                 },
@@ -80,15 +79,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                 {
                     RefreshModelReferences();
 
-                    var port0UI = binary0.Output0.GetUI<Port>(GraphView);
+                    var port0UI = binary0.Output0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port0UI);
-                    var port1UI = binary1.Input0.GetUI<Port>(GraphView);
+                    var port1UI = binary1.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port1UI);
                     Assert.AreEqual(GetPortY(port0UI), GetPortY(port1UI), k_AcceptablePortDelta);
 
-                    var port2UI = constantA.OutputPort.GetUI<Port>(GraphView);
+                    var port2UI = constantA.OutputPort.GetView<Port>(GraphView);
                     Assert.IsNotNull(port2UI);
-                    var port3UI = binary0.Input0.GetUI<Port>(GraphView);
+                    var port3UI = binary0.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port3UI);
                     Assert.AreNotEqual(GetPortY(port2UI), GetPortY(port3UI));
                 });
@@ -103,7 +102,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             GraphModel.CreateEdge(binary0.Input0, constantA.OutputPort);
             GraphModel.CreateEdge(binary1.Input0, binary0.Output0);
 
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             void RefreshModelReferences()
@@ -125,15 +124,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                     Assert.That(binary0.Input0, Is.ConnectedTo(constantA.OutputPort));
                     Assert.That(binary1.Input0, Is.ConnectedTo(binary0.Output0));
 
-                    var port0UI = binary0.Output0.GetUI<Port>(GraphView);
+                    var port0UI = binary0.Output0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port0UI);
-                    var port1UI = binary1.Input0.GetUI<Port>(GraphView);
+                    var port1UI = binary1.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port1UI);
                     Assert.AreNotEqual(GetPortY(port0UI), GetPortY(port1UI));
 
-                    var port2UI = constantA.OutputPort.GetUI<Port>(GraphView);
+                    var port2UI = constantA.OutputPort.GetView<Port>(GraphView);
                     Assert.IsNotNull(port2UI);
-                    var port3UI = binary0.Input0.GetUI<Port>(GraphView);
+                    var port3UI = binary0.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port3UI);
                     Assert.AreNotEqual(GetPortY(port2UI), GetPortY(port3UI));
                 },
@@ -152,15 +151,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                 {
                     RefreshModelReferences();
 
-                    var port0UI = binary0.Output0.GetUI<Port>(GraphView);
+                    var port0UI = binary0.Output0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port0UI);
-                    var port1UI = binary1.Input0.GetUI<Port>(GraphView);
+                    var port1UI = binary1.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port1UI);
                     Assert.AreEqual(GetPortY(port0UI), GetPortY(port1UI), k_AcceptablePortDelta);
 
-                    var port2UI = constantA.OutputPort.GetUI<Port>(GraphView);
+                    var port2UI = constantA.OutputPort.GetView<Port>(GraphView);
                     Assert.IsNotNull(port2UI);
-                    var port3UI = binary0.Input0.GetUI<Port>(GraphView);
+                    var port3UI = binary0.Input0.GetView<Port>(GraphView);
                     Assert.IsNotNull(port3UI);
                     Assert.AreEqual(GetPortY(port2UI), GetPortY(port3UI), k_AcceptablePortDelta);
                 });
@@ -198,7 +197,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         [UnityTest]
         public IEnumerator ConvertVariableNodesToConstantNodesCommandWorks([Values] TestingMode mode)
         {
-            var vdm = GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "blah", ModifierFlags.ReadOnly, false);
+            var vdm = GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "blah", ModifierFlags.Read, false);
             var variable = GraphModel.CreateVariableNode(vdm, Vector2.zero);
 
             yield return TestPrereqCommandPostreq(mode,

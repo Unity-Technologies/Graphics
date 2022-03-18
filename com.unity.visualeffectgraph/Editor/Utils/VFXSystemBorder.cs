@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.UI
 
             m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
 
-            m_TitleField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(OnTitleBlur);
+            m_TitleField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(OnTitleBlur, TrickleDown.TrickleDown);
             m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 

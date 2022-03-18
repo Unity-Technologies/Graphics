@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void BuildPartList()
         {
             base.BuildPartList();
-            PartList.AppendPart(new ConnectionInfoPart(InfoTextPartName, Model, this, ussClassName));
+            PartList.AppendPart(new ConnectionInfoPart(InfoTextPartName, GraphElementModel, this, ussClassName));
         }
     }
 }

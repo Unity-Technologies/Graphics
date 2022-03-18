@@ -12,21 +12,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         [SerializeReference]
         IGraphModel m_GraphModel;
 
-        [SerializeField]
-        GraphAssetType m_GraphAssetType;
-
         /// <inheritdoc />
         public bool Dirty
         {
             get;
             set;
-        }
-
-        /// <inheritdoc />
-        public GraphAssetType GraphAssetType
-        {
-            get => m_GraphAssetType;
-            set => m_GraphAssetType = value;
         }
 
         /// <inheritdoc />
@@ -40,7 +30,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         }
 
         /// <inheritdoc />
-        public string FriendlyScriptName => Name.CodifyStringInternal();
+        public string FriendlyScriptName => Name?.CodifyStringInternal() ?? "";
 
         /// <summary>
         /// The type of the graph model.
@@ -48,7 +38,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         protected abstract Type GraphModelType { get; }
 
         /// <inheritdoc />
-        public void CreateGraph(string graphName, Type stencilType = null, bool markAssetDirty = true, GraphAssetType graphAssetType = GraphAssetType.AssetGraph)
+        public virtual bool IsContainerGraph() => false;
+
+        /// <inheritdoc />
+        public virtual bool CanBeSubgraph() => !IsContainerGraph();
+
+        /// <inheritdoc />
+        public void CreateGraph(string graphName, Type stencilType = null, bool markAssetDirty = true)
         {
             Debug.Assert(typeof(IGraphModel).IsAssignableFrom(GraphModelType));
             var graphModel = (IGraphModel)Activator.CreateInstance(GraphModelType);
@@ -61,7 +57,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             graphModel.AssetModel = this;
             m_GraphModel = graphModel;
-            m_GraphAssetType = graphAssetType;
 
             graphModel.OnEnable();
 

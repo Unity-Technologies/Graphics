@@ -10,12 +10,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public SphericalHarmonicsL2 ambientProbe => m_AmbientProbe;
 
         public ComputeBuffer ambientProbeResult { get; private set; }
+        public ComputeBuffer diffuseAmbientProbeBuffer { get; private set; }
+        public ComputeBuffer volumetricAmbientProbeBuffer { get; private set; }
         public RTHandle skyboxCubemapRT { get; private set; }
         public CubemapArray skyboxBSDFCubemapArray { get; private set; }
         public bool supportsConvolution { get; private set; } = false;
 
         internal bool ambientProbeIsReady = false;
-        public bool computeAmbientProbeRequested = false;
 
         public SkyRenderingContext(int resolution, int bsdfCount, bool supportsConvolution, SphericalHarmonicsL2 ambientProbe, string name)
         {
@@ -24,6 +25,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Compute buffer storing the resulting SH from diffuse convolution. L2 SH => 9 float per component.
             ambientProbeResult = new ComputeBuffer(27, 4);
+            // Buffer is stored packed to be used directly by shader code (27 coeffs in 7 float4)
+            // Compute buffer storing the pre-convolved resulting SH For volumetric lighting. L2 SH => 9 float per component.
+            volumetricAmbientProbeBuffer = new ComputeBuffer(7, 16);
+            // Compute buffer storing the diffuse convolution SH For diffuse ambient lighting. L2 SH => 9 float per component.
+            diffuseAmbientProbeBuffer = new ComputeBuffer(7, 16);
 
             skyboxCubemapRT = RTHandles.Alloc(resolution, resolution, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Cube, useMipMap: true, autoGenerateMips: false, filterMode: FilterMode.Trilinear, name: name);
 
@@ -44,7 +50,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Reset()
         {
             ambientProbeIsReady = false;
-            computeAmbientProbeRequested = false;
         }
 
         public void Cleanup()
@@ -56,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ambientProbeResult.Release();
+            diffuseAmbientProbeBuffer.Release();
+            volumetricAmbientProbeBuffer.Release();
         }
 
         public void ClearAmbientProbe()

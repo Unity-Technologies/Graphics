@@ -9,8 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     {
         static readonly GUIContent k_LockMenuGUIContent = new GUIContent("Lock");
 
-        [HideInInspector]
-        public LockStateEvent lockStateChanged = new LockStateEvent();
+        internal LockStateEvent lockStateChanged = new LockStateEvent();
 
         [HideInInspector]
         [SerializeField]

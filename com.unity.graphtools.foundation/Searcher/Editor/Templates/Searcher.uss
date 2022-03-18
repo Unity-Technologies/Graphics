@@ -1,7 +1,12 @@
+.item-library-theme {
+    --item-library-border-color: var(--unity-colors-default-border);
+    --searcher-preview-toggle-background-color: var(--unity-colors-button-background-hover);
+    --item-library-status-text-color: var(--unity-colors-helpbox-text);
+}
+
 #windowContainer {
     flex: 1;
     flex-direction: column;
-    border-width: 1px;
 }
 
 #windowMainVisualContainer {
@@ -10,9 +15,10 @@
 }
 
 #windowHeaderContainer {
-    border-width: 1px;
     padding: 6px;
     padding-bottom: 10px;
+    border-bottom-width: 1px;
+    border-color: var(--unity-colors-window-border);
 }
 
 #splitter
@@ -40,44 +46,62 @@
 }
 
 #windowTitleLabel {
+    flex: 1 1 auto;
     font-size: 14px;
     -unity-font-style: bold;
     margin-bottom: 5px;
+    overflow: hidden;
+}
+
+.unity-item-library-preview-toggle {
+    padding: 0 3px 0 3px;
+    margin: 0 0 4px -3px; /* compensate for padding with negative margin so that title can overlap up to the icon */
+    /* [Long Titl[ <> ]] when hovered becomes [Long Title <> ] when not hovered */
+    border-radius: 3px;
+}
+
+.unity-item-library-preview-toggle .unity-toggle__checkmark {
+    background-image: var(--toggle-searcher-preview-on-image);
+    margin: 0;
+}
+
+.unity-item-library-preview-toggle:hover {
+    background-color: var(--searcher-preview-toggle-background-color);
+}
+
+.unity-item-library-preview-toggle--checked .unity-toggle__checkmark {
+    background-image: var(--toggle-searcher-preview-off-image);
 }
 
 #windowSearchBoxVisualContainer {
     height: 21px;
     border-radius: 6px;
     border-width: 1px;
+    width: initial;
+    border-color: var(--theme-input-border-focus-color);
+    overflow: hidden;
 }
 
 #searchIcon {
     width: 10px;
     height: 10px;
-    top: 4px;
-    left: 4px;
+    margin-left: 4px;
     margin-right: 2px;
+    background-image: var(--unity-icons-search);
 }
 
-#autoCompleteLabel {
-    position: absolute;
-    background-image: none;
-    top: 3px;
-    left: 18px;
-    font-size: 12px;
-    -unity-text-align: middle-left;
-}
-
+#autoCompleteLabel,
 #searchPlaceholderLabel {
     position: absolute;
     background-image: none;
-    top: 4px;
-    left: 23px;
-    font-size: 9px;
+    top: 2px;
+    left: 17px;
+    font-size: 12px;
     -unity-text-align: middle-left;
+    color: var(--search-placeholder-text-color);
 }
 
-.searchPlaceholderLabel__hidden {
+.searchPlaceholderLabel--hidden {
     display: none;
 }
 
@@ -93,10 +117,8 @@
 }
 
 #searchBox .unity-base-field__input {
-    top: 2px;
-    font-size: 12px;
-    -unity-text-align: middle-left;
-    background-image: none;
+    border-width: 0;
+    background-color: initial;
 }
 
 #windowSelectionVisualContainer {
@@ -118,7 +140,7 @@
     margin-left: 2px;
 }
 
-.unity-list-view > * #labelsContainer > .unity-label {
+.unity-item-library-item__name-label {
     margin-left: 0px;
     margin-right: 0;
     padding-left: 0;
@@ -126,14 +148,6 @@
     font-size: 13px;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.unity-list-view > * #itemIconVisualElement {
-    height: 16px;
-    width: 16px;
-    margin-left: 2px;
-    margin-right: 2px;
-    display: none;
 }
 
 #itemToggle {
@@ -180,26 +194,60 @@
     align-items: center;
 }
 
-.unity-list-view > *.Category #textLabel {
-    font-size: 12px;
+.unity-item-library-item__path-label {
+    margin-left: 4px;
+    opacity: 0.5;
 }
 
 #windowDetailsVisualContainer {
     flex: 1;
-    border-left-width: 4px;
     padding: 8px;
+    border-left-width: 1px;
+    border-left-color: var(--item-library-border-color);
 }
 
 #windowDetailsVisualContainer.hidden {
     display:none;
 }
 
+.unity-item-library-item__collapse-button {
+    background-image: var(--unity-icons-foldout-checked_pressed);
+}
+
+.unity-item-library-item__collapse-button--collapsed {
+    background-image: var(--unity-icons-foldout-pressed);
+}
+
+.unity-item-library-item:hover .unity-item-library-item__favorite-button,
+.unity-item-library-item:hover .unity-item-library-item__favorite-button.favorite:hover {
+    background-image: var(--favorite-disabled-image);
+}
+
+.unity-item-library-item__icon {
+    height: 16px;
+    width: 16px;
+    margin-left: 2px;
+    margin-right: 2px;
+    display: flex;
+}
+
+.unity-item-library-item__favorite-button.favorite,
+.unity-item-library-item:hover .unity-item-library-item__favorite-button:hover,
+.unity-item-library-item:hover .unity-item-library-item__favorite-button.favorite,
+.item-library-custom-item-favorite-category__icon {
+    background-image: var(--favorite-enabled-image);
+}
+
 .unity-label__searcher-details-title {
     font-size: 14px;
     -unity-font-style: bold;
     margin-bottom: 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+.unity-label__searcher-details-subtitle {
+    font-size: 12px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
 }
 
 .unity-label__searcher-details-text {
@@ -207,12 +255,14 @@
     white-space: normal;
     flex-direction: column;
     margin-top: 2px;
+    margin-bottom: 5px;
 }
 
 #windowBottom {
     border-top-width: 1px;
     flex-direction: row;
     justify-content: space-between;
+    border-color: var(--item-library-border-color);
 }
 
 #statusLabel {
@@ -220,13 +270,24 @@
     padding-top: 6px;
     height: 22px;
     font-size: 9px;
+    color: var(--item-library-status-text-color);
+    overflow: hidden;
+    flex: 1 1 auto;
 }
 
 #windowResizer {
-    margin-right: 1px;
-    margin-bottom: 1px;
-    margin-top: auto;
+    align-self: flex-end;
     cursor: resize-up-left;
     width: 12px;
     height: 12px;
+    margin-left: -4px; /* allows the status text to overlap on the invisible part of the icon */
+    background-image: var(--window-resizer-image);
+}
+
+.unity-item-library-item__favorite-button {
+    width: 15px;
+    height: 15px;
+    background-image: none;
+    position: absolute;
+    right: 18px;
 }

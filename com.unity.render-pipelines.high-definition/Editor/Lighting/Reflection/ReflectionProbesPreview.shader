@@ -22,12 +22,14 @@ Shader "Hidden/Debug/ReflectionProbePreview"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             #pragma editor_sync_compilation
 
             #pragma vertex vert
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             struct appdata
@@ -45,6 +47,7 @@ Shader "Hidden/Debug/ReflectionProbePreview"
 
             TEXTURECUBE(_Cubemap);
             SAMPLER(sampler_Cubemap);
+            float4 _Cubemap_HDR;
 
             float3 _CameraWorldPosition;
             float _MipLevel;
@@ -67,6 +70,7 @@ Shader "Hidden/Debug/ReflectionProbePreview"
                 float3 V = normalize(i.positionWS - GetPrimaryCameraPosition());
                 float3 R = reflect(V, i.normalWS);
                 float4 color = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, R, _MipLevel).rgba;
+                color.rgb = DecodeHDREnvironment(color, _Cubemap_HDR);
                 color = color * exp2(_Exposure) * GetCurrentExposureMultiplier();
 
                 return float4(color);

@@ -7,9 +7,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public enum ModifierFlags
     {
         None = 0,
-        ReadOnly = 1 << 0,
-        WriteOnly = 1 << 1,
-        ReadWrite = 1 << 2,
+        Read = 1 << 0,
+        Write = 1 << 1,
+        ReadWrite = Read | Write,
     }
 
     /// <summary>
@@ -52,5 +52,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Sets the <see cref="InitializationModel"/> to a new value.
         /// </summary>
         void CreateInitializationValue();
+
+        /// <summary>
+        /// Returns if this variable is used in the graph, it won't be selected when select unused is dispatched.
+        /// </summary>
+        /// <returns>If this variable is used in the graph, it won't be selected when select unused is dispatched.</returns>
+        bool IsUsed();
     }
 }

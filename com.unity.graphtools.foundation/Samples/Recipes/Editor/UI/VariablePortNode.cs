@@ -17,12 +17,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
             if (evt.menu.MenuItems().Count > 0)
                 evt.menu.AppendSeparator();
 
-            evt.menu.AppendAction($"Add Ingredient", action: action =>
+            evt.menu.AppendAction($"Add Ingredient", action: _ =>
             {
                 GraphView.Dispatch(new AddPortCommand(new[] { mixNodeModel }));
             });
 
-            evt.menu.AppendAction($"Remove Ingredient", action: action =>
+            evt.menu.AppendAction($"Remove Ingredient", action: _ =>
             {
                 GraphView.Dispatch(new RemovePortCommand(new[] { mixNodeModel }));
             });

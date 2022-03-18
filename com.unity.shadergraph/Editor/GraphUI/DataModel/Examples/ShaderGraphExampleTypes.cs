@@ -216,6 +216,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
             this.portName = portName;
         }
 
+        public void Initialize(TypeHandle constantTypeHandle)
+        {
+
+        }
+
+        public IConstant Clone()
+        {
+            return null;
+        }
+
+        public TypeHandle GetTypeHandle()
+        {
+            switch (GetLength())
+            {
+                case 1:
+                    switch (GetPrimitive())
+                    {
+                        case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
+                        case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
+                        default: return TypeHandle.Float;
+                    }
+                case 2: return TypeHandle.Vector2;
+                case 3: return TypeHandle.Vector3;
+                default: return TypeHandle.Vector4;
+            }
+        }
+
         public object ObjectValue
         {
             get
@@ -303,6 +330,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             this.portName = portName;
         }
 
+        public void Initialize(TypeHandle constantTypeHandle)
+        {
+
+        }
+
+        public IConstant Clone()
+        {
+            return null;
+        }
+
+        public TypeHandle GetTypeHandle() => ShaderGraphExampleTypes.GradientTypeHandle;
+
         public object ObjectValue
         {
             get => IsInitialized ? Registry.Types.GradientTypeHelpers.GetGradient(GetFieldReader()) : DefaultValue;
@@ -326,14 +365,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var editor = new GradientField();
             editor.AddToClassList("sg-gradient-constant-field");
             editor.AddStylesheet("ConstantEditors.uss");
-            editor.RegisterValueChangedCallback(change => builder.OnValueChanged(change));
-
+            editor.RegisterValueChangedCallback(change => builder.OnValueChanged(change)); // I guess this is supposed to be a CSO command instead?
             return editor;
         }
 
         public static VisualElement BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
         {
-            if (builder.PortModel is not GraphDataPortModel graphDataPort)
+            if (builder.ConstantOwner is not GraphDataPortModel graphDataPort)
                 return builder.BuildDefaultConstantEditor(constant);
 
             var length = constant.GetLength();

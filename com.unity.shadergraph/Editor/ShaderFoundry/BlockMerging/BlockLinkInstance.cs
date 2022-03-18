@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -9,18 +8,18 @@ namespace UnityEditor.ShaderFoundry
         ShaderContainer container;
         BlockInstance blockInstance;
         Block block;
-        List<BlockVariableLinkInstance> properties = new List<BlockVariableLinkInstance>();
 
         internal ShaderContainer Container => container;
         internal BlockInstance BlockInstance => blockInstance;
         internal Block Block => block;
-        internal BlockVariableLinkInstance InputInstance { get; set; } = new BlockVariableLinkInstance();
-        internal BlockVariableLinkInstance OutputInstance { get; set; } = new BlockVariableLinkInstance();
-        internal IEnumerable<BlockVariableLinkInstance> Properties => properties;
+        internal VariableLinkInstance InputInstance { get; set; } = new VariableLinkInstance();
+        internal VariableLinkInstance OutputInstance { get; set; } = new VariableLinkInstance();
 
         internal BlockLinkInstance(ShaderContainer container)
         {
             this.container = container;
+            this.InputInstance.Container = container;
+            this.OutputInstance.Container = container;
         }
 
         internal BlockLinkInstance(ShaderContainer container, BlockInstance blockInstance)
@@ -34,7 +33,7 @@ namespace UnityEditor.ShaderFoundry
             this.blockInstance = blockInstance;
             this.block = blockInstance.Block;
 
-            if(!block.EntryPointFunction.GetInOutTypes(out var inType, out var outType))
+            if (!block.EntryPointFunction.GetInOutTypes(out var inType, out var outType))
             {
                 throw new System.Exception($"Block {block.Name} doesn't have a valid entry point function");
             }
@@ -43,27 +42,14 @@ namespace UnityEditor.ShaderFoundry
             OutputInstance = CreateVariableInstance(outType, block.Outputs);
         }
 
-        BlockVariableLinkInstance CreateVariableInstance(ShaderType type, IEnumerable<BlockVariable> variables)
+        VariableLinkInstance CreateVariableInstance(ShaderType type, IEnumerable<BlockVariable> variables)
         {
             string name = type.Name;
-            var instance = BlockVariableLinkInstance.Construct(type, name.ToLower(), name, null, null);
+            var instance = new VariableLinkInstance { Type = type, Name = name.ToLower(), Container = type.Container };
             // Extract all of the variables into instances
             foreach (var variable in variables)
-            {
-                var subInstance = BlockVariableLinkInstance.Construct(variable, instance, variable.Attributes);
-                instance.AddField(subInstance);
-            }
+                instance.CreateSubField(variable.Type, variable.Name, variable.Attributes);
             return instance;
-        }
-
-        internal void AddProperty(BlockVariableLinkInstance prop)
-        {
-            properties.Add(prop);
-        }
-
-        internal BlockVariableLinkInstance FindProperty(string referenceName)
-        {
-            return properties.Find((p) => (p.ReferenceName == referenceName));
         }
     }
 }

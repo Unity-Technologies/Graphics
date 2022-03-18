@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Local Volumetric Fog. This is independent of the Transform's Scale.");
             public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "The color this fog scatters light to.");
             public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
-            public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture", "The fog Texture for the Density Mask. Generate this Texture type using the Local Volumetric Fog Texture Tool.");
+            public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture", "The fog Texture for the Density Mask.");
             public static readonly GUIContent s_TextureScrollLabel = new GUIContent("Scroll Speed", "Modify the speed for each axis at which HDRP scrolls the fog Texture.");
             public static readonly GUIContent s_TextureTileLabel = new GUIContent("Tiling", "Modify the tiling of the fog Texture on each axis individually.");
             public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the fog fades in completely.");
@@ -26,8 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_FalloffMode = new GUIContent("Falloff Mode", "When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.");
             public static readonly GUIContent s_ManipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separately. This also include fading options.");
 
-            public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
-            public static readonly GUIContent s_DistanceFadeEndLabel = new GUIContent("Distance Fade End");
+            public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start", "Sets the distance from the Camera where Local Volumetric Fog starts to fade out.");
+            public static readonly GUIContent s_DistanceFadeEndLabel = new GUIContent("Distance Fade End", "Sets the distance from the Camera where Local Volumetric Fog is completely faded out.");
 
             public static readonly Color k_GizmoColorBase = new Color(180 / 255f, 180 / 255f, 180 / 255f, 8 / 255f).gamma;
 

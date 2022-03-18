@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels;
@@ -40,24 +41,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             var edgeModel = startPort.GetConnectedEdges().First();
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, edgeModel, secondNodeModel));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, edgeModel, secondNodeModel));
 
-            Assert.AreEqual(0.0, graphView.ContentViewContainer.transform.position.x);
-            Assert.AreEqual(0.0, graphView.ContentViewContainer.transform.position.y);
+            Assert.AreEqual(0.0, GraphView.ContentViewContainer.transform.position.x);
+            Assert.AreEqual(0.0, GraphView.ContentViewContainer.transform.position.y);
 
-            graphView.DispatchFrameSelectionCommand();
+            GraphView.DispatchFrameSelectionCommand();
             yield return null;
 
-            Assert.LessOrEqual(graphView.ContentViewContainer.transform.position.x, -firstNodePosition.x / 2);
-            Assert.LessOrEqual(graphView.ContentViewContainer.transform.position.y, -firstNodePosition.y / 2);
+            Assert.LessOrEqual(GraphView.ContentViewContainer.transform.position.x, -firstNodePosition.x / 2);
+            Assert.LessOrEqual(GraphView.ContentViewContainer.transform.position.y, -firstNodePosition.y / 2);
         }
 
+        [SuppressMessage("ReSharper", "AccessToStaticMemberViaDerivedType")]
         void AssertSingleSelectedElementTypeAndName(Type modelType, string name)
         {
-            Assert.That(graphView.GetSelection().Count, NUnit.Framework.Is.EqualTo(1));
-            Assert.That(graphView.GetSelection().First(), NUnit.Framework.Is.AssignableTo(typeof(INodeModel)));
-            Assert.That(graphView.GetSelection().First(), NUnit.Framework.Is.AssignableTo(modelType));
-            Assert.That((graphView.GetSelection().First() as IHasTitle)?.Title, NUnit.Framework.Is.EqualTo(name));
+            Assert.That(GraphView.GetSelection().Count, Is.EqualTo(1));
+            Assert.That(GraphView.GetSelection().First(), Is.AssignableTo(typeof(INodeModel)));
+            Assert.That(GraphView.GetSelection().First(), Is.AssignableTo(modelType));
+            Assert.That((GraphView.GetSelection().First() as IHasTitle)?.Title, Is.EqualTo(name));
         }
 
         [Test]
@@ -68,32 +70,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             CreateNode<FooNode>("N2", Vector2.zero);
             CreateNode<FooNode>("N3", Vector2.zero);
 
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, GraphModel.GraphElementModels.First()));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, GraphModel.NodeModels.First()));
 
-            graphView.DispatchFrameNextCommand(e => true);
+            GraphView.DispatchFrameNextCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N1");
 
-            graphView.DispatchFrameNextCommand(e => true);
+            GraphView.DispatchFrameNextCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N2");
 
-            graphView.DispatchFrameNextCommand(e => true);
+            GraphView.DispatchFrameNextCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N3");
 
-            graphView.DispatchFrameNextCommand(e => true);
+            GraphView.DispatchFrameNextCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N0");
 
-            graphView.DispatchFramePrevCommand(e => true);
+            GraphView.DispatchFramePrevCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N3");
 
-            graphView.DispatchFramePrevCommand(e => true);
+            GraphView.DispatchFramePrevCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N2");
 
-            graphView.DispatchFramePrevCommand(e => true);
+            GraphView.DispatchFramePrevCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N1");
 
-            graphView.DispatchFramePrevCommand(e => true);
+            GraphView.DispatchFramePrevCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N0");
         }
 
@@ -105,18 +107,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             CreateNode<FooNode>("N2", Vector2.zero);
             CreateNode<FooNode>("N3", Vector2.zero);
 
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
 
             // Reset selection for next test
-            graphView.Dispatch(new ClearSelectionCommand());
+            GraphView.Dispatch(new ClearSelectionCommand());
 
-            graphView.DispatchFrameNextCommand(e => true);
+            GraphView.DispatchFrameNextCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N0");
 
             // Reset selection for prev test
-            graphView.Dispatch(new ClearSelectionCommand());
+            GraphView.Dispatch(new ClearSelectionCommand());
 
-            graphView.DispatchFramePrevCommand(e => true);
+            GraphView.DispatchFramePrevCommand(_ => true);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "N3");
         }
 
@@ -130,32 +132,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             CreateNode<FooNode>("F2", Vector2.zero);
             CreateNode<BarNode>("B2", Vector2.zero);
 
-            graphView.RebuildUI();
+            GraphView.RebuildUI();
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, f0));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, f0));
 
-            graphView.DispatchFrameNextCommand(x => x.Model is FooNode);
+            GraphView.DispatchFrameNextCommand(x => x.Model is FooNode);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "F1");
 
-            graphView.DispatchFrameNextCommand(IsFooNode);
+            GraphView.DispatchFrameNextCommand(IsFooNode);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "F2");
 
-            graphView.DispatchFrameNextCommand(x => x.Model is FooNode);
+            GraphView.DispatchFrameNextCommand(x => x.Model is FooNode);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "F0");
 
-            graphView.DispatchFramePrevCommand(IsFooNode);
+            GraphView.DispatchFramePrevCommand(IsFooNode);
             AssertSingleSelectedElementTypeAndName(typeof(FooNode), "F2");
 
-            graphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, f0));
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, f0));
 
-            graphView.DispatchFrameNextCommand(x => (x.Model as IHasTitle)?.Title.Contains("0") ?? false);
+            GraphView.DispatchFrameNextCommand(x => (x.Model as IHasTitle)?.Title.Contains("0") ?? false);
             AssertSingleSelectedElementTypeAndName(typeof(NodeModel), "B0");
 
-            graphView.DispatchFrameNextCommand(x => (x.Model as IHasTitle)?.Title.Contains("0") ?? false);
+            GraphView.DispatchFrameNextCommand(x => (x.Model as IHasTitle)?.Title.Contains("0") ?? false);
             AssertSingleSelectedElementTypeAndName(typeof(NodeModel), "F0");
         }
 
-        private bool IsFooNode(ModelUI element)
+        static bool IsFooNode(ModelView element)
         {
             return element.Model is FooNode;
         }

@@ -1,0 +1,4 @@
+.unity-label {
+    -unity-text-align: middle-center;
+    padding: 0 4px;
+}

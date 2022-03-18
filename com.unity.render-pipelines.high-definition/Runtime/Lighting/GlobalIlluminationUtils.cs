@@ -19,12 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
             lightDataGI.cookieID = cookie.instanceID;
             lightDataGI.cookieScale = cookie.scale;
 
-            // TODO: Currently color temperature is not handled at runtime, need to expose useColorTemperature publicly
             Color cct = new Color(1.0f, 1.0f, 1.0f);
-#if UNITY_EDITOR
+
             if (add.useColorTemperature)
                 cct = Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
-#endif
 
 #if UNITY_EDITOR
             LightMode lightMode = LightmapperUtils.Extract(light.lightmapBakeType);

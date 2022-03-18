@@ -1,17 +1,19 @@
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
-
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 {
     public class RecipeGraphView : GraphView
     {
-        public RecipeGraphView(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName)
-            : base(window, graphTool, graphViewName)
+        public RecipeGraphView(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName,
+            GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
+            : base(window, graphTool, graphViewName, displayMode)
         {
-            this.RegisterCommandHandler<AddPortCommand>(AddPortCommand.DefaultHandler);
-            this.RegisterCommandHandler<RemovePortCommand>(RemovePortCommand.DefaultHandler);
+            if (displayMode == GraphViewDisplayMode.Interactive)
+            {
+                this.RegisterCommandHandler<AddPortCommand>(AddPortCommand.DefaultHandler);
+                this.RegisterCommandHandler<RemovePortCommand>(RemovePortCommand.DefaultHandler);
 
-            this.RegisterCommandHandler<SetTemperatureCommand>(SetTemperatureCommand.DefaultHandler);
-            this.RegisterCommandHandler<SetDurationCommand>(SetDurationCommand.DefaultHandler);
+                this.RegisterCommandHandler<SetTemperatureCommand>(SetTemperatureCommand.DefaultHandler);
+                this.RegisterCommandHandler<SetDurationCommand>(SetDurationCommand.DefaultHandler);
+            }
         }
     }
 }

@@ -2,6 +2,8 @@
     "name": "Unity.ShaderFoundry.Editor",
     "rootNamespace": "",
     "references": [
+        "Unity.ShaderGraph.Registry",
+        "Unity.ShaderGraph.GraphDelta",
         "Unity.Properties",
         "Unity.Properties.UI",
         "Unity.Properties.UI.Editor",

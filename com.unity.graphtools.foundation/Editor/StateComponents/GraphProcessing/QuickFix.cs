@@ -16,14 +16,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// The action to execute to fix the error.
         /// </summary>
-        public Action<Dispatcher> QuickFixAction { get; }
+        public Action<ICommandTarget> QuickFixAction { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QuickFix" /> class.
         /// </summary>
         /// <param name="description">The description of the fix.</param>
         /// <param name="quickFixAction">The action to execute to fix the error.</param>
-        public QuickFix(string description, Action<Dispatcher> quickFixAction)
+        public QuickFix(string description, Action<ICommandTarget> quickFixAction)
         {
             Description = description;
             QuickFixAction = quickFixAction;

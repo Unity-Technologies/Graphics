@@ -1,7 +1,11 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Palmmedia.ReportGenerator.Core;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.UIElements;
@@ -20,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
         bool wasWindowCloseCancelledInDirtyState;
 
-        ShaderGraphMainToolbar Toolbar => m_MainToolbar as ShaderGraphMainToolbar;
+        // ShaderGraphMainToolbar Toolbar => m_MainToolbar as ShaderGraphMainToolbar;
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -37,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnEnable()
         {
-            WithSidePanel = false;
+            // WithSidePanel = false;
             base.OnEnable();
 
             // Needed to ensure that graph view takes up full window when overlay canvas is present
@@ -95,7 +99,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (option == 0) // save
                     {
-                        Toolbar.SaveImplementation();
+                        GraphAssetUtils.SaveImplementation(GraphTool);
                         return true;
                     }
                     else if (option == 1) // cancel (or escape/close dialog)
@@ -137,7 +141,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (option == 0)
             {
-                var savedPath = Toolbar.SaveAsImplementation();
+                var savedPath = GraphAssetUtils.SaveAsImplementation(GraphTool);
                 if (savedPath != null)
                 {
                     saved = true;
@@ -163,18 +167,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>();
+            m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>(WindowID);
             return m_GraphTool;
         }
 
         protected override GraphView CreateGraphView()
         {
-            GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(425, 100), 2.0f);
+            GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
             var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
-            m_PreviewManager = new PreviewManager(shaderGraphView.GraphViewState);
-            m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewState, m_PreviewManager);
-
+            m_PreviewManager = new PreviewManager(shaderGraphView.GraphViewModel.GraphModelState);
+            m_GraphViewStateObserver = new GraphViewStateObserver(shaderGraphView.GraphViewModel.GraphModelState, m_PreviewManager);
             GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
 
             // TODO (Brett) Command registration or state handler creation belongs here.
@@ -195,12 +198,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return asset is ShaderGraphAssetModel;
         }
 
-        protected override MainToolbar CreateMainToolbar()
-        {
-            return new ShaderGraphMainToolbar(GraphTool, GraphView);
-        }
-
-
         protected override void Update()
         {
             base.Update();
@@ -209,7 +206,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, wasWindowCloseCancelledInDirtyState);
                 var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
-                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
+                ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView.GraphViewModel, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
             }
             m_PreviewManager.Update();
         }

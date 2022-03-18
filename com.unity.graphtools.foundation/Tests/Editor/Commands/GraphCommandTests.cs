@@ -9,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 {
     [Category("Graph")]
     [Category("Command")]
-    class GraphCommandTests : BaseFixture
+    class GraphCommandTests : BaseFixture<NoUIGraphViewTestGraphTool>
     {
         protected override bool CreateGraphOnStartup => true;
         protected override Type CreatedGraphType => typeof(ClassStencil);
@@ -32,16 +32,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.NotNull(n0);
                     Assert.NotNull(n1);
                     Assert.That(n0.Input0, Is.ConnectedTo(n1.Output0));
-                    Assert.IsTrue(GraphTool.SelectionState.IsSelected(node0));
-                    Assert.IsFalse(GraphTool.SelectionState.IsSelected(node1));
+                    Assert.IsTrue(GraphTool.GraphViewSelectionState.IsSelected(node0));
+                    Assert.IsFalse(GraphTool.GraphViewSelectionState.IsSelected(node1));
                     return new DeleteElementsCommand(node0, node1);
                 },
                 () =>
                 {
                     Assert.That(GetNodeCount(), Is.EqualTo(0));
                     Assert.That(GetEdgeCount(), Is.EqualTo(0));
-                    Assert.IsFalse(GraphTool.SelectionState.IsSelected(node0));
-                    Assert.IsFalse(GraphTool.SelectionState.IsSelected(node1));
+                    Assert.IsFalse(GraphTool.GraphViewSelectionState.IsSelected(node0));
+                    Assert.IsFalse(GraphTool.GraphViewSelectionState.IsSelected(node1));
                 });
         }
 
@@ -65,7 +65,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.That(GetNode(1).Position, Is.EqualTo(Vector2.zero));
                     Assert.That(GetNode(2).Position, Is.EqualTo(Vector2.zero));
                     Assert.That(GetNode(3).Position, Is.EqualTo(Vector2.zero));
-                    return new MoveElementsCommand(newPosition0, new[] { GetNode(0) });
+                    return new MoveElementsCommand(newPosition0, GetNode(0));
                 },
                 () =>
                 {
@@ -84,7 +84,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.That(GetNode(1).Position, Is.EqualTo(Vector2.zero));
                     Assert.That(GetNode(2).Position, Is.EqualTo(Vector2.zero));
                     Assert.That(GetNode(3).Position, Is.EqualTo(Vector2.zero));
-                    return new MoveElementsCommand(newPosition1, new[] { GetNode(1) });
+                    return new MoveElementsCommand(newPosition1, GetNode(1));
                 },
                 () =>
                 {
@@ -103,7 +103,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.That(GetNode(1).Position, Is.EqualTo(newPosition1));
                     Assert.That(GetNode(2).Position, Is.EqualTo(Vector2.zero));
                     Assert.That(GetNode(3).Position, Is.EqualTo(Vector2.zero));
-                    return new MoveElementsCommand(newPosition2, new[] { GetNode(2) });
+                    return new MoveElementsCommand(newPosition2, GetNode(2));
                 },
                 () =>
                 {
@@ -122,7 +122,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.That(GetNode(1).Position, Is.EqualTo(newPosition1));
                     Assert.That(GetNode(2).Position, Is.EqualTo(newPosition2));
                     Assert.That(GetNode(3).Position, Is.EqualTo(Vector2.zero));
-                    return new MoveElementsCommand(deltaAll, new[] { GetNode(0), GetNode(1), GetNode(2), GetNode(3) });
+                    return new MoveElementsCommand(deltaAll, GetNode(0), GetNode(1), GetNode(2), GetNode(3));
                 },
                 () =>
                 {
@@ -148,7 +148,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.That(GetEdgeCount(), Is.EqualTo(0));
                     Assert.That(GetStickyNoteCount(), Is.EqualTo(1));
                     Assert.That(GetStickyNote(0).PositionAndSize, Is.EqualTo(origStickyPosition));
-                    return new MoveElementsCommand(newStickyPosition.position - origStickyPosition.position, new[] { stickyNote });
+                    return new MoveElementsCommand(newStickyPosition.position - origStickyPosition.position, stickyNote);
                 },
                 () =>
                 {

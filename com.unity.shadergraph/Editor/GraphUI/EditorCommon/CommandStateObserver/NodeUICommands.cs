@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
-            GraphViewStateComponent graphViewState,
+            GraphModelStateComponent graphViewState,
             PreviewManager previewManager,
             SetGraphTypeValueCommand command)
         {
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static void DefaultCommandHandler(UndoStateComponent undoState,
-            GraphViewStateComponent graphViewState,
+            GraphModelStateComponent graphViewState,
             PreviewManager previewManager,
             SetGradientTypeValueCommand command
         )

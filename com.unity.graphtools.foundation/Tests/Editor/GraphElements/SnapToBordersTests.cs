@@ -821,7 +821,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Vector2 worldNodePos = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
 
             float rightToRightDistance = m_ReferenceNode1.layout.xMax - m_SnappedNode.layout.xMax;
@@ -829,14 +829,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Vector2 moveOffset = new Vector2(offSetX, 10);
 
             // Move the snapping node.
-            helpers.MouseDownEvent(start, MouseButton.LeftMouse, EventModifiers.Shift);
+            Helpers.MouseDownEvent(start, MouseButton.LeftMouse, EventModifiers.Shift);
             yield return null;
 
             Vector2 end = start + moveOffset;
-            helpers.MouseDragEvent(start, end, MouseButton.LeftMouse, EventModifiers.Shift);
+            Helpers.MouseDragEvent(start, end, MouseButton.LeftMouse, EventModifiers.Shift);
             yield return null;
 
-            helpers.MouseUpEvent(end, MouseButton.LeftMouse, EventModifiers.Shift);
+            Helpers.MouseUpEvent(end, MouseButton.LeftMouse, EventModifiers.Shift);
             yield return null;
 
             // The snapping node's right border should not snap to the reference node's right border in X: X and Y should be dragged normally
@@ -867,8 +867,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // Get the UI nodes
-            var snappedPlacemat = placematModel.GetUI<Placemat>(graphView);
-            m_ReferenceNode1 = referenceNode1Model.GetUI<Node>(graphView);
+            var snappedPlacemat = placematModel.GetView<Placemat>(GraphView);
+            m_ReferenceNode1 = referenceNode1Model.GetView<Node>(GraphView);
             Assert.IsNotNull(snappedPlacemat);
             Assert.IsNotNull(m_ReferenceNode1);
 
@@ -876,7 +876,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SetUINodeSize(ref m_ReferenceNode1, 100, 300);
             yield return null;
 
-            Vector2 worldNodePos = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
 
             float rightToRightDistance = m_ReferenceNode1.layout.xMax - snappedPlacemat.layout.xMax;
@@ -884,14 +884,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Vector2 moveOffset = new Vector2(offSetX, 10);
 
             // Move the snapping placemat
-            helpers.MouseDownEvent(start);
+            Helpers.MouseDownEvent(start);
             yield return null;
 
             Vector2 end = start + moveOffset;
-            helpers.MouseDragEvent(start, end);
+            Helpers.MouseDragEvent(start, end);
             yield return null;
 
-            helpers.MouseUpEvent(end);
+            Helpers.MouseUpEvent(end);
             yield return null;
 
             // The snapping placemat's right border should snap to the reference node's right border in X: Y should be dragged normally
@@ -923,30 +923,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            Vector2 worldPosNode2 = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
-            Vector2 worldPosNode3 = graphView.ContentViewContainer.LocalToWorld(secondSelectedElementPos);
+            Vector2 worldPosNode2 = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldPosNode3 = GraphView.ContentViewContainer.LocalToWorld(secondSelectedElementPos);
 
             Vector2 selectionPosNode2 = worldPosNode2 + m_SelectionOffset;
             Vector2 selectionPosNode3 = worldPosNode3 + m_SelectionOffset;
 
             // Select placemat by clicking on it and pressing Ctrl
-            helpers.MouseDownEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDownEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
-            helpers.MouseUpEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseUpEvent(selectionPosNode3, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Move mouse to Node2
-            helpers.MouseMoveEvent(selectionPosNode3, selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseMoveEvent(selectionPosNode3, selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // Select Node2 by clicking on it and pressing Ctrl
-            helpers.MouseDownEvent(selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDownEvent(selectionPosNode2, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
-            Node node1 = referenceNode1Model.GetUI<Node>(graphView);
-            Node node2 = snappingNodeModel.GetUI<Node>(graphView);
-            Placemat placemat = placematModel.GetUI<Placemat>(graphView);
+            Node node1 = referenceNode1Model.GetView<Node>(GraphView);
+            Node node2 = snappingNodeModel.GetView<Node>(GraphView);
+            Placemat placemat = placematModel.GetView<Placemat>(GraphView);
             Assert.IsNotNull(node1);
             Assert.IsNotNull(node2);
             Assert.IsNotNull(placemat);
@@ -956,10 +956,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             float offSetY = k_SnapDistance - topToTopDistance;
             Vector2 moveOffset = new Vector2(0, offSetY);
             Vector2 end = selectionPosNode2 + moveOffset;
-            helpers.MouseDragEvent(selectionPosNode2, end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseDragEvent(selectionPosNode2, end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
-            helpers.MouseUpEvent(end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
+            Helpers.MouseUpEvent(end, MouseButton.LeftMouse, TestEventHelpers.multiSelectModifier);
             yield return null;
 
             // The snapping Node2 top border should snap to Node1's top border
@@ -998,9 +998,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             // Get the UI nodes
-            var snappedPlacemat = placematModel.GetUI<Placemat>(graphView);
-            m_ReferenceNode1 = referenceNode1Model.GetUI<Node>(graphView);
-            var nodeInsidePlacemat = nodeInsidePlacematModel.GetUI<Node>(graphView);
+            var snappedPlacemat = placematModel.GetView<Placemat>(GraphView);
+            m_ReferenceNode1 = referenceNode1Model.GetView<Node>(GraphView);
+            var nodeInsidePlacemat = nodeInsidePlacematModel.GetView<Node>(GraphView);
 
             Assert.IsNotNull(snappedPlacemat);
             Assert.IsNotNull(m_ReferenceNode1);
@@ -1011,7 +1011,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SetUINodeSize(ref nodeInsidePlacemat, 100, 100);
             yield return null;
 
-            Vector2 worldNodePos = graphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
+            Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(m_SnappingNodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
 
             float rightToRightDistance = m_ReferenceNode1.layout.xMax - snappedPlacemat.layout.xMax;
@@ -1019,14 +1019,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Vector2 moveOffset = new Vector2(offSetX, 10);
 
             // Move the snapping placemat
-            helpers.MouseDownEvent(start);
+            Helpers.MouseDownEvent(start);
             yield return null;
 
             Vector2 end = start + moveOffset;
-            helpers.MouseDragEvent(start, end);
+            Helpers.MouseDragEvent(start, end);
             yield return null;
 
-            helpers.MouseUpEvent(end);
+            Helpers.MouseUpEvent(end);
             yield return null;
 
             // The snapping placemat's right border should snap to the reference node's right border in X: Y should be dragged normally

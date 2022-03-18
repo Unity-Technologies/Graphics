@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -14,7 +12,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public bool Valid => GraphModel != null;
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="BlackboardGraphModel" /> class.
         /// </summary>
@@ -27,7 +24,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public virtual string GetBlackboardTitle()
         {
-            return AssetModel?.FriendlyScriptName ?? "";
+            if (!(ScriptableObject)AssetModel || string.IsNullOrEmpty(AssetModel.FriendlyScriptName))
+                return "";
+            return AssetModel.FriendlyScriptName;
         }
 
         /// <inheritdoc />

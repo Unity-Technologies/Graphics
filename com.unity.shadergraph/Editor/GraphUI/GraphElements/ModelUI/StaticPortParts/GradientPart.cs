@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string UXMLTemplateName => "StaticPortParts/GradientPart";
         protected override string FieldName => "sg-gradient-field";
 
-        public GradientPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName)
+        public GradientPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void UpdatePartFromPortReader(PortHandler reader)
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnFieldValueChanged(ChangeEvent<Gradient> change)
         {
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
-            m_OwnerElement.View.Dispatch(new SetGradientTypeValueCommand(graphDataNodeModel, m_PortName, change.newValue));
+            m_OwnerElement.RootView.Dispatch(new SetGradientTypeValueCommand(graphDataNodeModel, m_PortName, change.newValue));
         }
     }
 }

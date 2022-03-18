@@ -14,11 +14,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
         public IEnumerator DraggingFromPortCreateGhostEdge()
         {
             var nodeModel = GraphModel.CreateNode<SingleOutputNodeModel>();
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             var portModel = nodeModel.Ports.First();
-            var port = portModel.GetUI<Port>(GraphView);
+            var port = portModel.GetView<Port>(GraphView);
             Assert.IsNotNull(port);
             Assert.IsNull(port.EdgeConnector.edgeDragHelper.edgeCandidateModel);
 
@@ -39,11 +39,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
         public IEnumerator DraggingFromPortContainerCreateGhostEdge()
         {
             var nodeModel = GraphModel.CreateNode<SingleOutputNodeModel>();
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             var portModel = nodeModel.Ports.First();
-            var port = portModel.GetUI<Port>(GraphView);
+            var port = portModel.GetView<Port>(GraphView);
             Assert.IsNotNull(port);
             Assert.IsNull(port.EdgeConnector.edgeDragHelper.edgeCandidateModel);
 
@@ -68,15 +68,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 
             var nodeModel2 = GraphModel.CreateNode<SingleInputNodeModel>();
             nodeModel2.Position = new Vector2(0, 200);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             var outPortModel = nodeModel1.Ports.First();
-            var outPort = outPortModel.GetUI<Port>(GraphView);
+            var outPort = outPortModel.GetView<Port>(GraphView);
             Assert.IsNotNull(outPort);
 
             var inPortModel = nodeModel2.Ports.First();
-            var inPort = inPortModel.GetUI<Port>(GraphView);
+            var inPort = inPortModel.GetView<Port>(GraphView);
             Assert.IsNotNull(inPort);
 
             bool insideOutputPortDelegateCalled = false;
@@ -84,10 +84,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             bool outsideOutputPortDelegateCalled = false;
             bool outsideInputPortDelegateCalled = false;
 
-            outPort.EdgeConnector.SetDropDelegate((s, e) => insideOutputPortDelegateCalled = true);
-            outPort.EdgeConnector.SetDropOutsideDelegate((s, e, p, v) => outsideOutputPortDelegateCalled = true);
-            inPort.EdgeConnector.SetDropDelegate((s, e) => insideInputPortDelegateCalled = true);
-            inPort.EdgeConnector.SetDropOutsideDelegate((s, e, p, v) => outsideInputPortDelegateCalled = true);
+            outPort.EdgeConnector.SetDropDelegate((_, __) => insideOutputPortDelegateCalled = true);
+            outPort.EdgeConnector.SetDropOutsideDelegate((_, __, ___, ____) => outsideOutputPortDelegateCalled = true);
+            inPort.EdgeConnector.SetDropDelegate((_, __) => insideInputPortDelegateCalled = true);
+            inPort.EdgeConnector.SetDropOutsideDelegate((_, __, ___, ____) => outsideInputPortDelegateCalled = true);
 
             var outPortConnector = outPort.SafeQ(PortConnectorPart.connectorUssName);
             var inPortConnector = inPort.SafeQ(PortConnectorPart.connectorUssName);
@@ -110,15 +110,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
 
             var nodeModel2 = GraphModel.CreateNode<SingleInputNodeModel>();
             nodeModel2.Position = new Vector2(0, 200);
-            MarkGraphViewStateDirty();
+            MarkGraphModelStateDirty();
             yield return null;
 
             var outPortModel = nodeModel1.Ports.First();
-            var outPort = outPortModel.GetUI<Port>(GraphView);
+            var outPort = outPortModel.GetView<Port>(GraphView);
             Assert.IsNotNull(outPort);
 
             var inPortModel = nodeModel2.Ports.First();
-            var inPort = inPortModel.GetUI<Port>(GraphView);
+            var inPort = inPortModel.GetView<Port>(GraphView);
             Assert.IsNotNull(inPort);
 
             bool insideOutputPortDelegateCalled = false;
@@ -126,10 +126,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
             bool outsideOutputPortDelegateCalled = false;
             bool outsideInputPortDelegateCalled = false;
 
-            outPort.EdgeConnector.SetDropDelegate((s, e) => insideOutputPortDelegateCalled = true);
-            outPort.EdgeConnector.SetDropOutsideDelegate((s, e, p, v) => outsideOutputPortDelegateCalled = true);
-            inPort.EdgeConnector.SetDropDelegate((s, e) => insideInputPortDelegateCalled = true);
-            inPort.EdgeConnector.SetDropOutsideDelegate((s, e, p, v) => outsideInputPortDelegateCalled = true);
+            outPort.EdgeConnector.SetDropDelegate((_, __) => insideOutputPortDelegateCalled = true);
+            outPort.EdgeConnector.SetDropOutsideDelegate((_, __, ___, ____) => outsideOutputPortDelegateCalled = true);
+            inPort.EdgeConnector.SetDropDelegate((_, __) => insideInputPortDelegateCalled = true);
+            inPort.EdgeConnector.SetDropOutsideDelegate((_, __, ___, ____) => outsideInputPortDelegateCalled = true);
 
             var outPortConnector = outPort.SafeQ(PortConnectorPart.connectorUssName);
             var inPortConnector = inPort.SafeQ(PortConnectorPart.connectorUssName);

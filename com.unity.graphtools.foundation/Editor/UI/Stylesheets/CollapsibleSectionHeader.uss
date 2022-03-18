@@ -1,0 +1,25 @@
+.ge-collapsible-section-header {
+    flex: 1 0 0;
+    flex-direction: row;
+    padding: 3px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    background-color: var(--unity-colors-inspector_titlebar-background);
+}
+
+.ge-collapsible-section-header:hover {
+    background-color: var(--unity-colors-inspector_titlebar-background-hover);
+}
+
+.ge-collapsible-section-header__icon {
+    width: 13px;
+    height: 13px;
+    align-self: center;
+    -unity-background-scale-mode: scale-to-fit;
+    background-image: var(--unity-icon-foldout-on);
+    margin: 0 4px 0 1px;
+}
+
+.ge-collapsible-section-header--collapsed .ge-collapsible-section-header__icon {
+    background-image: var(--unity-icon-foldout);
+}

@@ -78,7 +78,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
 
             if (!(shortcutProvidersField?.GetValue(discovery) is IEnumerable<IDiscoveryShortcutProvider> shortcutProviders))
                 return Enumerable.Empty<IDiscoveryShortcutProvider>();
-            ;
 
             return shortcutProviders;
         }

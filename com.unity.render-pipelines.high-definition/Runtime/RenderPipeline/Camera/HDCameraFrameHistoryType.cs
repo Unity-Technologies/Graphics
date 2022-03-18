@@ -49,7 +49,13 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricClouds1,
         /// <summary>Screen Space Reflection Accumulation.</summary>
         ScreenSpaceReflectionAccumulation,
-        /// <summary>Number of history buffers.</summary>
-        Count // TODO: Obsolete
+        /// <summary>Path-traced Albedo AOV.</summary>
+        AlbedoAOV,
+        /// <summary>Path-traced Normal AOV.</summary>
+        NormalAOV,
+        /// <summary>Path-traced motion vector AOV.</summary>
+        MotionVectorAOV,
+        /// <summary>Denoised path-traced frame history.</summary>
+        DenoiseHistory
     }
 }

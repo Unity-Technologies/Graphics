@@ -58,6 +58,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     size = SearcherSize.defaultSearcherSize;
                 }
             }
+
+            if (size.Size.x < Searcher.SearcherWindow.MinSize.x)
+                size.Size.x = Searcher.SearcherWindow.MinSize.x;
+            if (size.Size.y < Searcher.SearcherWindow.MinSize.y)
+                size.Size.y = Searcher.SearcherWindow.MinSize.y;
+
             return size;
         }
 

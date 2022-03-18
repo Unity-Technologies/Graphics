@@ -181,6 +181,15 @@ groupshared uint gs_cacheNormal_HR[HALF_RES_REGION_SIZE_2];
 // |---|---|---|---|---|---|---|---|
 // O being Width-2, Height-2
 
+// This function evaluates the max pixel coordinate that can be used to read the half res data from the full res buffer
+// The important part is that it takes into account if the original screen size is odd or even. If not set properly, we may end up reading
+// from outside the buffer
+uint2 GetClampSreenSizeHalf()
+{
+    uint2 readOffset = uint2(_ScreenSize.xy) % 2;
+    return uint2(_ScreenSize.x - 2 + readOffset.x, _ScreenSize.y - 2 + readOffset.y);
+}
+
 void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 {
     // The initial position of the access
@@ -194,7 +203,8 @@ void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 
         // Compute the full res sampling coordinate
         int2 halfResCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
-        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, _ScreenSize.x - 2), clamp(halfResCoord.y * 2, 0, _ScreenSize.y - 2));
+        uint2 maxScreenSize = GetClampSreenSizeHalf();
+        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, (int)maxScreenSize.x), clamp(halfResCoord.y * 2, 0, (int)maxScreenSize.y));
 
         // Read all the values for tap
         float3 lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoord).xyz;
@@ -237,6 +247,9 @@ NeighborTapData GetNeighborTapDataSample_HR(uint2 groupThreadId, int2 offset)
 NeighborTapData GetNeighborTapDataSample_HR_NOLDS(uint2 fulLResCoord, int2 offset)
 {
     int2 tapCoord = (fulLResCoord / 2 + offset) * 2;
+    uint2 maxScreenSize = GetClampSreenSizeHalf();
+    tapCoord = int2(clamp(tapCoord.x, 0, (int)maxScreenSize.x), clamp(tapCoord.y, 0, (int)maxScreenSize.y));
+
     NeighborTapData outVal;
     outVal.lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, tapCoord).xyz;
     outVal.linearDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).x, _ZBufferParams);

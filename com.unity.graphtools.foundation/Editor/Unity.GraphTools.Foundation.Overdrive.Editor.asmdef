@@ -3,9 +3,6 @@
     "rootNamespace": "",
     "references": [
         "Unity.GraphToolsFoundation.Searcher.Editor",
-        "Unity.Properties",
-        "Unity.Properties.UI",
-        "Unity.Properties.UI.Editor",
         "Unity.InternalAPIEngineBridge.015",
         "Unity.GraphTools.Foundation.Overdrive",
         "Unity.GraphTools.Foundation.Overdrive.Model",

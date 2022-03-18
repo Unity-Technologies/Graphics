@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DistortionVectors = (1 << 2),    // Distortion pass - reset after distortion pass, shared with SMAA
         SMAA = (1 << 2),    // Subpixel Morphological Antialiasing
         // Reserved TraceReflectionRay = (1 << 3) for transparent SSR or RTR
+        WaterSurface = (1 << 4), // Reserved for water surface usage
         AfterOpaqueReservedBits = 0x38,        // Reserved for future usage
 
         // --- Following are user bits, we don't touch them inside HDRP and is up to the user to handle them ---
@@ -52,11 +54,16 @@ namespace UnityEngine.Rendering.HighDefinition
     ///         Comp Always
     ///         Pass Replace
     /// </summary>
+    [Flags]
     public enum UserStencilUsage
     {
+        /// <summary>All stencil bits disabled.</summary>
+        None = 0,
         /// <summary>User stencil bit 0.</summary>
         UserBit0 = StencilUsage.UserBit0,
         /// <summary>User stencil bit 1.</summary>
-        UserBit1 = StencilUsage.UserBit1
+        UserBit1 = StencilUsage.UserBit1,
+        /// <summary>The mask of all the user bits.</summary>
+        AllUserBits = UserBit0 | UserBit1,
     }
 }

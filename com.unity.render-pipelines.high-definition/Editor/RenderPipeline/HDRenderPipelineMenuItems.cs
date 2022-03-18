@@ -206,7 +206,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void MenuCreateCSharpPostProcessVolume()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
-            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "NewPostProcessVolume.cs");
         }
 
         [MenuItem("Assets/Create/Shader/HDRP Post Process", priority = CoreUtils.Sections.section1)]
@@ -300,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Reset All Project and Scene High Definition Materials Keywords")]
         static void ResetAllMaterialKeywordsInProjectAndScenes()
         {
-            var openedScenes = new string[EditorSceneManager.loadedSceneCount];
+            var openedScenes = new string[SceneManager.loadedSceneCount];
             for (var i = 0; i < openedScenes.Length; ++i)
                 openedScenes[i] = SceneManager.GetSceneAt(i).path;
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEngine.GraphToolsFoundation.Overdrive;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -33,9 +34,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new SearcherDatabase(searcherItems);
         }
 
-        public override List<SearcherDatabaseBase> GetGraphElementsSearcherDatabases(IGraphModel graphModel)
+        public override IReadOnlyList<SearcherDatabaseBase> GetGraphElementsSearcherDatabases(IGraphModel graphModel)
         {
-            var databases = base.GetGraphElementsSearcherDatabases(graphModel);
+            var databases = base.GetGraphElementsSearcherDatabases(graphModel).ToList();
             databases.Add(CreateNodeDatabaseFromRegistry(graphModel));
             return databases;
         }
@@ -45,13 +46,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Retrieve types from registry, map to type handles.
             return new SearcherDatabase(new List<SearcherItem>
             {
-                new TypeSearcherItem(TypeHandle.Float, "TODO")
+                new TypeSearcherItem("TODO", TypeHandle.Float)
             });
         }
 
-        public override List<SearcherDatabaseBase> GetVariableTypesSearcherDatabases()
+        public override IReadOnlyList<SearcherDatabaseBase> GetVariableTypesSearcherDatabases()
         {
-            var databases = base.GetVariableTypesSearcherDatabases();
+            var databases = base.GetVariableTypesSearcherDatabases().ToList();
             databases.Add(CreateTypeDatabaseFromRegistry());
             return databases;
         }

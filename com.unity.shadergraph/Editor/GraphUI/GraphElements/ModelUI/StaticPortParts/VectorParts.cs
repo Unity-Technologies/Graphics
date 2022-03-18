@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string UXMLTemplateName => "StaticPortParts/Vector2Part";
         protected override string FieldName => "sg-vector2-field";
 
-        public Vector2Part(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName)
+        public Vector2Part(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<Vector2> change)
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
 
             var value = change.newValue;
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+            m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
                 m_PortName,
                 GraphType.Length.Two,
                 GraphType.Height.One,
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string UXMLTemplateName => "StaticPortParts/Vector3Part";
         protected override string FieldName => "sg-vector3-field";
 
-        public Vector3Part(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName)
+        public Vector3Part(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<Vector3> change)
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
 
             var value = change.newValue;
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+            m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
                 m_PortName,
                 GraphType.Length.Three,
                 GraphType.Height.One,
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string UXMLTemplateName => "StaticPortParts/Vector4Part";
         protected override string FieldName => "sg-vector4-field";
 
-        public Vector4Part(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName)
+        public Vector4Part(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<Vector4> change)
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
 
             var value = change.newValue;
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+            m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
                 m_PortName,
                 GraphType.Length.Three,
                 GraphType.Height.One,

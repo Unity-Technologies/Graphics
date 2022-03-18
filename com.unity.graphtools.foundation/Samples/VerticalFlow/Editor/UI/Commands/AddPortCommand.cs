@@ -17,22 +17,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
             m_PortOrientation = orientation;
         }
 
-        public static void DefaultHandler(UndoStateComponent undoState, GraphViewStateComponent graphViewState, AddPortCommand command)
+        public static void DefaultHandler(UndoStateComponent undoState, GraphModelStateComponent graphModelState, AddPortCommand command)
         {
             if (!command.Models.Any() || command.m_PortDirection == PortDirection.None)
                 return;
 
             using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphViewState, command);
+                undoStateUpdater.SaveSingleState(graphModelState, command);
             }
 
-            using (var updater = graphViewState.UpdateScope)
+            using (var updater = graphModelState.UpdateScope)
             {
                 foreach (var nodeModel in command.Models)
                     nodeModel.AddPort(command.m_PortOrientation, command.m_PortDirection);
 
-                updater.MarkChanged(command.Models);
+                updater.MarkChanged(command.Models, ChangeHint.GraphTopology);
             }
         }
     }

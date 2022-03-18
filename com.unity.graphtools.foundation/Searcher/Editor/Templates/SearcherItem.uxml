@@ -7,5 +7,6 @@
     <ui:Toggle name="itemToggle"/>
     <ui:VisualElement name="itemIconVisualElement"/>
     <ui:VisualElement name="labelsContainer"/>
+    <ui:VisualElement name="favoriteButton" />
   </ui:VisualElement>
 </UXML>

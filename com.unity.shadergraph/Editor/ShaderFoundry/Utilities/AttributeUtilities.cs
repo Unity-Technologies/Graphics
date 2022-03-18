@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -13,13 +11,8 @@ namespace UnityEditor.ShaderFoundry
         internal const string PerMaterial = "PerMaterial";
         internal const string Hybrid = "Hybrid";
 
-        internal const string MaterialProperty = "MaterialProperty";
-        internal const string PropertyVariable = "PropertyVariable";
-        internal const string UniformDeclaration = "UniformDeclaration";
-        internal const string PropertyType = "PropertyType";
         internal const string DefaultValue = "DefaultValue";
-        internal const string MaterialPropertyDefault = "MaterialPropertyDefault";
-        internal const string Varying = "Varying";
+        internal const string Alias = "Alias";
     }
 
     internal static class AttributeExtensions
@@ -47,7 +40,7 @@ namespace UnityEditor.ShaderFoundry
         internal static ShaderAttribute Clone(this ShaderAttribute attribute, ShaderContainer container)
         {
             // An attribute doesn't actually have to be cloned to be re-used if the container is the same
-            if(attribute.Container == container)
+            if (attribute.Container == container)
                 return attribute;
 
             // Otherwise we have to copy this into the current container
@@ -140,123 +133,6 @@ namespace UnityEditor.ShaderFoundry
                 builder.Append(")]");
             }
         }
-
-        internal static HLSLDeclaration GetDeclaration(this ShaderAttribute attribute)
-        {
-            var decl = HLSLDeclaration.DoNotDeclare;
-            if (attribute.Name == "Property")
-                decl = HLSLDeclaration.UnityPerMaterial;
-            else if (attribute.Name == "Global")
-                decl = HLSLDeclaration.Global;
-            else if (attribute.Name == "PerMaterial")
-                decl = HLSLDeclaration.UnityPerMaterial;
-            else if (attribute.Name == "Hybrid")
-                decl = HLSLDeclaration.HybridPerInstance;
-            return decl;
-        }
-
-        internal static HLSLDeclaration GetDeclaration(this IEnumerable<ShaderAttribute> attributes)
-        {
-            var result = HLSLDeclaration.DoNotDeclare;
-            foreach (var attribute in attributes)
-            {
-                var decl = attribute.GetDeclaration();
-                if (decl != HLSLDeclaration.DoNotDeclare)
-                    result = attribute.GetDeclaration();
-            }
-            return result;
-        }
-    }
-
-    internal class PropertyTypeAttribute
-    {
-        internal string PropertyType { get; set; }
-        internal static PropertyTypeAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var propertyType = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.PropertyType, 0);
-            if (propertyType != null)
-                return new PropertyTypeAttribute { PropertyType = propertyType };
-            return null;
-        }
-    }
-
-    internal class PropertyVariableAttribute
-    {
-        internal string FormatString { get; set; }
-        internal static PropertyVariableAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var formatString = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.PropertyVariable, 0);
-            if (formatString != null)
-                return new PropertyVariableAttribute { FormatString = formatString };
-            return null;
-        }
-
-        internal string BuildVariableNameString(string referenceName)
-        {
-            return FormatString.Replace("#", referenceName);
-        }
-
-        internal string BuildDeclarationString(ShaderType type, string referenceName)
-        {
-            return $"{type.Name} {BuildVariableNameString(referenceName)}";
-        }
-    }
-
-    internal class UniformDeclarationAttribute
-    {
-        internal string Name { get; set; }
-        internal string Declaration { get; set; }
-        internal static UniformDeclarationAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var attribute = attributes.FindFirst(CommonShaderAttributes.UniformDeclaration);
-            return Build(attribute);
-        }
-
-        internal static UniformDeclarationAttribute Build(ShaderAttribute attribute)
-        {
-            if (!attribute.IsValid || attribute.Name != CommonShaderAttributes.UniformDeclaration)
-                return null;
-
-            var nameParam = attribute.Parameters.FindAttributeParam("name");
-            if (!nameParam.IsValid)
-                return null;
-
-            var declarationParam = attribute.Parameters.FindAttributeParam("declaration");
-            string declaration =  declarationParam.IsValid ? declarationParam.Value : null;
-            return new UniformDeclarationAttribute { Name = nameParam.Value, Declaration = declaration };
-        }
-
-        internal string BuildVariableNameString(string referenceName)
-        {
-            return Name.Replace("#", referenceName);
-        }
-
-        internal string BuildDeclarationString(ShaderType type, string referenceName)
-        {
-            // If there was no declaration string specified then just do Type Name.
-            if(Declaration == null)
-                return $"{type.Name} {BuildVariableNameString(referenceName)}";
-            // Otherwise just use the declaration string. The type is unimportant (e.g. TEXTURE2D(myTex) doesn't use the type name).
-            else
-                return Declaration.Replace("#", referenceName);
-        }
-    }
-
-    internal class MaterialPropertyAttribute
-    {
-        internal string FormatString { get; set; }
-        internal static MaterialPropertyAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var formatString = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.MaterialProperty, 0);
-            if (formatString != null)
-                return new MaterialPropertyAttribute { FormatString = formatString };
-            return null;
-        }
-
-        internal string BuildDeclarationString(string referenceName, string displayName)
-        {
-            return FormatString.Replace("#", referenceName);
-        }
     }
 
     internal class DefaultValueAttribute
@@ -283,27 +159,28 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 
-    internal class MaterialPropertyDefaultAttribute
+    internal class AliasAttribute
     {
-        internal string PropertyDefaultExpression { get; set; }
-        internal static MaterialPropertyDefaultAttribute Find(IEnumerable<ShaderAttribute> attributes)
+        internal string AliasName { get; set; }
+        internal static IEnumerable<AliasAttribute> ForEach(IEnumerable<ShaderAttribute> attributes)
         {
-            var defaultExpression = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.MaterialPropertyDefault, 0);
-            if (defaultExpression != null)
-                return new MaterialPropertyDefaultAttribute { PropertyDefaultExpression = defaultExpression };
-            return null;
+            foreach (var attribute in attributes)
+            {
+                var aliasAttribute = Parse(attribute);
+                if (aliasAttribute != null)
+                    yield return aliasAttribute;
+            }
         }
 
-        internal static MaterialPropertyDefaultAttribute Find(IEnumerable<ShaderAttribute> attributes, string variableName)
+        internal static AliasAttribute Parse(ShaderAttribute attribute)
         {
-            var attribute = attributes.FindFirst(CommonShaderAttributes.MaterialPropertyDefault, variableName);
-            if (attribute.IsValid)
-            {
-                var param = attribute.Parameters.GetAttributeParam(0);
-                if (param.IsValid)
-                    return new MaterialPropertyDefaultAttribute { PropertyDefaultExpression = param.Value };
-            }
-            return null;
+            if (attribute.Name != CommonShaderAttributes.Alias)
+                return null;
+
+            var param = attribute.Parameters.GetAttributeParam(0);
+            if (!param.IsValid)
+                return null;
+            return new AliasAttribute { AliasName = param.Value };
         }
     }
 }

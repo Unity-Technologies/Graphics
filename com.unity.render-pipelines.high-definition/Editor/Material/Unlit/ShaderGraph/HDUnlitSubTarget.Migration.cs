@@ -83,7 +83,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.distortion = hdUnlitMasterNode.m_Distortion;
             builtinData.distortionMode = hdUnlitMasterNode.m_DistortionMode;
             builtinData.distortionDepthTest = hdUnlitMasterNode.m_DistortionDepthTest;
-            builtinData.alphaToMask = hdUnlitMasterNode.m_AlphaToMask;
             builtinData.addPrecomputedVelocity = hdUnlitMasterNode.m_AddPrecomputedVelocity;
 
             unlitData.distortionOnly = hdUnlitMasterNode.m_DistortionOnly;

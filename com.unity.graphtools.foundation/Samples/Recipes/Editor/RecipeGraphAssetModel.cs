@@ -7,20 +7,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 {
     public class RecipeGraphAssetModel : GraphAssetModel
     {
-        [MenuItem("Assets/Create/Recipe")]
+        [MenuItem("Assets/Create/GTF Samples/Recipe")]
         public static void CreateGraph(MenuCommand menuCommand)
         {
             const string path = "Assets";
             var template = new GraphTemplate<RecipeStencil>(RecipeStencil.graphName);
             ICommandTarget target = null;
-            if (EditorWindow.HasOpenInstances<RecipeGraphWindow>())
-            {
-                var window = EditorWindow.GetWindow<RecipeGraphWindow>();
-                if (window != null)
-                {
-                    target = window.GraphTool;
-                }
-            }
+            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<RecipeGraphWindow>();
+            if (window != null)
+                target = window.GraphTool;
 
             GraphAssetCreationHelpers<RecipeGraphAssetModel>.CreateInProjectWindow(template, target, path);
         }
@@ -31,9 +26,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
             var obj = EditorUtility.InstanceIDToObject(instanceId);
             if (obj is RecipeGraphAssetModel graphAssetModel)
             {
-                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<RecipeGraphWindow>();
-                window.SetCurrentSelection(graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-                return window != null;
+                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<RecipeGraphWindow>(graphAssetModel.GetPath());
+                window.SetCurrentSelection(window.GraphTool?.ToolState?.AssetModel?? graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+                return true;
             }
 
             return false;

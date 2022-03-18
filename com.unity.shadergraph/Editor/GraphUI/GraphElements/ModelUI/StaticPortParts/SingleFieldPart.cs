@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="change">Change event dispatched from field.</param>
         protected abstract void OnFieldValueChanged(ChangeEvent<T> change);
 
-        public SingleFieldPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName, string portName)
+        public SingleFieldPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
         protected F m_Field;

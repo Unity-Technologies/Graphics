@@ -16,8 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _AdditionalShadowParams;
             public static int _AdditionalShadowOffset0;
             public static int _AdditionalShadowOffset1;
-            public static int _AdditionalShadowOffset2;
-            public static int _AdditionalShadowOffset3;
             public static int _AdditionalShadowFadeParams;
             public static int _AdditionalShadowmapSize;
         }
@@ -59,8 +57,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseStructuredBuffer;
 
         const int k_ShadowmapBufferBits = 16;
-        private RenderTargetHandle m_AdditionalLightsShadowmap;
-        internal RenderTexture m_AdditionalLightsShadowmapTexture;
+        private int m_AdditionalLightsShadowmapID;
+        internal RTHandle m_AdditionalLightsShadowmapHandle;
 
 
         float m_MaxShadowDistanceSq;
@@ -73,7 +71,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         List<int> m_ShadowSliceToAdditionalLightIndex = new List<int>();                // For each shadow slice, store the "additional light indices" of the punctual light that casts it
         List<int> m_GlobalShadowSliceIndexToPerLightShadowSliceIndex = new List<int>(); // For each shadow slice, store its "per-light shadow slice index" in the punctual light that casts it (can be up to 5 for point lights)
 
-        Vector4[] m_AdditionalLightIndexToShadowParams = null;                          // per-additional-light shadow info passed to the lighting shader
+        Vector4[] m_AdditionalLightIndexToShadowParams = null;                          // per-additional-light shadow info passed to the lighting shader (x: shadowStrength, y: softShadows, z: light type, w: perLightFirstShadowSliceIndex)
         Matrix4x4[] m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = null;       // per-shadow-slice info passed to the lighting shader
 
         List<ShadowResolutionRequest> m_ShadowResolutionRequests = new List<ShadowResolutionRequest>();  // intermediate array used to compute the final resolution of each shadow slice rendered in the frame
@@ -84,7 +82,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_CreateEmptyShadowmap;
 
-        bool m_SupportsBoxFilterForShadows;
+        int renderTargetWidth;
+        int renderTargetHeight;
+
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
 
         int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
@@ -99,6 +99,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Creates a new <c>AdditionalLightsShadowCasterPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
             base.profilingSampler = new ProfilingSampler(nameof(AdditionalLightsShadowCasterPass));
@@ -108,17 +113,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalShadowsConstantBuffer._AdditionalShadowParams = Shader.PropertyToID("_AdditionalShadowParams");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset0 = Shader.PropertyToID("_AdditionalShadowOffset0");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = Shader.PropertyToID("_AdditionalShadowOffset1");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = Shader.PropertyToID("_AdditionalShadowOffset2");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
             AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams = Shader.PropertyToID("_AdditionalShadowFadeParams");
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
-            m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
+            m_AdditionalLightsShadowmapID = Shader.PropertyToID("_AdditionalLightsShadowmapTexture");
 
             m_AdditionalLightsWorldToShadow_SSBO = Shader.PropertyToID("_AdditionalLightsWorldToShadow_SSBO");
             m_AdditionalShadowParams_SSBO = Shader.PropertyToID("_AdditionalShadowParams_SSBO");
 
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
-            m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
 
             // Preallocated a fixed size. CommandBuffer.SetGlobal* does allow this data to grow.
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -143,6 +145,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_UnusedAtlasSquareAreas.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
                 m_ShadowResolutionRequests.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
             }
+        }
+
+        public void Dispose()
+        {
+            m_AdditionalLightsShadowmapHandle?.Release();
         }
 
         private int GetPunctualLightShadowSlicesCount(in LightType lightType)
@@ -479,6 +486,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             return shadowRequestsHash;
         }
 
+        /// <summary>
+        /// Sets up the pass.
+        /// </summary>
+        /// <param name="renderingData"></param>
+        /// <returns></returns>
         public bool Setup(ref RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
@@ -691,6 +703,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
                                     float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
+                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Spot, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -720,6 +734,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
                                     float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
+                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Point, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -788,7 +804,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceTransform * m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex];
             }
 
-            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits);
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
+
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
             m_CreateEmptyShadowmap = false;
@@ -802,7 +819,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!renderingData.cameraData.renderer.stripShadowsOffVariants)
                 return false;
 
-            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(1, 1, k_ShadowmapBufferBits);
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, 1, 1, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
 
@@ -813,9 +830,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
+        /// <inheritdoc/>
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), m_AdditionalLightsShadowmapTexture.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+            ConfigureTarget(m_AdditionalLightsShadowmapHandle);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -824,24 +842,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_CreateEmptyShadowmap)
             {
-                SetEmptyAdditionalShadowmapAtlas(ref context);
+                SetEmptyAdditionalShadowmapAtlas(ref context, ref renderingData);
                 return;
             }
 
             if (renderingData.shadowData.supportsAdditionalLightShadows)
-                RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
-        }
-
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            if (m_AdditionalLightsShadowmapTexture)
-            {
-                RenderTexture.ReleaseTemporary(m_AdditionalLightsShadowmapTexture);
-                m_AdditionalLightsShadowmapTexture = null;
-            }
+                RenderAdditionalShadowmapAtlas(ref context, ref renderingData);
         }
 
         // Get the "additional light index" (used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...) from the "global" visible light index
@@ -858,13 +864,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_ShadowSliceToAdditionalLightIndex.Clear();
             m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Clear();
-            m_AdditionalLightsShadowmapTexture = null;
         }
 
-        void SetEmptyAdditionalShadowmapAtlas(ref ScriptableRenderContext context)
+        void SetEmptyAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, true);
+            cmd.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
             if (RenderingUtils.useStructuredBuffer)
             {
                 var shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(m_AdditionalLightIndexToShadowParams.Length);
@@ -876,17 +882,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightIndexToShadowParams);
             }
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
         }
 
-        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            var cullResults = renderingData.cullResults;
+            var lightData = renderingData.lightData;
+            var shadowData = renderingData.shadowData;
+
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
             bool additionalLightHasSoftShadows = false;
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.AdditionalLightsShadow)))
             {
                 bool anyShadowSliceRenderer = false;
@@ -939,9 +948,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (anyShadowSliceRenderer)
                     SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData, softShadows);
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         // Set constant buffer data that will be used during the lighting/shadowing pass
@@ -952,7 +958,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
 
-            cmd.SetGlobalTexture(m_AdditionalLightsShadowmap.id, m_AdditionalLightsShadowmapTexture);
+            cmd.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
 
             if (m_UseStructuredBuffer)
             {
@@ -977,20 +983,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (softShadows)
             {
-                if (m_SupportsBoxFilterForShadows)
-                {
-                    cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset0,
-                        new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                    cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset1,
-                        new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                    cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset2,
-                        new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                    cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset3,
-                        new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                }
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset0,
+                        new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight,
+                            invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight));
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset1,
+                        new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight,
+                            invHalfShadowAtlasWidth, invHalfShadowAtlasHeight));
 
-                // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
-                // enough so custom shaders might use it.
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
                     shadowData.additionalLightsShadowmapWidth, shadowData.additionalLightsShadowmapHeight));
             }

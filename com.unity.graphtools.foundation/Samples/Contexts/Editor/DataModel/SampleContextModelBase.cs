@@ -1,24 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
 {
     [Serializable]
     public class SampleContextModelBase : ContextNodeModel, IVariableNodeModel
     {
-        public SampleContextModelBase()
-        {
-            Title = "Context Horizontal";
-        }
+        /// <inheritdoc />
+        public override string Title { get; set; } = "Context Horizontal";
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         VariableNodeHelper m_Helper = new VariableNodeHelper();
 
         public int InputCount => m_Helper.InputCount;
@@ -43,11 +37,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
             DefineNode();
         }
 
-        public void RemovePort(PortOrientation orientation, PortDirection direction)
+        public IEnumerable<IEdgeModel> RemovePort(PortOrientation orientation, PortDirection direction)
         {
-            m_Helper.RemovePort(orientation, direction);
+            var edgeDiff = new NodeEdgeDiff(this, direction);
 
+            m_Helper.RemovePort(orientation, direction);
             DefineNode();
+
+            return edgeDiff.GetDeletedEdges();
         }
     }
 }

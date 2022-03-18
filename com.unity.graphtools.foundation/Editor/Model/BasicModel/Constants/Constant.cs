@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
@@ -18,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <summary>
         /// The constant value.
         /// </summary>
-        public T Value
+        public virtual T Value
         {
             get => m_Value;
             set => m_Value = value;
@@ -27,8 +28,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public object ObjectValue
         {
-            get => m_Value;
-            set => m_Value = FromObject(value);
+            get => Value;
+            set => Value = FromObject(value);
         }
 
         /// <inheritdoc />
@@ -36,6 +37,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         /// <inheritdoc />
         public virtual Type Type => typeof(T);
+
+        /// <inheritdoc />
+        public virtual void Initialize(TypeHandle constantTypeHandle)
+        {
+            Debug.Assert(constantTypeHandle.Resolve().IsAssignableFrom(GetTypeHandle().Resolve()));
+            ObjectValue = DefaultValue;
+        }
+
+        /// <inheritdoc />
+        public virtual IConstant Clone()
+        {
+            var copy = (Constant<T>)Activator.CreateInstance(GetType());
+            copy.ObjectValue = ObjectValue;
+            return copy;
+        }
+
+        /// <inheritdoc />
+        public virtual TypeHandle GetTypeHandle()
+        {
+            return Type.GenerateTypeHandle();
+        }
 
         /// <summary>
         /// Converts an object to a value of the type {T}.

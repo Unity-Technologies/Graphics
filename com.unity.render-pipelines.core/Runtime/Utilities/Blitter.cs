@@ -240,6 +240,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Blit a Texture with a specified material. The reference name "_BlitTexture" will be used to bind the input texture.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source render target.</param>
+        /// <param name="destination">Destination render target.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass idx within the material to invoke.</param>
+        public static void BlitTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material, int pass)
+        {
+            // Unfortunately there is no function bind a RenderTargetIdentifier with a property block so we have to bind it globally.
+            cmd.SetGlobalTexture(BlitShaderIDs._BlitTexture, source);
+            cmd.SetRenderTarget(destination);
+            DrawTriangle(cmd, material, pass);
+        }
+
+        /// <summary>
         /// Blit a RTHandle to another RTHandle.
         /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
         /// </summary>
@@ -466,7 +482,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="cmd">Command buffer used for rendering.</param>
         /// <param name="source">Source texture.</param>
-        /// <param name="scaleBiasTex">Scale and bias for the input texture.</param>
         /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
         /// <param name="mipLevelTex">Mip level to blit.</param>
         public static void BlitCubeToOctahedral2DQuadSingleChannel(CommandBuffer cmd, Texture source, Vector4 scaleBiasRT, int mipLevelTex)

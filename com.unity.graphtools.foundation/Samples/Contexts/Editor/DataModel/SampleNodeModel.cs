@@ -9,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
     [Serializable]
     class SampleNodeModel : NodeModel, IVariableNodeModel
     {
-        [SerializeField]
+        [SerializeField, HideInInspector]
         VariableNodeHelper m_Helper = new VariableNodeHelper();
 
         public int InputCount => m_Helper.InputCount;
@@ -34,11 +34,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
             DefineNode();
         }
 
-        public void RemovePort(PortOrientation orientation, PortDirection direction)
+        public IEnumerable<IEdgeModel> RemovePort(PortOrientation orientation, PortDirection direction)
         {
-            m_Helper.RemovePort(orientation, direction);
+            var edgeDiff = new NodeEdgeDiff(this, direction);
 
+            m_Helper.RemovePort(orientation, direction);
             DefineNode();
+
+            return edgeDiff.GetDeletedEdges();
         }
     }
 }

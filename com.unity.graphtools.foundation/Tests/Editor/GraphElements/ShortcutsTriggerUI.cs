@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using NUnit.Framework;
+using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.TestTools;
@@ -18,22 +19,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            var node = GraphModel.NodeModels[0].GetUI<GraphElement>(graphView);
+            var node = GraphModel.NodeModels[0].GetView<GraphElement>(GraphView);
             var editableLabel = node.SafeQ<EditableLabel>();
             var textField = editableLabel.SafeQ<TextField>();
             Assert.IsTrue(textField.style.display == DisplayStyle.None);
 
-            helpers.Click(node.layout.center);
+            Helpers.Click(node.layout.center);
 
 #if UNITY_STANDALONE_OSX
-            helpers.KeyPressed(KeyCode.Return, EventModifiers.None);
+            Helpers.KeyPressed(KeyCode.Return);
 #else
-            helpers.KeyPressed(KeyCode.F2, EventModifiers.None);
+            Helpers.KeyPressed(KeyCode.F2);
 #endif
 
             yield return null;
 
-            node = GraphModel.NodeModels[0].GetUI<GraphElement>(graphView);
+            node = GraphModel.NodeModels[0].GetView<GraphElement>(GraphView);
             editableLabel = node.SafeQ<EditableLabel>();
             textField = editableLabel.SafeQ<TextField>();
 
@@ -46,11 +47,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            graphView.DisplaySmartSearchCalled = false;
-            helpers.KeyPressed(ShortcutDisplaySmartSearchEvent.keyCode, ShortcutEventTests.ConvertModifiers(ShortcutDisplaySmartSearchEvent.modifiers));
+            GraphView.DisplaySmartSearchCalled = false;
+
+            ShortcutDisplaySmartSearchEvent.SendTestEvent(Window, ShortcutStage.Begin);
             yield return null;
 
-            Assert.IsTrue(graphView.DisplaySmartSearchCalled);
+            Assert.IsTrue(GraphView.DisplaySmartSearchCalled);
         }
     }
 }

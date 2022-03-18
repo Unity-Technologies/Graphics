@@ -14,9 +14,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyDepthPass : ScriptableRenderPass
     {
-        private RenderTargetHandle source { get; set; }
-        private RenderTargetHandle destination { get; set; }
-        internal bool AllocateRT { get; set; }
+        private RTHandle source { get; set; }
+        private RTHandle destination { get; set; }
         internal int MssaSamples { get; set; }
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
         // So this variable needs to be set to true to enable the correct copy shader semantic
@@ -24,53 +23,56 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
 
         internal bool m_CopyResolvedDepth;
+        internal bool m_ShouldClear;
 
-        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
+        /// <summary>
+        /// Creates a new <c>CopyDepthPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
+        /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
+        /// <seealso cref="RenderPassEvent"/>
+        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
-            AllocateRT = true;
             CopyToDepth = false;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
             m_CopyResolvedDepth = false;
+            m_ShouldClear = shouldClear;
         }
 
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
         /// <param name="source">Source Render Target</param>
-        /// <param name="destination">Destination Render Targt</param>
-        public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
+        /// <param name="destination">Destination Render Target</param>
+        public void Setup(RTHandle source, RTHandle destination)
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = !destination.HasInternalRenderTargetId();
             this.MssaSamples = -1;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-#if UNITY_EDITOR
-            descriptor.depthBufferBits = 16;
-
-#else
-            descriptor.depthBufferBits = 0;
-
-#endif
+            var isDepth = (destination.rt && destination.rt.graphicsFormat == GraphicsFormat.None);
+            descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
             descriptor.msaaSamples = 1;
-            if (this.AllocateRT)
-                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
-
-            var target = new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1);
+            // This is a temporary workaround for Editor as not setting any depth here
+            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
 #if UNITY_EDITOR
-            ConfigureTarget(target, target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
-#else
-            // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(target, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
+            // This is a temporary workaround for Editor as not setting any depth here
+            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                ConfigureTarget(destination, destination);
+            else
 #endif
-            ConfigureClear(ClearFlag.None, Color.black);
+            ConfigureTarget(destination);
+            if (m_ShouldClear)
+                ConfigureClear(ClearFlag.All, Color.black);
         }
 
         /// <inheritdoc/>
@@ -81,7 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
                 return;
             }
-            CommandBuffer cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
                 int cameraSamples = 0;
@@ -93,8 +95,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                     cameraSamples = MssaSamples;
 
-                // When auto resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
+                // When depth resolve is supported or multisampled texture is not supported, set camera samples to 1
+                if (SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
                     cameraSamples = 1;
 
                 CameraData cameraData = renderingData.cameraData;
@@ -127,12 +129,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
 
-                if (CopyToDepth)
+                if (CopyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
                     cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
                 else
                     cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
 
-                cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
+                cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
 
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -145,7 +147,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.Identifier() == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget;
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     float flipSign = (yflip) ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
@@ -167,7 +169,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.z = bias
                     // scaleBias.w = unused
                     // In game view final target acts as back buffer were target is not flipped
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
+                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID);
                     bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
                     float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
@@ -178,9 +180,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
                 }
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>
@@ -189,9 +188,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (this.AllocateRT)
-                cmd.ReleaseTemporaryRT(destination.id);
-            destination = RenderTargetHandle.CameraTarget;
+            destination = k_CameraTarget;
         }
     }
 }

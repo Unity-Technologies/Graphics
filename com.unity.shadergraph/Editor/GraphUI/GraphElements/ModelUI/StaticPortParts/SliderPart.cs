@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SliderPart(
             string name,
             IGraphElementModel model,
-            IModelUI ownerElement,
+            IModelView ownerElement,
             string parentClassName,
             string portName
         ) : base(name, model, ownerElement, parentClassName, portName)
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnFieldValueChanged(ChangeEvent<float> change)
         {
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
-            m_OwnerElement.View.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
+            m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
                 m_PortName,
                 GraphType.Length.One,
                 GraphType.Height.One,

@@ -1,0 +1,27 @@
+.minimap-view {
+    position: relative;
+    flex-direction: column;
+    width: auto;
+    height: auto;
+    background-color: var(--overlay-background-color);
+    font-size: var(--unity-font-size);
+    flex: 1;
+}
+
+.ge-minimap {
+    --viewport-color: var(--minimap-viewport-border);
+    --selected-element-color: var(--minimap-selection-counterpart-border);
+    --placemat-border-color: var(--minimap-placemat-border);
+    flex: 1;
+}
+
+.ge-zoom-label {
+    -unity-text-align: middle-right;
+    font-size: 9px;
+    padding: 2px;
+    display: none;
+}
+
+.unity-overlay .ge-zoom-label {
+    display: flex;
+}

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,14 +9,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// Searcher adapter for <see cref="IGraphElementModel"/>.
     /// </summary>
-    public abstract class GraphElementSearcherAdapter : SearcherAdapter, IGTFSearcherAdapter
+    public abstract class GraphElementSearcherAdapter : SearcherAdapter, ISearcherAdapter
     {
         protected Label m_DetailsDescriptionTitle;
         protected ScrollView m_DetailsPreviewContainer;
 
+        protected const string k_BaseClassName = "ge-searcher-details";
+        protected readonly string k_HidePreviewClassName = k_BaseClassName.WithUssModifier("hidden");
         static readonly string k_DetailsDescriptionTitleClassName = k_DetailsTitleClassName.WithUssModifier("description");
         const string k_DetailsNodeClassName = "ge-searcher-details-preview-container";
-        const string k_HidePreviewClassName = "ge-searcher-details--hidden";
         const string k_DescriptionTitle = "Description";
 
         protected GraphElementSearcherAdapter(string title, string toolName = null) : base(title, toolName) {}
@@ -29,8 +29,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             m_DetailsPreviewContainer = MakeDetailsPreviewContainer();
             detailsPanel.Insert(1, m_DetailsPreviewContainer);
-            m_DetailsDescriptionTitle = MakeDetailsTitleLabel();
-            m_DetailsDescriptionTitle.text = k_DescriptionTitle;
+            m_DetailsDescriptionTitle = MakeDetailsTitleLabel(k_DescriptionTitle);
             m_DetailsDescriptionTitle.AddToClassList(k_DetailsDescriptionTitleClassName);
             detailsPanel.Insert(2, m_DetailsDescriptionTitle);
 
@@ -41,26 +40,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Creates a container for the preview in Details section.
         /// </summary>
         /// <returns>A container with uss class for a preview container in the details panel.</returns>
-        protected static ScrollView MakeDetailsPreviewContainer()
+        protected virtual ScrollView MakeDetailsPreviewContainer()
         {
             var previewContainer = new ScrollView();
             previewContainer.StretchToParentSize();
             previewContainer.AddToClassList(k_DetailsNodeClassName);
-
-            var eventCatcher = new VisualElement();
-            eventCatcher.RegisterCallback<MouseDownEvent>(e => e.StopImmediatePropagation());
-            eventCatcher.RegisterCallback<MouseMoveEvent>(e => e.StopImmediatePropagation());
-            previewContainer.Add(eventCatcher);
-            eventCatcher.StretchToParentSize();
-
-            previewContainer.Add(SearcherService.GraphView);
             previewContainer.style.position = Position.Relative;
 
             return previewContainer;
         }
 
         /// <inheritdoc />
-        protected override void UpdateDetailsPanel(SearcherItem searcherItem)
+        public override void UpdateDetailsPanel(SearcherItem searcherItem)
         {
             base.UpdateDetailsPanel(searcherItem);
 
@@ -105,6 +96,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public class GraphNodeSearcherAdapter : GraphElementSearcherAdapter
     {
         readonly IGraphModel m_GraphModel;
+        readonly Type m_GraphViewType;
+
+        GraphView m_GraphView;
+        GraphElement m_CurrentElement;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphNodeSearcherAdapter"/> class.
@@ -112,27 +107,43 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="graphModel">The graph in which this adapter is used.</param>
         /// <param name="title">The title to use when searching with this adapter.</param>
         /// <param name="toolName">Unique, human-readable name of the tool using this adapter.</param>
-        public GraphNodeSearcherAdapter(IGraphModel graphModel, string title, string toolName = null)
+        /// <param name="graphViewType">The type of <see cref="GraphView"/> to create in the details panel.</param>
+        public GraphNodeSearcherAdapter(IGraphModel graphModel, string title, string toolName = null, Type graphViewType = null)
             : base(title, toolName)
         {
+            if (!typeof(GraphView).IsAssignableFrom(graphViewType))
+            {
+                throw new ArgumentException("Type must derive from GraphView.", nameof(graphViewType));
+            }
+
             m_GraphModel = graphModel;
+            m_GraphViewType = graphViewType ?? typeof(GraphView);
         }
 
-        protected override void UpdateDetailsPanel(SearcherItem searcherItem)
+        /// <inheritdoc />
+        protected override ScrollView MakeDetailsPreviewContainer()
+        {
+            var scrollView = base.MakeDetailsPreviewContainer();
+            m_GraphView = SearcherGraphView.CreateSearcherGraphView(m_GraphViewType);
+            scrollView.Add(m_GraphView);
+            return scrollView;
+        }
+
+        public override void UpdateDetailsPanel(SearcherItem searcherItem)
         {
             base.UpdateDetailsPanel(searcherItem);
 
-            var graphView = SearcherService.GraphView;
-            graphView.ClearGraph();
+            m_GraphView.RemoveElement(m_CurrentElement);
 
-            var elements = CreateGraphElementModels(m_GraphModel, searcherItem).ToList();
-            foreach (var element in elements.Where(element => element is INodeModel || element is IStickyNoteModel))
+            if (ItemHasPreview(searcherItem))
             {
-                var node = GraphElementFactory.CreateUI<GraphElement>(graphView, element);
-                if (node != null)
+                var graphItem = searcherItem as GraphNodeModelSearcherItem;
+                var model = CreateGraphElementModel(m_GraphModel, graphItem);
+                m_CurrentElement = ModelViewFactory.CreateUI<GraphElement>(m_GraphView, model);
+                if (m_CurrentElement != null)
                 {
-                    node.style.position = Position.Relative;
-                    graphView.AddElement(node);
+                    m_CurrentElement.style.position = Position.Relative;
+                    m_GraphView.AddElement(m_CurrentElement);
                 }
             }
         }
@@ -142,12 +153,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return item is GraphNodeModelSearcherItem;
         }
 
-        protected static IGraphElementModel[] CreateGraphElementModels(IGraphModel mGraphModel, SearcherItem item)
+        protected static IGraphElementModel CreateGraphElementModel(IGraphModel graphModel, GraphNodeModelSearcherItem item)
         {
-            return item is GraphNodeModelSearcherItem graphItem
-                ? graphItem.CreateElements.Invoke(
-                new GraphNodeCreationData(mGraphModel, Vector2.zero, SpawnFlags.Orphan))
-                : Array.Empty<IGraphElementModel>();
+            return item.CreateElement.Invoke(
+                new GraphNodeCreationData(graphModel, Vector2.zero, SpawnFlags.Orphan));
         }
     }
 }

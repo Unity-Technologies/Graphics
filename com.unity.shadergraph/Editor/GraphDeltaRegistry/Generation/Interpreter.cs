@@ -42,10 +42,22 @@ namespace UnityEditor.ShaderGraph.Generation
                 surfaceCPDesc = surfaceDescBuilder.Build();
             }
 
-            var builder = new ShaderBuilder();
-            SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock, builder);
-            return builder.ToString();
+            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock, String.Empty);
+            return shader.codeString;
         }
+
+        private static ShaderType BuildStructFromVariables(ShaderContainer container, string name, IEnumerable<BlockVariable> variables, Block.Builder blockBuilder)
+        {
+            var structBuilder = new ShaderType.StructBuilder(blockBuilder, name);
+            foreach (var variable in variables)
+            {
+                var fieldBuilder = new StructField.Builder(container, variable.Name, variable.Type);
+                var structField = fieldBuilder.Build();
+                structBuilder.AddField(structField);
+            }
+            return structBuilder.Build();
+        }
+
 
         internal static Block EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
         {
@@ -66,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(ShaderGraph.Registry.Types.GraphType.kEntry).GetData();
                         var varOutBuilder = new BlockVariable.Builder(container)
                         {
-                            ReferenceName = entry.fieldName,
+                            Name = entry.fieldName,
                             Type = EvaluateShaderType(entry, container)
                         };
                         var varOut = varOutBuilder.Build();
@@ -78,14 +90,14 @@ namespace UnityEditor.ShaderGraph.Generation
             else
             {
                 var colorOutBuilder = new BlockVariable.Builder(container);
-                colorOutBuilder.ReferenceName = "BaseColor";
+                colorOutBuilder.Name = "BaseColor";
                 colorOutBuilder.Type = container._float3;
                 var colorOut = colorOutBuilder.Build();
                 outputVariables.Add(colorOut);
             }
 
-            var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
-            var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.FullPath}Main", outputType);
+            var outputType = BuildStructFromVariables(container, $"{BlockName}Output", outputVariables, blockBuilder);
+            var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.LocalPath}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
@@ -105,9 +117,9 @@ namespace UnityEditor.ShaderGraph.Generation
                 blockBuilder.AddFunction(func);
             }
 
-            var inputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Input", inputVariables);
+            var inputType = BuildStructFromVariables(container, $"{BlockName}Input", inputVariables, blockBuilder);
 
-            mainBodyFunctionBuilder.AddLine($"{outputType.Name} output;");
+            mainBodyFunctionBuilder.AddLine($"{BlockName}Block::{outputType.Name} output;");
             if(isContext)
             {
                 int varIndex = 0;
@@ -120,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
                         }
                         else // not connected.
                         {
@@ -132,21 +144,21 @@ namespace UnityEditor.ShaderGraph.Generation
                 }
 
             }
-            else
+            else // if node preview
             {
                 var port = rootNode.GetPorts().Where(e => !e.IsInput).First(); // get the first output node
                 var field = port.GetTypeField();
-                var outType = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(field, container, registry);
+                var outType = registry.GetTypeBuilder(field.GetRegistryKey()).GetShaderType(field, container, registry);
                 string assignment = ConvertToFloat3(outType, $"SYNTAX_{rootNode.ID.LocalPath}_{port.ID.LocalPath}");
-                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = {assignment};");
+                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].Name} = {assignment};");
             }
             mainBodyFunctionBuilder.AddLine("return output;");
 
             // Setup the block from the inputs, outputs, types, functions
-            foreach (var variable in inputVariables)
-                blockBuilder.AddInput(variable);
-            foreach (var variable in outputVariables)
-                blockBuilder.AddOutput(variable);
+            //foreach (var variable in inputVariables)
+            //    blockBuilder.AddInput(variable);
+            //foreach (var variable in outputVariables)
+            //    blockBuilder.AddOutput(variable);
             blockBuilder.AddType(inputType);
             blockBuilder.AddType(outputType);
             mainBodyFunctionBuilder.AddInput(inputType, "In");

@@ -49,7 +49,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         [SerializeField]
             (SearcherFilter filter, List<SearcherItem> filteredItems)[] m_FilterCache;
         [SerializeField]
-        int m_OldestCacheIndex = 0;
+        int m_OldestCacheIndex;
 
         [SerializeField]
         int m_EstimateIndexSize;
@@ -71,10 +71,19 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         /// Instantiates a database with items that need to be indexed.
         /// </summary>
         /// <param name="unindexedItems">Items needing to be indexed</param>
-        protected SearcherDatabaseBase(List<SearcherItem> unindexedItems)
+        protected SearcherDatabaseBase(IReadOnlyList<SearcherItem> unindexedItems)
             : this(unindexedItems, unindexedItems.Count)
         {
         }
+
+        internal struct SearchData
+        {
+            public long Score;
+            public string MatchedString;
+            public List<int> MatchedIndices;
+        }
+
+        internal Dictionary<SearcherItem, SearchData> LastSearchData { get; } = new Dictionary<SearcherItem, SearchData>();
 
         /// <summary>
         /// Instantiates a database with items that need to be indexed.
@@ -130,6 +139,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             if (m_IndexedItems != null)
             {
                 var filteredItems = FilterAndCacheItems(CurrentFilter, m_IndexedItems);
+                LastSearchData.Clear();
                 return PerformSearch(query, filteredItems);
             }
 
@@ -172,6 +182,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         /// <returns>The list of items with the filter applied.</returns>
         public virtual List<SearcherItem> PerformFilter(SearcherFilter filter, IReadOnlyList<SearcherItem> items)
         {
+            // ReSharper disable once RedundantLogicalConditionalExpressionOperand
             if (k_UseParallelTasks && items.Count > 100)
                 return FilterMultiThreaded(filter, items);
             return FilterSingleThreaded(filter, items);
@@ -286,12 +297,6 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             reader.Close();
 
             EditorJsonUtility.FromJsonOverwrite(serializedData, this);
-
-            foreach (var item in m_IndexedItems)
-            {
-                item.OverwriteDatabase(this);
-                item.ReInitAfterLoadFromFile();
-            }
         }
 
         /// <summary>
@@ -319,24 +324,8 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         /// <param name="indexedItems">The list to add indexed item to.</param>
         protected void AddItemToIndex(SearcherItem item, List<SearcherItem> indexedItems)
         {
-            item.OverwriteId(indexedItems.Count);
             item.Build();
             indexedItems.Add(item);
-
-            // This is used for sorting results between databases.
-            item.OverwriteDatabase(this);
-
-            if (!item.HasChildren)
-                return;
-
-            var childrenIds = new List<int>();
-            foreach (SearcherItem child in item.Children)
-            {
-                AddItemToIndex(child, indexedItems);
-                childrenIds.Add(child.Id);
-            }
-
-            item.OverwriteChildrenIds(childrenIds);
         }
     }
 }

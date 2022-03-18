@@ -7,25 +7,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 {
     public class CommandDispatcherEditorTests
     {
-        const string scenePath = "Assets/test.unity";
+        const string k_ScenePath = "Assets/test.unity";
 
         [TearDown]
         public void TearDown()
         {
-            AssetDatabase.DeleteAsset(scenePath);
+            AssetDatabase.DeleteAsset(k_ScenePath);
         }
 
         [Test]
         public void TestSavingSceneDoesNotAssert()
         {
-            var scene = EditorSceneManager.GetActiveScene();
-            EditorSceneManager.SaveScene(scene, scenePath);
+            var scene = SceneManager.GetActiveScene();
+            EditorSceneManager.SaveScene(scene, k_ScenePath);
 
-            GameObject go = new GameObject("miaou");
+            var _ = new GameObject("miaou");
 
-            EditorSceneManager.SaveScene(scene, scenePath);
+            EditorSceneManager.SaveScene(scene, k_ScenePath);
             //The test will fail if some asserts are added to the console.
-
         }
     }
 }
