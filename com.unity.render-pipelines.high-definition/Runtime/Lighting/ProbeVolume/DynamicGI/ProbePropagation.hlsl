@@ -26,21 +26,10 @@ float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
     return _PreviousRadianceCacheAxis[index];
 }
 
-float3 NormalizeOutputRadiance(float3 lighting, float probeValidity)
+float InvalidScale(float probeValidity)
 {
     float validity = pow(1.0 - probeValidity, 8.0);
-    const float invalidScale = (1.0f - lerp(_LeakMultiplier, 0.0f, validity));
-
-    float3 radiance = lighting * invalidScale;
-
-    return radiance;
+    return 1.0f - lerp(_LeakMultiplier, 0.0f, validity);
 }
-
-void WritePropagationOutput(uint index, float3 lighting, float probeValidity)
-{
-    const float3 finalRadiance = NormalizeOutputRadiance(lighting, probeValidity);
-    _RadianceCacheAxis[index] = finalRadiance;
-}
-
 
 #endif // endof PROBE_PROPAGATION
