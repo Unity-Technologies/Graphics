@@ -108,14 +108,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
-                                new ColorPart("sg-color", Model, this, ussClassName, portReader.LocalID, includeAlpha: false)
+                                new ColorPart("sg-color", GraphElementModel, this, ussClassName, portReader.LocalID, includeAlpha: false)
                             );
                         }
                         else
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
-                                new Vector3Part("sg-vector3", GraphElementModel, this, ussClassName, portReader.GetName())
+                                new Vector3Part("sg-vector3", GraphElementModel, this, ussClassName, portReader.LocalID)
                             );
                         }
 
