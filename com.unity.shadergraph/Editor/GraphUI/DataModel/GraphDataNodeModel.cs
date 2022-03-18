@@ -176,8 +176,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts())
             {
-                var staticField = portReader.GetField<bool>("IsStatic");
-                var localField = portReader.GetField<bool>("IsLocal");
+                var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
+                var localField = portReader.GetTypeField().GetSubField<bool>("IsLocal");
                 if (staticField != null && staticField.GetData()) continue;
                 if (localField != null && localField.GetData()) continue;
 
@@ -186,18 +186,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
+                var nodeId = nodeReader.ID;
                 Action<IConstant> initCallback = (IConstant e) =>
                 {
                     var constant = e as ICLDSConstant;
                     var shaderGraphModel = ((ShaderGraphModel)GraphModel);
                     var handler = shaderGraphModel.GraphHandler;
-                    var possiblyNodeReader = handler.GetNode(nodeReader.ID);
-                    if (possiblyNodeReader == null)
+                    try
+                    {
+                        var possiblyNodeReader = handler.GetNode(nodeId);
+                    }
+                    catch
+                    {
                         handler = shaderGraphModel.RegistryInstance.defaultTopologies;
+                    }
                     // don't do this, we should have a fixed way of pathing into a port's type information as opposed to its header/port data.
                     // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.
                     // Not sure how that's going to work for data that's from a connection!
-                    constant.Initialize(handler, nodeReader.ID.LocalPath, portReader.LocalID);
+                    constant.Initialize(handler, nodeId.LocalPath, portReader.LocalID);
                 };
 
                 IPortModel newPortModel = null;

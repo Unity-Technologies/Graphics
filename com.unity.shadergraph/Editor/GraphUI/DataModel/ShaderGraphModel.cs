@@ -57,8 +57,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
-                dst.graphDataNodeModel.graphDataName, dst.graphDataName,
                 src.graphDataNodeModel.graphDataName, src.graphDataName,
+                dst.graphDataNodeModel.graphDataName, dst.graphDataName,
                 RegistryInstance);
         }
 

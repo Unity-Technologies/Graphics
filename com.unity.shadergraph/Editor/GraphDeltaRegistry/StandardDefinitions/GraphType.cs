@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         public static GraphType.Height GetHeight(FieldHandler field) => field.GetSubField<GraphType.Height>(GraphType.kHeight).GetData();
 
-        public static float GetComponent(FieldHandler field, int idx) => field.GetSubField<float>(GraphType.kC(idx)).GetData();
+        public static float GetComponent(FieldHandler field, int idx) => field.GetSubField<float>(GraphType.kC(idx))?.GetData() ?? 0;
 
 
         public static IEnumerable<float> GetComponents(FieldHandler field, int idx = 0)

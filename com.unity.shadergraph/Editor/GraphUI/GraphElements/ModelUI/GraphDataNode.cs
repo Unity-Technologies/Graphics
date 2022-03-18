@@ -36,15 +36,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             foreach (var portReader in nodeReader.GetPorts())
             {
                 // Only add new node parts for static ports.
-                var staticField = portReader.GetTypeField().GetField<bool>("IsStatic");
+                var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
                 var portKey = portReader.GetTypeField().GetRegistryKey();
-                bool isStatic = staticField != null && staticField;
+                bool isStatic = staticField?.GetData() ?? false;
+
+                if (!isStatic) continue;
                 if (portKey.Name == Registry.Registry.ResolveKey<GradientType>().Name)
                 {
                     PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.GetName()));
                     continue;
                 }
-                if (!isStatic) continue;
                 if (portReader.GetTypeField().GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
                 var portName = portReader.LocalID;
 

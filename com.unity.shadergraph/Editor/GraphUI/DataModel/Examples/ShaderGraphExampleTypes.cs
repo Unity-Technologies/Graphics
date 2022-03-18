@@ -35,25 +35,32 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //
         public static TypeHandle GetGraphType(GraphDelta.PortHandler reader)
         {
-            var len = Registry.Types.GraphTypeHelpers.GetLength(reader.GetTypeField());
-            switch ((int)len)
+            var field = reader.GetTypeField();
+
+            var key = field.GetMetadata<RegistryKey>(GraphDelta.GraphDelta.kRegistryKeyName);
+
+            if (key.Name == Registry.Types.GraphType.kRegistryKey.Name)
             {
-                case 1:
-                    var prim = Registry.Types.GraphTypeHelpers.GetPrimitive(reader.GetTypeField());
-                        switch(prim)
-                        {
-                            case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
-                            case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
-                            default: return TypeHandle.Float;
-                        }
-                case 2: return TypeHandle.Vector2;
-                case 3: return TypeHandle.Vector3;
-                case 4: return TypeHandle.Vector4;
-                
+                var len = Registry.Types.GraphTypeHelpers.GetLength(field);
+                switch ((int)len)
+                {
+                    case 1:
+                        var prim = Registry.Types.GraphTypeHelpers.GetPrimitive(field);
+                            switch(prim)
+                            {
+                                case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
+                                case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
+                                default: return TypeHandle.Float;
+                            }
+                    case 2: return TypeHandle.Vector2;
+                    case 3: return TypeHandle.Vector3;
+                    case 4: return TypeHandle.Vector4;
+                }
             }
+            else if (key.Name == Registry.Types.GradientType.kRegistryKey.Name)
+                return GradientTypeHandle;
 
-
-            return GradientTypeHandle;
+            return TypeHandle.Unknown;
         }
 
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
@@ -178,7 +185,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!IsInitialized) return -1;
             var nodeReader = graphHandler.GetNode(nodeName);
             var portReader = nodeReader.GetPort(portName);
-            var field = portReader.GetField<Registry.Types.GraphType.Length>(Registry.Types.GraphType.kLength);
+            var field = portReader.GetTypeField().GetSubField<Registry.Types.GraphType.Length>(Registry.Types.GraphType.kLength);
             return (int)field.GetData();
         }
 
@@ -187,7 +194,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!IsInitialized) return Registry.Types.GraphType.Primitive.Float;
             var nodeReader = graphHandler.GetNode(nodeName);
             var portReader = nodeReader.GetPort(portName);
-            var field = portReader.GetField<Registry.Types.GraphType.Primitive>(Registry.Types.GraphType.kLength);
+            var field = portReader.GetTypeField().GetSubField<Registry.Types.GraphType.Primitive>(Registry.Types.GraphType.kPrimitive);
             return field.GetData();
         }
 
@@ -196,7 +203,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!IsInitialized) return 0;
             var nodeReader = graphHandler.GetNode(nodeName);
             var port = nodeReader.GetPort(portName);
-            return port.GetField<float>($"c{i}").GetData();
+            return port.GetTypeField().GetSubField<float>($"c{i}").GetData();
         }
 
         private void sc(int i, float v)
@@ -204,7 +211,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!IsInitialized) return;
             var node = graphHandler.GetNode(nodeName);
             var port = node.GetPort(portName);
-            var field = node.GetField<float>($"c{i}");
+            var field = port.GetTypeField().GetSubField<float>($"c{i}");
             field.SetData(v);
         }
 

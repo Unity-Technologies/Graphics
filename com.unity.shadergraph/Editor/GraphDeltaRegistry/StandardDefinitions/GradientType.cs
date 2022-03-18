@@ -91,7 +91,8 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public void BuildNode(NodeHandler node, Registry registry)
         {
             var input = node.AddPort<GradientType>(kInlineStatic, true, registry);
-            input.AddField<bool>("IsStatic", true); // TODO: This is just the hint for UI to use the large gradient editor.
+
+            input.GetTypeField().AddSubField<bool>("IsStatic", true); // TODO: This is just the hint for UI to use the large gradient editor.
             var output = node.AddPort<GradientType>(kOutput, false, registry);
         }
 
@@ -137,15 +138,15 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         public static void SetGradient(FieldHandler field, Gradient gradient)
         {
-            field.SetField(GradientType.kGradientMode, gradient.mode);
-            field.SetField(GradientType.kColorCount, gradient.colorKeys.Length);
-            field.SetField(GradientType.kAlphaCount, gradient.alphaKeys.Length);
+            field.AddSubField(GradientType.kGradientMode, gradient.mode);
+            field.AddSubField(GradientType.kColorCount, gradient.colorKeys.Length);
+            field.AddSubField(GradientType.kAlphaCount, gradient.alphaKeys.Length);
 
             for (int i = 0; i < 8 && i < gradient.colorKeys.Length; ++i)
-                field.SetField(GradientType.kColor(i), gradient.colorKeys[i]);
+                field.AddSubField(GradientType.kColor(i), gradient.colorKeys[i]);
 
             for (int i = 0; i < 8 && i < gradient.alphaKeys.Length; ++i)
-                field.SetField(GradientType.kAlpha(i), gradient.alphaKeys[i]);
+                field.AddSubField(GradientType.kAlpha(i), gradient.alphaKeys[i]);
         }
     }
 
@@ -170,13 +171,13 @@ namespace UnityEditor.ShaderGraph.Registry.Types
 
         public void BuildType(FieldHandler field, Registry registry)
         {
-            field.SetField(kGradientMode, GradientMode.Blend);
-            field.SetField(kColorCount, 2);
-            field.SetField(kAlphaCount, 2);
-            field.SetField(kColor(0), new GradientColorKey(Color.black, 0));
-            field.SetField(kColor(1), new GradientColorKey(Color.white, 1));
-            field.SetField(kAlpha(0), new GradientAlphaKey(1, 0));
-            field.SetField(kAlpha(1), new GradientAlphaKey(1, 1));
+            field.AddSubField(kGradientMode, GradientMode.Blend);
+            field.AddSubField(kColorCount, 2);
+            field.AddSubField(kAlphaCount, 2);
+            field.AddSubField(kColor(0), new GradientColorKey(Color.black, 0));
+            field.AddSubField(kColor(1), new GradientColorKey(Color.white, 1));
+            field.AddSubField(kAlpha(0), new GradientAlphaKey(1, 0));
+            field.AddSubField(kAlpha(1), new GradientAlphaKey(1, 1));
 
             // TODO: Precision; the Gradient type we use in Functions.hlsl does not handle precision, despite surrounding shader code.
             // Ideally, we could just generate the complete Gradient Struct per precision type, instead of using the one from Functions.hlsl;
