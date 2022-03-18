@@ -61,6 +61,8 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
+        string gammaSpaceString => gammaSpace ? "[Gamma]" : "";
+
         internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
             HLSLDeclaration decl = GetDefaultHLSLDeclaration();
@@ -77,13 +79,13 @@ namespace UnityEditor.ShaderGraph.Internal
             switch (floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.y)})) = {valueString}";
+                    return $"{hideTagString}{gammaSpaceString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.y)})) = {valueString}";
                 case FloatType.Integer:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {((int)value).ToString(CultureInfo.InvariantCulture)}";
                 case FloatType.Enum:
                     return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
                 default:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
+                    return $"{hideTagString}{gammaSpaceString}{referenceName}(\"{displayName}\", Float) = {valueString}";
             }
         }
 
@@ -108,6 +110,14 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         [SerializeField]
+        bool m_GammaSpace = false;
+
+        public bool gammaSpace
+        {
+            get => m_GammaSpace;
+            set => m_GammaSpace = value;
+        }
+
         Vector2 m_RangeValues = new Vector2(0, 1);
 
         public Vector2 rangeValues
