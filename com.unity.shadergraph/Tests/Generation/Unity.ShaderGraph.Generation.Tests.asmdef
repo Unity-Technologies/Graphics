@@ -5,8 +5,7 @@
         "Unity.ShaderGraph.Editor",
         "ContextLayeredDataStorage",
         "Unity.ShaderGraph.GraphDeltaRegistry",
-        "Unity.ShaderFoundry.Editor",
-        "Unity.ShaderGraph.Test"
+        "Unity.ShaderFoundry.Editor"
     ],
     "includePlatforms": [
         "Editor"
