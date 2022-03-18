@@ -5,10 +5,10 @@
         "Unity.ShaderGraph.GraphDeltaRegistry",
         "GtfPlayground"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [
+    "includePlatforms": [
         "Editor"
     ],
+    "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [

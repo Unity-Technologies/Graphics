@@ -284,6 +284,32 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return field.GetSubField<T>(fieldName).GetData();
         }
 
+        public static bool TryGetField<T>(this NodeHandler node, string fieldName, out T data)
+        {
+            var field = node.GetField<T>(fieldName);
+            if(field != null)
+            {
+                data = field.GetData();
+                return true;
+            }
+            data = default;
+            return false;
+        }
+
+        public static void GetField<T>(this PortHandler port, string fieldName, out T data)
+        {
+            data = port.GetField<T>(fieldName).GetData();
+        }
+        public static void GetField<T>(this FieldHandler field, string fieldName, out T data)
+        {
+            data = field.GetSubField<T>(fieldName).GetData();
+        }
+
+        public static void TryGetPort(this NodeHandler node, string portName, out PortHandler port)
+        {
+            port = node.GetPort(portName);
+        }
+
         internal static PortHandler AddPort<T>(this NodeHandler node, string name, bool isInput, Registry.Registry registry) where T : Registry.Defs.ITypeDefinitionBuilder
         {
             return AddPort(node, name, isInput, Registry.Registry.ResolveKey<T>(), registry);
