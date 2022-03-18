@@ -151,6 +151,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return pos.x + pos.y * resolutionX + pos.z * resolutionX * resolutionY;
         }
 
+        internal Vector3Int ComputePos3DFrom1D(int index)
+        {
+            return new Vector3Int(
+                index % resolutionX,
+                index / resolutionX % resolutionY,
+                index / (resolutionX * resolutionY));
+        }
+
         bool OverwriteInvalidProbe(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst, Vector3Int index3D, float backfaceTolerance)
         {
             int strideSHL01 = ProbeVolumePayload.GetDataSHL01Stride();

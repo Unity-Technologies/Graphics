@@ -244,9 +244,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private void GeneratePackedNeighborData(ProbeBakeNeighborData[] neighborBakeDatas, ref ProbeVolumeAsset probeVolumeAsset, in ProbeVolumeArtistParameters parameters, int hits)
         {
             int totalAxis = neighborBakeDatas.Length * s_NeighborAxis.Length;
-            int missedAxis = totalAxis - hits;
-            EnsureNeighbors(ref probeVolumeAsset.payload, missedAxis, hits, totalAxis);
-
+            EnsureNeighbors(ref probeVolumeAsset.payload, hits, totalAxis);
+            
             float maxNeighborDistance = GetMaxNeighborDistance(in parameters);
             int missedAxisCount = 0;
             int hitAxisCount = 0;
@@ -261,17 +260,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     var emission = neighborBakeData.neighborEmission[axis];
                     var normal = neighborBakeData.neighborNormal[axis];
 
+                    var neighborPos = probeVolumeAsset.ComputePos3DFrom1D(i) + ProbeVolumeAsset.s_Offsets[axis];
+                    float neighborValidity;
+                    if (neighborPos.x >= 0 && neighborPos.y >= 0 && neighborPos.z >= 0
+                        && neighborPos.x < probeVolumeAsset.resolutionX
+                        && neighborPos.y < probeVolumeAsset.resolutionY
+                        && neighborPos.z < probeVolumeAsset.resolutionZ)
+                    {
+                        var neighborIndex = probeVolumeAsset.ComputeIndex1DFrom3D(neighborPos);
+                        neighborValidity = neighborBakeDatas[neighborIndex].validity;
+                    }
+                    else
+                    {
+                        neighborValidity = 0f;
+                    }
+
                     if (distance == 0)
                     {
                         // miss
-                        SetNeighborData(ref probeVolumeAsset.payload, validity, i, axis, NeighborAxis.Miss);
+                        SetNeighborData(ref probeVolumeAsset.payload, neighborValidity, i, axis, NeighborAxis.Miss);
                         ++missedAxisCount;
                     }
                     else
                     {
                         // hit
                         SetNeighborDataHit(ref probeVolumeAsset.payload, albedo, emission, normal, distance, validity, i, axis, hitAxisCount, maxNeighborDistance );
-                        SetNeighborData(ref probeVolumeAsset.payload, validity, i, axis, (uint)hitAxisCount);
+                        SetNeighborData(ref probeVolumeAsset.payload, neighborValidity, i, axis, (uint)hitAxisCount);
                         ++hitAxisCount;
                     }
                 }

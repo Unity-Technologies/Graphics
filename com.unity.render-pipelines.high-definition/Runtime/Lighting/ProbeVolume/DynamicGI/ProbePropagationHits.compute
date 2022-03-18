@@ -205,7 +205,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         const SurfaceHitData hit = ConstructSurfaceHit(neighborData, worldPosition, probeVolumeLtw);
 
         #if defined(COMPUTE_INFINITE_BOUNCE)
-            float3 lighting = EstimateIncomingBounceLightAtHit(probeIndex, hit);
+            float3 lighting = EstimateIncomingBounceLightAtHit(probeIndex, hit) * InvalidScale(probeValidity);
         #else
             float3 lighting = 0;
         #endif
@@ -214,7 +214,6 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
 
         lighting += UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
 
-        const float3 finalRadiance = NormalizeOutputRadiance(lighting, probeValidity);
-        _HitRadianceCacheAxis[hitAxisIndex] = finalRadiance;
+        _HitRadianceCacheAxis[hitAxisIndex] = lighting;
     }
 }
