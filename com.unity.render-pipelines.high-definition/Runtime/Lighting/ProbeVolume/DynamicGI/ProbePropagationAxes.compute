@@ -259,7 +259,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
         float3 incomingHitRadiance = 0;
         float3 incomingMissRadiance = 0;
-        float probeValidity = 0;
         int neighborAxisIndexOffset = axisIndex * NEIGHBOR_AXIS_COUNT;
 
         BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[axisIndex].xyz, _Sharpness);
