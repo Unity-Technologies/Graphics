@@ -893,6 +893,50 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
+        /// Checks if a given render texture format has an alpha channel.
+        /// </summary>
+        /// <param name="format">The format to test</param>
+        /// <returns><c>true</c> if the format has an alpha channel, <c>false</c> otherwise</returns>
+        public static bool hasAlpha(RenderTextureFormat format)
+        {
+            switch(format)
+            {
+                case RenderTextureFormat.ARGB32: return true;
+                case RenderTextureFormat.Depth: return false;
+                case RenderTextureFormat.ARGBHalf: return true;
+                case RenderTextureFormat.Shadowmap: return false;
+                case RenderTextureFormat.RGB565: return false;
+                case RenderTextureFormat.ARGB4444: return true;
+                case RenderTextureFormat.ARGB1555: return true;
+                case RenderTextureFormat.Default:
+                    return UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetAlphaComponentCount(SystemInfo.GetGraphicsFormat(Experimental.Rendering.DefaultFormat.LDR)) != 0;
+                case RenderTextureFormat.ARGB2101010: return true;
+                case RenderTextureFormat.DefaultHDR:
+                    return UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetAlphaComponentCount(SystemInfo.GetGraphicsFormat(Experimental.Rendering.DefaultFormat.HDR)) != 0;
+                case RenderTextureFormat.ARGB64: return true;
+                case RenderTextureFormat.ARGBFloat: return true;
+                case RenderTextureFormat.RGFloat: return false;
+                case RenderTextureFormat.RGHalf: return false;
+                case RenderTextureFormat.RFloat: return false;
+                case RenderTextureFormat.RHalf: return false;
+                case RenderTextureFormat.R8: return false;
+                case RenderTextureFormat.ARGBInt: return true;
+                case RenderTextureFormat.RGInt: return false;
+                case RenderTextureFormat.RInt: return false;
+                case RenderTextureFormat.BGRA32: return true;
+                case RenderTextureFormat.RGB111110Float: return false;
+                case RenderTextureFormat.RG32: return false;
+                case RenderTextureFormat.RGBAUShort: return true;
+                case RenderTextureFormat.RG16: return false;
+                case RenderTextureFormat.BGRA10101010_XR: return true;
+                case RenderTextureFormat.BGR101010_XR: return false;
+                case RenderTextureFormat.R16: return false;
+                default:
+                    throw new InvalidOperationException("Unsupported RenderTextureFormat " + format);
+            }
+        }
+
+        /// <summary>
         /// Properly destroys a given Unity object.
         /// </summary>
         /// <param name="obj">The object to destroy</param>
