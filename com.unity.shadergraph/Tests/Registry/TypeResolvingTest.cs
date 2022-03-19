@@ -40,16 +40,16 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // add a single node to the graph
             string nodeName = $"{fd.Name}-01";
-            INodeWriter nodeWriter = m_graph.AddNode(registryKey, nodeName, m_registry);
+            NodeHandler nodeWriter = m_graph.AddNode(registryKey, nodeName, m_registry);
 
             // check that the the node was added
             var nodeReader = m_graph.GetNodeReader(nodeName);
-            bool didRead = nodeReader.GetField("In.Length", out Length len);
+            bool didRead = nodeReader.TryGetField("In.Length", out Length len);
             Assert.IsTrue(didRead);
 
             // EXPECT that both In and Out are concretized into length = 4 (default)
             Assert.AreEqual(Length.Four, len);
-            didRead = nodeReader.GetField("Out.Length", out len);
+            didRead = nodeReader.TryGetField("Out.Length", out len);
             Assert.IsTrue(didRead);
             Assert.AreEqual(Length.Four, len);
 
@@ -58,12 +58,12 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             nodeReader = m_graph.GetNodeReader(nodeName);
 
             // EXPECT that In now reads as a Vec3
-            didRead = nodeReader.GetField("In.Length", out len);
+            didRead = nodeReader.TryGetField("In.Length", out len);
             Assert.IsTrue(didRead);
             Assert.AreEqual(Length.Three, len);
 
             // EXPECT that Out has not changed
-            didRead = nodeReader.GetField("Out.Length", out len);
+            didRead = nodeReader.TryGetField("Out.Length", out len);
             Assert.IsTrue(didRead);
             Assert.AreEqual(Length.Four, len);
 
@@ -73,12 +73,12 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // EXPECT that In is still a Vec3
             nodeReader = m_graph.GetNodeReader(nodeName);
-            didRead = nodeReader.GetField("In.Length", out len);
+            didRead = nodeReader.TryGetField("In.Length", out len);
             Assert.IsTrue(didRead);
             Assert.AreEqual(Length.Three, len);
 
             // EXPECT that Out has resolved into a Vec3
-            didRead = nodeReader.GetField("Out.Length", out len);
+            didRead = nodeReader.TryGetField("Out.Length", out len);
             Assert.IsTrue(didRead);
             Assert.AreEqual(Length.Three, len);
         }

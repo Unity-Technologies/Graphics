@@ -11,41 +11,26 @@ namespace UnityEditor.ShaderGraph.Registry.Types
     /// Experimenting with different helper function interfaces.
     /// </summary>
 
-    internal static class GraphTypeHelpers
+    public static class GraphTypeHelpers
     {
-        public static GraphType.Precision GetPrecision(IFieldReader field)
-        {
-            field.GetField(GraphType.kPrecision, out GraphType.Precision precision);
-            return precision;
-        }
-        public static GraphType.Primitive GetPrimitive(IFieldReader field)
-        {
-            field.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive);
-            return primitive;
-        }
-        public static GraphType.Length GetLength(IFieldReader field)
-        {
-            field.GetField(GraphType.kLength, out GraphType.Length length);
-            return length;
-        }
-        public static GraphType.Height GetHeight(IFieldReader field)
-        {
-            field.GetField(GraphType.kHeight, out GraphType.Height height);
-            return height;
-        }
+        public static GraphType.Precision GetPrecision(FieldHandler field) => field.GetSubField<GraphType.Precision>(GraphType.kPrecision).GetData();
 
-        public static float GetComponent(IFieldReader field, int idx)
-        {
-            field.GetField(GraphType.kC(idx), out float val);
-            return val;
-        }
-        public static IEnumerable<float> GetComponents(IFieldReader field, int idx = 0)
+        public static GraphType.Primitive GetPrimitive(FieldHandler field) => field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).GetData();
+
+        public static GraphType.Length GetLength(FieldHandler field) => field.GetSubField<GraphType.Length>(GraphType.kLength).GetData();
+
+        public static GraphType.Height GetHeight(FieldHandler field) => field.GetSubField<GraphType.Height>(GraphType.kHeight).GetData();
+
+        public static float GetComponent(FieldHandler field, int idx) => field.GetSubField<float>(GraphType.kC(idx))?.GetData() ?? 0;
+
+
+        public static IEnumerable<float> GetComponents(FieldHandler field, int idx = 0)
         {
             for (; idx < (int)GetLength(field) * (int)GetHeight(field); ++idx)
                 yield return GetComponent(field, idx);
         }
 
-        public static Type GetManagedType(IFieldReader field)
+        public static Type GetManagedType(FieldHandler field)
         {
             var primitive = GetPrimitive(field);
             var length = GetLength(field);
@@ -68,38 +53,42 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             }
         }
 
-        public static bool GetAsBool(IFieldReader field) => GetComponent(field, 0) != 0;
-        public static float GetAsFloat(IFieldReader field) => GetComponent(field, 0);
-        public static int GetAsInt(IFieldReader field) => (int)GetComponent(field, 0);
-        public static Vector2 GetAsVec2(IFieldReader field) => new Vector2(GetComponent(field, 0), GetComponent(field, 1));
-        public static Vector3 GetAsVec3(IFieldReader field) => new Vector3(GetComponent(field, 0), GetComponent(field, 1), GetComponent(field, 2));
-        public static Vector4 GetAsVec4(IFieldReader field, int col = 0) => new Vector4(
+        public static bool GetAsBool(FieldHandler field) => GetComponent(field, 0) != 0;
+        public static float GetAsFloat(FieldHandler field) => GetComponent(field, 0);
+        public static int GetAsInt(FieldHandler field) => (int)GetComponent(field, 0);
+        public static Vector2 GetAsVec2(FieldHandler field) => new Vector2(GetComponent(field, 0), GetComponent(field, 1));
+        public static Vector3 GetAsVec3(FieldHandler field) => new Vector3(GetComponent(field, 0), GetComponent(field, 1), GetComponent(field, 2));
+        public static Vector4 GetAsVec4(FieldHandler field, int col = 0) => new Vector4(
                 GetComponent(field, 0 + col * 4),
                 GetComponent(field, 1 + col * 4),
                 GetComponent(field, 2 + col * 4),
                 GetComponent(field, 3 + col * 4)
             );
-        public static Matrix4x4 GetAsMat4(IFieldReader field) => new Matrix4x4(
+        public static Matrix4x4 GetAsMat4(FieldHandler field) => new Matrix4x4(
                 GetAsVec4(field, 0),
                 GetAsVec4(field, 1),
                 GetAsVec4(field, 2),
                 GetAsVec4(field, 3)
             );
 
-        public static void SetComponent(IFieldWriter field, int idx, float val) => field.SetField(GraphType.kC(idx), val);
-        public static void SetComponents(IFieldWriter field, int idx, params float[] values)
+        public static void SetComponent(FieldHandler field, int idx, float val)
+        {
+            var sub = field.GetSubField<float>(GraphType.kC(idx)) ?? field.AddSubField(GraphType.kC(idx), val);
+            sub.SetData(val);
+        }
+        public static void SetComponents(FieldHandler field, int idx, params float[] values)
         {
             foreach(var val in values)
                 SetComponent(field, idx++, val);
         }
 
-        public static void SetAsFloat(IFieldWriter field, float val) => SetComponent(field, 0, val);
-        public static void SetAsBool(IFieldWriter field, bool val) => SetComponent(field, 0, val ? 1f : 0f);
-        public static void SetAsInt(IFieldWriter field, int val) => SetComponent(field, 0, val);
-        public static void SetAsVec2(IFieldWriter field, Vector2 val) => SetComponents(field, 0, val.x, val.y);
-        public static void SetAsVec3(IFieldWriter field, Vector3 val) => SetComponents(field, 0, val.x, val.y, val.z);
-        public static void SetAsVec4(IFieldWriter field, Vector4 val, int col = 0) => SetComponents(field, col * 4, val.x, val.y, val.z);
-        public static void SetAsMat4(IFieldWriter field, Matrix4x4 val)
+        public static void SetAsFloat(FieldHandler field, float val) => SetComponent(field, 0, val);
+        public static void SetAsBool(FieldHandler field, bool val) => SetComponent(field, 0, val ? 1f : 0f);
+        public static void SetAsInt(FieldHandler field, int val) => SetComponent(field, 0, val);
+        public static void SetAsVec2(FieldHandler field, Vector2 val) => SetComponents(field, 0, val.x, val.y);
+        public static void SetAsVec3(FieldHandler field, Vector3 val) => SetComponents(field, 0, val.x, val.y, val.z);
+        public static void SetAsVec4(FieldHandler field, Vector4 val, int col = 0) => SetComponents(field, col * 4, val.x, val.y, val.z);
+        public static void SetAsMat4(FieldHandler field, Matrix4x4 val)
         {
             for (int i = 0; i < 4; ++i)
                 SetAsVec4(field, val.GetColumn(i), i);
@@ -170,26 +159,31 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public static string kC(int i) => $"c{i}";
         #endregion
 
-        public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
+        public void BuildType(FieldHandler field, Registry registry)
         {
             // default initialize to a float4;
-            typeWriter.SetField(kPrecision, Precision.Single);
-            typeWriter.SetField(kPrimitive, Primitive.Float);
-            typeWriter.SetField(kLength, Length.Four);
-            typeWriter.SetField(kHeight, Height.One);
+            field.AddSubField(kPrecision, Precision.Single);
+            field.AddSubField(kPrimitive, Primitive.Float);
+            field.AddSubField(kLength, Length.Four);
+            field.AddSubField(kHeight, Height.One);
+
+
+            var lenField = field.GetSubField<Length>(kLength);
+            var hgtField = field.GetSubField<Height>(kHeight);
+            var length = Length.Four;
+            var height = Height.One;
 
             // read userdata and make sure we have enough fields.
-            if (!userData.GetField(kLength, out Length length))
-                length = Length.Four;
-            if (!userData.GetField(kHeight, out Height height))
-                height = Height.One;
+            if (lenField != null) length = lenField.GetData();
+            if (hgtField != null) height = hgtField.GetData();
 
             // ensure that enough subfield values exist to represent userdata's current data.
+            // we could just ignore userData though and just fill out all 16 possible components...
             for (int i = 0; i < (int)length * (int)height; ++i)
-                GraphTypeHelpers.SetComponent(typeWriter, i, 0);
+                GraphTypeHelpers.SetComponent(field, i, 0);
         }
 
-        string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)
+        string Defs.ITypeDefinitionBuilder.GetInitializerList(FieldHandler data, Registry registry)
         {
             var height = GraphTypeHelpers.GetHeight(data);
             var length = GraphTypeHelpers.GetLength(data);
@@ -208,7 +202,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
             return result;
         }
 
-        ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+        ShaderFoundry.ShaderType Defs.ITypeDefinitionBuilder.GetShaderType(FieldHandler data, ShaderFoundry.ShaderContainer container, Registry registry)
         {
             var height = GraphTypeHelpers.GetHeight(data);
             var length = GraphTypeHelpers.GetLength(data);
@@ -252,7 +246,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
         public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
-        public bool CanConvert(IFieldReader src, IFieldReader dst)
+        public bool CanConvert(FieldHandler src, FieldHandler dst)
         {
             var srcHgt = GraphTypeHelpers.GetHeight(src);
             var srcLen = GraphTypeHelpers.GetLength(src);
@@ -281,7 +275,7 @@ namespace UnityEditor.ShaderGraph.Registry.Types
         }
 
 
-        public ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry)
+        public ShaderFoundry.ShaderFunction GetShaderCast(FieldHandler src, FieldHandler dst, ShaderFoundry.ShaderContainer container, Registry registry)
         {
             // In this case, we can determine a casting operation purely from the built types. We don't actually need to analyze field data,
             // this is because it's all already been encapsulated in the previously built ShaderType.

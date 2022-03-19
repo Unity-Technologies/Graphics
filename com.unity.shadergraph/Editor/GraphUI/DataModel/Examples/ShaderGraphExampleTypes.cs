@@ -33,28 +33,34 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //    {
         //        public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
         //
-        public static TypeHandle GetGraphType(GraphDelta.IPortReader reader)
+        public static TypeHandle GetGraphType(GraphDelta.PortHandler reader)
         {
-            if (reader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length len))
+            var field = reader.GetTypeField();
+
+            var key = field.GetMetadata<RegistryKey>(GraphDelta.GraphDelta.kRegistryKeyName);
+
+            if (key.Name == Registry.Types.GraphType.kRegistryKey.Name)
             {
+                var len = Registry.Types.GraphTypeHelpers.GetLength(field);
                 switch ((int)len)
                 {
                     case 1:
-                        reader.GetField(Registry.Types.GraphType.kPrimitive, out Registry.Types.GraphType.Primitive prim);
-                        switch(prim)
-                        {
-                            case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
-                            case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
-                            default: return TypeHandle.Float;
-                        }
+                        var prim = Registry.Types.GraphTypeHelpers.GetPrimitive(field);
+                            switch(prim)
+                            {
+                                case Registry.Types.GraphType.Primitive.Int: return TypeHandle.Int;
+                                case Registry.Types.GraphType.Primitive.Bool: return TypeHandle.Bool;
+                                default: return TypeHandle.Float;
+                            }
                     case 2: return TypeHandle.Vector2;
                     case 3: return TypeHandle.Vector3;
                     case 4: return TypeHandle.Vector4;
                 }
             }
+            else if (key.Name == Registry.Types.GradientType.kRegistryKey.Name)
+                return GradientTypeHandle;
 
-
-            return GradientTypeHandle;
+            return TypeHandle.Unknown;
         }
 
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
@@ -112,19 +118,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
     //    public GraphDelta.GraphHandler graphHandler;
     //    public string nodeName, portName, fieldPath;
 
-    //    private GraphDelta.IFieldReader ResolveReader()
+    //    private GraphDelta.FieldHandler ResolveReader()
     //    {
-    //        var nodeReader = graphHandler.GetNodeReader(nodeName);
-    //        if (nodeReader.TryGetPort(portName, out var portReader))
-    //        {
-    //            portReader.TryGetField(fieldPath, out var fieldReader);
-    //            return fieldReader;
-    //        }
+    //        var node = graphHandler.GetNode(nodeName);
+    //        var port = node.GetPort(portName);
+
+    //        if (port != null)
+    //            return port.GetField(fieldPath);
     //        else
-    //        {
-    //            nodeReader.TryGetField(fieldPath, out var FieldReader);
-    //            return FieldReader;
-    //        }
+    //            return node.GetField(fieldPath);
     //    }
 
     //    bool IsInitialized => graphHandler != null;
@@ -181,35 +183,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal int GetLength()
         {
             if (!IsInitialized) return -1;
-            var nodeReader = graphHandler.GetNodeReader(nodeName);
-            nodeReader.TryGetPort(portName, out var portReader);
-            portReader.GetField(Registry.Types.GraphType.kLength, out Registry.Types.GraphType.Length length);
-            return (int)length;
+            var nodeReader = graphHandler.GetNode(nodeName);
+            var portReader = nodeReader.GetPort(portName);
+            var field = portReader.GetTypeField().GetSubField<Registry.Types.GraphType.Length>(Registry.Types.GraphType.kLength);
+            return (int)field.GetData();
         }
 
         private Registry.Types.GraphType.Primitive GetPrimitive()
         {
             if (!IsInitialized) return Registry.Types.GraphType.Primitive.Float;
-            var nodeReader = graphHandler.GetNodeReader(nodeName);
-            nodeReader.TryGetPort(portName, out var portReader);
-            portReader.GetField(Registry.Types.GraphType.kPrimitive, out Registry.Types.GraphType.Primitive prim);
-            return prim;
+            var nodeReader = graphHandler.GetNode(nodeName);
+            var portReader = nodeReader.GetPort(portName);
+            var field = portReader.GetTypeField().GetSubField<Registry.Types.GraphType.Primitive>(Registry.Types.GraphType.kPrimitive);
+            return field.GetData();
         }
 
         private float gc(int i)
         {
             if (!IsInitialized) return 0;
-            var nodeReader = graphHandler.GetNodeReader(nodeName);
-            nodeReader.TryGetPort(portName, out var portReader);
-            portReader.GetField($"c{i}", out float value);
-            return value;
+            var nodeReader = graphHandler.GetNode(nodeName);
+            var port = nodeReader.GetPort(portName);
+            return port.GetTypeField().GetSubField<float>($"c{i}").GetData();
         }
 
         private void sc(int i, float v)
         {
             if (!IsInitialized) return;
-            var nodeReader = graphHandler.GetNodeWriter(nodeName);
-            nodeReader.SetPortField(portName, $"c{i}", v);
+            var node = graphHandler.GetNode(nodeName);
+            var port = node.GetPort(portName);
+            var field = port.GetTypeField().GetSubField<float>($"c{i}");
+            field.SetData(v);
         }
 
         public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
@@ -314,19 +317,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
 
-        private GraphDelta.IFieldReader GetFieldReader()
+        private GraphDelta.FieldHandler GetFieldReader()
         {
             if (!IsInitialized) return null;
             var nodeReader = graphHandler.GetNodeReader(nodeName);
-            nodeReader.TryGetPort(portName, out var portReader);
-            return (GraphDelta.IFieldReader)portReader;
+            var portReader = nodeReader.GetPort(portName);
+            return portReader.GetTypeField();
         }
 
-        private GraphDelta.IFieldWriter GetFieldWriter()
+        private GraphDelta.FieldHandler GetFieldWriter()
         {
-            if (!IsInitialized) return null;
-            var nodeWriter = graphHandler.GetNodeWriter(nodeName);
-            return (GraphDelta.IFieldWriter)nodeWriter.GetPort(portName);
+            return GetFieldReader();
         }
 
         public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)

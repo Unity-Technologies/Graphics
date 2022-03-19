@@ -1,9 +1,11 @@
 using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
 using UnityEngine;
-using com.unity.shadergraph.defs;
+using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphDelta;
 using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 using System.Collections.Generic;
+using com.unity.shadergraph.defs;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -19,30 +21,43 @@ namespace UnityEditor.ShaderGraph.Registry
         public static class NodeHelpers
         {
             // all common math operations can probably use the same resolver.
-            public static void MathNodeDynamicResolver(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            //public static void MathNodeDynamicResolver(
+            public static void MathNodeDynamicResolver(NodeHandler node, Registry registry)
             {
                 int operands = 0;
-                int resolvedLength = 4;
-                int resolvedHeight = 1; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
+                Length resolvedLength = Length.Four;
+                Height resolvedHeight = Height.One; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
                 var resolvedPrimitive = Primitive.Float;
                 var resolvedPrecision = Precision.Single;
 
                 // UserData ports only exist if a user inlines a value or makes a connection.
-                foreach (var port in userData.GetPorts())
+                foreach (var port in node.GetPorts())
                 {
-                    if (!port.IsInput()) continue;
+                    if (!port.IsInput) continue;
                     operands++;
+                    FieldHandler typeField = port.GetTypeField();
                     // UserData is allowed to have holes, so we should ignore what's missing.
-                    bool hasLength = port.GetField(kLength, out Length length);
-                    bool hasHeight = port.GetField(kHeight, out Height height);
-                    bool hasPrimitive = port.GetField(kPrimitive, out Primitive primitive);
-                    bool hasPrecision = port.GetField(kPrecision, out Precision precision);
-
-                    // Legacy DynamicVector's default behavior is to use the most constrained typing.
-                    resolvedLength = hasLength ? Mathf.Min(resolvedLength, (int)length) : resolvedLength;
-                    resolvedHeight = hasHeight ? Mathf.Min(resolvedHeight, (int)height) : resolvedHeight;
-                    resolvedPrimitive = hasPrimitive ? (Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive) : resolvedPrimitive;
-                    resolvedPrecision = hasPrecision ? (Precision)Mathf.Min((int)resolvedPrecision, (int)precision) : resolvedPrecision;
+                    FieldHandler field = typeField.GetSubField(kLength);
+                    if (field != null)
+                    {
+                        resolvedLength = (Length)Mathf.Min((int)resolvedLength, (int)field.GetData<Length>());
+                    }
+                    field = typeField.GetSubField(kHeight);
+                    if (field != null)
+                    {
+                        resolvedHeight = (Height)Mathf.Min((int)resolvedHeight, (int)field.GetData<Height>());
+                    }
+                    field = typeField.GetSubField(kPrecision);
+                    if (field != null)
+                    {
+                        Precision precision = field.GetData<Precision>();
+                        resolvedPrecision = (Precision)Mathf.Min((int)resolvedPrecision, (int)precision);
+                    }
+                    field = typeField.GetSubField(kPrimitive);
+                    {
+                        Primitive primitive = field.GetData<Primitive>();
+                        resolvedPrimitive = (Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive);
+                    }
                 }
 
                 // We need at least 2 input ports or 1 more than the existing number of connections.
@@ -53,39 +68,39 @@ namespace UnityEditor.ShaderGraph.Registry
                 {
                     // Output port gets constrained the same way.
                     var port = i == 0
-                            ? nodeWriter.AddPort<GraphType>(userData, "Out", false, registry)
-                            : nodeWriter.AddPort<GraphType>(userData, $"In{i}", true, registry);
+                        ? node.AddPort<GraphType>("Out", false, registry)
+                        : node.AddPort<GraphType>($"In{i}", true, registry);
 
                     // Then constrain them so that type conversion in code gen can resolve the values properly.
-                    port.SetField(kLength, (Length)resolvedLength);
-                    port.SetField(kHeight, (Height)resolvedHeight);
-                    port.SetField(kPrimitive, resolvedPrimitive);
-                    port.SetField(kPrecision, resolvedPrecision);
+                    port.GetTypeField().GetSubField<Length>(kLength).SetData(resolvedLength);
+                    port.GetTypeField().GetSubField<Height>(kHeight).SetData(resolvedHeight);
+                    port.GetTypeField().GetSubField<Primitive>(kPrimitive).SetData(resolvedPrimitive);
+                    port.GetTypeField().GetSubField<Precision>(kPrecision).SetData(resolvedPrecision);
                 }
             }
 
-            internal static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(
+            internal static ShaderFunction MathNodeFunctionBuilder(
                 string OpName,
                 string Op,
-                INodeReader data,
-                ShaderFoundry.ShaderContainer container,
+                NodeHandler node,
+                ShaderContainer container,
                 Registry registry)
             {
-                data.TryGetPort("Out", out var outPort);
+                var outField = node.GetPort("Out").GetTypeField();
                 var typeBuilder = registry.GetTypeBuilder(kRegistryKey);
 
-                var shaderType = typeBuilder.GetShaderType((IFieldReader)outPort, container, registry);
-                int count = data.GetPorts().Count() - 1;
+                var shaderType = typeBuilder.GetShaderType(outField, container, registry);
+                int count = node.GetPorts().Count() - 1;
 
                 string funcName = $"{OpName}{count}_{shaderType.Name}";
 
-                var builder = new ShaderFoundry.ShaderFunction.Builder(container, funcName);
+                var builder = new ShaderFunction.Builder(container, funcName);
                 string body = "";
                 bool firstOperand = true;
-                foreach (var port in data.GetPorts())
+                foreach (var port in node.GetPorts())
                 {
-                    var name = port.GetName();
-                    if (port.IsInput())
+                    var name = port.LocalID;
+                    if (port.IsInput)
                     {
                         builder.AddInput(shaderType, name);
                         body += body == "" || firstOperand ? name : $" {Op} {name}";
@@ -107,16 +122,20 @@ namespace UnityEditor.ShaderGraph.Registry
         class AddNode : Defs.INodeDefinitionBuilder
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Add", Version = 1 };
+
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            public void BuildNode(NodeHandler node, Registry registry)
             {
-                NodeHelpers.MathNodeDynamicResolver(userData, nodeWriter, registry);
+                NodeHelpers.MathNodeDynamicResolver(node, registry);
             }
 
-            public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            public ShaderFunction GetShaderFunction(
+                NodeHandler node,
+                ShaderContainer container,
+                Registry registry)
             {
-                return NodeHelpers.MathNodeFunctionBuilder("Add", "+", data, container, registry);
+                return NodeHelpers.MathNodeFunctionBuilder("Add", "+", node, container, registry);
             }
         }
 
@@ -126,20 +145,17 @@ namespace UnityEditor.ShaderGraph.Registry
         class PowNode : Defs.INodeDefinitionBuilder
         {
             public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Pow", Version = 1 };
+
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-            /**
-             * BuildNode defines the input and output ports of a node, along with
-             * the port types.
-             */
-            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            public void BuildNode(NodeHandler node, Registry registry)
             {
-                var portWriter = nodeWriter.AddPort<GraphType>(userData, "In", true, registry);
-                portWriter.SetField<int>(kLength, 1);
-                portWriter = nodeWriter.AddPort<GraphType>(userData, "Exp", true, registry);
-                portWriter.SetField<int>(kLength, 1);
-                portWriter = nodeWriter.AddPort<GraphType>(userData, "Out", false, registry);
-                portWriter.SetField<int>(kLength, 1);
+                var port = node.AddPort("In", true, true);
+                port.AddField(kLength, 1);
+                port = node.AddPort("Exp", true, true);
+                port.AddField(kLength, 1);
+                port = node.AddPort("Out", false, true);
+                port.AddField(kLength, 1);
             }
 
             /**
@@ -147,22 +163,17 @@ namespace UnityEditor.ShaderGraph.Registry
              * ShaderFoundry.ShaderFunction that results from specific
              * node data.
              */
-            public ShaderFoundry.ShaderFunction GetShaderFunction(
-                INodeReader data,
-                ShaderFoundry.ShaderContainer container,
+            public ShaderFunction GetShaderFunction(
+                NodeHandler node,
+                ShaderContainer container,
                 Registry registry)
             {
-                // Get the HLSL type to associate with our variables in the
-                // shader function we want to write.
+                FieldHandler field = node.GetField("Out");
 
-                // In this case, all the types are the same. We only ask for the
-                // type associated with the "Out" port/field.
-                data.TryGetPort("Out", out var port); // TODO (Brett) This should have some error checking
-
-                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+                var shaderType = registry.GetShaderType(field, container);
 
                 // Get a builder from ShaderFoundry
-                var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, "Pow");
+                var shaderFunctionBuilder = new ShaderFunction.Builder(container, "Pow");
 
                 // Set up the vars in the shader function.
                 // Each var in this case is the same type.

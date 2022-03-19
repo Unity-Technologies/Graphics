@@ -45,7 +45,9 @@ namespace UnityEditor.ShaderGraph.Registry
         public string Name;
         public int Version;
 
-        public override string ToString() => $"{Name}.{Version}";
+        //TODO(Liz) - This _was_ Name.Version but that obviously was an issue with the defaultTopo structure
+        //thinking this was a path...discussion and investigation into longterm ramifications needed
+        public override string ToString() => $"{Name}_{Version}";
         public override int GetHashCode() => ToString().GetHashCode();
         public override bool Equals(object obj) => obj is RegistryKey rk && rk.ToString().Equals(this.ToString());
 
@@ -82,14 +84,14 @@ namespace UnityEditor.ShaderGraph.Registry
             Register<ReferenceNodeBuilder>();
         }
 
-        internal ShaderFoundry.ShaderType GetShaderType(IFieldReader field, ShaderFoundry.ShaderContainer container)
+        internal ShaderFoundry.ShaderType GetShaderType(FieldHandler field, ShaderFoundry.ShaderContainer container)
         {
             var graphTypeBuilder = this.GetTypeBuilder(field.GetRegistryKey());
             return graphTypeBuilder.GetShaderType(field, container, this);
         }
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
-        public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNodeReader(key.ToString());
+        public NodeHandler GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNode(key.ToString());
 
         public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 

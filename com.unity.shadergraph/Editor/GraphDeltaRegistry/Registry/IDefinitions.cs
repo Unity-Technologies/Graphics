@@ -1,9 +1,10 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
+using UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.Registry.Defs
 {
@@ -18,15 +19,15 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
     internal interface INodeDefinitionBuilder : IRegistryEntry
     {
-        void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry);
-        ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry);
+        void BuildNode(NodeHandler node, Registry registry);
+        ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry);
     }
 
     internal interface ITypeDefinitionBuilder : IRegistryEntry
     {
-        void BuildType(IFieldReader userData, IFieldWriter generatedData, Registry registry);
-        ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry);
-        string GetInitializerList(IFieldReader data, Registry registry);
+        void BuildType(FieldHandler field, Registry registry);
+        ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry);
+        string GetInitializerList(FieldHandler field, Registry registry);
     }
 
     internal interface ICastDefinitionBuilder : IRegistryEntry
@@ -37,9 +38,9 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         // TypeConversionMapping represents the Types we can convert, but TypeDefinitions can represent templated concepts,
         // which may mean that incompatibilities within their data could be inconvertible. Types with static fields should
         // implement an ITypeConversion with itself to ensure that static concepts can be represented.
-        bool CanConvert(IFieldReader src, IFieldReader dst);
+        bool CanConvert(FieldHandler src, FieldHandler dst);
 
-        ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry);
+        ShaderFunction GetShaderCast(FieldHandler src, FieldHandler dst, ShaderContainer container, Registry registry);
     }
 
 
@@ -64,12 +65,12 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
-        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        public void BuildNode(NodeHandler node, Registry registry)
         {
             // TODO: Correctly generate port type based on our reference type (how do we find that?).
         }
 
-        public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
             // Reference nodes are not processed through function generation.
             throw new NotImplementedException();
@@ -83,28 +84,24 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
-        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        public void BuildNode(NodeHandler node, Registry registry)
         {
-            userData.GetField<RegistryKey>("_contextDescriptor", out var contextKey);
+            var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
             var context = registry.GetContextDescriptor(contextKey);
             foreach (var entry in context.GetEntries())
             {
-                var port = generatedData.AddPort<Types.GraphType>(userData, entry.fieldName, true, registry);
-                port.SetField(Types.GraphType.kHeight, entry.height);
-                port.SetField(Types.GraphType.kLength, entry.length);
-                port.SetField(Types.GraphType.kPrecision, entry.precision);
-                port.SetField(Types.GraphType.kPrimitive, entry.primitive);
-                port.SetField(Types.GraphType.kEntry, entry);
+                var port = node.AddPort<GraphType>(entry.fieldName, true, registry);
+                port.GetTypeField().AddSubField(GraphType.kEntry, entry);
                 for (int i = 0; i < (int)entry.length * (int)entry.height; ++i)
-                    port.SetField($"c{i}", entry.initialValue[i]);
+                    port.GetTypeField().GetSubField<float>($"c{i}").SetData(entry.initialValue[i]);
                 if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
-                    port.SetField("semantic", entry.interpolationSemantic);
+                    port.GetTypeField().AddSubField("semantic", entry.interpolationSemantic);
             }
             // We could "enfield" all of our ContextEntries into our output port, which would consequently make them accessible
             // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.
         }
 
-        public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)
+        public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
             // Cannot get a shader function from a context node, that needs to be processed by the graph.
             // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.
@@ -123,9 +120,9 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
 
 
-//public ShaderFoundry.Block GetShaderBlock(IGraphHandler graph, INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+//public Block GetShaderBlock(IGraphHandler graph, INodeReader data, ShaderContainer container, Registry registry)
 //{
-//    var builder = new ShaderFoundry.Block.Builder(data.GetRegistryKey().ToString());
+//    var builder = new Block.Builder(data.GetRegistryKey().ToString());
 //    foreach (var port in data.GetPorts())
 //    {
 //        if (port.IsInput() && !port.IsHorizontal())
@@ -136,7 +133,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 //        if (!port.IsInput() || !port.IsHorizontal())
 //            continue;
 
-//        var varBuilder = new ShaderFoundry.BlockVariable.Builder();
+//        var varBuilder = new BlockVariable.Builder();
 //        varBuilder.Type = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType((IFieldReader)port, container, registry);
 //        varBuilder.ReferenceName = port.GetName();
 //        builder.AddOutput(varBuilder.Build(container));

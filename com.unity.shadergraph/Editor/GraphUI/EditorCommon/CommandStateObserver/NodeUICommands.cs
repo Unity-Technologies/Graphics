@@ -42,11 +42,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             if (!command.m_GraphDataNodeModel.TryGetNodeWriter(out var nodeWriter)) return;
-
-            for (var i = 0; i < command.m_Values.Length; i++)
-            {
-                nodeWriter.SetPortField(command.m_PortName, $"c{i}", command.m_Values[i]);
-            }
+            var field = nodeWriter.GetPort(command.m_PortName).GetTypeField();
+            GraphTypeHelpers.SetComponents(field, 0, command.m_Values);
 
             object propertyBlockValue = command.m_Values[0];
 
@@ -105,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!command.m_GraphDataNodeModel.TryGetNodeWriter(out var nodeWriter)) return;
             var portWriter = nodeWriter.GetPort(command.m_PortName);
 
-            GradientTypeHelpers.SetGradient((IFieldWriter) portWriter, command.m_Value);
+            GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
             previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, command.m_Value);
 
             using (var graphUpdater = graphViewState.UpdateScope)

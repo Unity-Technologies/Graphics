@@ -87,14 +87,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             parent.Add(m_Root);
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
             for (var i = 0; i < m_Size; i++)
             {
                 for (var j = 0; j < m_Size; j++)
                 {
                     var flatIndex = i * m_Size + j;
-                    if (!reader.GetField($"c{flatIndex}", out float value)) value = 0;
+                    var field = reader.GetTypeField();
+                    float value = 0;
+                    if (field != null)
+                        value = GraphTypeHelpers.GetComponent(reader.GetTypeField(), flatIndex);
                     m_MatrixElementFields[i, j].SetValueWithoutNotify(value);
                 }
             }

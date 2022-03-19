@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             // should default concretize length to 4.
             graph.AddNode<Types.AddNode>("Add1", registry);
             var reader = graph.GetNodeReader("Add1");
-            reader.GetField("In1.Length", out Length len);
+            reader.TryGetField("In1.TypeField.Length", out Length len);
             Assert.AreEqual(4, (int)len);
 
             // Set the length of input port 1 to 1.
@@ -34,11 +34,11 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             // After reconcretization, the node definition should propagate the length.
             graph.ReconcretizeNode("Add1", registry);
             reader = graph.GetNodeReader("Add1");
-            reader.GetField("In1.Length", out len);
+            reader.TryGetField("In1.TypeField.Length", out len);
             Assert.AreEqual(1, (int)len);
-            reader.GetField("In2.Length", out len);
+            reader.TryGetField("In2.TypeField.Length", out len);
             Assert.AreEqual(1, (int)len);
-            reader.GetField("Out.Length", out len);
+            reader.TryGetField("Out.TypeField.Length", out len);
             Assert.AreEqual(1, (int)len);
 
             // Add a second Add Node, with length 2 this time.
@@ -46,11 +46,11 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             node2.SetPortField("In2", "Length", Length.Two);
             graph.ReconcretizeNode("Add2", registry);
             reader = graph.GetNodeReader("Add2");
-            reader.GetField("In1.Length", out len);
+            reader.TryGetField("In1.TypeField.Length", out len);
             Assert.AreEqual(2, (int)len);
-            reader.GetField("In2.Length", out len);
+            reader.TryGetField("In2.TypeField.Length", out len);
             Assert.AreEqual(2, (int)len);
-            reader.GetField("Out.Length", out len);
+            reader.TryGetField("Out.TypeField.Length", out len);
             Assert.AreEqual(2, (int)len);
 
             // Connecting Out to In should clobber the inlined length with the new length.
@@ -58,11 +58,11 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             graph.ReconcretizeNode("Add1", registry);
             reader = graph.GetNodeReader("Add1");
             reader.TryGetPort("In1", out var portReader);
-            portReader.GetField("Length", out len);
+            portReader.GetTypeField().GetField("Length", out len);
             Assert.AreEqual(2, (int)len);
-            reader.GetField("In2.Length", out len);
+            reader.TryGetField("In2.TypeField.Length", out len);
             Assert.AreEqual(2, (int)len);
-            reader.GetField("Out.Length", out len);
+            reader.TryGetField("Out.TypeField.Length", out len);
             Assert.AreEqual(2, (int)len);
         }
 
@@ -90,12 +90,12 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // check that the node was added
             var nodeReader = graph.GetNodeReader(nodeName);
-            bool didRead = nodeReader.GetField("In.Length", out Length len);
+            bool didRead = nodeReader.TryGetField("In.TypeField.Length", out Length len);
             Assert.IsTrue(didRead);
 
             // EXPECT that both In and Out are concretized into length = 4 (default)
             Assert.AreEqual(Length.Four, len);
-            didRead = nodeReader.GetField("Out.Length", out len);
+            didRead = nodeReader.TryGetField("Out.TypeField.Length", out len);
             Assert.IsTrue(didRead);
             Assert.AreEqual(Length.Four, len);
         }
@@ -131,18 +131,18 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // check that the node was added
             var nodeReader = graph.GetNodeReader(nodeName);
-            bool didRead = nodeReader.GetField("In.Length", out Length len);
+            bool didRead = nodeReader.TryGetField("In.TypeField.Length", out Length len);
             Assert.IsTrue(didRead);
 
             // check that the value for the port made from the in param is correct
             var comparer = new FloatEqualityComparer(10e-6f);
-            nodeReader.GetField("In.c0", out float v);
+            nodeReader.TryGetField("In.TypeField.c0", out float v);
             Assert.That(v, Is.EqualTo(1F).Using(comparer));
-            nodeReader.GetField("In.c1", out v);
+            nodeReader.TryGetField("In.TypeField.c1", out v);
             Assert.That(v, Is.EqualTo(1F).Using(comparer));
-            nodeReader.GetField("In.c2", out v);
+            nodeReader.TryGetField("In.TypeField.c2", out v);
             Assert.That(v, Is.EqualTo(3F).Using(comparer));
-            nodeReader.GetField("In.c3", out v);
+            nodeReader.TryGetField("In.TypeField.c3", out v);
             Assert.That(v, Is.EqualTo(1F).Using(comparer));
         }
 
@@ -161,7 +161,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             graph.AddNode<Types.GradientNode>("TestGradientNode", registry);
             var node = graph.GetNodeReader("TestGradientNode");
             node.TryGetPort(Types.GradientNode.kInlineStatic, out var port);
-            var actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
+            var actual = Types.GradientTypeHelpers.GetGradient(port.GetTypeField());
 
             var expected = new Gradient();
             expected.mode = GradientMode.Blend;
@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // check to see that a basic round trip works.
             var nodeWriter = graph.GetNodeWriter("TestGradientNode");
-            var field = (IFieldWriter)nodeWriter.GetPort(Types.GradientNode.kInlineStatic);
+            var field = nodeWriter.GetPort(Types.GradientNode.kInlineStatic).GetTypeField();
 
             expected.mode = GradientMode.Fixed;
             expected.SetKeys(
@@ -200,7 +200,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             node = graph.GetNodeReader("TestGradientNode");
             node.TryGetPort(Types.GradientNode.kInlineStatic, out port);
-            actual = Types.GradientTypeHelpers.GetGradient((IFieldReader)port);
+            actual = Types.GradientTypeHelpers.GetGradient(port.GetTypeField());
             Assert.AreEqual(expected, actual);
         }
     }
