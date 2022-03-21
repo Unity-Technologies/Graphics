@@ -1,31 +1,31 @@
-Shader "Hidden/HDRP/MaterialLoading"
+Shader "Hidden/Universal Render Pipeline/MaterialError"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDRenderPipeline" }
-
         Pass
         {
+            // Hybrid Renderer compatible error shader, which is used by Hybrid Renderer
+            // instead of the incompatible built-in error shader.
+
+            // TODO: Ideally this would be combined with FallbackError.shader, but it seems
+            // problematic because FallbackError needs to support SM2.0 and seems to use
+            // built-in shader headers, whereas Hybrid support needs SM4.5 and SRP shader headers.
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ DOTS_INSTANCING_ON
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            #pragma editor_sync_compilation
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
-            struct appdata_t
-            {
+            struct appdata_t {
                 float4 vertex : POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            struct v2f
-            {
+            struct v2f {
                 float4 vertex : SV_POSITION;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -41,7 +41,7 @@ Shader "Hidden/HDRP/MaterialLoading"
 
             float4 frag (v2f i) : SV_Target
             {
-                return float4(0,1,1,1);
+                return float4(1,0,1,1);
             }
             ENDHLSL
         }
