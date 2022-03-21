@@ -110,6 +110,7 @@ namespace UnityEditor.ShaderGraph
             m_AlphaEdge = owner.GetEdges(m_AlphaNode.slotReference);
 
             GenerateNodeCodeInUniversalTerrain(sb, inputLayerIndex);
+            GenerateNodeCodeInUniversalTerrainBaseMapGen(sb, inputLayerIndex);
             GenerateNodeCodeInHDTerrain(sb, inputLayerIndex);
             GenerateNodeCodeInNullTerrain(sb);
         }
@@ -117,30 +118,59 @@ namespace UnityEditor.ShaderGraph
         private void GenerateNodeCodeInUniversalTerrain(ShaderStringBuilder sb, int inputLayerIndex)
         {
             string universalTerrainDef = inputLayerIndex < 4
-                ? "#if defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(TERRAIN_SPLAT_ADDPASS)"
-                : "#if defined(UNIVERSAL_TERRAIN_ENABLED) && defined(TERRAIN_SPLAT_ADDPASS)";
+                ? "#if defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(_TERRAIN_BASEMAP_GEN) && !defined(TERRAIN_SPLAT_ADDPASS)"
+                : "#if defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(_TERRAIN_BASEMAP_GEN) &&  defined(TERRAIN_SPLAT_ADDPASS)";
             int layerIndex = inputLayerIndex < 4 ? inputLayerIndex : (inputLayerIndex - 4);
 
             sb.AppendLine(universalTerrainDef);
             sb.IncreaseIndent();
             sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", layerIndex);
             sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", layerIndex);
-            sb.AppendLine("half2 splat{0}uv = GetSplat{0}UV(IN);", layerIndex);
-            sb.AppendLine("half4 albedoSmoothness{0} = SampleLayerAlbedo({0});", layerIndex);
-            sb.AppendLine("half3 normal{0} = SampleLayerNormal({0});", layerIndex);
-            sb.AppendLine("half4 mask{0} = SampleLayerMasks({0});", layerIndex);
-            sb.AppendLine("half defaultSmoothness{0} = albedoSmoothness{0}.a * _Smoothness{0};", layerIndex);
-            sb.AppendLine("half defaultMetallic{0} = _Metallic{0};", layerIndex);
-            sb.AppendLine("half defaultOcclusion{0} = _MaskMapRemapScale{0}.g * _MaskMapRemapOffset{0}.g;", layerIndex);
+            sb.AppendLine("DECLARE_AND_FETCH_SPLAT_ATTRIBUTES({0})", layerIndex);
             sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", layerIndex);
             sb.DecreaseIndent();
 
-            if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = albedoSmoothness{2}.rgb;", m_AlbedoType, m_AlbedoValue, layerIndex);
-            if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = normal{2};", m_NormalType, m_NormalValue, layerIndex);
-            if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = lerp(defaultMetallic{2}, mask{2}.r, _LayerHasMask{2});", m_MetallicType, m_MetallicValue, layerIndex);
-            if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = lerp(defaultSmoothness{2}, mask{2}.a, _LayerHasMask{2});", m_SmoothnessType, m_SmoothnessValue, layerIndex);
-            if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = lerp(defaultOcclusion{2}, mask{2}.g, _LayerHasMask{2});", m_OcclusionType, m_OcclusionValue, layerIndex);
+            if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerAlbedo({2});", m_AlbedoType, m_AlbedoValue, layerIndex);
+            if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerNormal({2});", m_NormalType, m_NormalValue, layerIndex);
+            if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerMetallic({2});", m_MetallicType, m_MetallicValue, layerIndex);
+            if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerSmoothness({2});", m_SmoothnessType, m_SmoothnessValue, layerIndex);
+            if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerOcclusion({2});", m_OcclusionType, m_OcclusionValue, layerIndex);
             if (m_AlphaEdge.Any()) sb.AppendLine("{0} {1} = 1.0;", m_AlphaType, m_AlphaValue);
+        }
+
+        private void GenerateNodeCodeInUniversalTerrainBaseMapGen(ShaderStringBuilder sb, int inputLayerIndex)
+        {
+            string universalTerrainDef = "#elif defined(UNIVERSAL_TERRAIN_ENABLED) && defined(_TERRAIN_BASEMAP_GEN)";
+            int layerIndex = inputLayerIndex < 4 ? inputLayerIndex : (inputLayerIndex - 4);
+
+            sb.AppendLine(universalTerrainDef);
+            sb.IncreaseIndent();
+            sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", layerIndex);
+            sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", layerIndex);
+            sb.AppendLine("DECLARE_AND_FETCH_SPLAT_ATTRIBUTES({0});", layerIndex);
+            sb.AppendLine("#else");
+            sb.AppendLine("FETCH_SPLAT_ATTRIBUTES({0});", layerIndex);
+            sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", layerIndex);
+            sb.DecreaseIndent();
+
+            if (inputLayerIndex < 4)
+            {
+                if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = lerp(FetchLayerAlbedo({2}), 0.0, _DstBlend);", m_AlbedoType, m_AlbedoValue, layerIndex);
+                if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = lerp(FetchLayerNormal({2}), 0.0, _DstBlend);", m_NormalType, m_NormalValue, layerIndex);
+                if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = lerp(FetchLayerMetallic({2}), 0.0, _DstBlend);", m_MetallicType, m_MetallicValue, layerIndex);
+                if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = lerp(FetchLayerSmoothness({2}), 0.0, _DstBlend);", m_SmoothnessType, m_SmoothnessValue, layerIndex);
+                if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = lerp(FetchLayerOcclusion({2}), 0.0, _DstBlend);", m_OcclusionType, m_OcclusionValue, layerIndex);
+                if (m_AlphaEdge.Any()) sb.AppendLine("{0} {1} = 1.0;", m_AlphaType, m_AlphaValue);
+            }
+            else
+            {
+                if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = lerp(0.0, FetchLayerAlbedo({2}), _DstBlend);", m_AlbedoType, m_AlbedoValue, layerIndex);
+                if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = lerp(0.0, FetchLayerNormal({2}), _DstBlend);", m_NormalType, m_NormalValue, layerIndex);
+                if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = lerp(0.0, FetchLayerMetallic({2}), _DstBlend);", m_MetallicType, m_MetallicValue, layerIndex);
+                if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = lerp(0.0, FetchLayerSmoothness({2}), _DstBlend);", m_SmoothnessType, m_SmoothnessValue, layerIndex);
+                if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = lerp(0.0, FetchLayerOcclusion({2}), _DstBlend);", m_OcclusionType, m_OcclusionValue, layerIndex);
+                if (m_AlphaEdge.Any()) sb.AppendLine("{0} {1} = 1.0;", m_AlphaType, m_AlphaValue);
+            }
         }
 
         private void GenerateNodeCodeInHDTerrain(ShaderStringBuilder sb, int inputLayerIndex)

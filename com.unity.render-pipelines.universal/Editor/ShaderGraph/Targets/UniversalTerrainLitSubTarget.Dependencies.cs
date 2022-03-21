@@ -369,6 +369,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly PragmaCollection BaseMapPragmas = new PragmaCollection()
             {
+                { Pragma.Target(ShaderModel.Target30) },
                 { Pragma.Vertex("vert") },
                 { Pragma.Fragment("frag") },
             };
