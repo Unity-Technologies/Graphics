@@ -183,26 +183,26 @@ namespace UnityEditor.ShaderGraph
             sb.IncreaseIndent();
             sb.AppendLine("#ifndef SPLAT_PREREQUISITES");
             sb.AppendLine("#define SPLAT_PREREQUISITES");
-            sb.AppendLine("float4 albedo[_LAYER_COUNT];");
-            sb.AppendLine("float3 m_Normal[_LAYER_COUNT];");
-            sb.AppendLine("float4 masks[_LAYER_COUNT];");
-            sb.AppendLine("float2 dxuv = ddx(IN.uv0.xy);");
-            sb.AppendLine("float2 dyuv = ddy(IN.uv0.xy);");
+            sb.AppendLine("DECLARE_SPLAT_PREREQUISITES");
             sb.AppendLine("#endif // SPLAT_PREREQUISITES");
             sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndex);
             sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", inputLayerIndex);
+            #if true
+            sb.AppendLine("DECLARE_AND_FETCH_SPLAT_ATTRIBUTES({0})", inputLayerIndex);
+            #else
             sb.AppendLine("float2 splat{0}uv = IN.uv0.xy * _Splat{0}_ST.xy + _Splat{0}_ST.zw;", inputLayerIndex);
             sb.AppendLine("float2 splat{0}dxuv = dxuv * _Splat{0}_ST.x;", inputLayerIndex);
             sb.AppendLine("float2 splat{0}dyuv = dyuv * _Splat{0}_ST.x;", inputLayerIndex);
             sb.AppendLine("");
             sb.AppendLine("albedo[{0}] = SampleLayerAlbedo({0});", inputLayerIndex);
-            sb.AppendLine("m_Normal[{0}] = SampleLayerNormal({0});", inputLayerIndex);
+            sb.AppendLine("normal[{0}] = SampleLayerNormal({0});", inputLayerIndex);
             sb.AppendLine("masks[{0}] = SampleLayerMasks({0});", inputLayerIndex);
+            #endif
             sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", inputLayerIndex);
             sb.DecreaseIndent();
 
             if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = albedo[{2}].xyz;", m_AlbedoType, m_AlbedoValue, inputLayerIndex);
-            if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = m_Normal[{2}];", m_NormalType, m_NormalValue, inputLayerIndex);
+            if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = normal[{2}];", m_NormalType, m_NormalValue, inputLayerIndex);
             if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = masks[{2}].x;", m_MetallicType, m_MetallicValue, inputLayerIndex);
             if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = masks[{2}].w;", m_SmoothnessType, m_SmoothnessValue, inputLayerIndex);
             if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = masks[{2}].y;", m_OcclusionType, m_OcclusionValue, inputLayerIndex);

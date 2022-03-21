@@ -20,3 +20,18 @@ $RefractionThin:                    #define _REFRACTION_THIN 1
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
 #define ENABLE_TERRAIN_PERPIXEL_NORMAL
 #endif
+
+#define DECLARE_SPLAT_PREREQUISITES \
+    float4 albedo[_LAYER_COUNT];    \
+    float3 normal[_LAYER_COUNT];    \
+    float4 masks[_LAYER_COUNT];     \
+    float2 dxuv = ddx(IN.uv0.xy);   \
+    float2 dyuv = ddy(IN.uv0.xy);   \
+
+#define DECLARE_AND_FETCH_SPLAT_ATTRIBUTES(i)                                   \
+    float2 splat##i##uv = IN.uv0.xy * _Splat##i##_ST.xy + _Splat##i##_ST.zw;    \
+    float2 splat##i##dxuv = dxuv * _Splat##i##_ST.x;                            \
+    float2 splat##i##dyuv = dyuv * _Splat##i##_ST.x;                            \
+    albedo[i] = SampleLayerAlbedo(i);                                           \
+    normal[i] = SampleLayerNormal(i);                                           \
+    masks[i] = SampleLayerMasks(i);                                             \
