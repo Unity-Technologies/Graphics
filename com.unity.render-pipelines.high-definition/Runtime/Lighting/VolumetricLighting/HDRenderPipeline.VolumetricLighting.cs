@@ -14,8 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Vector3 scattering;    // [0, 1]
         public float extinction;    // [0, 1]
-        public int blendingMode;
-        public float priority;
         public Vector3 textureTiling;
         public int invertFade;    // bool...
         public Vector3 textureScroll;
@@ -27,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 atlasOffset;   // coordinates in the atlas in pixels
         public LocalVolumetricFogFalloffMode falloffMode;
         public Vector4 maskSize;      // xyz: atlas size / mask size, w: mask size in pixels
+        public LocalVolumetricFogBlendingMode blendingMode;
+        public Vector3 albedo;
 
         public static LocalVolumetricFogEngineData GetNeutralValues()
         {
@@ -34,8 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering = Vector3.zero;
             data.extinction = 0;
-            data.blendingMode = 0;
-            data.priority = 0;
             data.atlasOffset = Vector3.zero;
             data.textureTiling = Vector3.one;
             data.textureScroll = Vector3.zero;
@@ -47,6 +45,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.useVolumeMask = 0;
             data.maskSize = Vector4.zero;
             data.falloffMode = LocalVolumetricFogFalloffMode.Linear;
+            data.blendingMode = LocalVolumetricFogBlendingMode.Additive;
+            data.albedo = Vector3.zero;
 
             return data;
         }
@@ -102,6 +102,14 @@ namespace UnityEngine.Rendering.HighDefinition
         Multiply    = 3,
         Min         = 4,
         Max         = 5,
+    }
+
+    [GenerateHLSL]
+    public class VolumetricMaterialRenderingData
+    {
+        public uint sliceCount;
+        public uint startSliceIndex;
+        public uint volumeIndex;
     }
 
     public enum LocalVolumetricFogMaskMode
@@ -931,10 +939,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class LocalVolumetricFogMaterialVoxelizationPassData
         {
-            public RendererListHandle fogVolumeRenderList;
-            public TextureHandle fogVolumeDepth;
             public TextureHandle densityBuffer;
             public HDCamera hdCamera;
+            public ComputeShader volumetricMaterialCS;
+            public ComputeBufferHandle dispatchBuffer;
+            public ComputeBufferHandle vertexBuffer;
+            public ComputeBufferHandle renderingData;
+            public Fog fog;
+            public int maxSliceCount;
         }
 
         TextureHandle VolumeVoxelizationPass(RenderGraph renderGraph,
@@ -1018,7 +1030,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Voxelize fog volume meshes
                 using (var builder = renderGraph.AddRenderPass<LocalVolumetricFogMaterialVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
                 {
-                    var fog = hdCamera.volumeStack.GetComponent<Fog>();
+                    passData.fog = hdCamera.volumeStack.GetComponent<Fog>();
+                    passData.densityBuffer = builder.WriteTexture(densityBuffer);
+                    passData.hdCamera = hdCamera;
+                    passData.volumetricMaterialCS = defaultResources.shaders.volumetricMaterialCS;
+                    ComputeVolumetricFogSliceCountAndScreenFraction(passData.fog, out passData.maxSliceCount, out _);
+
+                    // TODO: VR support with instance ID
+                    passData.dispatchBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(
+                        new ComputeBufferDesc(hdCamera.viewCount * 4, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "" }
+                    ));
+                    passData.vertexBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(
+                        new ComputeBufferDesc(Fog.maxFogSliceCount, sizeof(float) * 2, ComputeBufferType.Default) { name = "FogVolumeVertexBuffer" }
+                    ));
+
                     builder.SetRenderFunc(
                         (LocalVolumetricFogMaterialVoxelizationPassData data, RenderGraphContext ctx) =>
                         {
@@ -1103,14 +1128,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 // TODO: take projection in account for min and max view space depth otherwise it doesn't work
 
-                                if (minViewSpaceDepth > fog.depthExtent.value)
+                                if (minViewSpaceDepth > passData.fog.depthExtent.value)
                                     continue;
 
                                 var camDir = (volume.transform.position - cameraPosition).normalized;
 
-                                ComputeVolumetricFogSliceCountAndScreenFraction(fog, out var maxSliceCount, out _);
-                                int startSlice = currParams.ComputeSliceIndexFromDistance(minViewSpaceDepth, maxSliceCount);
-                                int stopSlice = currParams.ComputeSliceIndexFromDistance(maxViewSpaceDepth, maxSliceCount);
 
                                 Vector3 rcpPosFade, rcpNegFade;
 
@@ -1118,39 +1140,31 @@ namespace UnityEngine.Rendering.HighDefinition
                                 rcpPosFade.y = Mathf.Min(1.0f / volume.parameters.positiveFade.y, float.MaxValue);
                                 rcpPosFade.z = Mathf.Min(1.0f / volume.parameters.positiveFade.z, float.MaxValue);
 
-                                rcpNegFade.y = Mathf.Min(1.0f / volume.parameters.negativeFade.y, float.MaxValue);
                                 rcpNegFade.x = Mathf.Min(1.0f / volume.parameters.negativeFade.x, float.MaxValue);
+                                rcpNegFade.y = Mathf.Min(1.0f / volume.parameters.negativeFade.y, float.MaxValue);
                                 rcpNegFade.z = Mathf.Min(1.0f / volume.parameters.negativeFade.z, float.MaxValue);
 
-                                var props = new MaterialPropertyBlock();
                                 var viewSpaceBounds = new Vector4(minViewSpaceX, minViewSpaceY, maxViewSpaceX - minViewSpaceX, maxViewSpaceY - minViewSpaceY);
+
+                                int startSlice = currParams.ComputeSliceIndexFromDistance(minViewSpaceDepth, data.maxSliceCount);
+                                int stopSlice = currParams.ComputeSliceIndexFromDistance(maxViewSpaceDepth, data.maxSliceCount);
                                 if (aabb.Contains(cameraPosition)) // TODO: OBB check instead for accuracy // TODO: remove that and fix the projection computation issue
                                 {
                                     viewSpaceBounds = new Vector4(-1, -1, 2, 2);
                                     startSlice = 0;
                                 }
-                                int sliceCount = Mathf.Abs(stopSlice - startSlice) + 1;
-                                float extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(volume.parameters.meanFreePath);
+
+                                // Compute hit slice count and geometry buffer
+                                // ctx.cmd.DispatchCompute()
+
+                                var props = new MaterialPropertyBlock();
                                 props.SetVector("_ViewSpaceBounds", viewSpaceBounds);
                                 props.SetInteger("_SliceOffset", startSlice);
-                                props.SetVector("_LocalDensityVolumeExtent", volume.parameters.size / 2.0f);
-                                props.SetVector("_RcpPositiveFade", rcpPosFade);
-                                props.SetVector("_RcpNegativeFade", rcpNegFade);
-                                props.SetFloat("_InvertFade", volume.parameters.invertFade ? 1 : 0);
-                                props.SetFloat("_Extinction", extinction);
-                                props.SetInteger("_FalloffMode", (int)volume.parameters.falloffMode);
-                                props.SetMatrix("_WorldToLocal", volume.transform.worldToLocalMatrix); // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
-                                // TODO: use volume data instead of sending this
-                                float distFadeLen = Mathf.Max(volume.parameters.distanceFadeEnd - volume.parameters.distanceFadeStart, 0.00001526f);
-                                float rcpDistFadeLen = 1.0f / distFadeLen;
-                                props.SetFloat("_RcpDistanceFadeLength", rcpDistFadeLen);
-                                props.SetFloat("_EndTimesRcpDistanceFadeLength", volume.parameters.distanceFadeEnd * rcpDistFadeLen);
-                                props.SetVector("_AlbedoMask", (Vector4)volume.parameters.albedo);
                                 props.SetInt("_VolumeIndex", m_VisibleVolumeBoundsCount + i);
                                 props.SetBuffer(HDShaderIDs._VolumeBounds, visibleVolumeBoundsBuffer);
                                 props.SetBuffer(HDShaderIDs._VolumeData, visibleVolumeDataBuffer);
+                                int sliceCount = Mathf.Abs(stopSlice - startSlice) + 1;
                                 props.SetInt("_SliceCount", sliceCount);
-                                props.SetInt("_VolumetricSliceCountPerView", maxSliceCount);
 
                                 CoreUtils.SetRenderTarget(ctx.cmd, densityBuffer);
                                 ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));

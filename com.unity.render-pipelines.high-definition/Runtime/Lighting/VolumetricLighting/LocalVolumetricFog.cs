@@ -145,8 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector4)albedo);
 
-            data.blendingMode = (int)blendingMode;
-            data.priority = priority;
+            data.blendingMode = blendingMode;
+            data.albedo = (Vector3)(Vector4)albedo;
 
             var atlas = LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas();
             data.atlasOffset = LocalVolumetricFogManager.manager.volumeAtlas.GetTextureOffset(volumeMask);

@@ -10,14 +10,22 @@
 #define LOCALVOLUMETRICFOGFALLOFFMODE_LINEAR (0)
 #define LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL (1)
 
+//
+// UnityEngine.Rendering.HighDefinition.LocalVolumetricFogBlendingMode:  static fields
+//
+#define LOCALVOLUMETRICFOGBLENDINGMODE_ADDITIVE (0)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_SUBTRACTIVE (1)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_OVERWRITE (2)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_MULTIPLY (3)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_MIN (4)
+#define LOCALVOLUMETRICFOGBLENDINGMODE_MAX (5)
+
 // Generated from UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData
 // PackingRules = Exact
 struct LocalVolumetricFogEngineData
 {
     float3 scattering;
     float extinction;
-    int blendingMode;
-    float priority;
     float3 textureTiling;
     int invertFade;
     float3 textureScroll;
@@ -29,6 +37,8 @@ struct LocalVolumetricFogEngineData
     float3 atlasOffset;
     int falloffMode;
     float4 maskSize;
+    int blendingMode;
+    float3 albedo;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
@@ -66,14 +76,6 @@ float3 GetScattering(LocalVolumetricFogEngineData value)
 float GetExtinction(LocalVolumetricFogEngineData value)
 {
     return value.extinction;
-}
-int GetBlendingMode(LocalVolumetricFogEngineData value)
-{
-    return value.blendingMode;
-}
-float GetPriority(LocalVolumetricFogEngineData value)
-{
-    return value.priority;
 }
 float3 GetTextureTiling(LocalVolumetricFogEngineData value)
 {
@@ -118,6 +120,14 @@ int GetFalloffMode(LocalVolumetricFogEngineData value)
 float4 GetMaskSize(LocalVolumetricFogEngineData value)
 {
     return value.maskSize;
+}
+int GetBlendingMode(LocalVolumetricFogEngineData value)
+{
+    return value.blendingMode;
+}
+float3 GetAlbedo(LocalVolumetricFogEngineData value)
+{
+    return value.albedo;
 }
 
 #endif

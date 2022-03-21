@@ -13,22 +13,11 @@ RW_TEXTURE3D(float4, _VBufferDensity) : register(u1); // RGB = sqrt(scattering),
 RW_TEXTURE2D_X(float, _FogVolumeDepth) : register(u2);
 
 float4 _ViewSpaceBounds;
-float3 _LocalDensityVolumeExtent;
 uint _SliceOffset;
-float3 _RcpPositiveFade;
-float3 _RcpNegativeFade;
-float _Extinction;
-uint _InvertFade;
-uint _FalloffMode;
-float4x4 _WorldToLocal; // UNITY_MATRIX_I_M isn't set when doing a DrawProcedural
-float _RcpDistanceFadeLength;
-float _EndTimesRcpDistanceFadeLength;
-float4 _AlbedoMask;
 uint _VolumeIndex;
 uint _SliceCount;
-uint _VolumetricSliceCountPerView;
-StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
+StructuredBuffer<OrientedBBox>                  _VolumeBounds;
+StructuredBuffer<LocalVolumetricFogEngineData>  _VolumeData;
 
 struct VertexToFragment
 {
@@ -58,13 +47,13 @@ float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
 }
 
 // TODO: instance id and vertex id in Attributes
-VertexToFragment Vert(Attributes input, uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VERTEXID_SEMANTIC)
+VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VERTEXID_SEMANTIC)
 {
     VertexToFragment output;
 
     output.xrViewIndex = instanceId / _SliceCount;
 
-    output.depthSlice = _SliceOffset + (instanceId % _SliceCount) + output.xrViewIndex * _VolumetricSliceCountPerView;
+    output.depthSlice = _SliceOffset + (instanceId % _SliceCount) + output.xrViewIndex * _VBufferSliceCount;
 
     float sliceDistance = ComputeSliceDepth(output.depthSlice);
     float depthViewSpace = sliceDistance;
@@ -75,29 +64,30 @@ VertexToFragment Vert(Attributes input, uint instanceId : INSTANCEID_SEMANTIC, u
     output.positionCS.z = EyeDepthToLinear(depthViewSpace, _ZBufferParams);
     output.positionCS.w = 1;
 
-
     float3 positionWS = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
     output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 
-    output.positionOS = mul(_WorldToLocal, float4(GetAbsolutePositionWS(positionWS), 1));
+    // Calculate object space position
+    OrientedBBox obb = _VolumeBounds[_VolumeIndex];
+    float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.right, obb.up));
+    float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
+    output.positionOS = mul(positionWS - obb.center, transpose(obbFrame));
 
     output.depth = depthViewSpace;
 
     return output;
 }
 
-FragInputs BuildFragInputs(VertexToFragment v2f)
+FragInputs BuildFragInputs(VertexToFragment v2f, float3 voxelClipSpace)
 {
     FragInputs output;
     ZERO_INITIALIZE(FragInputs, output);
-
-    float3 positionOS01 = v2f.positionOS / _LocalDensityVolumeExtent;
 
     float3 positionWS = mul(UNITY_MATRIX_M, float4(v2f.positionOS, 1));
     output.positionSS = v2f.positionCS;
     output.positionRWS = output.positionPredisplacementRWS = positionWS;
     output.positionPixel = uint2(v2f.positionCS.xy);
-    output.texCoord0 = float4(saturate(positionOS01 * 0.5 + 0.5), 0);
+    output.texCoord0 = float4(saturate(voxelClipSpace * 0.5 + 0.5), 0);
     output.tangentToWorld = k_identity3x3;
 
     return output;
@@ -105,9 +95,16 @@ FragInputs BuildFragInputs(VertexToFragment v2f)
 
 float ComputeFadeFactor(float3 coordNDC, float distance)
 {
+    bool exponential = _VolumeData[_VolumeIndex].falloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL;
+
     return ComputeVolumeFadeFactor(
-        coordNDC, distance, _RcpPositiveFade, _RcpNegativeFade,
-        _InvertFade, _RcpDistanceFadeLength, _EndTimesRcpDistanceFadeLength, _FalloffMode
+        coordNDC, distance,
+        _VolumeData[_VolumeIndex].rcpPosFaceFade,
+        _VolumeData[_VolumeIndex].rcpNegFaceFade,
+        _VolumeData[_VolumeIndex].invertFade,
+        _VolumeData[_VolumeIndex].rcpDistFadeLen,
+        _VolumeData[_VolumeIndex].endTimesRcpDistFadeLen,
+        exponential
     );
 }
 
@@ -121,12 +118,8 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     float3 albedo;
     float extinction;
     
-    FragInputs fragInputs = BuildFragInputs(v2f);
 
     float sliceDistance = ComputeSliceDepth(v2f.depthSlice);
-
-    float3 F = GetViewForwardDir();
-    float3 U = GetViewUpDir();
 
     // Compute vocel center position and test against volume OBB
     // TODO: adjust cell distance to match the texture volumes
@@ -145,15 +138,16 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     if (!overlap)
         clip(-1);
 
+    FragInputs fragInputs = BuildFragInputs(v2f, voxelCenterCS);
     GetVolumeData(fragInputs, v2f.viewDirectionWS, albedo, extinction);
 
-    extinction *= _Extinction;
+    extinction *= _VolumeData[_VolumeIndex].extinction;
 
     float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
     float fade = ComputeFadeFactor(voxelCenterNDC, sliceDistance);
     extinction *= fade;
 
-    float3 scatteringColor = (albedo * _AlbedoMask) * extinction;
+    float3 scatteringColor = (albedo * _VolumeData[_VolumeIndex].albedo) * extinction;
 
     // Apply volume blending
     outColor = max(0, float4(scatteringColor, extinction));
