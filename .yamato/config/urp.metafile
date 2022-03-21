@@ -31,6 +31,5 @@ jobs:
       - .yamato/all-universal_hybrid.yml#Universal_Hybrid_<TRACK>
       - .yamato/all-universal_stereo.yml#Universal_Stereo_<TRACK>
       - .yamato/all-urpupdate.yml#URPUpdate_<TRACK>
-      - .yamato/all-urp_perf.yml#URP_Perf_<TRACK>
 #     - .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_<TRACK>
       - .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_<TRACK>
