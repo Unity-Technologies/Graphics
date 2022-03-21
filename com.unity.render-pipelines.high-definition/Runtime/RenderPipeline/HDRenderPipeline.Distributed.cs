@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using RttTest;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
@@ -184,6 +185,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 datagram = SocketServer.Instance.ReceiveReadyFrame(i);
                                 if (datagram == null)
                                     continue;
+                                
+                                RttTestUtilities.ReceiveFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
                                     0, 0, datagram.length);
                                 SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame,
@@ -194,6 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(context.cmd,
                                        new ProfilingSampler($"Copy Buffer {i} to YUV Textures")))
                             {
+                                RttTestUtilities.BeginDecodeYuv(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
                                 ComputeShader cs = data.computeBufferToYUVTexturesCS;
                                 int kernelID = cs.FindKernel("BufferToTexture");
 
@@ -248,8 +252,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(context.cmd,
                                        new ProfilingSampler($"Copy Section {i} to Color Buffer")))
                             {
+                                RttTestUtilities.CombineFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
+                                
                                 context.cmd.SetRenderTarget(data.colorBuffer);
-
                                 HDUtils.BlitQuadWithPadding(
                                     context.cmd,
                                     data.colorBufferSection,
@@ -290,6 +295,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (SendData data, RenderGraphContext context) =>
                     {
+                        int currentFrameID = CurrentFrameID;
+                        int rendererId = Const.userID;
+                        
+                        RttTestUtilities.BeginEncodeYuv(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
+                        
                         // Blit color buffer to YUV Textures
                         using (new ProfilingScope(context.cmd,
                                    new ProfilingSampler("Blit Color Buffer to YUV Textures")))
@@ -349,7 +359,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         using (new ProfilingScope(context.cmd,
                                    new ProfilingSampler("Readback and Send Buffer")))
                         {
-                            int currentFrameID = CurrentFrameID;
+                            RttTestUtilities.BeginReadBack(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
+                            
+                            //int currentFrameID = CurrentFrameID;
                             context.cmd.RequestAsyncReadback(data.computeBuffer, request =>
                             {
                                 while (!request.done)
@@ -357,10 +369,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
 
                                 Profiling.Profiler.BeginSample("Readback and Send Buffer Internal");
+                                
+                                RttTestUtilities.FinishReadBack(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
 
                                 NativeArray<byte> nativeData = request.GetData<byte>();
                                 byte[] managedData = nativeData.ToArray();
-
+                                
+                                RttTestUtilities.SendFrame(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
                                 //SocketClient.Instance.ReplaceOrSet(Datagram.DatagramType.VideoFrame, managedData);
                                 SocketClient.Instance.Set(Datagram.DatagramType.VideoFrame, managedData, currentFrameID);
 
