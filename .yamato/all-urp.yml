@@ -71,8 +71,6 @@ Nightly_URP_2020.3:
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#URPUpdate_2020.3
          rerun: on_new_revision
-      -  path: .yamato/all-urp_perf.yml#URP_Perf_2020.3
-         rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_2020.3
          rerun: on_new_revision
 PR_URP_CUSTOM-REVISION:
@@ -136,8 +134,6 @@ Nightly_URP_CUSTOM-REVISION:
       -  path: .yamato/all-universal_stereo.yml#Universal_Stereo_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#URPUpdate_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_perf.yml#URP_Perf_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_CUSTOM-REVISION
          rerun: on_new_revision
