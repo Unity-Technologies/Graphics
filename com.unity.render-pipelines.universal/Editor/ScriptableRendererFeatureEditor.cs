@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
             if (GUILayout.Button(new GUIContent("Add Renderer Feature")))
             {
                 ScriptableRendererFeatureSelectionDropdown menu = new ScriptableRendererFeatureSelectionDropdown(m_rendererFeatures);
-                var rect = GUILayoutUtility.GetRect(new GUIContent("Add Renderer Feature"), EditorStyles.miniButton);
+                var rect = new Rect(Event.current.mousePosition, Vector2.zero);
                 menu.Show(rect);
             }
             EditorGUILayout.Space();
