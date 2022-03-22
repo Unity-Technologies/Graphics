@@ -158,6 +158,8 @@ namespace UnityEngine.Rendering.Universal
             // Private Variables
             private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
             private int m_BlueNoiseTextureIndex = 0;
+            private float m_BlurRandomOffsetX = 0f;
+            private float m_BlurRandomOffsetY = 0f;
             private Material m_Material;
             private Texture2D[] m_BlueNoiseTextures;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
@@ -361,17 +363,20 @@ namespace UnityEngine.Rendering.Universal
                 {
                     case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.BlueNoise:
                         CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, true);
-                        m_BlueNoiseTextureIndex = (m_BlueNoiseTextureIndex + 1) % m_BlueNoiseTextures.Length;
+                        if (!FrameDebugger.enabled)
+                        {
+                            m_BlueNoiseTextureIndex = (m_BlueNoiseTextureIndex + 1) % m_BlueNoiseTextures.Length;
+                            m_BlurRandomOffsetX = Random.value;
+                            m_BlurRandomOffsetY = Random.value;
+                        }
+
                         Texture2D noiseTexture = m_BlueNoiseTextures[m_BlueNoiseTextureIndex];
                         m_Material.SetTexture(s_BlueNoiseTextureID, noiseTexture);
-
-                        float rndOffsetX = Random.value;
-                        float rndOffsetY = Random.value;
                         m_Material.SetVector(s_SSAOBlueNoiseParamsID, new Vector4(
                             renderingData.cameraData.pixelWidth / (float)noiseTexture.width,
                             renderingData.cameraData.pixelHeight / (float)noiseTexture.height,
-                            rndOffsetX,
-                            rndOffsetY
+                            m_BlurRandomOffsetX,
+                            m_BlurRandomOffsetY
                         ));
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.InterleavedGradient:
