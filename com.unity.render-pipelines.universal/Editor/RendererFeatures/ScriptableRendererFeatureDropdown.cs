@@ -73,6 +73,7 @@ namespace UnityEditor.Rendering.Universal
 
         protected override void ItemSelected(AdvancedDropdownItem item)
         {
+            rendererFeatures.serializedObject.Update();
             int index = rendererFeatures.arraySize++;
             SerializedProperty rendererFeature = rendererFeatures.GetArrayElementAtIndex(index);
 

@@ -9,9 +9,6 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(UniversalRenderPipelineAsset)), CanEditMultipleObjects]
     public class UniversalRenderPipelineAssetEditor : Editor
     {
-        //internal ReorderableList rendererList => m_RendererDataList;
-        //ReorderableList m_RendererDataList;
-
         private SerializedUniversalRenderPipelineAsset m_SerializedURPAsset;
 
         /// <inheritdoc/>
@@ -26,100 +23,5 @@ namespace UnityEditor.Rendering.Universal
         {
             m_SerializedURPAsset = new SerializedUniversalRenderPipelineAsset(serializedObject);
         }
-        /*
-        void CreateRendererReorderableList()
-        {
-            m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
-            m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRendererIndex");
-            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, true, true, true, true)
-            {
-                drawElementCallback = OnDrawElement,
-                drawHeaderCallback = (Rect rect) => EditorGUI.LabelField(rect, Styles.rendererHeaderText),
-                onCanRemoveCallback = reorderableList => reorderableList.count > 1,
-                onRemoveCallback = OnRemoveElement,
-                onReorderCallbackWithDetails = (reorderableList, index, newIndex) => UpdateDefaultRendererValue(index, newIndex) // Need to update the default renderer index
-            };
-        }
-
-        void OnRemoveElement(ReorderableList reorderableList)
-        {
-            bool shouldUpdateIndex = false;
-            // Checking so that the user is not deleting  the default renderer
-            if (reorderableList.index != m_DefaultRendererProp.intValue)
-            {
-                // Need to add the undo to the removal of our assets here, for it to work properly.
-                Undo.RecordObject(target, $"Deleting renderer at index {reorderableList.index}");
-
-                shouldUpdateIndex = true;
-                m_RendererDataProp.DeleteArrayElementAtIndex(reorderableList.index);
-            }
-            else
-            {
-                EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip, "Close");
-            }
-
-            if (shouldUpdateIndex)
-            {
-                UpdateDefaultRendererValue(reorderableList.index);
-            }
-
-            EditorUtility.SetDirty(target);
-        }
-
-        void OnDrawElement(Rect rect, int index, bool isActive, bool isFocused)
-        {
-            rect.y += 2;
-            Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
-            EditorGUI.LabelField(indexRect, index.ToString());
-            Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.ObjectField(objRect, m_RendererDataProp.GetArrayElementAtIndex(index), GUIContent.none);
-            if (EditorGUI.EndChangeCheck())
-                EditorUtility.SetDirty(target);
-
-            Rect defaultButton = new Rect(rect.width - 75, rect.y, 86, EditorGUIUtility.singleLineHeight);
-            var defaultRenderer = m_DefaultRendererProp.intValue;
-            GUI.enabled = index != defaultRenderer;
-            if (GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
-            {
-                m_DefaultRendererProp.intValue = index;
-                EditorUtility.SetDirty(target);
-            }
-            GUI.enabled = true;
-
-            Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
-
-            UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
-
-            if (asset.ValidateRendererData(index))
-            {
-                if (GUI.Button(selectRect, Styles.rendererSettingsText))
-                {
-                    Selection.SetActiveObjectWithContext(m_RendererDataProp.GetArrayElementAtIndex(index).objectReferenceValue,
-                        null);
-                }
-            }
-            else // Missing ScriptableRendererData
-            {
-                if (GUI.Button(selectRect, index == defaultRenderer ? Styles.rendererDefaultMissingText : Styles.rendererMissingText))
-                {
-                    TypeCache.TypeCollection rendererDataTypes = TypeCache.GetTypesDerivedFrom<ScriptableRendererData>();
-                    GenericMenu menu = new GenericMenu();
-                    foreach (var rendererDataType in rendererDataTypes)
-                    {
-                        menu.AddItem(new GUIContent(rendererDataType.Name), false, () => asset.m_RendererDataList[index] = (ScriptableRendererData)Activator.CreateInstance(rendererDataType));
-                    }
-                    menu.ShowAsContext();
-                }
-            }
-
-            // If object selector chose an object, assign it to the correct ScriptableRendererData slot.
-            if (Event.current.commandName == "ObjectSelectorUpdated" && EditorGUIUtility.GetObjectPickerControlID() == index)
-            {
-                m_RendererDataProp.GetArrayElementAtIndex(index).objectReferenceValue = EditorGUIUtility.GetObjectPickerObject();
-            }
-        }
-            */
     }
 }

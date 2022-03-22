@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -91,26 +92,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 if (GUILayout.Button(Styles.rendererAddMessage))
                 {
-                    GenericMenu menu = new GenericMenu();
-                    foreach (var rendererType in TypeCache.GetTypesDerivedFrom(typeof(ScriptableRendererData)))
-                    {
-                        var rendererName = new GUIContent(rendererType.Name);
-                        menu.AddItem(rendererName, false, () => SpawnRenderer(serialized, rendererType));
-                    }
-                    menu.ShowAsContext();
+                    new ScriptableRendererDataDropdown(serialized.rendererDataProp).Show(new Rect(Event.current.mousePosition, Vector2.zero));
                 }
             }
-        }
-
-        static void SpawnRenderer(SerializedUniversalRenderPipelineAsset serialized, Type rendererType)
-        {
-            int index = serialized.rendererDataProp.arraySize;
-            serialized.rendererDataProp.arraySize++;
-            ScriptableRendererData instance = (ScriptableRendererData)Activator.CreateInstance(rendererType);
-            instance.Awake();
-            instance.OnEnable();
-            serialized.rendererDataProp.GetArrayElementAtIndex(index).managedReferenceValue = instance;
-            serialized.serializedObject.ApplyModifiedProperties();
         }
 
         static void DrawQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
@@ -169,40 +153,5 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.useAdaptivePerformance, Styles.useAdaptivePerformance);
         }
 #endif
-
-        static void UpdateDefaultRendererValue(SerializedUniversalRenderPipelineAsset serialized, int index)
-        {
-            // If the index that is being removed is lower than the default renderer value,
-            // the default prop value needs to be one lower.
-            if (index < serialized.defaultRendererProp.intValue)
-            {
-                serialized.defaultRendererProp.intValue--;
-            }
-        }
-
-        static void UpdateDefaultRendererValue(SerializedUniversalRenderPipelineAsset serialized, int prevIndex, int newIndex)
-        {
-            // If we are moving the index that is the same as the default renderer we need to update that
-            if (prevIndex == serialized.defaultRendererProp.intValue)
-            {
-                serialized.defaultRendererProp.intValue = newIndex;
-            }
-            // If newIndex is the same as default
-            // then we need to know if newIndex is above or below the default index
-            else if (newIndex == serialized.defaultRendererProp.intValue)
-            {
-                serialized.defaultRendererProp.intValue += prevIndex > newIndex ? 1 : -1;
-            }
-            // If the old index is lower than default renderer and
-            // the new index is higher then we need to move the default renderer index one lower
-            else if (prevIndex < serialized.defaultRendererProp.intValue && newIndex > serialized.defaultRendererProp.intValue)
-            {
-                serialized.defaultRendererProp.intValue--;
-            }
-            else if (newIndex < serialized.defaultRendererProp.intValue && prevIndex > serialized.defaultRendererProp.intValue)
-            {
-                serialized.defaultRendererProp.intValue++;
-            }
-        }
     }
 }
