@@ -1,20 +1,42 @@
 #if USING_PHYSICS2D
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.Collections;
-using UnityEngine;
-using UnityEngine.U2D;
 
 namespace UnityEngine.Rendering.Universal
 {
     class ShadowShape2DProvider_Collider2D : ShadowShape2DProvider
     {
         // Shadow state.
+        struct MinMaxBounds
+        {
+            public Vector3 min;
+            public Vector3 max;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Intersects(ref MinMaxBounds bounds)
+            {
+                return 
+                    min.x <= bounds.max.x &&
+                    max.x >= bounds.min.x &&
+                    min.y <= bounds.max.y &&
+                    max.y >= bounds.min.y &&
+                    min.z <= bounds.max.z &&
+                    max.z >= bounds.min.z;
+            }
+
+            public MinMaxBounds(ref Bounds bounds)
+            {
+                min = bounds.min;
+                max = bounds.max;
+            }
+        };
+        private List<Bounds> m_ShadowShapeBounds;
+        private List<MinMaxBounds> m_ShadowShapeMinMaxBounds;
+        private MinMaxBounds m_ShadowCombinedShapeMinMaxBounds;
         private UInt32 m_ShadowStateHash = 0;
         private PhysicsShapeGroup2D m_ShadowShapeGroup;
-        private List<Bounds> m_ShadowShapeBounds;
-        private Bounds m_ShadowCombinedShapeBounds;
 
         private void CalculateShadows(Collider2D collider, ShadowShape2D persistantShapeObject, Bounds worldCullingBounds)
         {
@@ -25,6 +47,10 @@ namespace UnityEngine.Rendering.Universal
             // Create a shadow shape bounds if not available.
             if (m_ShadowShapeBounds == null)
                 m_ShadowShapeBounds = new List<Bounds>(collider.shapeCount);
+
+            // Create a shadow shape min/max bounds if not available.
+            if (m_ShadowShapeMinMaxBounds == null)
+                m_ShadowShapeMinMaxBounds = new List<MinMaxBounds>();
 
             // If the shape hash has changed, grab a new potential visible geometry group.
             var shapeHash = collider.GetShapeHash();
@@ -46,7 +72,17 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 // Fetch the shadow bounds.
-                m_ShadowCombinedShapeBounds = collider.GetShapeBounds(m_ShadowShapeBounds, useRadii: true, useWorldSpace: false);
+                var combinedBounds = collider.GetShapeBounds(m_ShadowShapeBounds, useRadii: true, useWorldSpace: false);
+                m_ShadowCombinedShapeMinMaxBounds = new MinMaxBounds(ref combinedBounds);
+
+                // Calculate min/max bounds only once.               
+                m_ShadowShapeMinMaxBounds.Clear();
+                m_ShadowShapeMinMaxBounds.Capacity = m_ShadowShapeBounds.Capacity;
+                for(var i = 0; i < m_ShadowShapeBounds.Count; ++i)
+                {
+                    var shapeBounds = m_ShadowShapeBounds[i];
+                    m_ShadowShapeMinMaxBounds.Add(new MinMaxBounds(ref shapeBounds));
+                }
             }
 
             // Fetch collider space.
@@ -57,14 +93,15 @@ namespace UnityEngine.Rendering.Universal
             var cullCenter = worldCullingBounds.center + toColliderSpace.GetPosition();
             var worldCullExtents = worldCullingBounds.extents;
             var cullExtents = Vector3.zero;
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; ++i)
             {
                 cullExtents[i] = Mathf.Abs(toColliderSpace[i, 0] * worldCullExtents.x) + Mathf.Abs(toColliderSpace[i, 1] * worldCullExtents.y) + Mathf.Abs(toColliderSpace[i, 2] * worldCullExtents.z);
             }
             worldCullingBounds = new Bounds(cullCenter, cullExtents * 2f);
+            var worldCullingMinMaxBounds = new MinMaxBounds(ref worldCullingBounds);
 
             // Does the collider intersect the culling area at all?
-            if (m_ShadowCombinedShapeBounds.Intersects(worldCullingBounds))
+            if (m_ShadowCombinedShapeMinMaxBounds.Intersects(ref worldCullingMinMaxBounds))
             {
                 // Yes, so fetch a copy of the shapes and vertices.
                 var shapeCount = m_ShadowShapeGroup.shapeCount;
@@ -82,7 +119,7 @@ namespace UnityEngine.Rendering.Universal
                 for (var i = 0; i < shapeCount; ++i)
                 {
                     // Does this shape intersect the world culling bounds?
-                    if (m_ShadowShapeBounds[i].Intersects(worldCullingBounds))
+                    if (m_ShadowShapeMinMaxBounds[i].Intersects(ref worldCullingMinMaxBounds))
                     {
                         // Yes, so we can use it.
                         var shape = shapeGroupShapes[i];
@@ -218,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
         public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShapeData)
         {
             m_ShadowStateHash = 0;
-            m_ShadowCombinedShapeBounds = new Bounds();
+            m_ShadowCombinedShapeMinMaxBounds = default;
         }
 
         public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShapeObject)
