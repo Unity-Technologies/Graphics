@@ -351,16 +351,12 @@ namespace UnityEditor.Rendering
         public static void DrawSplitter(bool isBoxed = false)
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);
-            float xMin = rect.xMin;
 
-            // Splitter rect should be full-width
-            rect.xMin = 0f;
-            rect.width += 4f;
-
-            if (isBoxed)
+            if (!isBoxed)
             {
-                rect.xMin = xMin == 7.0 ? 4.0f : EditorGUIUtility.singleLineHeight;
-                rect.width -= 1;
+                // Splitter rect should be full-width
+                rect.xMin = 0f;
+                rect.width += 4f;
             }
 
             if (Event.current.type != EventType.Repaint)
@@ -450,7 +446,7 @@ namespace UnityEditor.Rendering
                 labelRect.xMin += 5;
                 foldoutRect.xMin += 5;
                 backgroundRect.xMin = xMin == 7.0 ? 4.0f : EditorGUIUtility.singleLineHeight;
-                backgroundRect.width -= 1;
+                backgroundRect.width -= 4;
             }
 
             // Background
@@ -630,26 +626,61 @@ namespace UnityEditor.Rendering
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
         {
-            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
+            return DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, false, true);
+        }
 
-            var labelRect = backgroundRect;
+        /// <summary>Draw a header toggle like in Volumes</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="group"> The group of the header </param>
+        /// <param name="activeField">The active field</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <param name="isBoxed">Documentation URL</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL, bool isBoxed)
+        {
+            return DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, isBoxed, true);
+
+        }
+        /// <summary>Draw a header toggle like in Volumes</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="group"> The group of the header </param>
+        /// <param name="activeField">The active field</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <param name="isBoxed">Documentation URL</param>
+        /// <param name="shouldUpdate">Updates group and activeField</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL, bool isBoxed, bool shouldUpdate)
+        {
+            var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
+            var backgroundIndentedRect = EditorGUI.IndentedRect(backgroundRect);
+
+            var labelRect = backgroundIndentedRect;
             labelRect.xMin += 32f;
             labelRect.xMax -= 20f + 16 + 5;
 
-            var foldoutRect = backgroundRect;
+            var foldoutRect = backgroundIndentedRect;
             foldoutRect.y += 1f;
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
 
-            var toggleRect = backgroundRect;
+            var toggleRect = backgroundIndentedRect;
             toggleRect.x += 16f;
             toggleRect.y += 2f;
             toggleRect.width = 13f;
             toggleRect.height = 13f;
 
-            // Background rect should be full-width
-            backgroundRect.xMin = 0f;
-            backgroundRect.width += 4f;
+            if (!isBoxed)
+            {
+                // Background rect should be full-width
+                backgroundRect.xMin = 0f;
+                backgroundRect.width += 4f;
+            }
 
             // Background
             float backgroundTint = EditorGUIUtility.isProSkin ? 0.1f : 1f;
@@ -660,14 +691,14 @@ namespace UnityEditor.Rendering
                 EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
 
             // Foldout
-            group.serializedObject.Update();
+            if (shouldUpdate) group.serializedObject.Update();
             group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
-            group.serializedObject.ApplyModifiedProperties();
+            if (shouldUpdate) group.serializedObject.ApplyModifiedProperties();
 
             // Active checkbox
-            activeField.serializedObject.Update();
+            if (shouldUpdate) activeField.serializedObject.Update();
             activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
-            activeField.serializedObject.ApplyModifiedProperties();
+            if (shouldUpdate) activeField.serializedObject.ApplyModifiedProperties();
 
             // Context menu
             var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
