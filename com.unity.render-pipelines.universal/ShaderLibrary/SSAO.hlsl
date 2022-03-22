@@ -13,8 +13,7 @@ TEXTURE2D_X_HALF(_BlueNoiseTexture);
 TEXTURE2D_X_HALF(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
-SAMPLER(sampler_BlueNoiseTexture);
-SAMPLER(sampler_ScreenSpaceOcclusionTexture);
+SAMPLER(sampler_PointRepeat);
 
 // Params
 half4 _BlurOffset;
@@ -22,6 +21,7 @@ half4 _BlurOffset;
 half _KawaseBlurIteration;
 int _LastKawasePass;
 half4 _SSAOParams;
+half4 _SSAOBlueNoiseParams;
 float4 _CameraViewTopLeftCorner[2];
 float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
 
@@ -36,6 +36,9 @@ float4 _CameraViewZExtent[2];
 #define RADIUS _SSAOParams.y
 #define DOWNSAMPLE _SSAOParams.z
 #define FALLOFF _SSAOParams.w
+
+#define BlueNoiseScale          _SSAOBlueNoiseParams.xy
+#define BlueNoiseOffset         _SSAOBlueNoiseParams.zw
 
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
     static const int SAMPLE_COUNT = 3;
@@ -115,7 +118,7 @@ static const half  HALF_HUNDRED     = half(100.0);
 #define SCREEN_PARAMS           GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)      half4(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
 #define SAMPLE_BASEMAP_R(uv)    half(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r);
-#define SAMPLE_BLUE_NOISE(uv) SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)).a;
+#define SAMPLE_BLUE_NOISE(uv) SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_PointRepeat, UnityStereoTransformScreenSpaceTex(uv)).a;
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
@@ -183,13 +186,13 @@ half GetRandomVal(half u, half sampleIndex)
     return SSAORandomUV[u * 20 + sampleIndex];
 }
 
+
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 normal_o)
 {
     #if defined(_BLUE_NOISE)
         const half lerpVal = sampleIndexHalf * rcpSampleCount;
-        const float2 uvAddon = frac(float2(sampleIndexHalf + _Time.y, sampleIndexHalf + _Time.y));
-        const half noise = SAMPLE_BLUE_NOISE(uv + uvAddon);
+        const half noise = SAMPLE_BLUE_NOISE((uv + lerpVal) * BlueNoiseScale + BlueNoiseOffset);
         const half u = frac(GetRandomVal(HALF_ZERO, sampleIndexHalf).x + noise) * HALF_TWO - HALF_ONE;
         const half theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
         const half u2 = half(sqrt(HALF_ONE - u * u));
@@ -198,8 +201,7 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
         v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
 
         // Adjustment for distance distribution.
-        //half l = sampleIndexHalf * rcpSampleCount;
-        //v *= lerp(0.1, 1.0, l * l);
+        v *= lerp(0.1, 1.0, lerpVal * lerpVal) * 2.0;
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
         const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));
@@ -566,7 +568,7 @@ half VerticalGaussianBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uv;
-    half2 delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE));
+    half2 delta = half2(HALF_ZERO, _SourceSize.w * rcp(DOWNSAMPLE));
 
     return HALF_ONE - GaussianBlur(uv, delta);
 }

@@ -63,8 +63,8 @@ namespace UnityEngine.Rendering.Universal
         // Serialized Fields
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
-        [Reload("Textures/BlueNoise256/LDR_LLL1_0.png")]
-        public Texture2D m_BlueNoiseTexture;
+        [Reload("Textures/BlueNoise256/LDR_LLL1_{0}.png", 0, 7)]
+        public Texture2D[] m_BlueNoise256Textures;
 
         [SerializeField]
         [HideInInspector]
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(ref m_Settings, ref renderer, ref m_Material, ref m_BlueNoiseTexture);
+            bool shouldAdd = m_SSAOPass.Setup(ref m_Settings, ref renderer, ref m_Material, ref m_BlueNoise256Textures);
             if (shouldAdd)
                 renderer.EnqueuePass(m_SSAOPass);
         }
@@ -157,8 +157,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Private Variables
             private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
+            private int m_BlueNoiseTextureIndex = 0;
             private Material m_Material;
-            private Texture2D m_BlueNoise;
+            private Texture2D[] m_BlueNoiseTextures;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
             private Vector4[] m_CameraXExtent = new Vector4[2];
             private Vector4[] m_CameraYExtent = new Vector4[2];
@@ -179,6 +180,7 @@ namespace UnityEngine.Rendering.Universal
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
+            private static readonly int s_SSAOBlueNoiseParamsID = Shader.PropertyToID("_SSAOBlueNoiseParams");
             private static readonly int s_ScaleBiasRtID = Shader.PropertyToID("_ScaleBiasRt");
             private static readonly int s_LastKawasePass = Shader.PropertyToID("_LastKawasePass");
             private static readonly int s_SSAOTexture0ID = Shader.PropertyToID("_SSAO_OcclusionTexture0");
@@ -247,9 +249,9 @@ namespace UnityEngine.Rendering.Universal
                 };
             }
 
-            internal bool Setup(ref ScreenSpaceAmbientOcclusionSettings featureSettings, ref ScriptableRenderer renderer, ref Material material, ref Texture2D blueNoiseTexture)
+            internal bool Setup(ref ScreenSpaceAmbientOcclusionSettings featureSettings, ref ScriptableRenderer renderer, ref Material material, ref Texture2D[] blueNoiseTextures)
             {
-                m_BlueNoise = blueNoiseTexture;
+                m_BlueNoiseTextures = blueNoiseTextures;
                 m_Material = material;
                 m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
@@ -350,7 +352,6 @@ namespace UnityEngine.Rendering.Universal
                 m_Material.SetVectorArray(s_CameraViewXExtentID, m_CameraXExtent);
                 m_Material.SetVectorArray(s_CameraViewYExtentID, m_CameraYExtent);
                 m_Material.SetVectorArray(s_CameraViewZExtentID, m_CameraZExtent);
-                m_Material.SetTexture(s_BlueNoiseTextureID, m_BlueNoise);
 
                 // Update keywords
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
@@ -360,6 +361,18 @@ namespace UnityEngine.Rendering.Universal
                 {
                     case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.BlueNoise:
                         CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, true);
+                        m_BlueNoiseTextureIndex = (m_BlueNoiseTextureIndex + 1) % m_BlueNoiseTextures.Length;
+                        Texture2D noiseTexture = m_BlueNoiseTextures[m_BlueNoiseTextureIndex];
+                        m_Material.SetTexture(s_BlueNoiseTextureID, noiseTexture);
+
+                        float rndOffsetX = Random.value;
+                        float rndOffsetY = Random.value;
+                        m_Material.SetVector(s_SSAOBlueNoiseParamsID, new Vector4(
+                            renderingData.cameraData.pixelWidth / (float)noiseTexture.width,
+                            renderingData.cameraData.pixelHeight / (float)noiseTexture.height,
+                            rndOffsetX,
+                            rndOffsetY
+                        ));
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.InterleavedGradient:
                         CoreUtils.SetKeyword(m_Material, k_AOOriginalKeyword, true);

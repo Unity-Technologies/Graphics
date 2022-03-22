@@ -84,9 +84,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             HLSLPROGRAM
                 #pragma vertex VertDefault
                 #pragma fragment HorizontalBlur
-                #pragma multi_compile_local _ _ORTHOGRAPHIC
-                #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-                #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
