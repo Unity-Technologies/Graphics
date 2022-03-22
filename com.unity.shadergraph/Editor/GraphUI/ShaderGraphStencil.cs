@@ -107,18 +107,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menuItems, IRootView view, IGroupModel selectedGroup = null)
         {
-            var registryInstance = GetRegistry();
-            foreach (var key in registryInstance.GetTypeKeys())
-            {
-                var nodeReader = shaderGraphModel.GraphHandler.GetNodeReader(key.Name);
-                if (nodeReader != null)
-                {
-                    menuItems.Add(new MenuItem{name =$"Create Variable",action = () =>
-                    {
-                        view.Dispatch(new CreateGraphVariableDeclarationCommand("variable", true, TypeHandle.Float, selectedGroup ?? GraphModel.GetSectionModel(sectionName)));
-                    }});
-                }
-            }
+            // TODO: (JOE) Add type list and discovery
             base.PopulateBlackboardCreateMenu(sectionName, menuItems, view, selectedGroup);
         }
 
