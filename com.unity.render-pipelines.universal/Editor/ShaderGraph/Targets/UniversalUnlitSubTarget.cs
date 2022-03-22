@@ -267,7 +267,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor
                 {
                     // Definition
-                    displayName = "DepthNormals",
+                    displayName = "DepthNormalsOnly",
                     referenceName = "SHADERPASS_DEPTHNORMALSONLY",
                     lightMode = "DepthNormalsOnly",
                     useInPreview = false,
@@ -289,7 +289,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Forward,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.GBufferNormalsOct, CoreKeywordDescriptors.AlphaTestOn },
                     includes = CoreIncludes.DepthNormalsOnly,
 
                     // Custom Interpolator Support
