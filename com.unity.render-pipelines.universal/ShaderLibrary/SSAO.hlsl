@@ -21,7 +21,6 @@ half4 _BlurOffset;
 half _KawaseBlurIteration;
 int _LastKawasePass;
 half4 _SSAOParams;
-half4 _SSAOBlueNoiseParams;
 float4 _CameraViewTopLeftCorner[2];
 float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
 
@@ -33,12 +32,17 @@ float4 _CameraViewZExtent[2];
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
+#if defined(_BLUE_NOISE)
+#define RADIUS _SSAOParams.y * 2.0
+half4 _SSAOBlueNoiseParams;
+#define BlueNoiseScale          _SSAOBlueNoiseParams.xy
+#define BlueNoiseOffset         _SSAOBlueNoiseParams.zw
+#else
 #define RADIUS _SSAOParams.y
+#endif
 #define DOWNSAMPLE _SSAOParams.z
 #define FALLOFF _SSAOParams.w
 
-#define BlueNoiseScale          _SSAOBlueNoiseParams.xy
-#define BlueNoiseOffset         _SSAOBlueNoiseParams.zw
 
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
     static const int SAMPLE_COUNT = 3;
@@ -186,13 +190,12 @@ half GetRandomVal(half u, half sampleIndex)
     return SSAORandomUV[u * 20 + sampleIndex];
 }
 
-
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 normal_o)
 {
     #if defined(_BLUE_NOISE)
         const half lerpVal = sampleIndexHalf * rcpSampleCount;
-        const half noise = SAMPLE_BLUE_NOISE((uv + lerpVal) * BlueNoiseScale + BlueNoiseOffset);
+        const half noise = SAMPLE_BLUE_NOISE((uv * BlueNoiseScale) + lerpVal + BlueNoiseOffset);
         const half u = frac(GetRandomVal(HALF_ZERO, sampleIndexHalf).x + noise) * HALF_TWO - HALF_ONE;
         const half theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
         const half u2 = half(sqrt(HALF_ONE - u * u));
@@ -201,7 +204,7 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
         v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
 
         // Adjustment for distance distribution.
-        v *= lerp(0.1, 1.0, lerpVal * lerpVal) * 2.0;
+        v *= lerp(0.1, 1.0, lerpVal * lerpVal);
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
         const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));
