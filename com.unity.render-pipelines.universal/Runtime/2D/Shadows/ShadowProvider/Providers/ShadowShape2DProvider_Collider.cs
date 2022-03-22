@@ -68,9 +68,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Yes, so fetch a copy of the shapes and vertices.
                 var shapeCount = m_ShadowShapeGroup.shapeCount;
-                var shapeGroupShapes = new NativeArray<PhysicsShape2D>(shapeCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                var shapeGroupVertices = new NativeArray<Vector2>(m_ShadowShapeGroup.vertexCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                m_ShadowShapeGroup.GetShapeData(shapeGroupShapes, shapeGroupVertices);
+                var shapeGroupShapes = m_ShadowShapeGroup.groupShapes;
+                var shapeGroupVertices = m_ShadowShapeGroup.groupVertices;
 
                 // Create visible shape indices.
                 var visibleShapeIndices = new NativeArray<int>(shapeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
@@ -208,8 +207,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Clean up.
                 visibleShapeIndices.Dispose();
-                shapeGroupVertices.Dispose();
-                shapeGroupShapes.Dispose();
             }
         }
 
