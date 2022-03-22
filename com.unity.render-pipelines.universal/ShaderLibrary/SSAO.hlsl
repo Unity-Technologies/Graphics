@@ -364,22 +364,18 @@ half4 SSAO(Varyings input) : SV_Target
         // Sample point
         half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, normal_o);
         half3 vpos_s1 = half3(vpos_o + v_s1);
-
-        // Reproject the sample point
-        half2 spos_s1 = half2(
-            camTransform000102.x * vpos_s1.x + camTransform000102.y * vpos_s1.y + camTransform000102.z * vpos_s1.z,
-            camTransform101112.x * vpos_s1.x + camTransform101112.y * vpos_s1.y + camTransform101112.z * vpos_s1.z
-        );
+        half3 spos_s1 = mul(_CameraViewProjections[unity_eyeIndex], vpos_s1);
 
         #if defined(_ORTHOGRAPHIC)
-            half2 uv_s1_01 = clamp((spos_s1 + HALF_ONE) * HALF_HALF, HALF_ZERO, HALF_ONE);
+        half2 uv_s1_01 = clamp((spos_s1 + HALF_ONE) * HALF_HALF, HALF_ZERO, HALF_ONE);
         #else
-            half rcpZDist = rcp(half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1)));
-            half2 uv_s1_01 = half2(spos_s1 * rcpZDist + HALF_ONE) * HALF_HALF;
+        half rcpZDist = rcp(half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1)));
+        half2 uv_s1_01 = half2(spos_s1.xy * rcpZDist + HALF_ONE) * HALF_HALF;
         #endif
 
         // Relative position of the sample point
-        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, SampleAndGetLinearEyeDepth(uv_s1_01)) - vpos_o);
+        float depth_s = SampleAndGetLinearEyeDepth(uv_s1_01);
+        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, depth_s) - vpos_o);
 
         // Estimate the obscurance value
         #if defined(_ORTHOGRAPHIC)
@@ -388,7 +384,8 @@ half4 SSAO(Varyings input) : SV_Target
             half dotVal = dot(v_s2, normal_o) - half(kBeta * linearDepth_o);
         #endif
 
-        half a1 = max(dotVal, HALF_ZERO);
+        half isInsideRadius = half(spos_s1.z - depth_s) < RADIUS;
+        half a1 = max(dotVal * isInsideRadius, HALF_ZERO);
         half a2 = dot(v_s2, v_s2) + kEpsilon;
         ao += a1 * rcp(a2);
     }
