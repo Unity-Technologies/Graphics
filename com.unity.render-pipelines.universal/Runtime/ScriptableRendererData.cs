@@ -16,9 +16,6 @@ namespace UnityEngine.Rendering.Universal
     public abstract class ScriptableRendererData
     {
         public string name;
-#if UNITY_EDITOR
-        [SerializeField] internal int index;
-#endif
         internal bool isInvalidated { get; set; }
 
         /// <summary>
@@ -67,8 +64,9 @@ namespace UnityEngine.Rendering.Universal
         /// Use SetDirty when changing seeings in the ScriptableRendererData.
         /// It will rebuild the render passes with the new data.
         /// </summary>
-        public new void SetDirty()
+        public void SetDirty()
         {
+            //TODO: check if the setdirty is still needed and is still used.
             isInvalidated = true;
         }
 
@@ -165,35 +163,40 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeatureAssetLegacy> m_RendererFeatures = new List<ScriptableRendererFeatureAssetLegacy>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+#pragma warning disable 414 // Never used warning - Needed to show in editor.
         [SerializeField] bool m_UseNativeRenderPass = false;
+#pragma warning restore 414 // Never used warning
 
         /// <summary>
         /// Function is called to convert the asset settings into the URP asset such that setting wont be lost.
         /// </summary>
         /// <returns> Returns a new renderer version without sciptable object inheritance. </returns>
-        protected virtual ScriptableRendererData UpgradeRendererWithoutAsset() => null;
-        void UpgradeRendererFeaturesWithoutAsset(ref Dictionary<string, ScriptableRendererFeature> rendererFeatures)
+        protected virtual ScriptableRendererData UpgradeRendererWithoutAsset(UniversalRenderPipelineAsset URPAsset) => null;
+        void UpgradeRendererFeaturesWithoutAsset()
         {
-            foreach (var feature in m_RendererFeatures)
+            foreach (var featureAsset in m_RendererFeatures)
             {
-                m_RendererFeaturesReferences.Add(feature.UpgradeToRendererFeatureWithoutAsset(ref rendererFeatures));
+                if (featureAsset != null)
+                {
+                    var feature = featureAsset.UpgradeToRendererFeatureWithoutAsset();
+                    feature.name = featureAsset.name;
+                    m_RendererFeaturesReferences.Add(feature);
+                }
+                else
+                {
+                    Debug.LogWarning($"Failed to convert renderer feature in renderer: {name}, because of null reference.");
+                }
             }
         }
-        public static ScriptableRendererData UpgradeRendererWithoutAsset(ScriptableRendererDataAssetLegacy data, ref Dictionary<string, ScriptableRendererData> renderers, ref Dictionary<string, ScriptableRendererFeature> rendererFeatures)
+        internal static ScriptableRendererData UpgradeRendererWithoutAsset(UniversalRenderPipelineAsset URPAsset, ScriptableRendererDataAssetLegacy data)
         {
-            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(data, out string guid, out long localid);
-            if (renderers.TryGetValue(guid, out ScriptableRendererData value))
-            {
-                return value;
-            }
-            else
-            {
-                data.UpgradeRendererFeaturesWithoutAsset(ref rendererFeatures);
-                var rendererData = data.UpgradeRendererWithoutAsset();
-                rendererData.m_RendererFeatures = data.m_RendererFeaturesReferences;
-                renderers.Add(guid, rendererData);
-                return rendererData;
-            }
+            data.UpgradeRendererFeaturesWithoutAsset();
+            var rendererData = data.UpgradeRendererWithoutAsset(URPAsset);
+            rendererData.name = data.name;
+            rendererData.m_RendererFeatures = data.m_RendererFeaturesReferences;
+            //Remember to reset in order to redo for another render and if they want to use the renderer later once more renderer features has been fixed.
+            data.m_RendererFeaturesReferences = null;
+            return rendererData;
         }
 
         /// <summary>

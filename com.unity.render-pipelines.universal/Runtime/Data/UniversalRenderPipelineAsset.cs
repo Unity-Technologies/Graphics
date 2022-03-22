@@ -152,51 +152,87 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int k_AssetPreviousVersion = 11;
 
         // Deprecated settings for upgrading sakes
-        [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
-        [SerializeField] bool m_RequireDepthTexture = false;
-        [SerializeField] bool m_RequireOpaqueTexture = false;
-        [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
+        [SerializeField, Obsolete("It is no longer used")] RendererType m_RendererType = RendererType.UniversalRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [SerializeField] internal ScriptableRendererDataAssetLegacy m_RendererData = null;
+        [SerializeField, Obsolete("Use m_RendererDataReferenceList instead")]
+        internal ScriptableRendererDataAssetLegacy m_RendererData = null;
         //[FormerlySerializedAs("m_RendererDataList")]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [SerializeField] internal ScriptableRendererDataAssetLegacy[] m_RendererDataList = null;
+        [SerializeField, Obsolete("Use m_RendererDataReferenceList instead")]
+        internal ScriptableRendererDataAssetLegacy[] m_RendererDataList = null;
 
-        [SerializeField] bool m_SupportsTerrainHoles = true;
-        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
+        //TODO: Can this be used to tranfer the settings to global?
+        //[SerializeField, Obsolete("Moved to UniversalRenderPipelineGlobalSettings")]
+        //bool m_SupportsTerrainHoles = true;
+        //[SerializeField, Obsolete("Moved to UniversalRenderPipelineGlobalSettings")]
+        //StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
-        [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
-        [SerializeField] bool m_MainLightShadowsSupported = true;
-        [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")] internal bool m_RequireDepthTexture = false;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")] internal bool m_RequireOpaqueTexture = false;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")] internal Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
 
-        [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
-        [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
-        [SerializeField] bool m_AdditionalLightShadowsSupported = false;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_MainLightShadowsSupported = true;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
 
-        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
-        [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierLow;
-        [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierMedium;
-        [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierHigh;
-        [SerializeField] float m_ShadowDistance = 50.0f;
-        [SerializeField] int m_ShadowCascadeCount = 1;
-        [SerializeField] float m_Cascade2Split = 0.25f;
-        [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
-        [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-        [SerializeField] float m_CascadeBorder = 0.2f;
-        [SerializeField] float m_ShadowDepthBias = 1.0f;
-        [SerializeField] float m_ShadowNormalBias = 1.0f;
-        [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] bool m_ConservativeEnclosingSphere = true;
-        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal int m_AdditionalLightsPerObjectLimit = 4;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_AdditionalLightShadowsSupported = false;
 
-        [SerializeField] bool m_MixedLightingSupported = true;
-        [SerializeField] bool m_SupportsLightLayers = false;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal int m_AdditionalLightsShadowResolutionTierLow = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierLow;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal int m_AdditionalLightsShadowResolutionTierMedium = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierMedium;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal int m_AdditionalLightsShadowResolutionTierHigh = UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierHigh;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal float m_ShadowDistance = 50.0f;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal int m_ShadowCascadeCount = 1;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal float m_Cascade2Split = 0.25f;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal float m_CascadeBorder = 0.2f;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal float m_ShadowDepthBias = 1.0f;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal float m_ShadowNormalBias = 1.0f;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_SoftShadowsSupported = false;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_ConservativeEnclosingSphere = true;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal int m_NumIterationsEnclosingSphere = 64;
 
-        [SerializeField] bool m_ReflectionProbeBlending = false;
-        [SerializeField] bool m_ReflectionProbeBoxProjection = false;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_MixedLightingSupported = true;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_SupportsLightLayers = false;
 
-        [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
-        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_ReflectionProbeBlending = false;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal bool m_ReflectionProbeBoxProjection = false;
+
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
+        [SerializeField, Obsolete("Moved to UniversalRendererData")]
+        internal LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
+
+        // Upgrade settings (needed to make changes which isn't allowed inside the serialization phase)
+        bool shouldUpdateRendererNamesAfterUpgrading = false;
 
         // Renderer settings
         [SerializeReference] internal ScriptableRendererData[] m_RendererDataReferenceList = { new UniversalRendererData() };
@@ -318,6 +354,7 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+#pragma warning disable 618 // Obsolete warning
         /// <summary>
         /// Use this class to initialize the rendererData element that is required by the renderer.
         /// </summary>
@@ -371,6 +408,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
+#pragma warning restore 618 // Obsolete warning
+
 
         /// <summary>
         /// Creates a <c>UniversalRenderPipeline</c> from the <c>UniversalRenderPipelineAsset</c>.
@@ -425,6 +464,31 @@ namespace UnityEngine.Rendering.Universal
 
         void Awake()
         {
+#pragma warning disable 618 // Obsolete warning
+            if (shouldUpdateRendererNamesAfterUpgrading)
+            {
+                int validRenderers = m_RendererDataList.Where((rendererData) => rendererData != null).Count();
+                int diff = m_RendererDataReferenceList.Length - validRenderers;
+                if (diff > 0)
+                {
+                    Debug.LogWarning($"[{diff} null references renderers in {name} which won't be able to converte.");
+                }
+                m_RendererDataReferenceList = new ScriptableRendererData[validRenderers];
+                int j = 0;
+                for (int i = 0; i < m_RendererDataReferenceList.Length; i++)
+                {
+                    ScriptableRendererDataAssetLegacy rendererLegacy = null;
+                    while (rendererLegacy == null)
+                    {
+                        rendererLegacy = m_RendererDataList[j];
+                        j++;
+                    }
+                    m_RendererDataReferenceList[i] = ScriptableRendererDataAssetLegacy.UpgradeRendererWithoutAsset(this, rendererLegacy);
+                    m_RendererDataReferenceList[i].name = rendererLegacy.name;
+                }
+                m_RendererDataList = new ScriptableRendererDataAssetLegacy[0];
+            }
+#pragma warning restore 618 // Obsolete warning
             foreach (var renderer in m_RendererDataReferenceList)
                 renderer.Awake();
         }
@@ -1214,31 +1278,34 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
-            foreach (var renderer in m_RendererDataReferenceList)
-                renderer.OnAfterDeserialize();
-            // TODO fix the upgrade.
             if (k_AssetVersion < 3)
             {
+#pragma warning disable 618 // Obsolete warning
                 m_SoftShadowsSupported = (m_ShadowType == ShadowQuality.SoftShadows);
+#pragma warning restore 618 // Obsolete warning
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 3;
             }
 
             if (k_AssetVersion < 4)
             {
+#pragma warning disable 618 // Obsolete warning
                 m_AdditionalLightShadowsSupported = m_LocalShadowsSupported;
                 m_AdditionalLightsShadowmapResolution = m_LocalShadowsAtlasResolution;
                 m_AdditionalLightsPerObjectLimit = m_MaxPixelLights;
                 m_MainLightShadowmapResolution = m_ShadowAtlasResolution;
+#pragma warning restore 618 // Obsolete warning
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 4;
             }
 
             if (k_AssetVersion < 5)
             {
+#pragma warning disable 618 // Obsolete warning
                 if (m_RendererType == RendererType.Custom)
                 {
                     m_RendererDataList[0] = m_RendererData;
+#pragma warning restore 618 // Obsolete warning
                 }
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 5;
@@ -1271,12 +1338,15 @@ namespace UnityEngine.Rendering.Universal
             if (k_AssetVersion < 8)
             {
                 k_AssetPreviousVersion = k_AssetVersion;
+#pragma warning disable 618 // Obsolete warning
                 m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+#pragma warning restore 618 // Obsolete warning
                 k_AssetVersion = 8;
             }
 
             if (k_AssetVersion < 9)
             {
+#pragma warning disable 618 // Obsolete warning
                 bool assetContainsCustomAdditionalLightShadowResolutions =
                     m_AdditionalLightsShadowResolutionTierHigh != UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierHigh ||
                     m_AdditionalLightsShadowResolutionTierMedium != UniversalRendererData.AdditionalLightsDefaultShadowResolutionTierMedium ||
@@ -1289,6 +1359,7 @@ namespace UnityEngine.Rendering.Universal
                     m_AdditionalLightsShadowResolutionTierMedium = Mathf.Max(m_AdditionalLightsShadowResolutionTierHigh / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
                     m_AdditionalLightsShadowResolutionTierLow = Mathf.Max(m_AdditionalLightsShadowResolutionTierMedium / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
                 }
+#pragma warning restore 618 // Obsolete warning
 
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 9;
@@ -1300,6 +1371,16 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 10;
             }
 
+            if (k_AssetVersion < 11)
+            {
+                shouldUpdateRendererNamesAfterUpgrading = true;
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 11;
+            }
+
+            foreach (var renderer in m_RendererDataReferenceList)
+                renderer.OnAfterDeserialize();
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1310,6 +1391,7 @@ namespace UnityEngine.Rendering.Universal
 
 
 #if UNITY_EDITOR
+#pragma warning disable 618 // Obsolete warning
         static void UpgradeAsset(int assetInstanceID)
         {
             UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
@@ -1347,7 +1429,7 @@ namespace UnityEngine.Rendering.Universal
 
             EditorUtility.SetDirty(asset);
         }
-
+#pragma warning restore 618 // Obsolete warning
 #endif
 
 

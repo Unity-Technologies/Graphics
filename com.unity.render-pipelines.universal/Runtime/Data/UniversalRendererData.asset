@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: UniversalRendererData
   m_EditorClassIdentifier: 
   debugShaders:
-    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
-      type: 3}
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
+  m_RendererFeaturesReferences: []
   m_RendererFeatures: []
+  m_RendererFeatureMap: 
+  m_UseNativeRenderPass: 0
+  postProcessData: {fileID: 0}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
@@ -24,14 +27,11 @@ MonoBehaviour:
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
     stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
     fallbackErrorPS: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
-    materialErrorPS: {fileID: 4800000, guid: 5fd9a8feb75a4b5894c241777f519d4e, type: 3}
+    fallbackLoadingPS: {fileID: 4800000, guid: 7f888aff2ac86494babad1c2c5daeee2, type: 3}
     coreBlitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
-    coreBlitColorAndDepthPS: {fileID: 4800000, guid: d104b2fc1ca6445babb8e90b0758136b,
-      type: 3}
-    cameraMotionVector: {fileID: 4800000, guid: c56b7e0d4c7cb484e959caeeedae9bbf,
-      type: 3}
-    objectMotionVector: {fileID: 4800000, guid: 7b3ede40266cd49a395def176e1bc486,
-      type: 3}
+    coreBlitColorAndDepthPS: {fileID: 4800000, guid: d104b2fc1ca6445babb8e90b0758136b, type: 3}
+    cameraMotionVector: {fileID: 4800000, guid: c56b7e0d4c7cb484e959caeeedae9bbf, type: 3}
+    objectMotionVector: {fileID: 4800000, guid: 7b3ede40266cd49a395def176e1bc486, type: 3}
   m_AssetVersion: 2
   m_OpaqueLayerMask:
     serializedVersion: 2
@@ -54,33 +54,6 @@ MonoBehaviour:
   m_ClusteredRendering: 0
   m_TileSize: 32
   m_IntermediateTextureMode: 0
-  m_MainLightRenderingMode: 1
-  m_MainLightShadowsSupported: 1
-  m_MainLightShadowmapResolution: 2048
-  m_AdditionalLightsRenderingMode: 1
-  m_AdditionalLightsPerObjectLimit: 4
-  m_AdditionalLightShadowsSupported: 0
-  m_AdditionalLightsShadowmapResolution: 2048
-  m_AdditionalLightsShadowResolutionTierLow: 256
-  m_AdditionalLightsShadowResolutionTierMedium: 512
-  m_AdditionalLightsShadowResolutionTierHigh: 1024
-  m_ShadowDistance: 50
-  m_ShadowCascadeCount: 1
-  m_Cascade2Split: 0.25
-  m_Cascade3Split: {x: 0.1, y: 0.3}
-  m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
-  m_CascadeBorder: 0.2
-  m_ShadowDepthBias: 1
-  m_ShadowNormalBias: 1
-  m_SoftShadowsSupported: 0
-  m_ConservativeEnclosingSphere: 1
-  m_NumIterationsEnclosingSphere: 64
-  m_MixedLightingSupported: 1
-  m_SupportsLightLayers: 0
-  m_ReflectionProbeBlending: 0
-  m_ReflectionProbeBoxProjection: 0
-  m_AdditionalLightsCookieResolution: 2048
-  m_AdditionalLightsCookieFormat: 3
   references:
     version: 2
     RefIds: []

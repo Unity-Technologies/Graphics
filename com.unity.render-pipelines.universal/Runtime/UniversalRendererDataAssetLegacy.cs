@@ -14,32 +14,13 @@ namespace UnityEngine.Rendering.Universal
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [URPHelpURL("urp-universal-renderer")]
     [Obsolete("UniversalRenderer is no longer an asset.")]
-    [MovedFrom(false, sourceClassName: "UniversalRendererData")]
+    //[MovedFrom(true, sourceClassName: "UniversalRendererData")]
     public class UniversalRendererDataAssetLegacy : ScriptableRendererDataAssetLegacy, ISerializationCallbackReceiver
     {
         protected override ScriptableRenderer Create()
         {
             throw new NotImplementedException();
         }
-
-#if UNITY_EDITOR
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
-        internal class CreateUniversalRendererAsset : EndNameEditAction
-        {
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType.UniversalRenderer, false) as UniversalRendererDataAssetLegacy;
-                Selection.activeObject = instance;
-            }
-        }
-
-        [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
-        static void CreateUniversalRendererData()
-        {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", null, null);
-        }
-
-#endif
 
         /// <summary>
         /// Class containing shader resources used in URP.
@@ -190,21 +171,59 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //TODO: Upgrading up sub assets to the URPAsset should be run before upgrading.
-        protected override ScriptableRendererData UpgradeRendererWithoutAsset()
+        protected override ScriptableRendererData UpgradeRendererWithoutAsset(UniversalRenderPipelineAsset URPAsset)
         {
             UniversalRendererData rendererData = new UniversalRendererData();
-            rendererData.shaders = new UniversalRendererData.ShaderResources();
-            rendererData.shaders.blitPS = shaders.blitPS;
-            rendererData.shaders.copyDepthPS = shaders.copyDepthPS;
-            rendererData.shaders.screenSpaceShadowPS = shaders.screenSpaceShadowPS;
-            rendererData.shaders.samplingPS = shaders.samplingPS;
-            rendererData.shaders.stencilDeferredPS = shaders.stencilDeferredPS;
-            rendererData.shaders.fallbackErrorPS = shaders.fallbackErrorPS;
-            rendererData.shaders.fallbackLoadingPS = shaders.fallbackLoadingPS;
-            rendererData.shaders.coreBlitPS = shaders.coreBlitPS;
-            rendererData.shaders.coreBlitColorAndDepthPS = shaders.coreBlitColorAndDepthPS;
-            rendererData.shaders.cameraMotionVector = shaders.cameraMotionVector;
-            rendererData.shaders.objectMotionVector = shaders.objectMotionVector;
+            //UniversalRenderPipelineAsset settings:
+            rendererData.supportsCameraDepthTexture = URPAsset.m_RequireDepthTexture;
+            rendererData.supportsCameraOpaqueTexture = URPAsset.m_RequireOpaqueTexture;
+
+            rendererData.mainLightRenderingMode = URPAsset.m_MainLightRenderingMode;
+            rendererData.supportsMainLightShadows = URPAsset.m_MainLightShadowsSupported;
+            rendererData.mainLightShadowmapResolution = (int)URPAsset.m_MainLightShadowmapResolution;
+
+            rendererData.additionalLightsRenderingMode = URPAsset.m_MainLightRenderingMode;
+            rendererData.SetAdditionalLightsPerObjectLimit(URPAsset.m_AdditionalLightsPerObjectLimit);
+            rendererData.supportsAdditionalLightShadows = URPAsset.m_AdditionalLightShadowsSupported;
+
+            rendererData.additionalLightsShadowmapResolution = (int)URPAsset.m_AdditionalLightsShadowmapResolution;
+            rendererData.additionalLightsShadowResolutionTierLow = URPAsset.m_AdditionalLightsShadowResolutionTierLow;
+            rendererData.additionalLightsShadowResolutionTierMedium = URPAsset.m_AdditionalLightsShadowResolutionTierMedium;
+            rendererData.additionalLightsShadowResolutionTierHigh = URPAsset.m_AdditionalLightsShadowResolutionTierHigh;
+            rendererData.shadowDistance = URPAsset.m_ShadowDistance;
+            rendererData.shadowCascadeCount = URPAsset.m_ShadowCascadeCount;
+            rendererData.cascade2Split = URPAsset.m_Cascade2Split;
+            rendererData.cascade3Split = URPAsset.m_Cascade3Split;
+            rendererData.cascade4Split = URPAsset.m_Cascade4Split;
+            rendererData.cascadeBorder = URPAsset.m_CascadeBorder;
+            rendererData.shadowDepthBias = URPAsset.m_ShadowDepthBias;
+            rendererData.shadowNormalBias = URPAsset.m_ShadowNormalBias;
+            rendererData.supportsSoftShadows = URPAsset.m_SoftShadowsSupported;
+            rendererData.conservativeEnclosingSphere = URPAsset.m_ConservativeEnclosingSphere;
+            rendererData.numIterationsEnclosingSphere = URPAsset.m_NumIterationsEnclosingSphere;
+            rendererData.supportsMixedLighting = URPAsset.m_MixedLightingSupported;
+            rendererData.supportsLightLayers = URPAsset.m_SupportsLightLayers;
+            rendererData.reflectionProbeBlending = URPAsset.m_ReflectionProbeBlending;
+            rendererData.reflectionProbeBoxProjection = URPAsset.m_ReflectionProbeBoxProjection;
+            rendererData.SetAdditionalLightsCookieResolution(URPAsset.m_AdditionalLightsCookieResolution);
+            rendererData.SetAdditionalLightsCookieFormat(URPAsset.m_AdditionalLightsCookieFormat);
+
+            //UniversalRendererData settings:
+            if (shaders != null)
+            {
+                rendererData.shaders = new UniversalRendererData.ShaderResources();
+                rendererData.shaders.blitPS = shaders.blitPS;
+                rendererData.shaders.copyDepthPS = shaders.copyDepthPS;
+                rendererData.shaders.screenSpaceShadowPS = shaders.screenSpaceShadowPS;
+                rendererData.shaders.samplingPS = shaders.samplingPS;
+                rendererData.shaders.stencilDeferredPS = shaders.stencilDeferredPS;
+                rendererData.shaders.fallbackErrorPS = shaders.fallbackErrorPS;
+                rendererData.shaders.fallbackLoadingPS = shaders.fallbackLoadingPS;
+                rendererData.shaders.coreBlitPS = shaders.coreBlitPS;
+                rendererData.shaders.coreBlitColorAndDepthPS = shaders.coreBlitColorAndDepthPS;
+                rendererData.shaders.cameraMotionVector = shaders.cameraMotionVector;
+                rendererData.shaders.objectMotionVector = shaders.objectMotionVector;
+            }
 
             rendererData.xrSystemData = xrSystemData;
 

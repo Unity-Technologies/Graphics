@@ -98,13 +98,15 @@ namespace UnityEngine.Rendering.Universal
     [ExcludeFromPreset, Obsolete("ScriptableRendererFeature no longer uses ScriptableObject in order to avoid sub assets.")]
     public abstract class ScriptableRendererFeatureAssetLegacy : ScriptableObject, IDisposable
     {
+#pragma warning disable 414 // Never used warning - Needed to show in editor.
         [SerializeField, HideInInspector] private bool m_Active = true;
+#pragma warning restore 414 // Never used warning
 
         /// <summary>
         /// Function is called to convert the asset settings into the URP asset such that setting wont be lost.
         /// </summary>
         /// <returns> Returns a new renderer feature version without sciptable object inheritance. </returns>
-        public virtual ScriptableRendererFeature UpgradeToRendererFeatureWithoutAsset(ref Dictionary<string, ScriptableRendererFeature> rendererFeatures) => null;
+        public abstract ScriptableRendererFeature UpgradeToRendererFeatureWithoutAsset();
 
         /// <summary>
         /// Disposable pattern implementation.

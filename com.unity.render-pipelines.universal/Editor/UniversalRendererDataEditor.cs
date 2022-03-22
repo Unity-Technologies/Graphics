@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -142,7 +143,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent generalSettingsText = EditorGUIUtility.TrTextContent("General", "Settings that affect the renderer");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting", "Settings that affect the lighting in the Scene");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows", "Settings that configure how shadows look and behave, and can be used to balance between the visual quality and performance of shadows.");
-            public static GUIContent rendererFeatureSettingsText = EditorGUIUtility.TrTextContent("Renderer Features", "Settings that configure the renderer features used by the renderer.");
 
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
@@ -201,12 +201,11 @@ namespace UnityEditor.Rendering.Universal
             public static string supportsAdditionalLightShadowsWithoutMainLightHelpText = "Will not be able to cast additional light shadows because additional light is not Per Pixel.";
             public static GUIContent supportsAdditionalShadowsText = EditorGUIUtility.TrTextContent("Additional Light Shadows", "If enabled shadows will be supported for spot lights.\n");
             public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Atlas Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.");
-            public static GUIContent additionalLightsShadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
             public static GUIContent[] additionalLightsShadowResolutionTierNames =
             {
-                new GUIContent("Low"),
-                new GUIContent("Medium"),
-                new GUIContent("High")
+                new GUIContent("Shadow Resolution Tiers Low", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}."),
+                new GUIContent("Shadow Resolution Tiers Medium", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}."),
+                new GUIContent("Shadow Resolution Tiers High", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.")
             };
 
             public static GUIContent shadowWorkingUnitText = EditorGUIUtility.TrTextContent("Working Unit", "The unit in which Unity measures the shadow cascade distances. The exception is Max Distance, which will still be in meters.");
@@ -229,13 +228,12 @@ namespace UnityEditor.Rendering.Universal
         {
             DrawHeader(
                 cachedEditorData as CachedUniversalRendererDataEditor,
-                DrawRenderer, DrawRendererAdditional);
+                DrawRenderer, DrawRendererAdditional, typeof(UniversalRendererData).GetCustomAttribute<URPHelpURLAttribute>()?.URL);
         }
 
         static void DrawRenderer(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            int index = cachedEditorData.index.intValue;
-            var rendererState = RenderersFoldoutStates.GetRendererState(index);
+            var rendererState = RenderersFoldoutStates.GetRendererState(CurrentIndex);
             var rendererAdditionalShowState = RenderersFoldoutStates.GetAdditionalRenderersShowState();
             EditorGUILayout.PropertyField(cachedEditorData.name);
             CED.Group(
@@ -244,15 +242,13 @@ namespace UnityEditor.Rendering.Universal
                     FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawGeneral),
                 CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText,
                     (int)ShowUIUniversalRendererData.Lighting, rendererState,
-                    1 << cachedEditorData.index.intValue, rendererAdditionalShowState,
+                    1 << CurrentIndex, rendererAdditionalShowState,
                     DrawLighting, DrawLightingAdditional, FoldoutOption.SubFoldout | FoldoutOption.Indent),
                 CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText,
                     (int)ShowUIUniversalRendererData.Shadow, rendererState,
-                    1 << cachedEditorData.index.intValue, rendererAdditionalShowState,
+                    1 << CurrentIndex, rendererAdditionalShowState,
                     DrawShadows, DrawShadowsAdditional, FoldoutOption.SubFoldout | FoldoutOption.Indent),
-                CED.FoldoutGroup(Styles.rendererFeatureSettingsText,
-                    (int)ShowUIUniversalRendererData.RendererFeatures, rendererState,
-                    FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawRendererFeatures)
+                CED.Group(DrawRendererFeatures)
             ).Draw(cachedEditorData, ownerEditor);
         }
         static void DrawRendererAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor) { }
@@ -396,40 +392,33 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawShadowResolutionTierSettings(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            // UI code adapted from HDRP U.I logic implemented in com.unity.render-pipelines.high-definition/Editor/RenderPipeline/Settings/SerializedScalableSetting.cs )
-
-            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
-            // Removing the added border when calling GetRect
-            rect.x += 2.6f;
-            var contentRect = EditorGUI.PrefixLabel(rect, Styles.additionalLightsShadowResolutionTiers);
-
             EditorGUI.BeginChangeCheck();
 
             const int k_ShadowResolutionTiersCount = 3;
             var values = new[] { cachedEditorData.additionalLightsShadowResolutionTierLowProp, cachedEditorData.additionalLightsShadowResolutionTierMediumProp, cachedEditorData.additionalLightsShadowResolutionTierHighProp };
 
-            var num = contentRect.width / (float)k_ShadowResolutionTiersCount;  // space allocated for every field including the label
+            //var num = contentRect.width / (float)k_ShadowResolutionTiersCount;  // space allocated for every field including the label
 
-            var indentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0; // Reset the indentation
+            //var indentLevel = EditorGUI.indentLevel;
+            //EditorGUI.indentLevel = 0; // Reset the indentation
 
-            float pixelShift = 0;  // Variable to keep track of the current pixel shift in the rectangle we were assigned for this whole section.
+            //float pixelShift = 0;  // Variable to keep track of the current pixel shift in the rectangle we were assigned for this whole section.
             for (var index = 0; index < k_ShadowResolutionTiersCount; ++index)
             {
-                var labelWidth = Mathf.Clamp(EditorStyles.label.CalcSize(Styles.additionalLightsShadowResolutionTierNames[index]).x, 0, num);
-                EditorGUI.LabelField(new Rect(contentRect.x + pixelShift, contentRect.y, labelWidth, contentRect.height), Styles.additionalLightsShadowResolutionTierNames[index]);
-                pixelShift += labelWidth;           // We need to remove from the position the label size that we've just drawn and shift by it's length
-                float spaceLeft = num - labelWidth; // The amount of space left for the field
-                if (spaceLeft > 2) // If at least two pixels are left to draw this field, draw it, otherwise, skip
-                {
-                    var fieldSlot = new Rect(contentRect.x + pixelShift, contentRect.y, num - labelWidth, contentRect.height); // Define the rectangle for the field
-                    int value = EditorGUI.DelayedIntField(fieldSlot, values[index].intValue);
-                    values[index].intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(value));
-                }
-                pixelShift += spaceLeft;  // Shift by the slot that was left for the field
+                //var labelWidth = Mathf.Clamp(EditorStyles.label.CalcSize(Styles.additionalLightsShadowResolutionTierNames[index]).x, 0, num);
+                //EditorGUI.LabelField(new Rect(contentRect.x + pixelShift, contentRect.y, labelWidth, contentRect.height), Styles.additionalLightsShadowResolutionTierNames[index]);
+                //pixelShift += labelWidth;           // We need to remove from the position the label size that we've just drawn and shift by it's length
+                //float spaceLeft = num - labelWidth; // The amount of space left for the field
+                //if (spaceLeft > 2) // If at least two pixels are left to draw this field, draw it, otherwise, skip
+                //{
+                //  var fieldSlot = new Rect(contentRect.x + pixelShift, contentRect.y, num - labelWidth, contentRect.height); // Define the rectangle for the field
+                int value = EditorGUILayout.DelayedIntField(Styles.additionalLightsShadowResolutionTierNames[index], values[index].intValue);
+                values[index].intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(value));
+                //}
+                //pixelShift += spaceLeft;  // Shift by the slot that was left for the field
             }
 
-            EditorGUI.indentLevel = indentLevel;
+            //EditorGUI.indentLevel = indentLevel;
 
             EditorGUI.EndChangeCheck();
         }
@@ -490,23 +479,21 @@ namespace UnityEditor.Rendering.Universal
 
             if (cachedEditorData.mainLightShadowsSupportedProp.boolValue || cachedEditorData.additionalLightShadowsSupportedProp.boolValue)
             {
-                EditorGUI.indentLevel--;
-                EditorGUILayout.BeginVertical("GroupBox");
                 EditorGUILayout.PropertyField(cachedEditorData.shadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
                 cachedEditorData.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, cachedEditorData.shadowDistanceProp.floatValue));
 
                 cachedEditorData.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, cachedEditorData.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 cachedEditorData.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, cachedEditorData.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(cachedEditorData.softShadowsSupportedProp, Styles.supportsSoftShadows);
-
-                EditorGUILayout.EndVertical();
-                EditorGUI.indentLevel++;
             }
         }
 
         static void DrawShadowsAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUILayout.PropertyField(cachedEditorData.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
+            if (cachedEditorData.mainLightShadowsSupportedProp.boolValue || cachedEditorData.additionalLightShadowsSupportedProp.boolValue)
+            {
+                EditorGUILayout.PropertyField(cachedEditorData.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
+            }
         }
 
         static void DrawCascadeSliders(CachedUniversalRendererDataEditor cachedEditorData, int splitCount, bool useMetric, float baseMetric)

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.Universal.Internal;
@@ -527,6 +528,53 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
+        }
+
+        [Obsolete("This function is only and upgrade function used to upgrade the decal renderer feature")]
+        internal static DecalRendererFeature UpgradeFrom(DecalRendererFeatureAssetLegacy asset)
+        {
+            var decalRendererFeature = new DecalRendererFeature();
+
+
+            decalRendererFeature.m_Settings = asset.m_Settings;
+            decalRendererFeature.m_CopyDepthPS = asset.m_CopyDepthPS;
+            decalRendererFeature.m_DBufferClear = asset.m_DBufferClear;
+
+            decalRendererFeature.m_Technique = asset.m_Technique;
+            decalRendererFeature.m_DBufferSettings = asset.m_DBufferSettings;
+            decalRendererFeature.m_ScreenSpaceSettings = asset.m_ScreenSpaceSettings;
+            decalRendererFeature.m_RecreateSystems = asset.m_RecreateSystems;
+
+            decalRendererFeature.m_CopyDepthPass = asset.m_CopyDepthPass;
+            decalRendererFeature.m_DecalPreviewPass = asset.m_DecalPreviewPass;
+            decalRendererFeature.m_CopyDepthMaterial = asset.m_CopyDepthMaterial;
+
+            // Entities
+            decalRendererFeature.m_DecalEntityManager = asset.m_DecalEntityManager;
+            decalRendererFeature.m_DecalUpdateCachedSystem = asset.m_DecalUpdateCachedSystem;
+            decalRendererFeature.m_DecalUpdateCullingGroupSystem = asset.m_DecalUpdateCullingGroupSystem;
+            decalRendererFeature.m_DecalUpdateCulledSystem = asset.m_DecalUpdateCulledSystem;
+            decalRendererFeature.m_DecalCreateDrawCallSystem = asset.m_DecalCreateDrawCallSystem;
+            decalRendererFeature.m_DrawErrorSystem = asset.m_DrawErrorSystem;
+
+            // DBuffer
+            decalRendererFeature.m_DBufferRenderPass = asset.m_DBufferRenderPass;
+            decalRendererFeature.m_ForwardEmissivePass = asset.m_ForwardEmissivePass;
+            decalRendererFeature.m_DecalDrawDBufferSystem = asset.m_DecalDrawDBufferSystem;
+            decalRendererFeature.m_DecalDrawForwardEmissiveSystem = asset.m_DecalDrawForwardEmissiveSystem;
+            decalRendererFeature.m_DBufferClearMaterial = asset.m_DBufferClearMaterial;
+
+            // Screen Space
+            decalRendererFeature.m_ScreenSpaceDecalRenderPass = asset.m_ScreenSpaceDecalRenderPass;
+            decalRendererFeature.m_DecalDrawScreenSpaceSystem = asset.m_DecalDrawScreenSpaceSystem;
+            decalRendererFeature.m_DecalSkipCulledSystem = asset.m_DecalSkipCulledSystem;
+
+            // GBuffer
+            decalRendererFeature.m_GBufferRenderPass = asset.m_GBufferRenderPass;
+            decalRendererFeature.m_DrawGBufferSystem = asset.m_DrawGBufferSystem;
+            decalRendererFeature.m_DeferredLights = asset.m_DeferredLights;
+
+            return decalRendererFeature;
         }
     }
 }

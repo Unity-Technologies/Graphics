@@ -610,7 +610,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (UniversalRenderPipeline.asset)
             {
-                m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+                m_StoreActionsOptimizationSetting = UniversalRenderPipelineGlobalSettings.instance.storeActionsOptimization;
             }
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;

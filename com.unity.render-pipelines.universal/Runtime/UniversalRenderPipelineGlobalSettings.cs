@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_UseNativeRenderPass;
             set
             {
-                SetDirty();
+                EditorUtility.SetDirty(this);
                 m_UseNativeRenderPass = value;
             }
         }

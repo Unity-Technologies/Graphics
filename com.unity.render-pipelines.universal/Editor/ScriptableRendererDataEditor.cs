@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty serializedProperty;
         public ScriptableRendererData data;
         public SerializedProperty name { get; }
-        public SerializedProperty index { get; }
         public ScriptableRendererFeatureEditor rendererFeatureEditor; // TODO: Rework this after the renderer features is done.
 
         public CachedScriptableRendererDataEditor(SerializedProperty serializedProperty)
@@ -23,7 +22,6 @@ namespace UnityEditor.Rendering.Universal
             data = (ScriptableRendererData)serializedProperty.managedReferenceValue;
 
             name = serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.name));
-            index = serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.index));
             rendererFeatureEditor = new ScriptableRendererFeatureEditor(serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.m_RendererFeatures)));
         }
     }
@@ -36,26 +34,26 @@ namespace UnityEditor.Rendering.Universal
 
         public virtual void DrawHeader<TDataEditor>(
             TDataEditor cachedData,
-            CoreEditorDrawer<TDataEditor>.ActionDrawer DrawRenderer, CoreEditorDrawer<TDataEditor>.ActionDrawer DrawRendererAdditional)
+            CoreEditorDrawer<TDataEditor>.ActionDrawer DrawRenderer, CoreEditorDrawer<TDataEditor>.ActionDrawer DrawRendererAdditional, string documentation)
             where TDataEditor : CachedScriptableRendererDataEditor
         {
             ExpandedStateList<ScriptableRendererData> rendererState = RenderersFoldoutStates.GetRenderersShowState();
             AdditionalPropertiesStateList<ScriptableRendererData> rendererAdditionalShowState = RenderersFoldoutStates.GetAdditionalRenderersShowState();
-            CoreEditorDrawer<TDataEditor>.AdditionalPropertiesFoldoutGroup(new GUIContent($"{cachedData.index.intValue} - {cachedData.name.stringValue}"),
-                1 << cachedData.index.intValue, rendererState,
-                1 << cachedData.index.intValue, rendererAdditionalShowState,
-                DrawRenderer, DrawRendererAdditional, AddOptionsMenu, FoldoutOption.Boxed | FoldoutOption.Indent).Draw(cachedData, null);
+            CoreEditorDrawer<TDataEditor>.AdditionalPropertiesFoldoutGroup(new GUIContent($"{CurrentIndex} - {cachedData.name.stringValue}"),
+                1 << CurrentIndex, rendererState,
+                1 << CurrentIndex, rendererAdditionalShowState,
+                DrawRenderer, DrawRendererAdditional, (menu, data) => AddOptionsMenu(menu, data, CurrentIndex), documentation, FoldoutOption.Boxed | FoldoutOption.Indent).Draw(cachedData, null);
         }
 
         public virtual void DrawHeader<TDataEditor>(
             TDataEditor cachedData,
-            CoreEditorDrawer<TDataEditor>.ActionDrawer DrawRenderer)
+            CoreEditorDrawer<TDataEditor>.ActionDrawer DrawRenderer, string documentation)
             where TDataEditor : CachedScriptableRendererDataEditor
         {
             ExpandedStateList<ScriptableRendererData> rendererState = RenderersFoldoutStates.GetRenderersShowState();
-            CoreEditorDrawer<TDataEditor>.FoldoutGroup(new GUIContent($"{cachedData.index.intValue} - {cachedData.name.stringValue}"),
-                1 << cachedData.index.intValue, rendererState,
-                FoldoutOption.Boxed | FoldoutOption.Indent, (_, cacheData) => OptionsMenu(cacheData), DrawRenderer).Draw(cachedData, null);
+            CoreEditorDrawer<TDataEditor>.FoldoutGroup(new GUIContent($"{CurrentIndex} - {cachedData.name.stringValue}"),
+                1 << CurrentIndex, rendererState,
+                FoldoutOption.Boxed | FoldoutOption.Indent, (_, cacheData) => OptionsMenu(cacheData, CurrentIndex), documentation, DrawRenderer).Draw(cachedData, null);
         }
 
         protected abstract CachedScriptableRendererDataEditor Init(SerializedProperty property);
@@ -63,7 +61,6 @@ namespace UnityEditor.Rendering.Universal
         /// <inheritdoc/>
         public override sealed void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            CurrentIndex = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
             int size = s_CachedRendererEditors.Count;
             if (size <= CurrentIndex)
             {
@@ -92,24 +89,23 @@ namespace UnityEditor.Rendering.Universal
             return -4f;
         }
 
-        static void OptionsMenu<TDataEditor>(TDataEditor cacheData)
+        static void OptionsMenu<TDataEditor>(TDataEditor cacheData, int index)
         where TDataEditor : CachedScriptableRendererDataEditor
         {
             var menu = new GenericMenu();
-            AddOptionsMenu(menu, cacheData);
+            AddOptionsMenu(menu, cacheData, index);
             menu.ShowAsContext();
         }
 
-        static void AddOptionsMenu<TDataEditor>(GenericMenu menu, TDataEditor cacheData)
+        static void AddOptionsMenu<TDataEditor>(GenericMenu menu, TDataEditor cacheData, int index)
         where TDataEditor : CachedScriptableRendererDataEditor
         {
             var property = cacheData.serializedProperty;
-            int index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
             SerializedProperty rendererList = property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList));
             var isTop = index == 0;
             var isBottom = index == rendererList.arraySize - 1;
             var isDefault = index == property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_DefaultRendererIndex)).intValue;
-            var hasCopySettings = HasCopyRenderer(property);
+            var hasCopySettings = CopyPasteUtils.HasCopyObject(property.managedReferenceValue);
 
             if (isTop)
                 menu.AddDisabledItem(new GUIContent("Move Up"), false);
@@ -124,22 +120,30 @@ namespace UnityEditor.Rendering.Universal
             if (isDefault)
                 menu.AddDisabledItem(new GUIContent("Remove"), false);
             else
-                menu.AddItem(new GUIContent("Remove"), false, () => RemoveRenderer(property));
+                menu.AddItem(new GUIContent("Remove"), false, () => RemoveRenderer(property, index));
             menu.AddSeparator("");
 
-            menu.AddItem(new GUIContent("Copy Settings"), false, () => WriteRenderer(property));
+            menu.AddItem(new GUIContent("Copy"), false, () =>
+            {
+                property.serializedObject.Update();
+                CopyPasteUtils.WriteObject(property.managedReferenceValue);
+            });
             if (hasCopySettings)
-                menu.AddItem(new GUIContent("Paste Settings"), false, () => ParseRenderer(property));
+                menu.AddItem(new GUIContent("Paste"), false, () =>
+                {
+                    property.serializedObject.Update();
+                    CopyPasteUtils.ParseObject(property.managedReferenceValue);
+                    property.serializedObject.ApplyModifiedProperties();
+                });
             else
-                menu.AddDisabledItem(new GUIContent("Paste Settings"), false);
+                menu.AddDisabledItem(new GUIContent("Paste"), false);
             menu.AddSeparator("");
         }
 
-        static void RemoveRenderer(SerializedProperty property)
+        static void RemoveRenderer(SerializedProperty property, int index)
         {
             var serializedObject = property.serializedObject;
             serializedObject.Update();
-            var index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
             var defaultIndex = property.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_DefaultRendererIndex));
             var rendererList = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList));
 
@@ -180,45 +184,6 @@ namespace UnityEditor.Rendering.Universal
             showAdditionalState.SetAdditionalPropertiesState(1 << indexB, show);
 
             rendererList.serializedObject.ApplyModifiedProperties();
-        }
-
-        static bool HasCopyRenderer(SerializedProperty property)
-        {
-            string text = EditorGUIUtility.systemCopyBuffer;
-            if (string.IsNullOrEmpty(text))
-                return false;
-            var prefix = RendererPrefix(property);
-            if (!text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                return false;
-            return true;
-        }
-
-        static void ParseRenderer(SerializedProperty property)
-        {
-            string text = EditorGUIUtility.systemCopyBuffer;
-            if (string.IsNullOrEmpty(text))
-                return;
-            var prefix = RendererPrefix(property);
-            if (!text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                return;
-            try
-            {
-                EditorJsonUtility.FromJsonOverwrite(text.Substring(prefix.Length), property.managedReferenceValue);
-            }
-            catch (ArgumentException)
-            {
-                return;
-            }
-        }
-
-        static void WriteRenderer(SerializedProperty property)
-        {
-            EditorGUIUtility.systemCopyBuffer = RendererPrefix(property) + EditorJsonUtility.ToJson(property.managedReferenceValue);
-        }
-
-        static string RendererPrefix(SerializedProperty property)
-        {
-            return property.managedReferenceValue.GetType().FullName + "JSON:";
         }
     }
 }

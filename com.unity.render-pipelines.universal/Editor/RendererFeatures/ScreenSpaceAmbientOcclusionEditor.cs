@@ -20,7 +20,6 @@ namespace UnityEditor.Rendering.Universal
 
         private bool isDeferredRenderingMode;
 
-        private SerializedProperty property = null;
         // Structs
         private struct Styles
         {
@@ -34,16 +33,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent SampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The number of samples that Unity takes when calculating the obscurance value. Higher values have high performance impact.");
         }
 
-        private void Init(SerializedProperty property)
+        protected override void Init(SerializedProperty property)
         {
-            SerializedProperty rendererProp =
-                property.serializedObject
-                    .FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList))
-                    .GetArrayElementAtIndex(ScriptableRendererDataEditor.CurrentIndex);
-
-            isDeferredRenderingMode = rendererProp.FindPropertyRelative("m_RenderingMode").intValue == (int)RenderingMode.Deferred;
-            if (this.property == property)
-                return;
             SerializedProperty settings = property.FindPropertyRelative("m_Settings");
             m_Source = settings.FindPropertyRelative("Source");
             m_Downsample = settings.FindPropertyRelative("Downsample");
@@ -55,61 +46,38 @@ namespace UnityEditor.Rendering.Universal
             m_SampleCount = settings.FindPropertyRelative("SampleCount");
         }
 
-        protected override void OnGUIRendererFeature(ref Rect position, SerializedProperty property, GUIContent label)
+        protected override void OnGUIRendererFeature(SerializedProperty property)
         {
-            Init(property);
+            SerializedProperty rendererProp =
+                property.serializedObject
+                    .FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList))
+                    .GetArrayElementAtIndex(ScriptableRendererDataEditor.CurrentIndex);
+            var deferredProp = rendererProp.FindPropertyRelative("m_RenderingMode");
+            isDeferredRenderingMode = deferredProp != null && deferredProp.intValue == (int)RenderingMode.Deferred;
 
-            DrawProperty(ref position, m_Downsample, Styles.Downsample);
-
-            DrawProperty(ref position, m_AfterOpaque, Styles.AfterOpaque);
+            EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
+            EditorGUILayout.PropertyField(m_AfterOpaque, Styles.AfterOpaque);
 
             if (!isDeferredRenderingMode)
             {
-                DrawProperty(ref position, m_Source, Styles.Source);
+                EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
                 // We only enable this field when depth source is selected
                 if (m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
                 {
                     EditorGUI.indentLevel++;
-                    DrawProperty(ref position, m_NormalQuality, Styles.NormalQuality);
+                    EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
                     EditorGUI.indentLevel--;
                 }
             }
 
-            DrawProperty(ref position, m_Intensity, Styles.Intensity);
-            DrawProperty(ref position, m_Radius, Styles.Radius);
-            DrawProperty(ref position, m_DirectLightingStrength, Styles.DirectLightingStrength);
-            DrawProperty(ref position, m_SampleCount, Styles.SampleCount);
+            EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
+            EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
+            EditorGUILayout.PropertyField(m_DirectLightingStrength, Styles.DirectLightingStrength);
+            EditorGUILayout.PropertyField(m_SampleCount, Styles.SampleCount);
 
             m_Intensity.floatValue = Mathf.Clamp(m_Intensity.floatValue, 0f, m_Intensity.floatValue);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
         }
-        /* This code might be useful later when renderers are polymorphic.
-        private bool RendererIsDeferred()
-        {
-            ScreenSpaceAmbientOcclusion ssaoFeature = (ScreenSpaceAmbientOcclusion)this.target;
-            UniversalRenderPipelineAsset pipelineAsset = (UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
-
-            if (ssaoFeature == null || pipelineAsset == null)
-                return false;
-
-            // We have to find the renderer related to the SSAO feature, then test if it is in deferred mode.
-            var rendererDataList = pipelineAsset.m_RendererDataList;
-            for (int rendererIndex = 0; rendererIndex < rendererDataList.Length; ++rendererIndex)
-            {
-                ScriptableRendererData rendererData = (ScriptableRendererData)rendererDataList[rendererIndex];
-                if (rendererData == null)
-                    continue;
-
-                var rendererFeatures = rendererData.rendererFeatures;
-                foreach (var feature in rendererFeatures)
-                {
-                    if (feature is ScreenSpaceAmbientOcclusion && (ScreenSpaceAmbientOcclusion)feature == ssaoFeature)
-                        return rendererData is UniversalRendererData && ((UniversalRendererData)rendererData).renderingMode == RenderingMode.Deferred;
-                }
-            }
-
-            return false;
-        }*/
     }
 }

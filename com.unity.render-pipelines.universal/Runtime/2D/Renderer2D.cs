@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Universal
         bool m_UseDepthStencilBuffer = true;
         bool m_CreateColorTexture;
         bool m_CreateDepthTexture;
-        [SerializeField] float m_RenderScale = 1.0f;
 
         internal override bool useDepthPriming { get { return false; } set { } }
         internal override bool stripShadowsOffVariants { get { return true; } set { } }

@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
@@ -102,6 +103,7 @@ namespace UnityEngine.Rendering.Universal
             m_LightBlendStyles[3].maskTextureChannel = Light2DBlendStyle.TextureChannel.R;
         }
 
+        [Obsolete("This is used in order to upgrade asset version of the Renderer2DData to the new version which isn't an asset.")]
         internal void UpdateFromAssetLegacyEditor(Renderer2DDataAssetLegacy oldRendererData)
         {
             m_DefaultLitMaterial = oldRendererData.m_DefaultLitMaterial;

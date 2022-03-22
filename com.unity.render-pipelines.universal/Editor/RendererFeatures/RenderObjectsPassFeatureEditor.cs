@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
+using UnityEditor.Rendering.Universal;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -73,7 +74,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private SerializedProperty m_CameraOffset;
         private SerializedProperty m_RestoreCamera;
 
-        private List<SerializedObject> m_properties = new List<SerializedObject>();
+        private SerializedProperty m_storedProperty = null;
 
         static bool FilterRenderPassEvent(int evt) =>
             // Return all events higher or equal than before rendering prepasses
@@ -93,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private void Init(SerializedProperty property)
         {
             //Header bools
-            var key = $"{this.ToString().Split('.').Last()}.{property.serializedObject.targetObject.name}";
+            var key = $"{this.ToString().Split('.').Last()}.{ScriptableRendererFeatureEditor.CurrentRendererFeatureIndex}";
             m_FiltersFoldout = new HeaderBool($"{key}.FiltersFoldout", true);
             m_RenderFoldout = new HeaderBool($"{key}.RenderFoldout");
 
@@ -126,7 +127,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_CameraOffset = m_CameraSettings.FindPropertyRelative("offset");
             m_RestoreCamera = m_CameraSettings.FindPropertyRelative("restoreCamera");
 
-            m_properties.Add(property.serializedObject);
+            m_storedProperty = property;
         }
 
         public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
@@ -135,7 +136,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.BeginChangeCheck();
             EditorGUI.BeginProperty(rect, label, property);
 
-            if (!m_properties.Contains(property.serializedObject))
+            if (m_storedProperty != property)
             {
                 Init(property);
             }

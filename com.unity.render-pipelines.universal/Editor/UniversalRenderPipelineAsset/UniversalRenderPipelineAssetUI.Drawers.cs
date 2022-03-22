@@ -77,9 +77,9 @@ namespace UnityEditor.Rendering.Universal
                 //Draw Renderers
                 for (int i = 0; i < serialized.rendererDataProp.arraySize; i++)
                 {
+                    ScriptableRendererDataEditor.CurrentIndex = i;
                     EditorGUILayout.PropertyField(serialized.rendererDataProp.GetArrayElementAtIndex(i));
                 }
-                //urpAssetEditor.rendererList.DoLayoutList();
 
                 if (!serialized.asset.ValidateRendererData(-1))
                     EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);

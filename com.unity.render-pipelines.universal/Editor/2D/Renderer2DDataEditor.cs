@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -113,7 +114,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent lightRenderTexturesHeader = EditorGUIUtility.TrTextContent("Light Render Textures");
             public static readonly GUIContent lightBlendStylesHeader = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent postProcessHeader = EditorGUIUtility.TrTextContent("Post-processing");
-            public static readonly GUIContent rendererFeaturesHeader = EditorGUIUtility.TrTextContent("Renderer Features");
 
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
@@ -140,13 +140,12 @@ namespace UnityEditor.Rendering.Universal
         {
             DrawHeader(
                 cachedEditorData as CachedRenderer2DDataEditor,
-                DrawRenderer);
+                DrawRenderer, typeof(Renderer2DData).GetCustomAttribute<URPHelpURLAttribute>()?.URL);
         }
 
         void DrawRenderer(CachedRenderer2DDataEditor cachedEditorData, Editor ownerEditor)
         {
-            int index = cachedEditorData.index.intValue;
-            var rendererState = RenderersFoldoutStates.GetRendererState(index);
+            var rendererState = RenderersFoldoutStates.GetRendererState(CurrentIndex);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(cachedEditorData.name);
             CED.Group(
@@ -162,9 +161,7 @@ namespace UnityEditor.Rendering.Universal
                 CED.FoldoutGroup(Styles.cameraSortingLayerDownsampling,
                     (int)ShowUIRenderer2DData.CameraSortingLayerTexture, rendererState,
                     FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawCameraSortingLayerTexture),
-                CED.FoldoutGroup(Styles.rendererFeaturesHeader,
-                    (int)ShowUIRenderer2DData.RendererFeatures, rendererState,
-                    FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawRendererFeatures)
+                CED.Group(DrawRendererFeatures)
             ).Draw(cachedEditorData, null);
             if (EditorGUI.EndChangeCheck())
             {
@@ -240,7 +237,6 @@ namespace UnityEditor.Rendering.Universal
 
         private static void DrawRendererFeatures(CachedRenderer2DDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUILayout.Space();
             cachedEditorData.rendererFeatureEditor.DrawRendererFeatures();
 
         }

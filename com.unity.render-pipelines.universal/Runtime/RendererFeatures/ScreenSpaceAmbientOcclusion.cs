@@ -448,5 +448,15 @@ namespace UnityEngine.Rendering.Universal
                 cmd.ReleaseTemporaryRT(s_SSAOTextureFinalID);
             }
         }
+
+        [Obsolete("This function is only and upgrade function used to upgrade the decal renderer feature")]
+        internal static ScreenSpaceAmbientOcclusion UpgradeFrom(ScreenSpaceAmbientOcclusionAssetLegacy asset)
+        {
+            var rendererFeature = new ScreenSpaceAmbientOcclusion();
+            rendererFeature.m_Shader = asset.m_Shader;
+            rendererFeature.m_Settings = asset.m_Settings;
+
+            return rendererFeature;
+        }
     }
 }

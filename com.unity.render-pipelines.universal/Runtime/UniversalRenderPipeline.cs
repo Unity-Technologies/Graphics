@@ -942,8 +942,19 @@ namespace UnityEngine.Rendering.Universal
             var settings = asset;
             cameraData.camera = camera;
 
-            bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
-            cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
+            bool anyShadowsEnabled = false;
+
+            var universalRenderer = cameraData.renderer as UniversalRenderer;
+            if (universalRenderer != null)
+            {
+                anyShadowsEnabled = universalRenderer.rendererData.supportsMainLightShadows || universalRenderer.rendererData.supportsAdditionalLightShadows;
+                cameraData.maxShadowDistance = Mathf.Min(universalRenderer.rendererData.shadowDistance, camera.farClipPlane);
+            }
+            else
+            {
+                cameraData.maxShadowDistance = 0f;
+            }
+
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
@@ -952,8 +963,16 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.renderType = CameraRenderType.Base;
                 cameraData.clearDepth = true;
                 cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
-                cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
-                cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                if (universalRenderer != null)
+                {
+                    cameraData.requiresDepthTexture = universalRenderer.rendererData.supportsCameraDepthTexture;
+                    cameraData.requiresOpaqueTexture = universalRenderer.rendererData.supportsCameraOpaqueTexture;
+                }
+                else
+                {
+                    cameraData.requiresDepthTexture = false;
+                    cameraData.requiresOpaqueTexture = false;
+                }
                 cameraData.renderer = asset.scriptableRenderer;
             }
             else if (additionalCameraData != null)
@@ -971,8 +990,16 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.renderType = CameraRenderType.Base;
                 cameraData.clearDepth = true;
                 cameraData.postProcessEnabled = false;
-                cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
-                cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                if (universalRenderer != null)
+                {
+                    cameraData.requiresDepthTexture = universalRenderer.rendererData.supportsCameraDepthTexture;
+                    cameraData.requiresOpaqueTexture = universalRenderer.rendererData.supportsCameraOpaqueTexture;
+                }
+                else
+                {
+                    cameraData.requiresDepthTexture = false;
+                    cameraData.requiresOpaqueTexture = false;
+                }
                 cameraData.renderer = asset.scriptableRenderer;
             }
 

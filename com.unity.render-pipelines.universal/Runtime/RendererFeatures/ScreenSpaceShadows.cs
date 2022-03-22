@@ -211,5 +211,15 @@ namespace UnityEngine.Rendering.Universal
                 CommandBufferPool.Release(cmd);
             }
         }
+
+        [Obsolete("This function is only and upgrade function used to upgrade the screen space shadows renderer feature")]
+        internal static ScreenSpaceShadows UpgradeFrom(ScreenSpaceShadowsAssetLegacy asset)
+        {
+            var rendererFeature = new ScreenSpaceShadows();
+            rendererFeature.m_Shader = asset.m_Shader;
+            rendererFeature.m_Settings = asset.m_Settings;
+
+            return rendererFeature;
+        }
     }
 }

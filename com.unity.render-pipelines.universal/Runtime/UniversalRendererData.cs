@@ -237,6 +237,11 @@ namespace UnityEngine.Rendering.Universal
             set { m_AdditionalLightsPerObjectLimit = ValidatePerObjectLights(value); }
         }
 
+        internal void SetAdditionalLightsPerObjectLimit(int count)
+        {
+            m_AdditionalLightsPerObjectLimit = count;
+        }
+
         public bool supportsAdditionalLightShadows
         {
             get { return m_AdditionalLightShadowsSupported; }
@@ -254,8 +259,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public int additionalLightsShadowResolutionTierLow
         {
-            get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
-            internal set { additionalLightsShadowResolutionTierLow = value; }
+            get { return m_AdditionalLightsShadowResolutionTierLow; }
+            internal set { m_AdditionalLightsShadowResolutionTierLow = value; }
         }
 
         /// <summary>
@@ -263,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public int additionalLightsShadowResolutionTierMedium
         {
-            get { return (int)m_AdditionalLightsShadowResolutionTierMedium; }
+            get { return m_AdditionalLightsShadowResolutionTierMedium; }
             internal set { m_AdditionalLightsShadowResolutionTierMedium = value; }
         }
 
@@ -272,8 +277,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public int additionalLightsShadowResolutionTierHigh
         {
-            get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
-            internal set { additionalLightsShadowResolutionTierHigh = value; }
+            get { return m_AdditionalLightsShadowResolutionTierHigh; }
+            internal set { m_AdditionalLightsShadowResolutionTierHigh = value; }
         }
 
         /// <summary>
@@ -337,7 +342,7 @@ namespace UnityEngine.Rendering.Universal
         public float cascadeBorder
         {
             get { return m_CascadeBorder; }
-            set { cascadeBorder = value; }
+            set { m_CascadeBorder = value; }
         }
 
         /// <summary>
@@ -374,6 +379,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMixedLighting
         {
             get { return m_MixedLightingSupported; }
+            internal set { m_MixedLightingSupported = value; }
         }
 
         /// <summary>
@@ -382,6 +388,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsLightLayers
         {
             get { return m_SupportsLightLayers; }
+            internal set { m_SupportsLightLayers = value; }
         }
 
         /// <summary>
@@ -440,6 +447,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal Vector2Int additionalLightsCookieResolution => new Vector2Int((int)m_AdditionalLightsCookieResolution, (int)m_AdditionalLightsCookieResolution);
 
+        internal void SetAdditionalLightsCookieResolution(LightCookieResolution lightCookieRes)
+        {
+            m_AdditionalLightsCookieResolution = lightCookieRes;
+        }
+
+        internal void SetAdditionalLightsCookieFormat(LightCookieFormat format)
+        {
+            m_AdditionalLightsCookieFormat = format;
+        }
 
         float ValidateShadowBias(float value)
         {

@@ -14,8 +14,7 @@ namespace UnityEditor.Rendering.Universal
     public abstract class ScriptableRendererFeaturePropertyDrawer : PropertyDrawer
     {
         private bool toggle = true;
-        //protected static Dictionary<long, SerializedProperty> rendererFeaturePropMap = new(); TODO investigate if this caching is posible.
-        protected static Dictionary<long, float> rendererFeaturePropSizeMap = new();
+        protected SerializedProperty storedProperty = null;
 
         private struct Styles
         {
@@ -29,11 +28,13 @@ namespace UnityEditor.Rendering.Universal
 
         public sealed override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            if (property != storedProperty)
+                Init(property);
+
             float startHeight = position.y;
             EditorGUI.BeginProperty(position, label, property);
             toggle = shouldToggle(property);
             OnGUIHelper(ref position, property, label);
-            rendererFeaturePropSizeMap[property.managedReferenceId] = position.y - startHeight;
             EditorGUI.EndProperty();
         }
 
@@ -52,79 +53,93 @@ namespace UnityEditor.Rendering.Universal
                 int nameId = attribute.Path.Length - 1;
                 rendererFeatureName = attribute.Path[nameId];
             }
-
-            if (DrawHeaderToggleRect(ref position, new GUIContent(
-                name.stringValue == rendererFeatureName ? name.stringValue : $"{name.stringValue} ({rendererFeatureName})",
+            CoreEditorUtils.DrawSplitter(true);
+            if (CoreEditorUtils.DrawHeaderToggle(
+                new GUIContent(name.stringValue == rendererFeatureName ? name.stringValue : $"{name.stringValue} ({rendererFeatureName})",
                 type.GetCustomAttribute<TooltipAttribute>()?.tooltip),
-                property, isActiveState, type.GetCustomAttribute<URPHelpURLAttribute>()?.URL))
+                property, isActiveState,
+                (pos) => RendererFeatureMenu(pos, property),
+                null, null,
+                type.GetCustomAttribute<URPHelpURLAttribute>()?.URL, true, false))
             {
                 using (new EditorGUI.DisabledScope(!isActiveState.boolValue))
                 {
-                    EditorGUI.indentLevel = 1;
                     if (!disallowMultipleRendererFeatures)
                     {
-                        DrawProperty(ref position, name, Styles.Name);
+                        EditorGUILayout.PropertyField(name, Styles.Name, true);
+                        EditorGUILayout.Space();
+                        EditorGUILayout.Space();
+                        EditorGUILayout.Space();
+                        EditorGUILayout.Space();
                     }
-                    OnGUIRendererFeature(ref position, property, label);
-                    EditorGUI.indentLevel = 0;
+                    OnGUIRendererFeature(property);
                 }
+                EditorGUILayout.Space();
             }
         }
 
         public sealed override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return rendererFeaturePropSizeMap.TryGetValue(property.managedReferenceId, out var value) ? value : EditorGUIUtility.singleLineHeight + 2;
+            return -4f;
         }
 
-        protected static void DrawProperty(ref Rect position, SerializedProperty property, GUIContent content)
+        void RendererFeatureMenu(Vector2 position, SerializedProperty rendererFeature)
         {
-            position.height = EditorGUI.GetPropertyHeight(property, true);
-            EditorGUI.PropertyField(position, property, content, true);
-            position.y += position.height + 2;
-        }
-
-        protected abstract void OnGUIRendererFeature(ref Rect position, SerializedProperty property, GUIContent label);
-
-        private bool DrawHeaderToggleRect(ref Rect rect, GUIContent title, SerializedProperty group, SerializedProperty activeField, string documentationURL)
-        {
-            var labelRect = rect;
-            labelRect.xMin += 32f;
-            labelRect.xMax -= 20f + 16 + 5;
-
-            var foldoutRect = rect;
-            foldoutRect.y += 1f;
-            foldoutRect.width = 13f;
-            foldoutRect.height = 13f;
-
-            var toggleRect = rect;
-            toggleRect.x += 16f;
-            toggleRect.y += 2f;
-            toggleRect.width = 13f;
-            toggleRect.height = 13f;
-
-            // Title
-            using (new EditorGUI.DisabledScope(!activeField.boolValue))
-                EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
-
-            // Foldout
-            if (toggle)
+            var rendererFeatureList = rendererFeature.serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataReferenceList))
+                .GetArrayElementAtIndex(ScriptableRendererDataEditor.CurrentIndex)
+                .FindPropertyRelative(nameof(ScriptableRendererData.m_RendererFeatures));
+            int len = rendererFeatureList.arraySize;
+            int index = ScriptableRendererFeatureEditor.CurrentRendererFeatureIndex;
+            bool isTop = index == 0;
+            bool isBottom = index == len - 1;
+            bool hasCopy = CopyPasteUtils.HasCopyObject(rendererFeature.managedReferenceValue);
+            var menu = new GenericMenu();
+            if (!isTop)
+                menu.AddItem(new GUIContent("Move Up"), false, () => SwitchRendererFeatures(rendererFeatureList, index, index - 1));
+            else
+                menu.AddDisabledItem(new GUIContent("Move Up"), false);
+            if (!isBottom)
+                menu.AddItem(new GUIContent("Move Down"), false, () => SwitchRendererFeatures(rendererFeatureList, index, index + 1));
+            else
+                menu.AddDisabledItem(new GUIContent("Move Down"), false);
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent("Remove"), false, () => RemoveRendererFeature(rendererFeatureList, index));
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent("Copy"), false, () =>
             {
-                group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
-            }
+                rendererFeature.serializedObject.Update();
+                CopyPasteUtils.WriteObject(rendererFeature.managedReferenceValue);
+            });
+            if (hasCopy)
+                menu.AddItem(new GUIContent("Paste"), false, () =>
+                {
+                    rendererFeature.serializedObject.Update();
+                    CopyPasteUtils.ParseObject(rendererFeature.managedReferenceValue);
+                    rendererFeature.serializedObject.ApplyModifiedProperties();
+                });
+            else
+                menu.AddDisabledItem(new GUIContent("Paste"), false);
+            menu.DropDown(new Rect(position, Vector2.zero));
+        }
 
-            // Active checkbox
-            activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+        protected abstract void Init(SerializedProperty property);
+        protected abstract void OnGUIRendererFeature(SerializedProperty property);
 
-            // Context menu
-            var contextMenuRect = new Rect(labelRect.xMax + 45, labelRect.y + 1f, 16, 16);
-
-
-            // Documentation button
-            CoreEditorUtils.ShowHelpButton(contextMenuRect, documentationURL, title);
-
-            rect.height = EditorGUIUtility.singleLineHeight + 2;
-            rect.y += rect.height;
-            return group.isExpanded;
+        static void SwitchRendererFeatures(SerializedProperty rendererFeatureList, int indexA, int indexB)
+        {
+            rendererFeatureList.serializedObject.Update();
+            var rendererAProp = rendererFeatureList.GetArrayElementAtIndex(indexA);
+            var rendererBProp = rendererFeatureList.GetArrayElementAtIndex(indexB);
+            var renderer = rendererAProp.managedReferenceValue;
+            rendererAProp.managedReferenceValue = rendererBProp.managedReferenceValue;
+            rendererBProp.managedReferenceValue = renderer;
+            rendererFeatureList.serializedObject.ApplyModifiedProperties();
+        }
+        static void RemoveRendererFeature(SerializedProperty rendererFeatureList, int index)
+        {
+            rendererFeatureList.serializedObject.Update();
+            rendererFeatureList.DeleteArrayElementAtIndex(index);
+            rendererFeatureList.serializedObject.ApplyModifiedProperties();
         }
     }
 
@@ -148,7 +163,11 @@ namespace UnityEditor.Rendering.Universal
             return !SerializedProperty.EqualContents(currentProperty, nextRendererFeature);
         }
 
-        protected override void OnGUIRendererFeature(ref Rect position, SerializedProperty property, GUIContent label)
+        protected override void Init(SerializedProperty property)
+        {
+        }
+
+        protected override void OnGUIRendererFeature(SerializedProperty property)
         {
             SerializedProperty currentProperty = property.Copy();
             SerializedProperty nextRendererFeature = property.Copy();
@@ -162,7 +181,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (SerializedProperty.EqualContents(currentProperty, nextRendererFeature))
                         break;
-                    DrawProperty(ref position, currentProperty, null);
+                    EditorGUILayout.PropertyField(currentProperty);
                 }
                 while (currentProperty.NextVisible(false));
             }

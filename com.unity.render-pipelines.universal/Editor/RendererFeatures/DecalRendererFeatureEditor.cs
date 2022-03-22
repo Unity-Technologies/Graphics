@@ -24,21 +24,16 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_ScreenSpaceNormalBlend;
         private SerializedProperty m_ScreenSpaceUseGBuffer;
 
-        private SerializedProperty storedProperty = null;
-
-        private void Init(SerializedProperty property)
+        protected override void Init(SerializedProperty property)
         {
-            if (storedProperty != property)
-            {
-                SerializedProperty settings = property.FindPropertyRelative("m_Settings");
-                m_Technique = settings.FindPropertyRelative("technique");
-                m_MaxDrawDistance = settings.FindPropertyRelative("maxDrawDistance");
-                m_DBufferSettings = settings.FindPropertyRelative("dBufferSettings");
-                m_DBufferSurfaceData = m_DBufferSettings.FindPropertyRelative("surfaceData");
-                m_ScreenSpaceSettings = settings.FindPropertyRelative("screenSpaceSettings");
-                m_ScreenSpaceNormalBlend = m_ScreenSpaceSettings.FindPropertyRelative("normalBlend");
-                m_ScreenSpaceUseGBuffer = m_ScreenSpaceSettings.FindPropertyRelative("useGBuffer");
-            }
+            SerializedProperty settings = property.FindPropertyRelative("m_Settings");
+            m_Technique = settings.FindPropertyRelative("technique");
+            m_MaxDrawDistance = settings.FindPropertyRelative("maxDrawDistance");
+            m_DBufferSettings = settings.FindPropertyRelative("dBufferSettings");
+            m_DBufferSurfaceData = m_DBufferSettings.FindPropertyRelative("surfaceData");
+            m_ScreenSpaceSettings = settings.FindPropertyRelative("screenSpaceSettings");
+            m_ScreenSpaceNormalBlend = m_ScreenSpaceSettings.FindPropertyRelative("normalBlend");
+            m_ScreenSpaceUseGBuffer = m_ScreenSpaceSettings.FindPropertyRelative("useGBuffer");
         }
 
         private void ValidateGraphicsApis()
@@ -51,27 +46,31 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox("Decals are not supported with OpenGLES2.", MessageType.Warning);
             }
         }
-        protected override void OnGUIRendererFeature(ref Rect position, SerializedProperty property, GUIContent content)
+
+        protected override void OnGUIRendererFeature(SerializedProperty property)
         {
-            Init(property);
             ValidateGraphicsApis();
 
-            DrawProperty(ref position, m_Technique, Styles.Technique);
+            EditorGUILayout.PropertyField(m_Technique, Styles.Technique);
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
-            EditorGUI.indentLevel++;
             if (technique == DecalTechniqueOption.DBuffer)
             {
-                DrawProperty(ref position, m_DBufferSurfaceData, Styles.SurfaceData);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_DBufferSurfaceData, Styles.SurfaceData);
+                EditorGUI.indentLevel--;
             }
-            else if (technique == DecalTechniqueOption.ScreenSpace)
+
+            if (technique == DecalTechniqueOption.ScreenSpace)
             {
-                DrawProperty(ref position, m_ScreenSpaceNormalBlend, Styles.NormalBlend);
-                DrawProperty(ref position, m_ScreenSpaceUseGBuffer, Styles.UseGBuffer);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_ScreenSpaceNormalBlend, Styles.NormalBlend);
+                EditorGUILayout.PropertyField(m_ScreenSpaceUseGBuffer, Styles.UseGBuffer);
+                EditorGUI.indentLevel--;
             }
-            EditorGUI.indentLevel--;
-            DrawProperty(ref position, m_MaxDrawDistance, Styles.MaxDrawDistance);
+
+            EditorGUILayout.PropertyField(m_MaxDrawDistance, Styles.MaxDrawDistance);
         }
     }
 }

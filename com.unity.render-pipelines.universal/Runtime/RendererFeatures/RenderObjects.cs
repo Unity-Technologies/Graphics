@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -110,6 +111,34 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal override bool SupportsNativeRenderPass()
         {
             return true;
+        }
+
+        [Obsolete("This function is only and upgrade function used to upgrade the render objects feature")]
+        internal static RenderObjects UpgradeFrom(RenderObjectsAssetLegacy asset)
+        {
+            var renderObjects = new RenderObjects();
+            renderObjects.settings.passTag = asset.settings.passTag;
+            renderObjects.settings.Event = asset.settings.Event;
+
+            renderObjects.settings.filterSettings.RenderQueueType = asset.settings.filterSettings.RenderQueueType;
+            renderObjects.settings.filterSettings.LayerMask = asset.settings.filterSettings.LayerMask;
+            renderObjects.settings.filterSettings.PassNames = asset.settings.filterSettings.PassNames;
+
+            renderObjects.settings.overrideMaterial = asset.settings.overrideMaterial;
+            renderObjects.settings.overrideMaterialPassIndex = asset.settings.overrideMaterialPassIndex;
+
+            renderObjects.settings.overrideDepthState = asset.settings.overrideDepthState;
+            renderObjects.settings.depthCompareFunction = asset.settings.depthCompareFunction;
+            renderObjects.settings.enableWrite = asset.settings.enableWrite;
+
+            renderObjects.settings.stencilSettings = asset.settings.stencilSettings;
+
+            renderObjects.settings.cameraSettings.overrideCamera = asset.settings.cameraSettings.overrideCamera;
+            renderObjects.settings.cameraSettings.restoreCamera = asset.settings.cameraSettings.restoreCamera;
+            renderObjects.settings.cameraSettings.offset = asset.settings.cameraSettings.offset;
+            renderObjects.settings.cameraSettings.cameraFieldOfView = asset.settings.cameraSettings.cameraFieldOfView;
+
+            return renderObjects;
         }
     }
 }

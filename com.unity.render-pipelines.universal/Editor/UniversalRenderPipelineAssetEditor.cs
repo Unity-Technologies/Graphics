@@ -17,10 +17,6 @@ namespace UnityEditor.Rendering.Universal
         /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
-            for (int i = 0; i < m_SerializedURPAsset.asset.m_RendererDataReferenceList.Length; i++)
-            {
-                m_SerializedURPAsset.asset.m_RendererDataReferenceList[i].index = i;
-            }
             m_SerializedURPAsset.Update();
             UniversalRenderPipelineAssetUI.Inspector.Draw(m_SerializedURPAsset, this);
             m_SerializedURPAsset.Apply();
