@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
-using UnityEditor.ShaderGraph.Registry;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta

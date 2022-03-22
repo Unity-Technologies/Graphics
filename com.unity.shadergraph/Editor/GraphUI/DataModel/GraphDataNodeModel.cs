@@ -4,7 +4,6 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -52,10 +51,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Determines whether or not this node has a valid backing representation at the data layer. If false, this
         /// node should be treated as a searcher preview.
         /// </summary>
-        public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
+        public bool existsInGraphData =>
+            m_GraphDataName != null && TryGetNodeReader(out _);
 
-        GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
-        Registry.Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
+        GraphHandler graphHandler =>
+            ((ShaderGraphModel)GraphModel).GraphHandler;
+
+        Registry registry =>
+            ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,
         // as there currently is no other way to know if they both represent the same underlying port
@@ -187,7 +190,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
                 var nodeId = nodeReader.ID;
-                Action<IConstant> initCallback = (IConstant e) =>
+                void initCallback(IConstant e)
                 {
                     var constant = e as ICLDSConstant;
                     var shaderGraphModel = ((ShaderGraphModel)GraphModel);
@@ -204,7 +207,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.
                     // Not sure how that's going to work for data that's from a connection!
                     constant.Initialize(handler, nodeId.LocalPath, portReader.LocalID);
-                };
+                }
 
                 IPortModel newPortModel = null;
                 if (isInput)

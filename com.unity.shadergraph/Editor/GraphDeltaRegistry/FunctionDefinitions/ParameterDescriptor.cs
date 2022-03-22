@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {
@@ -23,13 +23,13 @@ namespace com.unity.shadergraph.defs
     {
         public string Name { get; }  // Must be a valid reference name
         public TypeDescriptor TypeDescriptor { get; }
-        public Usage Usage { get; }
+        public GraphType.Usage Usage { get; }
         public IReadOnlyCollection<float> DefaultValue { get; }
 
         public ParameterDescriptor(
             string name,
             TypeDescriptor typeDescriptor,
-            Usage usage,
+            GraphType.Usage usage,
             float[] defaultValue = null)
         {
             Name = name;

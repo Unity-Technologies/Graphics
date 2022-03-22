@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace com.unity.shadergraph.defs
 {

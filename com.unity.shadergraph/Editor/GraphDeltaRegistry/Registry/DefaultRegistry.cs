@@ -1,13 +1,11 @@
 using System;
-using System.Runtime.Serialization;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
 using com.unity.shadergraph.defs;
 
-namespace UnityEditor.ShaderGraph.Registry.Default
+// TODO (Brett) These classes should be moved out into the project folder.
+
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class DefaultContext : IContextDescriptor
     {
@@ -43,12 +41,12 @@ namespace UnityEditor.ShaderGraph.Registry.Default
         public static Registry CreateDefaultRegistry(Action<RegistryKey, Type> afterNodeRegistered = null)
         {
             var reg = new Registry();
-            reg.Register<Types.GraphType>();
-            reg.Register<Types.GraphTypeAssignment>();
-            reg.Register<Types.GradientType>();
-            reg.Register<Types.GradientTypeAssignment>();
-            reg.Register<Types.GradientNode>();
-            reg.Register<Types.SampleGradientNode>();
+            reg.Register<GraphType>();
+            reg.Register<GraphTypeAssignment>();
+            reg.Register<GradientType>();
+            reg.Register<GradientTypeAssignment>();
+            reg.Register<GradientNode>();
+            reg.Register<SampleGradientNode>();
             reg.Register<DefaultContext>();
             //RegistryInstance.Register<Registry.Types.AddNode>();
 

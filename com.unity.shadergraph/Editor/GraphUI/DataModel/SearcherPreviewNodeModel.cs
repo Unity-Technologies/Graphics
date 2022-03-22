@@ -1,6 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
@@ -36,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        void AddPortFromReader(GraphDelta.PortHandler portReader)
+        void AddPortFromReader(PortHandler portReader)
         {
             var isInput = portReader.IsInput;
             var orientation = portReader.IsHorizontal

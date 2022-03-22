@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Registry.Types;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace com.unity.shadergraph.defs
 {

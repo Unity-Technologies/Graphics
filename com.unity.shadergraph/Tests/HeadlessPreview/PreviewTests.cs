@@ -1,12 +1,8 @@
 using System;
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.IO;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry.Defs;
 using UnityEngine;
-using Types = UnityEditor.ShaderGraph.Registry.Types;
 using com.unity.shadergraph.defs;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
@@ -21,10 +17,10 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                 new ()
                 {
                     fieldName = "BaseColor",
-                    primitive = Types.GraphType.Primitive.Float,
-                    precision = Types.GraphType.Precision.Fixed,
-                    height = Types.GraphType.Height.One,
-                    length = Types.GraphType.Length.Three,
+                    primitive = GraphType.Primitive.Float,
+                    precision = GraphType.Precision.Fixed,
+                    height = GraphType.Height.One,
+                    length = GraphType.Length.Three,
                 }
             };
         }
@@ -50,27 +46,27 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     {
         HeadlessPreviewManager m_PreviewManager = new ();
 
-        Registry.Registry m_RegistryInstance = new ();
+        Registry m_RegistryInstance = new ();
 
         GraphHandler m_InterpreterTestsGraph;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            m_RegistryInstance.Register<Types.GraphType>();
-            m_RegistryInstance.Register<Types.GraphTypeAssignment>();
-            m_RegistryInstance.Register<Types.AddNode>();
+            m_RegistryInstance.Register<GraphType>();
+            m_RegistryInstance.Register<GraphTypeAssignment>();
+            m_RegistryInstance.Register<AddNode>();
             m_RegistryInstance.Register<TestDescriptor>();
 
             // Setup a separate graph for the interpreter tests
             m_InterpreterTestsGraph = new GraphHandler();
-            var node = m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var node = m_InterpreterTestsGraph.AddNode<AddNode>("Add1", m_RegistryInstance);
             var port = node.GetPort("In1");
             var typeField = port.GetTypeField();
             var c0 = typeField.GetSubField<float>("c0");
             c0.SetData(1f); //(1,0,0,0)
-            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add2", m_RegistryInstance).GetPort("In2").GetTypeField().GetSubField<float>("c1").SetData(1f); //(0,1,0,0)
-            m_InterpreterTestsGraph.AddNode<Types.AddNode>("Add3", m_RegistryInstance);
+            m_InterpreterTestsGraph.AddNode<AddNode>("Add2", m_RegistryInstance).GetPort("In2").GetTypeField().GetSubField<float>("c1").SetData(1f); //(0,1,0,0)
+            m_InterpreterTestsGraph.AddNode<AddNode>("Add3", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add1", "Out", "Add3", "In1", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add2", "Out", "Add3", "In2", m_RegistryInstance); //should be (1,1,0,0)
         }
@@ -148,7 +144,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -156,7 +152,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Seems weird we need to cast down for this...
-            graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
+            graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
 
             // Verify context node is not null
             var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
@@ -183,7 +179,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -194,7 +190,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             nodeWriter.SetPortField("In2", "c1", 1f);
             m_PreviewManager.SetLocalProperty("Add1", "In2", 1);
 
-            graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
+            graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
 
             // Verify context node is not null
             var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
@@ -219,7 +215,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -230,7 +226,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             nodeWriter.SetPortField("In2", "c0", -1f);
             m_PreviewManager.SetLocalProperty("Add1", "In2", -1);
 
-            graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
+            graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
 
             // Verify context node is not null
             var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
@@ -255,7 +251,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -278,7 +274,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -301,7 +297,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -328,7 +324,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -355,7 +351,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -381,7 +377,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Get code for node, first version
@@ -410,10 +406,10 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
-            graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
+            graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
 
             // Verify context node is not null
             var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
@@ -449,7 +445,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -458,7 +454,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Set the Y component of the B input to 1, which makes the value Green
             nodeWriter.SetPortField("In2", "c1", 1f);
 
-            graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
+            graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
 
             // Verify context node is not null
             var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
@@ -508,15 +504,15 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         {
             FunctionDescriptor passThroughFD = new FunctionDescriptor(1, "PassThrough",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, Types.GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Float, Types.GraphType.Usage.In));
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In));
 
             var graphHandler = new GraphHandler();
-            var registry = new Registry.Registry();
+            var registry = new Registry();
             var previewMgr = new HeadlessPreviewManager();
 
-            registry.Register<Types.GraphType>();
-            registry.Register<Types.GraphTypeAssignment>();
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
             var passKey = registry.Register(passThroughFD);
 
             previewMgr.SetActiveGraph(graphHandler);
@@ -540,29 +536,29 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void FunctionDescriptor_PreviewOutputTypes()
         {
-            FunctionDescriptor truncate = new FunctionDescriptor(1, "Truncate",
+            FunctionDescriptor truncate = new(1, "Truncate",
                 "Out = In.x;",
-                new ParameterDescriptor("Out", TYPE.Float, Types.GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vector, Types.GraphType.Usage.In));
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
+                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In));
 
             FunctionDescriptor make = new FunctionDescriptor(1, "Make",
                 "Out.x = X; Out.y = Y;",
-                new ParameterDescriptor("Out", TYPE.Vec2, Types.GraphType.Usage.Out),
-                new ParameterDescriptor("X", TYPE.Float, Types.GraphType.Usage.In),
-                new ParameterDescriptor("Y", TYPE.Float, Types.GraphType.Usage.In));
+                new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
+                new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
+                new ParameterDescriptor("Y", TYPE.Float, GraphType.Usage.In));
 
-            FunctionDescriptor append = new FunctionDescriptor(1, "Append",
+            FunctionDescriptor append = new(1, "Append",
                 "Out.xy = In; Out.z = Z;",
-                new ParameterDescriptor("Out", TYPE.Vec3, Types.GraphType.Usage.Out),
-                new ParameterDescriptor("In", TYPE.Vec2, Types.GraphType.Usage.In),
-                new ParameterDescriptor("Z", TYPE.Float, Types.GraphType.Usage.In));
+                new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
+                new ParameterDescriptor("Z", TYPE.Float, GraphType.Usage.In));
 
             var graphHandler = new GraphHandler();
-            var registry = new Registry.Registry();
+            var registry = new Registry();
             var previewMgr = new HeadlessPreviewManager();
 
-            registry.Register<Types.GraphType>();
-            registry.Register<Types.GraphTypeAssignment>();
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
             var makeKey = registry.Register(make);
             var appendKey = registry.Register(append);
             var scalarKey = registry.Register(truncate);
@@ -601,19 +597,19 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         public void Gradients_TestAll()
         {
             var graphHandler = new GraphHandler();
-            var registry = new Registry.Registry();
+            var registry = new Registry();
             var previewMgr = new HeadlessPreviewManager();
         
-            registry.Register<Types.GraphType>();
-            registry.Register<Types.GraphTypeAssignment>();
-            registry.Register<Types.GradientType>();
-            registry.Register<Types.GradientNode>();
-            registry.Register<Types.SampleGradientNode>();
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
+            registry.Register<GradientType>();
+            registry.Register<GradientNode>();
+            registry.Register<SampleGradientNode>();
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
 
-            var nodeWriter = graphHandler.AddNode<Types.SampleGradientNode>("SampleGradientNode", registry);
+            var nodeWriter = graphHandler.AddNode<SampleGradientNode>("SampleGradientNode", registry);
             previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
 
             // Default 0 time color on a gradient is black.
@@ -621,14 +617,14 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
 
             // default 1 time color is white.
-            nodeWriter.SetPortField(Types.SampleGradientNode.kTime, "c0", 1f);
-            previewMgr.SetLocalProperty("SampleGradientNode", Types.SampleGradientNode.kTime, 1f);
+            nodeWriter.SetPortField(SampleGradientNode.kTime, "c0", 1f);
+            previewMgr.SetLocalProperty("SampleGradientNode", SampleGradientNode.kTime, 1f);
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
 
             // our gradient comes from a connection now, let's pick a fun color (time is still 1).
-            var gradientNode = graphHandler.AddNode<Types.GradientNode>("GradientNode", registry);
-            var portField = gradientNode.GetPort(Types.GradientNode.kInlineStatic).GetTypeField();
+            var gradientNode = graphHandler.AddNode<GradientNode>("GradientNode", registry);
+            var portField = gradientNode.GetPort(GradientNode.kInlineStatic).GetTypeField();
 
             // Setup the end color to be yellow.
             var gradient = new Gradient();
@@ -645,7 +641,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                     new GradientAlphaKey(1, 1)
                 });
 
-            Types.GradientTypeHelpers.SetGradient(portField, gradient);
+            GradientTypeHelpers.SetGradient(portField, gradient);
 
             graphHandler.TryConnect("GradientNode", "Out", "SampleGradientNode", "Gradient", registry);
             previewMgr.NotifyNodeFlowChanged("SampleGradientNode");

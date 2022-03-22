@@ -1,12 +1,9 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderFoundry;
-using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
-using UnityEditor.ShaderGraph.Registry.Types;
 
-namespace UnityEditor.ShaderGraph.Registry.Defs
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public interface IRegistryEntry
     {
@@ -49,10 +46,10 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         public struct ContextEntry
         {
             public string fieldName;
-            internal Types.GraphType.Precision precision;
-            internal Types.GraphType.Primitive primitive;
-            public Types.GraphType.Length length;
-            public Types.GraphType.Height height;
+            internal GraphType.Precision precision;
+            internal GraphType.Primitive primitive;
+            public GraphType.Length length;
+            public GraphType.Height height;
             public Matrix4x4 initialValue;
             public string interpolationSemantic;
             public bool isFlat;

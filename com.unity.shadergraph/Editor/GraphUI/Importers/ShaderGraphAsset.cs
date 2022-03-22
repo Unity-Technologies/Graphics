@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor.AssetImporters;
-using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 
 
@@ -27,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         public GraphHandler ResolveGraph()
         {
             var graph = GraphHandler.FromSerializedFormat(GraphJSON);
-            var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+            var reg = DefaultRegistry.CreateDefaultRegistry();
 
             //graph.ReconcretizeAll(reg);
             //foreach (var edge in edges)
@@ -44,8 +41,8 @@ namespace UnityEditor.ShaderGraph
         }
         public static GraphHandler CreateBlankGraphHandler()
         {
-            var defaultRegistry = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
-            var contextKey = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
+            var defaultRegistry = DefaultRegistry.CreateDefaultRegistry();
+            var contextKey = Registry.ResolveKey<DefaultContext>();
             GraphHandler graph = new GraphHandler();
             graph.AddContextNode(contextKey, defaultRegistry);
             return graph;
@@ -57,17 +54,6 @@ namespace UnityEditor.ShaderGraph
             var asset = CreateInstance<ShaderGraphAsset>();
             asset.GraphJSON = model.GraphHandler.ToSerializedFormat();
             asset.ViewModelJSON = EditorJsonUtility.ToJson(model);
-            //foreach (var em in model.ShaderGraphModel.EdgeModels)
-            //{
-            //    var edge = new Edge
-            //    {
-            //        srcNode = ((GraphDataNodeModel)em.FromPort.NodeModel).graphDataName,
-            //        srcPort = ((GraphDataPortModel)em.FromPort).graphDataName,
-            //        dstNode = ((GraphDataNodeModel)em.ToPort.NodeModel).graphDataName,
-            //        dstPort = ((GraphDataPortModel)em.ToPort).graphDataName
-            //    };
-            //    asset.edges.Add(edge);
-            //}
             var json = EditorJsonUtility.ToJson(asset, true);
             File.WriteAllText(path, json);
             AssetDatabase.ImportAsset(path);
@@ -97,8 +83,8 @@ namespace UnityEditor.ShaderGraph
             model.Init(graph);
 
             // build shader and setup supplementary assets
-            var reg = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
-            var key = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
+            var reg = DefaultRegistry.CreateDefaultRegistry();
+            var key = Registry.ResolveKey<DefaultContext>();
             var node = model.ShaderGraphModel.GraphHandler.GetNodeReader(key.Name);
             string shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
             var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);

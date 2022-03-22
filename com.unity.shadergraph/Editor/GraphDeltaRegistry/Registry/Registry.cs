@@ -1,13 +1,10 @@
 using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
 using com.unity.shadergraph.defs;
 
-namespace UnityEditor.ShaderGraph.Registry
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /*
     TODOs:

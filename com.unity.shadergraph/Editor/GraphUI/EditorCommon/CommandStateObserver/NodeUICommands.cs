@@ -1,7 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -9,12 +7,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class SetGraphTypeValueCommand : UndoableCommand
     {
-        GraphDataNodeModel m_GraphDataNodeModel;
-        string m_PortName;
-
-        GraphType.Length m_Length;
-        GraphType.Height m_Height;
-        float[] m_Values;
+        readonly GraphDataNodeModel m_GraphDataNodeModel;
+        readonly string m_PortName;
+        readonly GraphType.Length m_Length;
+        readonly GraphType.Height m_Height;
+        readonly float[] m_Values;
 
         public SetGraphTypeValueCommand(GraphDataNodeModel graphDataNodeModel,
             string portName,
@@ -68,18 +65,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, propertyBlockValue);
 
-            using (var graphUpdater = graphViewState.UpdateScope)
-            {
-                graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
-            }
+            using var graphUpdater = graphViewState.UpdateScope;
+            graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
         }
     }
 
     class SetGradientTypeValueCommand : UndoableCommand
     {
-        GraphDataNodeModel m_GraphDataNodeModel;
-        string m_PortName;
-        Gradient m_Value;
+        readonly GraphDataNodeModel m_GraphDataNodeModel;
+        readonly string m_PortName;
+        readonly Gradient m_Value;
 
         public SetGradientTypeValueCommand(GraphDataNodeModel graphDataNodeModel, string portName, Gradient value)
         {
@@ -105,10 +100,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
             previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, command.m_Value);
 
-            using (var graphUpdater = graphViewState.UpdateScope)
-            {
-                graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
-            }
+            using var graphUpdater = graphViewState.UpdateScope;
+            graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
         }
     }
 }
