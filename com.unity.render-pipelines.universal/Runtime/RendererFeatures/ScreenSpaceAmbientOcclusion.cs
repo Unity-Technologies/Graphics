@@ -19,7 +19,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal BlurQualityOptions BlurQuality = BlurQualityOptions.High;
         [SerializeField] internal float Falloff = 100f;
-        [SerializeField] internal Texture2D BlueNoiseTexture;
 
         // Enums
         internal enum DepthSource
@@ -64,18 +63,21 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields
-        [SerializeField, HideInInspector] private Shader m_Shader = null;
-        [SerializeField, HideInInspector] private Shader m_BlitShader = null;
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
+
+        [Reload("Textures/BlueNoise256/LDR_LLL1_0.png")]
+        public Texture2D m_BlueNoiseTexture;
+
+        [SerializeField]
+        [HideInInspector]
+        [Reload("Shaders/Utils/ScreenSpaceAmbientOcclusion.shader")]
+        private Shader m_Shader;
 
         // Private Fields
         private Material m_Material;
-        private Material m_BlitMaterial;
         private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
         // Constants
-        private const string k_SSAOShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion";
-        private const string k_BlitShaderName = "Hidden/Universal Render Pipeline/Blit";
         private const string k_AOOriginalKeyword = "_ORIGINAL";
         private const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
         private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
@@ -95,11 +97,12 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Create()
         {
+#if UNITY_EDITOR
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+#endif
             // Create the pass...
             if (m_SSAOPass == null)
-            {
                 m_SSAOPass = new ScreenSpaceAmbientOcclusionPass();
-            }
 
             if (m_Settings.SampleCount > 0)
             {
@@ -130,11 +133,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material, m_BlitMaterial, m_Settings.BlueNoiseTexture);
+            bool shouldAdd = m_SSAOPass.Setup(ref m_Settings, ref renderer, ref m_Material, ref m_BlueNoiseTexture);
             if (shouldAdd)
-            {
                 renderer.EnqueuePass(m_SSAOPass);
-            }
         }
 
         /// <inheritdoc/>
@@ -143,38 +144,13 @@ namespace UnityEngine.Rendering.Universal
             m_SSAOPass?.Dispose();
             m_SSAOPass = null;
             CoreUtils.Destroy(m_Material);
-            CoreUtils.Destroy(m_BlitMaterial);
         }
 
         private bool GetMaterials()
         {
-            if (m_Material != null && m_BlitMaterial != null)
-            {
-                return true;
-            }
-
-            if (m_Shader == null)
-            {
-                m_Shader = Shader.Find(k_SSAOShaderName);
-                if (m_Shader == null)
-                {
-                    return false;
-                }
-            }
-
-            if (m_BlitShader == null)
-            {
-                m_BlitShader = Shader.Find(k_BlitShaderName);
-                if (m_BlitShader == null)
-                {
-                    return false;
-                }
-            }
-
-            m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_BlitShader);
-
-            return m_Material != null && m_BlitMaterial != null;
+            if (m_Material == null)
+                m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
+            return m_Material != null;
         }
 
         // The SSAO Pass
@@ -189,7 +165,6 @@ namespace UnityEngine.Rendering.Universal
             // Private Variables
             private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
             private Material m_Material;
-            private Material m_BlitMaterial;
             private Texture2D m_BlueNoise;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
             private Vector4[] m_CameraXExtent = new Vector4[2];
@@ -229,9 +204,11 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int[] m_BilateralTexturesIndices = { 0, 1, 2, k_FinalTexID };
             private static readonly ShaderPasses[] m_BilateralPasses = { ShaderPasses.BlurHorizontal, ShaderPasses.BlurVertical, ShaderPasses.BlurFinal };
             private static readonly ShaderPasses[] m_BilateralAfterOpaquePasses = { ShaderPasses.BlurHorizontal, ShaderPasses.BlurVertical, ShaderPasses.AfterOpaqueBilateral };
+
             private static readonly int[] m_GaussianTexturesIndices = { 0, 1, k_FinalTexID, k_FinalTexID };
             private static readonly ShaderPasses[] m_GaussianPasses = { ShaderPasses.BlurHorizontalGaussian, ShaderPasses.BlurVerticalGaussian };
             private static readonly ShaderPasses[] m_GaussianAfterOpaquePasses = { ShaderPasses.BlurHorizontalGaussian, ShaderPasses.AfterOpaqueGaussian };
+
             private static readonly int[] m_KawaseTexturesIndices = { 0, k_FinalTexID };
             private static readonly ShaderPasses[] m_KawasePasses = { ShaderPasses.KawaseBlur };
             private static readonly ShaderPasses[] m_KawaseAfterOpaquePasses = { ShaderPasses.AfterOpaqueKawase };
@@ -277,11 +254,10 @@ namespace UnityEngine.Rendering.Universal
                 };
             }
 
-            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Material blitMaterial, Texture2D blueNoiseTexture)
+            internal bool Setup(ref ScreenSpaceAmbientOcclusionSettings featureSettings, ref ScriptableRenderer renderer, ref Material material, ref Texture2D blueNoiseTexture)
             {
                 m_BlueNoise = blueNoiseTexture;
                 m_Material = material;
-                m_BlitMaterial = blitMaterial;
                 m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
 
@@ -329,9 +305,9 @@ namespace UnityEngine.Rendering.Universal
                 }
 
 
-                return m_Material != null/*
+                return m_Material != null
                     && m_CurrentSettings.Intensity > 0.0f
-                    && m_CurrentSettings.Radius > 0.0f*/;
+                    && m_CurrentSettings.Radius > 0.0f;
             }
 
             /// <inheritdoc/>
@@ -342,10 +318,10 @@ namespace UnityEngine.Rendering.Universal
 
                 // Update SSAO parameters in the material
                 m_Material.SetVector(s_SSAOParamsID, new Vector4(
-                    m_CurrentSettings.Intensity,     // Intensity
-                    m_CurrentSettings.Radius,        // Radius
-                    1.0f / downsampleDivider,        // Downsampling
-                    m_CurrentSettings.Falloff       // Falloff
+                    m_CurrentSettings.Intensity,// Intensity
+                    m_CurrentSettings.Radius,   // Radius
+                    1.0f / downsampleDivider,   // Downsampling
+                    m_CurrentSettings.Falloff   // Falloff
                 ));
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -479,7 +455,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_AOPassDescriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
-                ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_SSAOTextures[1]);
+                ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_SSAOTextures[k_FinalTexID]);
                 ConfigureClear(ClearFlag.None, Color.white);
 
                 // Upsample setup
@@ -497,7 +473,7 @@ namespace UnityEngine.Rendering.Universal
             /// <inheritdoc/>
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
-                if (m_Material == null || m_BlitMaterial == null)
+                if (m_Material == null)
                 {
                     Debug.LogErrorFormat("{0}.Execute(): Missing material. ScreenSpaceAmbientOcclusion pass will not execute. Check for missing reference in the renderer resources.", GetType().Name);
                     return;

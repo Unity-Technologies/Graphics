@@ -31,6 +31,26 @@ float4 _CameraViewXExtent[2];
 float4 _CameraViewYExtent[2];
 float4 _CameraViewZExtent[2];
 
+// SSAO Settings
+#define INTENSITY _SSAOParams.x
+#define RADIUS _SSAOParams.y
+#define DOWNSAMPLE _SSAOParams.z
+#define FALLOFF _SSAOParams.w
+
+#if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
+    static const int SAMPLE_COUNT = 3;
+#elif defined(_SAMPLE_COUNT12)
+    static const int SAMPLE_COUNT = 12;
+#elif defined(_SAMPLE_COUNT10)
+    static const int SAMPLE_COUNT = 10;
+#elif defined(_SAMPLE_COUNT8)
+    static const int SAMPLE_COUNT = 8;
+#elif defined(_SAMPLE_COUNT6)
+    static const int SAMPLE_COUNT = 6;
+#else
+    static const int SAMPLE_COUNT = 4;
+#endif
+
 // Hardcoded random UV values that improves performance.
 // The values were taken from this function:
 // r = frac(43758.5453 * sin( dot(float2(12.9898, 78.233), uv)) ));
@@ -91,44 +111,22 @@ static const half4 HALF4_ONE        = half4(1.0, 1.0, 1.0, 1.0);
 static const half  HALF_TWO         = half(2.0);
 static const half  HALF_TWO_PI      = half(6.28318530717958647693);
 static const half  HALF_FOUR        = half(4.0);
+static const half  HALF_NINE        = half(9.0);
 static const half  HALF_HUNDRED     = half(100.0);
 
-// SSAO Settings
-#if defined(_BLUE_NOISE)
-    #define INTENSITY _SSAOParams.x * 0.2
-    #define RADIUS _SSAOParams.y * 6.0
-#else
-    #define INTENSITY _SSAOParams.x
-    #define RADIUS _SSAOParams.y
-#endif
-#define DOWNSAMPLE _SSAOParams.z
-#define FALLOFF _SSAOParams.w
 
-#if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
-    static const int SAMPLE_COUNT = 3;
-#elif defined(_SAMPLE_COUNT12)
-    static const int SAMPLE_COUNT = 12;
-#elif defined(_SAMPLE_COUNT10)
-    static const int SAMPLE_COUNT = 10;
-#elif defined(_SAMPLE_COUNT8)
-    static const int SAMPLE_COUNT = 8;
-#elif defined(_SAMPLE_COUNT6)
-    static const int SAMPLE_COUNT = 6;
-#else
-    static const int SAMPLE_COUNT = 4;
-#endif
 
 // Function defines
 #define SCREEN_PARAMS           GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)      half4(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
 #define SAMPLE_BASEMAP_R(uv)    half(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r);
-#define SAMPLE_BLUE_NOISE_R(uv) UnpackNormal(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv))).r * HALF_TWO_PI;
+#define SAMPLE_BLUE_NOISE(uv) SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)).a;
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
 // occlusion. At the moment, this is not exposed to the editor because it's rarely useful.
 // The range is between 0 and 1.
-static const half kContrast = half(0.5);
+static const half kContrast = half(0.6);
 
 // The constant below controls the geometry-awareness of the bilateral
 // filter. The higher value, the more sensitive it is.
@@ -184,38 +182,38 @@ float2 GetScreenSpacePosition(float2 uv)
     return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
 }
 
-// Pseudo random number generator with 2D coordinates
-half GetRandomUV(float2 uv, half u, half sampleIndex)
+// Pseudo random number generator
+half GetRandomVal(half u, half sampleIndex)
 {
     return SSAORandomUV[u * 20 + sampleIndex];
 }
 
 // Sample point picker
-half3 PickSamplePoint(float2 uv, int sampleIndex, half sHalf, half rcpSampleCount, half3 normal_o)
+half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 normal_o)
 {
     #if defined(_BLUE_NOISE)
-        const half lerpVal = sHalf * rcpSampleCount;
-        const float2 uvAddon = frac(float2(sHalf + _Time.x, sHalf + _Time.y));
-        const half noise = SAMPLE_BLUE_NOISE_R(uv + uvAddon);
-        const half u = frac(GetRandomUV(uv, HALF_ZERO, sampleIndex).x + noise) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomUV(uv, HALF_ONE, sampleIndex).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
+        const half lerpVal = sampleIndexHalf * rcpSampleCount;
+        const float2 uvAddon = 0.0;//frac(float2(sampleIndexHalf + _Time.y, sampleIndexHalf + _Time.y));
+        const half noise = SAMPLE_BLUE_NOISE(uv + uvAddon);
+        const half u = frac(GetRandomVal(HALF_ZERO, sampleIndexHalf).x + noise) * HALF_TWO - HALF_ONE;
+        const half theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
         const half u2 = half(sqrt(HALF_ONE - u * u));
 
         half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
         v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
 
         // Adjustment for distance distribution.
-        half l = sampleIndex / SAMPLE_COUNT;
-        v *= lerp(HALF_POINT_ONE, HALF_ONE, l * l);
+        half l = sampleIndexHalf * rcpSampleCount;
+        v *= lerp(0.8, 1.0, l * l);
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
         const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));
-        const half u = frac(GetRandomUV(uv, HALF_ZERO, sampleIndex) + noise) * HALF_TWO - HALF_ONE;
-        const half theta = (GetRandomUV(uv, HALF_ONE, sampleIndex) + noise) * HALF_TWO_PI;
+        const half u = frac(GetRandomVal(HALF_ZERO, sampleIndex) + noise) * HALF_TWO - HALF_ONE;
+        const half theta = (GetRandomVal(HALF_ONE, sampleIndex) + noise) * HALF_TWO_PI;
         const half u2 = half(sqrt(HALF_ONE - u * u));
 
         half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
-        v *= sqrt((sHalf + HALF_ONE) * rcpSampleCount);
+        v *= sqrt((sampleIndexHalf + HALF_ONE) * rcpSampleCount);
         v = faceforward(v, -normal_o, v);
     #endif
 
