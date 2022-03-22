@@ -165,7 +165,6 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             functionBuilder.AddLine("return GetResolveOutput(info);");
 
             var result = functionBuilder.Build();
-            blockBuilder.AddFunction(result);
             return result;
         }
 
