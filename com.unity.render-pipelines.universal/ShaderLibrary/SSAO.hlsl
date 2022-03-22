@@ -39,18 +39,13 @@ float4 _CameraViewZExtent[2];
 
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
     static const int SAMPLE_COUNT = 3;
-#elif defined(_SAMPLE_COUNT12)
+#elif defined(_SAMPLE_COUNT_HIGH)
     static const int SAMPLE_COUNT = 12;
-#elif defined(_SAMPLE_COUNT10)
-    static const int SAMPLE_COUNT = 10;
-#elif defined(_SAMPLE_COUNT8)
+#elif defined(_SAMPLE_COUNT_MEDIUM)
     static const int SAMPLE_COUNT = 8;
-#elif defined(_SAMPLE_COUNT6)
-    static const int SAMPLE_COUNT = 6;
 #else
     static const int SAMPLE_COUNT = 4;
 #endif
-
 // Hardcoded random UV values that improves performance.
 // The values were taken from this function:
 // r = frac(43758.5453 * sin( dot(float2(12.9898, 78.233), uv)) ));
@@ -203,8 +198,8 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
         v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
 
         // Adjustment for distance distribution.
-        half l = sampleIndexHalf * rcpSampleCount;
-        v *= lerp(0.8, 1.0, l * l);
+        //half l = sampleIndexHalf * rcpSampleCount;
+        //v *= lerp(0.1, 1.0, l * l);
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
         const half noise = half(InterleavedGradientNoise(positionSS, sampleIndex));

@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal float DirectLightingStrength = 0.25f;
         [SerializeField] internal float Radius = 0.035f;
         [SerializeField] internal int SampleCount = -1;
-        [SerializeField] internal AOSampleOption Samples = AOSampleOption._4;
+        [SerializeField] internal AOSampleOption Samples = AOSampleOption.Medium;
 
         [SerializeField] internal BlurQualityOptions BlurQuality = BlurQualityOptions.High;
         [SerializeField] internal float Falloff = 100f;
@@ -36,11 +36,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal enum AOSampleOption
         {
-            _4,
-            _6,
-            _8,
-            _10,
-            _12
+            High,   // 12 Samples
+            Medium, // 8 Samples
+            Low,    // 4 Samples
         }
 
         internal enum AONoiseOptions
@@ -86,11 +84,9 @@ namespace UnityEngine.Rendering.Universal
         private const string k_NormalReconstructionHighKeyword = "_RECONSTRUCT_NORMAL_HIGH";
         private const string k_SourceDepthKeyword = "_SOURCE_DEPTH";
         private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
-        private const string k_SampleCount4Keyword = "_SAMPLE_COUNT4";
-        private const string k_SampleCount6Keyword = "_SAMPLE_COUNT6";
-        private const string k_SampleCount8Keyword = "_SAMPLE_COUNT8";
-        private const string k_SampleCount10Keyword = "_SAMPLE_COUNT10";
-        private const string k_SampleCount12Keyword = "_SAMPLE_COUNT12";
+        private const string k_SampleCountLowKeyword = "_SAMPLE_COUNT_LOW";
+        private const string k_SampleCountMediumKeyword = "_SAMPLE_COUNT_MEDIUM";
+        private const string k_SampleCountHighKeyword = "_SAMPLE_COUNT_HIGH";
 
         internal bool afterOpaque => m_Settings.AfterOpaque;
 
@@ -107,15 +103,12 @@ namespace UnityEngine.Rendering.Universal
             if (m_Settings.SampleCount > 0)
             {
                 if (m_Settings.SampleCount > 11)
-                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._12;
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
                 else if (m_Settings.SampleCount > 8)
-                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._10;
-                else if (m_Settings.SampleCount > 6)
-                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._8;
-                else if (m_Settings.SampleCount > 4)
-                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._6;
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium;
                 else
-                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._4;
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Low;
+
                 m_Settings.SampleCount = -1;
             }
 
@@ -375,27 +368,19 @@ namespace UnityEngine.Rendering.Universal
                         throw new ArgumentOutOfRangeException();
                 }
 
-                CoreUtils.SetKeyword(m_Material, k_SampleCount4Keyword, false);
-                CoreUtils.SetKeyword(m_Material, k_SampleCount6Keyword, false);
-                CoreUtils.SetKeyword(m_Material, k_SampleCount8Keyword, false);
-                CoreUtils.SetKeyword(m_Material, k_SampleCount10Keyword, false);
-                CoreUtils.SetKeyword(m_Material, k_SampleCount12Keyword, false);
+                CoreUtils.SetKeyword(m_Material, k_SampleCountLowKeyword, false);
+                CoreUtils.SetKeyword(m_Material, k_SampleCountMediumKeyword, false);
+                CoreUtils.SetKeyword(m_Material, k_SampleCountHighKeyword, false);
                 switch (m_CurrentSettings.Samples)
                 {
-                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._12:
-                        CoreUtils.SetKeyword(m_Material, k_SampleCount12Keyword, true);
+                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High:
+                        CoreUtils.SetKeyword(m_Material, k_SampleCountHighKeyword, true);
                         break;
-                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._10:
-                        CoreUtils.SetKeyword(m_Material, k_SampleCount10Keyword, true);
-                        break;
-                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._8:
-                        CoreUtils.SetKeyword(m_Material, k_SampleCount8Keyword, true);
-                        break;
-                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._6:
-                        CoreUtils.SetKeyword(m_Material, k_SampleCount6Keyword, true);
+                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium:
+                        CoreUtils.SetKeyword(m_Material, k_SampleCountMediumKeyword, true);
                         break;
                     default:
-                        CoreUtils.SetKeyword(m_Material, k_SampleCount4Keyword, true);
+                        CoreUtils.SetKeyword(m_Material, k_SampleCountLowKeyword, true);
                         break;
                 }
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
