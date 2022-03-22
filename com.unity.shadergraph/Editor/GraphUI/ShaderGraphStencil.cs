@@ -20,6 +20,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
+        // TODO: (Sai) When subgraphs come in, add support for dropdown section
+        internal static readonly string[] sections = { "Properties", "Keywords" };
+
+        public override IEnumerable<string> SectionNames => sections;
+
+        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+
         public ShaderGraphStencil()
         {
             m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
@@ -98,10 +105,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
         }
 
-        public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menu, IRootView view, IGroupModel selectedGroup = null)
+        public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menuItems, IRootView view, IGroupModel selectedGroup = null)
         {
-            // Need to get types from registry here I guess
-            base.PopulateBlackboardCreateMenu(sectionName, menu, view, selectedGroup);
+            var registryInstance = GetRegistry();
+            foreach (var key in registryInstance.GetTypeKeys())
+            {
+                var nodeReader = shaderGraphModel.GraphHandler.GetNodeReader(key.Name);
+                if (nodeReader != null)
+                {
+                    menuItems.Add(new MenuItem{name =$"Create Variable",action = () =>
+                    {
+                        view.Dispatch(new CreateGraphVariableDeclarationCommand("variable", true, TypeHandle.Float, selectedGroup ?? GraphModel.GetSectionModel(sectionName)));
+                    }});
+                }
+            }
+            base.PopulateBlackboardCreateMenu(sectionName, menuItems, view, selectedGroup);
         }
 
         public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
