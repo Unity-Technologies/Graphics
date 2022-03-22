@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [RendererFeatureInfo("Universal Render Pipeline/Screen Space Ambient Occlusion", true)]
+    [RendererFeatureInfo("Screen Space Ambient Occlusion", true)]
     [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     [URPHelpURL("post-processing-ssao")]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature

@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Transparent,
     }
 
-    [RendererFeatureInfo("Universal Render Pipeline/Render Objects (Experimental)", false)]
+    [RendererFeatureInfo("Render Objects (Experimental)", false)]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
     [URPHelpURL("urp-renderer-feature", "#render-objects-renderer-featurea-namerender-objects-renderer-featurea")]
     public class RenderObjects : ScriptableRendererFeature

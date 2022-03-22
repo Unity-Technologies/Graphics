@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [RendererFeatureInfo("Universal Render Pipeline/Decal", true)]
+    [RendererFeatureInfo("Decal", true)]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
     [URPHelpURL("renderer-feature-decal")]
     internal class DecalRendererFeature : ScriptableRendererFeature

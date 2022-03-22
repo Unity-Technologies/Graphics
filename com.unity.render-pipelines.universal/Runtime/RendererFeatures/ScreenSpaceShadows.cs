@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
     }
 
-    [RendererFeatureInfo("Universal Render Pipeline/Screen Space Shadows", true)]
+    [RendererFeatureInfo("Screen Space Shadows", true)]
     [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {

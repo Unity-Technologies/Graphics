@@ -32,27 +32,39 @@ namespace UnityEditor.Rendering.Universal
             }
 
             TypeCache.TypeCollection rendererFeatureTypes = TypeCache.GetTypesDerivedFrom<ScriptableRendererFeature>();
-            int size = rendererFeatureTypes.Count;
+            var sortedRendererFeatureTypes = rendererFeatureTypes.OrderBy<Type, string>((t) =>
+            {
+                RendererFeatureInfoAttribute attribute = t.GetCustomAttribute<RendererFeatureInfoAttribute>();
+                if (attribute != null)
+                {
+                    return attribute.FullPath;
+                }
+                else
+                {
+                    return $"Custom/{t.Name}";
+                }
+            }).ToArray();
+            int size = sortedRendererFeatureTypes.Length;
             string[][] paths = new string[size][];
             List<int> indicies = Enumerable.Range(0, size).ToList();
             for (int i = 0; i < size; i++)
             {
-                RendererFeatureInfoAttribute attribute = rendererFeatureTypes[i].GetCustomAttribute<RendererFeatureInfoAttribute>();
+                RendererFeatureInfoAttribute attribute = sortedRendererFeatureTypes[i].GetCustomAttribute<RendererFeatureInfoAttribute>();
                 if (attribute != null)
                 {
                     paths[i] = attribute.Path;
-                    if (DuplicateFeatureCheck(rendererFeatureTypes[i], existingRendererFeatureTypes, attribute))
+                    if (DuplicateFeatureCheck(sortedRendererFeatureTypes[i], existingRendererFeatureTypes, attribute))
                     {
                         indicies.Remove(i);
                     }
                 }
                 else
                 {
-                    paths[i] = new string[] { "Custom", rendererFeatureTypes[i].Name };
+                    paths[i] = new string[] { "Custom", sortedRendererFeatureTypes[i].Name };
                 }
             }
 
-            return new ScriptableRendererFeatureDropdownNode("Renderer Features", indicies, paths, rendererFeatureTypes.ToArray());
+            return new ScriptableRendererFeatureDropdownNode("Renderer Features", indicies, paths, sortedRendererFeatureTypes);
         }
         bool DuplicateFeatureCheck(Type type, Type[] existingRendererFeatureTypes, RendererFeatureInfoAttribute attribute)
         {
@@ -114,6 +126,7 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
             }
+            AddSeparator();
             foreach (var entry in pathToIndex)
             {
                 AddChild(new ScriptableRendererFeatureDropdownNode(entry.Key, entry.Value, paths, testRendererFeatureTypes, depth + 1));

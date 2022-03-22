@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.Universal
     [AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
     public class RendererFeatureInfoAttribute : Attribute
     {
+        /// <summary>Full string path.</summary>
+        public string FullPath { get; }
         /// <summary>A string path split for each directory.</summary>
         public string[] Path { get; }
 
@@ -16,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
 
         public RendererFeatureInfoAttribute(string Path, bool DisallowMultipleRendererFeatures = false)
         {
+            FullPath = Path;
             this.Path = Path.Split('/');
             this.DisallowMultipleRendererFeatures = DisallowMultipleRendererFeatures;
         }
