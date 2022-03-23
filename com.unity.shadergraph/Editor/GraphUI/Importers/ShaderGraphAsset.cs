@@ -13,9 +13,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class ShaderGraphAsset : ScriptableObject
     {
-        [SerializeField] public string GraphJSON;
-        [SerializeField] public string ViewModelJSON;
-        //[SerializeField] public List<Edge> edges = new();
+        public string GraphJSON;
+        public string ViewModelJSON;
 
         [Serializable]
         public struct Edge { public string srcNode, srcPort, dstNode, dstPort; }
@@ -24,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         public GraphHandler ResolveGraph()
         {
             var graph = GraphHandler.FromSerializedFormat(GraphJSON);
-            var reg = DefaultRegistry.CreateDefaultRegistry();
+            var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
 
             //graph.ReconcretizeAll(reg);
             //foreach (var edge in edges)
@@ -41,9 +40,9 @@ namespace UnityEditor.ShaderGraph
         }
         public static GraphHandler CreateBlankGraphHandler()
         {
-            var defaultRegistry = DefaultRegistry.CreateDefaultRegistry();
-            var contextKey = Registry.ResolveKey<DefaultContext>();
-            GraphHandler graph = new GraphHandler();
+            var defaultRegistry = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
+            var contextKey = Registry.ResolveKey<ShaderGraphContext>();
+            GraphHandler graph = new ();
             graph.AddContextNode(contextKey, defaultRegistry);
             return graph;
         }
@@ -83,12 +82,12 @@ namespace UnityEditor.ShaderGraph
             model.Init(graph);
 
             // build shader and setup supplementary assets
-            var reg = DefaultRegistry.CreateDefaultRegistry();
-            var key = Registry.ResolveKey<DefaultContext>();
+            var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
+            var key = Registry.ResolveKey<ShaderGraphContext>();
             var node = model.ShaderGraphModel.GraphHandler.GetNodeReader(key.Name);
             string shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
             var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
-            Material mat = new Material(shader);
+            Material mat = new (shader);
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
 
             ctx.AddObjectToAsset("MainAsset", shader, texture);

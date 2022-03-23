@@ -25,8 +25,8 @@ namespace UnityEditor.ShaderGraph
                 var graph = asset.ResolveGraph();
 
 
-                var reg = DefaultRegistry.CreateDefaultRegistry();
-                var key = Registry.ResolveKey<DefaultContext>();
+                var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
+                var key = Registry.ResolveKey<ShaderGraphContext>();
                 var node = graph.GetNodeReader(key.Name);
                 var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);

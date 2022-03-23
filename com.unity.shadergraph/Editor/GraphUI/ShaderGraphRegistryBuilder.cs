@@ -1,42 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using com.unity.shadergraph.defs;
+using UnityEditor.ShaderGraph.GraphDelta;
 
-// TODO (Brett) These classes should be moved out into the project folder.
-
-namespace UnityEditor.ShaderGraph.GraphDelta
+namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class DefaultContext : IContextDescriptor
-    {
-        public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
-        {
-            return new List<IContextDescriptor.ContextEntry>()
-            {
-                new ()
-                {
-                    fieldName = "BaseColor",
-                    primitive = GraphType.Primitive.Float,
-                    precision = GraphType.Precision.Fixed,
-                    height = GraphType.Height.One,
-                    length = GraphType.Length.One,
-                }
-            };
-        }
-
-        public RegistryFlags GetRegistryFlags()
-        {
-            return RegistryFlags.Base;
-        }
-
-        public RegistryKey GetRegistryKey()
-        {
-            // Defines the name of the context node on the graph
-            return new RegistryKey() { Name = "DefaultContextDescriptor", Version = 1 };
-        }
-    }
-
-    public static class DefaultRegistry
+    /// <summary>
+    /// Creates and sets up a shader graph Registry.
+    /// </summary>
+    public static class ShaderGraphRegistryBuilder
     {
         public static Registry CreateDefaultRegistry(Action<RegistryKey, Type> afterNodeRegistered = null)
         {
@@ -47,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             reg.Register<GradientTypeAssignment>();
             reg.Register<GradientNode>();
             reg.Register<SampleGradientNode>();
-            reg.Register<DefaultContext>();
+            reg.Register<ShaderGraphContext>();
             //RegistryInstance.Register<Registry.Types.AddNode>();
 
             // Register nodes from FunctionDescriptors in IStandardNode classes.

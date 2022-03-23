@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // TODO: Get and use UI strings
                 }
 
-                RegistryInstance = DefaultRegistry.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
+                RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
             }
 
             return RegistryInstance;
