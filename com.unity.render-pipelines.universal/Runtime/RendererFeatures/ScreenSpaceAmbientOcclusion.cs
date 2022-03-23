@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionSettings
     {
         // Parameters
-        [SerializeField] internal AONoiseOptions AONoise = AONoiseOptions.InterleavedGradient;
+        [SerializeField] internal AONoiseOptions AONoise = AONoiseOptions.BlueNoise;
         [SerializeField] internal bool Downsample = false;
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
@@ -43,8 +43,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal enum AONoiseOptions
         {
-            InterleavedGradient,
             BlueNoise,
+            InterleavedGradient,
         }
 
         internal enum BlurQualityOptions
@@ -100,8 +100,11 @@ namespace UnityEngine.Rendering.Universal
             if (m_SSAOPass == null)
                 m_SSAOPass = new ScreenSpaceAmbientOcclusionPass();
 
+            // Check for previous version of SSAO
             if (m_Settings.SampleCount > 0)
             {
+                m_Settings.AONoise = ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.InterleavedGradient;
+
                 if (m_Settings.SampleCount > 11)
                     m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
                 else if (m_Settings.SampleCount > 8)
@@ -313,14 +316,6 @@ namespace UnityEngine.Rendering.Universal
                 RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 int downsampleDivider = m_CurrentSettings.Downsample ? 2 : 1;
 
-                // Update SSAO parameters in the material
-                m_Material.SetVector(s_SSAOParamsID, new Vector4(
-                    m_CurrentSettings.Intensity,// Intensity
-                    m_CurrentSettings.Radius,   // Radius
-                    1.0f / downsampleDivider,   // Downsampling
-                    m_CurrentSettings.Falloff   // Falloff
-                ));
-
 #if ENABLE_VR && ENABLE_XR_MODULE
                 int eyeCount = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.singlePassEnabled ? 2 : 1;
 #else
@@ -372,6 +367,15 @@ namespace UnityEngine.Rendering.Universal
 
                         Texture2D noiseTexture = m_BlueNoiseTextures[m_BlueNoiseTextureIndex];
                         m_Material.SetTexture(s_BlueNoiseTextureID, noiseTexture);
+
+                        // Update SSAO parameters in the material
+                        m_Material.SetVector(s_SSAOParamsID, new Vector4(
+                            m_CurrentSettings.Intensity,    // Intensity
+                            m_CurrentSettings.Radius * 1.5f,// Radius
+                            1.0f / downsampleDivider,       // Downsampling
+                            m_CurrentSettings.Falloff       // Falloff
+                        ));
+
                         m_Material.SetVector(s_SSAOBlueNoiseParamsID, new Vector4(
                             renderingData.cameraData.pixelWidth / (float)noiseTexture.width,
                             renderingData.cameraData.pixelHeight / (float)noiseTexture.height,
@@ -381,6 +385,14 @@ namespace UnityEngine.Rendering.Universal
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.InterleavedGradient:
                         CoreUtils.SetKeyword(m_Material, k_AOOriginalKeyword, true);
+
+                        // Update SSAO parameters in the material
+                        m_Material.SetVector(s_SSAOParamsID, new Vector4(
+                            m_CurrentSettings.Intensity,// Intensity
+                            m_CurrentSettings.Radius,   // Radius
+                            1.0f / downsampleDivider,   // Downsampling
+                            m_CurrentSettings.Falloff   // Falloff
+                        ));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

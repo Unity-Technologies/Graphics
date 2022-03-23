@@ -22,7 +22,29 @@ namespace UnityEditor.Rendering.Universal
         #endregion
 
         private bool m_IsInitialized = false;
-        private bool m_ShowQualitySettings = true;
+        private HeaderBool m_ShowQualitySettings;
+
+        class HeaderBool
+        {
+            private string key;
+            public bool value;
+
+            internal HeaderBool(string _key, bool _default = false)
+            {
+                key = _key;
+                if (EditorPrefs.HasKey(key))
+                    value = EditorPrefs.GetBool(key);
+                else
+                    value = _default;
+                EditorPrefs.SetBool(key, value);
+            }
+
+            internal void SetValue(bool newValue)
+            {
+                value = newValue;
+                EditorPrefs.SetBool(key, value);
+            }
+        }
 
 
         // Structs
@@ -34,6 +56,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent Falloff = EditorGUIUtility.TrTextContent("Falloff Distance", "");
             public static GUIContent DirectLightingStrength = EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient occlusion affects direct lighting.");
 
+            public static GUIContent Quality = EditorGUIUtility.TrTextContent("Quality", "");
             public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "The source of the normal vector values.\nDepth Normals: the feature uses the values generated in the Depth Normal prepass.\nDepth: the feature reconstructs the normal values using the depth buffer.\nIn the Deferred rendering path, the feature uses the G-buffer normals texture.");
             public static GUIContent NormalQuality = new GUIContent("Normal Quality", "The number of depth texture samples that Unity takes when computing the normals. Low:1 sample, Medium: 5 samples, High: 9 samples.");
             public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
@@ -44,6 +67,8 @@ namespace UnityEditor.Rendering.Universal
 
         private void Init()
         {
+            m_ShowQualitySettings = new HeaderBool($"SSAO.QualityFoldout", false);
+
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
 
             m_Method = settings.FindPropertyRelative("AONoise");
@@ -78,8 +103,8 @@ namespace UnityEditor.Rendering.Universal
             m_Radius.floatValue = Mathf.Max(m_Radius.floatValue, 0f);
             m_Falloff.floatValue = Mathf.Max(m_Falloff.floatValue, 0f);
 
-            m_ShowQualitySettings = EditorGUILayout.Foldout(m_ShowQualitySettings, "Quality");
-            if (m_ShowQualitySettings)
+            m_ShowQualitySettings.SetValue(EditorGUILayout.Foldout(m_ShowQualitySettings.value, Styles.Quality));
+            if (m_ShowQualitySettings.value)
             {
                 bool isDeferredRenderingMode = RendererIsDeferred();
 

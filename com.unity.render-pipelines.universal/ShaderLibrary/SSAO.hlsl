@@ -32,17 +32,15 @@ float4 _CameraViewZExtent[2];
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
-#if defined(_BLUE_NOISE)
-#define RADIUS _SSAOParams.y * 2.0
-half4 _SSAOBlueNoiseParams;
-#define BlueNoiseScale          _SSAOBlueNoiseParams.xy
-#define BlueNoiseOffset         _SSAOBlueNoiseParams.zw
-#else
 #define RADIUS _SSAOParams.y
-#endif
 #define DOWNSAMPLE _SSAOParams.z
 #define FALLOFF _SSAOParams.w
 
+#if defined(_BLUE_NOISE)
+half4 _SSAOBlueNoiseParams;
+#define BlueNoiseScale          _SSAOBlueNoiseParams.xy
+#define BlueNoiseOffset         _SSAOBlueNoiseParams.zw
+#endif
 
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
     static const int SAMPLE_COUNT = 3;
@@ -115,8 +113,6 @@ static const half  HALF_TWO_PI      = half(6.28318530717958647693);
 static const half  HALF_FOUR        = half(4.0);
 static const half  HALF_NINE        = half(9.0);
 static const half  HALF_HUNDRED     = half(100.0);
-
-
 
 // Function defines
 #define SCREEN_PARAMS           GetScaledScreenParams()
@@ -364,30 +360,35 @@ half4 SSAO(Varyings input) : SV_Target
         // Sample point
         half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, normal_o);
         half3 vpos_s1 = half3(vpos_o + v_s1);
-        half3 spos_s1 = mul(_CameraViewProjections[unity_eyeIndex], vpos_s1);
+        half2 spos_s1 = half2(
+            camTransform000102.x * vpos_s1.x + camTransform000102.y * vpos_s1.y + camTransform000102.z * vpos_s1.z,
+            camTransform101112.x * vpos_s1.x + camTransform101112.y * vpos_s1.y + camTransform101112.z * vpos_s1.z
+        );
 
+        half zDist = HALF_ZERO;
         #if defined(_ORTHOGRAPHIC)
-        half2 uv_s1_01 = clamp((spos_s1 + HALF_ONE) * HALF_HALF, HALF_ZERO, HALF_ONE);
+            zDist = halfLinearDepth_o;
+            half2 uv_s1_01 = clamp((spos_s1 + HALF_ONE) * HALF_HALF, HALF_ZERO, HALF_ONE);
         #else
-        half rcpZDist = rcp(half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1)));
-        half2 uv_s1_01 = half2(spos_s1.xy * rcpZDist + HALF_ONE) * HALF_HALF;
+            zDist = half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1));
+            half2 uv_s1_01 = half2(spos_s1 * rcp(zDist) + HALF_ONE) * HALF_HALF;
         #endif
 
         // Relative position of the sample point
-        float depth_s = SampleAndGetLinearEyeDepth(uv_s1_01);
-        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, depth_s) - vpos_o);
+        float linearDepth_s = SampleAndGetLinearEyeDepth(uv_s1_01);
+        half3 v_s2 = half3(ReconstructViewPos(uv_s1_01, linearDepth_s) - vpos_o);
 
         // Estimate the obscurance value
         #if defined(_ORTHOGRAPHIC)
-            half dotVal = dot(v_s2, normal_o) - half(HALF_TWO * kBeta * linearDepth_o);
+            half dotVal = dot(v_s2, normal_o) - HALF_TWO * kBeta * halfLinearDepth_o;
         #else
-            half dotVal = dot(v_s2, normal_o) - half(kBeta * linearDepth_o);
+            half dotVal = dot(v_s2, normal_o) - kBeta * halfLinearDepth_o;
         #endif
 
-        half isInsideRadius = half(spos_s1.z - depth_s) < RADIUS;
-        half a1 = max(dotVal * isInsideRadius, HALF_ZERO);
+        half isInsideRadius = half(abs(zDist - linearDepth_s)) < RADIUS;
+        half a1 = max(dotVal, HALF_ZERO);
         half a2 = dot(v_s2, v_s2) + kEpsilon;
-        ao += a1 * rcp(a2);
+        ao += a1 * rcp(a2) * isInsideRadius;
     }
 
     // Intensity normalization
