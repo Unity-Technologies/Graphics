@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionSettings
     {
         // Parameters
-        [SerializeField] internal AONoiseOptions AONoise = AONoiseOptions.BlueNoise;
+        [SerializeField] internal AOMethodOptions AOMethod = AOMethodOptions.BlueNoise;
         [SerializeField] internal bool Downsample = false;
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
             Low,    // 4 Samples
         }
 
-        internal enum AONoiseOptions
+        internal enum AOMethodOptions
         {
             BlueNoise,
             InterleavedGradient,
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
         private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
         // Constants
-        private const string k_AOOriginalKeyword = "_ORIGINAL";
+        private const string k_AOInterleavedGradientKeyword = "_INTERLEAVED_GRADIENT";
         private const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
         private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
         private const string k_NormalReconstructionLowKeyword = "_RECONSTRUCT_NORMAL_LOW";
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
             // Check for previous version of SSAO
             if (m_Settings.SampleCount > 0)
             {
-                m_Settings.AONoise = ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.InterleavedGradient;
+                m_Settings.AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient;
 
                 if (m_Settings.SampleCount > 11)
                     m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High;
@@ -202,16 +202,16 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
 
             private static readonly int[] m_BilateralTexturesIndices = { 0, 1, 2, k_FinalTexID };
-            private static readonly ShaderPasses[] m_BilateralPasses = { ShaderPasses.BlurHorizontal, ShaderPasses.BlurVertical, ShaderPasses.BlurFinal };
-            private static readonly ShaderPasses[] m_BilateralAfterOpaquePasses = { ShaderPasses.BlurHorizontal, ShaderPasses.BlurVertical, ShaderPasses.AfterOpaqueBilateral };
+            private static readonly ShaderPasses[] m_BilateralPasses = { ShaderPasses.BilateralBlurHorizontal, ShaderPasses.BilateralBlurVertical, ShaderPasses.BilateralBlurFinal };
+            private static readonly ShaderPasses[] m_BilateralAfterOpaquePasses = { ShaderPasses.BilateralBlurHorizontal, ShaderPasses.BilateralBlurVertical, ShaderPasses.BilateralAfterOpaque };
 
             private static readonly int[] m_GaussianTexturesIndices = { 0, 1, k_FinalTexID, k_FinalTexID };
-            private static readonly ShaderPasses[] m_GaussianPasses = { ShaderPasses.BlurHorizontalGaussian, ShaderPasses.BlurVerticalGaussian };
-            private static readonly ShaderPasses[] m_GaussianAfterOpaquePasses = { ShaderPasses.BlurHorizontalGaussian, ShaderPasses.AfterOpaqueGaussian };
+            private static readonly ShaderPasses[] m_GaussianPasses = { ShaderPasses.GaussianBlurHorizontal, ShaderPasses.GaussianBlurVertical };
+            private static readonly ShaderPasses[] m_GaussianAfterOpaquePasses = { ShaderPasses.GaussianBlurHorizontal, ShaderPasses.GaussianAfterOpaque };
 
             private static readonly int[] m_KawaseTexturesIndices = { 0, k_FinalTexID };
             private static readonly ShaderPasses[] m_KawasePasses = { ShaderPasses.KawaseBlur };
-            private static readonly ShaderPasses[] m_KawaseAfterOpaquePasses = { ShaderPasses.AfterOpaqueKawase };
+            private static readonly ShaderPasses[] m_KawaseAfterOpaquePasses = { ShaderPasses.KawaseAfterOpaque };
 
             // Enums
             private enum BlurTypes
@@ -223,23 +223,19 @@ namespace UnityEngine.Rendering.Universal
 
             private enum ShaderPasses
             {
-                AO = 0,
-                BlurHorizontal = 1,
-                BlurVertical = 2,
-                BlurFinal = 3,
-                BlurHorizontalVertical = 4,
-                BlurHorizontalGaussian = 5,
-                BlurVerticalGaussian = 6,
-                BlurHorizontalVerticalGaussian = 7,
-                Upsample = 8,
-                KawaseBlur = 9,
-                DualKawaseBlur = 10,
-                DualFilteringDownsample = 11,
-                DualFilteringUpsample = 12,
-                AfterOpaque = 13,
-                AfterOpaqueBilateral = 14,
-                AfterOpaqueGaussian = 15,
-                AfterOpaqueKawase = 16,
+                AmbientOcclusion = 0,
+
+                BilateralBlurHorizontal = 1,
+                BilateralBlurVertical = 2,
+                BilateralBlurFinal = 3,
+                BilateralAfterOpaque = 4,
+
+                GaussianBlurHorizontal = 5,
+                GaussianBlurVertical = 6,
+                GaussianAfterOpaque = 7,
+
+                KawaseBlur = 8,
+                KawaseAfterOpaque = 9,
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -353,22 +349,19 @@ namespace UnityEngine.Rendering.Universal
                 // Update keywords
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
                 CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, false);
-                CoreUtils.SetKeyword(m_Material, k_AOOriginalKeyword, false);
-                switch (m_CurrentSettings.AONoise)
+                CoreUtils.SetKeyword(m_Material, k_AOInterleavedGradientKeyword, false);
+                switch (m_CurrentSettings.AOMethod)
                 {
-                    case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.BlueNoise:
+                    case ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise:
                         CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, true);
-                        if (!FrameDebugger.enabled)
-                        {
-                            m_BlueNoiseTextureIndex = (m_BlueNoiseTextureIndex + 1) % m_BlueNoiseTextures.Length;
-                            m_BlurRandomOffsetX = Random.value;
-                            m_BlurRandomOffsetY = Random.value;
-                        }
+
+                        m_BlueNoiseTextureIndex = (m_BlueNoiseTextureIndex + 1) % m_BlueNoiseTextures.Length;
+                        m_BlurRandomOffsetX = Random.value;
+                        m_BlurRandomOffsetY = Random.value;
 
                         Texture2D noiseTexture = m_BlueNoiseTextures[m_BlueNoiseTextureIndex];
                         m_Material.SetTexture(s_BlueNoiseTextureID, noiseTexture);
 
-                        // Update SSAO parameters in the material
                         m_Material.SetVector(s_SSAOParamsID, new Vector4(
                             m_CurrentSettings.Intensity,    // Intensity
                             m_CurrentSettings.Radius * 1.5f,// Radius
@@ -377,14 +370,14 @@ namespace UnityEngine.Rendering.Universal
                         ));
 
                         m_Material.SetVector(s_SSAOBlueNoiseParamsID, new Vector4(
-                            renderingData.cameraData.pixelWidth / (float)noiseTexture.width,
-                            renderingData.cameraData.pixelHeight / (float)noiseTexture.height,
-                            m_BlurRandomOffsetX,
-                            m_BlurRandomOffsetY
+                            renderingData.cameraData.pixelWidth / (float)noiseTexture.width,    // X Scale
+                            renderingData.cameraData.pixelHeight / (float)noiseTexture.height,  // Y Scale
+                            m_BlurRandomOffsetX,                                                // X Offset
+                            m_BlurRandomOffsetY                                                 // Y Offset
                         ));
                         break;
-                    case ScreenSpaceAmbientOcclusionSettings.AONoiseOptions.InterleavedGradient:
-                        CoreUtils.SetKeyword(m_Material, k_AOOriginalKeyword, true);
+                    case ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient:
+                        CoreUtils.SetKeyword(m_Material, k_AOInterleavedGradientKeyword, true);
 
                         // Update SSAO parameters in the material
                         m_Material.SetVector(s_SSAOParamsID, new Vector4(
@@ -514,7 +507,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     // Execute the SSAO
-                    Render(ref cmd, ref m_Material, ref m_SSAOTextures[0], ShaderPasses.AO);
+                    Render(ref cmd, ref m_Material, ref m_SSAOTextures[0], ShaderPasses.AmbientOcclusion);
 
                     // Execute the Blur Passes
                     GetPassOrder(m_BlurType, m_CurrentSettings.AfterOpaque, out int[] textureIndices, out ShaderPasses[] shaderPasses);
@@ -522,7 +515,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         int baseMapIndex = textureIndices[i];
                         int targetIndex = textureIndices[i + 1];
-                        RenderAndSetBaseMap(ref cmd, ref renderingData, ref m_Renderer, ref m_Material, ref m_SSAOTextures[baseMapIndex], ref m_SSAOTextures[targetIndex], shaderPasses[i]);
+                        RenderAndSetBaseMap(ref cmd, ref renderingData, ref m_Renderer, ref m_Material, ref m_SSAOTextures[baseMapIndex], ref m_SSAOTextures[targetIndex], ref shaderPasses[i]);
                     }
 
                     // Set the global SSAO Params
@@ -551,14 +544,21 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            private static void RenderAndSetBaseMap(ref CommandBuffer cmd, ref RenderingData renderingData, ref ScriptableRenderer renderer, ref Material mat, ref RTHandle baseMap, ref RTHandle target, ShaderPasses pass)
+            private static void RenderAndSetBaseMap(ref CommandBuffer cmd, ref RenderingData renderingData, ref ScriptableRenderer renderer, ref Material mat, ref RTHandle baseMap, ref RTHandle target, ref ShaderPasses pass)
             {
                 cmd.SetGlobalTexture(s_BaseMapID, baseMap.nameID);
 
-                if (pass >= ShaderPasses.AfterOpaque)
+                if (IsAfterOpaquePass(ref pass))
                     RenderAfterOpaque(ref cmd, ref renderingData, ref renderer, ref mat, pass);
                 else
                     Render(ref cmd, ref mat, ref target, pass);
+            }
+
+            private static bool IsAfterOpaquePass(ref ShaderPasses pass)
+            {
+                return pass == ShaderPasses.BilateralAfterOpaque
+                       || pass == ShaderPasses.GaussianAfterOpaque
+                       || pass == ShaderPasses.KawaseAfterOpaque;
             }
 
             private static void Render(ref CommandBuffer cmd, ref Material mat, ref RTHandle target, ShaderPasses pass)

@@ -115,10 +115,10 @@ static const half  HALF_NINE        = half(9.0);
 static const half  HALF_HUNDRED     = half(100.0);
 
 // Function defines
-#define SCREEN_PARAMS           GetScaledScreenParams()
-#define SAMPLE_BASEMAP(uv)      half4(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
-#define SAMPLE_BASEMAP_R(uv)    half(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r);
-#define SAMPLE_BLUE_NOISE(uv) SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_PointRepeat, UnityStereoTransformScreenSpaceTex(uv)).a;
+#define SCREEN_PARAMS               GetScaledScreenParams()
+#define SAMPLE_BASEMAP(uv)          half4(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
+#define SAMPLE_BASEMAP_R(uv)        half(SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r);
+#define SAMPLE_BLUE_NOISE(uv)       SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_PointRepeat, UnityStereoTransformScreenSpaceTex(uv)).a;
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
@@ -198,8 +198,6 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
 
         half3 v = half3(u2 * cos(theta), u2 * sin(theta), u);
         v *= (dot(normal_o, v) >= HALF_ZERO) * HALF_TWO - HALF_ONE;
-
-        // Adjustment for distance distribution.
         v *= lerp(0.1, 1.0, lerpVal * lerpVal);
     #else
         const float2 positionSS = GetScreenSpacePosition(uv);
@@ -404,6 +402,11 @@ half4 SSAO(Varyings input) : SV_Target
     return PackAONormal(ao, normal_o);
 }
 
+
+// ------------------------------------------------------------------
+// Bilateral Blur
+// ------------------------------------------------------------------
+
 // Geometry-aware separable bilateral filter
 half4 Blur(const float2 uv, const float2 delta) : SV_Target
 {
@@ -486,44 +489,11 @@ half4 FinalBlur(Varyings input) : SV_Target
     return HALF_ONE - BlurSmall(uv, delta );
 }
 
-half4 HorizontalVerticalBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
-    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE), 0.0);
-    float4 blurH = Blur(uv, delta);
-
-    delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE));
-    float4 blurV = Blur(uv, delta);
-    delta = _SourceSize.zw * rcp(DOWNSAMPLE);
-
-    return lerp(HALF4_ONE - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5);
-}
-
-half Upsample(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.uv;
-
-//#if SHADER_TARGET >= 45 && defined(PLATFORM_SUPPORT_GATHER)
-//    half4 p1 = half4(GATHER_RED_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
-//
-//    return (p1.r + p1.g + p1.b + p1.a) * half(0.25);
-//#else
-    float2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE) * 0.5;
-
-    half p1 = SAMPLE_BASEMAP_R(uv + float2(-1.0, -1.0) * texelSize);
-    half p2 = SAMPLE_BASEMAP_R(uv + float2(-1.0, 1.0) * texelSize);
-    half p3 = SAMPLE_BASEMAP_R(uv + float2(1.0, -1.0) * texelSize);
-    half p4 = SAMPLE_BASEMAP_R(uv + float2(1.0, 1.0) * texelSize);
-
-    return (p1 + p2 + p3 + p4) * half(0.25);
-//#endif
-}
-
+// ------------------------------------------------------------------
 // Gaussian Blur
+// ------------------------------------------------------------------
+
 // https://software.intel.com/content/www/us/en/develop/blogs/an-investigation-of-fast-real-time-gpu-based-image-blur-algorithms.html
 half GaussianBlur(half2 uv, half2 pixelOffset)
 {
@@ -574,25 +544,10 @@ half VerticalGaussianBlur(Varyings input) : SV_Target
     return HALF_ONE - GaussianBlur(uv, delta);
 }
 
-half HorizontalVerticalGaussianBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    half2 uv = input.uv;
-
-    // Horizontal
-    half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE), HALF_ZERO);
-    half colH = HALF_ONE - GaussianBlur(uv, delta);
-
-    // Vertical
-    delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE));
-    half colV = HALF_ONE - GaussianBlur(uv, delta);
-
-    return lerp(colH, colV, HALF_HALF);
-}
-
-
+// ------------------------------------------------------------------
 // Kawase Blur
+// ------------------------------------------------------------------
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Developed by Masaki Kawase, Bunkasha Games
@@ -636,7 +591,6 @@ half KawaseBlurFilter( half2 texCoord, half2 pixelSize, half iteration )
     return cOut;
 }
 
-
 half KawaseBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -650,63 +604,6 @@ half KawaseBlur(Varyings input) : SV_Target
         col = HALF_ONE - col;
 
     return col;
-}
-
-half DualKawaseBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    half2 uv = input.uv;
-    half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
-
-    half col = KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration);
-    col += KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration * HALF_TWO + HALF_ONE);
-    col *= HALF_HALF;
-
-    if (_LastKawasePass)
-        col = HALF_ONE - col;
-
-    return col;
-}
-
-// Dual Filtering
-// implementation based on Siggraph2015 "Bandwidth-Efficient Rendering" by Marius Bjørge
-
-half DualFilteringDownsample(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    half2 uv = input.uv;
-    half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
-    half2 halfPixel = pixelSize * HALF_HALF;
-
-    half col = HALF_FOUR * SAMPLE_BASEMAP_R(uv);
-    col += SAMPLE_BASEMAP_R(uv - halfPixel);
-    col += SAMPLE_BASEMAP_R(uv + halfPixel);
-    col += SAMPLE_BASEMAP_R(uv + half2(halfPixel.x, -halfPixel.y));
-    col += SAMPLE_BASEMAP_R(uv - half2(halfPixel.x, -halfPixel.y));
-
-    return col * half(0.125);  // * 1/8
-}
-
-half DualFilteringUpsample(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    half2 uv = input.uv;
-    half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE) * HALF_HALF;
-    half2 halfPixel = pixelSize * HALF_HALF;
-
-    half col = SAMPLE_BASEMAP_R(uv + half2(-pixelSize.x, HALF_ZERO));
-    col += HALF_TWO * SAMPLE_BASEMAP_R(uv + half2(-halfPixel.x, halfPixel.y));
-    col += SAMPLE_BASEMAP_R(uv + half2(HALF_ZERO, pixelSize.y));
-    col += HALF_TWO * SAMPLE_BASEMAP_R(uv + half2(halfPixel.x, halfPixel.y));
-    col += SAMPLE_BASEMAP_R(uv + half2(pixelSize.x, HALF_ZERO));
-    col += HALF_TWO * SAMPLE_BASEMAP_R(uv + half2(halfPixel.x, -halfPixel.y));
-    col += SAMPLE_BASEMAP_R(uv + half2(HALF_ZERO, -pixelSize.y));
-    col += HALF_TWO * SAMPLE_BASEMAP_R(uv + half2(-halfPixel.x, -halfPixel.y));
-
-    return HALF_ONE - (col * half(0.083)); // * 1/12
 }
 
 

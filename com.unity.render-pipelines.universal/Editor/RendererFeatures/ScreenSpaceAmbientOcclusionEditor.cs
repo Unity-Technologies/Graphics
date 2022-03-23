@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionEditor : Editor
     {
         #region Serialized Properties
-        private SerializedProperty m_Method;
+        private SerializedProperty m_AOMethod;
         private SerializedProperty m_Downsample;
         private SerializedProperty m_AfterOpaque;
         private SerializedProperty m_Source;
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.Universal
         // Structs
         private struct Styles
         {
-            public static GUIContent Method = EditorGUIUtility.TrTextContent("Method", "");
+            public static GUIContent AOMethod = EditorGUIUtility.TrTextContent("Method", "");
             public static GUIContent Intensity = EditorGUIUtility.TrTextContent("Intensity", "The degree of darkness that Ambient Occlusion adds.");
             public static GUIContent Radius = EditorGUIUtility.TrTextContent("Radius", "The radius around a given point, where Unity calculates and applies the effect.");
             public static GUIContent Falloff = EditorGUIUtility.TrTextContent("Falloff Distance", "");
@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.Universal
 
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
 
-            m_Method = settings.FindPropertyRelative("AONoise");
+            m_AOMethod = settings.FindPropertyRelative("AOMethod");
             m_Intensity = settings.FindPropertyRelative("Intensity");
             m_Radius = settings.FindPropertyRelative("Radius");
             m_Falloff = settings.FindPropertyRelative("Falloff");
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.Universal
             if (!m_IsInitialized)
                 Init();
 
-            EditorGUILayout.PropertyField(m_Method, Styles.Method);
+            EditorGUILayout.PropertyField(m_AOMethod, Styles.AOMethod);
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
             EditorGUILayout.PropertyField(m_Falloff, Styles.Falloff);
