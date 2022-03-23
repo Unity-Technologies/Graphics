@@ -191,7 +191,7 @@ namespace com.unity.shadergraph.defs
             return shaderFunctionBuilder.Build();
         }
 
-        RegistryKey IRegistryEntry.GetRegistryKey()
+        public RegistryKey GetRegistryKey()
         {
             return new RegistryKey
             {
@@ -200,7 +200,7 @@ namespace com.unity.shadergraph.defs
             };
         }
 
-        RegistryFlags IRegistryEntry.GetRegistryFlags()
+        public RegistryFlags GetRegistryFlags()
         {
             return RegistryFlags.Func;
         }

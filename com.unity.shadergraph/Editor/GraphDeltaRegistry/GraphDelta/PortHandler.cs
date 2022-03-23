@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         public IEnumerable<FieldHandler> GetFields()
         {
-            throw new System.Exception();
+            throw new Exception();
         }
         public FieldHandler GetField(string localID)
         {
