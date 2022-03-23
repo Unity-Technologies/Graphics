@@ -191,7 +191,7 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
 {
     #if defined(_BLUE_NOISE)
         const half lerpVal = sampleIndexHalf * rcpSampleCount;
-        const half noise = SAMPLE_BLUE_NOISE((uv * BlueNoiseScale) + lerpVal + BlueNoiseOffset);
+        const half noise = SAMPLE_BLUE_NOISE(((uv + BlueNoiseOffset) * BlueNoiseScale) + lerpVal);
         const half u = frac(GetRandomVal(HALF_ZERO, sampleIndexHalf).x + noise) * HALF_TWO - HALF_ONE;
         const half theta = (GetRandomVal(HALF_ONE, sampleIndexHalf).x + noise) * HALF_TWO_PI * HALF_HUNDRED;
         const half u2 = half(sqrt(HALF_ONE - u * u));
