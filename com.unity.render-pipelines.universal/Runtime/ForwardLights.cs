@@ -151,11 +151,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     lightOffset++;
                 }
-                if (lightOffset == lightCount) lightOffset = 0;
                 lightCount -= lightOffset;
 
                 m_DirectionalLightCount = lightOffset;
-                if (renderingData.lightData.mainLightIndex != -1) m_DirectionalLightCount -= 1;
+                if (renderingData.lightData.mainLightIndex != -1 && m_DirectionalLightCount != 0) m_DirectionalLightCount -= 1;
 
                 var visibleLights = renderingData.lightData.visibleLights.GetSubArray(lightOffset, lightCount);
                 var lightsPerTile = visibleLights.Length;
@@ -272,7 +271,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CullingHandle = JobHandle.CombineDependencies(tilingHandle, zBinningHandle);
 
                 reorderHandle.Complete();
-                NativeArray<VisibleLight>.Copy(reorderedLights, 0, renderingData.lightData.visibleLights, lightOffset, lightCount);
+                if (lightCount > 0) NativeArray<VisibleLight>.Copy(reorderedLights, 0, renderingData.lightData.visibleLights, lightOffset, lightCount);
 
                 var tempBias = new NativeArray<Vector4>(lightCount, Allocator.Temp);
                 var tempResolution = new NativeArray<int>(lightCount, Allocator.Temp);
@@ -318,7 +317,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     using (new ProfilingScope(null, m_ProfilingSamplerFPUpload))
                     {
-                        m_ZBinBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<ZBin>()), 0, 0, m_ZBins.Length / 4);
+                        m_ZBinBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_ZBins.Length / 4);
                         m_TileBuffer.SetData(m_TileLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_TileLightMasks.Length / 4);
 
                         cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, m_ZBins.Length * 4);

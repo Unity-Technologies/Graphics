@@ -131,12 +131,13 @@ CBUFFER_END
 #endif
 
 #if USE_CLUSTERED_LIGHTING
-    CBUFFER_START(AdditionalLightsZBins)
-        float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
-    CBUFFER_END
-    CBUFFER_START(AdditionalLightsTiles)
-        float4 _AdditionalLightsTiles[MAX_TILE_VEC4S];
-    CBUFFER_END
+
+CBUFFER_START(AdditionalLightsZBins)
+    float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
+CBUFFER_END
+CBUFFER_START(AdditionalLightsTiles)
+    float4 _AdditionalLightsTiles[MAX_TILE_VEC4S];
+CBUFFER_END
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
                 var tileBaseIndex = rowBaseMaskIndex + tileIndex * wordsPerTile;
                 for (var i = 0; i < compactCount; i++)
                 {
-                    var lightIndex = lightIndices[i];
+                    var lightIndex = (int)lightIndices[i];
                     var wordIndex = lightIndex / 32;
                     var lightMask = 1u << (lightIndex % 32);
                     var range = lightRanges[i];

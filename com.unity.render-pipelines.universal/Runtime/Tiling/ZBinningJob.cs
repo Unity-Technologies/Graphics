@@ -1,32 +1,13 @@
 using System;
-using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [StructLayout(LayoutKind.Sequential)]
-    struct ZBin
-    {
-        public ushort minIndex;
-        public ushort maxIndex;
-
-        public static explicit operator uint(ZBin bin)
-        {
-            return UnsafeUtility.As<ZBin, uint>(ref bin);
-        }
-
-        public static explicit operator ZBin(uint bin)
-        {
-            return UnsafeUtility.As<uint, ZBin>(ref bin);
-        }
-    }
-
     [BurstCompile(FloatMode = FloatMode.Fast, DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-    unsafe struct ZBinningJob : IJobFor
+    struct ZBinningJob : IJobFor
     {
         // Do not use this for the innerloopBatchCount (use 1 for that). Use for dividing the arrayLength when scheduling.
         public const int batchCount = 128;
@@ -45,6 +26,16 @@ namespace UnityEngine.Rendering.Universal
 
         public int wordsPerTile;
 
+        static uint EncodeHeader(uint min, uint max)
+        {
+            return (min & 0xFFFF) | ((max & 0xFFFF) << 16);
+        }
+
+        static (uint, uint) DecodeHeader(uint zBin)
+        {
+            return (zBin & 0xFFFF, (zBin >> 16) & 0xFFFF);
+        }
+
         public void Execute(int index)
         {
             var binsStart = batchCount * index;
@@ -52,12 +43,10 @@ namespace UnityEngine.Rendering.Universal
 
             for (var binIndex = binsStart; binIndex <= binsEnd; binIndex++)
             {
-                var bin = new ZBin { minIndex = ushort.MaxValue, maxIndex = ushort.MaxValue };
-                bins[binIndex * (1 + wordsPerTile)] = (uint)bin;
+                bins[binIndex * (1 + wordsPerTile)] = EncodeHeader(ushort.MaxValue, ushort.MinValue);
             }
             for (var lightIndex = 0; lightIndex < minMaxZs.Length; lightIndex++)
             {
-                var ushortLightIndex = (ushort)lightIndex;
                 var minMax = minMaxZs[lightIndex];
                 var minBin = math.max((int)(math.log2(minMax.minZ) * zBinMul + zBinAdd), binsStart);
                 var maxBin = math.min((int)(math.log2(minMax.maxZ) * zBinMul + zBinAdd), binsEnd);
@@ -68,11 +57,11 @@ namespace UnityEngine.Rendering.Universal
                 for (var binIndex = minBin; binIndex <= maxBin; binIndex++)
                 {
                     var baseIndex = binIndex * (1 + wordsPerTile);
-                    var bin = (ZBin)bins[baseIndex];
-                    bin.minIndex = Math.Min(bin.minIndex, ushortLightIndex);
+                    var (minIndex, maxIndex) = DecodeHeader(bins[baseIndex]);
+                    minIndex = math.min(minIndex, (uint)wordIndex);
                     // This will always be the largest light index this bin has seen due to light iteration order.
-                    bin.maxIndex = ushortLightIndex;
-                    bins[baseIndex] = (uint)bin;
+                    maxIndex = math.max(maxIndex, (uint)wordIndex);
+                    bins[baseIndex] = EncodeHeader(minIndex, maxIndex);
                     bins[baseIndex + 1 + wordIndex] |= bitMask;
                 }
             }

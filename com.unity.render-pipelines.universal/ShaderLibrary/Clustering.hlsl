@@ -26,9 +26,16 @@ ClusteredLightLoop ClusteredLightLoopInit(float2 normalizedScreenSpaceUV, float3
     state.zBinOffset = zBinHeaderIndex + 1;
 
 #if MAX_LIGHTS_PER_TILE > 32
-    uint zBinData = Select4(asuint(_AdditionalLightsZBins[zBinHeaderIndex >> 2]), zBinHeaderIndex & 0x3);
-    uint2 zBin = min(uint2(zBinData & 0xFFFF, (zBinData >> 16) & 0xFFFF), (_AdditionalLightsWordsPerTile * 32) - 1);
-    state.wordIndexMax = (zBin.x / 32) | ((zBin.y / 32) << 16);
+    state.wordIndexMax = Select4(asuint(_AdditionalLightsZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+#else
+    uint tileIndex = state.tileOffset;
+    uint zBinIndex = state.zBinOffset;
+    if (_AdditionalLightsWordsPerTile > 0)
+    {
+        state.tileMask =
+            Select4(asuint(_AdditionalLightsTiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
+    }
 #endif
 
     return state;
@@ -42,8 +49,9 @@ bool ClusteredLightLoopNext(inout ClusteredLightLoop state)
     {
         uint tileIndex = state.tileOffset + (state.wordIndexMax & 0xFFFF);
         uint zBinIndex = state.zBinOffset + (state.wordIndexMax & 0xFFFF);
-        state.tileMask = Select4(asuint(_AdditionalLightsTiles[tileIndex >> 2]), tileIndex & 0x3) &
-            Select4(asuint(_AdditionalLightsZBins[zBinIndex >> 2]), zBinIndex & 0x3);
+        state.tileMask =
+            Select4(asuint(_AdditionalLightsTiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
         state.wordIndexMax++;
     }
 #endif
