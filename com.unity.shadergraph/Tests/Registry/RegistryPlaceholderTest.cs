@@ -15,11 +15,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             var registry = new Registry();
 
             registry.Register<GraphType>();
-            _ = registry.Register<AddNode>();
+            _ = registry.Register<TestAddNode>();
             registry.Register<GraphTypeAssignment>();
 
             // should default concretize length to 4.
-            graph.AddNode<AddNode>("Add1", registry);
+            graph.AddNode<TestAddNode>("Add1", registry);
             var reader = graph.GetNodeReader("Add1");
             reader.TryGetField("In1.TypeField.Length", out GraphType.Length len);
             Assert.AreEqual(4, (int)len);
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             Assert.AreEqual(1, (int)len);
 
             // Add a second Add Node, with length 2 this time.
-            var node2 = graph.AddNode<AddNode>("Add2", registry);
+            var node2 = graph.AddNode<TestAddNode>("Add2", registry);
             node2.SetPortField("In2", "Length", GraphType.Length.Two);
             graph.ReconcretizeNode("Add2", registry);
             reader = graph.GetNodeReader("Add2");

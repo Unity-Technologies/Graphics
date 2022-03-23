@@ -20,12 +20,12 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             registry = new Registry();
 
             registry.Register<GraphType>();
-            registry.Register<AddNode>();
+            registry.Register<TestAddNode>();
             registry.Register<GraphTypeAssignment>();
 
-            graph.AddNode<AddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
-            graph.AddNode<AddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
-            graph.AddNode<AddNode>("Add3", registry);
+            graph.AddNode<TestAddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
+            graph.AddNode<TestAddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            graph.AddNode<TestAddNode>("Add3", registry);
             graph.TryConnect("Add1", "Out", "Add3", "In1", registry);
             graph.TryConnect("Add2", "Out", "Add3", "In2", registry); //should be (1,1,0,0)
         }

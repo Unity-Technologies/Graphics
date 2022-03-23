@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 registry = new Registry();
                 registry.Register<TestNode>();
                 registry.Register<GraphType>();
-                registry.Register<AddNode>();
+                registry.Register<TestAddNode>();
                 graphHandler = new GraphHandler();
             }
 
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void ConcretizationTest()
             {
-                graphHandler.AddNode<AddNode>("AddNodeRef", registry);
+                graphHandler.AddNode<TestAddNode>("AddNodeRef", registry);
                 GraphStorage storage = graphHandler.graphDelta.m_data;
                 var concreteLayer = storage.GetLayerRoot(GraphDelta.k_concrete);
 
@@ -273,11 +273,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 var graph = new GraphHandler();
                 var registry = new Registry();
                 registry.Register<GraphType>();
-                registry.Register<AddNode>();
+                registry.Register<TestAddNode>();
                 registry.Register<GraphTypeAssignment>();
 
                 // should default concretize length to 4.
-                graph.AddNode<AddNode>("Add1", registry);
+                graph.AddNode<TestAddNode>("Add1", registry);
                 var reader = graph.GetNodeReader("Add1");
                 var len = reader.GetPort("In1").GetTypeField().GetSubField<GraphType.Length>("Length").GetData();
                 Assert.AreEqual(4, (int)len);

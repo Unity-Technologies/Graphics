@@ -55,18 +55,18 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         {
             m_RegistryInstance.Register<GraphType>();
             m_RegistryInstance.Register<GraphTypeAssignment>();
-            m_RegistryInstance.Register<AddNode>();
+            m_RegistryInstance.Register<TestAddNode>();
             m_RegistryInstance.Register<TestDescriptor>();
 
             // Setup a separate graph for the interpreter tests
             m_InterpreterTestsGraph = new GraphHandler();
-            var node = m_InterpreterTestsGraph.AddNode<AddNode>("Add1", m_RegistryInstance);
+            var node = m_InterpreterTestsGraph.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var port = node.GetPort("In1");
             var typeField = port.GetTypeField();
             var c0 = typeField.GetSubField<float>("c0");
             c0.SetData(1f); //(1,0,0,0)
-            m_InterpreterTestsGraph.AddNode<AddNode>("Add2", m_RegistryInstance).GetPort("In2").GetTypeField().GetSubField<float>("c1").SetData(1f); //(0,1,0,0)
-            m_InterpreterTestsGraph.AddNode<AddNode>("Add3", m_RegistryInstance);
+            m_InterpreterTestsGraph.AddNode<TestAddNode>("Add2", m_RegistryInstance).GetPort("In2").GetTypeField().GetSubField<float>("c1").SetData(1f); //(0,1,0,0)
+            m_InterpreterTestsGraph.AddNode<TestAddNode>("Add3", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add1", "Out", "Add3", "In1", m_RegistryInstance);
             m_InterpreterTestsGraph.TryConnect("Add2", "Out", "Add3", "In2", m_RegistryInstance); //should be (1,1,0,0)
         }
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var prevActive = RenderTexture.active;
             RenderTexture.active = rt;
             Graphics.Blit(null, rt, new Material(shader));
-            Texture2D output = new Texture2D(4, 4, TextureFormat.ARGB32, false);
+            Texture2D output = new(4, 4, TextureFormat.ARGB32, false);
             output.ReadPixels(new Rect(0, 0, 4, 4), 0, 0);
             RenderTexture.active = prevActive;
             rt.Release();
@@ -95,8 +95,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         {
             var prevActive = RenderTexture.active;
             RenderTexture.active = renderTexture;
-            Texture2D output = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
-            Rect readPixels = new Rect(0, 0, output.width, output.height);
+            Texture2D output = new(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+            Rect readPixels = new(0, 0, output.width, output.height);
             output.ReadPixels(readPixels, 0, 0);
             output.Apply();
             RenderTexture.active = prevActive;
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
             Assert.IsNotNull(masterPreviewMaterial);
             Assert.AreEqual(Color.red, SampleMaterialColor(masterPreviewMaterial));
         }
@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
             Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(masterPreviewMaterial));
         }
 
@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -237,7 +237,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
             Assert.AreEqual(Color.black, SampleMaterialColor(masterPreviewMaterial));
         }
 
@@ -251,7 +251,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -274,7 +274,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -282,7 +282,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Request node preview image once the graph has been setup correctly
-            m_PreviewManager.RequestNodePreviewImage("Add1", out var nodeRenderOutput, out var shaderMessages);
+            m_PreviewManager.RequestNodePreviewImage("Add1", out var nodeRenderOutput, out var _);
             Assert.IsNotNull(nodeRenderOutput);
             Assert.AreEqual(Color.red, SampleImageColor(nodeRenderOutput));
         }
@@ -297,7 +297,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -324,7 +324,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -351,7 +351,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1
@@ -377,11 +377,11 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Get code for node, first version
-            var nodeCodev1 = m_PreviewManager.RequestNodePreviewShaderCode("Add1", out var shaderMessages1);
+            var nodeCodev1 = m_PreviewManager.RequestNodePreviewShaderCode("Add1", out var _);
             Assert.IsTrue(nodeCodev1 != String.Empty);
 
             // Make some change
@@ -389,7 +389,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Get code for node, second version
-            var nodeCodev2 = m_PreviewManager.RequestNodePreviewShaderCode("Add1", out var shaderMessages2);
+            var nodeCodev2 = m_PreviewManager.RequestNodePreviewShaderCode("Add1", out var _);
             Assert.IsTrue(nodeCodev2 != String.Empty);
 
             // Code generated should be different after a change was made
@@ -406,7 +406,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), m_RegistryInstance);
@@ -419,7 +419,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphHandler.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev1, out var shaderMessages1);
+            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev1, out var _);
             Assert.IsTrue(shaderCodev1 != String.Empty);
 
             // Make some change
@@ -427,7 +427,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev2, out var shaderMessages2);
+            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev2, out var _);
             Assert.IsTrue(shaderCodev2 != String.Empty);
 
             // Code generated should be different after a change was made
@@ -445,7 +445,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
             // Create an add node on the graph
-            graphHandler.AddNode<AddNode>("Add1", m_RegistryInstance);
+            graphHandler.AddNode<TestAddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
@@ -477,13 +477,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             //      8) Testing if a property is at a given value in the MPB after setting the property
         }
 
-        static object[] interpreterTestCases = new object[]
-        {
-            ("Add1", new Color(1,0,0,1)), //Colors with Alpha 1 since target is opaque
-            ("Add2", new Color(0,1,0,1)),
-            ("Add3", new Color(1,1,0,1)),
-        };
-
         [Test]
         [TestCaseSource("interpreterTestCases")]
         public void InterpreterTests((string nodeToCompile, Color expectedColor) input)
@@ -502,7 +495,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [Test]
         public void NodePreview_GetFuncAndBlockShaderCode()
         {
-            FunctionDescriptor passThroughFD = new FunctionDescriptor(1, "PassThrough",
+            FunctionDescriptor passThroughFD = new(1, "PassThrough",
                 "Out = In.x;",
                 new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
                 new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In));
@@ -541,7 +534,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                 new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
                 new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In));
 
-            FunctionDescriptor make = new FunctionDescriptor(1, "Make",
+            FunctionDescriptor make = new(1, "Make",
                 "Out.x = X; Out.y = Y;",
                 new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out),
                 new ParameterDescriptor("X", TYPE.Float, GraphType.Usage.In),
