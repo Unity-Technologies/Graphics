@@ -1267,7 +1267,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     dependencyName = "BaseMapShader",
                     shaderName = "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)",
-                    //shaderName = "Shader Graphs/URPTerrain_BaseMap",
                 };
             }
             public static ShaderDependency BaseMapGenShader()

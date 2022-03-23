@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Template
         static class TerrainBaseMapGenTemplate
         {
-            public static readonly string kPassTemplate = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainBaseMapGen.template";
+            public static readonly string kPassTemplate = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainBaseMapGenPass.template";
             public static readonly string[] kSharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories.Union(new []
             {
                 "Packages/com.unity.render-pipelines.universal/Editor/Terrain/",
@@ -54,71 +54,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.passes.Add(TerrainLitAddPasses.Forward(target, blendModePreserveSpecular));
-
-                return result;
-            }
-        }
-
-        static class TerrainLitBaseMapSubShaders
-        {
-            public static SubShaderDescriptor LitComputeDotsSubShader(UniversalTarget target, string renderType, string renderQueue, bool blendModePreserveSpecular)
-            {
-                SubShaderDescriptor result = new SubShaderDescriptor()
-                {
-                    pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = new List<string>() { UniversalTarget.kLitMaterialTypeTag, },renderType = renderType,
-                    renderQueue = renderQueue,
-                    generatesPreview = false,
-                    passes = new PassCollection(),
-                    usePassList = new List<string>(),
-                    additionalShaderID = "{Name}_BaseMap",
-                };
-
-                result.passes.Add(TerrainLitPasses.Forward(target, blendModePreserveSpecular, TerrainCorePragmas.DOTSForward));
-                result.passes.Add(TerrainLitPasses.GBuffer(target, blendModePreserveSpecular));
-
-                if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(TerrainLitPasses.ShadowCaster(target), TerrainCorePragmas.DOTSInstanced));
-
-                if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(TerrainLitPasses.DepthOnly(target), TerrainCorePragmas.DOTSInstanced));
-
-                result.passes.Add(PassVariant(TerrainLitPasses.DepthNormal(target), TerrainCorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(TerrainLitPasses.Meta(target), TerrainCorePragmas.DOTSInstanced));
-
-                result.usePassList.Add("Hidden/Nature/Terrain/Utilities/PICKING");
-                result.usePassList.Add("Universal Render Pipeline/Terrain/Lit/SceneSelectionPass");
-
-                return result;
-            }
-
-            public static SubShaderDescriptor LitGLESSubShader(UniversalTarget target, string renderType, string renderQueue, bool blendModePreserveSpecular)
-            {
-                SubShaderDescriptor result = new SubShaderDescriptor()
-                {
-                    pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = new List<string>() { UniversalTarget.kLitMaterialTypeTag, },
-                    renderType = renderType,
-                    renderQueue = renderQueue,
-                    generatesPreview = false,
-                    passes = new PassCollection(),
-                    usePassList = new List<string>(),
-                    additionalShaderID = "{Name}_BaseMap",
-                };
-
-                result.passes.Add(TerrainLitAddPasses.Forward(target, blendModePreserveSpecular));
-
-                if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(TerrainLitPasses.ShadowCaster(target));
-
-                if (target.mayWriteDepth)
-                    result.passes.Add(TerrainLitPasses.DepthOnly(target));
-
-                result.passes.Add(TerrainLitPasses.DepthNormal(target));
-                result.passes.Add(TerrainLitPasses.Meta(target));
-
-                result.usePassList.Add("Hidden/Nature/Terrain/Utilities/PICKING");
-                result.usePassList.Add("Universal Render Pipeline/Terrain/Lit/SceneSelectionPass");
 
                 return result;
             }
@@ -358,7 +293,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            // used by lit/unlit subtargets
             public static RenderStateCollection BaseMapGenRenderState = new RenderStateCollection()
             {
                 { RenderState.ZTest(ZTest.Always) },

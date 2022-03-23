@@ -187,17 +187,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("#endif // SPLAT_PREREQUISITES");
             sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndex);
             sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", inputLayerIndex);
-            #if true
             sb.AppendLine("DECLARE_AND_FETCH_SPLAT_ATTRIBUTES({0})", inputLayerIndex);
-            #else
-            sb.AppendLine("float2 splat{0}uv = IN.uv0.xy * _Splat{0}_ST.xy + _Splat{0}_ST.zw;", inputLayerIndex);
-            sb.AppendLine("float2 splat{0}dxuv = dxuv * _Splat{0}_ST.x;", inputLayerIndex);
-            sb.AppendLine("float2 splat{0}dyuv = dyuv * _Splat{0}_ST.x;", inputLayerIndex);
-            sb.AppendLine("");
-            sb.AppendLine("albedo[{0}] = SampleLayerAlbedo({0});", inputLayerIndex);
-            sb.AppendLine("normal[{0}] = SampleLayerNormal({0});", inputLayerIndex);
-            sb.AppendLine("masks[{0}] = SampleLayerMasks({0});", inputLayerIndex);
-            #endif
             sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", inputLayerIndex);
             sb.DecreaseIndent();
 

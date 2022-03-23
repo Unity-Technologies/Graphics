@@ -101,7 +101,7 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     {                                                                              \
         albedo[i] = float4(0, 0, 0, 0);                                            \
         normal[i] = float3(0, 0, 0);                                               \
-        masks[i] = NullLayerMask(i);                                                    \
+        masks[i] = NullLayerMask(i);                                               \
     }
 
 #ifdef OVERRIDE_SPLAT_SAMPLER_NAME
