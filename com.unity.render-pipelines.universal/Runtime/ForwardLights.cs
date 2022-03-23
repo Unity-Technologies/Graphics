@@ -177,7 +177,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 binCount = ((binCount + 3) / 4) * 4;
                 binCount = math.min(UniversalRenderPipeline.maxZBins, binCount);
                 m_ZBins = new NativeArray<uint>(binCount * (1 + m_WordsPerTile), Allocator.TempJob);
-                Assert.AreEqual(UnsafeUtility.SizeOf<uint>(), UnsafeUtility.SizeOf<ZBin>());
 
                 var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
                 // We allocate double array length because the sorting algorithm needs swap space to work in.
