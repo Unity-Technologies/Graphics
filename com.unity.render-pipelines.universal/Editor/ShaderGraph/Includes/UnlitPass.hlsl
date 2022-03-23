@@ -61,5 +61,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
 
+#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(unpacked.positionCS);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+    finalColor.rgb *= aoFactor.directAmbientOcclusion;
+#endif
+
     return finalColor;
 }

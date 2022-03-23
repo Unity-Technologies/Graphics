@@ -344,6 +344,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.SampleGI,
                 CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.DebugDisplay,
+                CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion,
             };
         }
         #endregion

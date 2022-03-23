@@ -1926,6 +1926,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
+
+        public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Ambient Occlusion",
+            referenceName = "_SCREEN_SPACE_OCCLUSION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
     }
     #endregion
 
