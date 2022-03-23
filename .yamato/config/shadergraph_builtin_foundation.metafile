@@ -3,6 +3,7 @@ project:
   folder: BuiltInGraphicsTest_Foundation
 test_platforms:
   - type: playmode
+  - type: editmode
 
 platforms:
   - name: Win
@@ -47,27 +48,30 @@ jobs:
         color_space: Linear
         test_platforms:
           - playmode
+          - editmode
       - platform: OSX
         api: OpenGLCore
         build_config: mono
         color_space: Linear
         test_platforms:
           - playmode
+          - editmode
       - platform: Linux
         api: Vulkan
         build_config: mono
         color_space: Linear
         test_platforms:
           - playmode
+          - editmode
       - platform: OSX
         api: Metal
         build_config: mono
         color_space: Linear
         test_platforms:
           - playmode
+          - editmode
   - name: Extra <PROJECT_NAME>
-    dependencies:
-      []
+    dependencies: []
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
