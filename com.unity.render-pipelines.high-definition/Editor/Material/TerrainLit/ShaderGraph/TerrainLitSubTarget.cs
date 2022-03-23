@@ -186,6 +186,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 else
                     pass.keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer, new FieldCondition(HDFields.Unlit, false));
             }
+
+            if (pass.displayName == "MainTex" || pass.displayName == "MetallicTex")
+                pass.defines.Add(TerrainKeywordDescriptors.TerrainBaseMapGen, 1);
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -480,6 +483,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "_TERRAIN_BLEND_HEIGHT",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor TerrainBaseMapGen = new KeywordDescriptor()
+            {
+                displayName = "Terrain Base Map Generation",
+                referenceName = "_TERRAIN_BASEMAP_GEN",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Local,
             };
 

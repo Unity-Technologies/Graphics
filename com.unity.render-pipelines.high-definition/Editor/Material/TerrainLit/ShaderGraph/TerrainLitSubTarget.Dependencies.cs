@@ -99,12 +99,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             private static string kMainTexName = "\"Name\" = \"_MainTex\"";
             private static string kMainTexFormat = "\"Format\" = \"ARGB32\"";
             private static string kMainTexSize = "\"Size\" = \"1\"";
-            private static string kMainEmptyColor = "\"EmptyColor\" = \"\"";
 
             private static string kMetallicTexName = "\"Name\" = \"_MetallicTex\"";
             private static string kMetallicTexFormat = "\"Format\" = \"RG16\"";
             private static string kMetallicTexSize = "\"Size\" = \"1/4\"";
-            private static string kMetallicEmptyColor = "\"EmptyColor\" = \"FF000000\"";
 
             public static RenderStateCollection BaseMapGenRenderState = new RenderStateCollection()
             {
@@ -132,7 +130,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new AdditionalCommandDescriptor("BaseGenName", kMainTexName),
                 new AdditionalCommandDescriptor("BaseGenTexFormat", kMainTexFormat),
                 new AdditionalCommandDescriptor("BaseGenTexSize", kMainTexSize),
-                new AdditionalCommandDescriptor("BaseGenEmptyColor", kMainEmptyColor),
             };
 
             public static readonly AdditionalCommandCollection BaseMapMetallicTex = new AdditionalCommandCollection()
@@ -140,7 +137,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new AdditionalCommandDescriptor("BaseGenName", kMetallicTexName),
                 new AdditionalCommandDescriptor("BaseGenTexFormat", kMetallicTexFormat),
                 new AdditionalCommandDescriptor("BaseGenTexSize", kMetallicTexSize),
-                new AdditionalCommandDescriptor("BaseGenEmptyColor", kMetallicEmptyColor),
             };
         }
         #endregion

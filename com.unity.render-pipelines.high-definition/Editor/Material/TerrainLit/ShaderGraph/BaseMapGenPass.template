@@ -5,7 +5,6 @@ Pass
         $splice(BaseGenName)
         $splice(BaseGenTexFormat)
         $splice(BaseGenTexSize)
-        $splice(BaseGenEmptyColor)
     }
 
     // Render State
@@ -27,10 +26,9 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
+    #define SURFACE_GRADIENT
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
@@ -118,25 +116,10 @@ Pass
 
     // -- Properties used by TerrainPass
     #if HD_TERRAIN_ENABLED
-    UNITY_TERRAIN_CB_VARS
-        #ifdef UNITY_INSTANCING_ENABLED
-    float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-    TEXTURE2D(_TerrainHeightmapTexture);
-    TEXTURE2D(_TerrainNormalmapTexture);
-            #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
-    SAMPLER(sampler_TerrainNormalmapTexture);
-            #endif // ENABLE_TERRAIN_PERPIXEL_NORMAL
-        #endif // UNITY_INSTANCING_ENABLED
-
-        #ifdef _ALPHATEST_ON
-    TEXTURE2D(_TerrainHolesTexture);
-    SAMPLER(sampler_TerrainHolesTexture);
-        #endif
-
-        #ifdef DEBUG_DISPLAY
-    UNITY_TERRAIN_CB_DEBUG_VARS
-        #endif
+    CBUFFER_START(UnityTerrain)
+        UNITY_TERRAIN_CB_VARS
+        float4 _Control0_ST;
+    CBUFFER_END
     #endif // HD_TERRAIN_ENABLED
 
     // Includes
@@ -161,11 +144,6 @@ Pass
 
     // Graph Pixel
     $splice(GraphPixel)
-
-    // --------------------------------------------------
-    // Build Graph Inputs
-    $features.graphVertex:  $include("Vertex.template.hlsl")
-    $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
     // Main
