@@ -963,7 +963,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new ShaderDependency()
                 {
                     dependencyName = "BaseMapGenShader",
-                    shaderName = "Shader Graphs/HDTerrainImproved_BaseMapGen",
+                    shaderName = "{Name}_BaseMapGen",
                 };
             }
         }

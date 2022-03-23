@@ -311,7 +311,11 @@ namespace UnityEditor.ShaderGraph
                 foreach (var shaderDependency in shaderDependencies)
                 {
                     if (shaderDependency.dependencyName != lastDependencyName)
-                        m_Builder.AppendLine($"Dependency \"{shaderDependency.dependencyName}\" = \"{shaderDependency.shaderName}\"");
+                    {
+                        var dependencyShaderName = shaderDependency.shaderName;
+                        dependencyShaderName = dependencyShaderName.Replace("{Name}", shaderName, StringComparison.Ordinal);
+                        m_Builder.AppendLine($"Dependency \"{shaderDependency.dependencyName}\" = \"{dependencyShaderName}\"");
+                    }
                     lastDependencyName = shaderDependency.dependencyName;
                 }
 

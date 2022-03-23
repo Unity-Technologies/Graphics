@@ -34,8 +34,9 @@ float2 Frag(Varyings input) : SV_Target
     SurfaceDescriptionInputs surfaceDescriptionInputs;
     ZERO_INITIALIZE(SurfaceDescriptionInputs, surfaceDescriptionInputs);
 
-    surfaceDescriptionInputs.TangentSpaceNormal = float3(0.0f, 0.0f, 1.0f);
-    surfaceDescriptionInputs.uv0 = input.texcoord;
+    $SurfaceDescriptionInputs.TangentSpaceNormal: surfaceDescriptionInputs.TangentSpaceNormal = float3(0.0f, 0.0f, 1.0f);
+    $SurfaceDescriptionInputs.uv0:                surfaceDescriptionInputs.uv0 = input.texcoord;
+
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
 #if SHADERPASS == SHADERPASS_MAINTEX
