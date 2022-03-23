@@ -1,18 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class IRegistryEntry : MonoBehaviour
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    // Start is called before the first frame update
-    void Start()
+    public interface IRegistryEntry
     {
-        
-    }
+        RegistryKey GetRegistryKey();
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Some flags should be automatically populated based on the definition interface used.
+        // This whole concept may prove unnecessary.
+        RegistryFlags GetRegistryFlags();
     }
 }
