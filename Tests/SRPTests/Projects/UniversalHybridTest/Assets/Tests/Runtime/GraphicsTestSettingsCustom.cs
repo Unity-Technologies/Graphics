@@ -1,4 +1,4 @@
-//This script is copied from UniversalRP TestProject 
+//This script is copied from UniversalRP TestProject
 // https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/TestProjects/UniversalGraphicsTest/Assets/Test/Runtime/UniversalGraphicsTestSettings.cs
 
 using UnityEngine.TestTools.Graphics;

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [ExecuteInEditMode]
 public class ColorizeMBP : MonoBehaviour

@@ -9,7 +9,7 @@ To access Unity’s internal Grafana:
 ## Writing a query
 Grafana uses Google BigQuery to write queries. This means it includes specific functions native to the Google BigQuery database. To check the use case or existence of a function, check the [Google BigQuery SQL documentation page](https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators). To check the scheme of Grafana’s performance database, see the [Grafana Database Scheme](#grafana-database-scheme).
 
-To prepare to write your query, follow these steps: 
+To prepare to write your query, follow these steps:
 
 1. In the dashboard header, select **Add Panel** to create a new graph.
 2. Click **Add Query** in the new panel.
@@ -17,7 +17,7 @@ To prepare to write your query, follow these steps:
 4. In the **Query** field, which targets the source database, select the performance database `rd-perf-test-data-pdr BigQuery`.
 5. The builder doesn’t work with Unity’s data structure. Click **Edit SQL** to hide the builder.
 
-Some common functions do not work as expected in Grafana, so you need to use an alternative. For example: 
+Some common functions do not work as expected in Grafana, so you need to use an alternative. For example:
 
 - Replace `run.StartTime` with `Endtime`.
   Replace `$_timeFilter` with the following line: `run.EndTime BETWEEN TIMESTAMP_MILLIS($__from) AND TIMESTAMP_MILLI($__to)`.
@@ -27,17 +27,17 @@ The following example query retrieves the frame timings in HDRP:
 ```#standardSQL
 SELECT
     -- Select the average of the median of all tests.
-	AVG(sampleGroup.Median) as median,
+    AVG(sampleGroup.Median) as median,
     -- Use Endtime here, because run.StartTime doesn’t work.
     run.EndTime as time,
     -- Extract the name of the sampler from the name of the SampleGroup.
     REGEXP_EXTRAC(sampleGroup.Definition.Name, 'Timing,\\w+,(.*)') as metric
 FROM
 perf_test_results.run,
-    -- Use UNNEST for every Record type array. Refer to Grafana’s database scheme to learn which arrays are listed as Record. 
-	UNNEST(Results) AS result,
-	UNNEST(ProjectVersions) as pv,
-	UNNEST(result.SampleGroups) AS sampleGroup
+    -- Use UNNEST for every Record type array. Refer to Grafana’s database scheme to learn which arrays are listed as Record.
+    UNNEST(Results) AS result,
+    UNNEST(ProjectVersions) as pv,
+    UNNEST(result.SampleGroups) AS sampleGroup
 WHERE
     -- Filter using the project name you set in the utr command line.
     pv.ProjectName = 'HDRP'

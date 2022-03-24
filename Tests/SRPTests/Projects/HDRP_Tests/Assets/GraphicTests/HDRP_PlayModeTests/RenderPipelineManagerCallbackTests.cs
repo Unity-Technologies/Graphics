@@ -48,7 +48,7 @@ public class RenderPipelineManagerCallbackTests
     [UnityTest]
     public IEnumerator BeginAndEndCameraRenderingCallbackMatch_Camera()
     {
-        if (XRGraphicsAutomatedTests.activatedFromCommandLine)
+        if (XRGraphicsAutomatedTests.enabled)
             yield break;
         yield return SetupTest();
         for (int i = 0; i < k_RenderCount; i++)
@@ -70,7 +70,7 @@ public class RenderPipelineManagerCallbackTests
     [UnityTest]
     public IEnumerator BeginAndEndCameraRenderingCallbackMatch_CustomRender()
     {
-        if (XRGraphicsAutomatedTests.activatedFromCommandLine)
+        if (XRGraphicsAutomatedTests.enabled)
             yield break;
         yield return SetupTest();
         var additionalData = currentCamera.gameObject.AddComponent<HDAdditionalCameraData>();

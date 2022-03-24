@@ -1321,7 +1321,7 @@ namespace UnityEditor.VFX.Test
             if (!type.IsValueType)
                 return true;
             if (Nullable.GetUnderlyingType(type) != null)
-                return true; 
+                return true;
             return false;
         }
 

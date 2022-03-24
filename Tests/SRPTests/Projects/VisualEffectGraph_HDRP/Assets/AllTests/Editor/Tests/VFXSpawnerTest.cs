@@ -415,7 +415,7 @@ namespace UnityEditor.VFX.Test
 
             yield return new ExitPlayMode();
         }
-        
+
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_With_Manual_Set_SpawnCount_And_Output_Event_Check_Expected_Count()
         {
@@ -1211,7 +1211,7 @@ namespace UnityEditor.VFX.Test
         }
 
         public static string[] k_CreateSpawner_Chaining_And_Check_Expected_Ordering = PermutationHelper(new[] { "A", "B", "C", "D" }).Select(o => o.Aggregate((a, b) => a + b)).ToArray();
-        public static bool[] k_CreateSpawner_Chaining_And_Check_Expected_Plug_C_First = { true, false }; 
+        public static bool[] k_CreateSpawner_Chaining_And_Check_Expected_Plug_C_First = { true, false };
         [UnityTest]
         public IEnumerator CreateSpawner_Chaining_And_Check_Expected_Ordering([ValueSource("k_CreateSpawner_Chaining_And_Check_Expected_Ordering")] string ordering, [ValueSource("k_CreateSpawner_Chaining_And_Check_Expected_Plug_C_First")] bool plugCFirst)
         {

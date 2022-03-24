@@ -1,4 +1,4 @@
-﻿#if ENABLE_HYBRID_RENDERER_V2 && UNITY_2020_1_OR_NEWER && (HDRP_9_0_0_OR_NEWER || URP_9_0_0_OR_NEWER)
+#if ENABLE_HYBRID_RENDERER_V2 && UNITY_2020_1_OR_NEWER && (HDRP_9_0_0_OR_NEWER || URP_9_0_0_OR_NEWER)
 
 using System;
 using System.Collections;
@@ -15,7 +15,7 @@ public class EntityCreateDestroyTest : MonoBehaviour
     public int countY = 100;
     public int countZ = 10;
     public float addFrequency = 10.0f;
-    
+
     private GameObjectConversionSettings _settings;
     private Entity _prefabEntity;
     private EntityManager _entityManager;
@@ -26,7 +26,7 @@ public class EntityCreateDestroyTest : MonoBehaviour
     private int _frameCounter = 0;
     private List<Action<int>> _addComponent = new List<Action<int>>();
     private List<Action<int>> _removeComponent = new List<Action<int>>();
-    
+
     // Start is called before the first frame update
     void Start()
     {
@@ -58,7 +58,7 @@ public class EntityCreateDestroyTest : MonoBehaviour
         _addComponent.Add((int entityIndex) => {
             if (!_entityManager.HasComponent<TestComponentC>(_entities[entityIndex]))
                 _entityManager.AddComponent<TestComponentC>(_entities[entityIndex]); });
-        
+
         _removeComponent.Add((int entityIndex) => {
             if (_entityManager.HasComponent<TestComponentA>(_entities[entityIndex]))
                 _entityManager.RemoveComponent<TestComponentA>(_entities[entityIndex]); });
@@ -109,17 +109,17 @@ public class EntityCreateDestroyTest : MonoBehaviour
     private void TestAddingRemovingComponents()
     {
         //return;
-        
+
         if (_entities.Count == 0)
             return;
-        
+
         if (_frameCounter % 3 == 0)
         {
             for (int i = 0; i < 100; ++i)
             {
                 _addComponent[i % 3]((_frameCounter + i) % _entities.Count);
             }
-            
+
             for (int i = 0; i < 100; ++i)
             {
                 _removeComponent[i % 3]((_frameCounter + 100 + i) % _entities.Count);
@@ -127,14 +127,14 @@ public class EntityCreateDestroyTest : MonoBehaviour
         }
         ++_frameCounter;
     }
-    
+
     // Update is called once per frame
     void Update()
     {
         TestAddingRemovingEntities();
         TestAddingRemovingComponents();
     }
-    
+
 }
 
 #endif // ENABLE_HYBRID_RENDERER_V2

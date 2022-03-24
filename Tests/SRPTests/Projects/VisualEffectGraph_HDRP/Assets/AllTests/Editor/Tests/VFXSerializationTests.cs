@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Test
         {
             return VisualEffectAssetEditorUtility.CreateNewAsset(path);
         }
-        
+
         [Test]
         public void Sanitize_GetSpawnCount()
         {

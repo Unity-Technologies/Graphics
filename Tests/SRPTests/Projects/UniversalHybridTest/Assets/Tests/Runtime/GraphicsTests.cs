@@ -1,4 +1,4 @@
-  
+
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
@@ -40,7 +40,7 @@ public class GraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         //var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        //Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
+        //Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
         //Scene scene = SceneManager.GetActiveScene();
 
@@ -85,7 +85,7 @@ public class GraphicsTests
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
         #endif
 
-        // foreach (GameObject o in Object.FindObjectsOfType<GameObject>()) 
+        // foreach (GameObject o in Object.FindObjectsOfType<GameObject>())
         // {
         //     Object.Destroy(o);
         // }
