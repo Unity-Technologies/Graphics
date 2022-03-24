@@ -49,6 +49,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 //using System.Text;          //for Int128.AsString() & StringBuilder
 //using System.IO;            //debugging with streamReader & StreamWriter
 //using System.Windows.Forms; //debugging to clipboard
@@ -3401,7 +3402,11 @@ namespace UnityEngine.Rendering.Universal
 
         public static void ReversePaths(Paths polys)
         {
-            foreach (var poly in polys) { poly.Reverse(); }
+            for(int i=0;i<polys.Count;i++)
+            {
+                var poly = polys[i];
+                poly.Reverse();
+            }
         }
 
         //------------------------------------------------------------------------------
@@ -4414,16 +4419,22 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < pathCnt; i++)
                 {
                     Path p = new Path(polyCnt);
-                    foreach (IntPoint ip in pattern)
+                    for(int patternIndex=0; patternIndex < pattern.Count; patternIndex++)
+                    {
+                        IntPoint ip = pattern[patternIndex];
                         p.Add(new IntPoint(path[i].X + ip.X, path[i].Y + ip.Y));
+                    }
                     result.Add(p);
                 }
             else
                 for (int i = 0; i < pathCnt; i++)
                 {
                     Path p = new Path(polyCnt);
-                    foreach (IntPoint ip in pattern)
+                    for (int patternIndex = 0; patternIndex < pattern.Count; patternIndex++)
+                    {
+                        IntPoint ip = pattern[patternIndex];
                         p.Add(new IntPoint(path[i].X - ip.X, path[i].Y - ip.Y));
+                    }
                     result.Add(p);
                 }
 
@@ -4635,8 +4646,11 @@ namespace UnityEngine.Rendering.Universal
 
         public void AddPaths(Paths paths, JoinType joinType, EndType endType)
         {
-            foreach (Path p in paths)
+            for (int i = 0; i < paths.Count; i++)
+            {
+                Path p = paths[i];
                 AddPath(p, joinType, endType);
+            }
         }
 
         //------------------------------------------------------------------------------

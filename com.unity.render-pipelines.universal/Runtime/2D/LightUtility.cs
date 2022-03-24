@@ -8,8 +8,12 @@ using UnityEngine.U2D;
 
 namespace UnityEngine.Rendering.Universal
 {
+    using Path = List<IntPoint>;
+    using Paths = List<List<IntPoint>>;
+
     internal static class LightUtility
     {
+
         public static bool CheckForChange(Light2D.LightType a, ref Light2D.LightType b)
         {
             var changed = a != b;
@@ -85,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
                 indices[ICount++] = (ushort)(i + prevCount);
         }
 
-        static bool TestPivot(List<IntPoint> path, int activePoint, long lastPoint)
+        static bool TestPivot(Path path, int activePoint, long lastPoint)
         {
             for (int i = activePoint; i < path.Count; ++i)
             {
@@ -97,9 +101,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Degenerate Pivots at the End Points.
-        static List<IntPoint> DegeneratePivots(List<IntPoint> path, List<IntPoint> inPath)
+        static Path DegeneratePivots(Path path, Path inPath)
         {
-            List<IntPoint> degenerate = new List<IntPoint>();
+            Path degenerate = new Path();
             var minN = path[0].N;
             var maxN = path[0].N;
             for (int i = 1; i < path.Count; ++i)
@@ -117,7 +121,10 @@ namespace UnityEngine.Rendering.Universal
                 ins.N = i;
                 degenerate.Add(ins);
             }
+
             degenerate.AddRange(path.GetRange(0, path.Count));
+            //path.CopyTo(0, degenerate, 0, path.Count);
+
             for (long i = maxN + 1; i < inPath.Count; ++i)
             {
                 IntPoint ins = inPath[(int)i];
@@ -128,9 +135,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Ensure that we get a valid path from 0.
-        static List<IntPoint> SortPivots(List<IntPoint> outPath, List<IntPoint> inPath)
+        static Path SortPivots(Path outPath, Path inPath)
         {
-            List<IntPoint> sorted = new List<IntPoint>();
+            Path sorted = new Path();
             var min = outPath[0].N;
             var max = outPath[0].N;
             var minIndex = 0;
@@ -149,13 +156,18 @@ namespace UnityEngine.Rendering.Universal
                     newMin = true;
                 }
             }
+
             sorted.AddRange(outPath.GetRange(minIndex, (outPath.Count - minIndex)));
             sorted.AddRange(outPath.GetRange(0, minIndex));
+
+            //outPath.CopyTo(minIndex, sorted, 0, outPath.Count - minIndex);
+            //outPath.CopyTo(0, sorted, 0, minIndex);
+
             return sorted;
         }
 
         // Ensure that all points eliminated due to overlaps and intersections are accounted for Tessellation.
-        static List<IntPoint> FixPivots(List<IntPoint> outPath, List<IntPoint> inPath)
+        static Path FixPivots(Path outPath, Path inPath)
         {
             var path = SortPivots(outPath, inPath);
             long pivotPoint = path[0].N;
@@ -220,14 +232,14 @@ namespace UnityEngine.Rendering.Universal
         internal static List<Vector2> GetOutlinePath(Vector3[] shapePath, float offsetDistance)
         {
             const float kClipperScale = 10000.0f;
-            List<IntPoint> path = new List<IntPoint>();
+            Path path = new Path();
             List<Vector2> output = new List<Vector2>();
             for (var i = 0; i < shapePath.Length; ++i)
             {
                 var newPoint = new Vector2(shapePath[i].x, shapePath[i].y) * kClipperScale;
                 path.Add(new IntPoint((System.Int64)(newPoint.x), (System.Int64)(newPoint.y)));
             }
-            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            Paths solution = new Paths();
             ClipperOffset clipOffset = new ClipperOffset(2048.0f);
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * offsetDistance, path.Count);
@@ -279,7 +291,7 @@ namespace UnityEngine.Rendering.Universal
             Tessellate(tess, ElementType.Polygons, indices, vertices, meshInteriorColor, ref vcount, ref icount);
 
             // Create falloff geometry
-            List<IntPoint> path = new List<IntPoint>();
+            Path path = new Path();
             for (var i = 0; i < inputPointCount; ++i)
             {
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
@@ -290,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
             var lastPointIndex = inputPointCount - 1;
 
             // Generate Bevels.
-            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            Paths solution = new Paths();
             ClipperOffset clipOffset = new ClipperOffset(24.0f);
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Count);
