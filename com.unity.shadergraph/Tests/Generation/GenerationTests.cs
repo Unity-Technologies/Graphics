@@ -52,7 +52,14 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             return output;
         }
 
-        [Test]
+        static object[] testAsIsSource = new object[]
+        {
+            ("Add1", new Color(1,0,0,1)), //Colors with Alpha 1 since target is opaque
+            ("Add2", new Color(0,1,0,1)),
+            ("Add3", new Color(1,1,0,1)),
+        };
+
+    [Test]
         [TestCaseSource("testAsIsSource")]
         public static void TestGraphAsIs((string nodeToCompile, Color expectedColor) input)
         {
