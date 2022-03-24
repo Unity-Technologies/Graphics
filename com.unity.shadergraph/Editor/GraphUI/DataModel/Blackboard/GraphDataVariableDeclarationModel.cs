@@ -8,13 +8,52 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphDataVariableDeclarationModel : VariableDeclarationModel
     {
-        // TODO (Joe): When possible, assign these fields such that they point to a valid reference. It's possible
-        //  only one name will be needed. If so, delete the other.
-        string m_NodeName;
-        string m_PortName;
+        [SerializeField]
+        string m_ContextNodeName;
 
-        public string NodeName => m_NodeName;
-        public string PortName => m_PortName;
+        /// <summary>
+        // Name of the context node that owns the entry for this Variable
+        /// </summary>
+        public string contextNodeName
+        {
+            get => m_ContextNodeName;
+            set => m_ContextNodeName = value;
+        }
+
+        [SerializeField]
+        string m_GraphDataName;
+
+        /// <summary>
+        // Name of the port on the Context Node that owns the entry for this Variable
+        /// </summary>
+        public string graphDataName
+        {
+            get => m_GraphDataName;
+            set => m_GraphDataName = value;
+        }
+
+        public GraphDataVariableDeclarationModel()
+        {
+
+        }
+
+        ShaderGraphModel shaderGraphModel => GraphModel as ShaderGraphModel;
+
+        public override void CreateInitializationValue()
+        {
+            if (GraphModel.Stencil.GetConstantNodeValueType(DataType) != null)
+            {
+                InitializationModel = GraphModel.Stencil.CreateConstantValue(DataType);
+                if (InitializationModel is ICLDSConstant cldsConstant)
+                {
+                    Debug.Log("WARNING: GraphDataVariableDeclarationModel.CreateInitializationValue(): \n CLDSConstants are currently being initialized with dummy info, need to have ability to add properties to GraphDelta");
+
+                    // Is the node name going to be the name of the context node?
+                    // The port name is probably the graphDataName cause they are port entries on the context node
+                    cldsConstant.Initialize(shaderGraphModel.GraphHandler, contextNodeName, graphDataName);
+                }
+            }
+        }
 
         // Really hacky shim to create a valid target if one is needed for testing. Uncomment and use to get a node
         // and port name that can be used temporarily in CreateInitializationValue.
@@ -66,21 +105,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //
         //     return (nodeName, portName);
         // }
-
-        // TODO: Ensure this is called at deserialization.
-        public override void CreateInitializationValue()
-        {
-            var model = (ShaderGraphModel)GraphModel;
-            var stencil = (ShaderGraphStencil)model.Stencil;
-
-            Debug.LogWarning("UNIMPLEMENTED: Data connection for GraphDataVariableDeclarationModel. Field will act like a Vector4 regardless of type.");
-
-            InitializationModel = stencil.CreateConstantValue(DataType);
-            if (InitializationModel is ICLDSConstant cldsConstant)
-            {
-                // var (nodeName, portName) = MakeTempBackingConnection();
-                cldsConstant.Initialize(model.GraphHandler, m_NodeName, m_PortName);
-            }
-        }
     }
 }

@@ -125,6 +125,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menuItems, IRootView view, IGroupModel selectedGroup = null)
         {
+            Action<IVariableDeclarationModel, IConstant> initCallback = (IVariableDeclarationModel model, IConstant constant) =>
+            {
+                // Use this variables' generated guid to bind it to an underlying element in the graph data.
+                var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
+                var graphDataName = model.Guid.ToString();
+                Debug.Log("WARNING: ShaderGraphStencil.PopulateBlackboardCreateMenu(): \n VariableDeclarationModels are currently being initialized with dummy info, need to have ability to add properties to GraphDelta");
+                // TODO (Sai): When we have the ability to have CLDS backing for a variable, replace with the correct function
+                //shaderGraphModel.GraphHandler.AddPropertyEntry(graphDataName, registry);
+            };
+
             // Only populate the Properties section for now. Will change in the future.
             if (sectionName != sections[0]) return;
 
@@ -136,8 +146,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     name = $"Create {type.Name}",
                     action = () =>
                     {
+                        var command = new CreateGraphVariableDeclarationCommand("variable", true, type, typeof(GraphDataVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
+                        command.InitializationCallback = initCallback;
                         Debug.Log($"Create {type.Name}");
-                        view.Dispatch(new CreateGraphVariableDeclarationCommand("variable", true, type, selectedGroup ?? GraphModel.GetSectionModel(sectionName)));
+                        view.Dispatch(command);
                     }
                 });
             }
