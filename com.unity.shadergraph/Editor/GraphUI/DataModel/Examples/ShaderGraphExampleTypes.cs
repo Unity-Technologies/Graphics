@@ -65,6 +65,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle DayOfWeek = typeof(DayOfWeek).GenerateTypeHandle();
         public static readonly TypeHandle GradientTypeHandle = typeof(Gradient).GenerateTypeHandle();
 
+        public static readonly TypeHandle Matrix2 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix2");
+        public static readonly TypeHandle Matrix3 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix3");
+        public static readonly TypeHandle Matrix4 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix4");
+
+
         public static readonly Dictionary<string, TypeHandle> TypeHandlesByName = new()
         {
             { "MissingType", TypeHandle.MissingType },
@@ -92,7 +97,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             { "Texture2D", Texture2D },
             { "Texture3D", Texture3D },
             { "DayOfWeek", DayOfWeek },
-            { "Gradient", GradientTypeHandle }
+            { "Gradient", GradientTypeHandle },
+            { "Matrix2", Matrix2 },
+            { "Matrix3", Matrix3 },
+            { "Matrix4", Matrix4 },
         };
 
         public static IEnumerable<string> TypeHandleNames => TypeHandlesByName.Keys;

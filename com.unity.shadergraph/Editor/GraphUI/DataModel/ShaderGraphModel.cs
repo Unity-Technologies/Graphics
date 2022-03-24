@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Profiling;
+using UnityEditor.Graphs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -312,5 +315,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return false;
             }
         }
+
+        protected override Type GetDefaultVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
     }
 }

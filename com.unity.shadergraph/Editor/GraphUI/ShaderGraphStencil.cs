@@ -43,7 +43,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 || typeHandle == TypeHandle.Vector4
                 || typeHandle == TypeHandle.Float
                 || typeHandle == TypeHandle.Bool
-                || typeHandle == TypeHandle.Int)
+                || typeHandle == TypeHandle.Int
+                || typeHandle == ShaderGraphExampleTypes.Color
+                || typeHandle == ShaderGraphExampleTypes.Matrix4
+                || typeHandle == ShaderGraphExampleTypes.Matrix3
+                || typeHandle == ShaderGraphExampleTypes.Matrix2)
             {
                 return typeof(GraphTypeConstant);
             }
@@ -105,10 +109,38 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
         }
 
+        static readonly TypeHandle[] k_SupportedBlackboardTypes = {
+            TypeHandle.Int,
+            TypeHandle.Float,
+            TypeHandle.Bool,
+            TypeHandle.Vector2,
+            TypeHandle.Vector3,
+            TypeHandle.Vector4,
+            ShaderGraphExampleTypes.Color,
+            ShaderGraphExampleTypes.Matrix4,
+            ShaderGraphExampleTypes.Matrix3,
+            ShaderGraphExampleTypes.Matrix2,
+            ShaderGraphExampleTypes.GradientTypeHandle,
+        };
+
         public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menuItems, IRootView view, IGroupModel selectedGroup = null)
         {
-            // TODO: (JOE) Add type list and discovery
-            base.PopulateBlackboardCreateMenu(sectionName, menuItems, view, selectedGroup);
+            // Only populate the Properties section for now. Will change in the future.
+            if (sectionName != sections[0]) return;
+
+            foreach (var type in k_SupportedBlackboardTypes)
+            {
+                menuItems.Add(new MenuItem
+                {
+                    // TODO (Joe): Use friendlier names -- this uses the actual type names so "float" becomes "Single"
+                    name = $"Create {type.Name}",
+                    action = () =>
+                    {
+                        Debug.Log($"Create {type.Name}");
+                        view.Dispatch(new CreateGraphVariableDeclarationCommand("variable", true, type, selectedGroup ?? GraphModel.GetSectionModel(sectionName)));
+                    }
+                });
+            }
         }
 
         public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)

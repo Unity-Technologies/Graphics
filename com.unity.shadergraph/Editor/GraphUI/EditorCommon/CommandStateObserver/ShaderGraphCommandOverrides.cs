@@ -256,8 +256,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PreviewManager previewManager,
             UpdateConstantValueCommand updateConstantValueCommand)
         {
-            var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            var model = updateConstantValueCommand.OwnerModel as GraphDataPortModel;
+            if (graphModelState.GraphModel is not ShaderGraphModel shaderGraphModel) return;
+            if (updateConstantValueCommand.OwnerModel is not GraphDataPortModel model) return;
+
             if (model.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
             {
                 var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
