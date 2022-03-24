@@ -1676,9 +1676,17 @@ namespace UnityEngine.Rendering.HighDefinition
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
+            // Currently testing this theory:
+            // Always submit the hybrid renderer command buffer, even if HDRP isn't initialized or if no cameras are rendering.
+            // This seems to be needed because the sparse uploader may upload state changes on frames when a camera has not been streamed in yet.
+            // Skipping these state changes results in state / corrupt global state. 
+            s_HybridRendererCommandBufferData.Submit(renderContext);
+
 #if UNITY_EDITOR
             if (!m_ResourcesInitialized)
+            {
                 return;
+            }
 #endif
 
 #if UNITY_2021_1_OR_NEWER
@@ -1686,7 +1694,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             if (!m_ValidAPI || cameras.Length == 0)
 #endif
+            {
                 return;
+            }
 
             GetOrCreateDefaultVolume();
             GetOrCreateDebugTextures();
@@ -2319,7 +2329,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y, m_MSAASamples);
                         }
 
-
                         // Execute render request graph, in reverse order
                         for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
                         {
@@ -2355,6 +2364,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             var cameraHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem();
 
                             // var aovRequestIndex = 0;
+                            
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
@@ -2445,6 +2455,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             EndFrameRendering(renderContext, cameras);
 #endif
+
+
 
         }
 
