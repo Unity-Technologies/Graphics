@@ -9,9 +9,16 @@ using com.unity.shadergraph.defs;
 
 namespace UnityEditor.ShaderGraph.Registry.Default
 {
+    public class PropertyContext : IContextDescriptor
+    {
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => null;
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
+    }
+
     public class DefaultContext : IContextDescriptor
     {
-        public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
         {
             return new List<IContextDescriptor.ContextEntry>()
             {
@@ -50,6 +57,7 @@ namespace UnityEditor.ShaderGraph.Registry.Default
             reg.Register<Types.GradientNode>();
             reg.Register<Types.SampleGradientNode>();
             reg.Register<DefaultContext>();
+            reg.Register<PropertyContext>();
             //RegistryInstance.Register<Registry.Types.AddNode>();
 
             // Register nodes from FunctionDescriptors in IStandardNode classes.

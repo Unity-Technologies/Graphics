@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     // TODO: Move to preview manager and then rely on the name from the registry key for the context node/master preview data name
     class TestDescriptor : IContextDescriptor
     {
-        public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
         {
             return new List<IContextDescriptor.ContextEntry>()
             {
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                 {
                     fieldName = "BaseColor",
                     primitive = Types.GraphType.Primitive.Float,
-                    precision = Types.GraphType.Precision.Fixed,
+                    precision = Types.GraphType.Precision.Single,
                     height = Types.GraphType.Height.One,
                     length = Types.GraphType.Length.Three,
                 }
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         public void MasterPreview_SingleColor()
         {
             // Instantiate a graph
-            var graphHandler = new GraphHandler(); 
+            var graphHandler = new GraphHandler();
 
             m_PreviewManager.SetActiveGraph(graphHandler);
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
@@ -596,14 +596,14 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("AppendNodeInstance");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
         }
-        
+
         [Test]
         public void Gradients_TestAll()
         {
             var graphHandler = new GraphHandler();
             var registry = new Registry.Registry();
             var previewMgr = new HeadlessPreviewManager();
-        
+
             registry.Register<Types.GraphType>();
             registry.Register<Types.GraphTypeAssignment>();
             registry.Register<Types.GradientType>();

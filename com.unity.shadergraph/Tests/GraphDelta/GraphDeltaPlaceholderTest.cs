@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             public class TestDescriptor : Registry.Defs.IContextDescriptor
             {
-                public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+                public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
                 {
                     return new List<IContextDescriptor.ContextEntry>()
                     {
@@ -161,7 +161,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                             height = Registry.Types.GraphType.Height.One,
                             length = Registry.Types.GraphType.Length.One,
                             precision = Registry.Types.GraphType.Precision.Fixed,
-                            isFlat = true
                         }
                     };
                 }
@@ -197,11 +196,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 GraphDelta graphDelta = graphHandler.graphDelta;
                 NodeHandler node = graphDelta.AddNode<TestNode>("Add", registry);
-                
+
                 node.AddPort("A", true, true);
                 node.AddPort("B", true, true);
                 node.AddPort("Out", false, true);
-                
+
 
                 var nodeRef = graphHandler.GetNodeReader("Add");
                 Assert.NotNull(nodeRef);

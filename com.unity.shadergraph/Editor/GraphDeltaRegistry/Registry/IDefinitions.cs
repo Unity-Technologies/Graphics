@@ -54,26 +54,37 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             public Types.GraphType.Length length;
             public Types.GraphType.Height height;
             public Matrix4x4 initialValue;
-            public string interpolationSemantic;
-            public bool isFlat;
         }
-        IReadOnlyCollection<ContextEntry> GetEntries();
+        IEnumerable<ContextEntry> GetEntries();
     }
 
     internal class ReferenceNodeBuilder : INodeDefinitionBuilder
     {
+        public const string KContextEntry = "Input";
+        public const string kOutput = "Output";
+
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            // TODO: Correctly generate port type based on our reference type (how do we find that?).
+            var inPort = node.GetPort(KContextEntry);
+            var type = inPort.GetTypeField();
+            node.AddPort(kOutput, false, type.GetRegistryKey(), registry);
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
-            // Reference nodes are not processed through function generation.
-            throw new NotImplementedException();
+            var port = node.GetPort(KContextEntry);
+            var field = port.GetTypeField();
+            var shaderType = registry.GetShaderType(field, container);
+
+            var shaderFunctionBuilder = new ShaderFunction.Builder(container, $"refpass_{shaderType.Name}");
+            shaderFunctionBuilder.AddInput(shaderType, "In");
+            shaderFunctionBuilder.AddOutput(shaderType, "Out");
+            shaderFunctionBuilder.AddLine("Out = In;");
+
+            return shaderFunctionBuilder.Build();
         }
     }
 
@@ -84,21 +95,25 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
+
+        public void AddContextEntry(NodeHandler contextNode, IContextDescriptor.ContextEntry entry, Registry registry)
+        {
+            // TODO/Problem: Only good for GraphType
+            var port = contextNode.AddPort<GraphType>(entry.fieldName, true, registry);
+            GraphTypeHelpers.InitGraphType(port.GetTypeField(), entry.length, entry.precision, entry.primitive, entry.height);
+            GraphTypeHelpers.SetAsMat4(port.GetTypeField(), entry.initialValue);
+
+            port.GetTypeField().AddSubField(GraphType.kEntry, entry);
+
+            contextNode.AddPort<GraphType>($"out_{entry.fieldName}", false, registry);
+        }
+
         public void BuildNode(NodeHandler node, Registry registry)
         {
             var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
             var context = registry.GetContextDescriptor(contextKey);
             foreach (var entry in context.GetEntries())
-            {
-                var port = node.AddPort<GraphType>(entry.fieldName, true, registry);
-                port.GetTypeField().AddSubField(GraphType.kEntry, entry);
-                for (int i = 0; i < (int)entry.length * (int)entry.height; ++i)
-                    port.GetTypeField().GetSubField<float>($"c{i}").SetData(entry.initialValue[i]);
-                if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
-                    port.GetTypeField().AddSubField("semantic", entry.interpolationSemantic);
-            }
-            // We could "enfield" all of our ContextEntries into our output port, which would consequently make them accessible
-            // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.
+                AddContextEntry(node, entry, registry);
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
