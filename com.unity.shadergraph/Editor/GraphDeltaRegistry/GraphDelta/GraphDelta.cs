@@ -1,8 +1,5 @@
 using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using System.Linq;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -40,18 +37,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return EditorJsonUtility.ToJson(m_data);
         }
 
-        private List<string> contextNodes = new List<string>();
+        private readonly List<string> contextNodes = new();
 
-        public NodeHandler AddNode<T>(string name, Registry.Registry registry)  where T : Registry.Defs.INodeDefinitionBuilder
+        public NodeHandler AddNode<T>(string name, Registry registry)  where T : INodeDefinitionBuilder
         {
-           var key = Registry.Registry.ResolveKey<T>();
+           var key = Registry.ResolveKey<T>();
            return AddNode(key, name, registry);
         }
 
-        public NodeHandler AddNode(RegistryKey key, ElementID id, Registry.Registry registry)
+        public NodeHandler AddNode(RegistryKey key, ElementID id, Registry registry)
         {
             var builder = registry.GetNodeBuilder(key);
-            if (builder is ContextBuilder cb)
+            if (builder is ContextBuilder)
             {
                 return AddContextNode(key, registry);
             }
@@ -73,10 +70,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return nodeHandler;
         }
 
-        public NodeHandler AddContextNode(RegistryKey contextDescriptorKey, Registry.Registry registry)
+        public NodeHandler AddContextNode(RegistryKey contextDescriptorKey, Registry registry)
         {
             var nodeHandler = m_data.AddNodeHandler(k_user, contextDescriptorKey.Name);
-            var contextKey = Registry.Registry.ResolveKey<ContextBuilder>();
+            var contextKey = Registry.ResolveKey<ContextBuilder>();
             var builder = registry.GetNodeBuilder(contextKey);
 
             nodeHandler.SetMetadata("_contextDescriptor", contextDescriptorKey);
@@ -97,7 +94,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         }
 
-        public void SetupContextNodes(IEnumerable<IContextDescriptor> contextDescriptors, Registry.Registry registry)
+        public void SetupContextNodes(IEnumerable<IContextDescriptor> contextDescriptors, Registry registry)
         {
             foreach(var descriptor in contextDescriptors)
             {
@@ -105,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public void AppendContextBlockToStage(IContextDescriptor contextDescriptor, Registry.Registry registry)
+        public void AppendContextBlockToStage(IContextDescriptor contextDescriptor, Registry registry)
         {
             var contextNodeHandler = AddContextNode(contextDescriptor.GetRegistryKey(), registry);
 
@@ -121,14 +118,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                var last = contextNodes[contextNodes.Count - 1];
+                var last = contextNodes[^1];
                 var tailHandler = m_data.GetHandler(last) as NodeHandler;
                 tailHandler.AddPort("Out", false, false);
                 newContextNode.AddPort("In", true, false);
             }
         }
 
-        public bool ReconcretizeNode(ElementID id, Registry.Registry registry)
+        public bool ReconcretizeNode(ElementID id, Registry registry)
         {
             var nodeHandler = m_data.GetHandler(id).ToNodeHandler();
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);

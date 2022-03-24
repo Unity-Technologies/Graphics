@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void TestCanCreateMaterialGraph()
         {
-            GraphData graph = new GraphData();
+            GraphData graph = new ();
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void TestCanAddMaterialNodeToMaterialGraph()
         {
-            GraphData graph = new GraphData();
+            GraphData graph = new ();
 
             var node = new TestableMNode();
             graph.AddNode(node);
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void TestCanGetMaterialNodeFromMaterialGraph()
         {
-            GraphData graph = new GraphData();
+            GraphData graph = new ();
 
             var node = new TestableMNode();
             graph.AddNode(node);
@@ -49,37 +49,5 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(node, graph.GetNodeFromId(node.objectId));
             Assert.AreEqual(node, graph.GetNodeFromId<TestableMNode>(node.objectId));
         }
-
-        /*     [Test]
-             public void TestCreatePixelShaderGraphWorks()
-             {
-                 var graph = new UnityEngine.MaterialGraph.MaterialGraph();
-                 Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
-
-                 var psn = new MetallicMasterNode();
-                 graph.AddNode(psn);
-                 Assert.AreEqual(0, graph.edges.Count());
-                 Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-                 Assert.IsInstanceOf(typeof(MetallicMasterNode), graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
-                 Assert.IsNotNull(graph.masterNode);
-                 Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-             }
-
-             [Test]
-             public void TestCanAddMultipleMasterNode()
-             {
-                 var graph = new UnityEngine.MaterialGraph.MaterialGraph();
-                 Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
-
-                 var psn = new MetallicMasterNode();
-                 graph.AddNode(psn);
-                 Assert.AreEqual(0, graph.edges.Count());
-                 Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-
-                 var psn2 = new SpecularMasterNode();
-                 graph.AddNode(psn2);
-                 Assert.AreEqual(0, graph.edges.Count());
-                 Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
-             }*/
     }
 }

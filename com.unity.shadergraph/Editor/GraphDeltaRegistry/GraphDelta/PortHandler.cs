@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.ContextLayeredDataStorage;
-using UnityEditor.ShaderGraph.Registry;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
@@ -51,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         public IEnumerable<FieldHandler> GetFields()
         {
-            throw new System.Exception();
+            throw new Exception();
         }
         public FieldHandler GetField(string localID)
         {
