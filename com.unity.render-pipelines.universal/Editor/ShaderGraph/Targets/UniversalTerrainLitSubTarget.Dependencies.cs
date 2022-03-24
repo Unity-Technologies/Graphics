@@ -308,7 +308,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Fragment("frag") },
             };
 
-            public static readonly string kBaseMapPass = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainBaseMapPass.hlsl";
+            public static readonly string kBaseMapPass = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainBaseMapGenPass.hlsl";
 
             public static readonly IncludeCollection BaseGenMainTexIncludes = new IncludeCollection
             {

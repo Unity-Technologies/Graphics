@@ -97,7 +97,7 @@ Pass
     // --------------------------------------------------
     // Main
 
-    $include("TerrainBaseMapGenPass.template.hlsl")
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }
