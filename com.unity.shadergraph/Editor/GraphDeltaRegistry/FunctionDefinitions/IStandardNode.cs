@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
 
     internal interface IStandardNode

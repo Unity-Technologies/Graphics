@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TestUIMat3Node : IStandardNode
     {

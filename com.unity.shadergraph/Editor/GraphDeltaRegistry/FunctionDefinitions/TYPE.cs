@@ -1,6 +1,6 @@
 using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// </summary>

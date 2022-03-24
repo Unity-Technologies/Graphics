@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Linq;
-using com.unity.shadergraph.defs;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {

@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using com.unity.shadergraph.defs;
 using UnityEngine.TestTools.Utils;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {

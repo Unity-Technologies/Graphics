@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using com.unity.shadergraph.defs;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI

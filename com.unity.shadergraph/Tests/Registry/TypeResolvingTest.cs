@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using com.unity.shadergraph.defs;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {

@@ -3,7 +3,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using com.unity.shadergraph.defs;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 {
