@@ -30,7 +30,7 @@ namespace Unity.Rendering.Universal
             SG_Unlit = 1000,        // UniversalUnlitSubTarget
             SG_Lit,                 // UniversalLitSubTarget
             SG_Decal,               // UniversalDecalSubTarget
-            SG_TerrainLit,             // UniversalTerrainLitSubTarget
+            SG_TerrainLit,          // UniversalTerrainLitSubTarget
             SG_SpriteUnlit,         // UniversalSpriteUnlitSubTarget
             SG_SpriteLit,           // UniversalSpriteLitSubTarget
             SG_SpriteCustomLit      // UniversalSpriteCustomLitSubTarget
