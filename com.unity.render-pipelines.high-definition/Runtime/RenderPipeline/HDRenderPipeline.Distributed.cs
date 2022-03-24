@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
             get => FrameID;
             set => FrameID = value;
         }
+        
+        public static int LastSentFrameID { get; set; }
 
         class ReceiveData
         {
@@ -378,9 +380,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                 RttTestUtilities.SendFrame(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
                                 //SocketClient.Instance.ReplaceOrSet(Datagram.DatagramType.VideoFrame, managedData);
                                 SocketClient.Instance.Set(Datagram.DatagramType.VideoFrame, managedData, currentFrameID);
-
+                                LastSentFrameID = currentFrameID;
                                 Profiling.Profiler.EndSample();
                             });
+                            context.cmd.WaitAllAsyncReadbackRequests();
                         }
                     }
                 );

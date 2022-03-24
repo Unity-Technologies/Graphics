@@ -1132,8 +1132,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
-            Debug.Log("HDRPDispose");
-
             if (GetDistributedMode() == DistributedMode.Renderer)
                 SocketClient.Instance.CloseSocket();
             if (GetDistributedMode() == DistributedMode.Merger)

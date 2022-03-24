@@ -33,9 +33,9 @@ namespace RttTest
             LogRtt(role, tick, Action.Input);
         }
 
-        public static void LogGhostArrived(Role role, uint tick)
+        public static void LogGhostArrived(Role role, uint tick, int rendererId, uint triggerTick)
         {
-            LogRtt(role, tick, Action.GhostArrived);
+            Debug.Log($"{Prefix(role, tick, rendererId)} {Action.GhostArrived} {triggerTick}");
         }
 
         public static void BeginEncodeYuv(Role role, uint tick, int rendererId)
