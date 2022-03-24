@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < halfCount; i++)
             {
                 int startIndex = index + i;
-                int endIndex = index + count - 1;
+                int endIndex = index + count - 1 - i;
 
                 // Swap
                 T tempValue = m_InternalArray[startIndex];

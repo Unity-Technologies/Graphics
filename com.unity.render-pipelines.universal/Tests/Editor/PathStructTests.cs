@@ -13,8 +13,11 @@ namespace UnityEngine.Rendering.Universal.Tests
         [Test]
         public void PathArray_CreateAndDestroy()
         {
-            PathArray<int> pathArray = new PathArray<int>();
-            pathArray.Dispose();
+            PathArray<int> pathArray0 = new PathArray<int>();
+            PathArray<PathArray<int>> pathArray1 = new PathArray<PathArray<int>>();
+
+            pathArray0.Dispose();
+            pathArray1.Dispose();
         }
 
         [Test]
@@ -65,9 +68,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             }
 
             for (int i = 0; i < k_TestListLen; i++)
-            {
                 Assert.IsTrue(pathList[i] == expectedValues[i]);
-            }
 
             pathList.Dispose();
         }
@@ -88,11 +89,54 @@ namespace UnityEngine.Rendering.Universal.Tests
             }
 
             for (int i = 0; i < k_TestListLen; i++)
-            {
                 Assert.IsTrue(pathList[i] == expectedValues[i]);
+
+            pathList.Dispose();
+        }
+
+        [Test]
+        public void PathList_CheckReverseSubset()
+        {
+            const int k_TestListLen = 6;
+
+            PathList<int> pathList = new PathList<int>();
+            int[] expectedValues = new int[] { 0, 4, 3, 2, 1, 5 };
+
+            for (int i = 0; i < k_TestListLen; i++)
+                pathList.Add(i);
+
+            pathList.Reverse(1, 4);
+            for (int i = 0; i < k_TestListLen; i++)
+            {
+                int curValue = pathList[i];
+                Assert.IsTrue(curValue == expectedValues[i]);
             }
 
             pathList.Dispose();
         }
+
+
+
+        [Test]
+        public void PathList_CheckReverse()
+        {
+            PathList<int> pathList = new PathList<int>();
+            int[] expectedValues = new int[] { 3, 2, 1, 0 };
+
+            for (int i = 0; i < k_TestListLen; i++)
+                pathList.Add(i);
+
+            pathList.Reverse();
+            for (int i = 0; i < k_TestListLen; i++)
+            {
+                int curValue = pathList[i];
+                Assert.IsTrue(curValue == expectedValues[i]);
+            }
+
+                
+
+            pathList.Dispose();
+        }
+
     }
 }
