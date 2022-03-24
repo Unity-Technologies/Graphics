@@ -5,6 +5,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderFoundry;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 using UnityEditor.ShaderGraph.Registry.Types;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Registry.Defs
 {
@@ -60,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
     internal class ReferenceNodeBuilder : INodeDefinitionBuilder
     {
-        public const string KContextEntry = "Input";
+        public const string kContextEntry = "Input";
         public const string kOutput = "Output";
 
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
@@ -68,14 +69,19 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            var inPort = node.GetPort(KContextEntry);
-            var type = inPort.GetTypeField();
-            node.AddPort(kOutput, false, type.GetRegistryKey(), registry);
+            var inPort = node.AddPort(kContextEntry, true, true);
+
+            var connectedPort = inPort.GetConnectedPorts().FirstOrDefault();
+            if (connectedPort != null)
+            {
+                var type = connectedPort.GetTypeField();
+                node.AddPort(kOutput, false, type.GetRegistryKey(), registry);
+            }
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
-            var port = node.GetPort(KContextEntry);
+            var port = node.GetPort(kContextEntry);
             var field = port.GetTypeField();
             var shaderType = registry.GetShaderType(field, container);
 
@@ -96,7 +102,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
 
-        public void AddContextEntry(NodeHandler contextNode, IContextDescriptor.ContextEntry entry, Registry registry)
+        static public void AddContextEntry(NodeHandler contextNode, IContextDescriptor.ContextEntry entry, Registry registry)
         {
             // TODO/Problem: Only good for GraphType
             var port = contextNode.AddPort<GraphType>(entry.fieldName, true, registry);

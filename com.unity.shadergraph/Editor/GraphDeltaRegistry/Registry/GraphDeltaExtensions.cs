@@ -45,9 +45,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public static void AddReferenceNode(this GraphHandler handler, string nodeName, string contextName, string contextEntryName, Registry.Registry registry)
         {
             var node = handler.AddNode<Registry.Defs.ReferenceNodeBuilder>(nodeName, registry);
-            var inPort = node.GetPort(Registry.Defs.ReferenceNodeBuilder.KContextEntry);
+            var inPort = node.GetPort(Registry.Defs.ReferenceNodeBuilder.kContextEntry);
             var outPort = handler.GetNode(contextName).GetPort($"out_{contextEntryName}"); // TODO: Not this.
             handler.AddEdge(outPort.ID, inPort.ID);
+
+            handler.ReconcretizeNode(node.ID.FullPath, registry);
 
             // node.SetMetadata("_referenceName", contextEntryName);
 

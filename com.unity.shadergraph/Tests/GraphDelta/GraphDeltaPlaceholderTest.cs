@@ -296,7 +296,48 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.AreEqual(4, (int)len);
             }
 
+
+
+
+
+            [Test]
+            public void ReferenceNodes()
+            {
+                registry.Register<TestDescriptor>();
+                registry.Register<Registry.Types.GraphType>();
+                graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), registry);
+                var contextNode = graphHandler.GetNode("TestContextDescriptor");
+
+                IContextDescriptor.ContextEntry entry = new()
+                {
+                    fieldName = "TestContextEntry",
+                    precision = GraphType.Precision.Single,
+                    primitive = GraphType.Primitive.Float,
+                    length = GraphType.Length.Four,
+                    height = GraphType.Height.One
+                };
+
+                ContextBuilder.AddContextEntry(contextNode, entry, registry);
+                graphHandler.AddReferenceNode("testNodeRef", "TestContextDescriptor", "TestContextEntry", registry);
+                graphHandler.AddReferenceNode("fooNodeRef", "TestContextDescriptor", "Foo", registry);
+
+
+                Assert.AreEqual("TestContextDescriptor", graphHandler.GetConnectedNodes("testNodeRef").First().ID.LocalPath);
+                Assert.AreEqual("TestContextDescriptor", graphHandler.GetConnectedNodes("fooNodeRef").First().ID.LocalPath);
+
+                var testField = graphHandler.GetNode("testNodeRef").GetPort(ReferenceNodeBuilder.kOutput).GetTypeField(); // float4
+                var fooField = graphHandler.GetNode("fooNodeRef").GetPort(ReferenceNodeBuilder.kOutput).GetTypeField(); // fixed int
+
+                Assert.AreEqual(GraphType.Primitive.Float, GraphTypeHelpers.GetPrimitive(testField));
+                Assert.AreEqual(GraphType.Primitive.Int, GraphTypeHelpers.GetPrimitive(fooField));
+            }
         }
     }
 
 }
+
+//fieldName = "Foo",
+//                            primitive = Registry.Types.GraphType.Primitive.Int,
+//                            height = Registry.Types.GraphType.Height.One,
+//                            length = Registry.Types.GraphType.Length.One,
+//                            precision = Registry.Types.GraphType.Precision.Fixed,
