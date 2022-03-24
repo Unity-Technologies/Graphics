@@ -23,9 +23,6 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
-    // Specific Terrain Define
-    $include("TerrainPassDefine.template.hlsl")
-
     $NormalDropOffTS: #define _NORMAL_DROPOFF_TS 1
     $NormalDropOffOS: #define _NORMAL_DROPOFF_OS 1
     $NormalDropOffWS: #define _NORMAL_DROPOFF_WS 1
@@ -57,6 +54,9 @@ Pass
     $splice(PassInstancing)
     $splice(GraphDefines)
     $splice(DotsInstancingVars)
+
+    // Specific Terrain Define
+    $include("TerrainPassDefine.template.hlsl")
 
     // Includes
     $splice(PreGraphIncludes)
