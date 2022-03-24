@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Must be a multiple of 4 to be able to alias to vec4
                 binCount = ((binCount + 3) / 4) * 4;
                 binCount = math.min(UniversalRenderPipeline.maxZBins, binCount);
-                m_ZBins = new NativeArray<uint>(binCount * (1 + m_WordsPerTile), Allocator.TempJob);
+                m_ZBins = new NativeArray<uint>(UniversalRenderPipeline.maxZBins, Allocator.TempJob);
 
                 var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
                 // We allocate double array length because the sorting algorithm needs swap space to work in.
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var zBinningHandle = zBinningJob.ScheduleParallel((binCount + ZBinningJob.batchCount - 1) / ZBinningJob.batchCount, 1, reorderHandle);
                 reorderedMinMaxZs.Dispose(zBinningHandle);
 
-                m_TileLightMasks = new NativeArray<uint>(((m_TileResolution.x * m_TileResolution.y * (m_WordsPerTile) + 3) / 4) * 4, Allocator.TempJob);
+                m_TileLightMasks = new NativeArray<uint>(UniversalRenderPipeline.maxTileVec4s * 4, Allocator.TempJob);
 
                 // Each light needs 1 range for Y, and a range per row. Align to 128-bytes to avoid false sharing.
                 var itemsPerLight = AlignByteCount((1 + m_TileResolution.y) * UnsafeUtility.SizeOf<InclusiveRange>(), 128) / UnsafeUtility.SizeOf<InclusiveRange>();
@@ -316,11 +316,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     using (new ProfilingScope(null, m_ProfilingSamplerFPUpload))
                     {
-                        m_ZBinBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_ZBins.Length / 4);
-                        m_TileBuffer.SetData(m_TileLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_TileLightMasks.Length / 4);
+                        m_ZBinBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
+                        m_TileBuffer.SetData(m_TileLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
 
-                        cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, m_ZBins.Length * 4);
-                        cmd.SetGlobalConstantBuffer(m_TileBuffer, "AdditionalLightsTiles", 0, m_TileLightMasks.Length * 4);
+                        cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, UniversalRenderPipeline.maxZBins * 4);
+                        cmd.SetGlobalConstantBuffer(m_TileBuffer, "AdditionalLightsTiles", 0, UniversalRenderPipeline.maxTileVec4s * 16);
                     }
 
                     cmd.SetGlobalInteger("_AdditionalLightsDirectionalCount", m_DirectionalLightCount);
