@@ -9,23 +9,88 @@ namespace UnityEngine.Rendering.Universal
     // Testing in PathStructTests
     internal struct PathArray<T> : IDisposable where T : struct
     {
-        private unsafe byte* m_InternalArray;
-        private int m_ElementSize;
-        public int m_Length;
-        public bool m_IsCreated;
+        private struct ArrayInfo
+        {
+            public int elementSize;
+            public int length;
+            public int usedElements;
+        }
 
-        public int Length => m_Length;
-        public bool IsCreated => m_IsCreated;
+        private unsafe IntPtr m_InternalArrayPtr;
+        private unsafe IntPtr m_InternalArrayInfoPtr;
+
+
+
+        public int Length
+        {
+            get
+            {
+                return GetArrayInfo().length;
+            }
+        }
+
+        public bool IsCreated
+        {
+            get
+            {
+                unsafe
+                {
+                    return m_InternalArrayPtr.ToPointer() != null;
+                }
+            }
+        }
+
+        public int UsedElements
+        {
+            get { return GetArrayInfo().usedElements; }
+            set
+            {
+                unsafe
+                {
+                    ArrayInfo arrayInfo = GetArrayInfo();
+                    arrayInfo.usedElements = value;
+                    UnsafeUtility.CopyStructureToPtr<ArrayInfo>(ref arrayInfo, m_InternalArrayInfoPtr.ToPointer());
+                }
+            }
+        }
 
         public PathArray(int count)
         {
             unsafe
             {
                 int sizeOfT = UnsafeUtility.SizeOf(typeof(T));
-                m_InternalArray = (byte*)UnsafeUtility.Malloc(sizeOfT * count, UnsafeUtility.AlignOf<T>(), Allocator.Persistent);
-                m_ElementSize = sizeOfT;
-                m_Length = count;
-                m_IsCreated = true;
+
+                void* ptrToData = (byte*)UnsafeUtility.Malloc(sizeOfT * count, UnsafeUtility.AlignOf<T>(), Allocator.Persistent);
+                void* ptrToPtr = UnsafeUtility.Malloc(sizeof(IntPtr), UnsafeUtility.AlignOf<IntPtr>(), Allocator.Persistent); // This is a ptr to an array
+
+                IntPtr intPtrToData = new IntPtr(ptrToData);
+                UnsafeUtility.CopyStructureToPtr<IntPtr>(ref intPtrToData, ptrToPtr);
+                m_InternalArrayPtr = new IntPtr(ptrToPtr);
+
+
+                ArrayInfo arrayInfo = new ArrayInfo();
+                arrayInfo.elementSize = sizeOfT;
+                arrayInfo.length = count;
+                arrayInfo.usedElements = 0;
+
+                void* ptrToArrayInfo = (void*)UnsafeUtility.Malloc(sizeof(ArrayInfo), UnsafeUtility.AlignOf<ArrayInfo>(), Allocator.Persistent);
+                m_InternalArrayInfoPtr = new IntPtr(ptrToArrayInfo);
+                UnsafeUtility.CopyStructureToPtr<ArrayInfo>(ref arrayInfo, m_InternalArrayInfoPtr.ToPointer());
+            }
+        }
+
+        private ArrayInfo GetArrayInfo()
+        {
+            return Marshal.PtrToStructure<ArrayInfo>(m_InternalArrayInfoPtr);
+        }
+
+
+        public unsafe byte* internalArray
+        {
+            get
+            {
+                IntPtr intPtrToPtr = Marshal.PtrToStructure<IntPtr>((IntPtr)(m_InternalArrayPtr));
+                return (byte*)intPtrToPtr.ToPointer();
             }
         }
 
@@ -36,8 +101,8 @@ namespace UnityEngine.Rendering.Universal
                 unsafe
                 {
                     Debug.Assert(IsCreated, PathTypes.k_CreationError);
-                    Debug.Assert(index >= 0 && index < m_Length, PathTypes.k_OutOfRangeError);
-                    return Marshal.PtrToStructure<T>((IntPtr)(m_InternalArray + m_ElementSize * index)); ;
+                    Debug.Assert(index >= 0 && index < GetArrayInfo().length, PathTypes.k_OutOfRangeError);
+                    return Marshal.PtrToStructure<T>((IntPtr)(internalArray + GetArrayInfo().elementSize * index));
                 }
             }
             set
@@ -45,8 +110,8 @@ namespace UnityEngine.Rendering.Universal
                 unsafe
                 {
                     Debug.Assert(IsCreated, PathTypes.k_CreationError);
-                    Debug.Assert(index >= 0 && index < m_Length, PathTypes.k_OutOfRangeError);
-                    UnsafeUtility.CopyStructureToPtr<T>(ref value, m_InternalArray + m_ElementSize * index);
+                    Debug.Assert(index >= 0 && index < GetArrayInfo().length, PathTypes.k_OutOfRangeError);
+                    UnsafeUtility.CopyStructureToPtr<T>(ref value, internalArray + GetArrayInfo().elementSize * index);
                 }
             }
         }
@@ -57,11 +122,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (IsCreated)
                 {
-                    Debug.Assert(start + count <= m_Length, PathTypes.k_OutOfRangeError);
+                    Debug.Assert(start + count <= GetArrayInfo().length, PathTypes.k_OutOfRangeError);
 
                     for (int i = start; i < count; i++)
                     {
-                        IDisposable element = Marshal.PtrToStructure<T>((IntPtr)(m_InternalArray + m_ElementSize * i)) as IDisposable;
+                        IDisposable element = Marshal.PtrToStructure<T>((IntPtr)(internalArray + GetArrayInfo().elementSize * i)) as IDisposable;
                         if(element != null)
                             element.Dispose();
                     }
@@ -76,11 +141,16 @@ namespace UnityEngine.Rendering.Universal
                 if (IsCreated)
                 {
                     if (option == PathTypes.DisposeOptions.Deep)
-                        DisposeElements(0, m_Length);
+                        DisposeElements(0, GetArrayInfo().length);
 
-                    UnsafeUtility.Free(m_InternalArray, Allocator.Persistent);
+                    UnsafeUtility.Free(internalArray, Allocator.Persistent);
+                    UnsafeUtility.Free(m_InternalArrayPtr.ToPointer(), Allocator.Persistent);
+                    m_InternalArrayPtr = new IntPtr(null);
 
-                    m_IsCreated = false;
+                    ArrayInfo arrayInfo = GetArrayInfo();
+                    arrayInfo.usedElements = 0;
+                    arrayInfo.length = 0;
+                    UnsafeUtility.CopyStructureToPtr<ArrayInfo>(ref arrayInfo, m_InternalArrayInfoPtr.ToPointer());
                 }
             }
         }

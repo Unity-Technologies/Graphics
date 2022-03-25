@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -8,36 +9,85 @@ namespace UnityEngine.Rendering.Universal
     // Testing in PathStructTests
     internal struct PathList<T> : IDisposable where T : struct 
     {
-        PathArray<T> m_InternalArray;
+        IntPtr m_InternalArrayPtr; // Pointer to a PathArray
 
-        int m_Capacity;
-        int m_UsedElements;
-
-        public bool IsCreated => m_InternalArray.IsCreated;
+        public bool IsCreated
+        {
+            get
+            {
+                unsafe
+                {
+                    return m_InternalArrayPtr.ToPointer() != null;
+                }
+            }
+         
+        }
 
         public PathList(int capacity)
         {
-            m_Capacity = capacity;
-            m_UsedElements = 0;
-            m_InternalArray = new PathArray<T>(capacity);
+            m_InternalArrayPtr = AllocatePathArray(capacity);
+        }
+
+        static private IntPtr AllocatePathArray(int capacity)
+        {
+            unsafe
+            {
+                int sizeOfT = UnsafeUtility.SizeOf(typeof(PathArray<T>));
+                void* ptrToPathArray = (byte*)UnsafeUtility.Malloc(sizeOfT, UnsafeUtility.AlignOf<T>(), Allocator.Persistent);
+
+                PathArray<T> newPathArray = new PathArray<T>(capacity);
+                UnsafeUtility.CopyStructureToPtr<PathArray<T>>(ref newPathArray, ptrToPathArray);
+
+                return new IntPtr(ptrToPathArray);
+            }
+        }
+
+        private PathArray<T> internalArray
+        {
+            set
+            {
+                unsafe
+                {
+                    UnsafeUtility.CopyStructureToPtr<PathArray<T>>(ref value, m_InternalArrayPtr.ToPointer());
+                }
+            }
+            get
+            {
+                unsafe
+                {
+                    return Marshal.PtrToStructure<PathArray<T>>(m_InternalArrayPtr);
+                }
+            }
+        }
+
+        private void SetArrayElement(int index, T item)
+        {
+            PathArray<T> array = internalArray;
+            array[index] = item;
+
+            T foo = array[index];
         }
 
         public void CopyTo(int index, PathArray<T> array, int arrayIndex, int count)
         {
             unsafe
             {
-                Debug.Assert(array.IsCreated && m_InternalArray.IsCreated, PathTypes.k_CreationError);
+                Debug.Assert(array.IsCreated && internalArray.IsCreated, PathTypes.k_CreationError);
 
                 for (int i = 0; i < count; i++)
                 {
-                    array[arrayIndex + i] = m_InternalArray[index + i];
+                    array[arrayIndex + i] = internalArray[index + i];
                 }
             }
         }
 
         public void CopyTo(int index, PathList<T> pathList, int arrayIndex, int count)
         {
-            CopyTo(index, pathList.m_InternalArray, arrayIndex, count);
+            int copySize = arrayIndex + count;
+            if (pathList.Capacity < copySize)
+                pathList.Capacity = copySize;
+
+            CopyTo(index, pathList.internalArray, arrayIndex, count);
         }
 
         public void CopyTo(PathArray<T> array, int arrayIndex)
@@ -53,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (IsCreated)
-                    return m_Capacity;
+                    return internalArray.Length;
                 else
                     return 0;
             }
@@ -62,29 +112,33 @@ namespace UnityEngine.Rendering.Universal
                 int newCapacity = value;
                 PathArray<T> newArray = new PathArray<T>(newCapacity);
 
-                if(m_Capacity > 0)
+                if (IsCreated && internalArray.Length > 0)
+                {
                     CopyTo(newArray, 0);
+                    newArray.UsedElements = internalArray.UsedElements;
+                }
 
                 // This will be false the very first time this is set
                 if (IsCreated)
-                    m_InternalArray.Dispose(PathTypes.DisposeOptions.Shallow);  // A shallow dispose is done since the elements are copied to the new array
+                    internalArray.Dispose(PathTypes.DisposeOptions.Shallow);  // A shallow dispose is done since the elements are copied to the new array
+                else
+                    m_InternalArrayPtr = AllocatePathArray(newCapacity);
 
-                m_InternalArray = newArray;
-                m_Capacity = newCapacity;
+                internalArray = newArray;
             }
         }
 
-        public int Count => m_UsedElements;
+        public int Count => internalArray.UsedElements;
 
         public T this[int index]
         {
             get
             {
-                return m_InternalArray[index];
+                return internalArray[index];
             }
             set
             {
-                m_InternalArray[index] = value;
+                SetArrayElement(index, value);
             }
         }
 
@@ -97,16 +151,17 @@ namespace UnityEngine.Rendering.Universal
                 int endIndex = index + count - 1 - i;
 
                 // Swap
-                T tempValue = m_InternalArray[startIndex];
-                m_InternalArray[startIndex] = m_InternalArray[endIndex];
-                m_InternalArray[endIndex] = tempValue;
+                T tempValue = internalArray[startIndex];
+
+                SetArrayElement(startIndex, internalArray[endIndex]);
+                SetArrayElement(endIndex, tempValue);
             }
         }
 
 
         public void Reverse()
         {
-            Reverse(0, m_UsedElements);
+            Reverse(0, internalArray.UsedElements);
         }
 
         // Needs test
@@ -122,7 +177,10 @@ namespace UnityEngine.Rendering.Universal
         {
             TryAdjustCapacityRequirements();
 
-            m_InternalArray[m_UsedElements++] = item;
+            SetArrayElement(internalArray.UsedElements, item);
+
+            PathArray<T> pathArray = internalArray;
+            pathArray.UsedElements = (internalArray.UsedElements + 1);
         }
 
         public void Insert(int index, T item)
@@ -130,35 +188,48 @@ namespace UnityEngine.Rendering.Universal
             TryAdjustCapacityRequirements();
 
             // move everything over
-            for (int i = m_UsedElements; i > index; i--)
-                m_InternalArray[i] = m_InternalArray[i - 1];
+            for (int i = internalArray.UsedElements; i > index; i--)
+                SetArrayElement(i, internalArray[i - 1]);
 
-            m_InternalArray[index] = item;
-            m_UsedElements++;
+
+            SetArrayElement(index, item);
+
+            PathArray<T> pathArray = internalArray;
+            pathArray.UsedElements = pathArray.UsedElements + 1;
         }
 
         // Needs Test
         public void RemoveAt(int index)
         {
-            m_UsedElements--;
-            for (int i = index; i < m_UsedElements; i++)
+            PathArray<T> pathArray = internalArray;
+            pathArray.UsedElements = pathArray.UsedElements - 1;
+
+            for (int i = index; i < internalArray.UsedElements; i++)
             {
-                m_InternalArray[i] = m_InternalArray[i + 1];
+                SetArrayElement(i, internalArray[i + 1]);
             }
         }
 
         public void Clear(PathTypes.DisposeOptions option = PathTypes.DisposeOptions.Deep)
         {
             if (option == PathTypes.DisposeOptions.Deep)
-                m_InternalArray.DisposeElements(0, m_UsedElements);
+                internalArray.DisposeElements(0, internalArray.UsedElements);
 
-            m_UsedElements = 0;
+            PathArray<T> pathArray = internalArray;
+            pathArray.UsedElements = 0;
         }
 
         public void Dispose(PathTypes.DisposeOptions option)
         {
             if (IsCreated)
-                m_InternalArray.Dispose(option);
+            {
+                unsafe
+                {
+                    internalArray.Dispose(option);
+                    UnsafeUtility.Free(m_InternalArrayPtr.ToPointer(), Allocator.Persistent);
+                    m_InternalArrayPtr = new IntPtr(null);
+                }
+            }
         }
 
         public void Dispose()
