@@ -5,6 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.Universal
 {
+    // Testing in PathStructTests
     internal struct PathList<T> : IDisposable where T : struct 
     {
         PathArray<T> m_InternalArray;
@@ -25,6 +26,8 @@ namespace UnityEngine.Rendering.Universal
         {
             unsafe
             {
+                Debug.Assert(array.IsCreated && m_InternalArray.IsCreated, PathTypes.k_CreationError);
+
                 for (int i = 0; i < count; i++)
                 {
                     array[arrayIndex + i] = m_InternalArray[index + i];
@@ -58,11 +61,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 int newCapacity = value;
                 PathArray<T> newArray = new PathArray<T>(newCapacity);
-                CopyTo(newArray, 0);
+
+                if(m_Capacity > 0)
+                    CopyTo(newArray, 0);
 
                 // This will be false the very first time this is set
                 if (IsCreated)
-                    m_InternalArray.Dispose(false);
+                    m_InternalArray.Dispose(PathTypes.DisposeOptions.Shallow);  // A shallow dispose is done since the elements are copied to the new array
 
                 m_InternalArray = newArray;
                 m_Capacity = newCapacity;
@@ -98,11 +103,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
         public void Reverse()
         {
             Reverse(0, m_UsedElements);
         }
 
+        // Needs test
         public void TryAdjustCapacityRequirements()
         {
             if (Capacity == 0)
@@ -130,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
             m_UsedElements++;
         }
 
+        // Needs Test
         public void RemoveAt(int index)
         {
             m_UsedElements--;
@@ -139,20 +147,23 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Clear()
+        public void Clear(PathTypes.DisposeOptions option = PathTypes.DisposeOptions.Deep)
         {
+            if (option == PathTypes.DisposeOptions.Deep)
+                m_InternalArray.DisposeElements(0, m_UsedElements);
+
             m_UsedElements = 0;
         }
 
-        public void Dispose(bool recursive)
+        public void Dispose(PathTypes.DisposeOptions option)
         {
             if (IsCreated)
-                m_InternalArray.Dispose(recursive);
+                m_InternalArray.Dispose(option);
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(PathTypes.DisposeOptions.Deep);
         }
     }
 }
