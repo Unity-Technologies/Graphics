@@ -24,5 +24,10 @@ namespace UnityEditor.ShaderGraph.Defs
             { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "true if either A or B are true" }
         };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
+        };
     }
 }

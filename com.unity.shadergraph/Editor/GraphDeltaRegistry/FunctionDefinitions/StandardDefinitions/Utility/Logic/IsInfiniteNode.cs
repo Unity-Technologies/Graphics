@@ -22,5 +22,10 @@ namespace UnityEditor.ShaderGraph.Defs
             { "Category", "Utility, Logic" },
             { "DisplayName", "Is Infinite" }
         };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
+        };
     }
 }
