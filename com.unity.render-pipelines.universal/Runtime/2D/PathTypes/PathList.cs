@@ -128,7 +128,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public int Count => internalArray.UsedElements;
+        public int Count
+        {
+            get
+            {
+                if (IsCreated)
+                    return internalArray.UsedElements;
+                else
+                    return 0;
+            }
+        }
+
 
         public T this[int index]
         {
@@ -201,22 +211,28 @@ namespace UnityEngine.Rendering.Universal
         // Needs Test
         public void RemoveAt(int index)
         {
-            PathArray<T> pathArray = internalArray;
-            pathArray.UsedElements = pathArray.UsedElements - 1;
-
-            for (int i = index; i < internalArray.UsedElements; i++)
+            if (IsCreated)
             {
-                SetArrayElement(i, internalArray[i + 1]);
+                PathArray<T> pathArray = internalArray;
+                pathArray.UsedElements = pathArray.UsedElements - 1;
+
+                for (int i = index; i < internalArray.UsedElements; i++)
+                {
+                    SetArrayElement(i, internalArray[i + 1]);
+                }
             }
         }
 
         public void Clear(PathTypes.DisposeOptions option = PathTypes.DisposeOptions.Deep)
         {
-            if (option == PathTypes.DisposeOptions.Deep)
-                internalArray.DisposeElements(0, internalArray.UsedElements);
+            if (IsCreated)
+            {
+                if (option == PathTypes.DisposeOptions.Deep)
+                    internalArray.DisposeElements(0, internalArray.UsedElements);
 
-            PathArray<T> pathArray = internalArray;
-            pathArray.UsedElements = 0;
+                PathArray<T> pathArray = internalArray;
+                pathArray.UsedElements = 0;
+            }
         }
 
         public void Dispose(PathTypes.DisposeOptions option)
