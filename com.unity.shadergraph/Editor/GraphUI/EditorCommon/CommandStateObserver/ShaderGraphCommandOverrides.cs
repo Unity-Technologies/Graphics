@@ -257,13 +257,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UpdateConstantValueCommand updateConstantValueCommand)
         {
             var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            var model = updateConstantValueCommand.OwnerModel as GraphDataPortModel;
-            if (model.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
+            if (updateConstantValueCommand.Constant is ICLDSConstant cldsConstant)
             {
-                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
+                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(cldsConstant.NodeName);
                 if (nodeWriter != null)
                 {
-                    previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, model.UniqueName, updateConstantValueCommand.Value);
+                    previewManager.OnLocalPropertyChanged(cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
                 }
             }
         }
