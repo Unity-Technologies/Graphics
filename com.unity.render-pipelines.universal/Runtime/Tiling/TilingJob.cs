@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
 
             var halfAngle = math.radians(light.spotAngle * 0.5f);
             var range = light.range;
-            var rangesq = pow2(range);
+            var rangesq = square(range);
             var rangeinv = math.rcp(range);
             var cosHalfAngle = math.cos(halfAngle);
             var coneHeight = cosHalfAngle * range;
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
             // by (a) and (b) with length equal to the distance between the near plane and the light position.
             // The remaining unknown side is formed by (b) and (c) with length equal to the radius of the circle.
             // m_ClipCircleRadius = sqrt(pow2(light.range) - pow2(abs(m_Near - m_LightPosition.z)));
-            var sphereClipRadius = math.sqrt(rangesq - pow2(math.abs(near - lightPositionVS.z)));
+            var sphereClipRadius = math.sqrt(rangesq - square(math.abs(near - lightPositionVS.z)));
 
             // Assumes a point on the sphere, i.e. at distance `range` from the light position.
             // If spot light, we check the angle between the direction vector from the light position and the light direction vector.
@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Calculate Z bounds of cone and check if it's overlapping with the near plane.
                 // From https://www.iquilezles.org/www/articles/diskbbox/diskbbox.htm
-                var baseExtentZ = baseRadius * math.sqrt(1.0f - pow2(lightDirectionVS.z));
+                var baseExtentZ = baseRadius * math.sqrt(1.0f - square(lightDirectionVS.z));
                 var coneIsClipping = near >= math.min(baseCenter.z - baseExtentZ, lightPositionVS.z) && near <= math.max(baseCenter.z + baseExtentZ, lightPositionVS.z);
 
                 if (coneIsClipping)
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static float pow2(float x) => x * x;
+        static float square(float x) => x * x;
 
         /// <summary>
         /// Finds the two horizon points seen from (0, 0) of a sphere projected onto either XZ or YZ. Takes clipping into account.
@@ -311,8 +311,8 @@ namespace UnityEngine.Rendering.Universal
             p1 = c + math.float2(direction.y, -direction.x) * h;
 
             // Handle clipping
-            if (pow2(d) < pow2(radius) || p0.y < near) p0 = math.float2(center.x + clipRadius, near);
-            if (pow2(d) < pow2(radius) || p1.y < near) p1 = math.float2(center.x - clipRadius, near);
+            if (square(d) < square(radius) || p0.y < near) p0 = math.float2(center.x + clipRadius, near);
+            if (square(d) < square(radius) || p1.y < near) p1 = math.float2(center.x - clipRadius, near);
         }
 
         static void GetSphereYPlaneHorizon(float3 center, float sphereRadius, float near, float clipRadius, float y, out float3 left, out float3 right)
@@ -332,7 +332,7 @@ namespace UnityEngine.Rendering.Universal
             // The hypotenuse is formed by (a) and (c) with length equal to the clip radius. The known side is
             // formed by (a) and (b) and is simply the distance from the center to the y-plane along the y-axis.
             // The remaining side gives us the x-displacement needed to find the intersection points.
-            var clipHalfWidth = math.sqrt(pow2(clipRadius) - pow2(yNear - center.y));
+            var clipHalfWidth = math.sqrt(square(clipRadius) - square(yNear - center.y));
             left = math.float3(center.x - clipHalfWidth, yNear, near);
             right = math.float3(center.x + clipHalfWidth, yNear, near);
 
@@ -370,17 +370,17 @@ namespace UnityEngine.Rendering.Universal
             // the point is on the sphere, it must be `sphereRadius` from the sphere center, forming the hypotenuse. The
             // other side is between the sphere and circle centers, which we've already calculated to be
             // `distanceToPlane`.
-            var circleRadius = math.sqrt(pow2(sphereRadius) - pow2(distanceToPlane));
+            var circleRadius = math.sqrt(square(sphereRadius) - square(distanceToPlane));
 
             // Now that we have the circle, we can find the horizon points. Since we've parametrized the plane, we can
             // just do this in 2D.
 
             // Any of these conditions will yield NaN due to negative square roots. They are signs that clipping is needed,
             // so we fallback on the already calculated values in that case.
-            if (pow2(distanceToPlane) <= pow2(sphereRadius) && pow2(circleRadius) <= pow2(distanceInPlane))
+            if (square(distanceToPlane) <= square(sphereRadius) && square(circleRadius) <= square(distanceInPlane))
             {
                 // Distance from origin to circle horizon edge.
-                var l = math.sqrt(pow2(distanceInPlane) - pow2(circleRadius));
+                var l = math.sqrt(square(distanceInPlane) - square(circleRadius));
 
                 // Height of circle horizon.
                 var h = l * circleRadius / distanceInPlane;
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal
             // The hypotenuse is formed by (a) and (c) and will have length `circleRadius` as it is on the circle.
             // The known side if formed by (a) and (b), which we have already calculated the distance of in `distance`.
             // The unknown side formed by (b) and (c) is then found using Pythagoras.
-            var chordHalfLength = math.sqrt(pow2(circleRadius) - pow2(distance));
+            var chordHalfLength = math.sqrt(square(circleRadius) - square(distance));
             p0 = nearestPoint + lineDirection * chordHalfLength;
             p1 = nearestPoint - lineDirection * chordHalfLength;
 
@@ -455,10 +455,10 @@ namespace UnityEngine.Rendering.Universal
             //   a = 1/a^2 + u^2 / (v^2 b^2)
             //   b = 2 u w / (v^2 b^2)
             //   c = w^2 / (v^2 b^2) - 1
-            var div = math.rcp(pow2(line.y) * pow2(b));
-            var qa = 1f / pow2(a) + pow2(line.x) * div;
+            var div = math.rcp(square(line.y) * square(b));
+            var qa = 1f / square(a) + square(line.x) * div;
             var qb = 2f * line.x * line.z * div;
-            var qc = pow2(line.z) * div - 1f;
+            var qc = square(line.z) * div - 1f;
             var sqrtD = math.sqrt(qb * qb - 4f * qa * qc);
             var x1 = (-qb + sqrtD) / (2f * qa);
             var x2 = (-qb - sqrtD) / (2f * qa);
@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
                 var cameraUV = math.float2(math.dot(-center, u), math.dot(-center, v));
 
                 // Find the polar line of the camera position in the normalized UV coordinate system.
-                var polar = math.float3(cameraUV.x / pow2(a), cameraUV.y / pow2(b), -1);
+                var polar = math.float3(cameraUV.x / square(a), cameraUV.y / square(b), -1);
                 var (t1, t2) = IntersectEllipseLine(a, b, polar);
 
                 // Find Y by putting polar into line equation and solving. Denormalize by dividing by U and V lengths.
@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering.Universal
             var origin = vertex + axis * d;
             var radius = math.max(math.abs(d), 1e-6f) * circleRadius / coneHeight;
             var cameraUV = math.float2(math.dot(circleU, -origin), math.dot(circleV, -origin));
-            var polar = math.float3(cameraUV, -pow2(radius));
+            var polar = math.float3(cameraUV, -square(radius));
             var p1 = math.float2(-1, -polar.x / polar.y * (-1) - polar.z / polar.y);
             var p2 = math.float2(1, -polar.x / polar.y * 1 - polar.z / polar.y);
             var lineDirection = math.normalize(p2 - p1);
@@ -607,14 +607,14 @@ namespace UnityEngine.Rendering.Universal
         // Returns the two theta values as a float2.
         static float2 FindNearConicTangentTheta(float2 o, float2 d, float r, float2 u, float2 v)
         {
-            var sqrt = math.sqrt(pow2(d.x) * pow2(u.y) + pow2(d.x) * pow2(v.y) - 2f * d.x * d.y * u.x * u.y - 2f * d.x * d.y * v.x * v.y + pow2(d.y) * pow2(u.x) + pow2(d.y) * pow2(v.x) - pow2(r) * pow2(u.x) * pow2(v.y) + 2f * pow2(r) * u.x * u.y * v.x * v.y - pow2(r) * pow2(u.y) * pow2(v.x));
+            var sqrt = math.sqrt(square(d.x) * square(u.y) + square(d.x) * square(v.y) - 2f * d.x * d.y * u.x * u.y - 2f * d.x * d.y * v.x * v.y + square(d.y) * square(u.x) + square(d.y) * square(v.x) - square(r) * square(u.x) * square(v.y) + 2f * square(r) * u.x * u.y * v.x * v.y - square(r) * square(u.y) * square(v.x));
             var denom = d.x * v.y - d.y * v.x - r * u.x * v.y + r * u.y * v.x;
             return 2 * math.atan((-d.x * u.y + d.y * u.x + math.float2(1, -1) * sqrt) / denom);
         }
 
         static float2 FindNearConicYTheta(float near, float3 o, float3 d, float r, float3 u, float3 v, float y)
         {
-            var sqrt = math.sqrt(-pow2(d.y) * pow2(o.z) + 2 * pow2(d.y) * o.z * near - pow2(d.y) * pow2(near) + 2 * d.y * d.z * o.y * o.z - 2 * d.y * d.z * o.y * near - 2 * d.y * d.z * o.z * y + 2 * d.y * d.z * y * near - pow2(d.z) * pow2(o.y) + 2 * pow2(d.z) * o.y * y - pow2(d.z) * pow2(y) + pow2(o.y) * pow2(r) * pow2(u.z) + pow2(o.y) * pow2(r) * pow2(v.z) - 2 * o.y * o.z * pow2(r) * u.y * u.z - 2 * o.y * o.z * pow2(r) * v.y * v.z - 2 * o.y * y * pow2(r) * pow2(u.z) - 2 * o.y * y * pow2(r) * pow2(v.z) + 2 * o.y * pow2(r) * u.y * u.z * near + 2 * o.y * pow2(r) * v.y * v.z * near + pow2(o.z) * pow2(r) * pow2(u.y) + pow2(o.z) * pow2(r) * pow2(v.y) + 2 * o.z * y * pow2(r) * u.y * u.z + 2 * o.z * y * pow2(r) * v.y * v.z - 2 * o.z * pow2(r) * pow2(u.y) * near - 2 * o.z * pow2(r) * pow2(v.y) * near + pow2(y) * pow2(r) * pow2(u.z) + pow2(y) * pow2(r) * pow2(v.z) - 2 * y * pow2(r) * u.y * u.z * near - 2 * y * pow2(r) * v.y * v.z * near + pow2(r) * pow2(u.y) * pow2(near) + pow2(r) * pow2(v.y) * pow2(near));
+            var sqrt = math.sqrt(-square(d.y) * square(o.z) + 2 * square(d.y) * o.z * near - square(d.y) * square(near) + 2 * d.y * d.z * o.y * o.z - 2 * d.y * d.z * o.y * near - 2 * d.y * d.z * o.z * y + 2 * d.y * d.z * y * near - square(d.z) * square(o.y) + 2 * square(d.z) * o.y * y - square(d.z) * square(y) + square(o.y) * square(r) * square(u.z) + square(o.y) * square(r) * square(v.z) - 2 * o.y * o.z * square(r) * u.y * u.z - 2 * o.y * o.z * square(r) * v.y * v.z - 2 * o.y * y * square(r) * square(u.z) - 2 * o.y * y * square(r) * square(v.z) + 2 * o.y * square(r) * u.y * u.z * near + 2 * o.y * square(r) * v.y * v.z * near + square(o.z) * square(r) * square(u.y) + square(o.z) * square(r) * square(v.y) + 2 * o.z * y * square(r) * u.y * u.z + 2 * o.z * y * square(r) * v.y * v.z - 2 * o.z * square(r) * square(u.y) * near - 2 * o.z * square(r) * square(v.y) * near + square(y) * square(r) * square(u.z) + square(y) * square(r) * square(v.z) - 2 * y * square(r) * u.y * u.z * near - 2 * y * square(r) * v.y * v.z * near + square(r) * square(u.y) * square(near) + square(r) * square(v.y) * square(near));
             var denom = d.y * o.z - d.y * near - d.z * o.y + d.z * y + o.y * r * u.z - o.z * r * u.y - y * r * u.z + r * u.y * near;
             return 2 * math.atan((r * (o.y * v.z - o.z * v.y - y * v.z + v.y * near) + math.float2(1, -1) * sqrt) / denom);
         }
