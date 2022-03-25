@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
-
 namespace UnityEditor.ShaderFoundry
 {
     internal struct GeneratedShader
@@ -41,49 +38,56 @@ namespace UnityEditor.ShaderFoundry
 
         static void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            var propertiesMap = new Dictionary<string, BlockProperty>();
-            var propertiesList = new List<BlockProperty>();
+            ShaderPropertyCollection exposedShaderProperties = new ShaderPropertyCollection();
 
-            void CollectUniqueProperties(Block block)
+            void CollectUniqueProperties(BlockInstance blockInstance)
             {
+                if (!blockInstance.IsValid)
+                    return;
+                var block = blockInstance.Block;
                 var properties = block.Properties();
                 if (properties != null)
                 {
                     foreach (var prop in properties)
                     {
-                        var decl = prop.Attributes.GetDeclaration();
-                        if (decl == UnityEditor.ShaderGraph.Internal.HLSLDeclaration.DoNotDeclare)
+                        var propertyAttribute = PropertyAttribute.FindFirst(prop.Attributes);
+                        if (propertyAttribute != null && !propertyAttribute.Exposed)
                             continue;
 
-                        if (!propertiesMap.ContainsKey(prop.Name))
-                        {
-                            propertiesMap.Add(prop.Name, prop);
-                            propertiesList.Add(prop);
-                        }
+                        exposedShaderProperties.Add(prop);
                     }
                 }
+            }
+
+            void CollectUniqueStageElementProperties(TemplatePassStageElement stageElement)
+            {
+                CollectUniqueProperties(stageElement.BlockInstance);
+                if (!stageElement.CustomizationPoint.IsValid)
+                    return;
+                foreach (var blockInstance in stageElement.CustomizationPoint.DefaultBlockInstances)
+                    CollectUniqueProperties(blockInstance);
             }
 
             foreach (var templateInst in shaderInst.TemplateInstances)
             {
                 foreach (var pass in templateInst.Template.Passes)
                 {
-                    foreach (var block in pass.VertexBlocks)
-                        CollectUniqueProperties(block.Block);
-                    foreach (var block in pass.FragmentBlocks)
-                        CollectUniqueProperties(block.Block);
+                    foreach (var stageElement in pass.VertexStageElements)
+                        CollectUniqueStageElementProperties(stageElement);
+                    foreach (var stageElement in pass.FragmentStageElements)
+                        CollectUniqueStageElementProperties(stageElement);
                 }
                 foreach (var cpInst in templateInst.CustomizationPointInstances)
                 {
-                    foreach(var blockInst in cpInst.BlockInstances)
-                        CollectUniqueProperties(blockInst.Block);
+                    foreach (var blockInst in cpInst.BlockInstances)
+                        CollectUniqueProperties(blockInst);
                 }
             }
 
             builder.AddLine("Properties");
             using (builder.BlockScope())
             {
-                foreach (var prop in propertiesList)
+                foreach (var prop in exposedShaderProperties.Properties)
                 {
                     MaterialPropertyDeclaration.Declare(builder, prop);
                 }

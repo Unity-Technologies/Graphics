@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -42,7 +40,7 @@ namespace UnityEditor.ShaderFoundry
         internal static ShaderAttribute Clone(this ShaderAttribute attribute, ShaderContainer container)
         {
             // An attribute doesn't actually have to be cloned to be re-used if the container is the same
-            if(attribute.Container == container)
+            if (attribute.Container == container)
                 return attribute;
 
             // Otherwise we have to copy this into the current container
@@ -135,154 +133,6 @@ namespace UnityEditor.ShaderFoundry
                 builder.Append(")]");
             }
         }
-
-        internal static HLSLDeclaration GetDeclaration(this ShaderAttribute attribute)
-        {
-            var decl = HLSLDeclaration.DoNotDeclare;
-            if (attribute.Name == "Property")
-                decl = HLSLDeclaration.UnityPerMaterial;
-            else if (attribute.Name == "Global")
-                decl = HLSLDeclaration.Global;
-            else if (attribute.Name == "PerMaterial")
-                decl = HLSLDeclaration.UnityPerMaterial;
-            else if (attribute.Name == "Hybrid")
-                decl = HLSLDeclaration.HybridPerInstance;
-            return decl;
-        }
-
-        internal static HLSLDeclaration GetDeclaration(this IEnumerable<ShaderAttribute> attributes)
-        {
-            var result = HLSLDeclaration.DoNotDeclare;
-            foreach (var attribute in attributes)
-            {
-                var decl = attribute.GetDeclaration();
-                if (decl != HLSLDeclaration.DoNotDeclare)
-                {
-                    result = attribute.GetDeclaration();
-                    break;
-                }
-            }
-            return result;
-        }
-
-        internal static bool GetDeclaration(this IEnumerable<ShaderAttribute> attributes, out HLSLDeclaration declaration)
-        {
-            declaration = HLSLDeclaration.DoNotDeclare;
-            foreach (var attribute in attributes)
-            {
-                var decl = attribute.GetDeclaration();
-                if (decl != HLSLDeclaration.DoNotDeclare)
-                {
-                    declaration = decl;
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    internal enum UniformMode { DoNotDeclare, Global, UnityPerMaterial, HybridPerInstance, None = -1 }
-
-    internal class PropertyAttribute
-    {
-        internal string DefaultValue { get; set; } = null;
-        internal string UniformName { get; set; } = null;
-        internal string DisplayName { get; set; } = null;
-        internal string DisplayType { get; set; } = null;
-
-        internal string Tags { get; set; } = null;
-        internal bool Exposed { get; set; } = true;
-        internal UniformMode Mode = UniformMode.None;
-        internal static PropertyAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var attribute = attributes.FindFirst(CommonShaderAttributes.Property);
-            if (attribute.IsValid == false)
-                return null;
-            return Build(attribute);
-        }
-
-        internal static PropertyAttribute Build(ShaderAttribute attribute)
-        {
-            if (!attribute.IsValid || attribute.Name != CommonShaderAttributes.Property)
-                return null;
-
-            var result = new PropertyAttribute();
-            foreach (var param in attribute.Parameters)
-            {
-                if (param.Name == "displayType")
-                    result.DisplayType = param.Value;
-                else if (param.Name == "uniformName")
-                    result.UniformName = param.Value;
-                else if (param.Name == "displayName")
-                    result.DisplayName = param.Value;
-                else if (param.Name == "mode")
-                    result.Mode = ParseMode(param.Value);
-                else if (param.Name == "tags")
-                    result.Tags = param.Value;
-                else if (param.Name == "defaultValue")
-                    result.DefaultValue = param.Value;
-                else if (param.Name == "exposed")
-                {
-                    if(bool.TryParse(param.Value, out var exposed))
-                        result.Exposed = exposed;
-                }
-                else if(param.Value == "HDR")
-                {
-                    result.Tags = $"{result.Tags}[HDR]";
-                }
-            }
-            return result;
-        }
-
-        static UniformMode ParseMode(string mode)
-        {
-            if (mode == "PerMaterial")
-                return UniformMode.UnityPerMaterial;
-            if (mode == "Hybrid")
-                return UniformMode.HybridPerInstance;
-            if (mode == "Global")
-                return UniformMode.Global;
-            if (mode == "DoNotDeclare")
-                return UniformMode.DoNotDeclare;
-            return UniformMode.None;
-        }
-    }
-
-    internal class VirtualTextureLayers
-    {
-        const string AttributeName = "VTexLayers";
-        internal int LayerCount = 1;
-        internal string[] LayerTypes = {"Default", "Default", "Default", "Default" };
-
-        internal static VirtualTextureLayers Build(IEnumerable<ShaderAttribute> attributes)
-        {
-            foreach (var attribute in attributes)
-            {
-                var result = Build(attribute);
-                if (result != null)
-                    return result;
-            }
-            return null;
-        }
-
-        internal static VirtualTextureLayers Build(ShaderAttribute attribute)
-        {
-            if (attribute.Name != AttributeName)
-                return null;
-
-            var result = new VirtualTextureLayers();
-            var index = 0;
-            foreach (var param in attribute.Parameters)
-            {
-                if (index == 0)
-                    int.TryParse(param.Value, out result.LayerCount);
-                else if (index < 5)
-                    result.LayerTypes[index - 1] = param.Value;
-                ++index;
-            }
-
-            return result;
-        }
     }
 
     internal class DefaultValueAttribute
@@ -314,7 +164,7 @@ namespace UnityEditor.ShaderFoundry
         internal string AliasName { get; set; }
         internal static IEnumerable<AliasAttribute> ForEach(IEnumerable<ShaderAttribute> attributes)
         {
-            foreach(var attribute in attributes)
+            foreach (var attribute in attributes)
             {
                 var aliasAttribute = Parse(attribute);
                 if (aliasAttribute != null)

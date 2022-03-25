@@ -12,7 +12,7 @@ public class FoundryTestRenderer
     internal const int defaultResolution = 128;
     internal GraphicsFormat defaultFormat = GraphicsFormat.R8G8B8A8_SRGB;
 
-    internal PreviewSceneResources previewScene = new PreviewSceneResources();
+    static internal PreviewSceneResources previewScene = new PreviewSceneResources();
 
     internal delegate void SetupMaterialDelegate(Material m);
 
@@ -25,6 +25,7 @@ public class FoundryTestRenderer
         mostWrongPixels = 0;
         mostWrongString = string.Empty;
     }
+
     internal void ReportTests()
     {
         if (wrongImageCount > 0)
@@ -37,8 +38,24 @@ public class FoundryTestRenderer
     internal Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
     internal Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
 
-    internal int TestShaderIsConstantColor(Shader shader, string filePrefix, Color32 expectedColor, SetupMaterialDelegate setupMaterial = null, int expectedIncorrectPixels = 0, int errorThreshold = 0, bool compareAlpha = true, bool reportArtifacts = true)
+    internal void CheckForShaderErrors(Shader shader)
     {
+        if (ShaderUtil.ShaderHasError(shader))
+        {
+            var messages = ShaderUtil.GetShaderMessages(shader);
+            foreach (var message in messages)
+            {
+                // TODO @ SHADERS: We should probably check for warnings at some point
+                if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
+                    throw new Exception($"{message.file} {message.line}: {message.message}");
+            }
+        }
+    }
+
+    internal int TestShaderIsConstantColor(Shader shader, string filePrefix, Color expectedColor, SetupMaterialDelegate setupMaterial = null, int expectedIncorrectPixels = 0, int errorThreshold = 0, bool compareAlpha = true, bool reportArtifacts = true)
+    {
+        CheckForShaderErrors(shader);
+
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(defaultResolution, defaultResolution, defaultFormat, depthBufferBits: 32);
         var target = RenderTexture.GetTemporary(descriptor);
 
@@ -158,27 +175,29 @@ public class FoundryTestRenderer
             ReportArtifact(path);
     }
 
-    internal static int CountPixelsNotEqual(RenderTexture target, Color32 value, bool compareAlpha, out float averageMismatchDelta, int errorThreshold = 0)
+    internal static int CountPixelsNotEqual(RenderTexture target, Color value, bool compareAlpha, out float averageMismatchDelta, int errorThreshold = 0)
     {
-        Texture2D temp = new Texture2D(target.width, target.height, TextureFormat.RGBA32, mipChain: false, linear: false);
+        Texture2D temp = new Texture2D(target.width, target.height, TextureFormat.RGBAFloat, mipChain: false, linear: false);
 
         var previousRenderTexture = RenderTexture.active;
         RenderTexture.active = target;
         temp.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
         RenderTexture.active = previousRenderTexture;
 
+        // Convert from RGB32 error threshold to floats. If the old error threshold was 0, use a half pixel to account for rounding.
+        float floatErrorThreshold = (errorThreshold != 0) ? errorThreshold / 256.0f : 0.5f;
         int mismatchCount = 0;
-        int deltaSum = 0;
-        var pixels = temp.GetPixels32(0);
+        float deltaSum = 0;
+        var pixels = temp.GetPixels(0);
         foreach (var pixel in pixels)
         {
-            int deltaR = Math.Abs(pixel.r - value.r);
-            int deltaG = Math.Abs(pixel.g - value.g);
-            int deltaB = Math.Abs(pixel.b - value.b);
-            int deltaA = Math.Abs(pixel.a - value.a);
-            int deltaRGB = Math.Max(Math.Max(deltaR, deltaG), deltaB);
-            int delta = Math.Max(deltaRGB, compareAlpha ? deltaA : 0);
-            if (delta > errorThreshold)
+            float deltaR = Mathf.Abs(pixel.r - value.r);
+            float deltaG = Mathf.Abs(pixel.g - value.g);
+            float deltaB = Mathf.Abs(pixel.b - value.b);
+            float deltaA = Mathf.Abs(pixel.a - value.a);
+            float deltaRGB = Mathf.Max(Mathf.Max(deltaR, deltaG), deltaB);
+            float delta = Mathf.Max(deltaRGB, compareAlpha ? deltaA : 0);
+            if (delta > floatErrorThreshold)
             {
                 deltaSum += delta;
                 mismatchCount++;
@@ -186,7 +205,7 @@ public class FoundryTestRenderer
         }
 
         UnityEngine.Object.DestroyImmediate(temp);
-        averageMismatchDelta = ((mismatchCount > 0) ? (deltaSum / (float) mismatchCount) : 0.0f);
+        averageMismatchDelta = ((mismatchCount > 0) ? (deltaSum / mismatchCount) : 0.0f);
         return mismatchCount;
     }
 
@@ -234,6 +253,7 @@ public class FoundryTestRenderer
 
         // render with it
         RenderMeshWithMaterial(previewScene.camera, previewScene.quad, quadMatrix, mat, target, useSRP);
+        UnityEngine.Object.DestroyImmediate(mat);
     }
 
     internal static void RenderMeshWithMaterial(Camera cam, Mesh mesh, Matrix4x4 transform, Material mat, RenderTexture target, bool useSRP = true)

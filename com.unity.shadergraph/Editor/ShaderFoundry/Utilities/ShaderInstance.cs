@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderFoundry
         public IEnumerable<ShaderDependency> Dependencies => m_Dependencies?.AsReadOnly() ?? Enumerable.Empty<ShaderDependency>();
 
         public bool IsValid => !string.IsNullOrEmpty(m_Name);
-        public static ShaderInstance Invalid => new ShaderInstance(null, null, null);
+        public static ShaderInstance Invalid => new ShaderInstance(null, null, null, null);
 
         internal ShaderInstance(string name, string additionalShaderID, List<TemplateInstance> templateInstances)
         {
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderFoundry
 
             public ShaderInstance Build()
             {
-                return new ShaderInstance(Name, AdditionalShaderID, TemplateInstances);
+                return new ShaderInstance(Name, AdditionalShaderID, TemplateInstances, FallbackShader);
             }
         }
     }

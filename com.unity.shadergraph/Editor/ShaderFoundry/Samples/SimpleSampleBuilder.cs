@@ -48,6 +48,7 @@ namespace UnityEditor.ShaderFoundry
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
             var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName, additionalShaderID);
+
             foreach (var template in provider.GetTemplates(container))
             {
                 if (template.AdditionalShaderID != additionalShaderID)
@@ -56,7 +57,7 @@ namespace UnityEditor.ShaderFoundry
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
                 // Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
-                var customizationPoints = template.CustomizationPoints.ToList();
+                var customizationPoints = template.CustomizationPoints().ToList();
                 var vertexCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.VertexDescriptionCPName));
                 var surfaceCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.SurfaceDescriptionCPName));
 
@@ -69,6 +70,7 @@ namespace UnityEditor.ShaderFoundry
                 var templateInstance = templateInstanceBuilder.Build();
                 shaderInstBuilder.TemplateInstances.Add(templateInstance);
             }
+
             var shaderInst = shaderInstBuilder.Build();
 
             var generatedShader = ShaderGenerator.Generate(container, shaderInst);
