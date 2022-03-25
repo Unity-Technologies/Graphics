@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_MAINTEX",
                 displayName = "MainTex",
                 lightMode = "MainTex",
-                useInPreview = true,
+                useInPreview = false,
                 passTemplatePath = TerrainBaseMapGenTemplate.kPassTemplate,
 
                 // Collections
@@ -64,7 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = TerrainBaseGen.Includes,
                 additionalCommands = TerrainBaseGen.BaseMapMainTex,
                 virtualTextureFeedback = false,
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             return result;
@@ -78,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_METALLICTEX",
                 displayName = "MetallicTex",
                 lightMode = "MetallicTex",
-                useInPreview = true,
+                useInPreview = false,
                 passTemplatePath = TerrainBaseMapGenTemplate.kPassTemplate,
 
                 // Collections
@@ -90,7 +89,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = TerrainBaseGen.Includes,
                 additionalCommands = TerrainBaseGen.BaseMapMetallicTex,
                 virtualTextureFeedback = false,
-                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 

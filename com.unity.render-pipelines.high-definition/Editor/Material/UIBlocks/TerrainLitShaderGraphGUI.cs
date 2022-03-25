@@ -8,13 +8,13 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     internal class TerrainLitShaderGraphGUI : HDShaderGUI, ITerrainLayerCustomUI
     {
-        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Surface | SurfaceOptionUIBlock.Features.ReceiveDecal;
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
         const AdvancedOptionsUIBlock.Features advancedOptionsFeatures = AdvancedOptionsUIBlock.Features.Instancing;
 
         protected MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
-            new TerrainSurfaceOptionsUIBlock(MaterialUIBlock.ExpandableBit.Base),
+            new TerrainSurfaceOptionsUIBlock(MaterialUIBlock.ExpandableBit.Other),
             new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, features: advancedOptionsFeatures),
         };
 

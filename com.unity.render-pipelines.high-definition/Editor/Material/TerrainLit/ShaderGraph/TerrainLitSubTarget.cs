@@ -144,7 +144,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(TerrainKeywordDescriptors.TerrainMaskmap);
             pass.keywords.Add(TerrainKeywordDescriptors.Terrain8Layers);
             pass.keywords.Add(TerrainKeywordDescriptors.TerrainBlendHeight);
-            pass.keywords.Add(TerrainKeywordDescriptors.TerrainInstancedPerPixelNormal);
+
+            if (pass.displayName == "MainTex" || pass.displayName == "MetallicTex")
+                pass.defines.Add(TerrainKeywordDescriptors.TerrainBaseMapGen, 1);
+            else
+                pass.keywords.Add(TerrainKeywordDescriptors.TerrainInstancedPerPixelNormal);
 
             pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
@@ -186,9 +190,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 else
                     pass.keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer, new FieldCondition(HDFields.Unlit, false));
             }
-
-            if (pass.displayName == "MainTex" || pass.displayName == "MetallicTex")
-                pass.defines.Add(TerrainKeywordDescriptors.TerrainBaseMapGen, 1);
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -407,6 +408,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = "_ZTestDepthEqualForOpaque",
+            });
+
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Default,
+                value = 0.0f,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.Global,
+                overrideReferenceName = "_DstBlend",
+                displayName = "DstBlend",
             });
 
             HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting);

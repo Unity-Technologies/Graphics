@@ -67,8 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static void ValidateTerrain(Material material)
         {
-            // TODO :
-            BaseLitAPI.SetupBaseLitKeywords(material);
+            TerrainLitAPI.ValidateMaterial(material);
         }
     }
 }
