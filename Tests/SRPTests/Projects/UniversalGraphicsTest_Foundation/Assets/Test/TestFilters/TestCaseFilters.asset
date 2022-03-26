@@ -256,7 +256,7 @@ MonoBehaviour:
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/URP-1313    
+    Reason: https://jira.unity3d.com/browse/URP-1313
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
@@ -284,4 +284,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: 'Bug: iPhone yamato instability for unknown reason.'
-    
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e983e6ee0e89e14478c8f616dfbc3e20, type: 3}
+    - {fileID: 102900000, guid: ea8e093d73ca555418eb5f7ae5fb9b3d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash on iOS
