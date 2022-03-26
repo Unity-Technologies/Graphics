@@ -792,7 +792,8 @@ namespace UnityEditor.Rendering
         /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
-            if (!string.IsNullOrEmpty(widget.displayName))
+            var w = Cast<DebugUI.Container>(widget);
+            if (!w.hideDisplayName)
                 EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip), EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;

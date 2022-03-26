@@ -7,7 +7,7 @@ The Channel Mixer effect modifies the influence of each input color channel on t
 **Channel Mixer** uses the [Volume](Volumes.md) framework, so to enable and modify **Channel Mixer** properties, you must add a **Channel Mixer** override to a [Volume](Volumes.md) in your Scene. To add **Channel Mixer** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Channel Mixer**. HDRP now applies **Channel Mixer** to any Camera this Volume affects.
+2. In the Inspector, go to **Add Override** > **Post-processing** and select **Channel Mixer**. HDRP now applies **Channel Mixer** to any Camera this Volume affects.
 
 [!include[](snippets/volume-override-api.md)]
 
@@ -21,6 +21,6 @@ Before you modify the influence of each input channel, you must select the outpu
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Red**      | Use the slider to set the influence of the red channel on the selected output channel. |
-| **Green**    | Use the slider to set the influence of the green channel on the selected output channel. |
-| **Blue**     | Use the slider to set the influence of the blue channel on the selected output channel. |
+| **Red Output Channel**      | Use the slider to set the influence of each channel on the red output channel. |
+| **Green Output Channel**    | Use the slider to set the influence of each channel on the green output channel. |
+| **Blue Output Channel**     | Use the slider to set the influence of each channel on the blue output channel. |

@@ -1,4 +1,5 @@
 <tr>
-<td>**Emission**</td>
-<td>Toggles whether emission affects global illumination.</td>
+  <td>Emission</td>
+  <td></td>
+  <td>Toggles whether emission affects global illumination.</td>
 </tr>

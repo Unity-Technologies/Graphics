@@ -11,6 +11,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public class Container : Widget, IContainer
         {
+            const string k_IDToken = "#";
+            internal bool hideDisplayName => string.IsNullOrEmpty(displayName) || displayName.StartsWith(k_IDToken);
+
             /// <summary>
             /// List of children.
             /// </summary>
@@ -37,11 +40,17 @@ namespace UnityEngine.Rendering
             /// Constructor
             /// </summary>
             public Container()
+                : this(string.Empty, new ObservableList<Widget>())
             {
-                displayName = "";
-                children = new ObservableList<Widget>();
-                children.ItemAdded += OnItemAdded;
-                children.ItemRemoved += OnItemRemoved;
+            }
+
+            /// <summary>
+            /// Constructor for a container without header
+            /// </summary>
+            /// <param name="id">The id of the container</param>
+            public Container(string id)
+                : this($"{k_IDToken}{id}", new ObservableList<Widget>())
+            {
             }
 
             /// <summary>

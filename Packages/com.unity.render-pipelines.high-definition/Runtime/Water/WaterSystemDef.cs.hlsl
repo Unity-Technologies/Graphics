@@ -61,7 +61,7 @@ CBUFFER_START(ShaderVariablesWater)
     int _WaterRefSimRes;
     float _WaterSpectrumOffset;
     int _WaterSampleOffset;
-    int _WaterBoundCount;
+    int _WaterBandCount;
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering

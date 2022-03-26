@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="matrix"></param>
         /// <returns></returns>
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
-            => -matrix.m11 / matrix.m00;
+            => - matrix.m11 / matrix.m00;
 
         /// <summary>
         /// Determine if a projection matrix is off-center (asymmetric).
@@ -957,8 +957,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unsafe
             {
-                fixed (byte* b = bytes)
-                    vector = *(Vector4*)b;
+                fixed(byte* b = bytes)
+                vector = *(Vector4*)b;
             }
 
             return vector;

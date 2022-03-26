@@ -15,15 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
-    ColorSpace: 1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: Failing
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 897c2870240f77a46a18884a0446b797, type: 3}
     ColorSpace: 1
     BuildPlatform: 2
@@ -58,3 +49,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Failing on Apple Silicon
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 44
+    GraphicsDevice: 26
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on PS5

@@ -1,6 +1,6 @@
 # High Definition Render Pipeline overview
 
-This is a high level overview of all of the features you can use in the High Definition Render Pipeline (HDRP). This document presents the features in the following categories:
+This is a high level overview of all the features you can use in the High Definition Render Pipeline (HDRP). This document presents the features in the following categories:
 
 - [Project](#Project)
 - [Material](#Material)
@@ -27,7 +27,7 @@ Use HDRP to render distance GameObjects with large world-space coordinates in a 
 
 ### Dynamic resolution
 
-When you use dynamic resolution, HDRP can render at varying resolutions. To do this, it either uses hardware features, if available, or renders to render targets that are equal size or smaller than the current viewport. This helps maintain a stable frame rate in your Unity Project. For more information on dynamic resolution, as well as the types that HDRP supports, see the [dynamic resolution documentation](Dynamic-Resolution.md).
+When you use dynamic resolution, HDRP can render at varying resolutions. To do this, it either uses hardware features, if available, or renders to render targets that are equal size or smaller than the current viewport. This helps maintain a stable frame rate in your Unity Project. For more information on dynamic resolution, and the types of dynamic resolution that HDRP supports, see the [dynamic resolution documentation](Dynamic-Resolution.md).
 
 ### Volumes
 
@@ -48,10 +48,10 @@ HDRP Shaders allow you to use the following features:
 
   - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
   - Iridescence, for surfaces that appear to change color as you view them from different angles, like soap bubbles or insect wings.
-  - Metallic, for surfaces only lit by specular lighting and take the base color input for specular color. For example, aluminum, copper, and steel.
+  - Metallic, for surfaces only lit by specular lighting and that take the base color input for specular color. For example, aluminum, copper, and steel.
   - Specular Color, for surfaces that you want to have a colored specular highlight.
   - Subsurface Scattering, for translucent surfaces that simulate light interaction and scattering, like skin or plant leaves.
-  - Translucent, for surfaces that simulate light interaction, but do not blur light that transmits through the Material.
+  - Translucent, for surfaces that simulate light interaction, but don't blur light that transmits through the Material.
 
 - Pixel and vertex displacement, for surfaces that you want to displace based on a height map.
 
@@ -65,27 +65,27 @@ HDRP Shaders allow you to use the following features:
 
 ![](Images/HDRPFeatures-LitShader.png)
 
-Use the Lit Shader to easily create realistic Materials and includes options for effects including subsurface scattering, iridescence, and translucency. This is the default Shader in HDRP. For more information, including the full list of Shader properties, see the [Lit Shader documentation](Lit-Shader.md).
+The Lit Shader is the default Shader in HDRP. Use the Lit Shader to create realistic Materials. The Lit Shader also includes options for effects including subsurface scattering, iridescence, and translucency. For more information, including the full list of Shader properties, see the [Lit Shader documentation](Lit-Shader.md).
 
 ### Layered Lit Shader
 
 ![](Images/HDRPFeatures-LayeredLitShader.png)
 
-The Layered Lit Shader combines a main Material with other tileable Materials in order to produce visuals with a similar quality to a single high-resolution texture, but at a lower performance cost than a [Lit Shader](Lit-Shader.md) using the single high-resolution Texture. For more information, including a full list of Shader properties, see the [Layered Lit Shader documentation](Layered-Lit-Shader.md).
+The Layered Lit Shader combines a main Material with other tileable Materials to produce visuals with a similar quality to a single high-resolution texture, but in a way that's less resource intensive than a [Lit Shader](Lit-Shader.md) using the single high-resolution Texture. For more information, including a full list of Shader properties, see the [Layered Lit Shader documentation](Layered-Lit-Shader.md).
 
 ### Unlit Shader
 
 ![](Images/HDRPFeatures-UnlitShader.png)
 
-The Unlit Shader allows you to create Materials that are not affected by lighting. Unlit Shaders are perfect for visual effects. For more information, including a full list of Shader properties, see the [Unlit Shader documentation](Unlit-Shader.md).
+The Unlit Shader allows you to create Materials that aren't affected by lighting. Unlit Shaders are perfect for visual effects. For more information, including a full list of Shader properties, see the [Unlit Shader documentation](Unlit-Shader.md).
 
-With the **Shadow Matte** option in the settings, we can have the surface receive shadow without lighting. We have Opaque or Transparent shadow with alpha for each of them.
+With the **Shadow Matte** option, you can have the surface receive shadow without lighting. You can use Opaque or Transparent shadow with alpha for each of them.
 
 ### StackLit Shader
 
 ![](Images/HDRPFeatures-StackLitShader.png)
 
-The StackLit Shader improves on the Lit Shader in favor of quality over performance. This Shader coats surfaces more accurately than the Lit Shader, and, unlike the Lit Shader, allows you to use multiple Material features like anisotropy, subsurface scattering iridescence, and hazy parametrization at the same time.
+The StackLit Shader is a higher quality than the Lit Shader, but more resource intensive. This Shader coats surfaces more accurately than the Lit Shader, and, unlike the Lit Shader, allows you to use multiple Material features like anisotropy, subsurface scattering iridescence, and hazy parametrization at the same time.
 
 ### Hair Shader
 
@@ -128,7 +128,7 @@ The Terrain Lit Shader is compatible with the built-in terrain system and suppor
 
 ![](Images/HDRPFeatures-LightTypes.png)
 
-The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. To assist you in creating physically-accurate lights, the [Light component](Light-Component.md) Inspector includes icons alongside the **Intensity** and **Temperature** properties. Each icon displays the real-world light source that the value of each property currently represents. Each icon is also a button which you can click to access a list of preset values that match real-world light sources. For lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). The HDRP light types are:
+The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. To assist you in creating physically accurate lights, the [Light component](Light-Component.md) Inspector includes icons alongside the **Intensity** and **Temperature** properties. Each icon displays the real-world light source that the value of each property currently represents. Each icon is also a button which you can click to access a list of preset values that match real-world light sources. For lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). The HDRP light types are:
 
 - **Directional**
   - Color temperature
@@ -178,13 +178,13 @@ Some Lens Flare properties only appear when you attach this component to a light
 
 ![](Images/HDRPFeatures-ReflectionProbes.png)
 
-HDRP supports cubemap reflections that take surface smoothness into account. HDRP cubemap reflection optionaly support a fake distance based roughness. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
+HDRP supports cubemap reflections that take surface smoothness into account. HDRP cubemap reflection optionaly support a fake distance based roughness. This helps you produce realistic reflections in your Scene in real time. For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
 
 ### Planar reflection probe
 
 ![](Images/PlanarReflectionFiltering-Feature.png)
 
-HDRP supports Planar reflection probes that take surface smoothness into account. This allows you to to create effects that mimic a shiny mirror or a wet floor. HDRP includes accurate filtering for planar reflection that is close to being physically-based.
+HDRP supports Planar reflection probes that take surface smoothness into account. This allows you to create effects that mimic a shiny mirror or a wet floor. HDRP includes accurate filtering for planar reflection that's close to being physically based.
 
 For more information, see [Planar Reflection Probe](Planar-Reflection-Probe.md).
 
@@ -200,7 +200,7 @@ HDRP supports screen-space global illumination (SSGI). SSGI is an algorithm that
 
 ### Screen-space distortion
 
-HDRP provides a screen-space solution for distortion. Distortion is similar to refraction except that it is purely artistic driven. For more information, see the [distortion](Surface-Type.md#TransparencyInputs) documentation.
+HDRP provides a screen-space solution for distortion. Distortion is similar to refraction except that it's purely artistic driven. For more information, see the [distortion](Surface-Type.md#TransparencyInputs) documentation.
 
 ### Exposure
 
@@ -238,7 +238,7 @@ HDRP uses multiple methods to calculate shadows:
 
 To decrease aliasing for the main cascade shadow maps, you can apply different filters to them, like PCF or PCSS.
 
-For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
+For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full. For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
 
 HDRP also allows you to cache shadow maps. This means you can update shadow maps when you request an update or update them for dynamic objects only. This method can improve performance significantly. For more information, see [Shadows](Shadows-in-HDRP.md#ShadowUpdateMode).
 
@@ -253,7 +253,7 @@ In HDRP, you set up the sky inside a [Volume](Volumes.md), so you can change sky
 - [Gradient Sky](Override-Gradient-Sky.md): Renders a simple sky with three color zones for the top, middle, and bottom sections of the sky.
 - [HDRI Sky](Override-HDRI-Sky.md): Constructs a sky environment based on a cubemap texture you set within the HDRI Volume component.
 - [Physically Based Sky](Override-Physically-Based-Sky.md): Simulates a spherical planet with a two-part atmosphere which features exponentially decreasing density with respect to altitude.
-- [Procedural Sky](Override-Procedural-Sky.md): Produces an environment based on the values you choose within the Procedural Sky Volume component. This is similar to Unity’s [built-in render pipeline procedural sky](https://docs.unity3d.com/Manual/class-Skybox). This sky type has been deprecated, but you can still use it in your HDRP Project. For information on how, see [Upgrading to 2019.3](Upgrading-from-2019.2-to-2019.3.md).
+- [Procedural Sky](Override-Procedural-Sky.md): Produces an environment based on the values you choose within the Procedural Sky Volume component. This is similar to Unity’s [built-in render pipeline procedural sky](https://docs.unity3d.com/Manual/class-Skybox). This sky type is deprecated, but you can still use it in your HDRP Project. For information on how, see [Upgrading to 2019.3](Upgrading-from-2019.2-to-2019.3.md).
 
 HDRP is able to handle multiple skies seen by different Cameras.
 
@@ -298,9 +298,9 @@ HDRP also provides an extension to the screen space ambient occlusion effect whi
 
 ### Physical light units
 
-HDRP uses real-world physical light units, so you can easily light your Scene in a realistic way. For more information on physical light units, including a list of which units HDRP uses, see the [physical light units documentation](Physical-Light-Units.md).
+HDRP uses real-world physical light units, so you can light your Scene in a realistic way. For more information on physical light units, including a list of which units HDRP uses, see the [physical light units documentation](Physical-Light-Units.md).
 
-When using physical light unit, the intensity of lights can be really high and cause precision issue and clamping of highlight.
+When using physical light unit, the intensity of lights can be high and cause precision issue and clamping of highlight.
 To counteract this effect **HDRP use pre-exposure**. Pre-exposure apply the camera exposition from the previous frame before storing the lighting information.
 
 ### Ray tracing (Preview)
@@ -344,22 +344,22 @@ For information about this feature, and for some example scripts, see [Multifram
 
 ![](Images/HDRPFeatures-AntiAliasing.png)
 
-HDRP includes the following [anti-aliasing](Anti-Aliasing.md) methods to help you remove aliasing effects with performance and quality in mind:
+HDRP includes the following [antialiasing](Anti-Aliasing.md) methods to help you remove aliasing effects with performance and quality in mind:
 
-- [Multisample anti-aliasing](Anti-Aliasing.md#MSAA)(MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. You can use an alpha to mask out an area to use MSAA. This is the most resource intensive anti-aliasing technique in HDRP.
-- [Temporal anti-aliasing](Anti-Aliasing.md#TAA)(TAA): Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
-- [Subpixel morphological anti-aliasing](Anti-Aliasing.md#SMAA)(SMAA): Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
-- [Fast approximate anti-aliasing](Anti-Aliasing.md#FXAA)(FXAA): Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
+- [Multisample antialiasing](Anti-Aliasing.md#MSAA)(MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. You can use an alpha to mask out an area to use MSAA. This is the most resource intensive antialiasing technique in HDRP.
+- [Temporal antialiasing](Anti-Aliasing.md#TAA)(TAA): Uses frames from a history buffer to smooth edges more effectively than fast approximate antialiasing. It's better at smoothing edges in motion, but you must enable motion vectors for this.
+- [Subpixel morphological antialiasing](Anti-Aliasing.md#SMAA)(SMAA): Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
+- [Fast approximate antialiasing](Anti-Aliasing.md#FXAA)(FXAA): Smooths edges on a per-pixel level. This is the least resource intensive antialiasing technique in HDRP.
 
 ### Physical Camera
 
-HDRP uses a physically-based Camera system that works seamlessly with the other physical features of HDRP, such as [physical light units](#PLU), to produce physically-accurate, unified results. A physically-based camera works like a real-world camera, and therefore uses the same properties. This allows you to configure an HDRP Camera to mimic the behavior of a real-world camera, with expected results for effects such as exposure and depth of field. For more information on HDRP's physically-based camera, includings a description of how to use it, see the [Camera component documentation](HDRP-Camera.md).
+HDRP uses a physically based Camera system that works seamlessly with the other physical features of HDRP, such as [physical light units](#PLU), to produce physically accurate, unified results. A physically based camera works like a real-world camera, so it uses the same properties. This allows you to configure an HDRP Camera to mimic the behavior of a real-world camera, with expected results for effects such as exposure and depth of field. For more information on HDRP's physically based camera, includings a description of how to use it, see the [Camera component documentation](HDRP-Camera.md).
 
 ### Custom Post-processing
 
 ![Posterize](Images/HDRPFeatures-CustomPostProcess.png)
 
-HDRP allows you to add your own custom post processes integrated with the volume framework. They can be injected after opaque and sky object, before the [temporal anti-aliasing](Anti-Aliasing.md#TAA) pass, before builtin post processes or after builtin post processes. For more information, see the [Custom Post-processing documentation](Custom-Post-Process.md).
+HDRP allows you to add your own custom post processes integrated with the volume framework. You can inject them after opaque and sky object, before the [temporal antialiasing](Anti-Aliasing.md#TAA) pass, before built-in post processes or after built-in post processes. For more information, see the [Custom Post-processing documentation](Custom-Post-Process.md).
 
 ### Custom Passes
 
@@ -367,7 +367,7 @@ HDRP allows you to add your own custom post processes integrated with the volume
 
 Custom Passes allow you to inject shader and C# at certain points inside the render loop, giving you the ability to draw objects, do fullscreen passes and read some camera buffers like depth, color or normal, see the [Custom Pass documentation](Custom-Pass.md).
 
-The Custom Pass API allows you to render GameObjects from another point of view, like a disabled camera, within the rendering of your main Camera. This API also comes with built-in support for rendering Depth, Normal and Tangent into an RTHandle.
+The Custom Pass API allows you to render GameObjects from another point of view, like a disabled camera, within the rendering of your main Camera. This API also comes with built-in support for rendering Depth, Normal, and Tangent into an RTHandle.
 
 You can also use this Camera override to render some GameObjects with a different field of view, like arms in a first-person application.
 
@@ -383,7 +383,7 @@ This feature allows you to export arbitrary data from custom pass injection poin
 
 ![](Images/Path-traced-DOF-Feature.png)
 
-HDRP includes a depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images. You can fix this by increasing the sample count and/or using an external denoising tool.
+HDRP includes a depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works with multiple layers of transparency and doesn't produce any artifacts, apart from noise typical in path traced images. You can fix this by increasing the sample count or using an external denoising tool.
 
 For more information about this feature, see [Depth-of-field](Post-Processing-Depth-of-Field.md).
 
@@ -412,13 +412,15 @@ For information on fog in HDRP, see [fog](Override-Fog.md).
 ![](Images/Path-traced-materials-Feature.png)
 
 Path tracing can render the following rasterization engine [Materials](#Material):
+
 - Lit
 - Layered Lit
 - Unlit
 - Stacklit
 - Fabric
 - AxF
-When path tracing is enabled, objects that use non-HDRP Materials won't appear in the final image.
+
+When you enable path tracing, objects that use non-HDRP Materials won't appear in the final image.
 
 <a name="Tools"></a>
 
@@ -426,11 +428,11 @@ When path tracing is enabled, objects that use non-HDRP Materials won't appear i
 
 ### Render Pipeline Wizard
 
-To help you set up HDRP quickly and correctly, HDRP provides the Render Pipeline Wizard. Use the wizard to fix configuration issues with a single button click, and create a template Scene that is already configured with default Scene settings. For more information on the Render Pipeline Wizard, including a description of how to use it, see the [Render Pipeline Wizard documentation](Render-Pipeline-Wizard.md).
+To help you set up HDRP, HDRP provides the Render Pipeline Wizard. Use the wizard to fix configuration issues with a single button click, and create a template Scene that's already configured with default Scene settings. For more information on the Render Pipeline Wizard, including a description of how to use it, see the [Render Pipeline Wizard documentation](Render-Pipeline-Wizard.md).
 
 ### Rendering Debugger
 
-The Rendering Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Rendering Debugger, including a description of how to use it, see the [Rendering Debugger documentation](Render-Pipeline-Debug-Window.md).
+The Rendering Debugger contains debugging and visualization tools to help you to understand and solve any issues. For more information on the Rendering Debugger, including a description of how to use it, see the [Rendering Debugger documentation](Render-Pipeline-Debug-Window.md).
 
 ### LookDev
 ![](Images/HDRPFeatures-LookDev.png)
@@ -462,7 +464,7 @@ For more information, see the Lighting panel section in the [Rendering Debugger]
 
 The [Rendering Debugger](Render-Pipeline-Debug-Window.md) has a Volume panel that you can use to visualize the Volume components that affect a specific Camera.
 
-For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance.
+For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether it's overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance.
 
 For more information, see the Volume panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#VolumePanel).
 
@@ -473,11 +475,11 @@ This debug tool is made of two parts:
 - Quad Overdraw: This highlights GPU quads running multiple fragment shaders caused by small or thin triangles.
 - Vertex Density: This displays pixels running multiple vertex shaders.
 
-This is useful for Meshes that are far away or highly detailed. This debug tool can help you find GameObjects in your scene that may require LODs. This mode is not currently supported on Metal.
+This is useful for Meshes that are far away or highly detailed. This debug tool can help you find GameObjects in your scene that may require LODs. This mode isn't currently supported on Metal.
 
 ### MatCap mode
 
-In MatCap mode, HDRP replaces the functionality of the Scene window's Lighting button with a material capture (MatCap.md) view. This mode is particularly useful to navigate and get a sense of the Scene without setting up the Scene lighting. For more information on the MatCap mode, including a description of how to use it, see [MatCap mode](MatCap.md)
+In MatCap mode, HDRP replaces the functionality of the Scene view's Lighting button with a material capture (MatCap.md) view. This mode is particularly useful to navigate and get a sense of the Scene without setting up the Scene lighting. For more information on the MatCap mode, including a description of how to use it, see [MatCap mode](MatCap.md)
 
 ### Backplate
 
@@ -486,7 +488,7 @@ In MatCap mode, HDRP replaces the functionality of the Scene window's Lighting b
 From the [HDRI Sky](Override-HDRI-Sky.md), you can directly project the bottom part onto a plane with various shapes such as a Rectangle, Circle, Ellipse, or Infinite plane.
 To match the scale of the GameObjects in your Scene, you can vary the pixel footprint.
 
-### LichrAnchor
+### Light Anchor
 ![](Images/lightanchor0.png)
 
 From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
@@ -508,7 +510,7 @@ This tool support three types of compositing techniques:
 - Camera stacking compositions: Multiple cameras render to the same render target and the result can then be used in graph-based composition.
 - 3D composition: Insert composition layers into a 3D Scene to create effects like reflections/refractions between composited layers on a 3D GameObject.
 
-Overall, this tool allows you to compose a final frame by mixing images and videos with 3D content in real-time inside Unity, without the need of an external compositing tool.
+This tool allows you to compose a final frame by mixing images and videos with 3D content in real-time inside Unity, without the need of an external compositing tool.
 
 For information about the feature, see the [HDRP Compositor documentation](Compositor-Main.md).
 
@@ -528,4 +530,4 @@ HDRP uses a hybrid tile and cluster renderer for [forward and deferred rendering
 
 ### Control on Shadow Update
 
-HDRP provides an API to ask a light to update their shadow maps. All you have to do is set the shadow map update mode to OnDemand and call `RequestShadowMapRendering()` in the `RequestShadowMapRendering` class.
+HDRP provides an API you can use to get a light to update its shadow maps. To do this, set the shadow map **Update Mode** to **OnDemand** and call `RequestShadowMapRendering()` in the `RequestShadowMapRendering` class.

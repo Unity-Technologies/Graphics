@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering
             if (!isInitialized) return;
 
             var cameraPosition = camera.transform.position;
-            if (!debugDisplay.freezeStreaming)
+            if (!probeVolumeDebug.freezeStreaming)
             {
                 m_FrozenCameraPosition = cameraPosition;
             }
@@ -151,10 +151,14 @@ namespace UnityEngine.Rendering
                 if (budgetReached)
                 {
                     int pendingUnloadCount = 0;
-                    while (m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size)
+                    bool canUnloadCell = true;
+                    while (canUnloadCell && m_TempCellToLoadList.size < m_NumberOfCellsLoadedPerFrame && m_TempCellToLoadList.size < m_ToBeLoadedCells.size)
                     {
                         if (m_LoadedCells.size - pendingUnloadCount == 0)
+                        {
+                            canUnloadCell = false;
                             break;
+                        }
 
                         var furthestLoadedCell = m_LoadedCells[m_LoadedCells.size - pendingUnloadCount - 1];
                         var closestUnloadedCell = m_ToBeLoadedCells[m_TempCellToLoadList.size];
@@ -175,8 +179,11 @@ namespace UnityEngine.Rendering
 
                             TryLoadCell(closestUnloadedCell, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList);
                         }
-                        else // We are in a "stable" state, all the closest cells are loaded within the budget.
-                            break;
+                        else
+                        {
+                            // We are in a "stable" state, all the closest cells are loaded within the budget.
+                            canUnloadCell = false;
+                        }
                     }
 
                     if (pendingUnloadCount > 0)

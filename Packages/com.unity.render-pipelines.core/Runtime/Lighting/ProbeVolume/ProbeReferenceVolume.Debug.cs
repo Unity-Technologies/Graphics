@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering
         /// <summary>Name of debug panel for Probe Volume</summary>
         public static readonly string k_DebugPanelName = "Probe Volume";
 
-        internal ProbeVolumeDebug debugDisplay { get; } = new ProbeVolumeDebug();
+        internal ProbeVolumeDebug probeVolumeDebug { get; } = new ProbeVolumeDebug();
 
         /// <summary>Colors that can be used for debug visualization of the brick structure subdivision.</summary>
         public Color[] subdivisionDebugColors { get; } = new Color[ProbeBrickIndex.kMaxSubdivisionLevels];
@@ -167,44 +167,44 @@ namespace UnityEngine.Rendering
             var widgetList = new List<DebugUI.Widget>();
 
             var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Cells", getter = () => debugDisplay.drawCells, setter = value => debugDisplay.drawCells = value, onValueChanged = RefreshDebug });
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", getter = () => debugDisplay.drawBricks, setter = value => debugDisplay.drawBricks = value, onValueChanged = RefreshDebug });
+            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Cells", getter = () => probeVolumeDebug.drawCells, setter = value => probeVolumeDebug.drawCells = value, onValueChanged = RefreshDebug });
+            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", getter = () => probeVolumeDebug.drawBricks, setter = value => probeVolumeDebug.drawBricks = value, onValueChanged = RefreshDebug });
 #if UNITY_EDITOR
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Realtime Update", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
-            if (debugDisplay.realtimeSubdivision)
+            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Realtime Update", getter = () => probeVolumeDebug.realtimeSubdivision, setter = value => probeVolumeDebug.realtimeSubdivision = value, onValueChanged = RefreshDebug });
+            if (probeVolumeDebug.realtimeSubdivision)
             {
-                var cellUpdatePerFrame = new DebugUI.IntField { displayName = "Number Of Cell Update Per Frame", getter = () => debugDisplay.subdivisionCellUpdatePerFrame, setter = value => debugDisplay.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 };
-                var delayBetweenUpdates = new DebugUI.FloatField { displayName = "Delay Between Two Updates In Seconds", getter = () => debugDisplay.subdivisionDelayInSeconds, setter = value => debugDisplay.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 };
+                var cellUpdatePerFrame = new DebugUI.IntField { displayName = "Number Of Cell Update Per Frame", getter = () => probeVolumeDebug.subdivisionCellUpdatePerFrame, setter = value => probeVolumeDebug.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 };
+                var delayBetweenUpdates = new DebugUI.FloatField { displayName = "Delay Between Two Updates In Seconds", getter = () => probeVolumeDebug.subdivisionDelayInSeconds, setter = value => probeVolumeDebug.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 };
                 subdivContainer.children.Add(new DebugUI.Container { children = { cellUpdatePerFrame, delayBetweenUpdates } });
             }
 #endif
 
-            subdivContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.subdivisionViewCullingDistance, setter = value => debugDisplay.subdivisionViewCullingDistance = value, min = () => 0.0f });
+            subdivContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => probeVolumeDebug.subdivisionViewCullingDistance, setter = value => probeVolumeDebug.subdivisionViewCullingDistance = value, min = () => 0.0f });
 
             var probeContainer = new DebugUI.Container() { displayName = "Probe Visualization" };
-            probeContainer.children.Add(new DebugUI.BoolField { displayName = "Display Probes", getter = () => debugDisplay.drawProbes, setter = value => debugDisplay.drawProbes = value, onValueChanged = RefreshDebug });
-            if (debugDisplay.drawProbes)
+            probeContainer.children.Add(new DebugUI.BoolField { displayName = "Display Probes", getter = () => probeVolumeDebug.drawProbes, setter = value => probeVolumeDebug.drawProbes = value, onValueChanged = RefreshDebug });
+            if (probeVolumeDebug.drawProbes)
             {
                 var probeContainerChildren = new DebugUI.Container();
                 probeContainerChildren.children.Add(new DebugUI.EnumField
                 {
                     displayName = "Probe Shading Mode",
-                    getter = () => (int)debugDisplay.probeShading,
-                    setter = value => debugDisplay.probeShading = (DebugProbeShadingMode)value,
+                    getter = () => (int)probeVolumeDebug.probeShading,
+                    setter = value => probeVolumeDebug.probeShading = (DebugProbeShadingMode)value,
                     autoEnum = typeof(DebugProbeShadingMode),
-                    getIndex = () => (int)debugDisplay.probeShading,
-                    setIndex = value => debugDisplay.probeShading = (DebugProbeShadingMode)value,
+                    getIndex = () => (int)probeVolumeDebug.probeShading,
+                    setIndex = value => probeVolumeDebug.probeShading = (DebugProbeShadingMode)value,
                     onValueChanged = RefreshDebug
                 });
-                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Size", getter = () => debugDisplay.probeSize, setter = value => debugDisplay.probeSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
-                if (debugDisplay.probeShading == DebugProbeShadingMode.SH || debugDisplay.probeShading == DebugProbeShadingMode.SHL0 || debugDisplay.probeShading == DebugProbeShadingMode.SHL0L1)
-                    probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Exposure Compensation", getter = () => debugDisplay.exposureCompensation, setter = value => debugDisplay.exposureCompensation = value });
+                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Size", getter = () => probeVolumeDebug.probeSize, setter = value => probeVolumeDebug.probeSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
+                if (probeVolumeDebug.probeShading == DebugProbeShadingMode.SH || probeVolumeDebug.probeShading == DebugProbeShadingMode.SHL0 || probeVolumeDebug.probeShading == DebugProbeShadingMode.SHL0L1)
+                    probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Exposure Compensation", getter = () => probeVolumeDebug.exposureCompensation, setter = value => probeVolumeDebug.exposureCompensation = value });
 
                 probeContainerChildren.children.Add(new DebugUI.IntField
                 {
                     displayName = "Max subdivision displayed",
-                    getter = () => debugDisplay.maxSubdivToVisualize,
-                    setter = (v) => debugDisplay.maxSubdivToVisualize = Mathf.Min(v, ProbeReferenceVolume.instance.GetMaxSubdivision()),
+                    getter = () => probeVolumeDebug.maxSubdivToVisualize,
+                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, ProbeReferenceVolume.instance.GetMaxSubdivision()),
                     min = () => 0,
                     max = () => ProbeReferenceVolume.instance.GetMaxSubdivision(),
                 });
@@ -215,30 +215,30 @@ namespace UnityEngine.Rendering
             probeContainer.children.Add(new DebugUI.BoolField
             {
                 displayName = "Virtual Offset",
-                getter = () => debugDisplay.drawVirtualOffsetPush,
+                getter = () => probeVolumeDebug.drawVirtualOffsetPush,
                 setter = value =>
                 {
-                    debugDisplay.drawVirtualOffsetPush = value;
+                    probeVolumeDebug.drawVirtualOffsetPush = value;
 
-                    if (debugDisplay.drawVirtualOffsetPush && debugDisplay.drawProbes)
+                    if (probeVolumeDebug.drawVirtualOffsetPush && probeVolumeDebug.drawProbes)
                     {
                         // If probes are being drawn when enabling offset, automatically scale them down to a reasonable size so the arrows aren't obscured by the probes.
                         var searchDistance = CellSize(0) * MinBrickSize() / ProbeBrickPool.kBrickCellCount * bakingProcessSettings.virtualOffsetSettings.searchMultiplier + bakingProcessSettings.virtualOffsetSettings.outOfGeoOffset;
-                        debugDisplay.probeSize = Mathf.Min(debugDisplay.probeSize, Mathf.Clamp(searchDistance, kProbeSizeMin, kProbeSizeMax));
+                        probeVolumeDebug.probeSize = Mathf.Min(probeVolumeDebug.probeSize, Mathf.Clamp(searchDistance, kProbeSizeMin, kProbeSizeMax));
                     }
                 },
                 onValueChanged = RefreshDebug
             });
-            if (debugDisplay.drawVirtualOffsetPush)
+            if (probeVolumeDebug.drawVirtualOffsetPush)
             {
-                var voOffset = new DebugUI.FloatField { displayName = "Offset Size", getter = () => debugDisplay.offsetSize, setter = value => debugDisplay.offsetSize = value, min = () => kOffsetSizeMin, max = () => kOffsetSizeMax };
+                var voOffset = new DebugUI.FloatField { displayName = "Offset Size", getter = () => probeVolumeDebug.offsetSize, setter = value => probeVolumeDebug.offsetSize = value, min = () => kOffsetSizeMin, max = () => kOffsetSizeMax };
                 probeContainer.children.Add(new DebugUI.Container { children = { voOffset } });
             }
 
-            probeContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.probeCullingDistance, setter = value => debugDisplay.probeCullingDistance = value, min = () => 0.0f });
+            probeContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => probeVolumeDebug.probeCullingDistance, setter = value => probeVolumeDebug.probeCullingDistance = value, min = () => 0.0f });
 
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
 
             streamingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Loaded Per Frame", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 0 });
 
@@ -289,8 +289,8 @@ namespace UnityEngine.Rendering
                     m_DebugActiveScenario = sceneData.lightingScenario;
                     m_DebugScenarioField.enumNames = m_DebugScenarioNames;
                     m_DebugScenarioField.enumValues = m_DebugScenarioValues;
-                    if (debugDisplay.otherStateIndex >= m_DebugScenarioNames.Length)
-                        debugDisplay.otherStateIndex = 0;
+                    if (probeVolumeDebug.otherStateIndex >= m_DebugScenarioNames.Length)
+                        probeVolumeDebug.otherStateIndex = 0;
                 }
 
                 var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
@@ -303,28 +303,28 @@ namespace UnityEngine.Rendering
                     {
                         RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
 
-                        debugDisplay.otherStateIndex = 0;
+                        probeVolumeDebug.otherStateIndex = 0;
                         if (!string.IsNullOrEmpty(sceneData.otherScenario))
                         {
                             for (int i = 1; i < m_DebugScenarioNames.Length; i++)
                             {
                                 if (m_DebugScenarioNames[i].text == sceneData.otherScenario)
                                 {
-                                    debugDisplay.otherStateIndex = i;
+                                    probeVolumeDebug.otherStateIndex = i;
                                     break;
                                 }
                             }
                         }
-                        return debugDisplay.otherStateIndex;
+                        return probeVolumeDebug.otherStateIndex;
                     },
                     setIndex = value =>
                     {
                         string other = value == 0 ? null : m_DebugScenarioNames[value].text;
                         sceneData.BlendLightingScenario(other, sceneData.scenarioBlendingFactor);
-                        debugDisplay.otherStateIndex = value;
+                        probeVolumeDebug.otherStateIndex = value;
                     },
-                    getter = () => debugDisplay.otherStateIndex,
-                    setter = (value) => debugDisplay.otherStateIndex = value,
+                    getter = () => probeVolumeDebug.otherStateIndex,
+                    setter = (value) => probeVolumeDebug.otherStateIndex = value,
                 };
 
                 blendingContainer.children.Add(m_DebugScenarioField);
@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering
             Vector3 cellCenterWS = cellPosition * cellSize + originWS + Vector3.one * (cellSize / 2.0f);
 
             // We do coarse culling with cell, finer culling later.
-            float distanceRoundedUpWithCellSize = Mathf.CeilToInt(debugDisplay.probeCullingDistance / cellSize) * cellSize;
+            float distanceRoundedUpWithCellSize = Mathf.CeilToInt(probeVolumeDebug.probeCullingDistance / cellSize) * cellSize;
 
             if (Vector3.Distance(cameraTransform.position, cellCenterWS) > distanceRoundedUpWithCellSize)
                 return true;
@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering
             if (!enabledBySRP || !isInitialized)
                 return;
 
-            if (!debugDisplay.drawProbes && !debugDisplay.drawVirtualOffsetPush)
+            if (!probeVolumeDebug.drawProbes && !probeVolumeDebug.drawVirtualOffsetPush)
                 return;
 
             GeometryUtility.CalculateFrustumPlanes(camera, m_DebugFrustumPlanes);
@@ -399,21 +399,21 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < debug.probeBuffers.Count; ++i)
                 {
                     var props = debug.props[i];
-                    props.SetInt("_ShadingMode", (int)debugDisplay.probeShading);
-                    props.SetFloat("_ExposureCompensation", debugDisplay.exposureCompensation);
-                    props.SetFloat("_ProbeSize", debugDisplay.probeSize);
-                    props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
-                    props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
+                    props.SetInt("_ShadingMode", (int)probeVolumeDebug.probeShading);
+                    props.SetFloat("_ExposureCompensation", probeVolumeDebug.exposureCompensation);
+                    props.SetFloat("_ProbeSize", probeVolumeDebug.probeSize);
+                    props.SetFloat("_CullDistance", probeVolumeDebug.probeCullingDistance);
+                    props.SetInt("_MaxAllowedSubdiv", probeVolumeDebug.maxSubdivToVisualize);
                     props.SetFloat("_ValidityThreshold", bakingProcessSettings.dilationSettings.dilationValidityThreshold);
-                    props.SetFloat("_OffsetSize", debugDisplay.offsetSize);
+                    props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
 
-                    if (debugDisplay.drawProbes)
+                    if (probeVolumeDebug.drawProbes)
                     {
                         var probeBuffer = debug.probeBuffers[i];
                         Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
 
-                    if (debugDisplay.drawVirtualOffsetPush)
+                    if (probeVolumeDebug.drawVirtualOffsetPush)
                     {
                         var offsetBuffer = debug.offsetBuffers[i];
                         Graphics.DrawMeshInstanced(m_DebugOffsetMesh, 0, m_DebugOffsetMaterial, offsetBuffer, offsetBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
@@ -458,74 +458,108 @@ namespace UnityEngine.Rendering
             debugData.offsetBuffers = offsetBuffers;
             debugData.props = props;
 
+            var chunkSizeInProbes = m_CurrentProbeVolumeChunkSizeInBricks * ProbeBrickPool.kBrickProbeCountTotal;
+
+            var loc = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
+
             int idxInBatch = 0;
-            for (int i = 0; i < cell.probePositions.Length; i++)
+            int globalIndex = 0;
+            int brickCount = cell.probeCount / ProbeBrickPool.kBrickProbeCountTotal;
+            int bx = 0, by = 0, bz = 0;
+            for (int brickIndex = 0; brickIndex < brickCount; ++brickIndex)
             {
-                var brickSize = cell.bricks[i / 64].subdivisionLevel;
+                Debug.Assert(bz < loc.z);
 
-                int chunkIndex = i / ProbeBrickPool.GetChunkSizeInProbeCount();
+                int brickSize = cell.bricks[brickIndex].subdivisionLevel;
+                int chunkIndex = brickIndex / m_CurrentProbeVolumeChunkSizeInBricks;
                 var chunk = chunks[chunkIndex];
-                int indexInChunk = i % ProbeBrickPool.GetChunkSizeInProbeCount();
-                int brickIdx = indexInChunk / 64;
-                int indexInBrick = indexInChunk % 64;
+                Vector3Int brickStart = new Vector3Int(chunk.x + bx, chunk.y + by, chunk.z + bz);
 
-                Vector2Int brickStart = new Vector2Int(chunk.x + brickIdx * 4, chunk.y);
-                int indexInSlice = indexInBrick % 16;
-                Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
-
-                probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                validity[idxInBatch] = cell.GetValidity(i);
-                texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
-                relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
-
-                if (touchupUpVolumeAction != null)
+                for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; ++z)
                 {
-                    touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteraction[i];
+                    for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; ++y)
+                    {
+                        for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; ++x)
+                        {
+                            Vector3Int texelLoc = new Vector3Int(brickStart.x + x, brickStart.y + y, brickStart.z + z);
+
+                            int probeFlatIndex = chunkIndex * chunkSizeInProbes + (bx + x) + loc.x * ((by + y) + loc.y * (bz + z));
+
+                            probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[probeFlatIndex], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                            validity[idxInBatch] = cell.validity[probeFlatIndex];
+                            texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
+                            relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
+
+                            if (touchupUpVolumeAction != null)
+                            {
+                                touchupUpVolumeAction[idxInBatch] = cell.touchupVolumeInteraction[probeFlatIndex];
+                            }
+
+                            if (offsets != null)
+                            {
+                                const float kOffsetThresholdSqr = 1e-6f;
+
+                                var offset = cell.offsetVectors[probeFlatIndex];
+                                offsets[idxInBatch] = offset;
+
+                                if (offset.sqrMagnitude < kOffsetThresholdSqr)
+                                {
+                                    offsetBuffer.Add(Matrix4x4.identity);
+                                }
+                                else
+                                {
+                                    var position = cell.probePositions[probeFlatIndex] + offset;
+                                    var orientation = Quaternion.LookRotation(-offset);
+                                    var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
+                                    offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
+                                }
+                            }
+                            idxInBatch++;
+
+                            if (probeBuffer.Count >= kProbesPerBatch || globalIndex == cell.probeCount - 1)
+                            {
+                                idxInBatch = 0;
+                                MaterialPropertyBlock prop = new MaterialPropertyBlock();
+
+                                prop.SetFloatArray("_Validity", validity);
+                                prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
+                                prop.SetFloatArray("_RelativeSize", relativeSize);
+                                prop.SetVectorArray("_IndexInAtlas", texels);
+
+                                if (offsets != null)
+                                    prop.SetVectorArray("_Offset", offsets);
+
+                                props.Add(prop);
+
+                                probeBuffers.Add(probeBuffer.ToArray());
+                                probeBuffer = new List<Matrix4x4>();
+                                probeBuffer.Clear();
+
+                                offsetBuffers.Add(offsetBuffer.ToArray());
+                                offsetBuffer.Clear();
+                            }
+
+                            globalIndex++;
+                        }
+                    }
                 }
 
-
-                if (offsets != null)
+                bx += ProbeBrickPool.kBrickProbeCountPerDim;
+                if (bx >= loc.x)
                 {
-                    const float kOffsetThresholdSqr = 1e-6f;
-
-                    var offset = cell.offsetVectors[i];
-                    offsets[idxInBatch] = offset;
-
-                    if (offset.sqrMagnitude < kOffsetThresholdSqr)
+                    bx = 0;
+                    by += ProbeBrickPool.kBrickProbeCountPerDim;
+                    if (by >= loc.y)
                     {
-                        offsetBuffer.Add(Matrix4x4.identity);
+                        by = 0;
+                        bz += ProbeBrickPool.kBrickProbeCountPerDim;
+                        if (bz >= loc.z)
+                        {
+                            bx = 0;
+                            by = 0;
+                            bz = 0;
+                        }
                     }
-                    else
-                    {
-                        var position = cell.probePositions[i] + offset;
-                        var orientation = Quaternion.LookRotation(-offset);
-                        var scale = new Vector3(0.5f, 0.5f, offset.magnitude);
-                        offsetBuffer.Add(Matrix4x4.TRS(position, orientation, scale));
-                    }
-                }
-                idxInBatch++;
-
-                if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
-                {
-                    idxInBatch = 0;
-                    MaterialPropertyBlock prop = new MaterialPropertyBlock();
-
-                    prop.SetFloatArray("_Validity", validity);
-                    prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
-                    prop.SetFloatArray("_RelativeSize", relativeSize);
-                    prop.SetVectorArray("_IndexInAtlas", texels);
-
-                    if (offsets != null)
-                        prop.SetVectorArray("_Offset", offsets);
-
-                    props.Add(prop);
-
-                    probeBuffers.Add(probeBuffer.ToArray());
-                    probeBuffer = new List<Matrix4x4>();
-                    probeBuffer.Clear();
-
-                    offsetBuffers.Add(offsetBuffer.ToArray());
-                    offsetBuffer.Clear();
                 }
             }
 

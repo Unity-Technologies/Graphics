@@ -348,7 +348,11 @@ namespace UnityEditor.Rendering.Universal
                     element.Q<Image>("converterItemStatusIcon").image = icon;
                     element.Q<Image>("converterItemStatusIcon").tooltip = info;
                 };
+#if UNITY_2022_2_OR_NEWER
+                listView.selectionChanged += obj => { m_CoreConvertersList[id].OnClicked(listView.selectedIndex); };
+#else
                 listView.onSelectionChange += obj => { m_CoreConvertersList[id].OnClicked(listView.selectedIndex); };
+#endif
                 listView.unbindItem = (element, index) =>
                 {
                     var bindable = (BindableElement)element;

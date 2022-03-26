@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
@@ -199,7 +197,7 @@ namespace UnityEditor.Rendering
                 {
                     // By default, try to put assets in a folder next to the currently active
                     // scene file. If the user isn't a scene, put them in root instead.
-                    var targetName = actualTarget.name;
+                    var targetName = actualTarget.name + " Profile";
                     var scene = actualTarget.gameObject.scene;
                     var asset = VolumeProfileFactory.CreateVolumeProfile(scene, targetName);
                     m_Profile.objectReferenceValue = asset;
@@ -214,7 +212,7 @@ namespace UnityEditor.Rendering
                     var origin = profileRef;
                     var path = AssetDatabase.GetAssetPath(m_Profile.objectReferenceValue);
 
-                    path = IsAssetInReadOnlyPackage(path)
+                    path = CoreEditorUtils.IsAssetInReadOnlyPackage(path)
 
                         // We may be in a read only package, in that case we need to clone the volume profile in an
                         // editable area, such as the root of the project.
@@ -272,13 +270,6 @@ namespace UnityEditor.Rendering
 
             if (m_Profile.objectReferenceValue == null)
                 EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Info);
-        }
-
-        static bool IsAssetInReadOnlyPackage(string path)
-        {
-            Assert.IsNotNull(path);
-            var info = PackageManager.PackageInfo.FindForAssetPath(path);
-            return info != null && (info.source != PackageSource.Local && info.source != PackageSource.Embedded);
         }
     }
 }

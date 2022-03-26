@@ -244,7 +244,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Sometimes during scene transition, the target object can be null, causing exceptions.
                     using (new EditorGUI.DisabledScope(prop.serializedObject.targetObject == null || !prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue))
                     {
+                        EditorGUI.BeginChangeCheck();
                         EditorGUI.PropertyField(r, prop, GUIContent.none);
+                        if (EditorGUI.EndChangeCheck())
+                            TemperatureSliderUIDrawer.ClampValue(prop);
                     }
                 }, (lprop, rprop) =>
                     {
@@ -297,10 +300,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         return;
                     }
 
-                    LightUnit unit = lightData.lightUnit;
-
                     EditorGUI.BeginChangeCheck();
-                    unit = (LightUnit)EditorGUI.EnumPopup(r, unit);
+
+                    LightUnit unit = lightData.lightUnit;
+                    unit = HDLightUI.DrawLightIntensityUnitPopup(r, unit, lightData.type, lightData.spotLightShape);
+
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(lightData, "Changed light unit");

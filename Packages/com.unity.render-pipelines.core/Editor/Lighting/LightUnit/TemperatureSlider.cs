@@ -167,5 +167,14 @@ namespace UnityEditor.Rendering
                     value.floatValue = val;
             }
         }
+
+        /// <summary>
+        /// Clamp to the authorized range of the temperature slider
+        /// </summary>
+        /// <param name="value">The serialized property</param>
+        public static void ClampValue(SerializedProperty value)
+        {
+            value.floatValue = k_TemperatureSlider.ClampValue(value.floatValue);
+        }
     }
 }

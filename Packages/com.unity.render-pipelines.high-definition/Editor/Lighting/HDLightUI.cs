@@ -512,36 +512,35 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        internal static LightUnit DrawLightIntensityUnitPopup(Rect rect, LightUnit value, HDLightType type, SpotLightShape spotLightShape)
+        {
+            switch (type)
+            {
+                case HDLightType.Directional:
+                    return (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)value);
+                case HDLightType.Point:
+                    return (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)value);
+                case HDLightType.Spot:
+                    if (spotLightShape == SpotLightShape.Box)
+                        return (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)value);
+                    else
+                        return (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)value);
+                default:
+                    return (LightUnit)EditorGUI.EnumPopup(rect, (AreaLightUnit)value);
+            }
+        }
+
         static void DrawLightIntensityUnitPopup(Rect rect, SerializedHDLight serialized, Editor owner)
         {
-            LightUnit selectedLightUnit;
             LightUnit oldLigthUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
 
-            EditorGUI.showMixedValue = serialized.lightUnit.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
 
             EditorGUI.BeginProperty(rect, GUIContent.none, serialized.lightUnit);
-            switch (serialized.type)
-            {
-                case HDLightType.Directional:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
-                    break;
-                case HDLightType.Point:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
-                    break;
-                case HDLightType.Spot:
-                    if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box)
-                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
-                    else
-                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
-                    break;
-                default:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (AreaLightUnit)serialized.lightUnit.GetEnumValue<AreaLightUnit>());
-                    break;
-            }
-            EditorGUI.EndProperty();
-
+            EditorGUI.showMixedValue = serialized.lightUnit.hasMultipleDifferentValues;
+            var selectedLightUnit = DrawLightIntensityUnitPopup(rect, serialized.lightUnit.GetEnumValue<LightUnit>(), serialized.type, serialized.spotLightShape.GetEnumValue<SpotLightShape>());
             EditorGUI.showMixedValue = false;
+            EditorGUI.EndProperty();
 
             if (EditorGUI.EndChangeCheck())
             {

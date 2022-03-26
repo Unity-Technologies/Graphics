@@ -46,42 +46,7 @@ namespace UnityEditor.Rendering
         /// <returns>The newly created <see cref="VolumeProfile"/>.</returns>
         public static VolumeProfile CreateVolumeProfile(Scene scene, string targetName)
         {
-            string path;
-
-            if (string.IsNullOrEmpty(scene.path))
-            {
-                path = "Assets/";
-            }
-            else
-            {
-                var scenePath = Path.GetDirectoryName(scene.path);
-                var extPath = scene.name;
-                var profilePath = scenePath + Path.DirectorySeparatorChar + extPath;
-
-                if (!AssetDatabase.IsValidFolder(profilePath))
-                {
-                    var directories = profilePath.Split(Path.DirectorySeparatorChar);
-                    string rootPath = "";
-                    foreach (var directory in directories)
-                    {
-                        var newPath = rootPath + directory;
-                        if (!AssetDatabase.IsValidFolder(newPath))
-                            AssetDatabase.CreateFolder(rootPath.TrimEnd(Path.DirectorySeparatorChar), directory);
-                        rootPath = newPath + Path.DirectorySeparatorChar;
-                    }
-                }
-
-                path = profilePath + Path.DirectorySeparatorChar;
-            }
-
-            path += targetName + " Profile.asset";
-            path = AssetDatabase.GenerateUniqueAssetPath(path);
-
-            var profile = ScriptableObject.CreateInstance<VolumeProfile>();
-            AssetDatabase.CreateAsset(profile, path);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            return profile;
+            return CoreEditorUtils.CreateAssetAt<VolumeProfile>(scene, targetName);
         }
 
         /// <summary>

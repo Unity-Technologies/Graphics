@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,24 +6,24 @@ using UnityEngine;
 public class PlaySystems : MonoBehaviour {
 
     public ParticleSystem[] particleSystems;
-	[Range(0, 1)]
+    [Range(0, 1)]
     public float simPoint = 0.5f;
     void OnEnable () {
-		foreach(ParticleSystem ps in particleSystems){
+        foreach(ParticleSystem ps in particleSystems){
             if (ps != null)
             {
                 float life = ps.main.duration * simPoint;
                 ps.Simulate(life, true, true, false);
             }
         }
-	}
+    }
 
-	void OnDisable()
+    void OnDisable()
     {
         foreach (ParticleSystem ps in particleSystems)
         {
-			if(ps != null)
-            	ps.Stop();
+            if(ps != null)
+                ps.Stop();
         }
     }
 }
