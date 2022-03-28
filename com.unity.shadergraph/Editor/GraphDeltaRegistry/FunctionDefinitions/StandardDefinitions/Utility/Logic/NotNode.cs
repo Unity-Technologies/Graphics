@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
 
     internal class NotNode : IStandardNode
@@ -21,6 +21,11 @@ namespace com.unity.shadergraph.defs
             { "Parameters.In.Tooltip", "input value" },
             { "Parameters.Out.Tooltip", "the opposite of the input " },
             { "Category", "Utility, Logic" }
+        };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
         };
     }
 }

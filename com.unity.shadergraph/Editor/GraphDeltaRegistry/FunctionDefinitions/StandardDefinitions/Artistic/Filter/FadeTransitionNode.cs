@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
 
     internal class FadeTransitionNode : IStandardNode
@@ -9,7 +9,7 @@ namespace com.unity.shadergraph.defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1,
             "FadeTransition",
-            "Fade = saturate(FadeValue*(FadeContrast+1)+(NoiseValue-1)*FadeContrast)",
+            "Fade = saturate(FadeValue*(FadeContrast+1)+(NoiseValue-1)*FadeContrast);",
             new ParameterDescriptor("NoiseValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("FadeValue", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("FadeContrast", TYPE.Float, Usage.In, new float[] { 1f }), 

@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEngine;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -16,7 +15,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public const string Extension = "sg2";
 
-        public string ToolName => Name;
+        public string ToolName =>
+            Name;
 
         Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
@@ -71,9 +71,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        private Registry.Registry RegistryInstance = null;
+        private Registry RegistryInstance = null;
 
-        public Registry.Registry GetRegistry()
+        public Registry GetRegistry()
         {
             if (RegistryInstance == null)
             {
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // TODO: Get and use UI strings
                 }
 
-                RegistryInstance = Registry.Default.DefaultRegistry.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
+                RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
             }
 
             return RegistryInstance;
@@ -168,7 +168,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
         {
             return null;
-            //throw new NotImplementedException();
         }
     }
 }

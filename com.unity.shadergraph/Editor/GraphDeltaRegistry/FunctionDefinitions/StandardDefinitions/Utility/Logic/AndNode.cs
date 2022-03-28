@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
 
     internal class AndNode : IStandardNode
@@ -23,6 +23,11 @@ namespace com.unity.shadergraph.defs
             { "Parameters.A.Tooltip", "Input A" },
             { "Parameters.B.Tooltip", "Input B" },
             { "Parameters.Out.Tooltip", "true if both A and B are true" }
+        };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
         };
     }
 }

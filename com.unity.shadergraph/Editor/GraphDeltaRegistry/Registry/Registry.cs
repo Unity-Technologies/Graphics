@@ -1,13 +1,10 @@
 using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
-using com.unity.shadergraph.defs;
+using UnityEditor.ShaderGraph.Defs;
 
-namespace UnityEditor.ShaderGraph.Registry
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /*
     TODOs:
@@ -45,7 +42,9 @@ namespace UnityEditor.ShaderGraph.Registry
         public string Name;
         public int Version;
 
-        public override string ToString() => $"{Name}.{Version}";
+        //TODO(Liz) - This _was_ Name.Version but that obviously was an issue with the defaultTopo structure
+        //thinking this was a path...discussion and investigation into longterm ramifications needed
+        public override string ToString() => $"{Name}_{Version}";
         public override int GetHashCode() => ToString().GetHashCode();
         public override bool Equals(object obj) => obj is RegistryKey rk && rk.ToString().Equals(this.ToString());
 
@@ -64,12 +63,19 @@ namespace UnityEditor.ShaderGraph.Registry
 
     [Flags] public enum RegistryFlags
     {
-        Type = 1, // The corresponding node definition is allowed to be a port.
-        Func = 2, // Cannot be a port.
+        Type = 1,
+        Func = 2,
         Cast = 3,
         Base = 4,
     }
 
+    public class PropertyContext : IContextDescriptor
+    {
+        // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => new List<IContextDescriptor.ContextEntry>();
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
+    }
 
     public class Registry
     {
@@ -80,16 +86,17 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             Register<ContextBuilder>();
             Register<ReferenceNodeBuilder>();
+            Register<PropertyContext>();
         }
 
-        internal ShaderFoundry.ShaderType GetShaderType(IFieldReader field, ShaderFoundry.ShaderContainer container)
+        internal ShaderFoundry.ShaderType GetShaderType(FieldHandler field, ShaderFoundry.ShaderContainer container)
         {
             var graphTypeBuilder = this.GetTypeBuilder(field.GetRegistryKey());
             return graphTypeBuilder.GetShaderType(field, container, this);
         }
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
-        public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNodeReader(key.ToString());
+        public NodeHandler GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNode(key.ToString());
 
         public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 

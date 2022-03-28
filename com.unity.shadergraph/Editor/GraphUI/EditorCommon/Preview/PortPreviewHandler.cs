@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             private set => m_Name = value;
         }
 
-        IPortReader m_PortReader;
+        PortHandler m_PortReader;
 
         object m_PortConstantValue;
 
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_PortConstantValue = value;
         }
 
-        public PortPreviewHandler(IPortReader portReader)
+        public PortPreviewHandler(PortHandler portReader)
         {
             Name = Mock_GetHLSLParameterName(portReader);
             m_PortReader = portReader;
@@ -35,21 +35,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
         const string k_SetErrorMessage = "Cannot set a {0} property on a PreviewProperty with type {1}.";
         const string k_GetErrorMessage = "Cannot get a {0} property on a PreviewProperty with type {1}.";
 
-        string Mock_GetHLSLParameterName(IPortReader portReader)
+        string Mock_GetHLSLParameterName(PortHandler portReader)
         {
             // TODO: How to get the actual type of a port?
             // Explore once Esme finishes merging in types
             return String.Empty;
         }
 
-        Type Mock_GetMaterialPropertyTypeOfPort(IPortReader portReader)
+        Type Mock_GetMaterialPropertyTypeOfPort(PortHandler portReader)
         {
             // TODO: How to get the actual type of a port?
             // Explore once Esme finishes merging in types
             return typeof(Vector4);
         }
 
-        object Mock_GetMaterialPropertyValueOfPort(IPortReader portReader)
+        object Mock_GetMaterialPropertyValueOfPort(PortHandler portReader)
         {
             // TODO: How to get the actual value of a port?
             // Esme/Liz will add generic object getters, we just need type to cast down to concrete types
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return PortConstantValue;
         }
 
-        DefaultTextureType Mock_GetDefaultTextureType(IPortReader portReader)
+        DefaultTextureType Mock_GetDefaultTextureType(PortHandler portReader)
         {
             // TODO: How to get the actual value of a default texture type?
             // Will probably be a field on the port/node

@@ -1,7 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -31,13 +29,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 value.y));
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
-            var value = new Vector2();
-
-            reader.GetField("c0", out value.x);
-            reader.GetField("c1", out value.y);
-
+            var value = GraphTypeHelpers.GetAsVec2(reader.GetTypeField());
             m_Field.SetValueWithoutNotify(value);
         }
     }
@@ -64,14 +58,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 value.z));
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
-            var value = new Vector3();
-
-            reader.GetField("c0", out value.x);
-            reader.GetField("c1", out value.y);
-            reader.GetField("c2", out value.z);
-
+            var value = GraphTypeHelpers.GetAsVec3(reader.GetTypeField());
             m_Field.SetValueWithoutNotify(value);
         }
     }
@@ -99,15 +88,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 value.w));
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
-            var value = new Vector4();
-
-            reader.GetField("c0", out value.x);
-            reader.GetField("c1", out value.y);
-            reader.GetField("c2", out value.z);
-            reader.GetField("c3", out value.w);
-
+            var value = GraphTypeHelpers.GetAsVec4(reader.GetTypeField());
             m_Field.SetValueWithoutNotify(value);
         }
     }

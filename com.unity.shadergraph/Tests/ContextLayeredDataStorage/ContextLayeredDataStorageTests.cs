@@ -1,18 +1,79 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
+        [TestFixture]
+        class ElementIDTests
+        {
+            [Test]
+            public void EmptyID()
+            {
+            ElementID test = new ElementID("");
+                Assert.AreEqual(test.FullPath, "");
+                Assert.AreEqual(test.LocalPath, "");
+            }
+
+            [Test]
+            [TestCase("foo")]
+            [TestCase("$.^")]
+            public void SimpleID(string path)
+            {
+            ElementID test = new ElementID(path);
+                Assert.AreEqual(test.FullPath, path);
+                Assert.AreEqual(test.LocalPath, path);
+            }
+
+            [Test]
+            [TestCase(new string[] { }, "", "")]
+            [TestCase(new string[] {""}, "", "")]
+            [TestCase(new string[] {"foo"}, "foo", "foo")]
+            [TestCase(new string[] {"foo", "bar"}, "foo.bar", "bar")]
+            [TestCase(new string[] {"foo", "bar", "baz"}, "foo.bar.baz", "baz")]
+            public void SimpleIDMulti(string[] path, string expectedFullPath, string expectedLocalPath)
+            {
+            ElementID test = new ElementID(path);
+                Assert.AreEqual(test.FullPath, expectedFullPath);
+                Assert.AreEqual(test.LocalPath, expectedLocalPath);
+            }
+        }
+
+    public class TestReader : DataReader
+    {
+        public TestReader(Element element) : base(element) { }
+
+        public override IEnumerable<DataReader> GetChildren()
+        {
+            foreach(var (key, value) in Owner.FlatStructureLookup)
+            {
+                if(Element.ID.IsSubpathOf(key))
+                {
+                    yield return new DataReader(value);
+                }
+            }
+        }
+    }
+
+    public class TestHeader : DataHeader
+    {
+        public override DataReader GetReader(Element element)
+        {
+            return new TestReader(element);
+        }
+    }
+
     public class TestStorage : ContextLayeredDataStorage
     {
         protected override void AddDefaultLayers()
         {
-            m_layerList.AddLayer(0, "TestRoot", true);
+            AddLayer(0, "TestRoot", true);
         }
 
-
         [TestFixture]
-        class ContextLayeredDataStorageFixture
+        class CLDSInternalTests
         {
 
             [Test]
@@ -67,24 +128,25 @@ namespace UnityEditor.ContextLayeredDataStorage
                 store.AddData("a");
                 store.AddData("a.b", 13);
                 store.AddData("a.b.c.d", 35.4f);
-                var elem = store.Search("a") as Element;
+                var elem = store.Search("a").Element;
                 Assert.NotNull(elem);
-                Assert.AreEqual(elem.id, "a");
-                Assert.True(elem.children.Count > 0);
+                Assert.AreEqual(elem.ID.FullPath, "a");
+                Assert.True(elem.Children.Count > 0);
                 int data;
-                elem = store.Search("a.b") as Element;
+                elem = store.Search("a.b").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data));
+                data = elem.GetData<int>();
                 Assert.AreEqual(data, 13);
-                Assert.AreEqual(elem.id, "b");
-                Assert.True(elem.children.Count > 0);
+                Assert.AreEqual(elem.ID.LocalPath, "b");
+                Assert.True(elem.Children.Count > 0);
                 float data2;
-                elem = store.Search("a.b.c.d") as Element;
+                elem = store.Search("a.b.c.d").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data2));
+                data2 = elem.GetData<float>();
                 Assert.AreEqual(data2, 35.4f);
-                Assert.AreEqual(elem.id, "c.d");
-                Assert.False(elem.children.Count > 0);
+                Assert.AreEqual(elem.ID.LocalPath, "d");
+                Assert.AreEqual(elem.ID.FullPath, "a.b.c.d");
+                Assert.False(elem.Children.Count > 0);
             }
 
             [Test]
@@ -94,32 +156,31 @@ namespace UnityEditor.ContextLayeredDataStorage
                 store.AddData("a");
                 store.AddData("a.b");
                 store.AddData("a.b.c.d", 18);
-                var elem = store.Search("a") as Element;
+                var elem = store.Search("a").Element;
                 Assert.NotNull(elem);
-                Assert.AreEqual(elem.id, "a");
-                Assert.True(elem.children.Count > 0);
-                elem = store.Search("a.b") as Element;
+                Assert.AreEqual(elem.ID.LocalPath, "a");
+                Assert.True(elem.Children.Count > 0);
+                elem = store.Search("a.b").Element;
                 Assert.NotNull(elem);
-                Assert.AreEqual(elem.id, "b");
-                Assert.True(elem.children.Count > 0);
+                Assert.AreEqual(elem.ID.LocalPath, "b");
+                Assert.True(elem.Children.Count > 0);
 
                 int data;
 
-                elem = store.Search("a.b.c.d") as Element;
+                elem = store.Search("a.b.c.d").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data));
+                data = elem.GetData<int>();
                 Assert.AreEqual(data, 18);
-                Assert.AreEqual(elem.id, "c.d");
-                Assert.False(elem.children.Count > 0);
+                Assert.AreEqual(elem.ID.LocalPath, "d");
+                Assert.False(elem.Children.Count > 0);
                 store.RemoveData("a.b");
-                elem = store.Search("a.b") as Element;
-                Assert.Null(elem);
-                elem = store.Search("a.b.c.d") as Element;
+                Assert.IsNull(store.Search("a.b"));
+                elem = store.Search("a.b.c.d").Element;
                 Assert.NotNull(elem);
-                Assert.True(elem.TryGetData(out data));
+                data = elem.GetData<int>();
                 Assert.AreEqual(data, 18);
-                Assert.AreEqual(elem.id, "b.c.d");
-                Assert.False(elem.children.Count > 0);
+                Assert.AreEqual(elem.ID.FullPath, "a.b.c.d");
+                Assert.False(elem.Children.Count > 0);
             }
 
 
@@ -132,23 +193,23 @@ namespace UnityEditor.ContextLayeredDataStorage
                 int data;
                 var elemA = store.Search("foo");
                 Assert.NotNull(elemA);
-                Assert.True(elemA.TryGetData(out data));
+                data = elemA.GetData<int>();
                 Assert.AreEqual(data, 10);
                 store.AddNewTopLayer("a");
                 store.AddData("foo", 15);
                 var elemB = store.Search("foo");
                 Assert.NotNull(elemB);
-                Assert.True(elemB.TryGetData(out data));
+                data = elemB.GetData<int>();
                 Assert.AreEqual(data, 15);
                 store.AddData("TestRoot", "foo.bar", 12);
                 var search = store.Search("foo.bar");
                 Assert.NotNull(search);
-                Assert.True(search.TryGetData(out data));
+                data = search.GetData<int>();
                 Assert.AreEqual(data, 12);
                 store.AddData("foo.bar", 20);
                 search = store.Search("foo.bar");
                 Assert.NotNull(search);
-                Assert.True(search.TryGetData(out data));
+                data = search.GetData<int>();
                 Assert.AreEqual(data, 20);
             }
 
@@ -165,21 +226,41 @@ namespace UnityEditor.ContextLayeredDataStorage
                 store.AddData("a.b.c");
                 store.AddData("a.b");
                 store.AddData("a");
-                var elem = store.Search("a") as Element;
+                var elem = store.Search("a").Element;
                 Assert.IsNotNull(elem);
-                Assert.IsFalse(elem.children.Count > 0);
+                Assert.IsFalse(elem.Children.Count > 0);
                 store.Rebalance();
-                elem = store.Search("a") as Element;
+                elem = store.Search("a").Element;
                 Assert.IsNotNull(elem);
-                Assert.IsTrue(elem.children.Count > 0);
-                elem = store.Search("a.b.c") as Element;
+                Assert.IsTrue(elem.Children.Count > 0);
+                elem = store.Search("a.b.c").Element;
                 Assert.IsNotNull(elem);
-                Assert.IsNotNull(elem.parent);
-                Assert.AreEqual(elem.parent.id, "b");
-                elem = store.Search("a.b.c.d.foo.bar.baz") as Element;
+                Assert.IsNotNull(elem.Parent);
+                Assert.AreEqual(elem.Parent.ID.LocalPath, "b");
+                elem = store.Search("a.b.c.d.foo.bar.baz").Element;
                 Assert.IsNotNull(elem);
-                Assert.AreEqual(elem.id, "bar.baz");
+                Assert.AreEqual(elem.ID.LocalPath, "baz");
 
+            }
+
+            [Test]
+            public void CanOverrideHeaderReader()
+            {
+                TestStorage store = new TestStorage();
+                store.AddData("a");
+                store.AddData("a.b");
+                store.AddData("a.b.c");
+                store.AddData("a.b.c.d");
+                store.AddData("a.b.c.d.e");
+                store.AddData("a.b.c.d.e.f");
+                store.AddData("a.b.c.d.foo");
+                store.AddData("a.b.c.d.bar");
+
+                store.SetHeader("a.b", new TestHeader());
+                var reader = store.Search("a.b");
+                var children = reader.GetChildren().ToList();
+                Assert.IsTrue(children.Count == 6);
+                Assert.IsTrue(children.Any(dr => dr.Element.ID.Equals(ElementID.FromString("a.b.c.d.e.f"))));
             }
 
             [Test]
@@ -196,13 +277,70 @@ namespace UnityEditor.ContextLayeredDataStorage
                 EditorJsonUtility.FromJsonOverwrite(serialized, storeDeserialized);
                 var elem = storeDeserialized.Search("a.b"); 
                 Assert.IsNotNull(elem);
-                Assert.IsTrue(elem.TryGetData(out int data));
+                int data = elem.GetData<int>();
                 Assert.AreEqual(data, 13);
                 elem = storeDeserialized.Search("a.b.c.f"); 
                 Assert.IsNotNull(elem);
-                Assert.IsTrue(elem.TryGetData(out Vector3Int data2));
+                Vector3Int data2 = elem.GetData<Vector3Int>();
                 Assert.AreEqual(data2, new Vector3Int(1,2,3));
             }
+        }
+    }
+
+    [TestFixture]
+    public class CLDSExternalTests
+    {
+        [Test]
+        public void CanConstruct()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+        }
+
+        [Test]
+        public void CanAddData()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            clds.AddData("foo").AddChild("bar", 39);
+        }
+
+        [Test]
+        public void CanAddAndReadData()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            clds.AddData("foo.bar", 30);
+            var data = clds.Search("foo.bar");
+            Assert.IsNotNull(data);
+            Assert.AreEqual(data.GetData<int>(), 30);
+            clds.AddData("foo", 12f);
+            data = clds.Search("foo");
+            Assert.IsNotNull(data);
+            Assert.AreEqual(data.GetData<float>(), 12f);
+            data = clds.Search("foo.bar");
+            Assert.IsNotNull(data);
+            Assert.AreEqual(data.GetData<int>(), 30);
+        }
+
+        [Test]
+        public void CanAddAndReadDataContextual()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            var node = clds.AddData("node");
+            var port = node.AddChild("port");
+            port.AddChild("value", new Vector2(10f, 20f));
+            var reader = clds.Search("node.port");
+            Assert.AreEqual(reader.GetChild("value").GetData<Vector2>(), new Vector2(10f, 20f));
+        }
+
+        [Test]
+        public void CanAddReadRemoveDataContextual()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            var node = clds.AddData("node");
+            node.AddChild("in1");
+            node.AddChild("in2").AddChild("value", 3f);
+            node.RemoveChild("in1");
+            Assert.IsNull(clds.Search("node.in1"));
+            var reader = clds.Search("node");
         }
     }
 }

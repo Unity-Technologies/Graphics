@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
 
     internal class Matrix4Node : IStandardNode
@@ -19,6 +19,11 @@ namespace com.unity.shadergraph.defs
             { "Category", "Input, Matrix" },
             { "Tooltip", "creates a static 4x4 matrix" },
             { "Parameters.Out.Tooltip", "a 4x4 matrix" }
+        };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
         };
     }
 }

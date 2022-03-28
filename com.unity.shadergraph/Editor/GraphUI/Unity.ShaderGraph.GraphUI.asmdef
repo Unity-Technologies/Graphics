@@ -15,7 +15,8 @@
         "Unity.GraphTools.Foundation.Searcher",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ShaderGraph.GraphDeltaRegistry",
-        "Unity.ShaderGraph.Generation"
+        "Unity.ShaderGraph.Generation",
+        "ContextLayeredDataStorage"
     ],
     "includePlatforms": [
         "Editor"

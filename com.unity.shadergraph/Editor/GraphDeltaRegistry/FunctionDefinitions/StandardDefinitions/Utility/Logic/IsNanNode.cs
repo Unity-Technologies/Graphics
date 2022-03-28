@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
 
     internal class IsNanNode : IStandardNode
@@ -21,6 +21,11 @@ namespace com.unity.shadergraph.defs
             { "Parameters.Out.Tooltip", "true if the input is not a number (NaN)" },
             { "Category", "Utility, Logic" },
             { "DisplayName", "Is Nan"}
+        };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
         };
     }
 }

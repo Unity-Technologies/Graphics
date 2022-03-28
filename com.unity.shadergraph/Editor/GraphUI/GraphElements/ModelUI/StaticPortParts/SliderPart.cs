@@ -1,7 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -31,9 +29,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 change.newValue));
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
-            if (!reader.GetField("c0", out float value)) value = 0;
+            if (!reader.GetTypeField().GetField("c0", out float value)) value = 0;
             m_Field.SetValueWithoutNotify(value);
         }
     }

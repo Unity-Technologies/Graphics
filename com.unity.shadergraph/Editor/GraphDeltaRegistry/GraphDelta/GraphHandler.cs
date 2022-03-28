@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Registry;
 using System.Linq;
-using UnityEngine;
+using UnityEditor.ContextLayeredDataStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -29,15 +29,42 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return EditorJsonUtility.ToJson(graphDelta.m_data, true);
         }
 
-        internal INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder => graphDelta.AddNode<T>(name, registry);
-        public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry) => graphDelta.AddNode(key, name, registry);
-        public INodeWriter AddContextNode(RegistryKey key, Registry.Registry registry) => graphDelta.AddContextNode(key, registry);
-        public bool ReconcretizeNode(string name, Registry.Registry registry) => graphDelta.ReconcretizeNode(name, registry);
-        public INodeReader GetNodeReader(string name) => graphDelta.GetNodeReader(name);
-        public INodeWriter GetNodeWriter(string name) => graphDelta.GetNodeWriter(name);
-        public void RemoveNode(string name) => graphDelta.RemoveNode(name);
-        public IEnumerable<INodeReader> GetNodes() => graphDelta.GetNodes();
-        public void ReconcretizeAll(Registry.Registry registry)
+        internal NodeHandler AddNode<T>(string name, Registry registry) where T : INodeDefinitionBuilder =>
+            graphDelta.AddNode<T>(name, registry);
+
+        public NodeHandler AddNode(RegistryKey key, string name, Registry registry) =>
+            graphDelta.AddNode(key, name, registry);
+
+        public NodeHandler AddContextNode(RegistryKey key, Registry registry) =>
+            graphDelta.AddContextNode(key, registry);
+
+        public bool ReconcretizeNode(string name, Registry registry) =>
+            graphDelta.ReconcretizeNode(name, registry);
+
+        [Obsolete("GetNodeReader is obsolete - Use GetNode now", false)]
+        public NodeHandler GetNodeReader(string name) =>
+            graphDelta.GetNode(name);
+
+        [Obsolete("GetNodeWriter is obselete - Use GetNode now", false)]
+        public NodeHandler GetNodeWriter(string name) =>
+            graphDelta.GetNode(name);
+
+        public NodeHandler GetNode(ElementID name) =>
+            graphDelta.GetNode(name);
+
+        public void RemoveNode(string name) =>
+            graphDelta.RemoveNode(name);
+
+        public IEnumerable<NodeHandler> GetNodes() =>
+            graphDelta.GetNodes();
+
+		public EdgeHandler AddEdge(ElementID output, ElementID input) =>
+            graphDelta.AddEdge(output, input);
+
+        public void RemoveEdge(ElementID output, ElementID input) =>
+            graphDelta.RemoveEdge(output, input);
+
+        public void ReconcretizeAll(Registry registry)
         {
             foreach (var name in GetNodes().Select(e => e.GetName()).ToList())
             {
@@ -52,10 +79,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                             ReconcretizeNode(node.GetName(), registry);
                         }
                     }
+
                 }
             }
         }
 
+        public IEnumerable<PortHandler> GetConnectedPorts(ElementID portID) => graphDelta.GetConnectedPorts(portID);
+
+        public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID);
         //public TargetRef AddTarget(TargetType targetType)
 
         //public void RemoveTarget(TargetRef targetRef)

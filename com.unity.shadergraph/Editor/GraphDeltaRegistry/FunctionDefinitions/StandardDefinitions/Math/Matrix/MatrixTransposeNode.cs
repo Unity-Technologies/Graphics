@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
 
     internal class MatrixTransposeNode : IStandardNode
@@ -22,6 +22,11 @@ namespace com.unity.shadergraph.defs
             { "Parameters.Out.Tooltip", "the transposed value of the input matrix" },
             { "Category", "Math, Matrix" },
             { "DisplayName", "Matrix Transpose" }
+        };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
         };
     }
 }
