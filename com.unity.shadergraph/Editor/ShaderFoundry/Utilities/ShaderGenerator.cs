@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 GenerateProperties(builder, container, shaderInst);
                 GenerateSubShaders(builder, container, shaderInst);
+                GenerateUsePasses(builder, container, shaderInst);
                 GenerateDependencies(builder, container, shaderInst);
                 GenerateCustomEditors(builder, container, shaderInst);
                 GenerateFallback(builder, container, shaderInst);
@@ -104,26 +105,22 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
+        static void GenerateUsePasses(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        {
+            foreach (var usePass in shaderInst.UsePasses)
+                builder.AppendLine($"UsePass \"{usePass}\"");
+        }
+
         static void GenerateDependencies(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            string lastDependencyName = null;
             foreach (var dependency in shaderInst.Dependencies)
-            {
-                if (dependency.DependencyName != lastDependencyName)
-                    builder.AppendLine($"Dependency \"{dependency.DependencyName}\" = \"{dependency.ShaderName}\"");
-                lastDependencyName = dependency.DependencyName;
-            }
+                builder.AppendLine($"Dependency \"{dependency.DependencyName}\" = \"{dependency.ShaderName}\"");
         }
 
         static void GenerateCustomEditors(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
-            string lastRenderPipelineAssetType = null;
             foreach (var customEditor in shaderInst.CustomEditors)
-            {
-                if (customEditor.RenderPipelineAssetType != lastRenderPipelineAssetType)
-                    builder.AppendLine($"CustomEditorForRenderPipeline \"{customEditor.ShaderGUI}\" \"{customEditor.RenderPipelineAssetType}\"");
-                lastRenderPipelineAssetType = customEditor.RenderPipelineAssetType;
-            }
+                builder.AppendLine($"CustomEditorForRenderPipeline \"{customEditor.CustomEditorClassName}\" \"{customEditor.RenderPipelineAssetClassName}\"");
         }
 
         static void GenerateFallback(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)

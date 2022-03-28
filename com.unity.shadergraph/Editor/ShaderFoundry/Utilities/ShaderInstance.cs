@@ -7,9 +7,9 @@ namespace UnityEditor.ShaderFoundry
     {
         public int Compare(ShaderCustomEditor a, ShaderCustomEditor b)
         {
-            int result = string.CompareOrdinal(a.RenderPipelineAssetType, b.RenderPipelineAssetType);
+            int result = string.CompareOrdinal(a.RenderPipelineAssetClassName, b.RenderPipelineAssetClassName);
             if (result == 0)
-                result = string.CompareOrdinal(a.ShaderGUI, b.ShaderGUI);
+                result = string.CompareOrdinal(a.CustomEditorClassName, b.CustomEditorClassName);
             return result;
         }
     }
@@ -25,6 +25,14 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 
+    class UsePassSorter : IComparer<string>
+    {
+        public int Compare(string a, string b)
+        {
+            return string.CompareOrdinal(a, b);
+        }
+    }
+
     internal readonly struct ShaderInstance
     {
         readonly string m_Name;
@@ -33,6 +41,7 @@ namespace UnityEditor.ShaderFoundry
         readonly string m_FallbackShader;
         readonly List<ShaderCustomEditor> m_CustomEditors;
         readonly List<ShaderDependency> m_Dependencies;
+        readonly List<string> m_UsePasses;
 
         public string Name => m_Name;
         public bool IsPrimaryShader => string.IsNullOrEmpty(m_AdditionalShaderID);
@@ -40,9 +49,10 @@ namespace UnityEditor.ShaderFoundry
         public string FallbackShader => m_FallbackShader;
         public IEnumerable<ShaderCustomEditor> CustomEditors => m_CustomEditors?.AsReadOnly() ?? Enumerable.Empty<ShaderCustomEditor>();
         public IEnumerable<ShaderDependency> Dependencies => m_Dependencies?.AsReadOnly() ?? Enumerable.Empty<ShaderDependency>();
+        public IEnumerable<string> UsePasses => m_UsePasses?.AsReadOnly() ?? Enumerable.Empty<string>();
 
         public bool IsValid => !string.IsNullOrEmpty(m_Name);
-        public static ShaderInstance Invalid => new ShaderInstance(null, null, null, null);
+        public static ShaderInstance Invalid => new ShaderInstance(null, null, null);
 
         internal ShaderInstance(string name, string additionalShaderID, List<TemplateInstance> templateInstances)
         {
@@ -50,10 +60,11 @@ namespace UnityEditor.ShaderFoundry
             m_AdditionalShaderID = additionalShaderID;
             m_TemplateInstances = templateInstances;
 
-            // these are copied out from the set of template instances
+            // these are copied out of the Templates in the template instances
             m_FallbackShader = null;
-            m_CustomEditors = new List<ShaderCustomEditor>();
-            m_Dependencies = new List<ShaderDependency>();
+            var customEditors = new List<ShaderCustomEditor>();
+            var dependencies = new List<ShaderDependency>();
+            var usePasses = new List<string>();
             foreach (var templateInstance in templateInstances)
             {
                 if (!string.IsNullOrEmpty(templateInstance.Template.ShaderFallback))
@@ -64,25 +75,58 @@ namespace UnityEditor.ShaderFoundry
                     {
                         if (m_FallbackShader != templateInstance.Template.ShaderFallback)
                         {
-                            // ERROR : conflicting shader fallbacks defined...
+                            // TODO @ SHADERS ERROR - conflicting shader fallbacks defined...
                         }
                     }
                 }
 
-                foreach (var customEditor in templateInstance.Template.ShaderCustomEditors)
-                {
-                    if (!m_CustomEditors.Contains(customEditor))
-                        m_CustomEditors.Add(customEditor);
-                }
-
-                foreach (var dependency in templateInstance.Template.ShaderDependencies)
-                {
-                    if (!m_Dependencies.Contains(dependency))
-                        m_Dependencies.Add(dependency);
-                }
+                customEditors.AddRange(templateInstance.Template.ShaderCustomEditors);
+                dependencies.AddRange(templateInstance.Template.ShaderDependencies);
+                usePasses.AddRange(templateInstance.Template.ShaderUsePasses);
             }
-            m_CustomEditors.Sort(new CustomEditorSorter());
-            m_Dependencies.Sort(new DependencySorter());
+
+            // sort these lists to a deterministic order
+            customEditors.Sort(new CustomEditorSorter());
+            dependencies.Sort(new DependencySorter());
+            usePasses.Sort(new UsePassSorter());
+
+            // filter out conflicting custom editors (relies on sort order)
+            m_CustomEditors = new List<ShaderCustomEditor>();
+            string lastRenderPipelineAssetClassName = null;
+            foreach (var customEditor in customEditors)
+            {
+                if (customEditor.RenderPipelineAssetClassName != lastRenderPipelineAssetClassName)
+                    m_CustomEditors.Add(customEditor);
+                else
+                {
+                    // TODO @ SHADERS ERROR potentially conflicting custom editors defined... (if the CustomEditorClassNames are different)
+                }
+                lastRenderPipelineAssetClassName = customEditor.RenderPipelineAssetClassName;
+            }
+
+            // filter out conflicting dependencies (relies on sort order)
+            m_Dependencies = new List<ShaderDependency>();
+            string lastDependencyName = null;
+            foreach (var dependency in dependencies)
+            {
+                if (dependency.DependencyName != lastDependencyName)
+                    m_Dependencies.Add(dependency);
+                else
+                {
+                    // TODO @ SHADERS ERROR potentially conflicting dependencies defined... (if the ShaderNames are different)
+                }
+                lastDependencyName = dependency.DependencyName;
+            }
+
+            // filter out duplicate use passes (relies on sort order)
+            m_UsePasses = new List<string>();
+            string lastUsePass = null;
+            foreach (var usePass in usePasses)
+            {
+                if (usePass != lastUsePass)
+                    m_UsePasses.Add(usePass);
+                lastUsePass = usePass;
+            }
         }
 
         internal class Builder
@@ -101,7 +145,7 @@ namespace UnityEditor.ShaderFoundry
 
             public ShaderInstance Build()
             {
-                return new ShaderInstance(Name, AdditionalShaderID, TemplateInstances, FallbackShader);
+                return new ShaderInstance(Name, AdditionalShaderID, TemplateInstances);
             }
         }
     }

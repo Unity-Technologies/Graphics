@@ -101,13 +101,23 @@ namespace UnityEditor.ShaderFoundry
             builder.AdditionalShaderID = subShaderDescriptor.additionalShaderID;
             builder.ShaderFallback = subShaderDescriptor.shaderFallback ?? "Hidden/Shader Graph/FallbackError";
 
+            if (subShaderDescriptor.usePassList != null)
+            {
+                foreach (var usePass in subShaderDescriptor.usePassList)
+                    builder.AddShaderUsePass(usePass);
+            }
+
             if (subShaderDescriptor.shaderDependencies != null)
+            {
                 foreach (var dependency in subShaderDescriptor.shaderDependencies)
                     builder.AddShaderDependency(dependency.dependencyName, dependency.shaderName);
+            }
 
             if (subShaderDescriptor.shaderCustomEditors != null)
+            {
                 foreach (var customEditor in subShaderDescriptor.shaderCustomEditors)
                     builder.AddShaderCustomEditor(customEditor.shaderGUI, customEditor.renderPipelineAssetType);
+            }
 
             // TODO: we might just be able to get rid of subShaderDescriptor.shaderCustomEditor,
             // I don't believe anyone is still using it...
