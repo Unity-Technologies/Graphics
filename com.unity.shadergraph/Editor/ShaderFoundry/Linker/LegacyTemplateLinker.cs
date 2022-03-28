@@ -74,6 +74,9 @@ namespace UnityEditor.ShaderFoundry
                     GenerateShaderPass(template, pass, entryPoints, shaderProperties, builder);
                     ++passIndex;
                 }
+
+                foreach (var usePass in template.ShaderUsePasses)
+                    builder.AppendLine($"UsePass \"{usePass}\"");
             }
         }
 

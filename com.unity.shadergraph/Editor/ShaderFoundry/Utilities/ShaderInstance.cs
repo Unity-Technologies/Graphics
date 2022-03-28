@@ -1,38 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace UnityEditor.ShaderFoundry
 {
-    class CustomEditorSorter : IComparer<ShaderCustomEditor>
-    {
-        public int Compare(ShaderCustomEditor a, ShaderCustomEditor b)
-        {
-            int result = string.CompareOrdinal(a.RenderPipelineAssetClassName, b.RenderPipelineAssetClassName);
-            if (result == 0)
-                result = string.CompareOrdinal(a.CustomEditorClassName, b.CustomEditorClassName);
-            return result;
-        }
-    }
-
-    class DependencySorter : IComparer<ShaderDependency>
-    {
-        public int Compare(ShaderDependency a, ShaderDependency b)
-        {
-            int result = string.CompareOrdinal(a.DependencyName, b.DependencyName);
-            if (result == 0)
-                result = string.CompareOrdinal(a.ShaderName, b.ShaderName);
-            return result;
-        }
-    }
-
-    class UsePassSorter : IComparer<string>
-    {
-        public int Compare(string a, string b)
-        {
-            return string.CompareOrdinal(a, b);
-        }
-    }
-
     internal readonly struct ShaderInstance
     {
         readonly string m_Name;
@@ -41,7 +12,6 @@ namespace UnityEditor.ShaderFoundry
         readonly string m_FallbackShader;
         readonly List<ShaderCustomEditor> m_CustomEditors;
         readonly List<ShaderDependency> m_Dependencies;
-        readonly List<string> m_UsePasses;
 
         public string Name => m_Name;
         public bool IsPrimaryShader => string.IsNullOrEmpty(m_AdditionalShaderID);
@@ -49,7 +19,6 @@ namespace UnityEditor.ShaderFoundry
         public string FallbackShader => m_FallbackShader;
         public IEnumerable<ShaderCustomEditor> CustomEditors => m_CustomEditors?.AsReadOnly() ?? Enumerable.Empty<ShaderCustomEditor>();
         public IEnumerable<ShaderDependency> Dependencies => m_Dependencies?.AsReadOnly() ?? Enumerable.Empty<ShaderDependency>();
-        public IEnumerable<string> UsePasses => m_UsePasses?.AsReadOnly() ?? Enumerable.Empty<string>();
 
         public bool IsValid => !string.IsNullOrEmpty(m_Name);
         public static ShaderInstance Invalid => new ShaderInstance(null, null, null);
@@ -64,7 +33,6 @@ namespace UnityEditor.ShaderFoundry
             m_FallbackShader = null;
             var customEditors = new List<ShaderCustomEditor>();
             var dependencies = new List<ShaderDependency>();
-            var usePasses = new List<string>();
             foreach (var templateInstance in templateInstances)
             {
                 if (!string.IsNullOrEmpty(templateInstance.Template.ShaderFallback))
@@ -82,13 +50,11 @@ namespace UnityEditor.ShaderFoundry
 
                 customEditors.AddRange(templateInstance.Template.ShaderCustomEditors);
                 dependencies.AddRange(templateInstance.Template.ShaderDependencies);
-                usePasses.AddRange(templateInstance.Template.ShaderUsePasses);
             }
 
             // sort these lists to a deterministic order
-            customEditors.Sort(new CustomEditorSorter());
+            customEditors.Sort();
             dependencies.Sort(new DependencySorter());
-            usePasses.Sort(new UsePassSorter());
 
             // filter out conflicting custom editors (relies on sort order)
             m_CustomEditors = new List<ShaderCustomEditor>();
@@ -117,16 +83,6 @@ namespace UnityEditor.ShaderFoundry
                 }
                 lastDependencyName = dependency.DependencyName;
             }
-
-            // filter out duplicate use passes (relies on sort order)
-            m_UsePasses = new List<string>();
-            string lastUsePass = null;
-            foreach (var usePass in usePasses)
-            {
-                if (usePass != lastUsePass)
-                    m_UsePasses.Add(usePass);
-                lastUsePass = usePass;
-            }
         }
 
         internal class Builder
@@ -147,6 +103,19 @@ namespace UnityEditor.ShaderFoundry
             {
                 return new ShaderInstance(Name, AdditionalShaderID, TemplateInstances);
             }
+        }
+    }
+
+    // we must declare this sorter class, instead of making ShaderDependency implement IComparable, because
+    // declaring a CompareTo function in ShaderDependency crashes the bindings generation somehow...
+    class DependencySorter : IComparer<ShaderDependency>
+    {
+        public int Compare(ShaderDependency a, ShaderDependency b)
+        {
+            int result = string.CompareOrdinal(a.DependencyName, b.DependencyName);
+            if (result == 0)
+                result = string.CompareOrdinal(a.ShaderName, b.ShaderName);
+            return result;
         }
     }
 }

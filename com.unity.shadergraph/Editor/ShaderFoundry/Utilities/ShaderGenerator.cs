@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderFoundry
         public string shaderName;
         public bool isPrimaryShader;
         public string codeString;
-        // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO: needed for populating compiled shader
+        // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO @ SHADERS: needed for populating compiled shader
         public string errorMessage;
     }
 
@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderFoundry
             {
                 GenerateProperties(builder, container, shaderInst);
                 GenerateSubShaders(builder, container, shaderInst);
-                GenerateUsePasses(builder, container, shaderInst);
                 GenerateDependencies(builder, container, shaderInst);
                 GenerateCustomEditors(builder, container, shaderInst);
                 GenerateFallback(builder, container, shaderInst);
@@ -103,12 +102,6 @@ namespace UnityEditor.ShaderFoundry
                 var linker = template.Linker;
                 linker.Link(builder, container, templateInst);
             }
-        }
-
-        static void GenerateUsePasses(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
-        {
-            foreach (var usePass in shaderInst.UsePasses)
-                builder.AppendLine($"UsePass \"{usePass}\"");
         }
 
         static void GenerateDependencies(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
