@@ -1,4 +1,4 @@
-using System;
+using System.Linq;
 using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta

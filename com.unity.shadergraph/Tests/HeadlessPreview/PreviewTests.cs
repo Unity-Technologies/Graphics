@@ -17,17 +17,10 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                 new ()
                 {
                     fieldName = "BaseColor",
-<<<<<<< HEAD
-                    primitive = Types.GraphType.Primitive.Float,
-                    precision = Types.GraphType.Precision.Single,
-                    height = Types.GraphType.Height.One,
-                    length = Types.GraphType.Length.Three,
-=======
                     primitive = GraphType.Primitive.Float,
-                    precision = GraphType.Precision.Fixed,
+                    precision = GraphType.Precision.Single,
                     height = GraphType.Height.One,
                     length = GraphType.Length.Three,
->>>>>>> origin/sg2/staging-master
                 }
             };
         }
@@ -599,21 +592,12 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var graphHandler = new GraphHandler();
             var registry = new Registry();
             var previewMgr = new HeadlessPreviewManager();
-<<<<<<< HEAD
 
-            registry.Register<Types.GraphType>();
-            registry.Register<Types.GraphTypeAssignment>();
-            registry.Register<Types.GradientType>();
-            registry.Register<Types.GradientNode>();
-            registry.Register<Types.SampleGradientNode>();
-=======
-        
             registry.Register<GraphType>();
             registry.Register<GraphTypeAssignment>();
             registry.Register<GradientType>();
             registry.Register<GradientNode>();
             registry.Register<SampleGradientNode>();
->>>>>>> origin/sg2/staging-master
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);

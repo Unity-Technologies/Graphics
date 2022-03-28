@@ -153,18 +153,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                         new IContextDescriptor.ContextEntry()
                         {
                             fieldName = "Foo",
-<<<<<<< HEAD
-                            primitive = Registry.Types.GraphType.Primitive.Int,
-                            height = Registry.Types.GraphType.Height.One,
-                            length = Registry.Types.GraphType.Length.One,
-                            precision = Registry.Types.GraphType.Precision.Fixed,
-=======
                             primitive = GraphType.Primitive.Int,
                             height = GraphType.Height.One,
                             length = GraphType.Length.One,
                             precision = GraphType.Precision.Fixed,
-                            isFlat = true
->>>>>>> origin/sg2/staging-master
                         }
                     };
                 }
@@ -298,18 +290,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
                 Assert.AreEqual(4, (int)len);
             }
-<<<<<<< HEAD
-
-
-
-
 
             [Test]
             public void ReferenceNodes()
             {
                 registry.Register<TestDescriptor>();
-                registry.Register<Registry.Types.GraphType>();
-                graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), registry);
+                registry.Register<GraphType>();
+                graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), registry);
                 var contextNode = graphHandler.GetNode("TestContextDescriptor");
 
                 IContextDescriptor.ContextEntry entry = new()
@@ -337,8 +324,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 // TODO: Maybe have some sort of Clone operation on ITypeDefinitionBuilder?
                 // Assert.AreEqual(GraphType.Primitive.Int, GraphTypeHelpers.GetPrimitive(fooField));
             }
-=======
->>>>>>> origin/sg2/staging-master
         }
     }
 }
