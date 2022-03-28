@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace com.unity.shadergraph.defs {
+namespace UnityEditor.ShaderGraph.Defs
+{
 
     /// <summary>
     /// A FunctionDescriptor describes a shader function.

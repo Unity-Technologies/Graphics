@@ -1,11 +1,7 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderFoundry;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -14,9 +10,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
         [TestFixture]
         class GraphUtilFixture
         {
-            class TestNode : Registry.Defs.INodeDefinitionBuilder
+            class TestNode : INodeDefinitionBuilder
             {
-                public void BuildNode(NodeHandler node, Registry.Registry registry)
+                public void BuildNode(NodeHandler node, Registry registry)
                 {
 
                 }
@@ -31,22 +27,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     return new RegistryKey() { Name = "TestNode", Version = 1 };
                 }
 
-                public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry.Registry registry)
+                public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
                 {
                     throw new System.NotImplementedException();
                 }
             }
 
-            private Registry.Registry registry = null;
+            private Registry registry = null;
             private GraphHandler graphHandler = null;
 
             [SetUp]
             public void Setup()
             {
-                registry = new Registry.Registry();
+                registry = new Registry();
                 registry.Register<TestNode>();
                 registry.Register<GraphType>();
-                registry.Register<AddNode>();
+                registry.Register<TestAddNode>();
                 graphHandler = new GraphHandler();
             }
 
@@ -80,7 +76,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddNodeAndPorts()
             {
-                var fooNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "foo", registry);
+                var fooNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "foo", registry);
                 fooNode.AddPort("A",   true,  true);
                 fooNode.AddPort("B",   true,  true);
                 fooNode.AddPort("Out", false, true);
@@ -102,12 +98,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddTwoNodesAndConnect()
             {
-                var fooNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "foo", registry);
+                var fooNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "foo", registry);
                 fooNode.AddPort("A",   true,  true);
                 fooNode.AddPort("B",   true,  true);
                 fooNode.AddPort("Out", false, true);
 
-                var barNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "bar", registry);
+                var barNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "bar", registry);
                 barNode.AddPort("A",   true,  true);
                 barNode.AddPort("B",   true,  true);
                 barNode.AddPort("Out", false, true);
@@ -119,7 +115,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void ConcretizationTest()
             {
-                graphHandler.AddNode<AddNode>("AddNodeRef", registry);
+                graphHandler.AddNode<TestAddNode>("AddNodeRef", registry);
                 GraphStorage storage = graphHandler.graphDelta.m_data;
                 var concreteLayer = storage.GetLayerRoot(GraphDelta.k_concrete);
 
@@ -148,7 +144,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.IsTrue(concretePortTypeField.Children.Count == 8);
             }
 
-            public class TestDescriptor : Registry.Defs.IContextDescriptor
+            public class TestDescriptor : IContextDescriptor
             {
                 public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
                 {
@@ -157,10 +153,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                         new IContextDescriptor.ContextEntry()
                         {
                             fieldName = "Foo",
+<<<<<<< HEAD
                             primitive = Registry.Types.GraphType.Primitive.Int,
                             height = Registry.Types.GraphType.Height.One,
                             length = Registry.Types.GraphType.Length.One,
                             precision = Registry.Types.GraphType.Precision.Fixed,
+=======
+                            primitive = GraphType.Primitive.Int,
+                            height = GraphType.Height.One,
+                            length = GraphType.Length.One,
+                            precision = GraphType.Precision.Fixed,
+                            isFlat = true
+>>>>>>> origin/sg2/staging-master
                         }
                     };
                 }
@@ -180,9 +184,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             public void CanSetupContext()
             {
                 registry.Register<TestDescriptor>();
-                registry.Register<Registry.Types.GraphType>();
-                //graphHandler.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, registry);
-                graphHandler.AddContextNode(Registry.Registry.ResolveKey<TestDescriptor>(), registry);
+                registry.Register<GraphType>();
+                graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), registry);
                 var contextNode = graphHandler.GetNode("TestContextDescriptor");
                 Assert.NotNull(contextNode);
                 var fooReader = contextNode.GetPort("Foo");
@@ -275,13 +278,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             public void ReconcretizeGraph()
             {
                 var graph = new GraphHandler();
-                var registry = new Registry.Registry();
-                registry.Register<Registry.Types.GraphType>();
-                registry.Register<Registry.Types.AddNode>();
-                registry.Register<Registry.Types.GraphTypeAssignment>();
+                var registry = new Registry();
+                registry.Register<GraphType>();
+                registry.Register<TestAddNode>();
+                registry.Register<GraphTypeAssignment>();
 
                 // should default concretize length to 4.
-                graph.AddNode<Registry.Types.AddNode>("Add1", registry);
+                graph.AddNode<TestAddNode>("Add1", registry);
                 var reader = graph.GetNodeReader("Add1");
                 var len = reader.GetPort("In1").GetTypeField().GetSubField<GraphType.Length>("Length").GetData();
                 Assert.AreEqual(4, (int)len);
@@ -295,6 +298,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
                 Assert.AreEqual(4, (int)len);
             }
+<<<<<<< HEAD
 
 
 
@@ -333,7 +337,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 // TODO: Maybe have some sort of Clone operation on ITypeDefinitionBuilder?
                 // Assert.AreEqual(GraphType.Primitive.Int, GraphTypeHelpers.GetPrimitive(fooField));
             }
+=======
+>>>>>>> origin/sg2/staging-master
         }
     }
-
 }

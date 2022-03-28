@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         GraphHandler m_GraphHandle;
 
-        Registry.Registry m_RegistryInstance;
+        Registry m_RegistryInstance;
 
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new();
 
@@ -178,7 +178,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <summary>
         /// Used to set which registry instance this preview manager gets its type data from.
         /// </summary>
-        public void SetActiveRegistry(Registry.Registry registryInstance)
+        public void SetActiveRegistry(Registry registryInstance)
         {
             m_RegistryInstance = registryInstance;
         }

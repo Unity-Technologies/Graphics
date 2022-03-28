@@ -1,13 +1,10 @@
 using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
-using com.unity.shadergraph.defs;
+using UnityEditor.ShaderGraph.Defs;
 
-namespace UnityEditor.ShaderGraph.Registry
+namespace UnityEditor.ShaderGraph.GraphDelta
 {
     /*
     TODOs:
@@ -66,12 +63,19 @@ namespace UnityEditor.ShaderGraph.Registry
 
     [Flags] public enum RegistryFlags
     {
-        Type = 1, // The corresponding node definition is allowed to be a port.
-        Func = 2, // Cannot be a port.
+        Type = 1,
+        Func = 2,
         Cast = 3,
         Base = 4,
     }
-
+    
+    public class PropertyContext : IContextDescriptor
+    {
+        // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => null;
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
+    }
 
     public class Registry
     {
@@ -82,6 +86,7 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             Register<ContextBuilder>();
             Register<ReferenceNodeBuilder>();
+            Register<PropertyContext>();
         }
 
         internal ShaderFoundry.ShaderType GetShaderType(FieldHandler field, ShaderFoundry.ShaderContainer container)

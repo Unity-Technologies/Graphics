@@ -1,21 +1,21 @@
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
+using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// </summary>
     internal readonly struct TypeDescriptor
     {
-        public Primitive Primitive { get; }
-        public Precision Precision { get; }
-        public Length Length { get; }
-        public Height Height { get; }
+        public GraphType.Primitive Primitive { get; }
+        public GraphType.Precision Precision { get; }
+        public GraphType.Length Length { get; }
+        public GraphType.Height Height { get; }
 
         public TypeDescriptor(
-            Precision precision,
-            Primitive primitive,
-            Length length,
-            Height height)
+            GraphType.Precision precision,
+            GraphType.Primitive primitive,
+            GraphType.Length length,
+            GraphType.Height height)
         {
             Primitive = primitive;
             Precision = precision;

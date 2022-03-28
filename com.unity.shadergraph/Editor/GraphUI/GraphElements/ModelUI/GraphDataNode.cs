@@ -1,8 +1,5 @@
-using System;
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
@@ -41,12 +38,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 bool isStatic = staticField?.GetData() ?? false;
 
                 if (!isStatic) continue;
-                if (portKey.Name == Registry.Registry.ResolveKey<GradientType>().Name)
+                if (portKey.Name == Registry.ResolveKey<GradientType>().Name)
                 {
                     PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.GetName()));
                     continue;
                 }
-                if (portReader.GetTypeField().GetRegistryKey().Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
+                if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name) continue;
                 var portName = portReader.LocalID;
 
                 var typeField = portReader.GetTypeField();
