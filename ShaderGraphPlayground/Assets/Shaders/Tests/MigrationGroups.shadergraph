@@ -846,9 +846,6 @@
             "m_Id": "0f14973d653d425cb5eed66f2c8971cb"
         },
         {
-            "m_Id": "c0d1f7796298473e92b17738156b9d0d"
-        },
-        {
             "m_Id": "5e1fe7c2f71647fb85a19ee771d6e4a1"
         },
         {
@@ -2439,9 +2436,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -899.000244140625,
-            "y": 566.0001220703125,
-            "width": 175.50018310546876,
+            "x": 1156.0001220703125,
+            "y": 764.5,
+            "width": 175.5,
             "height": 148.99993896484376
         }
     },
@@ -2660,9 +2657,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -899.000244140625,
-            "y": 715.0000610351563,
-            "width": 271.50006103515627,
+            "x": -899.0,
+            "y": 566.0,
+            "width": 271.5,
             "height": 183.5
         }
     },
@@ -5771,7 +5768,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "2ab95c6c5cc64518b160356c0e00cd81",
     "m_Title": "Complex Texture",
-    "m_Content": "5\nhttps://jira.unity3d.com/browse/GSG-709",
+    "m_Content": "4\nhttps://jira.unity3d.com/browse/GSG-709",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -14557,10 +14554,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -899.000244140625,
-            "y": 898.0001220703125,
-            "width": 296.5001220703125,
-            "height": 327.5001220703125
+            "x": -899.0,
+            "y": 749.0,
+            "width": 296.5,
+            "height": 327.5
         }
     },
     "m_Slots": [
@@ -17635,7 +17632,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "8f0438561a7d4cd6bdf540923db7c960",
     "m_Title": "Complex Referable",
-    "m_Content": "5\nhttps://jira.unity3d.com/browse/GSG-707\n",
+    "m_Content": "6\nhttps://jira.unity3d.com/browse/GSG-707\n",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -22021,26 +22018,6 @@
     "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
-    }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
-    "m_ObjectId": "c0d1f7796298473e92b17738156b9d0d",
-    "m_Title": "This only needs the color picker",
-    "m_Content": "",
-    "m_TextSize": 0,
-    "m_Theme": 0,
-    "m_Position": {
-        "serializedVersion": "2",
-        "x": 8.000000953674317,
-        "y": 2819.500244140625,
-        "width": 200.00001525878907,
-        "height": 100.0
-    },
-    "m_Group": {
-        "m_Id": ""
     }
 }
 
@@ -27835,7 +27812,7 @@
             "serializedVersion": "2",
             "x": 1493.5001220703125,
             "y": 2244.500244140625,
-            "width": 159.9998779296875,
+            "width": 160.0,
             "height": 207.0
         }
     },

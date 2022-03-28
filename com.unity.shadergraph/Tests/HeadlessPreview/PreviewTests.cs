@@ -477,6 +477,13 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             //      8) Testing if a property is at a given value in the MPB after setting the property
         }
 
+        static object[] interpreterTestCases = new object[]
+        {
+            ("Add1", new Color(1,0,0,1)), //Colors with Alpha 1 since target is opaque
+            ("Add2", new Color(0,1,0,1)),
+            ("Add3", new Color(1,1,0,1)),
+        };
+
         [Test]
         [TestCaseSource("interpreterTestCases")]
         public void InterpreterTests((string nodeToCompile, Color expectedColor) input)
@@ -610,7 +617,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
 
             // default 1 time color is white.
-            nodeWriter.SetPortField(SampleGradientNode.kTime, "c0", 1f);
+            //nodeWriter.SetPortField(SampleGradientNode.kTime, "c0", 1f);
+            nodeWriter.GetPort(SampleGradientNode.kTime).GetTypeField().GetSubField<float>("c0").SetData(1f);
             previewMgr.SetLocalProperty("SampleGradientNode", SampleGradientNode.kTime, 1f);
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
