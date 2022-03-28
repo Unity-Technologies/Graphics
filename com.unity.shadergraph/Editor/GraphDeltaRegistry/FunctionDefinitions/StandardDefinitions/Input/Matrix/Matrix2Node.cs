@@ -20,5 +20,10 @@ namespace UnityEditor.ShaderGraph.Defs
             { "Tooltip", "creates a static 2x2 matrix" },
             { "Parameters.Out.Tooltip", "a 2x2 matrix" }
         };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
+        };
     }
 }

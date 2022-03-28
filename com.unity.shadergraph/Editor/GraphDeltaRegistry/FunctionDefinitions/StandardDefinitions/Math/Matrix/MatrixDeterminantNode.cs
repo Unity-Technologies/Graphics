@@ -23,5 +23,10 @@ namespace UnityEditor.ShaderGraph.Defs
             { "Category", "Math, Matrix" },
             { "DisplayName", "Matrix Determinant" }
         };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
+        };
     }
 }

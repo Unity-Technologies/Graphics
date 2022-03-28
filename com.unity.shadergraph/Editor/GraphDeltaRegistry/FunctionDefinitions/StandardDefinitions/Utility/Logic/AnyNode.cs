@@ -21,5 +21,10 @@ namespace UnityEditor.ShaderGraph.Defs
             { "Parameters.Out.Tooltip", "true if any input components are non-zero" },
             { "Category", "Utility, Logic" }
         };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
+        };
     }
 }
