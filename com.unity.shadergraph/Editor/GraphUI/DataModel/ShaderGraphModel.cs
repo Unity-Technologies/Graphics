@@ -5,8 +5,6 @@ using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -24,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ShaderGraphAssetModel ShaderGraphAssetModel => AssetModel as ShaderGraphAssetModel;
 
-        public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
+        public Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 
         protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
         {
@@ -57,8 +55,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
-                dst.graphDataNodeModel.graphDataName, dst.graphDataName,
                 src.graphDataNodeModel.graphDataName, src.graphDataName,
+                dst.graphDataNodeModel.graphDataName, dst.graphDataName,
                 RegistryInstance);
         }
 
@@ -138,7 +136,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // cache the Action to avoid GC
-        static Action<GraphDataNodeModel> AddNextLevelNodesToWave =
+        static readonly Action<GraphDataNodeModel> AddNextLevelNodesToWave =
             nextLevelNode =>
             {
                 if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
@@ -186,35 +184,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
         }
 
-        static IEnumerable<INodeReader> GetUpstreamNodes(INodeReader startingNode)
+        static IEnumerable<NodeHandler> GetUpstreamNodes(NodeHandler startingNode)
         {
-            foreach (var inputPort in startingNode.GetInputPorts())
-            {
-                foreach (var connectedPort in inputPort.GetConnectedPorts())
-                {
-                    foreach (var upstreamNode in GetUpstreamNodes(connectedPort.GetNode()))
-                        yield return upstreamNode;
-                }
-            }
-
-            yield return startingNode;
+            return Utils.GraphTraversalUtils.GetUpstreamNodes(startingNode);
         }
 
-        static IEnumerable<INodeReader> GetDownstreamNodes(INodeReader startingNode)
+        static IEnumerable<NodeHandler> GetDownstreamNodes(NodeHandler startingNode)
         {
-            foreach (var inputPort in startingNode.GetOutputPorts())
-            {
-                foreach (var connectedPort in inputPort.GetConnectedPorts())
-                {
-                    foreach (var downstreamNodes in GetDownstreamNodes(connectedPort.GetNode()))
-                        yield return downstreamNodes;
-                }
-            }
-
-            yield return startingNode;
+            return Utils.GraphTraversalUtils.GetDownstreamNodes(startingNode);
         }
 
-        static GraphDataNodeModel TryGetNodeModel(ShaderGraphModel shaderGraphModel, INodeReader inputNodeReader)
+        static GraphDataNodeModel TryGetNodeModel(ShaderGraphModel shaderGraphModel, NodeHandler inputNodeReader)
         {
             // TODO: Make a mapping between every node model and node reader so we can also do lookup
             // from NodeReaders to NodeModels, as is needed below for instance
@@ -269,7 +249,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
         {
             bool nodeRequiresTime = false;
-            if(graphDataNodeModel.TryGetNodeReader(out var nodeReader))
+            if(graphDataNodeModel.TryGetNodeReader(out var _))
             {
                 // TODO: Some way of making nodes be marked as requiring time or not
                 // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,

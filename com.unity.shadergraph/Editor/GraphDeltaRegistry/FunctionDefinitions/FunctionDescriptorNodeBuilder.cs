@@ -1,13 +1,8 @@
 using System;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEditor.ShaderGraph.Registry.Types;
-using UnityEngine;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
 
-namespace com.unity.shadergraph.defs
+namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// FunctionDescriptorNodeBuilder is a way to to make INodeDefinitionBuilder
@@ -26,74 +21,59 @@ namespace com.unity.shadergraph.defs
         /// </summary>
         /// <param name="userData">A reader for a node in the user layer.</param>
         /// <returns>The type that Any should resolve to for ports in the node.</returns>
-        static TypeDescriptor FallbackTypeResolver(INodeReader userData)
+        static TypeDescriptor FallbackTypeResolver(NodeHandler userData)
         {
             // TODO (Brett) You really need to test this more!
             // 1 < 4 < 3 < 2 for Height and Length
             // Bigger wins for Primitive and Precision
 
-            Height resolvedHeight = Height.Any;
-            Length resolvedLength = Length.Any;
-            Precision resolvedPrecision = Precision.Any;
-            Primitive resolvedPrimitive = Primitive.Any;
+            GraphType.Height resolvedHeight = GraphType.Height.Any;
+            GraphType.Length resolvedLength = GraphType.Length.Any;
+            GraphType.Precision resolvedPrecision = GraphType.Precision.Any;
+            GraphType.Primitive resolvedPrimitive = GraphType.Primitive.Any;
 
             // Find the highest priority value for all type parameters set
             // in the user data.
             foreach (var port in userData.GetPorts())
             {
-                var field = (IFieldReader)port;
-                if (field.TryGetSubField(kLength, out IFieldReader fieldReader))
-                {
-                    fieldReader.TryGetValue(out Length readLength);
-                    if (LengthToPriority[resolvedLength] < LengthToPriority[readLength])
-                    {
-                        resolvedLength = readLength;
-                    }
-                }
-                if (field.TryGetSubField(kHeight, out fieldReader))
-                {
-                    fieldReader.TryGetValue(out Height readHeight);
-                    if (HeightToPriority[resolvedHeight] < HeightToPriority[readHeight])
-                    {
-                        resolvedHeight = readHeight;
-                    }
-                }
-                if (field.TryGetSubField(kPrecision, out fieldReader))
-                {
-                    fieldReader.TryGetValue(out Precision readPrecision);
-                    if (PrecisionToPriority[resolvedPrecision] < PrecisionToPriority[readPrecision])
-                    {
-                        resolvedPrecision = readPrecision;
-                    }
-                }
-                if (field.TryGetSubField(kPrimitive, out fieldReader))
-                {
-                    fieldReader.TryGetValue(out Primitive readPrimitive);
-                    if (PrimitiveToPriority[resolvedPrimitive] < PrimitiveToPriority[readPrimitive])
-                    {
-                        resolvedPrimitive = readPrimitive;
-                    }
-                }
+                var field = port.GetTypeField();
+
+                var lengthField = field.GetSubField<GraphType.Length>(GraphType.kLength);
+                var heightField = field.GetSubField<GraphType.Height>(GraphType.kLength);
+                var precisionField = field.GetSubField<GraphType.Precision>(GraphType.kLength);
+                var primitiveField = field.GetSubField<GraphType.Primitive>(GraphType.kLength);
+
+                if (lengthField != null && GraphType.LengthToPriority[resolvedLength] < GraphType.LengthToPriority[lengthField.GetData()])
+                    resolvedLength = lengthField.GetData();
+
+                if (heightField != null && GraphType.HeightToPriority[resolvedHeight] < GraphType.HeightToPriority[heightField.GetData()])
+                    resolvedHeight = heightField.GetData();
+
+                if (precisionField != null && GraphType.PrecisionToPriority[resolvedPrecision] < GraphType.PrecisionToPriority[precisionField.GetData()])
+                    resolvedPrecision = precisionField.GetData();
+
+                if (primitiveField != null && GraphType.PrimitiveToPriority[resolvedPrimitive] < GraphType.PrimitiveToPriority[primitiveField.GetData()])
+                    resolvedPrimitive = primitiveField.GetData();
             }
 
             // If we didn't find a value for a type parameter in user data,
             // set it to a legacy default.
-            if (resolvedLength == Length.Any)
+            if (resolvedLength == GraphType.Length.Any)
             {
-                resolvedLength = Length.Four;
+                resolvedLength = GraphType.Length.Four;
             }
-            if (resolvedHeight == Height.Any)
+            if (resolvedHeight == GraphType.Height.Any)
             {
                 // this matches the legacy resolving behavior
-                resolvedHeight = Height.One;
+                resolvedHeight = GraphType.Height.One;
             }
-            if (resolvedPrecision == Precision.Any)
+            if (resolvedPrecision == GraphType.Precision.Any)
             {
-                resolvedPrecision = Precision.Single;
+                resolvedPrecision = GraphType.Precision.Single;
             }
-            if (resolvedPrimitive == Primitive.Any)
+            if (resolvedPrimitive == GraphType.Primitive.Any)
             {
-                resolvedPrimitive = Primitive.Float;
+                resolvedPrimitive = GraphType.Primitive.Float;
             }
 
             return new TypeDescriptor(
@@ -113,43 +93,42 @@ namespace com.unity.shadergraph.defs
         /// <param name="nodeWriter">The way to write to the port/field.</param>
         /// <param name="registry">The registry holding the node.</param>
         /// <returns></returns>
-        static IPortWriter ParameterDescriptorToField(
+        static PortHandler ParameterDescriptorToField(
             ParameterDescriptor param,
             TypeDescriptor fallbackType,
-            INodeReader nodeReader,
-            INodeWriter nodeWriter,
+            NodeHandler node,
             Registry registry)
         {
             // Create a port.
-            IPortWriter port = nodeWriter.AddPort<GraphType>(
-                nodeReader,
+            var port = node.AddPort<GraphType>(
                 param.Name,
-                param.Usage is Usage.In or Usage.Static or Usage.Local,
-                registry
+                param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local, registry
             );
+
             TypeDescriptor paramType = param.TypeDescriptor;
 
             // A new type descriptor with all Any values replaced.
             TypeDescriptor resolvedType = new(
-                paramType.Precision == Precision.Any ? fallbackType.Precision : paramType.Precision,
-                paramType.Primitive == Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
-                paramType.Length == Length.Any ? fallbackType.Length : paramType.Length,
-                paramType.Height == Height.Any ? fallbackType.Height : paramType.Height
+                paramType.Precision == GraphType.Precision.Any ? fallbackType.Precision : paramType.Precision,
+                paramType.Primitive == GraphType.Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
+                paramType.Length == GraphType.Length.Any ? fallbackType.Length : paramType.Length,
+                paramType.Height == GraphType.Height.Any ? fallbackType.Height : paramType.Height
             );
 
             // Set the port's parameters from the resolved type.
-            port.SetField(kLength, resolvedType.Length);
-            port.SetField(kHeight, resolvedType.Height);
-            port.SetField(kPrecision, resolvedType.Precision);
-            port.SetField(kPrimitive, resolvedType.Primitive);
+            var typeField = port.GetTypeField();
+            typeField.GetSubField<GraphType.Length>(GraphType.kLength).SetData(resolvedType.Length);
+            typeField.GetSubField<GraphType.Height>(GraphType.kHeight).SetData(resolvedType.Height);
+            typeField.GetSubField<GraphType.Precision>(GraphType.kPrecision).SetData(resolvedType.Precision);
+            typeField.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).SetData(resolvedType.Primitive);
 
-            if (param.Usage is Usage.Static) port.SetField("IsStatic", true);
-            if (param.Usage is Usage.Local) port.SetField("IsLocal", true);
+            if (param.Usage is GraphType.Usage.Static) typeField.AddSubField("IsStatic", true); // TODO(Liz) : should be metadata
+            if (param.Usage is GraphType.Usage.Local)  typeField.AddSubField("IsLocal", true);
 
             int i = 0;
             foreach(var val in param.DefaultValue)
             {
-                port.SetField($"c{i++}", val);
+                typeField.SetField<float>($"c{i++}", val);
             }
 
             return port;
@@ -161,25 +140,23 @@ namespace com.unity.shadergraph.defs
         }
 
         public void BuildNode(
-            INodeReader userData,
-            INodeWriter generatedData,
+            NodeHandler node,
             Registry registry)
         {
-            TypeDescriptor fallbackType = FallbackTypeResolver(userData);
+            TypeDescriptor fallbackType = FallbackTypeResolver(node);
             foreach (var param in m_functionDescriptor.Parameters)
             {
                 //userData.TryGetPort(param.Name, out IPortReader portReader);
                 ParameterDescriptorToField(
                     param,
                     fallbackType,
-                    userData,
-                    generatedData,
+                    node,
                     registry);
             }
         }
 
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
-            INodeReader data,
+            NodeHandler data,
             ShaderContainer container,
             Registry registry)
         {
@@ -189,14 +166,15 @@ namespace com.unity.shadergraph.defs
             // Set up the vars in the shader function.
             foreach (var param in m_functionDescriptor.Parameters)
             {
-                data.TryGetPort(param.Name, out var port);
-                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+                var port = data.GetPort(param.Name);
+                var field = port.GetTypeField();
+                var shaderType = registry.GetShaderType(field, container);
 
-                if (param.Usage == Usage.In || param.Usage == Usage.Static || param.Usage == Usage.Local)
+                if (param.Usage == GraphType.Usage.In || param.Usage == GraphType.Usage.Static || param.Usage == GraphType.Usage.Local)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
-                else if (param.Usage == Usage.Out)
+                else if (param.Usage == GraphType.Usage.Out)
                 {
                     shaderFunctionBuilder.AddOutput(shaderType, param.Name);
                 }
@@ -213,7 +191,7 @@ namespace com.unity.shadergraph.defs
             return shaderFunctionBuilder.Build();
         }
 
-        RegistryKey IRegistryEntry.GetRegistryKey()
+        public RegistryKey GetRegistryKey()
         {
             return new RegistryKey
             {
@@ -222,7 +200,7 @@ namespace com.unity.shadergraph.defs
             };
         }
 
-        RegistryFlags IRegistryEntry.GetRegistryFlags()
+        public RegistryFlags GetRegistryFlags()
         {
             return RegistryFlags.Func;
         }

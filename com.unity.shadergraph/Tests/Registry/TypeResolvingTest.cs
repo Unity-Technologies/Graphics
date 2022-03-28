@@ -1,11 +1,7 @@
 using NUnit.Framework;
-using com.unity.shadergraph.defs;
-using System.Collections.Generic;
-using static UnityEditor.ShaderGraph.Registry.Types.GraphType;
-using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEngine.TestTools;
+using UnityEditor.ShaderGraph.Defs;
 
-namespace UnityEditor.ShaderGraph.Registry.UnitTests
+namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
     [TestFixture]
     class TypeResolving
@@ -17,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
         {
             // create the registry
             m_registry = new Registry();
-            m_registry.Register<Types.GraphType>();
+            m_registry.Register<GraphType>();
 
             // create the graph
             m_graph = new GraphHandler();
@@ -33,39 +29,39 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
                 1,
                 "Test",
                 "Out = In;",
-                new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
             );
             RegistryKey registryKey = m_registry.Register(fd);
 
             // add a single node to the graph
             string nodeName = $"{fd.Name}-01";
-            INodeWriter nodeWriter = m_graph.AddNode(registryKey, nodeName, m_registry);
+            NodeHandler nodeWriter = m_graph.AddNode(registryKey, nodeName, m_registry);
 
             // check that the the node was added
             var nodeReader = m_graph.GetNodeReader(nodeName);
-            bool didRead = nodeReader.GetField("In.Length", out Length len);
+            bool didRead = nodeReader.TryGetField("In.Length", out GraphType.Length len);
             Assert.IsTrue(didRead);
 
             // EXPECT that both In and Out are concretized into length = 4 (default)
-            Assert.AreEqual(Length.Four, len);
-            didRead = nodeReader.GetField("Out.Length", out len);
+            Assert.AreEqual(GraphType.Length.Four, len);
+            didRead = nodeReader.TryGetField("Out.Length", out len);
             Assert.IsTrue(didRead);
-            Assert.AreEqual(Length.Four, len);
+            Assert.AreEqual(GraphType.Length.Four, len);
 
             // make In a Vec3
-            nodeWriter.SetPortField("In", kLength, Length.Three);
+            nodeWriter.SetPortField("In", GraphType.kLength, GraphType.Length.Three);
             nodeReader = m_graph.GetNodeReader(nodeName);
 
             // EXPECT that In now reads as a Vec3
-            didRead = nodeReader.GetField("In.Length", out len);
+            didRead = nodeReader.TryGetField("In.Length", out len);
             Assert.IsTrue(didRead);
-            Assert.AreEqual(Length.Three, len);
+            Assert.AreEqual(GraphType.Length.Three, len);
 
             // EXPECT that Out has not changed
-            didRead = nodeReader.GetField("Out.Length", out len);
+            didRead = nodeReader.TryGetField("Out.Length", out len);
             Assert.IsTrue(didRead);
-            Assert.AreEqual(Length.Four, len);
+            Assert.AreEqual(GraphType.Length.Four, len);
 
             // reconcretize the node
             bool didReconcretize = m_graph.ReconcretizeNode(nodeName, m_registry);
@@ -73,14 +69,14 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // EXPECT that In is still a Vec3
             nodeReader = m_graph.GetNodeReader(nodeName);
-            didRead = nodeReader.GetField("In.Length", out len);
+            didRead = nodeReader.TryGetField("In.Length", out len);
             Assert.IsTrue(didRead);
-            Assert.AreEqual(Length.Three, len);
+            Assert.AreEqual(GraphType.Length.Three, len);
 
             // EXPECT that Out has resolved into a Vec3
-            didRead = nodeReader.GetField("Out.Length", out len);
+            didRead = nodeReader.TryGetField("Out.Length", out len);
             Assert.IsTrue(didRead);
-            Assert.AreEqual(Length.Three, len);
+            Assert.AreEqual(GraphType.Length.Three, len);
         }
     }
 }

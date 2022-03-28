@@ -1,8 +1,6 @@
-using System;
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -35,27 +33,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
             foreach (var portReader in nodeReader.GetPorts())
             {
                 // Only add new node parts for static ports.
+<<<<<<< HEAD
                 if (!portReader.GetField("IsStatic", out bool isStatic) || !isStatic) continue;
                 if (uiHints.ContainsKey(portReader.GetName() + StaticPortsInspector.inspectorOnlyHint)) continue;
 
                 var portKey = portReader.GetRegistryKey();
+=======
+                var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
+                var portKey = portReader.GetTypeField().GetRegistryKey();
+                bool isStatic = staticField?.GetData() ?? false;
+>>>>>>> origin/sg2/staging-master
 
-                if (portKey.Name == Registry.Registry.ResolveKey<GradientType>().Name)
+                if (!isStatic) continue;
+                if (portKey.Name == Registry.ResolveKey<GradientType>().Name)
                 {
                     PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.GetName()));
                     continue;
                 }
+                if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name) continue;
+                var portName = portReader.LocalID;
 
-                if (portKey.Name != Registry.Registry.ResolveKey<GraphType>().Name) continue;
-                var portName = portReader.GetName();
+                var typeField = portReader.GetTypeField();
+                if (typeField == null) continue;
 
                 // Figure out the correct part to display based on the port's fields.
-                if (!portReader.GetField(GraphType.kHeight, out GraphType.Height height)) continue;
-                if (!portReader.GetField(GraphType.kLength, out GraphType.Length length)) continue;
+                var length = GraphTypeHelpers.GetLength(typeField);
+                var height = GraphTypeHelpers.GetHeight(typeField);
+                var primitive = GraphTypeHelpers.GetPrimitive(typeField);
 
                 if (height > GraphType.Height.One)
                 {
-                    PartList.InsertPartAfter(portContainerPartName, new MatrixPart("sg-matrix", GraphElementModel, this, ussClassName, portReader.GetName(), (int)height));
+                    PartList.InsertPartAfter(portContainerPartName, new MatrixPart("sg-matrix", GraphElementModel, this, ussClassName, portReader.LocalID, (int)height));
                     continue;
                 }
 
@@ -63,7 +71,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case GraphType.Length.One:
                     {
-                        if (!portReader.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive)) continue;
                         switch (primitive)
                         {
                             case GraphType.Primitive.Bool:
@@ -75,17 +82,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             case GraphType.Primitive.Int:
                                 PartList.InsertPartAfter(
                                     portContainerPartName,
-                                    new IntPart("sg-int", GraphElementModel, this, ussClassName, portReader.GetName())
+                                    new IntPart("sg-int", GraphElementModel, this, ussClassName, portReader.LocalID)
                                 );
                                 break;
                             case GraphType.Primitive.Float:
                                 if (uiHints.ContainsKey(portName + SLIDER_HINT))
                                 {
-                                    PartList.InsertPartAfter(portContainerPartName, new SliderPart("sg-slider", GraphElementModel, this, ussClassName, portReader.GetName()));
+                                    PartList.InsertPartAfter(portContainerPartName, new SliderPart("sg-slider", GraphElementModel, this, ussClassName, portReader.LocalID));
                                 }
                                 else
                                 {
-                                    PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", GraphElementModel, this, ussClassName, portReader.GetName()));
+                                    PartList.InsertPartAfter(portContainerPartName, new FloatPart("sg-float", GraphElementModel, this, ussClassName, portReader.LocalID));
                                 }
                                 break;
                             case GraphType.Primitive.Any:
@@ -98,7 +105,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     case GraphType.Length.Two:
                         PartList.InsertPartAfter(
                             portContainerPartName,
-                            new Vector2Part("sg-vector2", GraphElementModel, this, ussClassName, portReader.GetName())
+                            new Vector2Part("sg-vector2", GraphElementModel, this, ussClassName, portReader.LocalID)
                         );
                         break;
                     case GraphType.Length.Three:
@@ -106,15 +113,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
-                                new ColorPart("sg-color", GraphElementModel, this, ussClassName, portReader.GetName(),
-                                includeAlpha: false)
+                                new ColorPart("sg-color", GraphElementModel, this, ussClassName, portReader.LocalID, includeAlpha: false)
                             );
                         }
                         else
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
-                                new Vector3Part("sg-vector3", GraphElementModel, this, ussClassName, portReader.GetName())
+                                new Vector3Part("sg-vector3", GraphElementModel, this, ussClassName, portReader.LocalID)
                             );
                         }
 
@@ -124,8 +130,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
-                                new ColorPart("sg-color", GraphElementModel, this, ussClassName, portReader.GetName(),
-                                includeAlpha: true)
+                                new ColorPart("sg-color", GraphElementModel, this, ussClassName, portReader.GetName(), includeAlpha: true)
                             );
                         }
                         else

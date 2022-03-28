@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             //    change.newValue));
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
             // TODO (Brett) Read from the field and see which option that maps to.
             // TODO (Brett) Set the value and notify.

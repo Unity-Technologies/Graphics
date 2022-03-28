@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     {
         static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(SelectionDragger.panAreaWidth * 8, SelectionDragger.panAreaWidth * 6));
 
-        ShaderGraphEditorWindow m_EditorWindow;
+        //ShaderGraphEditorWindow m_EditorWindow;
 
         [OneTimeSetUp]
         public void Setup()
