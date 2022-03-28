@@ -68,11 +68,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Cast = 3,
         Base = 4,
     }
-    
+
     public class PropertyContext : IContextDescriptor
     {
         // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor
-        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => null;
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => new List<IContextDescriptor.ContextEntry>();
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
     }
