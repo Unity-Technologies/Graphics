@@ -160,11 +160,6 @@ Pass
             #endif // ENABLE_TERRAIN_PERPIXEL_NORMAL
         #endif // UNITY_INSTANCING_ENABLED
 
-        #ifdef _ALPHATEST_ON
-    TEXTURE2D(_TerrainHolesTexture);
-    SAMPLER(sampler_TerrainHolesTexture);
-        #endif
-
         #ifdef DEBUG_DISPLAY
     UNITY_TERRAIN_CB_DEBUG_VARS
         #endif
@@ -233,11 +228,6 @@ Pass
         // Builtin Data
         // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
-
-        #ifdef _ALPHATEST_ON
-            // Used for sharpening by alpha to mask - Alpha to covertage is only used with depth only and forward pass (no shadow pass, no transparent pass)
-            builtinData.alphaClipTreshold = alphaCutoff;
-        #endif
 
         // override sampleBakedGI - not used by Unlit
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

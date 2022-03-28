@@ -525,6 +525,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var pragmas = HDShaderPasses.GeneratePragmas(input, false, useTessellation);
 
+                pragmas.Add(Pragma.AlphaTestOn);
                 pragmas.Add(Pragma.InstancingOptions(new []
                 {
                     InstancingOptions.AssumeUniformScaling,

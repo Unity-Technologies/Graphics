@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph
         public static PragmaDescriptor MultiCompileShadowCaster => new PragmaDescriptor { value = "multi_compile_shadowcaster" };
         public static PragmaDescriptor DOTSInstancing => new PragmaDescriptor { value = "multi_compile _ DOTS_INSTANCING_ON" };
         public static PragmaDescriptor MultiCompileFog => new PragmaDescriptor { value = "multi_compile_fog" };
+        public static PragmaDescriptor AlphaTestOn => new PragmaDescriptor() { value = "multi_compile _ _ALPHATEST_ON" };
         public static PragmaDescriptor EditorSyncCompilation => new PragmaDescriptor { value = "editor_sync_compilation" };
         public static PragmaDescriptor SkipVariants(string[] variants) => new PragmaDescriptor { value = $"skip_variants {string.Join(" ", variants)}" };
     }
