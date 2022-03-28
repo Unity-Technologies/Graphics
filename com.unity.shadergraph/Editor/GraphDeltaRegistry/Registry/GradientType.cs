@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     internal class SampleGradientNode : INodeDefinitionBuilder
     {
-        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "SampleGradient", Version = 1 };
+        public RegistryKey GetRegistryKey() => new() { Name = "SampleGradient", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
         public const string kGradient = "Gradient";
