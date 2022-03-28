@@ -519,11 +519,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region Pragmas
         static class HDTerrainPasses
         {
+            public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
+            {
+                displayName = "_ALPHATEST_ON",
+                referenceName = "_ALPHATEST_ON",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
             public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useTessellation)
             {
                 var pragmas = HDShaderPasses.GeneratePragmas(input, false, useTessellation);
 
-                pragmas.Add(Pragma.AlphaTestOn);
                 pragmas.Add(Pragma.InstancingOptions(new []
                 {
                     InstancingOptions.AssumeUniformScaling,
@@ -615,6 +623,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(null, false, useTessellation),
+                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -663,7 +672,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Note: no tessellation for meta pass
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, false),
                 defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, false),
-                keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization, HDTerrainPasses.AlphaTestOn, },
                 includes = GenerateIncludes(),
             };
 
@@ -797,6 +806,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit, false, useTessellation),
+                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -854,6 +864,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.Forward,
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, false, useTessellation),
+                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
@@ -907,7 +918,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
-                keywords = HDShaderPasses.LitDepthOnlyKeywords,
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.WriteNormalBuffer, HDTerrainPasses.AlphaTestOn, },
                 includes = DepthOnlyIncludes,
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -939,7 +950,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDShaderPasses.GBufferRenderState,
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
-                keywords = HDShaderPasses.GBufferKeywords,
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.LightLayers, HDTerrainPasses.AlphaTestOn, },
                 includes = GBufferIncludes,
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -963,6 +974,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.Forward,
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(CoreDefines.ForwardLit, false, useTessellation),
+                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                 includes = ForwardIncludes,
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common,
