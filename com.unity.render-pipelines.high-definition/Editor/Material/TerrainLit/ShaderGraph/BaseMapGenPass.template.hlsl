@@ -1,7 +1,4 @@
 
-#define SHADERPASS_MAINTEX     (27)
-#define SHADERPASS_METALLICTEX (28)
-
 struct Varyings
 {
     float4 positionCS : SV_POSITION;
