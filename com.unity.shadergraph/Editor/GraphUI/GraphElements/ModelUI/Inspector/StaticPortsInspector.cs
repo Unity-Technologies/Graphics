@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.Registry;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -23,11 +23,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var stencil = (ShaderGraphStencil)graphModel.Stencil;
             var hints = stencil.GetUIHints(nodeModel.registryKey);
 
-            foreach (var port in nodeReader.GetInputPorts())
+            foreach (var port in nodeReader.GetPorts())
             {
-                if (!port.GetField("IsStatic", out bool isStatic) || !isStatic) continue;
+                var staticField = port.GetTypeField().GetSubField<bool>("IsStatic");
+                var isStatic = staticField?.GetData() ?? false;
+                if (!isStatic) continue;
 
-                var portName = port.GetName();
+                var portName = port.ID.LocalPath;
                 if (!hints.ContainsKey(portName + inspectorOnlyHint)) continue;
 
                 var constant = stencil.CreateConstantValue(ShaderGraphExampleTypes.GetGraphType(port));
@@ -36,6 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     cldsConstant.Initialize(graphModel.GraphHandler, nodeModel.graphDataName, portName);
                 }
 
+                // TODO: Last argument is label text, should come from UI strings
                 yield return InlineValueEditor.CreateEditorForConstant(m_OwnerElement?.RootView, nodeModel, constant, false, portName);
             }
         }
