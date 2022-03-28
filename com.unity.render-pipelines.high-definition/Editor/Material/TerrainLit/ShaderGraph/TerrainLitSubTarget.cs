@@ -292,7 +292,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = "_TerrainHolesTexture",
                 displayName = "Holes Map (RGB)",
-                useTilingAndOffset = true,
             });
 
             collector.AddShaderProperty(new Texture2DShaderProperty
@@ -303,7 +302,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = "_MainTex",
                 displayName = "Albedo",
-                useTilingAndOffset = true,
             });
 
             collector.AddShaderProperty(new ColorShaderProperty()

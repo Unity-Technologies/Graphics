@@ -175,7 +175,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_TerrainHolesTexture",
                     displayName = "Holes Map (RGB)",
-                    useTilingAndOffset = true,
                 });
             }
             else if (collector.shaderName.EndsWith("_BaseMap"))
@@ -188,7 +187,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_TerrainHolesTexture",
                     displayName = "Holes Map (RGB)",
-                    useTilingAndOffset = true,
                 });
             }
             else if (collector.shaderName.EndsWith("_BaseMapGen"))
@@ -646,7 +644,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 public static FieldDescriptor uvSplat01 = new FieldDescriptor(
                     StructFields.Varyings.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD1", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT01)", subscriptOptions: StructFieldOptions.Optional);
                 public static FieldDescriptor uvSplat23 = new FieldDescriptor(
-                    StructFields.Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD0", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
+                    StructFields.Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD2", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
             }
 
             public struct SurfaceDescriptionInputs
@@ -713,6 +711,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class TerrainSubShaders
         {
+            public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
+            {
+                displayName = ShaderKeywordStrings._ALPHATEST_ON,
+                referenceName = ShaderKeywordStrings._ALPHATEST_ON,
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
             // SM 4.5, compute with dots instancing
             public static SubShaderDescriptor LitComputeDotsSubShader(UniversalTarget target, string renderType, string renderQueue, bool blendModePreserveSpecular)
             {
@@ -926,7 +933,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = pragmas ?? TerrainCorePragmas.Forward,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog, },
-                    keywords = new KeywordCollection() { TerrainLitKeywords.Forward },
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, TerrainLitKeywords.Forward },
                     includes = TerrainCoreIncludes.Forward,
 
                     // Custom Interpolator Support
@@ -945,52 +952,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
-
-                return result;
-            }
-
-            public static PassDescriptor DepthNormal(UniversalTarget target)
-            {
-                var result = new PassDescriptor()
-                {
-                    // Definition
-                    displayName = "DepthNormals",
-                    referenceName = "SHADERPASS_DEPTHNORMALS",
-                    lightMode = "DepthNormals",
-                    useInPreview = false,
-
-                    // Template
-                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
-                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
-
-                    // Port Mask
-                    validVertexBlocks = TerrainBlockMasks.Vertex,
-                    validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
-
-                    // Fields
-                    structs = TerrainStructCollections.Default,
-                    requiredFields = TerrainRequiredFields.DepthNormals,
-                    fieldDependencies = CoreFieldDependencies.Default,
-
-                    // Conditional State
-                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                    pragmas = TerrainCorePragmas.Instanced,
-                    defines = new DefineCollection(),
-                    keywords = new KeywordCollection(),
-                    includes = TerrainCoreIncludes.DepthNormalsOnly,
-
-                    // Custom Interpolator Support
-                    customInterpolators = CoreCustomInterpDescriptors.Common
-                };
-
-                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
-                result.keywords.Add(TerrainDefines.TerrainNormalmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
-                result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
-
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
             }
@@ -1022,7 +983,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = TerrainCorePragmas.DOTSGBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { TerrainLitKeywords.GBuffer },
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, TerrainLitKeywords.GBuffer },
                     includes = TerrainCoreIncludes.GBuffer,
 
                     // Custom Interpolator Support
@@ -1063,15 +1024,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
-                    requiredFields = CoreRequiredFields.ShadowCaster,
+                    structs = TerrainStructCollections.Default,
+                    requiredFields = TerrainRequiredFields.ShadowCaster,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
                     renderStates = CoreRenderStates.ShadowCaster(target),
                     pragmas = TerrainCorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { CoreKeywords.ShadowCaster },
+                    keywords = new KeywordCollection() { CoreKeywords.ShadowCaster, TerrainSubShaders.AlphaTestOn,  },
                     includes = TerrainCoreIncludes.ShadowCaster,
 
                     // Custom Interpolator Support
@@ -1079,8 +1040,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
             }
@@ -1104,15 +1063,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
-                    requiredFields = TerrainRequiredFields.Forward,
+                    structs = TerrainStructCollections.Default,
+                    requiredFields = TerrainRequiredFields.DepthOnly,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
                     renderStates = CoreRenderStates.DepthOnly(target),
                     pragmas = TerrainCorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, },
                     includes = TerrainCoreIncludes.DepthOnly,
 
                     // Custom Interpolator Support
@@ -1121,7 +1080,49 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
 
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
+                return result;
+            }
+
+            public static PassDescriptor DepthNormal(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "DepthNormals",
+                    referenceName = "SHADERPASS_DEPTHNORMALS",
+                    lightMode = "DepthNormals",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
+                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = TerrainBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
+
+                    // Fields
+                    structs = TerrainStructCollections.Default,
+                    requiredFields = TerrainRequiredFields.DepthNormals,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                    pragmas = TerrainCorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, },
+                    includes = TerrainCoreIncludes.DepthNormalsOnly,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
+                result.keywords.Add(TerrainDefines.TerrainNormalmap);
+                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
+                result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
 
                 return result;
             }
@@ -1152,18 +1153,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.Meta,
                     pragmas = TerrainCorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization, TerrainSubShaders.AlphaTestOn, },
                     includes = TerrainCoreIncludes.Meta,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
-
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
             }
@@ -1192,8 +1190,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.SceneSelection(target),
-                    pragmas = TerrainCorePragmas.Instanced,
-                    defines = new DefineCollection { CoreDefines.SceneSelection, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                    pragmas = TerrainCorePragmas.Default,
+                    defines = new DefineCollection { CoreDefines.SceneSelection, },
                     keywords = new KeywordCollection(),
                     includes = TerrainCoreIncludes.SceneSelection,
 
@@ -1202,8 +1200,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
             }
@@ -1232,8 +1228,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.ScenePicking(target),
-                    pragmas = TerrainCorePragmas.Instanced,
-                    defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                    pragmas = TerrainCorePragmas.Default,
+                    defines = new DefineCollection { CoreDefines.ScenePicking, },
                     keywords = new KeywordCollection(),
                     includes = TerrainCoreIncludes.ScenePicking,
 
@@ -1242,8 +1238,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-
-                CorePasses.AddAlphaClipControlToPass(ref result, target);
 
                 return result;
             }
@@ -1318,9 +1312,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static readonly FieldCollection Forward = new FieldCollection()
             {
+                StructFields.Attributes.uv0,
                 StructFields.Attributes.instanceID,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
+                StructFields.Varyings.texCoord0,
                 StructFields.Varyings.instanceID,
                 TerrainStructFields.Varyings.uvSplat01,
                 TerrainStructFields.Varyings.uvSplat23,
@@ -1329,26 +1325,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
-                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
-            };
-
-            public static readonly FieldCollection DepthNormals = new FieldCollection()
-            {
-                StructFields.Attributes.instanceID,
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.instanceID,
-                TerrainStructFields.Varyings.uvSplat01,
-                TerrainStructFields.Varyings.uvSplat23,
                 TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
                 TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
 
             public static readonly FieldCollection GBuffer = new FieldCollection()
             {
+                StructFields.Attributes.uv0,
                 StructFields.Attributes.instanceID,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
+                StructFields.Varyings.texCoord0,
                 StructFields.Varyings.instanceID,
                 TerrainStructFields.Varyings.uvSplat01,
                 TerrainStructFields.Varyings.uvSplat23,
@@ -1357,6 +1344,35 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
+            };
+
+            public static readonly FieldCollection ShadowCaster = new FieldCollection()
+            {
+                StructFields.Attributes.uv0,
+                StructFields.Attributes.instanceID,
+                StructFields.Varyings.texCoord0,
+                StructFields.Varyings.instanceID,
+            };
+
+            public static readonly FieldCollection DepthOnly = new FieldCollection()
+            {
+                StructFields.Attributes.uv0,
+                StructFields.Attributes.instanceID,
+                StructFields.Varyings.texCoord0,
+                StructFields.Varyings.instanceID,
+            };
+
+            public static readonly FieldCollection DepthNormals = new FieldCollection()
+            {
+                StructFields.Attributes.uv0,
+                StructFields.Attributes.instanceID,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.texCoord0,
+                StructFields.Varyings.instanceID,
+                TerrainStructFields.Varyings.uvSplat01,
+                TerrainStructFields.Varyings.uvSplat23,
                 TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
                 TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };

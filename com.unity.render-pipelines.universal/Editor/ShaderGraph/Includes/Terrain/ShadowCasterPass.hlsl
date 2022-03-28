@@ -17,7 +17,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #ifdef _ALPHATEST_ON
-    ClipHoles(IN.texcoord);
+    ClipHoles(unpacked.texCoord0.xy);
 #endif
 
     return 0;

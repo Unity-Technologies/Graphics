@@ -73,7 +73,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
 #ifdef _ALPHATEST_ON
-    ClipHoles(IN.texCoord0.xy);
+    ClipHoles(unpacked.texCoord0.xy);
 #endif
 
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
