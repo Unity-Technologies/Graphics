@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     // TODO: Move to preview manager and then rely on the name from the registry key for the context node/master preview data name
     class TestDescriptor : IContextDescriptor
     {
-        public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
         {
             return new List<IContextDescriptor.ContextEntry>()
             {
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                 {
                     fieldName = "BaseColor",
                     primitive = GraphType.Primitive.Float,
-                    precision = GraphType.Precision.Fixed,
+                    precision = GraphType.Precision.Single,
                     height = GraphType.Height.One,
                     length = GraphType.Length.Three,
                 }

@@ -72,11 +72,12 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     if (port.IsHorizontal && port.IsInput)
                     {
-                        var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(GraphType.kEntry).GetData();
-                        var varOutBuilder = new BlockVariable.Builder(container)
+                        var name = port.ID.LocalPath;
+                        var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
+                         var varOutBuilder = new BlockVariable.Builder(container)
                         {
-                            Name = entry.fieldName,
-                            Type = EvaluateShaderType(entry, container)
+                            Name = name,
+                            Type = type
                         };
                         var varOut = varOutBuilder.Build();
                         outputVariables.Add(varOut);
@@ -126,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     if(port.IsHorizontal && port.IsInput)
                     {
-                        var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(GraphType.kEntry).GetData();
+                        //var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(Registry.Types.GraphType.kEntry).GetData();
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
@@ -283,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Generation
             if (arguments.Length != 0)
                 arguments = arguments.Remove(arguments.Length - 2, 2); // trim the trailing ", "
             mainBodyFunctionBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
-            
+
 
         }
 

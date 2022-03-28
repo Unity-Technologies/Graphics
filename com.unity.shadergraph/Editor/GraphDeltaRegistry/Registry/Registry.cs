@@ -63,12 +63,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     [Flags] public enum RegistryFlags
     {
-        Type = 1, // The corresponding node definition is allowed to be a port.
-        Func = 2, // Cannot be a port.
+        Type = 1,
+        Func = 2,
         Cast = 3,
         Base = 4,
     }
 
+    public class PropertyContext : IContextDescriptor
+    {
+        // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => new List<IContextDescriptor.ContextEntry>();
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
+    }
 
     public class Registry
     {
@@ -79,6 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             Register<ContextBuilder>();
             Register<ReferenceNodeBuilder>();
+            Register<PropertyContext>();
         }
 
         internal ShaderFoundry.ShaderType GetShaderType(FieldHandler field, ShaderFoundry.ShaderContainer container)

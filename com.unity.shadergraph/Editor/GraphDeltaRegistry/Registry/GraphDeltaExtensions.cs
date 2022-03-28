@@ -28,10 +28,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return field.GetMetadata<RegistryKey>(kRegistryKeyName);
         }
 
-        public static void AddReferenceNode(this GraphHandler handler, string nodeName, string referenceName, Registry registry)
+        public static void AddReferenceNode(this GraphHandler handler, string nodeName, string contextName, string contextEntryName, Registry registry)
         {
             var node = handler.AddNode<ReferenceNodeBuilder>(nodeName, registry);
-            node.SetMetadata("_referenceName", referenceName);
+            var inPort = node.GetPort(ReferenceNodeBuilder.kContextEntry);
+            var outPort = handler.GetNode(contextName).GetPort($"out_{contextEntryName}"); // TODO: Not this.
+            handler.AddEdge(outPort.ID, inPort.ID);
+
+            handler.ReconcretizeNode(node.ID.FullPath, registry);
+
+            // node.SetMetadata("_referenceName", contextEntryName);
+
+
             // reference nodes have some weird rules, in that they can't really fetch or achieve any sort of identity until they are connected downstream to a context node.
             // We need stronger rules around references-- namely that a reference type must be consistent across all instances of that reference within however many context nodes.
 

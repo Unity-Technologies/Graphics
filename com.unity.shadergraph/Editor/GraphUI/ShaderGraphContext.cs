@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public class ShaderGraphContext : IContextDescriptor
     {
-        public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
         {
             return new List<IContextDescriptor.ContextEntry>()
                 {
