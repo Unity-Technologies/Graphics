@@ -6,14 +6,14 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.positionWS = input.positionWS;
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 viewDirWS = half3(input.normal.w, input.tangent.w, input.bitangent.w);
-        inputData.tangentToWorld = half3x3(-input.tangent.xyz, input.bitangent.xyz, input.normal.xyz);
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+        half3 viewDirWS = half3(input.normalViewDir.w, input.tangentViewDir.w, input.bitangentViewDir.w);
+        inputData.tangentToWorld = half3x3(-input.tangentViewDir.xyz, input.bitangentViewDir.xyz, input.normalViewDir.xyz);
+        inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, inputData.tangentToWorld);
         half3 SH = 0;
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
         float2 sampleCoords = (input.texCoord0.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
-        half3 normalTS = half3(0.0h, 0.0h, 1.0h);
+        half3 normalTS = surfaceDescription.NormalTS;
         half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
         half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
         inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
@@ -21,11 +21,11 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     #else
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
         inputData.normalWS = input.normalWS;
-        half3 SH = 0;
+        half3 SH = input.sh;
     #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(input.positionWS));
+    inputData.viewDirectionWS = viewDirWS;
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         inputData.shadowCoord = input.shadowCoord;
@@ -37,10 +37,11 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
 
     inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
+
 #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, SH, inputData.normalWS);
 #else
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.sh, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, SH, inputData.normalWS);
 #endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -52,7 +53,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     #if defined(LIGHTMAP_ON)
     inputData.staticLightmapUV = input.staticLightmapUV;
     #else
-    inputData.vertexSH = input.sh;
+    inputData.vertexSH = SH;
     #endif
     #endif
 }
@@ -82,16 +83,10 @@ FragmentOutput frag(PackedVaryings packedInput)
 
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
-    // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
-    //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord1.xy, _MainTex);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
 
-    #ifdef _SPECULAR_SETUP
-        float3 specular = surfaceDescription.Specular;
-        float metallic = 1;
-    #else
-        float3 specular = 0;
-        float metallic = surfaceDescription.Metallic;
-    #endif
+    float3 specular = 0;
+    float metallic = surfaceDescription.Metallic;
 
     half3 normalTS = half3(0, 0, 0);
     #if defined(_NORMALMAP) && defined(_NORMAL_DROPOFF_TS)

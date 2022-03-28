@@ -1,7 +1,4 @@
 
-#define SHADERPASS_MAINTEX     (27)
-#define SHADERPASS_METALLICTEX (28)
-
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;

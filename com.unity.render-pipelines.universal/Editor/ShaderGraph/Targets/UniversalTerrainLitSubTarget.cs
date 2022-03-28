@@ -612,6 +612,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.screenPosition,
                     TerrainStructFields.Varyings.uvSplat01,
                     TerrainStructFields.Varyings.uvSplat23,
+                    TerrainStructFields.Varyings.normalViewDir,
+                    TerrainStructFields.Varyings.tangentViewDir,
+                    TerrainStructFields.Varyings.bitangentViewDir,
                     UniversalStructFields.Varyings.staticLightmapUV,
                     UniversalStructFields.Varyings.dynamicLightmapUV,
                     UniversalStructFields.Varyings.sh,
@@ -645,6 +648,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.name, "uvSplat01", "", ShaderValueType.Float4, "TEXCOORD1", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT01)", subscriptOptions: StructFieldOptions.Optional);
                 public static FieldDescriptor uvSplat23 = new FieldDescriptor(
                     StructFields.Varyings.name, "uvSplat23", "", ShaderValueType.Float4, "TEXCOORD2", preprocessor: "defined(UNIVERSAL_TERRAIN_SPLAT23)", subscriptOptions: StructFieldOptions.Optional);
+                public static FieldDescriptor normalViewDir = new FieldDescriptor(
+                    StructFields.Varyings.name, "normalViewDir", "", ShaderValueType.Float4, "TEXCOORD3", "defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)", StructFieldOptions.Optional);
+                public static FieldDescriptor tangentViewDir = new FieldDescriptor(
+                    StructFields.Varyings.name, "tangentViewDir", "", ShaderValueType.Float4, "TEXCOORD4", "defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)", StructFieldOptions.Optional);
+                public static FieldDescriptor bitangentViewDir = new FieldDescriptor(
+                    StructFields.Varyings.name, "bitangentViewDir", "", ShaderValueType.Float4, "TEXCOORD5", "defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)", StructFieldOptions.Optional);
             }
 
             public struct SurfaceDescriptionInputs
@@ -1320,6 +1329,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.instanceID,
                 TerrainStructFields.Varyings.uvSplat01,
                 TerrainStructFields.Varyings.uvSplat23,
+                TerrainStructFields.Varyings.normalViewDir,
+                TerrainStructFields.Varyings.tangentViewDir,
+                TerrainStructFields.Varyings.bitangentViewDir,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -1339,6 +1351,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.instanceID,
                 TerrainStructFields.Varyings.uvSplat01,
                 TerrainStructFields.Varyings.uvSplat23,
+                TerrainStructFields.Varyings.normalViewDir,
+                TerrainStructFields.Varyings.tangentViewDir,
+                TerrainStructFields.Varyings.bitangentViewDir,
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -1373,6 +1388,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.instanceID,
                 TerrainStructFields.Varyings.uvSplat01,
                 TerrainStructFields.Varyings.uvSplat23,
+                TerrainStructFields.Varyings.normalViewDir,
+                TerrainStructFields.Varyings.tangentViewDir,
+                TerrainStructFields.Varyings.bitangentViewDir,
                 TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
                 TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };

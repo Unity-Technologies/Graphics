@@ -22,11 +22,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 tangentToWorld = half3x3(-unpacked.tangent.xyz, unpacked.bitangent.xyz, unpacked.normal.xyz);
-    half3 normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+    half3 tangentToWorld = half3x3(-unpacked.tangentViewDir.xyz, unpacked.bitangentViewDir.xyz, unpacked.normalViewDir.xyz);
+    half3 normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld);
 #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     float2 sampleCoords = (unpacked.texCoord0.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
-    half3 normalTS = half3(0.0h, 0.0h, 1.0h);
+    half3 normalTS = surfaceDescription.NormalTS;
     half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
     half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
     half3 normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));

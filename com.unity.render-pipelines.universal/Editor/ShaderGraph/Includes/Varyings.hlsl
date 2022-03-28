@@ -99,6 +99,16 @@ Varyings BuildVaryings(Attributes input)
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
+#if defined(UNIVERSAL_TERRAIN_ENABLED) && defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
+    float4 vertexTangent = float4(cross(float3(0.0, 0.0, 1.0), input.normalOS), 1.0);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, vertexTangent);
+
+    output.normalViewDir = float4(normalInput.normalWS, viewDirWS.x);
+    output.tangentViewDir = float4(normalInput.tangentWS, viewDirWS.y);
+    output.bitangentViewDir = float4(normalInput.bitangentWS, viewDirWS.z);
+#endif
+
     // TODO: Change to inline ifdef
     // Do vertex modification in camera relative space (if enabled)
 #if defined(HAVE_VERTEX_MODIFICATION)

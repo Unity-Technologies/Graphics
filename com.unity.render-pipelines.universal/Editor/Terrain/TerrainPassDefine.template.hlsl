@@ -1,4 +1,7 @@
 
+#define SHADERPASS_MAINTEX     (27)
+#define SHADERPASS_METALLICTEX (28)
+
 #ifdef UNIVERSAL_TERRAIN_SPLAT01
 #define GetSplat0UV(x) x.uvSplat01.xy
 #define GetSplat1UV(x) x.uvSplat01.zw
