@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// </summary>
         GraphHandler m_GraphHandle;
 
-        Registry.Registry m_RegistryInstance;
+        Registry m_RegistryInstance;
 
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new();
 
@@ -178,7 +178,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <summary>
         /// Used to set which registry instance this preview manager gets its type data from.
         /// </summary>
-        public void SetActiveRegistry(Registry.Registry registryInstance)
+        public void SetActiveRegistry(Registry registryInstance)
         {
             m_RegistryInstance = registryInstance;
         }
@@ -194,16 +194,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, propertyName, newPropertyValue);
 
             // We're assuming that global properties/referrables will also be mapped to nodes and can be retrieved as such
-            var globalPropertyNode = m_GraphHandle.GetNodeReader(propertyName);
+            var globalPropertyNode = m_GraphHandle.GetNode(propertyName);
 
             var impactedNodes = new List<string>();
             foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(globalPropertyNode))
             {
-                var downStreamNodeName = downStreamNode.GetName();
+                var downStreamNodeName = downStreamNode.ID.LocalPath;
                 var nodePreviewData = m_CachedPreviewData[downStreamNodeName];
                 nodePreviewData.isShaderOutOfDate = true;
 
-                impactedNodes.Add(downStreamNode.GetName());
+                impactedNodes.Add(downStreamNode.ID.LocalPath);
             }
 
             return impactedNodes;
@@ -227,11 +227,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                 SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, hlslName, newPropertyValue, portReader);
 
-                var sourceNode = m_GraphHandle.GetNodeReader(nodeName);
+                var sourceNode = m_GraphHandle.GetNode(nodeName);
                 var impactedNodes = new List<string>();
                 foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
                 {
-                    var downStreamNodeName = downStreamNode.GetName();
+                    var downStreamNodeName = downStreamNode.ID.LocalPath;
                     impactedNodes.Add(downStreamNodeName);
 
                     m_CachedPreviewData[downStreamNodeName].isShaderOutOfDate = true;
@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
-                var sourceNode = m_GraphHandle.GetNodeReader(nodeName);
+                var sourceNode = m_GraphHandle.GetNode(nodeName);
                 if (sourceNode == null)
                 {
                     // Node was deleted, get rid of the preview data associated with it
@@ -276,12 +276,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                     foreach (var downStreamNode in GraphTraversalUtils.GetDownstreamNodes(sourceNode))
                     {
-                        if (m_CachedPreviewData.TryGetValue(downStreamNode.GetName(), out var downStreamNodeData))
+                        if (m_CachedPreviewData.TryGetValue(downStreamNode.ID.LocalPath, out var downStreamNodeData))
                         {
                             downStreamNodeData.isShaderOutOfDate = true;
                         }
 
-                        impactedNodes.Add(downStreamNode.GetName());
+                        impactedNodes.Add(downStreamNode.ID.LocalPath);
                     }
                 }
 
@@ -518,19 +518,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return output;
         }
 
-        Shader GetNodeShaderObject(INodeReader nodeReader)
+        Shader GetNodeShaderObject(NodeHandler nodeReader)
         {
             string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
-            m_CachedPreviewData[nodeReader.GetName()].shaderString = shaderOutput;
-            m_CachedPreviewData[nodeReader.GetName()].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance);
-            m_CachedPreviewData[nodeReader.GetName()].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
+            m_CachedPreviewData[nodeReader.ID.LocalPath].shaderString = shaderOutput;
+            m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            m_CachedPreviewData[nodeReader.ID.LocalPath].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
             return MakeShader(shaderOutput);
         }
 
         Shader GetMasterPreviewShaderObject()
         {
             // TODO: Need a way to query the main context node without having a hard name dependence, from GraphDelta
-            var contextNodeReader = m_GraphHandle.GetNodeReader(k_MasterPreviewName);
+            var contextNodeReader = m_GraphHandle.GetNode(k_MasterPreviewName);
             string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance);
             m_MasterPreviewData.shaderString = shaderOutput;
             return MakeShader(shaderOutput);
@@ -573,7 +573,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
                 else // if node preview
                 {
-                    var nodeReader = m_GraphHandle.GetNodeReader(previewToUpdate.nodeName);
+                    var nodeReader = m_GraphHandle.GetNode(previewToUpdate.nodeName);
                     previewToUpdate.shader = GetNodeShaderObject(nodeReader);
                 }
 
@@ -723,10 +723,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return false;
         }
 
-        IPortReader Mock_GetPortReaderForProperty(string nodeName, string propertyName)
+        PortHandler Mock_GetPortReaderForProperty(string nodeName, string propertyName)
         {
-            var nodeReader = m_GraphHandle.GetNodeReader(nodeName);
-            return nodeReader.TryGetPort(propertyName, out var portReader) ? portReader : null;
+            var nodeReader = m_GraphHandle.GetNode(nodeName);
+            return nodeReader.GetPort(propertyName);
         }
 
         // Stubbed function bodies below ----
@@ -744,7 +744,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return "";
         }
 
-        void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, string propertyName, object propertyValue, IPortReader portReader = null)
+        void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, string propertyName, object propertyValue, PortHandler portReader = null)
         {
 
         }

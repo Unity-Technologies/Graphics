@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Utils
 {
@@ -11,20 +12,22 @@ namespace UnityEditor.ShaderGraph.Utils
 
     public static class GraphTraversalUtils
     {
-        public static IEnumerable<INodeReader> TraverseGraphFromNode(GraphHandler activeGraph, INodeReader startingNode, PropagationDirection directionToTraverse)
+        public static IEnumerable<NodeHandler> TraverseGraphFromNode(GraphHandler activeGraph, NodeHandler startingNode, PropagationDirection directionToTraverse)
         {
-            var traversedNodes = new List<INodeReader>();
+            var traversedNodes = new List<NodeHandler>();
             return traversedNodes;
         }
 
 
-        public static IEnumerable<INodeReader> GetUpstreamNodes(INodeReader startingNode)
+        public static IEnumerable<NodeHandler> GetUpstreamNodes(NodeHandler startingNode)
         {
-            foreach (var inputPort in startingNode.GetInputPorts())
+            foreach (var inputPort in startingNode.GetPorts().Where(e => e.IsInput))
             {
                 foreach (var connectedPort in inputPort.GetConnectedPorts())
                 {
-                    foreach (var upstreamNode in GetUpstreamNodes(connectedPort.GetNode()))
+                    var connectedNodePath = connectedPort.ID.FullPath.Replace("." + connectedPort.ID.LocalPath, "");
+                    var connectedNode = new NodeHandler(connectedNodePath, connectedPort.Owner);
+                    foreach (var upstreamNode in GetUpstreamNodes(connectedNode))
                         yield return upstreamNode;
                 }
             }
@@ -32,13 +35,15 @@ namespace UnityEditor.ShaderGraph.Utils
             yield return startingNode;
         }
 
-        public static IEnumerable<INodeReader> GetDownstreamNodes(INodeReader startingNode)
+        public static IEnumerable<NodeHandler> GetDownstreamNodes(NodeHandler startingNode)
         {
-            foreach (var inputPort in startingNode.GetOutputPorts())
+            foreach (var inputPort in startingNode.GetPorts().Where(e => !e.IsInput))
             {
                 foreach (var connectedPort in inputPort.GetConnectedPorts())
                 {
-                    foreach (var downstreamNodes in GetDownstreamNodes(connectedPort.GetNode()))
+                    var connectedNodePath = connectedPort.ID.FullPath.Replace("." + connectedPort.ID.LocalPath, "");
+                    var connectedNode = new NodeHandler(connectedNodePath, connectedPort.Owner);
+                        foreach (var downstreamNodes in GetDownstreamNodes(connectedNode))
                         yield return downstreamNodes;
                 }
             }

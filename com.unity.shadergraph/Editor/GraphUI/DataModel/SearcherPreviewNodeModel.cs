@@ -1,6 +1,6 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -35,19 +35,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        void AddPortFromReader(GraphDelta.IPortReader portReader)
+        void AddPortFromReader(PortHandler portReader)
         {
-            var isInput = portReader.IsInput();
-            var orientation = portReader.IsHorizontal()
+            var isInput = portReader.IsInput;
+            var orientation = portReader.IsHorizontal
                 ? PortOrientation.Horizontal
                 : PortOrientation.Vertical;
 
-            var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
+            var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetTypeField().GetRegistryKey());
 
             if (isInput)
-                this.AddDataInputPort(portReader.GetName(), type, orientation: orientation);
+                this.AddDataInputPort(portReader.LocalID, type, orientation: orientation);
             else
-                this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);
+                this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
         }
     }
 }

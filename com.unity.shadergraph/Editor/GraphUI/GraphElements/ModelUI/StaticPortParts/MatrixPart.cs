@@ -1,9 +1,5 @@
-using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -20,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         VisualElement m_Root;
         FloatField[,] m_MatrixElementFields; // row, col
-        int m_Size;
+        readonly int m_Size;
 
         public override VisualElement Root => m_Root;
 
@@ -87,14 +83,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             parent.Add(m_Root);
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
             for (var i = 0; i < m_Size; i++)
             {
                 for (var j = 0; j < m_Size; j++)
                 {
                     var flatIndex = i * m_Size + j;
-                    if (!reader.GetField($"c{flatIndex}", out float value)) value = 0;
+                    var field = reader.GetTypeField();
+                    float value = 0;
+                    if (field != null)
+                        value = GraphTypeHelpers.GetComponent(reader.GetTypeField(), flatIndex);
                     m_MatrixElementFields[i, j].SetValueWithoutNotify(value);
                 }
             }

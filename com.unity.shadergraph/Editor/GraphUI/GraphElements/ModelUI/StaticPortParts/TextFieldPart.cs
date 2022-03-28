@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             //    change.newValue));
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
             // TODO (Brett) Figure out how / when we store strings
             // ----

@@ -4,7 +4,6 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -52,18 +51,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Determines whether or not this node has a valid backing representation at the data layer. If false, this
         /// node should be treated as a searcher preview.
         /// </summary>
-        public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
+        public bool existsInGraphData =>
+            m_GraphDataName != null && TryGetNodeReader(out _);
 
-        GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
-        Registry.Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
+        GraphHandler graphHandler =>
+            ((ShaderGraphModel)GraphModel).GraphHandler;
+
+        Registry registry =>
+            ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,
         // as there currently is no other way to know if they both represent the same underlying port
         // This is an issue because in GTF we only know about port models, but for the preview system we only care about port readers
-        Dictionary<IPortReader, IPortModel> m_PortMappings = new();
-        public Dictionary<IPortReader, IPortModel> PortMappings => m_PortMappings;
+        Dictionary<PortHandler, IPortModel> m_PortMappings = new();
+        public Dictionary<PortHandler, IPortModel> PortMappings => m_PortMappings;
 
-        public bool TryGetNodeWriter(out INodeWriter writer)
+        public bool TryGetNodeWriter(out NodeHandler writer)
         {
             if (graphDataName == null)
             {
@@ -71,15 +74,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return false;
             }
 
-            writer = graphHandler.GetNodeWriter(graphDataName);
+            writer = graphHandler.GetNode(graphDataName);
             return writer != null;
         }
 
-        public bool TryGetPortModel(IPortReader portReader, out IPortModel matchingPortModel)
+        public bool TryGetPortModel(PortHandler portReader, out IPortModel matchingPortModel)
         {
             foreach (var nodePortReader in PortMappings.Keys)
             {
-                if (nodePortReader.GetName() == portReader.GetName())
+                if (nodePortReader.LocalID == portReader.LocalID)
                     return PortMappings.TryGetValue(nodePortReader, out matchingPortModel);
             }
 
@@ -87,7 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return false;
         }
 
-        public bool TryGetNodeReader(out INodeReader reader)
+        public bool TryGetNodeReader(out NodeHandler reader)
         {
             try
             {
@@ -97,7 +100,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return true;
                 }
 
-                reader = graphHandler.GetNodeReader(graphDataName);
+                reader = graphHandler.GetNode(graphDataName);
 
                 return reader != null;
             }
@@ -176,43 +179,52 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts())
             {
-                if (portReader.GetField("IsStatic", out bool isStatic) && isStatic) continue;
-                if (portReader.GetField("IsLocal", out bool isLocal) && isLocal) continue;
+                var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
+                var localField = portReader.GetTypeField().GetSubField<bool>("IsLocal");
+                if (staticField != null && staticField.GetData()) continue;
+                if (localField != null && localField.GetData()) continue;
 
-                var isInput = portReader.IsInput();
-                var orientation = portReader.IsHorizontal() ? PortOrientation.Horizontal : PortOrientation.Vertical;
+                var isInput = portReader.IsInput;
+                var orientation = portReader.IsHorizontal ? PortOrientation.Horizontal : PortOrientation.Vertical;
 
                 // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
-                Action<IConstant> initCallback = (IConstant e) =>
+                var nodeId = nodeReader.ID;
+                void initCallback(IConstant e)
                 {
                     var constant = e as ICLDSConstant;
                     var shaderGraphModel = ((ShaderGraphModel)GraphModel);
                     var handler = shaderGraphModel.GraphHandler;
-                    var possiblyNodeReader = handler.GetNodeReader(nodeReader.GetName());
-                    if (possiblyNodeReader == null)
+                    try
+                    {
+                        var possiblyNodeReader = handler.GetNode(nodeId);
+                    }
+                    catch
+                    {
                         handler = shaderGraphModel.RegistryInstance.defaultTopologies;
+                    }
                     // don't do this, we should have a fixed way of pathing into a port's type information as opposed to its header/port data.
                     // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.
                     // Not sure how that's going to work for data that's from a connection!
-                    constant.Initialize(handler, nodeReader.GetName(), portReader.GetName());
-                };
+                    constant.Initialize(handler, nodeId.LocalPath, portReader.LocalID);
+                }
 
                 IPortModel newPortModel = null;
                 if (isInput)
                 {
-                    newPortModel = this.AddDataInputPort(portReader.GetName(), type, orientation: orientation, initializationCallback: initCallback);
+                    newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
                         ((ICLDSConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.GetName(), portReader.GetName());
                 }
                 else
-                    newPortModel = this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);
+                    newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
 
                 m_PortMappings.Add(portReader, newPortModel);
 
                 // Mark node as containing a preview if any of the ports on it are flagged as a preview port
-                if (portReader.TryGetField("_isPreview", out var previewField) && previewField.TryGetValue(out bool previewData) && previewData)
+                var previewField = portReader.GetField<bool>("_isPreview");
+                if (previewField != null && previewField.GetData())
                     nodeHasPreview = true;
             }
 

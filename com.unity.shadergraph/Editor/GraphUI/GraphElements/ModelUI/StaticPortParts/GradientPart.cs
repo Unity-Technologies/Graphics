@@ -1,6 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,9 +14,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public GradientPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)
             : base(name, model, ownerElement, parentClassName, portName) { }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler reader)
         {
-            var gradient = GradientTypeHelpers.GetGradient((IFieldReader)reader);
+            var gradient = GradientTypeHelpers.GetGradient(reader.GetTypeField());
             m_Field.SetValueWithoutNotify(gradient);
         }
 

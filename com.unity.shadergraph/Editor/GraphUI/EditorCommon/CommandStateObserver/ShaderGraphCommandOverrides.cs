@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -260,7 +258,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var model = updateConstantValueCommand.OwnerModel as GraphDataPortModel;
             if (model.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
             {
-                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(nodeModel.graphDataName);
+                var nodeWriter = shaderGraphModel.GraphHandler.GetNode(nodeModel.graphDataName);
                 if (nodeWriter != null)
                 {
                     previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, model.UniqueName, updateConstantValueCommand.Value);

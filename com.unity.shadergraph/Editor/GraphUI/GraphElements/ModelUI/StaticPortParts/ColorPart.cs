@@ -1,7 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,7 +12,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string FieldName => "sg-color-field";
 
         bool m_IncludeAlpha;
-        int length => m_IncludeAlpha ? 4 : 3;
+
+        int length =>
+            m_IncludeAlpha ? 4 : 3;
 
         public ColorPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, bool includeAlpha)
             : base(name, model, ownerElement, parentClassName, portName)
@@ -29,14 +29,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Field.AddStylesheet("StaticPortParts/ColorPart.uss");
         }
 
-        protected override void UpdatePartFromPortReader(IPortReader reader)
+        protected override void UpdatePartFromPortReader(PortHandler port)
         {
             var newColor = new Color();
+            var reader = port.GetTypeField();
 
             for (var i = 0; i < length; i++)
             {
-                if (!reader.GetField($"c{i}", out float component)) continue;
-                newColor[i] = component;
+                var componentField = reader.GetSubField<float>($"c{i}");
+                if (componentField == null)
+                    continue;
+                newColor[i] = componentField.GetData();
             }
 
             m_Field.SetValueWithoutNotify(newColor);
