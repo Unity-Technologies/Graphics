@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
             "Out = UnsignedBase ? pow(abs(Base), Exp) : pow(Base, Exp);",
             new ParameterDescriptor("Base", TYPE.Any, Usage.In),
             new ParameterDescriptor("Exp", TYPE.Any, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
-            new ParameterDescriptor("UnsignBase", TYPE.Bool, Usage.Static, new float[] { 1f }),
+            new ParameterDescriptor("UnsignedBase", TYPE.Bool, Usage.Static, new float[] { 1f }),
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
 
