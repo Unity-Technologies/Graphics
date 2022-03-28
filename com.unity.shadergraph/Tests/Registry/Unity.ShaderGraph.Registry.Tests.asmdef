@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Unity.ShaderGraph.GraphDeltaRegistry",
+        "ContextLayeredDataStorage",
         "GtfPlayground"
     ],
     "includePlatforms": [

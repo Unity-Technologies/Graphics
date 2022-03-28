@@ -76,10 +76,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     internal class GradientNode : INodeDefinitionBuilder
     {
-        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Gradient", Version = 1 };
+        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GradientNode", Version = 1 };
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-        public const string kInlineStatic = " ";
+        public const string kInlineStatic = "Inline";
         public const string kOutput = "Out";
 
         public void BuildNode(NodeHandler node, Registry registry)
