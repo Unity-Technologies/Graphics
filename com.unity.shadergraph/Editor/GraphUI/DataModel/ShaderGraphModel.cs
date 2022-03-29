@@ -5,8 +5,6 @@ using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -24,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ShaderGraphAssetModel ShaderGraphAssetModel => AssetModel as ShaderGraphAssetModel;
 
-        public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
+        public Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 
         protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
         {
@@ -138,7 +136,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // cache the Action to avoid GC
-        static Action<GraphDataNodeModel> AddNextLevelNodesToWave =
+        static readonly Action<GraphDataNodeModel> AddNextLevelNodesToWave =
             nextLevelNode =>
             {
                 if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
@@ -251,7 +249,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
         {
             bool nodeRequiresTime = false;
-            if(graphDataNodeModel.TryGetNodeReader(out var nodeReader))
+            if(graphDataNodeModel.TryGetNodeReader(out var _))
             {
                 // TODO: Some way of making nodes be marked as requiring time or not
                 // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,

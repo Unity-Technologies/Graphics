@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry.Defs;
-using UnityEngine;
-using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
-        public static string GetFunctionCode(NodeHandler node, Registry.Registry registry)
+        public static string GetFunctionCode(NodeHandler node, Registry registry)
         {
             var builder = new ShaderBuilder();
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry);
@@ -19,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ConvertToString();
         }
 
-        public static string GetBlockCode(NodeHandler node, GraphHandler graph, Registry.Registry registry)
+        public static string GetBlockCode(NodeHandler node, GraphHandler graph, Registry registry)
         {
             var builder = new ShaderBuilder();
             //EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
@@ -33,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Generation
                               CustomizationPoint surfaceCP,
                               NodeHandler node,
                               GraphHandler graph,
-                              Registry.Registry registry,
+                              Registry registry,
                           out CustomizationPointInstance vertexCPDesc,
                           out CustomizationPointInstance surfaceCPDesc)
         {
@@ -66,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Generation
         }
 
 
-        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder)
+        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder)
         {
 
             /* PSEDUOCODE
@@ -260,12 +257,12 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             switch (entry.primitive)
             {
-                case Registry.Types.GraphType.Primitive.Bool:
+                case GraphType.Primitive.Bool:
                     return container.GetType($"bool{lxh}");
-                case Registry.Types.GraphType.Primitive.Int:
+                case GraphType.Primitive.Int:
                     return container.GetType($"int{lxh}");
-                case Registry.Types.GraphType.Primitive.Float:
-                    if (entry.precision == Registry.Types.GraphType.Precision.Single)
+                case GraphType.Primitive.Float:
+                    if (entry.precision == GraphType.Precision.Single)
                     {
                         return container.GetType($"double{lxh}");
                     }
@@ -312,7 +309,7 @@ namespace UnityEditor.ShaderGraph.Generation
             ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
             ref List<ShaderFunction> shaderFunctions,
-            Registry.Registry registry)
+            Registry registry)
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
             var func = nodeBuilder.GetShaderFunction(node, container, registry);
@@ -377,13 +374,13 @@ namespace UnityEditor.ShaderGraph.Generation
 
         private static string ConvertToFloat3(ShaderType type, string name)
         {
-            switch(type.VectorDimension)
+            return type.VectorDimension switch
             {
-                case 4: return $"{name}.xyz";
-                case 2: return $"float3({name}.x, {name}.y, 0)";
-                case 1: return $"float3({name}, {name}, {name})";
-                default: return name;
-            }
+                4 => $"{name}.xyz",
+                2 => $"float3({name}.x, {name}.y, 0)",
+                1 => $"float3({name}, {name}, {name})",
+                _ => name,
+            };
         }
 
         private static IEnumerable<NodeHandler> GatherTreeLeafFirst(NodeHandler rootNode)

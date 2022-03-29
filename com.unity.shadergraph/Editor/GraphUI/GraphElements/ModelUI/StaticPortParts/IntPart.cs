@@ -1,14 +1,13 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class IntPart : SingleFieldPart<IntegerField, int>
     {
-        protected override string UXMLTemplateName => "StaticPortParts/IntPart";
+        protected override string UXMLTemplateName =>"StaticPortParts/IntPart";
+
         protected override string FieldName => "sg-int-field";
 
         public IntPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName)

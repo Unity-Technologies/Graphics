@@ -1,12 +1,8 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
-using Types = UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.Generation.UnitTests
 {
@@ -15,26 +11,29 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
     {
 
         private static GraphHandler graph;
-        private static Registry.Registry registry;
+        private static Registry registry;
 
         [SetUp]
         public static void Setup()
         {
-            registry = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
-            var contextKey = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
-            var propertyKey = Registry.Registry.ResolveKey<Registry.Default.PropertyContext>();
+            registry = new Registry();
+            var contextKey = Registry.ResolveKey<Registry.Default.DefaultContext>();
+            var propertyKey = Registry.ResolveKey<Registry.Default.PropertyContext>();
 
-            graph = new GraphHandler();
+            graph = new GraphHandler();            
+
+            registry.Register<GraphType>();
+            registry.Register<TestAddNode>();
+            registry.Register<GraphTypeAssignment>();
+
             graph.AddContextNode(propertyKey, registry);
             graph.AddContextNode(contextKey, registry);
 
-            registry.Register<Types.AddNode>();
-
-            graph.AddNode<Types.AddNode>("Add1", registry).SetPortField("A", "c0", 1f); //(1,0,0,0)
-            graph.AddNode<Types.AddNode>("Add2", registry).SetPortField("B", "c1", 1f); //(0,1,0,0)
-            graph.AddNode<Types.AddNode>("Add3", registry);
-            graph.TryConnect("Add1", "Out", "Add3", "A", registry);
-            graph.TryConnect("Add2", "Out", "Add3", "B", registry); //should be (1,1,0,0)
+            graph.AddNode<TestAddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
+            graph.AddNode<TestAddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            graph.AddNode<TestAddNode>("Add3", registry);
+            graph.TryConnect("Add1", "Out", "Add3", "In1", registry);
+            graph.TryConnect("Add2", "Out", "Add3", "In2", registry); //should be (1,1,0,0)
         }
 
         private static Shader MakeShader(string input)
@@ -52,7 +51,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var prevActive = RenderTexture.active;
             RenderTexture.active = rt;
             Graphics.Blit(null, rt, new Material(shader));
-            Texture2D output = new Texture2D(4, 4, TextureFormat.ARGB32, false);
+            Texture2D output = new(4, 4, TextureFormat.ARGB32, false);
             output.ReadPixels(new Rect(0, 0, 4, 4), 0, 0);
             RenderTexture.active = prevActive;
             rt.Release();
@@ -66,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             ("Add3", new Color(1,1,0,1)),
         };
 
-        [Test]
+    [Test]
         [TestCaseSource("testAsIsSource")]
         public static void TestGraphAsIs((string nodeToCompile, Color expectedColor) input)
         {
@@ -95,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             propContext.SetPortField("Foo", "c2", .5f);
             propContext.AddPort<GraphType>("out_Foo", false, registry);
             graph.AddReferenceNode("FooReference", propertyKey.Name, "Foo", registry);
-            graph.AddEdge("FooReference.Output", "Add1.B");
+            graph.AddEdge("FooReference.Output", "Add1.In2");
 
             var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader("Add1"), graph, registry);
             var shader = MakeShader(shaderString);

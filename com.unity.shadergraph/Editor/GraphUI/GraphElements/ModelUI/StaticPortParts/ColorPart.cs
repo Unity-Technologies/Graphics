@@ -1,7 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,7 +12,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override string FieldName => "sg-color-field";
 
         bool m_IncludeAlpha;
-        int length => m_IncludeAlpha ? 4 : 3;
+
+        int length =>
+            m_IncludeAlpha ? 4 : 3;
 
         public ColorPart(string name, IGraphElementModel model, IModelView ownerElement, string parentClassName, string portName, bool includeAlpha)
             : base(name, model, ownerElement, parentClassName, portName)

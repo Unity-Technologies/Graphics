@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
