@@ -226,7 +226,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     default:
                         switch (GetPrimitive())
                         {
-                            case GraphType.Primitive.Int: sc(0, (float)value); return;
+                            // TODO: Sometimes value is boxed, figure out if it's a problem
+                            case GraphType.Primitive.Int: sc(0, Convert.ToSingle(value)); return;
                             case GraphType.Primitive.Bool: sc(0, (bool)value ? 1 : 0); return;
                             default: sc(0, (float)value); return;
                         }

@@ -255,9 +255,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UpdateConstantValueCommand updateConstantValueCommand)
         {
             var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            if (updateConstantValueCommand.Constant is ICLDSConstant cldsConstant)
+            if (updateConstantValueCommand.Constant is ICLDSConstant cldsConstant && cldsConstant.NodeName != "MaterialPropertyContext") // TODO:
             {
-                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(cldsConstant.NodeName);
+                var nodeWriter = shaderGraphModel.GraphHandler.GetNode(cldsConstant.NodeName);
                 if (nodeWriter != null)
                 {
                     previewManager.OnLocalPropertyChanged(cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);

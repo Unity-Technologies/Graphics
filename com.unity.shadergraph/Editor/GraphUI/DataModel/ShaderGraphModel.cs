@@ -46,6 +46,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 sectionModel.AssetModel = AssetModel;
             }
+
+            foreach (var variableDeclarationModel in VariableDeclarations)
+            {
+                variableDeclarationModel.AssetModel = AssetModel;
+            }
         }
 
         /// <summary>
@@ -296,18 +301,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public override IVariableNodeModel CreateVariableNode(IVariableDeclarationModel declarationModel,
-            Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default)
-        {
-            Action<VariableNodeModel> initCallback = variableNodeModel =>
-            {
-                var propertyContextKey = Registry.ResolveKey<PropertyContext>();
-                variableNodeModel.VariableDeclarationModel = declarationModel;
-                // Every time a variable node is added to the graph, add a node referencing that variable on the CLDS level
-                GraphHandler.AddReferenceNode(variableNodeModel.Guid.ToString(), propertyContextKey.Name, declarationModel.GetVariableName(), RegistryInstance);
-            };
-            return this.CreateNode(declarationModel.DisplayTitle, position, guid, initCallback, spawnFlags);
-        }
+        // public override IVariableNodeModel CreateVariableNode(IVariableDeclarationModel declarationModel,
+        //     Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default)
+        // {
+        //     Action<VariableNodeModel> initCallback = variableNodeModel =>
+        //     {
+        //         var propertyContextKey = Registry.ResolveKey<PropertyContext>();
+        //         variableNodeModel.VariableDeclarationModel = declarationModel;
+        //         // Every time a variable node is added to the graph, add a node referencing that variable on the CLDS level
+        //         GraphHandler.AddReferenceNode(variableNodeModel.Guid.ToString(), propertyContextKey.Name, declarationModel.GetVariableName(), RegistryInstance);
+        //     };
+        //     return this.CreateNode(declarationModel.DisplayTitle, position, guid, initCallback, spawnFlags);
+        // }
 
         protected override Type GetDefaultVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
     }

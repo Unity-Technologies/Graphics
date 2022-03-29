@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -21,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
         // TODO: (Sai) When subgraphs come in, add support for dropdown section
-        internal static readonly string[] sections = { "Properties", "Keywords" };
+        internal static readonly string[] sections = {"Properties", "Keywords"};
 
         public override IEnumerable<string> SectionNames => sections;
 
@@ -120,38 +121,56 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ShaderGraphExampleTypes.Matrix4,
             ShaderGraphExampleTypes.Matrix3,
             ShaderGraphExampleTypes.Matrix2,
-            ShaderGraphExampleTypes.GradientTypeHandle,
+            // ShaderGraphExampleTypes.GradientTypeHandle,  TODO: Awaiting GradientType support
         };
 
         public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menuItems, IRootView view, IGroupModel selectedGroup = null)
         {
-            Action<IVariableDeclarationModel, IConstant> initCallback = (IVariableDeclarationModel model, IConstant constant) =>
-            {
-                // Use this variables' generated guid to bind it to an underlying element in the graph data.
-                var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
-                var graphDataName = model.Guid.ToString();
-                Debug.Log("WARNING: ShaderGraphStencil.PopulateBlackboardCreateMenu(): \n VariableDeclarationModels are currently being initialized with dummy info, need to have ability to add properties to GraphDelta");
-                // TODO (Sai): When we have the ability to have CLDS backing for a variable, replace with the correct function
-                //shaderGraphModel.GraphHandler.AddPropertyEntry(graphDataName, registry);
-            };
-
             // Only populate the Properties section for now. Will change in the future.
             if (sectionName != sections[0]) return;
 
             foreach (var type in k_SupportedBlackboardTypes)
             {
+                var displayName = TypeMetadataResolver.Resolve(type)?.FriendlyName ?? type.Name;
                 menuItems.Add(new MenuItem
                 {
-                    // TODO (Joe): Use friendlier names -- this uses the actual type names so "float" becomes "Single"
-                    name = $"Create {type.Name}",
+                    name = $"Create {displayName}",
                     action = () =>
                     {
                         var command = new CreateGraphVariableDeclarationCommand("variable", true, type, typeof(GraphDataVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
-                        command.InitializationCallback = initCallback;
-                        Debug.Log($"Create {type.Name}");
+                        command.InitializationCallback = InitVariableDeclarationModel;
                         view.Dispatch(command);
                     }
                 });
+            }
+
+            void InitVariableDeclarationModel(IVariableDeclarationModel model, IConstant constant)
+            {
+                if (model is not GraphDataVariableDeclarationModel decl) return;
+
+                // Use this variables' generated guid to bind it to an underlying element in the graph data.
+                var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
+                var graphHandler = shaderGraphModel.GraphHandler;
+                var variableDeclarationName = model.Guid.ToString();
+
+                var propertyContext = graphHandler.GetNode("MaterialPropertyContext");
+                Debug.Assert(propertyContext != null, "MaterialPropertyContext is missing from GraphHandler");
+
+                var entry = new IContextDescriptor.ContextEntry
+                {
+                    fieldName = variableDeclarationName,
+                    height = TypeHandleUtil.GetGraphTypeHeight(model.DataType),
+                    length = TypeHandleUtil.GetGraphTypeLength(model.DataType),
+                    primitive = TypeHandleUtil.GetGraphTypePrimitive(model.DataType),
+                    precision = GraphType.Precision.Any,
+                    initialValue = Matrix4x4.zero,
+                };
+
+                ContextBuilder.AddContextEntry(propertyContext, entry, registry);
+                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry);
+
+                decl.contextNodeName = "MaterialPropertyContext";
+                decl.graphDataName = variableDeclarationName;
             }
         }
 
