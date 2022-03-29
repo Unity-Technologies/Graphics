@@ -76,6 +76,9 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             {
                 var type = connectedPort.GetTypeField();
                 node.AddPort(kOutput, false, type.GetRegistryKey(), registry);
+                inPort.AddTypeField().SetMetadata("_RegistryKey", type.GetRegistryKey());
+                var builder = registry.GetTypeBuilder(type.GetRegistryKey());
+                builder.BuildType(inPort.GetTypeField(), registry);
             }
         }
 
@@ -86,9 +89,9 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             var shaderType = registry.GetShaderType(field, container);
 
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, $"refpass_{shaderType.Name}");
-            shaderFunctionBuilder.AddInput(shaderType, "In");
-            shaderFunctionBuilder.AddOutput(shaderType, "Out");
-            shaderFunctionBuilder.AddLine("Out = In;");
+            shaderFunctionBuilder.AddInput(shaderType, "Input");
+            shaderFunctionBuilder.AddOutput(shaderType, "Output");
+            shaderFunctionBuilder.AddLine("Output = Input;");
 
             return shaderFunctionBuilder.Build();
         }

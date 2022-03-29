@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Types;
 using UnityEngine;
 using Types = UnityEditor.ShaderGraph.Registry.Types;
 
@@ -19,18 +20,21 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         [SetUp]
         public static void Setup()
         {
+            registry = Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+            var contextKey = Registry.Registry.ResolveKey<Registry.Default.DefaultContext>();
+            var propertyKey = Registry.Registry.ResolveKey<Registry.Default.PropertyContext>();
+
             graph = new GraphHandler();
-            registry = new Registry.Registry();
+            graph.AddContextNode(propertyKey, registry);
+            graph.AddContextNode(contextKey, registry);
 
-            registry.Register<Types.GraphType>();
             registry.Register<Types.AddNode>();
-            registry.Register<Types.GraphTypeAssignment>();
 
-            graph.AddNode<Types.AddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
-            graph.AddNode<Types.AddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            graph.AddNode<Types.AddNode>("Add1", registry).SetPortField("A", "c0", 1f); //(1,0,0,0)
+            graph.AddNode<Types.AddNode>("Add2", registry).SetPortField("B", "c1", 1f); //(0,1,0,0)
             graph.AddNode<Types.AddNode>("Add3", registry);
-            graph.TryConnect("Add1", "Out", "Add3", "In1", registry);
-            graph.TryConnect("Add2", "Out", "Add3", "In2", registry); //should be (1,1,0,0)
+            graph.TryConnect("Add1", "Out", "Add3", "A", registry);
+            graph.TryConnect("Add2", "Out", "Add3", "B", registry); //should be (1,1,0,0)
         }
 
         private static Shader MakeShader(string input)
@@ -66,7 +70,8 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         [TestCaseSource("testAsIsSource")]
         public static void TestGraphAsIs((string nodeToCompile, Color expectedColor) input)
         {
-            var shader = MakeShader(Interpreter.GetShaderForNode(graph.GetNodeReader(input.nodeToCompile), graph, registry));
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader(input.nodeToCompile), graph, registry);
+            var shader = MakeShader(shaderString);
             var rt = DrawToTex(shader);
             try
             {
@@ -78,6 +83,34 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
                 File.WriteAllBytes($"Assets/FailureImage{input.nodeToCompile}.jpg", rt.EncodeToJPG());
                 throw e;
             }
+        }
+
+        [Test]
+        public static void TestGraphReferenceNode()
+        {
+            var propertyKey = Registry.Registry.ResolveKey<Registry.Default.PropertyContext>();
+            var propContext = graph.GetNode(propertyKey.Name);
+            propContext.AddPort<GraphType>("Foo", true, registry);
+            propContext.SetPortField("Foo", "c1", .5f);
+            propContext.SetPortField("Foo", "c2", .5f);
+            propContext.AddPort<GraphType>("out_Foo", false, registry);
+            graph.AddReferenceNode("FooReference", propertyKey.Name, "Foo", registry);
+            graph.AddEdge("FooReference.Output", "Add1.B");
+
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader("Add1"), graph, registry);
+            var shader = MakeShader(shaderString);
+            var rt = DrawToTex(shader);
+            try
+            {
+                var pixelColor = rt.GetPixel(0, 0);
+                Assert.IsTrue((pixelColor - new Color(1f,.5f,.5f)).maxColorComponent < 0.01f); //getting some weird color drift (0.5 -> 0.498) hmm
+            }
+            catch (Exception e)
+            {
+                File.WriteAllBytes($"Assets/FailureImageReferenceNode.jpg", rt.EncodeToJPG());
+                throw e;
+            }
+
         }
 
     }

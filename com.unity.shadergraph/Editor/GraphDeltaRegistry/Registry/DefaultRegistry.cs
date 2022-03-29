@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Registry.Default
 {
     public class PropertyContext : IContextDescriptor
     {
-        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => null;
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => new List<IContextDescriptor.ContextEntry>(); 
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
     }
