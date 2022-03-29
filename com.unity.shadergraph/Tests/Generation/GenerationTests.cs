@@ -17,17 +17,17 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         public static void Setup()
         {
             registry = new Registry();
-            var contextKey = Registry.ResolveKey<Registry.Default.DefaultContext>();
-            var propertyKey = Registry.ResolveKey<Registry.Default.PropertyContext>();
+            // var contextKey = Registry.ResolveKey<Registry.Default.DefaultContext>();
+            var propertyKey = Registry.ResolveKey<PropertyContext>();
 
-            graph = new GraphHandler();            
+            graph = new GraphHandler();
 
             registry.Register<GraphType>();
             registry.Register<TestAddNode>();
             registry.Register<GraphTypeAssignment>();
 
             graph.AddContextNode(propertyKey, registry);
-            graph.AddContextNode(contextKey, registry);
+            // graph.AddContextNode(contextKey, registry);
 
             graph.AddNode<TestAddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
             graph.AddNode<TestAddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         [Test]
         public static void TestGraphReferenceNode()
         {
-            var propertyKey = Registry.Registry.ResolveKey<Registry.Default.PropertyContext>();
+            var propertyKey = Registry.ResolveKey<PropertyContext>();
             var propContext = graph.GetNode(propertyKey.Name);
             propContext.AddPort<GraphType>("Foo", true, registry);
             propContext.SetPortField("Foo", "c1", .5f);

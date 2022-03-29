@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Generation
         }
 
 
-        public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry.Registry registry)
+        public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry)
         {
             void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
                 => GetBlocks(container, vertex, fragment, node, graph, registry, out vertexCPDesc, out fragmentCPDesc);
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Generation
              *      output of the node to "BaseColor" for previews
              *
              * In either case, we then need to create the block outputs for the given node based on its ports
-             * 
+             *
              * We want to gather all upstream nodes from the rootnode, and start evaluating the expression tree
              *
              * If we hit a context node upstream, then we need to recurse on that context node and make sure its outputs
@@ -207,7 +207,7 @@ namespace UnityEditor.ShaderGraph.Generation
             //if the root node was not a context node, then we need to remap an output to the expected customization point output
             if (!isContext)
             {
-                
+
                 string remapBlockName = $"ShaderGraphBlock_{rootNode.ID.LocalPath}_REMAP";
                 var remapBuilder = new Block.Builder(container, remapBlockName);
 
