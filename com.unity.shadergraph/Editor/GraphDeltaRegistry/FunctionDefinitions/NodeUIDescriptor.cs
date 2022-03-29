@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public string DisplayName { get; }
         public string Tooltip { get; }
         public bool HasPreview { get; }
+
         public IReadOnlyCollection<ParameterUIDescriptor> Parameters { get; }
         public IReadOnlyCollection<string> Synonyms { get; }
         public IReadOnlyCollection<string> Categories { get; }
@@ -26,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             string tooltip,
             string[] categories,
             string[] synonyms,
-            bool hasPreview = false,
+            bool hasPreview = true, // By default we assume all nodes should have previews
             ParameterUIDescriptor[] parameters = null
         )
         {
@@ -38,6 +39,18 @@ namespace UnityEditor.ShaderGraph.Defs
             Categories = categories.ToList().AsReadOnly();
             HasPreview = hasPreview;
             Parameters = parameters.ToList().AsReadOnly();
+        }
+
+        public ParameterUIDescriptor GetParameterInfo(string parameterName)
+        {
+            if(Parameters == null)
+                return new ParameterUIDescriptor();
+
+            foreach(var parameter in Parameters)
+                if (parameter.Name == parameterName)
+                    return parameter;
+
+			return new ParameterUIDescriptor();
         }
 
     }

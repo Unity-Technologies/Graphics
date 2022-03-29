@@ -319,9 +319,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var length = constant.GetLength();
             var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-            var uiHints = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+            var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.portName);
 
-            if (length >= 3 && uiHints.ContainsKey(constant.portName + ".UseColor"))
+            if (length >= 3 && parameterUIDescriptor.UseColor)
             {
                 var editor = new ColorField();
                 editor.showAlpha = length == 4;

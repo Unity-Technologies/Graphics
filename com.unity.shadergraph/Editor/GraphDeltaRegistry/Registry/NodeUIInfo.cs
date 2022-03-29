@@ -8,18 +8,27 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// NodeUIInfo is a registry for NodeUIDescriptors for all nodes that have
     /// been assigned a RegistryKey.
     /// </summary>
-    class NodeUIInfo
+    internal class NodeUIInfo
     {
-        private readonly Dictionary<RegistryKey, NodeUIDescriptor> RegistryKeyToNodeUIDescriptor;
+        private readonly Dictionary<RegistryKey, NodeUIDescriptor> RegistryKeyToNodeUIDescriptor = new ();
 
         public NodeUIDescriptor this[RegistryKey key]
         {
-            get {
-                return RegistryKeyToNodeUIDescriptor[key];
+            get
+            {
+                if (RegistryKeyToNodeUIDescriptor.ContainsKey(key))
+                    return RegistryKeyToNodeUIDescriptor[key];
+                return new NodeUIDescriptor();
             }
-            set {
-                RegistryKeyToNodeUIDescriptor[key] = value;
+            set
+            {
+                RegistryKeyToNodeUIDescriptor[key] = (NodeUIDescriptor)value;
             }
+        }
+
+        public void Clear()
+        {
+            RegistryKeyToNodeUIDescriptor.Clear();
         }
     }
 }

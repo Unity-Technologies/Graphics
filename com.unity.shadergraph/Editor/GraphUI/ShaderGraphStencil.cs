@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string Name = "ShaderGraph";
         public const string DefaultAssetName = "NewShaderGraph";
         public const string Extension = "sg2";
-        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
         private Registry RegistryInstance = null;
         private NodeUIInfo NodeUIInfo = null;
 
@@ -22,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ShaderGraphStencil()
         {
-            m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
+            NodeUIInfo = new ();
         }
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
@@ -64,18 +63,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (RegistryInstance == null)
             {
-                m_NodeUIHints.Clear();
+                NodeUIInfo.Clear();
 
                 void ReadUIInfo(RegistryKey key, Type type)
                 {
-                    // TODO Remove the code that uses UIHints
-                    const string uiHintsGetterName = "get_UIHints";
-                    var getUiHints = type.GetMethod(uiHintsGetterName);
-                    if (getUiHints != null)
-                    {
-                        m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
-                    }
-
                     const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
                     var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
                     if (getNodeUIDescriptor != null)
@@ -89,9 +80,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return RegistryInstance;
         }
 
-        public IReadOnlyDictionary<string, float> GetUIHints(RegistryKey nodeKey)
+        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey)
         {
-            return m_NodeUIHints.GetValueOrDefault(nodeKey, new Dictionary<string, float>());
+            return NodeUIInfo[nodeKey];
         }
 
         protected override void CreateGraphProcessors()

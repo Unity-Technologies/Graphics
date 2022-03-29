@@ -1,6 +1,7 @@
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.BuildPartList();
 
             var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
-            var uiHints = stencil.GetUIHints(m_GraphDataNodeModel.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(m_GraphDataNodeModel.registryKey);
 
             if (Model is not GraphDataNodeModel graphDataNodeModel) return;
             if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
@@ -34,6 +35,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 bool isStatic = staticField?.GetData() ?? false;
                 bool isGradientType = portKey.Name == Registry.ResolveKey<GradientType>().Name;
 
+                var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portReader.GetName());
+
                 // GradientType cannot be previewed if directly acting as the output, disable preview part on it if so
                 if (isGradientType && !portReader.IsInput)
                     isNonPreviewableType = true;
@@ -45,7 +48,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     continue;
                 }
                 if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name) continue;
-                var portName = portReader.LocalID;
 
                 var typeField = portReader.GetTypeField();
                 if (typeField == null) continue;
@@ -80,7 +82,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 );
                                 break;
                             case GraphType.Primitive.Float:
-                                if (uiHints.ContainsKey(portName + SLIDER_HINT))
+                                if (parameterUIDescriptor.UseSlider)
                                 {
                                     PartList.InsertPartAfter(portContainerPartName, new SliderPart("sg-slider", GraphElementModel, this, ussClassName, portReader.LocalID));
                                 }
@@ -103,7 +105,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         );
                         break;
                     case GraphType.Length.Three:
-                        if (uiHints.ContainsKey(portName + COLOR_HINT))
+                        if (parameterUIDescriptor.UseColor)
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
@@ -120,7 +122,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                         break;
                     case GraphType.Length.Four:
-                        if (uiHints.ContainsKey(portName + COLOR_HINT))
+                        if (parameterUIDescriptor.UseColor)
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
@@ -145,7 +147,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             // By default we assume all nodes should display previews, unless there is a UIHint that dictates otherwise
-            bool nodeHasPreview = !uiHints.ContainsKey(PREVIEW_HINT);
+            bool nodeHasPreview = nodeUIDescriptor.HasPreview;
 
             var shouldShowPreview = m_GraphDataNodeModel.existsInGraphData && nodeHasPreview && !isNonPreviewableType;
 
