@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 generatesPreview = false,
                 customTags = GetBaseMapTags(),
                 passes = GetPasses(),
-                additionalShaderID = "{Name}_BaseMapGen",
+                additionalShaderID = "Hidden/{Name}_BaseMapGen",
             };
 
             List<string> GetBaseMapTags()

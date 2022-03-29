@@ -1000,7 +1000,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new ShaderDependency()
                 {
                     dependencyName = "BaseMapGenShader",
-                    shaderName = "{Name}_BaseMapGen",
+                    shaderName = "Hidden/{Name}_BaseMapGen",
                 };
             }
         }

@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderQueue = renderQueue,
                     generatesPreview = false,
                     passes = new PassCollection(),
-                    additionalShaderID = "{Name}_AddPass",
+                    additionalShaderID = "Hidden/{Name}_AddPass",
                 };
 
                 result.passes.Add(TerrainLitAddPasses.Forward(target, blendModePreserveSpecular, TerrainCorePragmas.DOTSForward));
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderQueue = renderQueue,
                     generatesPreview = false,
                     passes = new PassCollection(),
-                    additionalShaderID = "{Name}_AddPass",
+                    additionalShaderID = "Hidden/{Name}_AddPass",
                 };
 
                 result.passes.Add(TerrainLitAddPasses.Forward(target, blendModePreserveSpecular));
@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderQueue = renderQueue,
                     generatesPreview = false,
                     passes = new PassCollection(),
-                    additionalShaderID = "{Name}_BaseMapGen",
+                    additionalShaderID = "Hidden/{Name}_BaseMapGen",
                 };
 
                 result.passes.Add(TerrainBaseGenPasses.MainTex(target));

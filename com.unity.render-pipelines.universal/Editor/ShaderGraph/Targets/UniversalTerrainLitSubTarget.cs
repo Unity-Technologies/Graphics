@@ -1260,7 +1260,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return new ShaderDependency()
                 {
                     dependencyName = "AddPassShader",
-                    shaderName = "{Name}_AddPass",
+                    shaderName = "Hidden/{Name}_AddPass",
                 };
             }
             public static ShaderDependency BaseMapShader()
@@ -1276,7 +1276,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return new ShaderDependency()
                 {
                     dependencyName = "BaseMapGenShader",
-                    shaderName = "{Name}_BaseMapGen",
+                    shaderName = "Hidden/{Name}_BaseMapGen",
                 };
             }
         }
