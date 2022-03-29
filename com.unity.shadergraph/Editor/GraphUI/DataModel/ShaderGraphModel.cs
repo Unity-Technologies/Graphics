@@ -6,6 +6,8 @@ using UnityEditor.Graphs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -299,9 +301,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             Action<VariableNodeModel> initCallback = variableNodeModel =>
             {
+                var propertyContextKey = Registry.ResolveKey<PropertyContext>();
                 variableNodeModel.VariableDeclarationModel = declarationModel;
                 // Every time a variable node is added to the graph, add a node referencing that variable on the CLDS level
-                GraphHandler.AddReferenceNode(variableNodeModel.Guid.ToString(), declarationModel.GetVariableName(), RegistryInstance);
+                GraphHandler.AddReferenceNode(variableNodeModel.Guid.ToString(), propertyContextKey.Name, declarationModel.GetVariableName(), RegistryInstance);
             };
             return this.CreateNode(declarationModel.DisplayTitle, position, guid, initCallback, spawnFlags);
         }
