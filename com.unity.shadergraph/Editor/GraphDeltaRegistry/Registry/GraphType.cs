@@ -9,6 +9,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     public static class GraphTypeHelpers
     {
+        public static void InitGraphType(FieldHandler field, GraphType.Length length = GraphType.Length.Four, GraphType.Precision precision = GraphType.Precision.Single, GraphType.Primitive primitive = GraphType.Primitive.Float, GraphType.Height height = GraphType.Height.One)
+        {
+            field.GetSubField<GraphType.Length>(GraphType.kLength).SetData(length);
+            field.GetSubField<GraphType.Height>(GraphType.kHeight).SetData(height);
+            field.GetSubField<GraphType.Precision>(GraphType.kPrecision).SetData(precision);
+            field.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).SetData(primitive);
+        }
+
         public static GraphType.Precision GetPrecision(FieldHandler field) =>
             field.GetSubField<GraphType.Precision>(GraphType.kPrecision).GetData();
 

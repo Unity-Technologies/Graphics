@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             public class TestDescriptor : IContextDescriptor
             {
-                public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+                public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
                 {
                     return new List<IContextDescriptor.ContextEntry>()
                     {
@@ -157,7 +157,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                             height = GraphType.Height.One,
                             length = GraphType.Length.One,
                             precision = GraphType.Precision.Fixed,
-                            isFlat = true
                         }
                     };
                 }
@@ -192,11 +191,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 GraphDelta graphDelta = graphHandler.graphDelta;
                 NodeHandler node = graphDelta.AddNode<TestNode>("Add", registry);
-                
+
                 node.AddPort("A", true, true);
                 node.AddPort("B", true, true);
                 node.AddPort("Out", false, true);
-                
+
 
                 var nodeRef = graphHandler.GetNodeReader("Add");
                 Assert.NotNull(nodeRef);
@@ -290,6 +289,40 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 len = reader.GetPort("In2").GetTypeField().GetSubField<GraphType.Length>("Length").GetData();
 
                 Assert.AreEqual(4, (int)len);
+            }
+
+            [Test]
+            public void ReferenceNodes()
+            {
+                registry.Register<TestDescriptor>();
+                registry.Register<GraphType>();
+                graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), registry);
+                var contextNode = graphHandler.GetNode("TestContextDescriptor");
+
+                IContextDescriptor.ContextEntry entry = new()
+                {
+                    fieldName = "TestContextEntry",
+                    precision = GraphType.Precision.Single,
+                    primitive = GraphType.Primitive.Float,
+                    length = GraphType.Length.Four,
+                    height = GraphType.Height.One
+                };
+
+                ContextBuilder.AddContextEntry(contextNode, entry, registry);
+                graphHandler.AddReferenceNode("testNodeRef", "TestContextDescriptor", "TestContextEntry", registry);
+                graphHandler.AddReferenceNode("fooNodeRef", "TestContextDescriptor", "Foo", registry);
+
+
+                Assert.AreEqual("TestContextDescriptor", graphHandler.GetConnectedNodes("testNodeRef").First().ID.LocalPath);
+                Assert.AreEqual("TestContextDescriptor", graphHandler.GetConnectedNodes("fooNodeRef").First().ID.LocalPath);
+
+                var testField = graphHandler.GetNode("testNodeRef").GetPort(ReferenceNodeBuilder.kOutput).GetTypeField(); // float4
+                var fooField = graphHandler.GetNode("fooNodeRef").GetPort(ReferenceNodeBuilder.kOutput).GetTypeField(); // fixed int
+
+                Assert.AreEqual(GraphType.Primitive.Float, GraphTypeHelpers.GetPrimitive(testField));
+                // ReferenceNodes don't properly propagate TypeField information to their outgoing port.
+                // TODO: Maybe have some sort of Clone operation on ITypeDefinitionBuilder?
+                // Assert.AreEqual(GraphType.Primitive.Int, GraphTypeHelpers.GetPrimitive(fooField));
             }
         }
     }

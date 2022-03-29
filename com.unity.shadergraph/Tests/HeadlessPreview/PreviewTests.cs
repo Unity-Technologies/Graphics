@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     // TODO: Move to preview manager and then rely on the name from the registry key for the context node/master preview data name
     class TestDescriptor : IContextDescriptor
     {
-        public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
         {
             return new List<IContextDescriptor.ContextEntry>()
             {
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
                 {
                     fieldName = "BaseColor",
                     primitive = GraphType.Primitive.Float,
-                    precision = GraphType.Precision.Fixed,
+                    precision = GraphType.Precision.Single,
                     height = GraphType.Height.One,
                     length = GraphType.Length.Three,
                 }
@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         public void MasterPreview_SingleColor()
         {
             // Instantiate a graph
-            var graphHandler = new GraphHandler(); 
+            var graphHandler = new GraphHandler();
 
             m_PreviewManager.SetActiveGraph(graphHandler);
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
@@ -477,6 +477,13 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             //      8) Testing if a property is at a given value in the MPB after setting the property
         }
 
+        static object[] interpreterTestCases = new object[]
+        {
+            ("Add1", new Color(1,0,0,1)), //Colors with Alpha 1 since target is opaque
+            ("Add2", new Color(0,1,0,1)),
+            ("Add3", new Color(1,1,0,1)),
+        };
+
         [Test]
         [TestCaseSource("interpreterTestCases")]
         public void InterpreterTests((string nodeToCompile, Color expectedColor) input)
@@ -585,14 +592,14 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("AppendNodeInstance");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
         }
-        
+
         [Test]
         public void Gradients_TestAll()
         {
             var graphHandler = new GraphHandler();
             var registry = new Registry();
             var previewMgr = new HeadlessPreviewManager();
-        
+
             registry.Register<GraphType>();
             registry.Register<GraphTypeAssignment>();
             registry.Register<GradientType>();
@@ -610,7 +617,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(nodePreviewMaterial));
 
             // default 1 time color is white.
-            nodeWriter.SetPortField(SampleGradientNode.kTime, "c0", 1f);
+            //nodeWriter.SetPortField(SampleGradientNode.kTime, "c0", 1f);
+            nodeWriter.GetPort(SampleGradientNode.kTime).GetTypeField().GetSubField<float>("c0").SetData(1f);
             previewMgr.SetLocalProperty("SampleGradientNode", SampleGradientNode.kTime, 1f);
             nodePreviewMaterial = previewMgr.RequestNodePreviewMaterial("SampleGradientNode");
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(nodePreviewMaterial));
