@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -10,15 +11,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ShaderGraphStencil : Stencil
     {
         public const string Name = "ShaderGraph";
-
         public const string DefaultAssetName = "NewShaderGraph";
-
         public const string Extension = "sg2";
+        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
+        private Registry RegistryInstance = null;
+        private NodeUIInfo NodeUIInfo = null;
 
         public string ToolName =>
             Name;
-
-        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
         public ShaderGraphStencil()
         {
@@ -60,8 +60,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        private Registry RegistryInstance = null;
-
         public Registry GetRegistry()
         {
             if (RegistryInstance == null)
@@ -70,17 +68,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 void ReadUIInfo(RegistryKey key, Type type)
                 {
+                    // TODO Remove the code that uses UIHints
                     const string uiHintsGetterName = "get_UIHints";
-
                     var getUiHints = type.GetMethod(uiHintsGetterName);
                     if (getUiHints != null)
                     {
                         m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
                     }
 
-                    // TODO: Get and use UI strings
+                    const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
+                    var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
+                    if (getNodeUIDescriptor != null)
+                    {
+                        NodeUIInfo[key] = (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null);
+                    }
                 }
-
                 RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
             }
 
