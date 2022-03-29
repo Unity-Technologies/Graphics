@@ -715,6 +715,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ScenePicking,
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(CoreDefines.ScenePicking, false, useTessellation),
+                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -762,6 +763,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.SceneSelection,
                 pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
                 defines = HDShaderPasses.GenerateDefines(CoreDefines.SceneSelection, false, useTessellation),
+                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };

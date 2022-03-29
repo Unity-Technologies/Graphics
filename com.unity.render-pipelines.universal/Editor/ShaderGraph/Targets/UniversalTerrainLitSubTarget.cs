@@ -1191,14 +1191,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
+                    structs = TerrainStructCollections.Default,
+                    requiredFields = TerrainRequiredFields.DepthOnly,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
                     renderStates = CoreRenderStates.SceneSelection(target),
                     pragmas = TerrainCorePragmas.Default,
                     defines = new DefineCollection { CoreDefines.SceneSelection, },
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, },
                     includes = TerrainCoreIncludes.SceneSelection,
 
                     // Custom Interpolator Support
@@ -1229,14 +1230,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
+                    structs = TerrainStructCollections.Default,
+                    requiredFields = TerrainRequiredFields.DepthOnly,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
                     renderStates = CoreRenderStates.ScenePicking(target),
                     pragmas = TerrainCorePragmas.Default,
                     defines = new DefineCollection { CoreDefines.ScenePicking, },
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, },
                     includes = TerrainCoreIncludes.ScenePicking,
 
                     // Custom Interpolator Support
@@ -1587,7 +1589,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
             public static readonly string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/PBRGBufferPass.hlsl";
             public static readonly string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
-            public static readonly string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
+            public static readonly string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/SelectionPickingPass.hlsl";
 
             public static readonly string kTerrainLitInput = "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl";
             public static readonly string kTerrainPassUtils = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainPassUtils.hlsl";
