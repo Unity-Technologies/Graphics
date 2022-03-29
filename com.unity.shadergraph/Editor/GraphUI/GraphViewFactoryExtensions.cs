@@ -3,7 +3,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    [GraphElementsExtensionMethodsCache(typeof(GraphView))]
+    [GraphElementsExtensionMethodsCache(typeof(ShaderGraphView))]
     public static class GraphViewFactoryExtensions
     {
         public static IModelView CreateNode(

@@ -106,6 +106,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     interface ICLDSConstant
     {
+        public string NodeName { get; }
+        public string PortName { get; }
+
         void Initialize(GraphHandler handler, string nodeName, string portName);
     }
 
@@ -113,6 +116,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public GraphHandler graphHandler;
         public string nodeName, portName;
+
+        public string NodeName => nodeName;
+        public string PortName => portName;
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
 
@@ -250,6 +256,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // Most of this should be genericized, as it'll be identical across types.
         public GraphDelta.GraphHandler graphHandler;
         public string nodeName, portName;
+
+        public string NodeName => nodeName;
+        public string PortName => portName;
 
         bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
 
