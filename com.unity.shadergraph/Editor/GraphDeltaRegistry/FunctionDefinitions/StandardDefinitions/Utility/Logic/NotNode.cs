@@ -22,5 +22,10 @@ namespace UnityEditor.ShaderGraph.Defs
             { "Parameters.Out.Tooltip", "the opposite of the input " },
             { "Category", "Utility, Logic" }
         };
+
+        public static Dictionary<string, float> UIHints => new()
+        {
+            { "Preview.Exists", 0 }
+        };
     }
 }
