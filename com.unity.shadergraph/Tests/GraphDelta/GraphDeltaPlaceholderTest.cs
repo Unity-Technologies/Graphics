@@ -81,8 +81,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             public void CanAddNodeAndPorts()
             {
                 var fooNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "foo", registry);
-                fooNode.AddPort("A",   true,  true);
-                fooNode.AddPort("B",   true,  true);
+                fooNode.AddPort("A", true, true);
+                fooNode.AddPort("B", true, true);
                 fooNode.AddPort("Out", false, true);
 
                 PortHandler port = fooNode.GetPort("A");
@@ -103,13 +103,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             public void CanAddTwoNodesAndConnect()
             {
                 var fooNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "foo", registry);
-                fooNode.AddPort("A",   true,  true);
-                fooNode.AddPort("B",   true,  true);
+                fooNode.AddPort("A", true, true);
+                fooNode.AddPort("B", true, true);
                 fooNode.AddPort("Out", false, true);
 
                 var barNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "bar", registry);
-                barNode.AddPort("A",   true,  true);
-                barNode.AddPort("B",   true,  true);
+                barNode.AddPort("A", true, true);
+                barNode.AddPort("B", true, true);
                 barNode.AddPort("Out", false, true);
 
                 var edge = graphHandler.AddEdge("foo.Out", "bar.A");
@@ -197,11 +197,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 GraphDelta graphDelta = graphHandler.graphDelta;
                 NodeHandler node = graphDelta.AddNode<TestNode>("Add", registry);
-                
+
                 node.AddPort("A", true, true);
                 node.AddPort("B", true, true);
                 node.AddPort("Out", false, true);
-                
+
 
                 var nodeRef = graphHandler.GetNodeReader("Add");
                 Assert.NotNull(nodeRef);
@@ -264,7 +264,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 {
                     thruEdge = deserializedHandler.GetConnectedPorts("Foo.Out").FirstOrDefault();
                 }
-                catch(System.Exception)
+                catch (System.Exception)
                 {
                     Assert.Fail("Connected element could not be found.");
                 }
@@ -295,6 +295,59 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 len = reader.GetPort("In2").GetTypeField().GetSubField<GraphType.Length>("Length").GetData();
 
                 Assert.AreEqual(4, (int)len);
+            }
+
+            [Test]
+            public void ColorNodeTest()
+            {
+                registry = UnityEditor.ShaderGraph.Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+                graphHandler.AddNode(new RegistryKey() { Name = "TestUIColorRGB", Version = 1 }, "ColorNode", registry);
+
+
+                foreach (var node in graphHandler.GetNodes())
+                {
+                    if (node.GetRegistryKey().Equals(new RegistryKey() { Name = "TestUIColorRGB", Version = 1 }))
+                    {
+                        node.SetPortField<float>("In", "c0", 1);
+
+                    }
+                }
+            }
+
+            [Test]
+            public List<NodeHandler> GetUnconnectedNodeTest()
+            {
+                List<NodeHandler> unusedNodes = new List<NodeHandler>();
+                foreach (var node in graphHandler.GetNodes())
+                {
+                    if (graphHandler.GetConnectedNodes(node.GetName()) == null)
+                    {
+                        unusedNodes.Add(node);
+                    }
+                }
+                return unusedNodes;
+            }
+            [Test]
+            public void CreateANodesChain()
+            {
+                var fooNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "foo", registry);
+                fooNode.AddPort("A", true, true);
+                fooNode.AddPort("B", true, true);
+                fooNode.AddPort("Out", false, true);
+
+                var barNode = graphHandler.AddNode(Registry.Registry.ResolveKey<TestNode>(), "bar", registry);
+                barNode.AddPort("A", true, true);
+                barNode.AddPort("B", true, true);
+                barNode.AddPort("Out", false, true);
+
+                var edge = graphHandler.AddEdge("foo.Out", "bar.A");
+                Assert.NotNull(edge);
+            }
+            [Test]
+            public void DisconnectAndConnectPortsTest()
+            {
+                registry = UnityEditor.ShaderGraph.Registry.Default.DefaultRegistry.CreateDefaultRegistry();
+
             }
 
         }
