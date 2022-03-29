@@ -89,9 +89,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddSubShader(PostProcessSubShader(TerrainLitAddSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
 
             context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapGenSubShaders.GenerateBaseMap(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
-
-            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapSubShaders.LitComputeDotsSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
-            //context.AddSubShader(PostProcessSubShader(TerrainLitBaseMapSubShaders.LitGLESSubShader(target, target.renderType, target.renderQueue, blendModePreserveSpecular)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
