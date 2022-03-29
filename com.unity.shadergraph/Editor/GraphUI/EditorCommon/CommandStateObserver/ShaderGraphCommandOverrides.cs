@@ -254,15 +254,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PreviewManager previewManager,
             UpdateConstantValueCommand updateConstantValueCommand)
         {
-            if (graphModelState.GraphModel is not ShaderGraphModel shaderGraphModel) return;
-            if (updateConstantValueCommand.OwnerModel is not GraphDataPortModel model) return;
-
-            if (model.NodeModel is GraphDataNodeModel nodeModel && shaderGraphModel != null)
+            var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
+            if (updateConstantValueCommand.Constant is ICLDSConstant cldsConstant)
             {
-                var nodeWriter = shaderGraphModel.GraphHandler.GetNode(nodeModel.graphDataName);
+                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(cldsConstant.NodeName);
                 if (nodeWriter != null)
                 {
-                    previewManager.OnLocalPropertyChanged(nodeModel.graphDataName, model.UniqueName, updateConstantValueCommand.Value);
+                    previewManager.OnLocalPropertyChanged(cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
                 }
             }
         }
