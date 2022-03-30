@@ -331,16 +331,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     "",
                     parameterUIDescriptor.Tooltip);
 
-                // IConstantEditorBuilder will cast an incoming ChangeEvent's type to the constant's underlying type,
-                // so we have to supply it with the right ChangeEvent type.
-
-                var shaderGraphView = builder.CommandTarget as ShaderGraphView;
-
                 void OnValueChanged(ChangeEvent<Color> change)
                 {
                     Vector4 vector4Value = (Vector4)change.newValue;
                     Vector3 vector3Value = vector4Value;
-                    shaderGraphView.Dispatch(new UpdateConstantValueCommand(constant, length == 3 ? vector3Value : vector4Value, builder.ConstantOwner));
+                    builder.CommandTarget.Dispatch(new UpdateConstantValueCommand(constant, length == 3 ? vector3Value : vector4Value, builder.ConstantOwner));
                 }
 
                 if (constantEditor.PropertyField is ColorField colorField)
