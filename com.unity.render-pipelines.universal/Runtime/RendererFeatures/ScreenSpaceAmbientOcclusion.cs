@@ -119,6 +119,11 @@ namespace UnityEngine.Rendering.Universal
 
             // Private Variables
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
+            private Matrix4x4[] m_CameraViewProjections = new Matrix4x4[2];
+            private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
+            private Vector4[] m_CameraXExtent = new Vector4[2];
+            private Vector4[] m_CameraYExtent = new Vector4[2];
+            private Vector4[] m_CameraZExtent = new Vector4[2];
             private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.SSAO);
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
@@ -132,6 +137,12 @@ namespace UnityEngine.Rendering.Universal
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
+            private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
+            private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
+            private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
+            private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
+            private static readonly int s_CameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent");
+            private static readonly int s_CameraViewZExtentID = Shader.PropertyToID("_CameraViewZExtent");
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
@@ -183,6 +194,40 @@ namespace UnityEngine.Rendering.Universal
                     m_CurrentSettings.SampleCount  // Sample count
                 );
                 material.SetVector(s_SSAOParamsID, ssaoParams);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                int eyeCount = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.singlePassEnabled ? 2 : 1;
+#else
+                int eyeCount = 1;
+#endif
+                for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
+                {
+                    Matrix4x4 view = renderingData.cameraData.GetViewMatrix(eyeIndex);
+                    Matrix4x4 proj = renderingData.cameraData.GetProjectionMatrix(eyeIndex);
+                    m_CameraViewProjections[eyeIndex] = proj * view;
+
+                    // camera view space without translation, used by SSAO.hlsl ReconstructViewPos() to calculate view vector.
+                    Matrix4x4 cview = view;
+                    cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    Matrix4x4 cviewProj = proj * cview;
+                    Matrix4x4 cviewProjInv = cviewProj.inverse;
+
+                    Vector4 topLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1, 1, -1, 1));
+                    Vector4 topRightCorner = cviewProjInv.MultiplyPoint(new Vector4(1, 1, -1, 1));
+                    Vector4 bottomLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1, -1, -1, 1));
+                    Vector4 farCentre = cviewProjInv.MultiplyPoint(new Vector4(0, 0, 1, 1));
+                    m_CameraTopLeftCorner[eyeIndex] = topLeftCorner;
+                    m_CameraXExtent[eyeIndex] = topRightCorner - topLeftCorner;
+                    m_CameraYExtent[eyeIndex] = bottomLeftCorner - topLeftCorner;
+                    m_CameraZExtent[eyeIndex] = farCentre;
+                }
+
+                material.SetVector(s_ProjectionParams2ID, new Vector4(1.0f / renderingData.cameraData.camera.nearClipPlane, 0.0f, 0.0f, 0.0f));
+                material.SetMatrixArray(s_CameraViewProjectionsID, m_CameraViewProjections);
+                material.SetVectorArray(s_CameraViewTopLeftCornerID, m_CameraTopLeftCorner);
+                material.SetVectorArray(s_CameraViewXExtentID, m_CameraXExtent);
+                material.SetVectorArray(s_CameraViewYExtentID, m_CameraYExtent);
+                material.SetVectorArray(s_CameraViewZExtentID, m_CameraZExtent);
 
                 // Update keywords
                 CoreUtils.SetKeyword(material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
