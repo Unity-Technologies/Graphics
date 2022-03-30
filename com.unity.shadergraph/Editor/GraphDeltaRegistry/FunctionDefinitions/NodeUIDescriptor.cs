@@ -23,17 +23,17 @@ namespace UnityEditor.ShaderGraph.Defs
         public NodeUIDescriptor(
             int version,
             string name, // should match the name in a FunctionDesctriptor
-            string displayName,
             string tooltip,
             string[] categories,
             string[] synonyms,
+            string displayName = null,
             bool hasPreview = true, // By default we assume all nodes should have previews
             ParameterUIDescriptor[] parameters = null
         )
         {
             Version = version;
             Name = name;
-            DisplayName = displayName;
+            DisplayName = displayName ?? name;
             Tooltip = tooltip;
             Synonyms = synonyms.ToList().AsReadOnly();
             Categories = categories.ToList().AsReadOnly();
