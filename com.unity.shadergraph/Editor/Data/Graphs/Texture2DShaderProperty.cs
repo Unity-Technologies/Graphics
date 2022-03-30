@@ -63,14 +63,23 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            HLSLDeclaration decl = (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
+            HLSLDeclaration declDefault = GetDefaultHLSLDeclaration();
 
-            action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
-            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
-            action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
+            HLSLDeclaration declTex = HLSLDeclaration.Global;
+            HLSLDeclaration declParams = (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
+
+            if (declDefault == HLSLDeclaration.DoNotDeclare)
+            {
+                declTex = HLSLDeclaration.DoNotDeclare;
+                declParams = HLSLDeclaration.DoNotDeclare;
+            }
+
+            action(new HLSLProperty(HLSLType._Texture2D, referenceName, declTex));
+            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, declTex));
+            action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", declParams));
             if (useTilingAndOffset)
             {
-                action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
+                action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", declParams));
             }
         }
 
