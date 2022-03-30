@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [GraphElementsExtensionMethodsCache(typeof(BlackboardView))]
     public static class BlackboardViewFactoryExtensions
     {
-        public static IModelView CreateMathBookVariableDeclarationModelView(this ElementBuilder elementBuilder, GraphDataVariableDeclarationModel model)
+        public static IModelView CreateGraphDataVariableDeclarationModelView(this ElementBuilder elementBuilder, GraphDataVariableDeclarationModel model)
         {
             IModelView ui;
 
