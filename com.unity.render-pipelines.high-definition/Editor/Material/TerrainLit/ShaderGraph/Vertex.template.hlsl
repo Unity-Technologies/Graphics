@@ -1,10 +1,3 @@
-#ifdef _ALPHATEST_ON
-void ClipHoles(float2 uv)
-{
-    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-    DoAlphaTest(hole, 0.5);
-}
-#endif
 
 // Vertex height displacement
 #ifdef HAVE_MESH_MODIFICATION

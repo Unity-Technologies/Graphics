@@ -1,4 +1,15 @@
 
+#ifdef _ALPHATEST_ON
+TEXTURE2D(_TerrainHolesTexture);
+SAMPLER(sampler_TerrainHolesTexture);
+
+void ClipHoles(float2 uv)
+{
+    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+    DoAlphaTest(hole, 0.5);
+}
+#endif
+
 float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS)
 {
 #ifdef _NORMALMAP

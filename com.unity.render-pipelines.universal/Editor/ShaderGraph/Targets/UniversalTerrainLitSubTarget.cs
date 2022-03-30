@@ -224,29 +224,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "Enable Instanced per Pixel Normal",
                 });
 
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_TerrainHolesTexture",
-                    displayName = "Holes Map (RGB)",
-                    useTilingAndOffset = true,
-                });
-
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    floatType = FloatType.Default,
-                    value = 0.0f,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.Global,
-                    overrideReferenceName = "_DstBlend",
-                    displayName = "DstBlend",
-                });
-
-                #if false
+                #if true
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
                     defaultType = Texture2DShaderProperty.DefaultType.White,
@@ -255,6 +233,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Splat0",
                     displayName = "Layer 0 (R)",
+                    useTilingAndOffset = true,
                 });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
@@ -264,6 +243,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Splat1",
                     displayName = "Layer 1 (G)",
+                    useTilingAndOffset = true,
                 });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
@@ -273,6 +253,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Splat2",
                     displayName = "Layer 2 (B)",
+                    useTilingAndOffset = true,
                 });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
@@ -282,42 +263,47 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Splat3",
                     displayName = "Layer 3 (A)",
+                    useTilingAndOffset = true,
                 });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
                     hidden = true,
                     overrideHLSLDeclaration = true,
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Mask3",
                     displayName = "Layer 3 (A)",
+                    useTilingAndOffset = true,
                 });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
                     hidden = true,
                     overrideHLSLDeclaration = true,
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Mask2",
                     displayName = "Layer 2 (B)",
+                    useTilingAndOffset = true,
                 });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
                     hidden = true,
                     overrideHLSLDeclaration = true,
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Mask1",
                     displayName = "Layer 1 (G)",
+                    useTilingAndOffset = true,
                 });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
                     hidden = true,
                     overrideHLSLDeclaration = true,
                     hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                     overrideReferenceName = "_Mask0",
                     displayName = "Layer 0 (R)",
+                    useTilingAndOffset = true,
                 });
                 #endif
                 collector.AddShaderProperty(new Vector1ShaderProperty
@@ -401,31 +387,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "Smoothness 3",
                 });
 
-                // if using material control, add the material property to control workflow mode
-                if (target.allowMaterialOverride)
+                collector.AddShaderProperty(new Vector1ShaderProperty
                 {
-                    // force to set metallic workflow
-                    collector.AddFloatProperty(Property.SpecularWorkflowMode, 1.0f);
-                    collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
-                    collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
-
-                    // setup properties using the defaults
-                    collector.AddFloatProperty(Property.SurfaceType, 0.0f);
-                    collector.AddFloatProperty(Property.BlendMode, (float)target.alphaMode);
-                    collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-                    collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector, ok to have incorrect values here
-                    collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector, ok to have incorrect values here
-                    collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
-                    collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
-                    collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
-                    collector.AddFloatProperty(Property.CullMode, 2.0f);    // render face enum is designed to directly pass as a cull mode
-                }
-
-                // We always need these properties regardless of whether the material is allowed to override other shader properties.
-                // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
-                // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
-                collector.AddFloatProperty(Property.QueueOffset, 0.0f);
-                collector.AddFloatProperty(Property.QueueControl, -1.0f);
+                    floatType = FloatType.Default,
+                    value = 0.0f,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.Global,
+                    overrideReferenceName = "_DstBlend",
+                    displayName = "DstBlend",
+                });
             }
         }
 

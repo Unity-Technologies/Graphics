@@ -27,11 +27,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
                     pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = new List<string>() { UniversalTarget.kLitMaterialTypeTag, },renderType = renderType,
+                    customTags = new List<string>() { UniversalTarget.kLitMaterialTypeTag, },
+                    renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = false,
                     passes = new PassCollection(),
                     additionalShaderID = "Hidden/{Name}_AddPass",
+                    shaderCustomEditors = new List<ShaderCustomEditor>(),
+                    shaderCustomEditor = "",
+                    shaderFallback = "",
                 };
 
                 result.passes.Add(TerrainLitAddPasses.Forward(target, blendModePreserveSpecular, TerrainCorePragmas.DOTSForward));
@@ -51,6 +55,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = false,
                     passes = new PassCollection(),
                     additionalShaderID = "Hidden/{Name}_AddPass",
+                    shaderCustomEditors = new List<ShaderCustomEditor>(),
+                    shaderCustomEditor = "",
+                    shaderFallback = "",
                 };
 
                 result.passes.Add(TerrainLitAddPasses.Forward(target, blendModePreserveSpecular));
@@ -65,12 +72,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
-                    pipelineTag = UniversalTarget.kPipelineTag,
-                    renderType = renderType,
-                    renderQueue = renderQueue,
+                    hideTags = true,
                     generatesPreview = false,
                     passes = new PassCollection(),
                     additionalShaderID = "Hidden/{Name}_BaseMapGen",
+                    shaderCustomEditors = new List<ShaderCustomEditor>(),
+                    shaderCustomEditor = "",
+                    shaderFallback = "",
                 };
 
                 result.passes.Add(TerrainBaseGenPasses.MainTex(target));
@@ -289,6 +297,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainBaseMapGen, 1);
+                result.keywords.Add(TerrainDefines.TerrainMaskmap);
+                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
 
                 return result;
             }
