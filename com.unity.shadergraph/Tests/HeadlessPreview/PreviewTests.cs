@@ -653,5 +653,33 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             // TODO: split these tests up into fixtures and also move these sort of tests out of PreviewTests.cs
         }
+
+        [Test]
+        public void Texture2D_Sanity()
+        {
+            var graphHandler = new GraphHandler();
+            var registry = new Registry();
+            var previewMgr = new HeadlessPreviewManager();
+
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
+            registry.Register<BaseTextureType>();
+            registry.Register<BaseTextureTypeAssignment>();
+            registry.Register<SimpleTextureNode>();
+            registry.Register<SimpleSampleTexture2DNode>();
+
+            previewMgr.SetActiveGraph(graphHandler);
+            previewMgr.SetActiveRegistry(registry);
+
+            graphHandler.AddNode<SimpleTextureNode>("Tex", registry);
+            graphHandler.AddNode<SimpleSampleTexture2DNode>("SampleTex", registry);
+            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input", registry));
+            graphHandler.ReconcretizeAll(registry);
+            previewMgr.NotifyNodeFlowChanged("SampleTex");
+
+            previewMgr.RequestNodePreviewShaderCodeStrings("SampleTex", out _, out string shd, out string blk, out string fnc);
+
+            Debug.Log(blk);
+        }
     }
 }
