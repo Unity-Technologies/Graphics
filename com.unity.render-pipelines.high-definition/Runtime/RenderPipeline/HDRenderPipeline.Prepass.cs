@@ -208,6 +208,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
 
+//custom-begin: callbacks
+                if (OnBeforeOpaque != null && (hdCamera.isMainGameView || hdCamera.camera.cameraType == CameraType.SceneView))
+                        OnBeforeOpaque(m_DepthOnlyPassNames[0], new CommandBuffer());
+//custom-end
+
+
                 ResetCameraMipBias(hdCamera);
 
                 if (!shouldRenderMotionVectorAfterGBuffer)
@@ -238,12 +244,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, cullingResults, hdCamera);
 
+//custom-begin: callbacks
+                if (OnBeforeOpaque != null && (hdCamera.isMainGameView || hdCamera.camera.cameraType == CameraType.SceneView))
+                    OnBeforeOpaque(HDShaderPassNames.s_GBufferName, new CommandBuffer());
+//custom-end
+
+
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
                     // See the call RenderObjectsMotionVectors() above and comment
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
+//custom-begin: callbacks
+                if (OnBeforeOpaque != null && (hdCamera.isMainGameView || hdCamera.camera.cameraType == CameraType.SceneView))
+                    OnBeforeOpaque(HDShaderPassNames.s_MotionVectorsName, new CommandBuffer());
+//custom-end
+
                 }
 
                 // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
@@ -275,6 +292,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                 GenerateDepthPyramid(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
+
+                //custom-begin: Camera depth ready callback
+                // OnCameraDepthReady?.Invoke(renderGraph, hdCamera, new CommandBuffer());
+                //custom-end:
 
                 // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
                 // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and

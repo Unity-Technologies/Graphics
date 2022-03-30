@@ -7,7 +7,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    abstract class BaseLitAPI
+    public abstract class BaseLitAPI
     {
         // Wind
         protected const string kWindEnabled = "_EnableWind";

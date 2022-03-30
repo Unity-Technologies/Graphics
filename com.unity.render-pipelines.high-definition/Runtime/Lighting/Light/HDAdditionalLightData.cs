@@ -2392,6 +2392,10 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * Mathf.Sqrt(2.0f);
             shadowRequest.normalBias = normalBias;
 
+            //custom-begin: wire shadow culling
+            shadowRequest.viewAbsolute = shadowRequest.view;
+            //custom-end
+
             // Make light position camera relative:
             // TODO: think about VR (use different camera position for each eye)
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -3598,7 +3602,6 @@ namespace UnityEngine.Rendering.HighDefinition
             : type != HDLightType.Directional
             ? ShadowMapType.PunctualAtlas
             : ShadowMapType.CascadedDirectional;
-
 
         internal void UpdateRenderEntity()
         {

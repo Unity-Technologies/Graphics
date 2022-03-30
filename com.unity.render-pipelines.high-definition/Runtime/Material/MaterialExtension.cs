@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Transparent
     }
 
-    enum DisplacementMode
+    public enum DisplacementMode
     {
         None,
         Vertex,

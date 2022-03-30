@@ -26,8 +26,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedScalableSetting sssSampleBudget;
         [FormerlySerializedAs("supportVolumetric")]
+
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportVolumetricClouds;
+//custom-begin: custom high-quality volumetrics level
+        public SerializedProperty volumetricsHQTileSize;
+//custom-end:
         public SerializedProperty supportWater;
         public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportLightLayers;

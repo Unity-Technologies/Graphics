@@ -69,6 +69,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
         /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
         public abstract void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk);
+//custom-begin:
+        public virtual void RenderSky(HDCamera camera, BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk) =>
+            RenderSky(builtinParams, renderForCubemap, renderSunDisk);
+//custom-end:
+
 
         /// <summary>
         /// Returns exposure setting for the provided SkySettings.

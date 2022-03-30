@@ -280,6 +280,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
+//custom-begin: Callbacks
+        // Wire callbacks
+        public static event Action<ScriptableRenderContext> OnBeginNewFrame;
+        public static event Action<ShaderTagId, CommandBuffer> OnBeforeOpaque;
+        public static event Action<Matrix4x4, CommandBuffer> OnBeforeShadows;
+
+        // Warp Capture
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraDepthReady;
+//custom-end:
+
+//custom-begin: Expose debug so we can disable/change rendering when active
+        internal DebugDisplaySettings CurrentDebugDisplaySettings => m_CurrentDebugDisplaySettings;
+//custom-end:
+
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
 #endif
@@ -516,6 +530,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CustomPassUtils.Initialize();
 
             LensFlareCommonSRP.Initialize();
+
+
         }
 
 #if UNITY_EDITOR
@@ -942,6 +958,39 @@ namespace UnityEngine.Rendering.HighDefinition
             ScreenSpaceRefraction ssRefraction = hdCamera.volumeStack.GetComponent<ScreenSpaceRefraction>();
             m_ShaderVariablesGlobalCB._SSRefractionInvScreenWeightDistance = 1.0f / ssRefraction.screenFadeDistance.value;
 
+//custom-begin: screen space dither mask
+#if IS_THE_HERETIC
+            var screenSpaceDitherMask = asset.renderPipelineResources.textures.screenSpaceDitherMask;
+            if (screenSpaceDitherMask != null)
+            {
+                const float golden = 137.508f * Mathf.Deg2Rad;
+                var a = golden * ((m_FrameCount) & 16383);// % 16384);
+                var w = screenSpaceDitherMask.width;
+                var h = screenSpaceDitherMask.height;
+
+                if (!Mathf.IsPowerOfTwo(w) || !Mathf.IsPowerOfTwo(h))
+                {
+                    w = Mathf.NextPowerOfTwo(w) >> 1;
+                    h = Mathf.NextPowerOfTwo(h) >> 1;
+                    Debug.LogWarning("_ScreenSpaceDitherMask NPOT => using only " + w + " x " + h + " region");
+                }
+
+                var r = 0.5f * Mathf.Min(w, h);
+                var v = new Vector4(Mathf.Round(r + r * Mathf.Cos(a)), Mathf.Round(r + r * Mathf.Sin(a)), w - 1, h - 1);
+                //Debug.Log("v = " + v + " hdcamera wh " + hdCamera.actualWidth + ", " + hdCamera.actualHeight);
+
+                cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceDitherMask, asset.renderPipelineResources.textures.screenSpaceDitherMask);
+                cmd.SetGlobalVector(HDShaderIDs._ScreenSpaceDitherMask_AnimRepeat, v);
+            }
+            else
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceDitherMask, Texture2D.blackTexture);
+                cmd.SetGlobalVector(HDShaderIDs._ScreenSpaceDitherMask_AnimRepeat, Vector4.zero);
+            }
+#endif
+//custom-end
+
+
             IndirectLightingController indirectLightingController = hdCamera.volumeStack.GetComponent<IndirectLightingController>();
             m_ShaderVariablesGlobalCB._IndirectDiffuseLightingMultiplier = indirectLightingController.indirectDiffuseLightingMultiplier.value;
             m_ShaderVariablesGlobalCB._IndirectDiffuseLightingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? indirectLightingController.GetIndirectDiffuseLightingLayers() : uint.MaxValue;
@@ -1220,6 +1269,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FrameCount = newCount;
                 HDCamera.CleanUnused();
 
+//custom-begin: callbacks
+                    if (OnBeginNewFrame != null)
+                        OnBeginNewFrame(renderContext);
+//custom-end
             }
 
             if (m_Asset.currentPlatformRenderPipelineSettings.supportWater)
@@ -2172,7 +2225,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 try
                 {
-                    ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, aovCustomPassBuffers, renderContext, cmd);
+                    ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, aovCustomPassBuffers, renderContext, cmd, OnBeforeShadows);
                 }
                 catch (Exception e)
                 {

@@ -384,6 +384,11 @@ namespace UnityEngine.Rendering
             }
         }
 
+//custom-begin: malte: static ref to current override's context
+        public static Object overridingContext;
+//custom-end
+
+
         /// <summary>
         /// Updates the global state of the Volume manager. Unity usually calls this once per Camera
         /// in the Update loop before rendering happens.
@@ -446,6 +451,10 @@ namespace UnityEngine.Rendering
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
+//custom-begin: malte: static ref to current override's context
+                    overridingContext = volume.context;
+//custom-end
+
                     OverrideData(stack, volume.profileRef.components, Mathf.Clamp01(volume.weight));
                     continue;
                 }
@@ -488,11 +497,23 @@ namespace UnityEngine.Rendering
                 float interpFactor = 1f;
 
                 if (blendDistSqr > 0f)
-                    interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
+//custom-begin: malte: smoothstep blend
+                    interpFactor = Mathf.SmoothStep(1f, 0f, closestDistanceSqr / blendDistSqr);
+//custom-end
+
+//custom-begin: malte: static ref to current override's context
+                overridingContext = volume.context;
+//custom-end
+
 
                 // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
                 OverrideData(stack, volume.profileRef.components, interpFactor * Mathf.Clamp01(volume.weight));
             }
+
+//custom-begin: malte: static ref to current override's context
+            overridingContext = null;
+//custom-end
+
         }
 
         /// <summary>
@@ -507,7 +528,9 @@ namespace UnityEngine.Rendering
             return volumes.ToArray();
         }
 
-        List<Volume> GrabVolumes(LayerMask mask)
+//custom-begin: malte: debugging/visualizing volumes
+        public List<Volume> GrabVolumes(LayerMask mask)
+//custom-end
         {
             List<Volume> list;
 

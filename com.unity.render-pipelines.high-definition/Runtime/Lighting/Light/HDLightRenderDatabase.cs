@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     //Data of the lights inside the database.
     //TODO: as a next round of optimizations, this should be reorganized to be cache friendly, and possibly split into SoAs for that matter.
-    internal struct HDLightRenderData
+    public struct HDLightRenderData
     {
         public HDAdditionalLightData.PointLightHDType pointLightType;
         public SpotLightShape spotLightShape;

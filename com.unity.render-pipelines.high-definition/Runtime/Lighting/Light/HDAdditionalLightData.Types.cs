@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         //Internal enum to differentiate built-in LightType.Point that can be Area or Point in HDRP
         //This is due to realtime support and culling behavior in Unity
-        internal enum PointLightHDType
+        public enum PointLightHDType
         {
             Punctual,
             Area
@@ -210,15 +210,15 @@ namespace UnityEngine.Rendering.HighDefinition
         static Dictionary<int, LightUnit[]> supportedLightTypeCache = new Dictionary<int, LightUnit[]>();
 
         [SerializeField, FormerlySerializedAs("lightTypeExtent"), FormerlySerializedAs("m_LightTypeExtent")]
-        PointLightHDType m_PointlightHDType = PointLightHDType.Punctual;
+        public PointLightHDType m_PointlightHDType = PointLightHDType.Punctual;
 
         // Only for Spotlight, should be hide for other light
         [SerializeField, FormerlySerializedAs("spotLightShape")]
-        SpotLightShape m_SpotLightShape = SpotLightShape.Cone;
+        public SpotLightShape m_SpotLightShape = SpotLightShape.Cone;
 
         // Only for Spotlight, should be hide for other light
         [SerializeField]
-        AreaLightShape m_AreaLightShape = AreaLightShape.Rectangle;
+        public AreaLightShape m_AreaLightShape = AreaLightShape.Rectangle;
 
         //Not to be used in render loop instead as we can add on the fly an
         //HDAdditionalLightData that is not really added to the GameObject

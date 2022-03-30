@@ -29,7 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
             List<RTHandle> aovBuffers,
             List<RTHandle> aovCustomPassBuffers,
             ScriptableRenderContext renderContext,
-            CommandBuffer commandBuffer)
+            CommandBuffer commandBuffer,
+            Action<Matrix4x4, CommandBuffer> onBeforeShadows)
         {
             using (new ProfilingScope(commandBuffer, ProfilingSampler.Get(HDProfileId.RecordRenderGraph)))
             {
@@ -118,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // For alpha output in AOVs or debug views, in case we have a shadow matte material, we need to render the shadow maps
                     if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.debugViewMaterialCommonValue == Attributes.MaterialSharedProperty.Alpha)
-                        RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
+                        RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult, onBeforeShadows);
                     else
                         HDShadowManager.BindDefaultShadowGlobalResources(m_RenderGraph);
 
@@ -162,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList);
 
-                    RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
+                    RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult, onBeforeShadows);
 
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
@@ -362,7 +363,8 @@ namespace UnityEngine.Rendering.HighDefinition
             List<RTHandle> aovBuffers,
             List<RTHandle> aovCustomPassBuffers,
             ScriptableRenderContext renderContext,
-            CommandBuffer commandBuffer)
+            CommandBuffer commandBuffer,
+            Action<Matrix4x4, CommandBuffer> onBeforeShadows)
         {
             using (m_RenderGraph.RecordAndExecute(new RenderGraphParameters
             {
@@ -375,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RecordRenderGraph(
                     renderRequest, aovRequest, aovBuffers,
-                    aovCustomPassBuffers, renderContext, commandBuffer);
+                    aovCustomPassBuffers, renderContext, commandBuffer, onBeforeShadows);
             }
 
 

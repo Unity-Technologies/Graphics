@@ -256,5 +256,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackDownsample,
 #endif
+
+//custom-begin: (Nick) eye rendering
+        EyeScreenSpaceReflections,
+//custom-end: (Nick) eye rendering
+//custom-begin: lens flare
+        LensFlare,
+//custom-end:
     }
 }

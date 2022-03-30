@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
             where TEnum : Enum
         {
 #if USE_UNSAFE
-            return TProfilingSampler<TEnum>.samples[Unsafe.As<TEnum, int>(ref marker)];
+            return TProfilingSampler<TEnum>.samples[UnsafeUtility.As<TEnum, int>(ref marker)];
 #else
             TProfilingSampler<TEnum>.samples.TryGetValue(marker, out var sampler);
             return sampler;

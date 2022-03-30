@@ -24,6 +24,12 @@ namespace UnityEditor.Rendering.HighDefinition
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
+//custom-begin: Strip out DXR shaders
+            if (snippet.passName.EndsWith("DXR"))
+                return true;
+//custom-end:
+
+
             var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
 
             // Remove editor only pass

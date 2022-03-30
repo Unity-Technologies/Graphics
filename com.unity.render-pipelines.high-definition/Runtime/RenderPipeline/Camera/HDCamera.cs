@@ -396,6 +396,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool isMainGameView { get { return camera.cameraType == CameraType.Game && camera.targetTexture == null; } }
 
+//custom-begin: Camera cut frame motion override
+// MERGE TODO: doesn't compile - check if needed
+        public int prevViewMatrixOverrideFrame = -1;
+        public Matrix4x4 prevViewMatrixOverride = Matrix4x4.identity;
+//custom-end: Camera cut frame motion override
+
+//custom-begin: callbacks
+        public event Action<HDCamera> OnVolumeStackUpdated;
+        public event Action<HDCamera> OnDispose;
+//custom-end: callbacks
+
+
         internal bool canDoDynamicResolution { get { return camera.cameraType == CameraType.Game; } }
 
 

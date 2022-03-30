@@ -11,6 +11,10 @@ namespace UnityEngine.Rendering
     [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour, IVolume
     {
+//custom-begin: malte: context reference for exposed property resolver
+        public Object context;
+//custom-end
+
         [SerializeField, FormerlySerializedAs("isGlobal")]
         private bool m_IsGlobal = true;
 

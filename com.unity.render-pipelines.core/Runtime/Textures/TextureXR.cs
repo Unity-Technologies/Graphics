@@ -30,24 +30,29 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Returns true if the XR system uses texture arrays.
         /// </summary>
-        public static bool useTexArray
-        {
-            get
-            {
-                switch (SystemInfo.graphicsDeviceType)
-                {
-                    case GraphicsDeviceType.Direct3D11:
-                    case GraphicsDeviceType.Direct3D12:
-                    case GraphicsDeviceType.PlayStation4:
-                    case GraphicsDeviceType.PlayStation5:
-                    case GraphicsDeviceType.Vulkan:
-                        return true;
 
-                    default:
-                        return false;
-                }
-            }
-        }
+//custom-begin: D3D12 doesn't yet implement mipmaps for render texture arrays so force non-array path (just disable it on all platforms since we don't run XR anyway)
+        public static bool useTexArray => false;
+//        {
+//            get
+//            {
+//                switch (SystemInfo.graphicsDeviceType)
+//                {
+//                    case GraphicsDeviceType.Direct3D11:
+//                    case GraphicsDeviceType.Direct3D12:
+//                        return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
+//
+//                    case GraphicsDeviceType.PlayStation4:
+//                        return true;
+//
+//                    case GraphicsDeviceType.Vulkan:
+//                        return true;
+//                }
+//                return false;
+//            }
+//    }
+//custom-end:
+
 
         /// <summary>
         /// Dimension of XR textures.

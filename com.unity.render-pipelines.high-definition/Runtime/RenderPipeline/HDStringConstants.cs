@@ -567,6 +567,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumeMaskAtlas = Shader.PropertyToID("_VolumeMaskAtlas");
         public static readonly int _VolumeAmbientProbeBuffer = Shader.PropertyToID("_VolumetricAmbientProbeBuffer");
 
+//custom-begin: outscattering tweak
+        public static readonly int _Extinction = Shader.PropertyToID("_Extinction");
+//custom-end
+
         public static readonly int _MaxZMaskTexture = Shader.PropertyToID("_MaxZMaskTexture");
         public static readonly int _DilationWidth = Shader.PropertyToID("_DilationWidth");
 
@@ -1027,6 +1031,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AOPackedHistory = Shader.PropertyToID("_AOPackedHistory");
         public static readonly int _AOPackedBlurred = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory = Shader.PropertyToID("_AOOutputHistory");
+
+//custom-begin: screen space dither mask
+        public static readonly int _ScreenSpaceDitherMask = Shader.PropertyToID("_ScreenSpaceDitherMask");
+        public static readonly int _ScreenSpaceDitherMask_AnimRepeat = Shader.PropertyToID("_ScreenSpaceDitherMask_AnimRepeat");
+//custom-end
 
         // Contrast Adaptive Sharpening
         public static readonly int _Sharpness = Shader.PropertyToID("Sharpness");

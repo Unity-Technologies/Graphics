@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+
+[assembly: InternalsVisibleTo("com.unity.demo.render-pipelines.high-definition.extension")]
 
 namespace UnityEditor.VFX.HDRP
 {

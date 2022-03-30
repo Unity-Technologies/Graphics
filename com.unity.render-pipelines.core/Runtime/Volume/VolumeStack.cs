@@ -12,13 +12,19 @@ namespace UnityEngine.Rendering
     public sealed class VolumeStack : IDisposable
     {
         // Holds the state of _all_ component types you can possibly add on volumes
-        internal Dictionary<Type, VolumeComponent> components;
+//custom-begin: malte: made public, to allow custom stacks for custom type subsets
+        public Dictionary<Type, VolumeComponent> components;
+//custom-end
 
-        internal VolumeStack()
+//custom-begin: malte: made public, to allow custom stacks for custom type subsets
+        public VolumeStack()
+//custom-end
         {
         }
 
-        internal void Reload(Type[] baseTypes)
+//custom-begin: malte: made public, to allow custom stacks for custom type subsets
+        public void Reload(IEnumerable<Type> baseTypes)
+//custom-end
         {
             if (components == null)
                 components = new Dictionary<Type, VolumeComponent>();

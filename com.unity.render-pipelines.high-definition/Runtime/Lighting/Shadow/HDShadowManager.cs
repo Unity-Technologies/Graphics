@@ -92,6 +92,10 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDShadowRequest
     {
         public Matrix4x4 view;
+//custom-begin: wire shadow culling
+        public Matrix4x4            viewAbsolute;
+//custom-end
+
         // Use the y flipped device projection matrix as light projection matrix
         public Matrix4x4 deviceProjectionYFlip;
         public Matrix4x4 deviceProjection;
@@ -897,7 +901,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        internal void RenderShadows(RenderGraph renderGraph, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
+        internal void RenderShadows(RenderGraph renderGraph, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result, Action<Matrix4x4, CommandBuffer> onBeforeShadows)
         {
             InvalidateAtlasOutputsIfNeeded();
 
