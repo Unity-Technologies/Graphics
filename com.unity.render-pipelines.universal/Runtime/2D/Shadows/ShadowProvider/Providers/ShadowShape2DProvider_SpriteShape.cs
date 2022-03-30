@@ -7,10 +7,16 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.U2D;
 using Unity.Mathematics;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.Universal
 {
     public class ShadowShape2DProvider_SpriteShape : ShadowShape2DProvider
     {
+        const string k_AutoUpdateWarningMessage = "SpriteShapeController cannot provide new shadow geometry when SpriteShapeController's Auto Update is disabled. Please enable or the attached collider";
+
         int ColliderDataCount(NativeArray<float2> colliderData)
         {
             int count = 0;
@@ -24,11 +30,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal void UpdateShadows(SpriteShapeController spriteShapeController, ShadowShape2D persistantShapeData)
         {
-            NativeArray<float2> colliderData = spriteShapeController.GetColliderData();
+            NativeArray<float2> colliderData = spriteShapeController.GetColliderShapeData();
 
             bool isOpenEnded = spriteShapeController.spline.isOpenEnded;
 
-            int colliderDataCount = ColliderDataCount(colliderData);
+            int colliderDataCount = 0;
+            if (colliderData.IsCreated)
+                colliderDataCount = ColliderDataCount(colliderData);
+
             if (colliderDataCount > 0)
             {
 
@@ -61,7 +70,20 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public override bool CanProvideShape(in Component sourceComponent) { return sourceComponent is SpriteShapeController; }
+        public override void Enabled(in Component sourceComponent)
+        {
+            ((SpriteShapeController)sourceComponent).ForceColliderShapeUpdate(true);
+        }
+
+        public override void Disabled(in Component sourceComponent)
+        {
+            ((SpriteShapeController)sourceComponent).ForceColliderShapeUpdate(false);
+        }
+
+        public override bool IsShapeSource(in Component sourceComponent)
+        {
+            return sourceComponent as SpriteShapeController;
+        }
 
         public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShapeData)
         {

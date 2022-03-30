@@ -48,8 +48,8 @@ namespace UnityEngine.Rendering.Universal
         //============================================================================================================
         //                                                  Public
         //============================================================================================================
-        public override int MenuPriority()  { return 1; }  // give higher than default menu priority
-        public override bool CanProvideShape(in Component sourceComponent) { return sourceComponent is SpriteRenderer; }
+        public override int Priority()  { return 1; }  // give higher than default menu priority
+        public override bool IsShapeSource(in Component sourceComponent) { return sourceComponent is SpriteRenderer; }
 
         public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShapeData)
         {

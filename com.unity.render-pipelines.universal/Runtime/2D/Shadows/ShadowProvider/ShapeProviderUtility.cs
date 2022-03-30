@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (component != null)
             {
-                if(shapeProvider != null)
+                if (shapeProvider != null)
                     shapeProvider.OnPersistantDataCreated(component, shadowMesh);
             }
         }
@@ -50,9 +50,9 @@ namespace UnityEngine.Rendering.Universal
                     if (!providerType.IsAbstract)
                     {
                         ShadowShape2DProvider currentProvider = (ShadowShape2DProvider)ScriptableObject.CreateInstance(providerType);
-                        if (currentProvider.CanProvideShape(component))
+                        if (currentProvider.IsShapeSource(component))
                         {
-                            int menuPriority = currentProvider.MenuPriority();
+                            int menuPriority = currentProvider.Priority();
                             if (menuPriority > currentPriority)
                             {
                                 currentPriority = menuPriority;

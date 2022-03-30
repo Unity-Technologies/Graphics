@@ -36,7 +36,8 @@ namespace UnityEditor.Rendering.Universal
                     if (!providerType.IsAbstract)
                     {
                         ShadowShape2DProvider provider = (ShadowShape2DProvider)ScriptableObject.CreateInstance(providerType);
-                        if (provider.CanProvideShape(component))
+
+                        if (provider.IsShapeSource(component))
                         {
                             retList.Add(new ShadowShapeProviderData(component, provider));
                         }

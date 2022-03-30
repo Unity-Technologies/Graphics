@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
         //============================================================================================================
         //                                                  Public
         //============================================================================================================
-        public override bool CanProvideShape(in Component sourceComponent) { return sourceComponent is Collider2D; }
+        public override bool IsShapeSource(in Component sourceComponent) { return sourceComponent is Collider2D; }
 
         public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShapeData)
         {

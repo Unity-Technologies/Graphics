@@ -298,12 +298,18 @@ namespace UnityEngine.Rendering.Universal
                 m_InstanceId = GetInstanceID();
             }
 
+            if (m_ShadowShape2DProvider != null)
+                m_ShadowShape2DProvider.Enabled(m_ShadowShape2DComponent);
+
             m_ShadowCasterGroup = null;
         }
 
         protected void OnDisable()
         {
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
+
+            if (m_ShadowShape2DProvider != null)
+                m_ShadowShape2DProvider.Disabled(m_ShadowShape2DComponent);
         }
 
         public void Update()

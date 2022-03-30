@@ -61,11 +61,16 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_CastingOption;
         SerializedProperty m_CastsShadows;
-        SerializedProperty m_ShadowShapeProvider;
         SerializedProperty m_CastingSource;
+        SerializedProperty m_SourceComponent;
+        SerializedProperty m_ShadowProvider;
         SerializedProperty m_ShadowMesh;
         SerializedProperty m_EdgeProcessing;
         SerializedProperty m_ContractEdge;
+
+        //SerializedProperty shapeComponent = selectionData.shadowCaster.FindProperty("m_ShadowShape2DComponent");
+        //SerializedProperty castingSource = selectionData.shadowCaster.FindProperty("m_ShadowCastingSource");
+
 
         SortingLayerDropDown m_SortingLayerDropDown;
         CastingSourceDropDown m_CastingSourceDropDown;
@@ -75,8 +80,9 @@ namespace UnityEditor.Rendering.Universal
         {
             m_CastingOption = serializedObject.FindProperty("m_CastingOption");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
-            m_ShadowShapeProvider = serializedObject.FindProperty("m_ShadowShapeProvider");
             m_CastingSource = serializedObject.FindProperty("m_ShadowCastingSource");
+            m_SourceComponent = serializedObject.FindProperty("m_ShadowShape2DComponent");
+            m_ShadowProvider = serializedObject.FindProperty("m_ShadowShape2DProvider");
             m_ShadowMesh = serializedObject.FindProperty("m_ShadowMesh");
             m_EdgeProcessing = m_ShadowMesh.FindPropertyRelative("m_EdgeProcessing");
             m_ContractEdge = m_ShadowMesh.FindPropertyRelative("m_ContractEdge");
@@ -130,7 +136,8 @@ namespace UnityEditor.Rendering.Universal
 
             m_CastingSourceDropDown.OnCastingSource(serializedObject, targets, Styles.castingSourcePrefixLabel);
 
-            if (m_CastingSource.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+            bool usingShapeProvider = m_CastingSource.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider;
+            if (usingShapeProvider)
             {
                 EditorGUILayout.PropertyField(m_ContractEdge, Styles.shadowShapeContract);
                 if (m_ContractEdge.floatValue < 0)
@@ -154,7 +161,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(m_CastingOption, Styles.castingOption);
             }
-
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 
