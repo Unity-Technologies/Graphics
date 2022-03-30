@@ -118,9 +118,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             TypeHandle.Vector3,
             TypeHandle.Vector4,
             ShaderGraphExampleTypes.Color,
-            ShaderGraphExampleTypes.Matrix4,
-            ShaderGraphExampleTypes.Matrix3,
             ShaderGraphExampleTypes.Matrix2,
+            ShaderGraphExampleTypes.Matrix3,
+            ShaderGraphExampleTypes.Matrix4,
             // ShaderGraphExampleTypes.GradientTypeHandle,  TODO: Awaiting GradientType support
         };
 
@@ -146,22 +146,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             void InitVariableDeclarationModel(IVariableDeclarationModel model, IConstant constant)
             {
-                if (model is not GraphDataVariableDeclarationModel decl) return;
+                if (model is not GraphDataVariableDeclarationModel graphDataVar) return;
 
                 // Use this variables' generated guid to bind it to an underlying element in the graph data.
                 var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
                 var graphHandler = shaderGraphModel.GraphHandler;
                 var variableDeclarationName = model.Guid.ToString();
+                const string contextName = "MaterialPropertyContext";
 
-                var propertyContext = graphHandler.GetNode("MaterialPropertyContext");
-                Debug.Assert(propertyContext != null, "MaterialPropertyContext is missing from GraphHandler");
+                var propertyContext = graphHandler.GetNode(contextName);
+                Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
 
                 var entry = new IContextDescriptor.ContextEntry
                 {
                     fieldName = variableDeclarationName,
-                    height = TypeHandleUtil.GetGraphTypeHeight(model.DataType),
-                    length = TypeHandleUtil.GetGraphTypeLength(model.DataType),
-                    primitive = TypeHandleUtil.GetGraphTypePrimitive(model.DataType),
+                    height = ShaderGraphExampleTypes.GetGraphTypeHeight(model.DataType),
+                    length = ShaderGraphExampleTypes.GetGraphTypeLength(model.DataType),
+                    primitive = ShaderGraphExampleTypes.GetGraphTypePrimitive(model.DataType),
                     precision = GraphType.Precision.Any,
                     initialValue = Matrix4x4.zero,
                 };
@@ -169,8 +170,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 ContextBuilder.AddContextEntry(propertyContext, entry, registry);
                 graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry);
 
-                decl.contextNodeName = "MaterialPropertyContext";
-                decl.graphDataName = variableDeclarationName;
+                graphDataVar.contextNodeName = contextName;
+                graphDataVar.graphDataName = variableDeclarationName;
             }
         }
 

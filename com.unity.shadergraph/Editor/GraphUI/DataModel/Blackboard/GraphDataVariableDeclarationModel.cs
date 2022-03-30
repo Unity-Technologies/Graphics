@@ -6,6 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class GraphDataVariableDeclarationModel : VariableDeclarationModel
     {
         [SerializeField]
+        [HideInInspector]
         string m_ContextNodeName;
 
         /// <summary>
@@ -18,6 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         [SerializeField]
+        [HideInInspector]
         string m_GraphDataName;
 
         /// <summary>

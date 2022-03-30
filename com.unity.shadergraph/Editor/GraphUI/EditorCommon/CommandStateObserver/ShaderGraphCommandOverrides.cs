@@ -255,7 +255,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UpdateConstantValueCommand updateConstantValueCommand)
         {
             var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            if (updateConstantValueCommand.Constant is ICLDSConstant cldsConstant && cldsConstant.NodeName != "MaterialPropertyContext") // TODO:
+            if (updateConstantValueCommand.Constant is ICLDSConstant cldsConstant &&
+                cldsConstant.NodeName != "MaterialPropertyContext") // TODO: MaterialPropertyContext is not registered in the preview manager
             {
                 var nodeWriter = shaderGraphModel.GraphHandler.GetNode(cldsConstant.NodeName);
                 if (nodeWriter != null)
