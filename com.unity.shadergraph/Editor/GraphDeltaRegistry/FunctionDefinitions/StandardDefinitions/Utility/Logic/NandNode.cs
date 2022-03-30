@@ -3,16 +3,41 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class NandNode : IStandardNode
     {
+        public static string Name = "Nand";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,     // Version
-            "Nand", // Name
+            Version,
+            Name,
             "Out = !A && !B;",
             new ParameterDescriptor("A", TYPE.Bool, Usage.In),
             new ParameterDescriptor("B", TYPE.Bool, Usage.In),
             new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: "returns true if both inputs are false",
+            categories: new string[2] { "Utility", "Logic" },
+            synonyms: new string[0],
+            hasPreview: false,
+            parameters: new ParameterUIDescriptor[3] {
+                new ParameterUIDescriptor(
+                    name: "A",
+                    tooltip: "Input A"
+                ),
+                new ParameterUIDescriptor(
+                    name: "B",
+                    tooltip: "Input B"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "true if A and B are false"
+                )
+            }
         );
 
         public static Dictionary<string, string> UIStrings => new()
