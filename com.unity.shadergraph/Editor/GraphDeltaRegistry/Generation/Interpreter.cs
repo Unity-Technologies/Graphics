@@ -227,7 +227,8 @@ namespace UnityEditor.ShaderGraph.Generation
                 var remapMainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{remapBlockName}Main", remapOutputType);
                 remapMainBodyFunctionBuilder.AddInput(remapInputType, "inputs");
                 remapMainBodyFunctionBuilder.AddLine($"{remapBlockName}Block::{remapOutputType.Name} output;");
-                remapMainBodyFunctionBuilder.AddLine($"output.BaseColor = inputs.{remapFromVariables.FirstOrDefault().Name};");
+                var remap = remapFromVariables.FirstOrDefault();
+                remapMainBodyFunctionBuilder.AddLine($"output.BaseColor = {ConvertToFloat3(remap.Type, $"inputs.{remap.Name}")};");
                 remapMainBodyFunctionBuilder.AddLine("return output;");
 
                 remapBuilder.AddType(remapInputType);
