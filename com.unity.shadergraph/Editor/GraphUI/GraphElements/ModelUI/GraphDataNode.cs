@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 bool isStatic = staticField?.GetData() ?? false;
                 bool isGradientType = portKey.Name == Registry.ResolveKey<GradientType>().Name;
 
-                var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portReader.GetName());
+                var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portReader.LocalID);
 
                 // GradientType cannot be previewed if directly acting as the output, disable preview part on it if so
                 if (isGradientType && !portReader.IsInput)
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!isStatic) continue;
                 if (isGradientType)
                 {
-                    PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.GetName()));
+                    PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.ID.LocalPath));
                     continue;
                 }
                 if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name) continue;
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             case GraphType.Primitive.Bool:
                                 PartList.InsertPartAfter(
                                     portContainerPartName,
-                                    new BoolPart("sg-bool", GraphElementModel, this, ussClassName, portReader.GetName())
+                                    new BoolPart("sg-bool", GraphElementModel, this, ussClassName, portReader.LocalID)
                                 );
                                 break;
                             case GraphType.Primitive.Int:
@@ -126,14 +126,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
-                                new ColorPart("sg-color", GraphElementModel, this, ussClassName, portReader.GetName(), includeAlpha: true)
+                                new ColorPart("sg-color", GraphElementModel, this, ussClassName, portReader.LocalID, includeAlpha: true)
                             );
                         }
                         else
                         {
                             PartList.InsertPartAfter(
                                 portContainerPartName,
-                                new Vector4Part("sg-vector4", GraphElementModel, this, ussClassName, portReader.GetName())
+                                new Vector4Part("sg-vector4", GraphElementModel, this, ussClassName, portReader.LocalID)
                             );
                         }
 

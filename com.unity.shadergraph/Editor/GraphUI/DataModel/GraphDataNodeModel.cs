@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((ICLDSConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.GetName(), portReader.GetName());
+                        ((ICLDSConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.ID.LocalPath, portReader.ID.LocalPath);
                 }
                 else
                     newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
