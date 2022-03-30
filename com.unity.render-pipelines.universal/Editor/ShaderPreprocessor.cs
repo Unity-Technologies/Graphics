@@ -355,6 +355,11 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
+            if (globalSettings != null && globalSettings.stripScreenCoordOverrideVariants && compilerData.shaderKeywordSet.IsEnabled(m_ScreenCoordOverride))
+            {
+                return true;
+            }
+
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
             var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
 
