@@ -3,24 +3,44 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class FloorNode : IStandardNode
     {
+        public static string Name = "Floor";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,
-            "Floor",
+            Version,
+            Name,
             "Out = floor(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: "rounds the input down to the nearest whole number",
+            categories: new string[2] { "Math", "Round" },
+            synonyms: new string[1] { "down" },
+            parameters: new ParameterUIDescriptor[2] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    tooltip: "input value"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "the input rounded down to the nearest whole number"
+                )
+            }
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "down" },
             { "Tooltip", "rounds the input down to the nearest whole number" },
+            { "Category", "Math, Round" },
             { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the input rounded down to the nearest whole number" },
-            { "Category", "Math, Round" }
+            { "Parameters.Out.Tooltip", "the input rounded down to the nearest whole number" }
         };
     }
 }
