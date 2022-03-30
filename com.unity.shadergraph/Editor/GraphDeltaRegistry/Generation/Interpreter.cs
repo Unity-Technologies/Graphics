@@ -19,9 +19,12 @@ namespace UnityEditor.ShaderGraph.Generation
         public static string GetBlockCode(NodeHandler node, GraphHandler graph, Registry registry)
         {
             var builder = new ShaderBuilder();
-            //EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
-            //foreach (var func in block.Functions)
-            //    builder.AddDeclarationString(func);
+            var container = new ShaderContainer();
+            var cpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref cpBuilder);
+            foreach (var b in cpBuilder.BlockInstances)
+                foreach(var func in b.Block.Functions)
+                    builder.AddDeclarationString(func);
             return builder.ConvertToString();
         }
 
@@ -227,7 +230,8 @@ namespace UnityEditor.ShaderGraph.Generation
                 var remapMainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{remapBlockName}Main", remapOutputType);
                 remapMainBodyFunctionBuilder.AddInput(remapInputType, "inputs");
                 remapMainBodyFunctionBuilder.AddLine($"{remapBlockName}Block::{remapOutputType.Name} output;");
-                remapMainBodyFunctionBuilder.AddLine($"output.BaseColor = inputs.{remapFromVariables.FirstOrDefault().Name};");
+                var remap = remapFromVariables.FirstOrDefault();
+                remapMainBodyFunctionBuilder.AddLine($"output.BaseColor = {ConvertToFloat3(remap.Type, $"inputs.{remap.Name}")};");
                 remapMainBodyFunctionBuilder.AddLine("return output;");
 
                 remapBuilder.AddType(remapInputType);
