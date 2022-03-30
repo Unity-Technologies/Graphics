@@ -351,7 +351,8 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine("SubShader");
             using (m_Builder.BlockScope())
             {
-                GenerationUtils.GenerateSubShaderTags(m_Targets[targetIndex], descriptor, m_Builder);
+                if (!descriptor.hideTags)
+                    GenerationUtils.GenerateSubShaderTags(m_Targets[targetIndex], descriptor, m_Builder);
 
                 // Get block descriptor list here (from ALL active blocks)
                 List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> activeBlockDescriptors = m_ActiveBlocks.Select(x => (x.descriptor, x.GetInputSlots<MaterialSlot>().FirstOrDefault().IsUsingDefaultValue())).ToList();
