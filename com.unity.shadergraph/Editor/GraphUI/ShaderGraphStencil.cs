@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     name = $"Create {displayName}",
                     action = () =>
                     {
-                        var command = new CreateGraphVariableDeclarationCommand("variable", true, type, typeof(GraphDataVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
+                        var command = new CreateGraphVariableDeclarationCommand(displayName, true, type, typeof(GraphDataVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
                         command.InitializationCallback = InitVariableDeclarationModel;
                         view.Dispatch(command);
                     }
