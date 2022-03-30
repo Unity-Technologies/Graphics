@@ -322,6 +322,8 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] bool m_StripUnusedVariants = true;
 
+        [SerializeField] bool m_StripScreenCoordOverrideVariants = true;
+
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
@@ -343,6 +345,11 @@ namespace UnityEngine.Rendering.Universal
         /// Controls whether strip off variants if the feature is enabled.
         /// </summary>
         public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
+
+        /// <summary>
+        /// Controls whether Screen Coordinates Override shader variants are automatically stripped.
+        /// </summary>
+        public bool stripScreenCoordOverrideVariants { get => m_StripScreenCoordOverrideVariants; set => m_StripScreenCoordOverrideVariants = value; }
 
         #endregion
     }

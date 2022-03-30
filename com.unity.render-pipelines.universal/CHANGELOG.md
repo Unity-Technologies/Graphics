@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
 - Add #pragma editor_sync_compilation directive to FallbackError.shader
 - Added commandBuffer variable to RenderingData struct and switched all of the renderer to use that buffer instead of creating local command buffers.
+- Added Screen Coordinates Override feature. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.

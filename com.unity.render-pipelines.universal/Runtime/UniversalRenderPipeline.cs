@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_ShaderTagName = "UniversalPipeline";
 
+        static readonly Vector4 k_IndentityScaleBias = new Vector4(1, 1, 0, 0);
+
         private static class Profiling
         {
             private static Dictionary<int, ProfilingSampler> s_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
@@ -960,6 +962,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+                cameraData.useScreenCoordOverride = false;
+                cameraData.screenSizeOverride = cameraData.pixelRect.size;
+                cameraData.screenCoordScaleBias = k_IndentityScaleBias;
             }
             else if (additionalCameraData != null)
             {
@@ -970,6 +975,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
+                cameraData.useScreenCoordOverride = additionalCameraData.useScreenCoordOverride;
+                cameraData.screenSizeOverride = additionalCameraData.screenSizeOverride;
+                cameraData.screenCoordScaleBias = additionalCameraData.screenCoordScaleBias;
             }
             else
             {
@@ -979,6 +987,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+                cameraData.useScreenCoordOverride = false;
+                cameraData.screenSizeOverride = cameraData.pixelRect.size;
+                cameraData.screenCoordScaleBias = k_IndentityScaleBias;
             }
 
             // Disables post if GLes2

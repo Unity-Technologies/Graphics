@@ -22,4 +22,5 @@ MonoBehaviour:
   lightLayerName5: Light Layer 5
   lightLayerName6: Light Layer 6
   lightLayerName7: Light Layer 7
+  m_StripScreenCoordOverrideVariants: 0
   supportRuntimeDebugDisplay: 0

@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
 - Added an optional CPU simulation for the water system.
 - Added new Unity material ball matching the new Unity logo.
+- Added Asymmetric projection and Screen Coordinates Override frame settings. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
