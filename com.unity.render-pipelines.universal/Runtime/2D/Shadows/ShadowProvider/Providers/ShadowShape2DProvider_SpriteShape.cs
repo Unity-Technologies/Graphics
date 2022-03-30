@@ -15,29 +15,13 @@ namespace UnityEngine.Rendering.Universal
 {
     public class ShadowShape2DProvider_SpriteShape : ShadowShape2DProvider
     {
-        const string k_AutoUpdateWarningMessage = "SpriteShapeController cannot provide new shadow geometry when SpriteShapeController's Auto Update is disabled. Please enable or the attached collider";
-
-        int ColliderDataCount(NativeArray<float2> colliderData)
-        {
-            int count = 0;
-            for (; count < colliderData.Length; count++)
-            {
-                if (colliderData[count].x == 0 && colliderData[count].y == 0)
-                    return count;
-            }
-            return count;
-        }
-
         internal void UpdateShadows(SpriteShapeController spriteShapeController, ShadowShape2D persistantShapeData)
         {
             NativeArray<float2> colliderData = spriteShapeController.GetColliderShapeData();
 
             bool isOpenEnded = spriteShapeController.spline.isOpenEnded;
 
-            int colliderDataCount = 0;
-            if (colliderData.IsCreated)
-                colliderDataCount = ColliderDataCount(colliderData);
-
+            int colliderDataCount = colliderData.Length;
             if (colliderDataCount > 0)
             {
 
@@ -68,6 +52,8 @@ namespace UnityEngine.Rendering.Universal
 
                 persistantShapeData.SetShape(vertices, indices, ShadowShape2D.OutlineTopology.Lines);
             }
+
+            colliderData.Dispose();
         }
 
         public override void Enabled(in Component sourceComponent)

@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -31,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
+#if UNITY_EDITOR
         static public void TryGetDefaultShadowShapeProviderSource(GameObject go, out Component source, out ShadowShape2DProvider provider)
         {
             source = null;
@@ -64,6 +66,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
-
+#endif
     }
 }
