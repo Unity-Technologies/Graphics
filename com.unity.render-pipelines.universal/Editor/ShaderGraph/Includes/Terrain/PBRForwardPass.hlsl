@@ -81,7 +81,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord0.xy, _BaseMap);
 
     float3 specular = 0;
     float metallic = surfaceDescription.Metallic;
