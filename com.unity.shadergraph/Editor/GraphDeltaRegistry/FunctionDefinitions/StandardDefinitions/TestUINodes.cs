@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             categories: new string[0],
             synonyms: new string[0],
-            hasPreview: false,
+            hasPreview: true,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             categories: new string[0],
             synonyms: new string[0],
-            hasPreview: false,
+            hasPreview: true,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
@@ -216,7 +216,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             categories: new string[0],
             synonyms: new string[0],
-            hasPreview: false,
+            hasPreview: true,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "In",
