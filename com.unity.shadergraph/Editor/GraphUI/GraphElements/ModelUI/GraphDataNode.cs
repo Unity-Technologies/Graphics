@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!isStatic) continue;
                 if (isGradientType)
                 {
-                    PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.ID.LocalPath));
+                    PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.LocalID));
                     continue;
                 }
                 if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name) continue;
