@@ -3,25 +3,46 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class HyperbolicSineNode : IStandardNode
     {
+        public static string Name = "HyperbolicSine";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,
-            "HyperbolicSine",
+            Version,
+            Name,
             "Out = sinh(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            displayName: "Hyperbolic Sine",
+            tooltip: "returns the hyperbolic sine of the input",
+            categories: new string[2] { "Math", "Trigonometry" },
+            synonyms: new string[1] { "sinh" },
+            parameters: new ParameterUIDescriptor[2] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    tooltip: "input value"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "the hyperbolic sine of the input"
+                )
+            }
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "sinh" },
             { "Tooltip", "returns the hyperbolic sine of the input" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the hyperbolic sine of the input" },
             { "Category", "Math, Trigonometry" },
-            { "DisplayName", "Hyperbolic Sine" }
+            { "DisplayName", "Hyperbolic Sine" },
+            { "Parameters.In.Tooltip", "input value" },
+            { "Parameters.Out.Tooltip", "the hyperbolic sine of the input" }
         };
     }
 }

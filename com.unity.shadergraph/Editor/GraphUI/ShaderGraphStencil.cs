@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -10,23 +11,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ShaderGraphStencil : Stencil
     {
         public const string Name = "ShaderGraph";
-
         public const string DefaultAssetName = "NewShaderGraph";
-
         public const string Extension = "sg2";
+        private Registry RegistryInstance = null;
+        private NodeUIInfo NodeUIInfo = null;
 
         public string ToolName =>
             Name;
 
-        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
-
         public ShaderGraphStencil()
         {
-            m_NodeUIHints = new Dictionary<RegistryKey, Dictionary<string, float>>();
+            NodeUIInfo = new ();
         }
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
-
 
         // See ShaderGraphExampleTypes.GetGraphType for more details
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
@@ -60,36 +58,31 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        private Registry RegistryInstance = null;
-
         public Registry GetRegistry()
         {
             if (RegistryInstance == null)
             {
-                m_NodeUIHints.Clear();
+                NodeUIInfo.Clear();
 
                 void ReadUIInfo(RegistryKey key, Type type)
                 {
-                    const string uiHintsGetterName = "get_UIHints";
+                    const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
+                    var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
 
-                    var getUiHints = type.GetMethod(uiHintsGetterName);
-                    if (getUiHints != null)
+                    if (getNodeUIDescriptor != null)
                     {
-                        m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
+                        NodeUIInfo[key] = (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null);
                     }
-
-                    // TODO: Get and use UI strings
                 }
-
                 RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
             }
 
             return RegistryInstance;
         }
 
-        public IReadOnlyDictionary<string, float> GetUIHints(RegistryKey nodeKey)
+        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey)
         {
-            return m_NodeUIHints.GetValueOrDefault(nodeKey, new Dictionary<string, float>());
+            return NodeUIInfo[nodeKey];
         }
 
         protected override void CreateGraphProcessors()

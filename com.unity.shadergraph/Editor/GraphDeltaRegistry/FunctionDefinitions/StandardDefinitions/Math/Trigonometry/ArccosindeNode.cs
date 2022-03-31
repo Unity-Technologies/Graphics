@@ -3,24 +3,44 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class ArccosineNode : IStandardNode
     {
+        public static string Name = "Arccosine";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,
-            "Arccosine",
+            Version,
+            Name,
             "Out = acos(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] {1f, 1f, 1f, 1f}),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: "returns the arccosine of each component of the input",
+            categories: new string[2] { "Math", "Trigonometry" },
+            synonyms: new string[1] { "acos" },
+            parameters: new ParameterUIDescriptor[2] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    tooltip: "input value"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "the arccosine of each component of the input"
+                )
+            }
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "acos" },
             { "Tooltip", "returns the arccosine of each component of the input" },
+            { "Category", "Math, Trigonometry" },
             { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the arccosine of each component of the input" },
-            { "Category", "Math, Trigonometry" }
+            { "Parameters.Out.Tooltip", "the arccosine of each component of the input" }
         };
     }
 }
