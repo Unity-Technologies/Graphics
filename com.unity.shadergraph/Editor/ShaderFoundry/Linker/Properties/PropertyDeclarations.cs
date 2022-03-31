@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderFoundry
             {"float2", HandleFloat2Type },
             {"float3", HandleFloat3Type },
             {"float4", HandleFloat4Type },
+            {"UnitySamplerState", HandleUnitySamplerState },
             {"UnityTexture2D", HandleUnityTexture2D },
             {"UnityTexture2DArray", HandleUnityTexture2DArray },
             {"UnityTextureCube", HandleUnityTextureCube },
@@ -225,6 +226,24 @@ namespace UnityEditor.ShaderFoundry
                         builder.AddLine("#endif");
                 }
             };
+            return true;
+        }
+
+        static bool HandleUnitySamplerState(FieldPropertyContext context, FieldPropertyData result)
+        {
+            var attributes = context.Attributes;
+            var samplerStateAttribute = SamplerStateAttribute.FindFirst(attributes);
+            if (samplerStateAttribute == null)
+            {
+                ErrorHandling.ReportError($"{context.FieldType.Name} property '{context.FieldName}' must be declared with the '{SamplerStateAttribute.AttributeName}' attribute.");
+                return false;
+            }
+
+            var uniformName = samplerStateAttribute.BuildUniformName(context.UniformName);
+            var accessorFnName = "UnityBuildSamplerStateStruct";
+
+            result.UniformReadingData = new UniformReadingData { Rhs = $"{accessorFnName}({uniformName})" };
+            UniformDeclarationData.BuildFromFieldWithOverrides(context,  context.Container._SamplerState, $"{uniformName}", result);
             return true;
         }
 
