@@ -89,8 +89,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string KAsset = "Asset";
         #endregion
 
-        public static string GetUniquePropertyName(FieldHandler data)
+        public static string GetUniqueUniformName(FieldHandler data)
             => data.ID.FullPath.Replace('.', '_') + "_Tex";
+
+        private static string GetUniquePropertyName(FieldHandler data)
+            => $"Property_{GetUniqueUniformName(data)}";
 
         public static Texture GetTextureAsset(FieldHandler data)
             => data.GetSubField<Internal.SerializableTexture>(KAsset).GetData().texture;
@@ -125,73 +128,21 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public string GetInitializerList(FieldHandler field, Registry registry)
         {
-            string name = GetUniquePropertyName(field);
-            switch (GetTextureAsset(field))
-            {
-                case Texture3D: return $"UnityBuildTexture3DStruct({name})";
-                case Texture2DArray: return $"UnityBuildTexture2DArrayStruct({name})";
-                case Cubemap: return $"UnityBuildTextureCubeStruct({name})";
-                case Texture2D:
-                default: return $"UnityBuildTexture2DStruct({name})";
-            }
+            string name = GetUniqueUniformName(field);
+            return $"In.{name}";
         }
 
-        internal static IEnumerable<BlockVariable> UniformPromotion(FieldHandler field, ShaderContainer container)
+        internal static StructField UniformPromotion(FieldHandler field, ShaderContainer container, Registry registry)
         {
-            var uniformName = GetUniquePropertyName(field);
-            var builder = new BlockVariable.Builder(container);
-            builder.Name = uniformName;
-            builder.Type = container._UnityTexture2D;
+            var name = GetUniqueUniformName(field);
+            var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
+            var attrBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.Property);
+            attrBuilder.Param("displayName", GetUniquePropertyName(field));
+            attrBuilder.Param("defaultValue", "\"white\" {}");
+            fieldbuilder.AddAttribute(attrBuilder.Build());
 
-            yield return builder.Build();
-            //var uniformName = GetUniquePropertyName(field);
-            //var location = new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build();
-
-            //var textureBuilder = new BlockVariable.Builder(container);
-            //var samplerBuilder = new BlockVariable.Builder(container);
-            //var texsizeBuilder = new BlockVariable.Builder(container);
-            //var sctransBuilder = new BlockVariable.Builder(container);
-
-            //textureBuilder.ReferenceName = uniformName;
-            //samplerBuilder.ReferenceName = $"sampler{uniformName}";
-            //texsizeBuilder.ReferenceName = $"{uniformName}_TexelSize";
-            //sctransBuilder.ReferenceName = $"{uniformName}_ST";
-
-            //textureBuilder.Type = container._Texture2D;
-            //samplerBuilder.Type = container._SamplerState;
-            //texsizeBuilder.Type = container._float4;
-            //sctransBuilder.Type = container._float4;
-
-            //textureBuilder.AddAttribute(location);
-            //samplerBuilder.AddAttribute(location);
-            //texsizeBuilder.AddAttribute(location);
-            //sctransBuilder.AddAttribute(location);
-
-            //var attributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.UniformDeclaration);
-            //var nameParamBuilder = new ShaderAttributeParam.Builder(container, "name", samplerBuilder.ReferenceName);
-            //var declarationParamBuilder = new ShaderAttributeParam.Builder(container, "declaration", "SAMPLER(#)");
-            //attributeBuilder.Param(nameParamBuilder.Build());
-            //attributeBuilder.Param(declarationParamBuilder.Build());
-            //samplerBuilder.AddAttribute(attributeBuilder.Build());
-
-            //attributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.UniformDeclaration);
-            //nameParamBuilder = new ShaderAttributeParam.Builder(container, "name", textureBuilder.ReferenceName);
-            //declarationParamBuilder = new ShaderAttributeParam.Builder(container, "declaration", "TEXTURE2D(#)");
-            //attributeBuilder.Param(nameParamBuilder.Build());
-            //attributeBuilder.Param(declarationParamBuilder.Build());
-            //textureBuilder.AddAttribute(attributeBuilder.Build());
-
-            //var texture = textureBuilder.Build();
-            //var sampler = samplerBuilder.Build();
-            //var texsize = texsizeBuilder.Build();
-            //var sctrans = sctransBuilder.Build();
-
-            //yield return texture;
-            //yield return sampler;
-            //yield return texsize;
-            //yield return sctrans;
+            return fieldbuilder.Build();
         }
-
     }
 
     internal class BaseTextureTypeAssignment : ICastDefinitionBuilder
