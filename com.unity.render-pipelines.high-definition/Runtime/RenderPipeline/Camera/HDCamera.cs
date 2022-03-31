@@ -618,10 +618,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
 
-        // We set the values of the physical camera in the Update() call. Here we initialize with
-        // the defaults, in case someone is trying to access the values before the first Update
-        internal HDPhysicalCamera physicalParameters { get; private set; } = HDPhysicalCamera.GetDefaults();
-
         internal IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
             ? m_AdditionalCameraData.aovRequests
@@ -1690,7 +1686,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 volumeLayerMask = m_AdditionalCameraData.volumeLayerMask;
                 volumeAnchor = m_AdditionalCameraData.volumeAnchorOverride;
-                physicalParameters = m_AdditionalCameraData.physicalParameters;
             }
             else
             {
@@ -1708,7 +1703,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             volumeLayerMask = mainCamAdditionalData.volumeLayerMask;
                             volumeAnchor = mainCamAdditionalData.volumeAnchorOverride;
-                            physicalParameters = mainCamAdditionalData.physicalParameters;
                             needFallback = false;
                         }
                     }
@@ -1716,8 +1710,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (needFallback)
                     {
                         volumeLayerMask = GetSceneViewLayerMaskFallback();
-                        // Use the default physical camera values so the exposure will look reasonable
-                        physicalParameters = HDPhysicalCamera.GetDefaults();
                     }
                 }
             }

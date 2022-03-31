@@ -28,13 +28,15 @@ namespace UnityEngine.Rendering.HighDefinition
             AddCustomPostprocessAndCustomPass,
             /// <summary>Version Step.</summary>
             UpdateMSAA,
+            /// <summary>Version Step.</summary>
+            UpdatePhysicalCameraPropertiesToCore
         }
 
         [SerializeField, FormerlySerializedAs("version")]
         [ExcludeCopy]
         Version m_Version = MigrationDescription.LastVersion<Version>();
 
-        static readonly MigrationDescription<Version, HDAdditionalCameraData> k_Migration = MigrationDescription.New(
+        private static readonly MigrationDescription<Version, HDAdditionalCameraData> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.SeparatePassThrough, (HDAdditionalCameraData data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
@@ -76,6 +78,23 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.UpdateMSAA, (HDAdditionalCameraData data) =>
             {
                 FrameSettings.MigrateMSAA(ref data.renderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
+            }),
+            MigrationStep.New(Version.UpdatePhysicalCameraPropertiesToCore, (HDAdditionalCameraData data) =>
+            {
+                var camera = data.GetComponent<Camera>();
+                var physicalProps = data.physicalParameters;
+                if (camera != null)
+                {
+                    camera.iso = physicalProps.iso;
+                    camera.shutterSpeed = physicalProps.shutterSpeed;
+                    camera.aperture = physicalProps.aperture;
+                    camera.focusDistance = physicalProps.focusDistance;
+                    camera.gateFit = physicalProps.m_GateFit;
+                    camera.bladeCount = physicalProps.bladeCount;
+                    camera.curvature = physicalProps.curvature;
+                    camera.barrelClipping = physicalProps.barrelClipping;
+                    camera.anamorphism = physicalProps.anamorphism;
+                }
             })
         );
 

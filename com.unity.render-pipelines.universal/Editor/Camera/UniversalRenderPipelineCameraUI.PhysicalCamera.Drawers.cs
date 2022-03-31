@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering.Universal
                     CED.Group(
                         GroupOption.Indent,
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_Sensor,
+                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_ISO,
+                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_ShutterSpeed,
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_CameraBody_GateFit
                     )
                     ),
@@ -23,7 +25,17 @@ namespace UnityEditor.Rendering.Universal
                     CED.Group(
                         GroupOption.Indent,
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_FocalLength,
-                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_Shift
+                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_Shift,
+                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_Aperture,
+                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_FocusDistance
+                    )
+                    ),
+                CED.Group(
+                    CameraUI.PhysicalCamera.Styles.apertureShape,
+                    GroupOption.Indent,
+                    CED.Group(
+                        GroupOption.Indent,
+                        CameraUI.PhysicalCamera.Drawer_PhysicalCamera_ApertureShape
                     )
                 )
             );
