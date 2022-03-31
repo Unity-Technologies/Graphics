@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Defs;
 
@@ -8,27 +9,33 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// NodeUIInfo is a registry for NodeUIDescriptors for all nodes that have
     /// been assigned a RegistryKey.
     /// </summary>
-    internal class NodeUIInfo
+    class NodeUIInfo
     {
-        private readonly Dictionary<RegistryKey, NodeUIDescriptor> RegistryKeyToNodeUIDescriptor = new ();
+        readonly Dictionary<RegistryKey, NodeUIDescriptor> m_RegistryKeyToNodeUIDescriptor = new ();
 
         public NodeUIDescriptor this[RegistryKey key]
         {
-            get
-            {
-                if (RegistryKeyToNodeUIDescriptor.ContainsKey(key))
-                    return RegistryKeyToNodeUIDescriptor[key];
-                return new NodeUIDescriptor();
-            }
-            set
-            {
-                RegistryKeyToNodeUIDescriptor[key] = (NodeUIDescriptor)value;
-            }
+            get => m_RegistryKeyToNodeUIDescriptor.ContainsKey(key) ? m_RegistryKeyToNodeUIDescriptor[key] : CreateDefaultDescriptor();
+            set => m_RegistryKeyToNodeUIDescriptor[key] = value;
+        }
+
+        static NodeUIDescriptor CreateDefaultDescriptor()
+        {
+            return new NodeUIDescriptor(
+                1,
+                 "DEFAULT_NAME",
+                 "DEFAULT_TOOLTIP",
+                new string[] { "DEFAULT_CATEGORY" },
+                new string[] { },
+                "DEFAULT_DISPLAY_NAME",
+                true,
+                new ParameterUIDescriptor[] {}
+                );
         }
 
         public void Clear()
         {
-            RegistryKeyToNodeUIDescriptor.Clear();
+            m_RegistryKeyToNodeUIDescriptor.Clear();
         }
     }
 }

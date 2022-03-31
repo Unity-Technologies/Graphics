@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Defs
     /// A NodeUIDescriptor stores parameters needed to display a shader
     /// function as a node.
     /// </summary>
-    internal readonly struct NodeUIDescriptor
+    readonly struct NodeUIDescriptor
     {
         public int Version { get; }
         public string Name { get; }

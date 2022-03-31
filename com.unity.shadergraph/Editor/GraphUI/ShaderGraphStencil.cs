@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
-
         // See ShaderGraphExampleTypes.GetGraphType for more details
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
         {
@@ -69,6 +68,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
                     var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
+
                     if (getNodeUIDescriptor != null)
                     {
                         NodeUIInfo[key] = (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null);
