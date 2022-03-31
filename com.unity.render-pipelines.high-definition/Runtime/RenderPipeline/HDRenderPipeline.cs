@@ -1159,6 +1159,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_EnableRenderGraph)
                 CleanupNonRenderGraphResources();
 
+            HDLightRenderDatabase.instance.Cleanup();
             ReleaseScreenSpaceShadows();
 
             if (m_RayTracingSupported)
