@@ -121,6 +121,7 @@ namespace UnityEngine.Rendering
             {
                 int hash = 17;
                 hash = hash * 23 + queryPath.GetHashCode();
+                hash = hash * 23 + isHidden.GetHashCode();
 
                 int numChildren = children.Count;
                 for (int i = 0; i < numChildren; i++)
