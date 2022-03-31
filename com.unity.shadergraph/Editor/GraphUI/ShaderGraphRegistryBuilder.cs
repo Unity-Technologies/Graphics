@@ -12,7 +12,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static Registry CreateDefaultRegistry(Action<RegistryKey, Type> afterNodeRegistered = null)
         {
+            // create the registry
             var reg = new Registry();
+
+            // register required base elements
             reg.Register<GraphType>();
             reg.Register<GraphTypeAssignment>();
             reg.Register<GradientType>();
@@ -20,9 +23,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             reg.Register<GradientNode>();
             reg.Register<SampleGradientNode>();
             reg.Register<ShaderGraphContext>();
-            //RegistryInstance.Register<Registry.Types.AddNode>();
 
-            // Register nodes from FunctionDescriptors in IStandardNode classes.
+            // register nodes from FunctionDescriptors in IStandardNode classes
             var interfaceType = typeof(IStandardNode);
             var types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
@@ -38,6 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     afterNodeRegistered?.Invoke(key, t);
                 }
             }
+
             return reg;
         }
     }

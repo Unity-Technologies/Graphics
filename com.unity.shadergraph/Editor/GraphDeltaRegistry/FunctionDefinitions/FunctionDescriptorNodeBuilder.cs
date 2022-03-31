@@ -23,10 +23,6 @@ namespace UnityEditor.ShaderGraph.Defs
         /// <returns>The type that Any should resolve to for ports in the node.</returns>
         static TypeDescriptor FallbackTypeResolver(NodeHandler userData)
         {
-            // TODO (Brett) You really need to test this more!
-            // 1 < 4 < 3 < 2 for Height and Length
-            // Bigger wins for Primitive and Precision
-
             GraphType.Height resolvedHeight = GraphType.Height.Any;
             GraphType.Length resolvedLength = GraphType.Length.Any;
             GraphType.Precision resolvedPrecision = GraphType.Precision.Any;
@@ -128,7 +124,7 @@ namespace UnityEditor.ShaderGraph.Defs
             int i = 0;
             foreach(var val in param.DefaultValue)
             {
-                typeField.SetField<float>($"c{i++}", val);
+                typeField.SetField($"c{i++}", val);
             }
 
             return port;
@@ -139,14 +135,11 @@ namespace UnityEditor.ShaderGraph.Defs
             m_functionDescriptor = fd; // copy
         }
 
-        public void BuildNode(
-            NodeHandler node,
-            Registry registry)
+        public void BuildNode(NodeHandler node, Registry registry)
         {
             TypeDescriptor fallbackType = FallbackTypeResolver(node);
             foreach (var param in m_functionDescriptor.Parameters)
             {
-                //userData.TryGetPort(param.Name, out IPortReader portReader);
                 ParameterDescriptorToField(
                     param,
                     fallbackType,
