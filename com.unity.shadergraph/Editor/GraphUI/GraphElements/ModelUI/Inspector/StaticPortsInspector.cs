@@ -7,8 +7,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class StaticPortsInspector : FieldsInspector
     {
-        public const string inspectorOnlyHint = ".InspectorOnly";
-
         public StaticPortsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
@@ -21,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var graphModel = (ShaderGraphModel)nodeModel.GraphModel;
             var stencil = (ShaderGraphStencil)graphModel.Stencil;
-            var hints = stencil.GetUIHints(nodeModel.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(nodeModel.registryKey);
 
             foreach (var port in nodeReader.GetPorts())
             {
@@ -30,7 +28,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!isStatic) continue;
 
                 var portName = port.ID.LocalPath;
-                if (!hints.ContainsKey(portName + inspectorOnlyHint)) continue;
+                var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portName);
+
+                if (!parameterUIDescriptor.InspectorOnly) continue;
 
                 var constant = stencil.CreateConstantValue(ShaderGraphExampleTypes.GetGraphType(port));
                 if (constant is ICLDSConstant cldsConstant)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
@@ -121,9 +122,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "",
-            categories: new string[0],
-            synonyms: new string[0],
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
@@ -136,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Static",
                     displayName: "Static",
-                    tooltip: "",
+                    tooltip: String.Empty,
                     useColor: true,
                     useSlider: false
                 )
@@ -168,9 +169,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "",
-            categories: new string[0],
-            synonyms: new string[0],
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
@@ -183,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Static",
                     displayName: "Static",
-                    tooltip: "",
+                    tooltip: String.Empty,
                     useColor: true,
                     useSlider: false
                 )
@@ -213,9 +214,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "",
-            categories: new string[0],
-            synonyms: new string[0],
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
@@ -236,14 +237,36 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIPropertyNode : IStandardNode
     {
+        public static string Name = "TestUIProperties";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIProperties", // Name
+            Version,
+            Name,
             "Out = StaticInspectorIn;",
             new ParameterDescriptor("PortIn", TYPE.Float, GraphType.Usage.In),
             new ParameterDescriptor("StaticBodyIn", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("StaticInspectorIn", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
+            hasPreview: true,
+            parameters: new ParameterUIDescriptor[1] {
+                new ParameterUIDescriptor(
+                    name: "StaticInspectorIn",
+                    displayName: "StaticInspectorIn",
+                    tooltip: String.Empty,
+                    useColor: false,
+                    useSlider: true,
+                    inspectorOnly: true
+                )
+            }
         );
 
         public static Dictionary<string, float> UIHints => new()
