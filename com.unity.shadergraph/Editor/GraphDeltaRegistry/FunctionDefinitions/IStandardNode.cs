@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal interface IStandardNode
     {
+        static Dictionary<string, RegistryKey> FunctionDescriptorNameToRegistryKey { get; set; }
+
         /// <summary>
         /// The FunctionDescriptor that describes the HLSL function of the node.
         /// </summary>

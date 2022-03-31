@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -68,17 +69,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 m_NodeUIHints.Clear();
 
-                void ReadUIInfo(RegistryKey key, Type type)
+                void ReadUIInfo(Dictionary<string, RegistryKey> fdNameToRegKey, Type type)
                 {
                     const string uiHintsGetterName = "get_UIHints";
-
                     var getUiHints = type.GetMethod(uiHintsGetterName);
                     if (getUiHints != null)
                     {
-                        m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
+                        foreach (string fdName in fdNameToRegKey.Keys)
+                        {
+                            // TODO (Brett) THIS IS WRONG. CHANGE IT.
+                            // TODO Change this so that each FD registers its own UI Hints
+                            RegistryKey key = fdNameToRegKey[fdName];
+                            m_NodeUIHints[key] = (Dictionary<string, float>)getUiHints.Invoke(null, null);
+                        }
                     }
 
-                    // TODO: Get and use UI strings
+                    // TODO (Brett) Get and use UI strings
                 }
 
                 RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
