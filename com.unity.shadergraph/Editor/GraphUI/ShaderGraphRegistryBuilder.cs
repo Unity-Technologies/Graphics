@@ -19,6 +19,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             reg.Register<GradientTypeAssignment>();
             reg.Register<GradientNode>();
             reg.Register<SampleGradientNode>();
+            reg.Register<BaseTextureType>();
+            reg.Register<BaseTextureTypeAssignment>();
+            reg.Register<SimpleTextureNode>();
+            reg.Register<SimpleSampleTexture2DNode>();
             reg.Register<ShaderGraphContext>();
             //RegistryInstance.Register<Registry.Types.AddNode>();
 

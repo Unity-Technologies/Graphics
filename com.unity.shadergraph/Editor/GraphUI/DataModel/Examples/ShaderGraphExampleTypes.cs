@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //    {
         //        public static VisualElement BuildDefaultConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
         //
-        public static TypeHandle GetGraphType(PortHandler reader)
+        public static TypeHandle GetGraphType(PortHandler reader) // TODO: Get rid of this.
         {
             var field = reader.GetTypeField();
 
@@ -46,12 +46,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case 1:
                         var prim = GraphTypeHelpers.GetPrimitive(field);
-                            switch(prim)
-                            {
-                                case GraphType.Primitive.Int: return TypeHandle.Int;
-                                case GraphType.Primitive.Bool: return TypeHandle.Bool;
-                                default: return TypeHandle.Float;
-                            }
+                        switch (prim)
+                        {
+                            case GraphType.Primitive.Int: return TypeHandle.Int;
+                            case GraphType.Primitive.Bool: return TypeHandle.Bool;
+                            default: return TypeHandle.Float;
+                        }
                     case 2: return TypeHandle.Vector2;
                     case 3: return TypeHandle.Vector3;
                     case 4: return TypeHandle.Vector4;
@@ -60,14 +60,28 @@ namespace UnityEditor.ShaderGraph.GraphUI
             else if (key.Name == GradientType.kRegistryKey.Name)
                 return GradientTypeHandle;
 
+            else if (key.Name == BaseTextureType.kRegistryKey.Name)
+            {
+                switch (BaseTextureType.GetTextureAsset(field))
+                {
+                    case Texture2DArray: return ShaderGraphExampleTypes.Texture2DArrayTypeHandle;
+                    case Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
+                    case Cubemap: return ShaderGraphExampleTypes.CubemapTypeHandle;
+                    case Texture2D:
+                    default: return ShaderGraphExampleTypes.Texture2DTypeHandle;
+                }
+            }
+
             return TypeHandle.Unknown;
         }
 
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
         public static readonly TypeHandle AnimationClip = typeof(AnimationClip).GenerateTypeHandle();
         public static readonly TypeHandle Mesh = typeof(Mesh).GenerateTypeHandle();
-        public static readonly TypeHandle Texture2D = typeof(Texture2D).GenerateTypeHandle();
-        public static readonly TypeHandle Texture3D = typeof(Texture3D).GenerateTypeHandle();
+        public static readonly TypeHandle Texture2DTypeHandle = typeof(Texture2D).GenerateTypeHandle();
+        public static readonly TypeHandle Texture3DTypeHandle = typeof(Texture3D).GenerateTypeHandle();
+        public static readonly TypeHandle Texture2DArrayTypeHandle = typeof(Texture2DArray).GenerateTypeHandle();
+        public static readonly TypeHandle CubemapTypeHandle = typeof(Cubemap).GenerateTypeHandle();
         public static readonly TypeHandle DayOfWeek = typeof(DayOfWeek).GenerateTypeHandle();
         public static readonly TypeHandle GradientTypeHandle = typeof(Gradient).GenerateTypeHandle();
 
@@ -95,8 +109,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             { "Color", Color },
             { "AnimationClip", AnimationClip },
             { "Mesh", Mesh },
-            { "Texture2D", Texture2D },
-            { "Texture3D", Texture3D },
+            { "Texture2D", Texture2DTypeHandle },
+            { "Texture3D", Texture3DTypeHandle },
+            { "Texture2DArray", Texture2DArrayTypeHandle },
+            { "Cubemap", CubemapTypeHandle },
             { "DayOfWeek", DayOfWeek },
             { "Gradient", GradientTypeHandle }
         };
@@ -104,24 +120,72 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static IEnumerable<string> TypeHandleNames => TypeHandlesByName.Keys;
     }
 
-    interface ICLDSConstant
+    public abstract class ICLDSConstant
     {
-        public string NodeName { get; }
-        public string PortName { get; }
+        protected GraphHandler graphHandler;
+        protected string nodeName, portName;
+        public bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
 
-        void Initialize(GraphHandler handler, string nodeName, string portName);
-    }
-
-    public class GraphTypeConstant : IConstant, ICLDSConstant
-    {
-        public GraphHandler graphHandler;
-        public string nodeName, portName;
+        public FieldHandler GetField()
+        {
+            if (!IsInitialized) return null;
+            var nodeReader = graphHandler.GetNode(nodeName);
+            var portReader = nodeReader.GetPort(portName);
+            return portReader.GetTypeField();
+        }
 
         public string NodeName => nodeName;
         public string PortName => portName;
 
-        bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
+        public void Initialize(GraphHandler handler, string nodeName, string portName)
+        {
+            if (!IsInitialized)
+            {
+                this.graphHandler = handler;
+                this.nodeName = nodeName;
+                this.portName = portName;
+            }
+        }
+    }
 
+    public class TextureTypeConstant : ICLDSConstant, IConstant
+    {
+        public object ObjectValue
+        {
+            get => !IsInitialized ? DefaultValue : BaseTextureType.GetTextureAsset(GetField());
+            set
+            {
+                if (IsInitialized)
+                    BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
+            }
+        }
+
+        public object DefaultValue => null;
+
+        public Type Type => IsInitialized && ObjectValue != null ? ObjectValue.GetType() : typeof(Texture2D);
+
+        public IConstant Clone()
+        {
+            return null;
+        }
+
+        public TypeHandle GetTypeHandle()
+        {
+            switch(ObjectValue)
+            {
+                case Texture2DArray: return ShaderGraphExampleTypes.Texture2DArrayTypeHandle;
+                case Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
+                case Cubemap: return ShaderGraphExampleTypes.CubemapTypeHandle;
+                case Texture2D:
+                default: return ShaderGraphExampleTypes.Texture2DTypeHandle;
+            }
+        }
+
+        public void Initialize(TypeHandle constantTypeHandle) { }
+    }
+
+    public class GraphTypeConstant : ICLDSConstant, IConstant
+    {
         internal int GetLength()
         {
             if (!IsInitialized) return -1;
@@ -157,13 +221,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             field.SetData(v);
         }
 
-        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
-        {
-            if (IsInitialized) return;
-            graphHandler = handler;
-            this.nodeName = nodeName;
-            this.portName = portName;
-        }
+        //public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
+        //{
+        //    if (IsInitialized) return;
+        //    graphHandler = handler;
+        //    this.nodeName = nodeName;
+        //    this.portName = portName;
+        //}
 
         public void Initialize(TypeHandle constantTypeHandle)
         {
@@ -251,37 +315,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public object DefaultValue => Activator.CreateInstance(Type);
     }
 
-    public class GradientTypeConstant : IConstant, ICLDSConstant
+    public class GradientTypeConstant : ICLDSConstant, IConstant
     {
-        // Most of this should be genericized, as it'll be identical across types.
-        public GraphDelta.GraphHandler graphHandler;
-        public string nodeName, portName;
-
-        public string NodeName => nodeName;
-        public string PortName => portName;
-
-        bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
-
-        private GraphDelta.FieldHandler GetFieldReader()
-        {
-            if (!IsInitialized) return null;
-            var nodeReader = graphHandler.GetNodeReader(nodeName);
-            var portReader = nodeReader.GetPort(portName);
-            return portReader.GetTypeField();
-        }
-
-        private GraphDelta.FieldHandler GetFieldWriter()
-        {
-            return GetFieldReader();
-        }
-
-        public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
-        {
-            graphHandler = handler;
-            this.nodeName = nodeName;
-            this.portName = portName;
-        }
-
         public void Initialize(TypeHandle constantTypeHandle)
         {
 
@@ -296,11 +331,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public object ObjectValue
         {
-            get => IsInitialized ? GradientTypeHelpers.GetGradient(GetFieldReader()) : DefaultValue;
+            get => IsInitialized ? GradientTypeHelpers.GetGradient(GetField()) : DefaultValue;
             set
             {
                 if (IsInitialized)
-                    GradientTypeHelpers.SetGradient(GetFieldWriter(), (Gradient)value);
+                    GradientTypeHelpers.SetGradient(GetField(), (Gradient)value);
             }
         }
 
@@ -330,7 +365,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
             var uiHints = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
 
-            if (length >= 3 && uiHints.ContainsKey(constant.portName + ".UseColor"))
+            if (length >= 3 && uiHints.ContainsKey(constant.PortName + ".UseColor"))
             {
                 var editor = new ColorField();
                 editor.showAlpha = length == 4;
