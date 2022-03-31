@@ -197,9 +197,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDAdditionalLightData
     {
-        //Private enum to differentiate built-in LightType.Point that can be Area or Point in HDRP
+        //Internal enum to differentiate built-in LightType.Point that can be Area or Point in HDRP
         //This is due to realtime support and culling behavior in Unity
-        private enum PointLightHDType
+        internal enum PointLightHDType
         {
             Punctual,
             Area
@@ -244,14 +244,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         case HDLightType.Directional:
                             legacyLight.type = LightType.Directional;
                             m_PointlightHDType = PointLightHDType.Punctual;
+                            HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
                             break;
                         case HDLightType.Spot:
                             legacyLight.type = LightType.Spot;
                             m_PointlightHDType = PointLightHDType.Punctual;
+                            HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
                             break;
                         case HDLightType.Point:
                             legacyLight.type = LightType.Point;
                             m_PointlightHDType = PointLightHDType.Punctual;
+                            HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
                             break;
                         case HDLightType.Area:
                             ResolveAreaShape();
@@ -287,6 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_SpotLightShape = value;
+                HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).spotLightShape = m_SpotLightShape;
 
                 // If the current light unit is not supported by this spot light shape, we change it
                 var supportedUnits = GetSupportedLightUnits(type, value);
@@ -308,6 +312,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_AreaLightShape = value;
+                HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).areaLightShape = m_AreaLightShape;
+
                 if (type == HDLightType.Area)
                     ResolveAreaShape();
                 UpdateAllLightValues();
@@ -317,6 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void ResolveAreaShape()
         {
             m_PointlightHDType = PointLightHDType.Area;
+            HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
             if (areaLightShape == AreaLightShape.Disc)
             {
                 legacyLight.type = LightType.Disc;
@@ -465,53 +472,56 @@ namespace UnityEngine.Rendering.HighDefinition
             return allowedUnits.Any(u => u == unit);
         }
 
+        internal static HDLightType TranslateLightType(LightType lightType, PointLightHDType pointLightType)
+        {
+            switch(lightType)
+            {
+                case LightType.Spot: return HDLightType.Spot;
+                case LightType.Directional: return HDLightType.Directional;
+                case LightType.Point:
+                    switch (pointLightType)
+                    {
+                        case PointLightHDType.Punctual: return HDLightType.Point;
+                        case PointLightHDType.Area: return HDLightType.Area;
+                        default: return HDLightType.Point;
+                    }
+                case LightType.Disc:
+                    return HDLightType.Area;
+                case LightType.Rectangle:
+                    return HDLightType.Area;
+                default:
+                    return HDLightType.Point;
+            }
+        }
+
         //To use in render loop instead of type as we can add on the fly an
         //HDAdditionalLightData that is not really added to the GameObject
         //In this case, the type property will return a false value as this will
         //be base on a default(HDAdditionnalData) which will have a point type
-        // custom-begin:
-        // internal
-        public
-        // custom-end 
-        HDLightType ComputeLightType(Light attachedLight)
+        internal HDLightType ComputeLightType(Light attachedLight)
         {
             // Shuriken lights won't have a Light component.
             if (attachedLight == null)
                 return HDLightType.Point;
 
-            switch (attachedLight.type)
-            {
-                case LightType.Spot: return HDLightType.Spot;
-                case LightType.Directional: return HDLightType.Directional;
-                case LightType.Point:
-                    switch (m_PointlightHDType)
-                    {
-                        case PointLightHDType.Punctual: return HDLightType.Point;
-                        case PointLightHDType.Area: return HDLightType.Area;
-                        default:
-                            //Debug.Assert(false, $"Unknown {typeof(PointLightHDType).Name} {m_PointlightHDType}. Fallback on Punctual");
-                            return HDLightType.Point;
-                    }
-                case LightType.Disc:
-                    return HDLightType.Area;
-                case LightType.Rectangle:
-                    // not supported directly. Convert now to equivalent if not default HDAdditionalLightData:
-                    if (this != HDUtils.s_DefaultHDAdditionalLightData)
-                    {
-                        legacyLight.type = LightType.Point;
-                        m_PointlightHDType = PointLightHDType.Area;
-                        m_AreaLightShape = AreaLightShape.Rectangle;
+            HDLightType hdLightType = TranslateLightType(attachedLight.type, m_PointlightHDType);
 
-                        //sanitycheck on the baking mode first time we add additionalLightData
+            if (attachedLight.type == LightType.Rectangle && this != HDUtils.s_DefaultHDAdditionalLightData)
+            {
+                legacyLight.type = LightType.Point;
+                m_PointlightHDType = PointLightHDType.Area;
+                HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).pointLightType = m_PointlightHDType;
+
+                m_AreaLightShape = AreaLightShape.Rectangle;
+
+                //sanitycheck on the baking mode first time we add additionalLightData
 #if UNITY_EDITOR
-                        legacyLight.lightmapBakeType = LightmapBakeType.Realtime;
+                legacyLight.lightmapBakeType = LightmapBakeType.Realtime;
 #endif
-                    }
-                    return HDLightType.Area;
-                default:
-                    Debug.Assert(false, $"Unknown {typeof(LightType).Name} {attachedLight.type}. Fallback on Point");
-                    return HDLightType.Point;
+
             }
+
+            return hdLightType;
         }
     }
 }
