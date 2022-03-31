@@ -18,30 +18,33 @@ namespace UnityEngine.Rendering.HighDefinition
         // ImmediateMode exists for debugging purposes.
         public static class HybridRendererCommandBuffer
         {
-            public static int GetSystemIDFromName(string name)
+            public static HybridRendererCommandBufferSystemHandle CreateSystemHandle(string name, string worldName)
             {
                 // In lieu of any standard string interning system, we're going to simply use Shader.PropertyToID() to generate stable IDs.
-                int id = Shader.PropertyToID(name);
-                s_HybridRendererCommandBufferData.EnsureProfilingSampler(name, id);
-                return id;
+                var handle = new HybridRendererCommandBufferSystemHandle()
+                {
+                    systemID = Shader.PropertyToID(name),
+                    worldID = Shader.PropertyToID(worldName)
+                };
+                s_HybridRendererCommandBufferData.EnsureProfilingSampler(name, handle);
+                return handle;
             }
 
-            public static CommandBuffer SystemBegin(int debugSystemID)
+            public static CommandBuffer SystemBegin(HybridRendererCommandBufferSystemHandle handle)
             {
-                return s_HybridRendererCommandBufferData.Begin(debugSystemID);
+                return s_HybridRendererCommandBufferData.Begin(handle);
             }
 
-            public static void SystemEnd(int debugSystemID)
+            public static void SystemEnd(HybridRendererCommandBufferSystemHandle handle)
             {
-                s_HybridRendererCommandBufferData.End(debugSystemID);
+                s_HybridRendererCommandBufferData.End(handle);
 
                 var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
                 if (hdrp == null)
                 {
                     // HDRP is not initialized yet, rather than throwing out any work that was requested,
-                    //// to be safe, lets allow multiple frames to be queued up, in case any frame-agnostic data is computed in this queue.
-                    //s_HybridRendererCommandBuffer.AllowAdditionalFrameCommandBufferQueue();
-                    s_HybridRendererCommandBufferData.Clear();
+                    // to be safe, lets immediately submit the work, to ensure any global frame agnostic state changes get setup correctly.
+                    s_HybridRendererCommandBufferData.SubmitImmediate();
                 }
             }
 
@@ -53,19 +56,44 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static HybridRendererCommandBufferData s_HybridRendererCommandBufferData = new HybridRendererCommandBufferData();
 
+        public struct HybridRendererCommandBufferSystemHandle : IEquatable<HybridRendererCommandBufferSystemHandle>
+        {
+            public int systemID;
+            public int worldID;
+
+            public bool Equals(HybridRendererCommandBufferSystemHandle keyOther)
+            {
+                return (this.systemID == keyOther.systemID)
+                    && (this.worldID == keyOther.worldID);
+            }
+
+            public override bool Equals(object other)
+            {
+                return other is HybridRendererCommandBufferSystemHandle key && Equals(key);
+            }
+
+            public override int GetHashCode()
+            {
+                var hash = systemID.GetHashCode();
+                hash = hash * 23 + worldID.GetHashCode();
+
+                return hash;
+            }
+        }
+
         private class HybridRendererCommandBufferData
         {
-            private Dictionary<int, bool> debugSubmittedSystemState = new Dictionary<int, bool>();
+            private Dictionary<HybridRendererCommandBufferSystemHandle, bool> debugSubmittedSystemState = new Dictionary<HybridRendererCommandBufferSystemHandle, bool>();
             private Dictionary<int, ProfilingSampler> profilingSamplers = new Dictionary<int, ProfilingSampler>();
             private CommandBuffer cmd = null;
             private bool immediateModeEnabled = false;
             private bool immediateModeEnabledNext = false;
 
-            public void EnsureProfilingSampler(string name, int id)
+            public void EnsureProfilingSampler(string name, HybridRendererCommandBufferSystemHandle handle)
             {
-                if (!profilingSamplers.TryGetValue(id, out var profilingSampler))
+                if (!profilingSamplers.TryGetValue(handle.systemID, out var profilingSampler))
                 {
-                    profilingSamplers.Add(id, new ProfilingSampler(name));
+                    profilingSamplers.Add(handle.systemID, new ProfilingSampler(name));
                 }
             }
 
@@ -82,46 +110,68 @@ namespace UnityEngine.Rendering.HighDefinition
                 immediateModeEnabled = immediateModeEnabledNext;
             }
 
-            public CommandBuffer Begin(int debugSystemID)
+            public CommandBuffer Begin(HybridRendererCommandBufferSystemHandle handle)
             {
-                Debug.Assert(!debugSubmittedSystemState.ContainsKey(debugSystemID));
-                debugSubmittedSystemState.Add(debugSystemID, false);
+                if (debugSubmittedSystemState.ContainsKey(handle))
+                {
+                    // Encountered previous frame data, or a system from another world updating.
+                    // In the editor, there are a few edge cases where this can happen, such as changes to Project Settings (oddly enough).
+                    // Simply submit the command buffer immediately, and do not log any warnings.
+                    // If we are in a build, this case is unexpected, so we log a warning.
+                    SubmitImmediate();
+
+#if !UNITY_EDITOR
+                    Debug.LogWarning("Warning: HybridRendererCommandBuffer: Encountered unexpected case of a command buffer having not been submitted between Simulation Update loops. It should have been submitted in the HDRenderPipeline::Render() loop.");
+#endif
+                }
+                debugSubmittedSystemState.Add(handle, false);
 
                 var cmd = EnsureCommandBuffer();
-                profilingSamplers[debugSystemID].Begin(cmd);
+                profilingSamplers[handle.systemID].Begin(cmd);
                 return cmd;
             }
 
-            public void End(int debugSystemID)
+            public void End(HybridRendererCommandBufferSystemHandle handle)
             {
-                Debug.Assert(debugSubmittedSystemState.ContainsKey(debugSystemID));
-                if (debugSubmittedSystemState.TryGetValue(debugSystemID, out bool submitted))
+                if (debugSubmittedSystemState.TryGetValue(handle, out bool submitted))
                 {
-                    Debug.Assert(submitted == false);
+                    Debug.AssertFormat(submitted == false, "Error: Encountered Hybrid Rendering System {0} with an already submitted command buffer. Was End() already called in this Simulation Update?", profilingSamplers[handle.systemID].name);
                 }
                 else
                 {
-                    Debug.Assert(false);
+                    Debug.AssertFormat(false, "Error: Encountered Hybrid Rendering System {0} End() call with no Begin() call.", profilingSamplers[handle.systemID].name);
                 }
 
-                debugSubmittedSystemState[debugSystemID] = true;
+                debugSubmittedSystemState[handle] = true;
 
-                profilingSamplers[debugSystemID].End(cmd);
+                profilingSamplers[handle.systemID].End(cmd);
 
                 if (immediateModeEnabled)
                 {
-                    Graphics.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
+                    SubmitImmediate();
                 }
             }
 
             public void Submit(ScriptableRenderContext renderContext)
             {
-                if (cmd == null) { return; }
+                if (cmd != null)
+                {
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    renderContext.Submit();
+                    cmd.Clear();
+                }
 
-                renderContext.ExecuteCommandBuffer(cmd);
-                renderContext.Submit();
-                cmd.Clear();
+                Clear();
+            }
+
+            public void SubmitImmediate()
+            {
+                if (cmd != null)
+                {
+                    Graphics.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                }
+
                 Clear();
             }
 
