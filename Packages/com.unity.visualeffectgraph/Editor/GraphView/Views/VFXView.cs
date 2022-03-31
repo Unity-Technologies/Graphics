@@ -2512,7 +2512,8 @@ namespace UnityEditor.VFX.UI
 
             foreach (var outputPort in newNodeController.outputPorts)
             {
-                if (controller.CreateLink(edge.input, outputPort))
+                // Revert type constraint so that the edge input type is preserved
+                if (controller.CreateLink(edge.input, outputPort, revertTypeConstraint: true))
                     break;
             }
             foreach (var inputPort in newNodeController.inputPorts)

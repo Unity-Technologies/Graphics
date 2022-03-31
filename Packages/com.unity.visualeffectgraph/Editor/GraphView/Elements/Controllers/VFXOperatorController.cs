@@ -126,11 +126,13 @@ namespace UnityEditor.VFX.UI
                 return base.model as T;
             }
         }
-        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput, bool revertTypeConstraint)
         {
             if (!myInput.IsMasterSlot())
                 return;
-            var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
+            var bestAffinityType = revertTypeConstraint
+                ? model.GetBestAffinityType(myInput.property.type)
+                : model.GetBestAffinityType(otherOutput.property.type);
             if (bestAffinityType != null)
             {
                 int index = model.GetSlotIndex(myInput);
@@ -182,7 +184,7 @@ namespace UnityEditor.VFX.UI
             return VFXExpression.GetMatchingScalar(otherType);
         }
 
-        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput, bool revertTypeConstaint = false)
         {
             if (!myInput.IsMasterSlot())
                 return;
@@ -191,14 +193,16 @@ namespace UnityEditor.VFX.UI
 
             if (!constraintInterface.slotIndicesThatMustHaveSameType.Contains(inputIndex))
             {
-                base.WillCreateLink(ref myInput, ref otherOutput);
+                base.WillCreateLink(ref myInput, ref otherOutput, revertTypeConstaint);
                 return;
             }
 
             bool scalar = constraintInterface.slotIndicesThatCanBeScalar.Contains(inputIndex);
             if (scalar)
             {
-                var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
+                var bestAffinityType = revertTypeConstaint
+                    ? model.GetBestAffinityType(myInput.property.type)
+                    : model.GetBestAffinityType(otherOutput.property.type);
 
                 VFXSlot otherSlotWithConstraint = model.inputSlots.Where((t, i) => constraintInterface.slotIndicesThatMustHaveSameType.Contains(i)).FirstOrDefault();
 
@@ -209,7 +213,9 @@ namespace UnityEditor.VFX.UI
                 }
                 else if (!myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput))  // if the link is invalid if we don't change the type, change the type to the matching scalar
                 {
-                    var bestScalarAffinityType = model.GetBestAffinityType(GetMatchingScalar(otherOutput.property.type));
+                    var bestScalarAffinityType = revertTypeConstaint
+                       ? model.GetBestAffinityType(GetMatchingScalar(myInput.property.type))
+                       : model.GetBestAffinityType(GetMatchingScalar(otherOutput.property.type));
                     if (bestScalarAffinityType != null)
                     {
                         model.SetOperandType(inputIndex, bestScalarAffinityType);
@@ -300,7 +306,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput, bool revertTypeConstraint = false)
         {
             if (!myInput.IsMasterSlot())
                 return;
@@ -317,7 +323,9 @@ namespace UnityEditor.VFX.UI
             // The new link is impossible if we don't change (case of a vector3 trying to be linked to a vector4)
             bool linkImpossibleNow = !myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput);
 
-            var bestAffinity = model.GetBestAffinityType(otherOutput.property.type);
+            var bestAffinity = revertTypeConstraint
+                ? model.GetBestAffinityType(myInput.property.type)
+                : model.GetBestAffinityType(otherOutput.property.type);
             if ((!hasLink || linkImpossibleNow) && bestAffinity != null)
             {
                 model.SetOperandType(bestAffinity);

@@ -213,11 +213,11 @@ namespace UnityEditor.VFX.UI
             return controller.CanLink(this, cache);
         }
 
-        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output, bool revertTypeConstraint = false)
         {
             var slotOutput = output != null ? output.model : null;
             var slotInput = model;
-            sourceNode.WillCreateLink(ref slotInput, ref slotOutput);
+            sourceNode.WillCreateLink(ref slotInput, ref slotOutput, revertTypeConstraint);
 
             if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
@@ -642,7 +642,7 @@ namespace UnityEditor.VFX.UI
             get { return base.sourceNode as VFXCascadedOperatorController; }
         }
 
-        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output, bool revertTypeConstraint = false)
         {
             var slotOutput = output != null ? output.model : null;
 
