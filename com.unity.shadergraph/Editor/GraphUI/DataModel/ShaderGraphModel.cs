@@ -313,7 +313,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     GraphHandler.AddReferenceNode(variableNodeModel.Guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance);
                 }
             };
-            return this.CreateNode(declarationModel.DisplayTitle, position, guid, initCallback, spawnFlags);
+
+            return this.CreateNode<GraphDataVariableNodeModel>(declarationModel.DisplayTitle, position, guid, initCallback, spawnFlags);
         }
 
         protected override Type GetDefaultVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
