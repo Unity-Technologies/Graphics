@@ -159,6 +159,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
+        PrepareGPULightData,
+        ProcessDirectionalAndCookies,
+        ProcessDynamicGICookies,
+        SortVisibleLights,
+        BuildVisibleLightEntities,
+        ProcessShadows,
 
         // Profile sampler for shadow
         RenderShadowMaps,

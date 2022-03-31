@@ -984,7 +984,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _HVSSSSourceTexture = Shader.PropertyToID("_HVSSSSourceTexture");
         public static readonly int _HVSSSDestinationTexture = Shader.PropertyToID("_HVSSSDestinationTexture");
-        public static readonly int _HVSSSLightPositionWS = Shader.PropertyToID("_HVSSSLightPositionWS");
+        public static readonly int _HVSSSLightPositionRWS = Shader.PropertyToID("_HVSSSLightPositionRWS");
         public static readonly int _HierarchicalVarianceScreenSpaceShadowsTexture = Shader.PropertyToID("_HierarchicalVarianceScreenSpaceShadowsTexture");
         public static readonly int _HVSSSCascadeRaymarchDistancePixelsStartEnd = Shader.PropertyToID("_HVSSSCascadeRaymarchDistancePixelsStartEnd");
         public static readonly int _HVSSSDepthMinMax = Shader.PropertyToID("_HVSSSDepthMinMax");
