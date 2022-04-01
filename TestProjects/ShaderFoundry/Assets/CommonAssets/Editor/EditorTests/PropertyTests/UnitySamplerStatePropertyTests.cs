@@ -108,6 +108,8 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.ClampV, WrapModeParameterStates.ClampW }, "_Linear_Clamp")]
         // Check setting a state twice (last wins)
         [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.MirrorU}, "_Linear_Repeat_MirrorU")]
+        // This includes setting the full channel state wiping out the previous sub-states
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.Mirror}, "_Linear_Mirror")]
         // Different parameter order doesn't affect declaration order
         [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.MirrorOnceW, WrapModeParameterStates.ClampU, WrapModeParameterStates.MirrorV}, "_Linear_ClampU_MirrorV_MirrorOnceW")]
         public void SamplerState_ValidateMultipleWrapModes_UniformIsExpectedName(WrapModeParameterStates[] wrapModes, string postfix)

@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
             // Build the input type
             var inputFields = new List<FieldData>();
-            // TODO @ SHADERS: This should get cleaned up eventually not not have the primary field, but all of the tests need to get updated.
+            // TODO @ SHADERS: This should get cleaned up eventually to not have the primary field, but all of the tests need to get updated.
             // Build the primary field into our list of fields.
             if (propertyData.FieldName != null)
             {
