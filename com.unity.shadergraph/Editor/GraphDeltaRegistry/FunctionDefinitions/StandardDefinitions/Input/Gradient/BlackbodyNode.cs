@@ -6,9 +6,12 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class BlackbodyNode : IStandardNode
     {
+        public static string Name = "Blackbody";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,
-            "Blackbody",
+            Version,
+            Name,
             @"
 {
     //based on data by Mitchell Charity http://www.vendian.org/mncharity/dir3/blackbody/
@@ -25,11 +28,31 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("color", TYPE.Vec3, Usage.Local,new float[] { 255.0f, 255.0f, 255.0f})
         );
 
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: "samples a Gradient that simulates the effect of black body radiation",
+            categories: new string[2] { "Input", "Gradient" },
+            synonyms: new string[0],
+            parameters: new ParameterUIDescriptor[3] {
+                new ParameterUIDescriptor(
+                    name: "Temperature"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "a blackbody color value determined by the input temperature"
+                ),
+                new ParameterUIDescriptor(
+                    name: "color"
+                )
+            }
+        );
+
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Tooltip", "samples a Gradient that simulates the effect of black body radiation" },
-            { "Parameters.Out.Tooltip", "a blackbody color value determined by the input temperature" },
-            { "Category", "Input, Gradient" }
+            { "Category", "Input, Gradient" },
+            { "Parameters.Out.Tooltip", "a blackbody color value determined by the input temperature" }
         };
     }
 }

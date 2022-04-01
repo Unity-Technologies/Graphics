@@ -3,12 +3,14 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class SaturationNode : IStandardNode
     {
+        public static string Name = "Saturation";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,     // Version
-            "Saturation", // Name
+            Version,
+            Name,
             @"
 {
     luma = dot(In, sRGBD65);
@@ -20,6 +22,29 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
             new ParameterDescriptor("luma", TYPE.Float, Usage.Local),
             new ParameterDescriptor("sRGBD65", TYPE.Vec3, Usage.Local, new float[] { 0.2126729f, 0.7151522f, 0.0721750f })
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            displayName: "Saturation",
+            tooltip: "adjusts the color intensity",
+            categories: new string[2] { "Artistic", "Adjustment" },
+            synonyms: new string[0],
+            parameters: new ParameterUIDescriptor[3] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    tooltip: "a color to adjust"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Saturation",
+                    tooltip: "less than 1 is less saturated, more than 1 is more saturated"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "color with adjusted saturation"
+                )
+            }
         );
 
         public static Dictionary<string, string> UIStrings => new()

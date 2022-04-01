@@ -305,43 +305,39 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return editor;
         }
 
-        public static VisualElement BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
+        public static BaseModelPropertyField BuildGraphTypeConstantEditor(this IConstantEditorBuilder builder, GraphTypeConstant constant)
         {
             if (builder.ConstantOwner is not GraphDataPortModel graphDataPort)
                 return builder.BuildDefaultConstantEditor(constant);
 
             var length = constant.GetLength();
             var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-            var uiHints = stencil.GetUIHints(graphDataPort.owner.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+            var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.portName);
 
-            if (length >= 3 && uiHints.ContainsKey(constant.portName + ".UseColor"))
+            if (length >= 3 && parameterUIDescriptor.UseColor)
             {
-                var editor = new ColorField();
-                editor.showAlpha = length == 4;
+                var constantEditor = new SGModelPropertyField<Color>(
+                    builder.CommandTarget as RootView,
+                    builder.ConstantOwner,
+                    parameterUIDescriptor.Name,
+                    "",
+                    parameterUIDescriptor.Tooltip);
 
-                editor.AddToClassList("sg-color-constant-field");
-                editor.AddStylesheet("ConstantEditors.uss");
-
-                // IConstantEditorBuilder will cast an incoming ChangeEvent's type to the constant's underlying type,
-                // so we have to supply it with the right ChangeEvent type.
-
-                void OnValueChangedVec4(ChangeEvent<Color> change)
+                void OnValueChanged(ChangeEvent<Color> change)
                 {
-                    // Implicit conversion from Color to Vector4
-                    using var changeEvent = ChangeEvent<Vector4>.GetPooled(change.previousValue, change.newValue);
-                    builder.OnValueChanged(changeEvent);
+                    Vector4 vector4Value = (Vector4)change.newValue;
+                    Vector3 vector3Value = vector4Value;
+                    builder.CommandTarget.Dispatch(new UpdateConstantValueCommand(constant, length == 3 ? vector3Value : vector4Value, builder.ConstantOwner));
                 }
 
-                void OnValueChangedVec3(ChangeEvent<Color> change)
+                if (constantEditor.PropertyField is ColorField colorField)
                 {
-                    // Implicit conversion from Vector4 to Vector3
-                    using var changeEvent = ChangeEvent<Vector3>.GetPooled((Vector4)change.previousValue, (Vector4)change.newValue);
-                    builder.OnValueChanged(changeEvent);
+                    colorField.showAlpha = length == 4;
+                    colorField.RegisterValueChangedCallback(OnValueChanged);
                 }
 
-                editor.RegisterValueChangedCallback(length == 4 ? OnValueChangedVec4 : OnValueChangedVec3);
-
-                return editor;
+                return constantEditor;
             }
 
             return builder.BuildDefaultConstantEditor(constant);

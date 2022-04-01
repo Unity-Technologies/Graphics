@@ -19,27 +19,37 @@ namespace UnityEditor.ShaderGraph.Generation
         public static string GetBlockCode(NodeHandler node, GraphHandler graph, Registry registry)
         {
             var builder = new ShaderBuilder();
-            var block = EvaluateGraphAndPopulateDescriptors(node, graph, new ShaderContainer(), registry);
-            foreach (var func in block.Functions)
-                builder.AddDeclarationString(func);
+            var container = new ShaderContainer();
+            var cpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref cpBuilder);
+            foreach (var b in cpBuilder.BlockInstances)
+                foreach(var func in b.Block.Functions)
+                    builder.AddDeclarationString(func);
             return builder.ConvertToString();
         }
 
+        private static void GetBlocks(ShaderContainer    container,
+                              CustomizationPoint vertexCP,
+                              CustomizationPoint surfaceCP,
+                              NodeHandler node,
+                              GraphHandler graph,
+                              Registry registry,
+                          out CustomizationPointInstance vertexCPDesc,
+                          out CustomizationPointInstance surfaceCPDesc)
+        {
+            vertexCPDesc = CustomizationPointInstance.Invalid; // we currently do not use the vertex customization point
+
+            var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref surfaceDescBuilder);
+            surfaceCPDesc = surfaceDescBuilder.Build();
+        }
+
+
         public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry)
         {
-            void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
-            {
-                var block = EvaluateGraphAndPopulateDescriptors(node, graph, container, registry);
-                vertexCPDesc = CustomizationPointInstance.Invalid;
-
-                var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
-                var blockDescBuilder = new BlockInstance.Builder(container, block);
-                var blockDesc = blockDescBuilder.Build();
-                surfaceDescBuilder.BlockInstances.Add(blockDesc);
-                surfaceCPDesc = surfaceDescBuilder.Build();
-            }
-
-            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock, String.Empty);
+            void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
+                => GetBlocks(container, vertex, fragment, node, graph, registry, out vertexCPDesc, out fragmentCPDesc);
+            var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", lambda, String.Empty);
             return shader.codeString;
         }
 
@@ -56,54 +66,84 @@ namespace UnityEditor.ShaderGraph.Generation
         }
 
 
-        internal static Block EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry)
+        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder)
         {
-            const string BlockName = "ShaderGraphBlock";
+
+            /* PSEDUOCODE
+             * Given a root node and graph, we need to know if the node isn't a context node.
+             *      If the node isnt a context node, then we know we will need a remap block from the
+             *      output of the node to "BaseColor" for previews
+             *
+             * In either case, we then need to create the block outputs for the given node based on its ports
+             *
+             * We want to gather all upstream nodes from the rootnode, and start evaluating the expression tree
+             *
+             * If we hit a context node upstream, then we need to recurse on that context node and make sure its outputs
+             *   match our expected inputs
+             */
+
+
+            string BlockName = $"ShaderGraphBlock_{rootNode.ID.LocalPath}";
             var blockBuilder = new Block.Builder(container, BlockName);
 
             var inputVariables = new List<BlockVariable>();
             var outputVariables = new List<BlockVariable>();
-
             bool isContext = rootNode.HasMetadata("_contextDescriptor");
-
-            if (isContext)
+            //Evaluate outputs for this block based on root nodes "outputs/endpoints" (horizontal input ports)
+            foreach (var port in rootNode.GetPorts())
             {
-                foreach (var port in rootNode.GetPorts())
+                if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
                 {
-                    if (port.IsHorizontal && port.IsInput)
+                    var name = port.ID.LocalPath;
+                    var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
+                    var varOutBuilder = new BlockVariable.Builder(container)
                     {
-                        var name = port.ID.LocalPath;
-                        var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
-                         var varOutBuilder = new BlockVariable.Builder(container)
-                        {
-                            Name = name,
-                            Type = type
-                        };
-                        var varOut = varOutBuilder.Build();
-                        outputVariables.Add(varOut);
-                    }
+                        Name = name,
+                        Type = type
+                    };
+                    var varOut = varOutBuilder.Build();
+                    outputVariables.Add(varOut);
                 }
-
             }
-            else
-            {
-                var colorOutBuilder = new BlockVariable.Builder(container)
-                {
-                    Name = "BaseColor",
-                    Type = container._float3
-                };
-                var colorOut = colorOutBuilder.Build();
-                outputVariables.Add(colorOut);
-            }
-
+            //Create output type from evaluated root node outputs
             var outputType = BuildStructFromVariables(container, $"{BlockName}Output", outputVariables, blockBuilder);
+
+
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.ID.LocalPath}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
-                if(!isContext || (isContext && node != rootNode))
+                //if the node is a context node (and not the root node) we recurse
+                if (node.HasMetadata("_contextDescriptor"))
+                {
+                    if (!node.ID.Equals(rootNode.ID))
+                    {
+                        //evaluate the upstream context's block
+                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref surfaceDescBuilder);
+                        //create inputs to our block based on the upstream context's outputs
+                        foreach (var port in node.GetPorts())
+                        {
+                            if (port.IsHorizontal && port.IsInput)
+                            {
+                                var name = port.ID.LocalPath;
+                                var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
+                                var varInBuilder = new BlockVariable.Builder(container)
+                                {
+                                    Name = name,
+                                    Type = type
+                                };
+                                var varIn = varInBuilder.Build();
+                                inputVariables.Add(varIn);
+                            }
+                        }
+                    }
+
+                }
+                else
+                {
                     ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
+                }
             }
 
             // Should get us every uniquely defined parameter-- not sure how this handles intrinsics- ehh...
@@ -120,50 +160,91 @@ namespace UnityEditor.ShaderGraph.Generation
             var inputType = BuildStructFromVariables(container, $"{BlockName}Input", inputVariables, blockBuilder);
 
             mainBodyFunctionBuilder.AddLine($"{BlockName}Block::{outputType.Name} output;");
-            if(isContext)
+            int varIndex = 0;
+            foreach(PortHandler port in rootNode.GetPorts())
             {
-                int varIndex = 0;
-                foreach(PortHandler port in rootNode.GetPorts())
+                if(port.IsHorizontal)
                 {
-                    if(port.IsHorizontal && port.IsInput)
+                    if (port.IsInput && isContext)
                     {
                         //var entry = port.GetTypeField().GetSubField<IContextDescriptor.ContextEntry>(Registry.Types.GraphType.kEntry).GetData();
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
+                            if (connectedNode.HasMetadata("_contextDescriptor"))
+                            {
+                                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = In.{connectedPort.ID.LocalPath.Replace("out_","")};");
+                            }
+                            else
+                            {
+                                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath};");
+                            }
                         }
                         else // not connected.
                         {
                             var field = port.GetTypeField();
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(field, registry)};");
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = {registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(field, registry)};");
                         }
                     }
+                    else if(!port.IsInput && !isContext)
+                    {
+                        mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = SYNTAX_{rootNode.ID.LocalPath}_{port.ID.LocalPath};");
+                    }
                 }
+            }
 
-            }
-            else // if node preview
-            {
-                var port = rootNode.GetPorts().Where(e => !e.IsInput).First(); // get the first output node
-                var field = port.GetTypeField();
-                var outType = registry.GetTypeBuilder(field.GetRegistryKey()).GetShaderType(field, container, registry);
-                string assignment = ConvertToFloat3(outType, $"SYNTAX_{rootNode.ID.LocalPath}_{port.ID.LocalPath}");
-                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].Name} = {assignment};");
-            }
             mainBodyFunctionBuilder.AddLine("return output;");
 
             // Setup the block from the inputs, outputs, types, functions
-            //foreach (var variable in inputVariables)
-            //    blockBuilder.AddInput(variable);
-            //foreach (var variable in outputVariables)
-            //    blockBuilder.AddOutput(variable);
             blockBuilder.AddType(inputType);
             blockBuilder.AddType(outputType);
             mainBodyFunctionBuilder.AddInput(inputType, "In");
             blockBuilder.SetEntryPointFunction(mainBodyFunctionBuilder.Build());
-            return blockBuilder.Build();
+            var block = blockBuilder.Build();
+            var blockDescBuilder = new BlockInstance.Builder(container, block);
+            var blockDesc = blockDescBuilder.Build();
+            surfaceDescBuilder.BlockInstances.Add(blockDesc);
+
+            //if the root node was not a context node, then we need to remap an output to the expected customization point output
+            if (!isContext)
+            {
+
+                string remapBlockName = $"ShaderGraphBlock_{rootNode.ID.LocalPath}_REMAP";
+                var remapBuilder = new Block.Builder(container, remapBlockName);
+
+                var remapFromVariables = outputVariables;
+                var remapToVariables = new List<BlockVariable>();
+
+
+                var colorOutBuilder = new BlockVariable.Builder(container);
+                colorOutBuilder.Name = "BaseColor";
+                colorOutBuilder.Type = container._float3;
+                var colorOut = colorOutBuilder.Build();
+                remapToVariables.Add(colorOut);
+
+                var remapInputType  = BuildStructFromVariables(container, $"{remapBlockName}Input",  remapFromVariables, remapBuilder);
+                var remapOutputType = BuildStructFromVariables(container, $"{remapBlockName}Output", remapToVariables,   remapBuilder);
+
+                var remapMainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{remapBlockName}Main", remapOutputType);
+                remapMainBodyFunctionBuilder.AddInput(remapInputType, "inputs");
+                remapMainBodyFunctionBuilder.AddLine($"{remapBlockName}Block::{remapOutputType.Name} output;");
+                var remap = remapFromVariables.FirstOrDefault();
+                remapMainBodyFunctionBuilder.AddLine($"output.BaseColor = {ConvertToFloat3(remap.Type, $"inputs.{remap.Name}")};");
+                remapMainBodyFunctionBuilder.AddLine("return output;");
+
+                remapBuilder.AddType(remapInputType);
+                remapBuilder.AddType(remapOutputType);
+                remapBuilder.SetEntryPointFunction(remapMainBodyFunctionBuilder.Build());
+
+                var remapBlock = remapBuilder.Build();
+                var remapBlockDescBuilder = new BlockInstance.Builder(container, remapBlock);
+                var remapBlockDesc = remapBlockDescBuilder.Build();
+                surfaceDescBuilder.BlockInstances.Add(remapBlockDesc);
+
+            }
+
         }
 
         private static ShaderType EvaluateShaderType(IContextDescriptor.ContextEntry entry, ShaderContainer container)
@@ -263,7 +344,14 @@ namespace UnityEditor.ShaderGraph.Generation
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
-                            argument = $"SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
+                            if (connectedNode.HasMetadata("_contextDescriptor"))
+                            {
+                                argument = $"In.{connectedPort.ID.LocalPath.Replace("out_", "")}";
+                            }
+                            else
+                            {
+                                argument = $"SYNTAX_{connectedNode.ID.LocalPath}_{connectedPort.ID.LocalPath}";
+                            }
                         }
                         else // not connected.
                         {
@@ -308,17 +396,21 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 NodeHandler check = stack.Peek();
                 bool isLeaf = true;
-                foreach(PortHandler port in check.GetPorts()) //NEDS TO BE INPUT PORTS
+                //we treat context nodes as leaves to recurse on in processing. If the node is not a context node, or if its the root node, we process normally.
+                if (!check.HasMetadata("_contextDescriptor") || check.ID.Equals(rootNode.ID))
                 {
-                    if(port.IsHorizontal && port.IsInput)
+                    foreach (PortHandler port in check.GetPorts())
                     {
-                        foreach(NodeHandler connected in GetConnectedNodes(port))
+                        if (port.IsHorizontal && port.IsInput)
                         {
-                            if (!visited.Contains(connected.ID.FullPath))
+                            foreach (NodeHandler connected in GetConnectedNodes(port))
                             {
-                                visited.Add(connected.ID.FullPath);
-                                isLeaf = false;
-                                stack.Push(connected);
+                                if (!visited.Contains(connected.ID.FullPath))
+                                {
+                                    visited.Add(connected.ID.FullPath);
+                                    isLeaf = false;
+                                    stack.Push(connected);
+                                }
                             }
                         }
                     }

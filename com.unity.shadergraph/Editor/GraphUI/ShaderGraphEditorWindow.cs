@@ -40,6 +40,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // WithSidePanel = false;
             base.OnEnable();
 
+            // Needed to ensure to that on domain reload we go through and actually reinitialize stuff as this flag remains true when reload happens
+            // TODO (Sai): Figure out a better place for command handler registration and preview manager initialization
+            m_PreviewManager.IsInitialized = false;
+
             // Needed to ensure that graph view takes up full window when overlay canvas is present
             rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
             rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
