@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string DefaultAssetName = "NewShaderGraph";
         public const string Extension = "sg2";
         private Registry RegistryInstance = null;
-        private NodeUIInfo NodeUIInfo = null;
+        private readonly NodeUIInfo NodeUIInfo = null;
 
         public string ToolName =>
             Name;
@@ -24,7 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             NodeUIInfo = new ();
         }
 
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) =>
+            new SGBlackboardGraphModel(graphAssetModel);
 
         // See ShaderGraphExampleTypes.GetGraphType for more details
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
@@ -91,7 +92,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
         }
 
-        public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menu, IRootView view, IGroupModel selectedGroup = null)
+        public override void PopulateBlackboardCreateMenu(
+            string sectionName,
+            List<MenuItem> menu,
+            IRootView view,
+            IGroupModel selectedGroup = null)
         {
             base.PopulateBlackboardCreateMenu(sectionName, menu, view, selectedGroup);
         }

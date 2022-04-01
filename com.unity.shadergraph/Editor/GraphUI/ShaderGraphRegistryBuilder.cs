@@ -10,6 +10,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// </summary>
     public static class ShaderGraphRegistryBuilder
     {
+        private static readonly string GET_FD_METHOD_NAME = "get_FunctionDescriptor";
+        private static readonly string GET_ND_METHOD_NAME = "get_NodeDescriptor";
+
         public static Registry CreateDefaultRegistry(Action<RegistryKey, Type> afterNodeRegistered = null)
         {
             var reg = new Registry();
@@ -20,22 +23,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
             reg.Register<GradientNode>();
             reg.Register<SampleGradientNode>();
             reg.Register<ShaderGraphContext>();
-            //RegistryInstance.Register<Registry.Types.AddNode>();
 
-            // Register nodes from FunctionDescriptors in IStandardNode classes.
+            // Register nodes from IStandardNode implementers.
             var interfaceType = typeof(IStandardNode);
             var types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => interfaceType.IsAssignableFrom(p));
-            string m = "get_FunctionDescriptor";
             foreach (var t in types)
             {
-                var fdMethod = t.GetMethod(m);
-                if (t != interfaceType && fdMethod != null)
+                if (t != interfaceType)
                 {
-                    var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
-                    var key = reg.Register(fd);
-                    afterNodeRegistered?.Invoke(key, t);
+                    var ndMethod = t.GetMethod(GET_ND_METHOD_NAME);
+                    if (ndMethod != null)
+                    {
+                        var nd = (NodeDescriptor)ndMethod.Invoke(null, null);
+                        if (!nd.Equals(default(NodeDescriptor)))
+                        { // use the NodeDescriptor
+                            RegistryKey registryKey = reg.Register(nd);
+                            afterNodeRegistered?.Invoke(registryKey, t);
+                        }
+                        else
+                        { // use the FunctionDescriptor
+                            var fdMethod = t.GetMethod(GET_FD_METHOD_NAME);
+                            if (fdMethod != null)
+                            {
+                                var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
+                                RegistryKey registryKey = reg.Register(fd);
+                                afterNodeRegistered?.Invoke(registryKey, t);
+                            }
+                        }
+                    }
                 }
             }
             return reg;
