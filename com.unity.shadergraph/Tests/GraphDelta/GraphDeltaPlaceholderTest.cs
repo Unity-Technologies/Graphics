@@ -324,6 +324,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 // TODO: Maybe have some sort of Clone operation on ITypeDefinitionBuilder?
                 // Assert.AreEqual(GraphType.Primitive.Int, GraphTypeHelpers.GetPrimitive(fooField));
             }
+
+            [Test]
+            public void CanStoreAndLoad()
+            {
+                var graph = new GraphHandler();
+                var registry = new Registry();
+                registry.Register<GraphType>();
+                registry.Register<TestAddNode>();
+                registry.Register<GraphTypeAssignment>();
+
+                var node = graph.AddNode<TestAddNode>("Add1", registry);
+                node.AddField("myData", 45);
+                var field = node.GetField("myData");
+                var data = field.GetData<int>();
+                Assert.AreEqual(data, 45);
+            }
+
         }
     }
 }
