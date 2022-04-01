@@ -14,7 +14,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         bool m_isInitialized = false;
 
-        public bool IsInitialized => m_isInitialized;
+        public bool IsInitialized
+        {
+            get => m_isInitialized;
+            set => m_isInitialized = value;
+        }
 
         HeadlessPreviewManager m_PreviewHandlerInstance;
 

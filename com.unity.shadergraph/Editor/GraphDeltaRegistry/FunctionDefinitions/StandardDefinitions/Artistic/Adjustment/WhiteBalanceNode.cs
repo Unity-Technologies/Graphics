@@ -6,9 +6,12 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class WhiteBalanceNode : IStandardNode
     {
+        public static string Name = "WhiteBalance";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,     // Version
-            "WhiteBalance", // Name
+            Version,
+            Name,
             @"
 {
         // Range ~[-1.67;1.67] works best
@@ -50,6 +53,33 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("LMS_2_LIN_MAT", TYPE.Mat3, Usage.Local, new float[] { 2.85847e+0f, -1.62879e+0f, -2.48910e-2f,
                                                                                            -2.10182e-1f,  1.15820e+0f,  3.24281e-4f,
                                                                                            -4.18120e-2f, -1.18169e-1f,  1.06867e+0f })
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            displayName: "Saturation",
+            tooltip: "adjusts temperature and tint",
+            categories: new string[2] { "Artistic", "Adjustment" },
+            synonyms: new string[0],
+            parameters: new ParameterUIDescriptor[4] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    tooltip: "a color to adjust"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Temperature",
+                    tooltip: "shifts towards yellow or blue"
+                ),
+                 new ParameterUIDescriptor(
+                    name: "Tint",
+                    tooltip: "shifts towards pink or green"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "color with adjusted white balance"
+                )
+            }
         );
 
         public static Dictionary<string, string> UIStrings => new()

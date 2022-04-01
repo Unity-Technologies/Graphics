@@ -3,25 +3,48 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class MatrixDeterminantNode : IStandardNode
     {
+        public static string Name = "MatrixDeterminant";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,
-            "MatrixDeterminant",
+            Version,
+            Name,
             "Out = determinant(In);",
             new ParameterDescriptor("In", TYPE.Matrix, Usage.In, new float[] { 1f, 0f, 0f, 1f}),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
         );
 
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            displayName: "Matrix Determinant",
+            tooltip: "returns the determinant of the matrix defined by the input",
+            categories: new string[2] { "Math", "Matrix" },
+            synonyms: new string[1] { "Determinant" },
+            hasPreview: false,
+            parameters: new ParameterUIDescriptor[2] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    tooltip: "input matrix"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "the determinant of the input matrix"
+                )
+            }
+        );
+
+
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "Determinant" },
             { "Tooltip", "returns the determinant of the matrix defined by the input" },
-            { "Parameters.In.Tooltip", "input matrix" },
-            { "Parameters.Out.Tooltip", "the determinant of the input matrix" },
             { "Category", "Math, Matrix" },
-            { "DisplayName", "Matrix Determinant" }
+            { "DisplayName", "Matrix Determinant" },
+            { "Parameters.In.Tooltip", "input matrix" },
+            { "Parameters.Out.Tooltip", "the determinant of the input matrix" }
         };
 
         public static Dictionary<string, float> UIHints => new()

@@ -3,24 +3,44 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class FractionNode : IStandardNode
     {
+        public static string Name = "Fraction";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1,
-            "Fraction",
+            Version,
+            Name,
             "Out = frac(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: "returns the decimal portion of the input without the integer portion",
+            categories: new string[2] { "Math", "Range" },
+            synonyms: new string[1] { "remainder" },
+            parameters: new ParameterUIDescriptor[2] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    tooltip: "input value"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Out",
+                    tooltip: "the decimal portion of the input"
+                )
+            }
         );
 
         public static Dictionary<string, string> UIStrings => new()
         {
             { "Name.Synonyms", "remainder" },
             { "Tooltip", "returns the decimal portion of the input without the integer portion" },
+            { "Category", "Math, Range" },
             { "Parameters.In.Tooltip", "input value" },
             { "Parameters.Out.Tooltip", "the decimal portion of the input" },
-            { "Category", "Math, Range" }
         };
     }
 }

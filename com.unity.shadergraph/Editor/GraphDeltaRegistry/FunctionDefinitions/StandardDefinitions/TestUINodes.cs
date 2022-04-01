@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
@@ -105,6 +106,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIColorRGBNode : IStandardNode
     {
+        public static string Name = "TestUIColorRGB";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TestUIColorRGB", // Name
@@ -113,6 +117,31 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("Static", TYPE.Vec3, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Vec3, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
+            hasPreview: true,
+            parameters: new ParameterUIDescriptor[2] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    displayName: "In",
+                    tooltip: "input value",
+                    useColor: true,
+                    useSlider: false
+                ),
+                new ParameterUIDescriptor(
+                    name: "Static",
+                    displayName: "Static",
+                    tooltip: String.Empty,
+                    useColor: true,
+                    useSlider: false
+                )
+            }
         );
 
         public static Dictionary<string, float> UIHints => new()
@@ -124,6 +153,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIColorRGBANode : IStandardNode
     {
+        public static string Name = "TestUIColorRGBA";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TestUIColorRGBA", // Name
@@ -132,6 +164,31 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("Static", TYPE.Vec4, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Vec4, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
+            hasPreview: true,
+            parameters: new ParameterUIDescriptor[2] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    displayName: "In",
+                    tooltip: "input value",
+                    useColor: true,
+                    useSlider: false
+                ),
+                new ParameterUIDescriptor(
+                    name: "Static",
+                    displayName: "Static",
+                    tooltip: String.Empty,
+                    useColor: true,
+                    useSlider: false
+                )
+            }
         );
 
         public static Dictionary<string, float> UIHints => new()
@@ -143,12 +200,33 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUISliderNode : IStandardNode
     {
+        public static string Name = "TestUISlider";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
             1, // Version
             "TestUISlider", // Name
             "Out = In;",
             new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
+            hasPreview: true,
+            parameters: new ParameterUIDescriptor[1] {
+                new ParameterUIDescriptor(
+                    name: "In",
+                    displayName: "In",
+                    tooltip: "input value",
+                    useColor: false,
+                    useSlider: true
+                )
+            }
         );
 
         public static Dictionary<string, float> UIHints => new()
@@ -159,14 +237,36 @@ namespace UnityEditor.ShaderGraph.Defs
 
     internal class TestUIPropertyNode : IStandardNode
     {
+        public static string Name = "TestUIProperties";
+        public static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIProperties", // Name
+            Version,
+            Name,
             "Out = StaticInspectorIn;",
             new ParameterDescriptor("PortIn", TYPE.Float, GraphType.Usage.In),
             new ParameterDescriptor("StaticBodyIn", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("StaticInspectorIn", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: Array.Empty<string>(),
+            synonyms: Array.Empty<string>(),
+            hasPreview: true,
+            parameters: new ParameterUIDescriptor[1] {
+                new ParameterUIDescriptor(
+                    name: "StaticInspectorIn",
+                    displayName: "StaticInspectorIn",
+                    tooltip: String.Empty,
+                    useColor: false,
+                    useSlider: true,
+                    inspectorOnly: true
+                )
+            }
         );
 
         public static Dictionary<string, float> UIHints => new()
