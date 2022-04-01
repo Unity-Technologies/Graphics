@@ -114,7 +114,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 var field = port.GetTypeField();
                 var shaderType = registry.GetShaderType(field, container);
 
-                if (param.Usage == GraphType.Usage.In || param.Usage == GraphType.Usage.Static || param.Usage == GraphType.Usage.Local)
+                if (param.Usage == GraphType.Usage.In ||
+                    param.Usage == GraphType.Usage.Static ||
+                    param.Usage == GraphType.Usage.Local)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
                 }
