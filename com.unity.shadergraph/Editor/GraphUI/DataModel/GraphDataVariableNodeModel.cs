@@ -8,14 +8,16 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    /// <summary>
+    /// Represents an instance of a blackboard property/keyword on the graph
+    /// </summary>
     public class GraphDataVariableNodeModel : VariableNodeModel, IGraphDataPortModelOwner
     {
         [SerializeField]
         string m_GraphDataName;
 
         /// <summary>
-        /// Graph data name associated with this node. If null, this node is a searcher preview with type determined
-        /// by the registryKey property.
+        /// Graph data name associated with this node.
         /// </summary>
         public string graphDataName
         {
@@ -24,8 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <summary>
-        /// This node's registry key. If graphDataName is set, this is read from the graph. Otherwise, it is set
-        /// manually using SetPreviewRegistryKey.
+        /// This node's registry key. If graphDataName is set, this is read from the graph.
         /// </summary>
         public RegistryKey registryKey
         {
@@ -37,8 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <summary>
-        /// Determines whether or not this node has a valid backing representation at the data layer. If false, this
-        /// node should be treated as a searcher preview.
+        /// Determines whether or not this node has a valid backing representation at the data layer.
         /// </summary>
         public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
 

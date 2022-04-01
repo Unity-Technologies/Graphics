@@ -309,7 +309,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (declarationModel is GraphDataVariableDeclarationModel model && variableNodeModel is GraphDataVariableNodeModel graphDataVariable)
                 {
                     variableNodeModel.VariableDeclarationModel = model;
-                    // Every time a variable node is added to the graph, add a node referencing that variable on the CLDS level
+                    // Every time a variable node is added to the graph, add a reference node pointing back to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
                     GraphHandler.AddReferenceNode(variableNodeModel.Guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance);
 
                     // Currently using GTF guid of the variable node as its graph data name
