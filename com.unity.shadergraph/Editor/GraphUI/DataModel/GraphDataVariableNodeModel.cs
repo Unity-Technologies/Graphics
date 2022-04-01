@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// Represents an instance of a blackboard property/keyword on the graph
     /// </summary>
-    public class GraphDataVariableNodeModel : VariableNodeModel, IGraphDataPortModelOwner
+    public class GraphDataVariableNodeModel : VariableNodeModel, IGraphDataOwner
     {
         [SerializeField]
         string m_GraphDataName;
