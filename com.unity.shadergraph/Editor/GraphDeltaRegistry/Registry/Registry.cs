@@ -106,15 +106,39 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return Register(registryEntry);
         }
 
-        internal RegistryKey Register(FunctionDescriptor funcDesc)
+        /// <summary>
+        /// Registers a single function (represented as a pure data FunctionDescriptor)
+        /// as a topology available through the registry.
+        ///
+        /// NOTE: Registering just a function is a special case.
+        ///       Generally nodes should be registered using Register(NodeDescriptor).
+        /// </summary>
+        internal RegistryKey Register(FunctionDescriptor functionDescriptor)
         {
-            var builder = new FunctionDescriptorNodeBuilder(funcDesc);
+            var builder = new FunctionDescriptorNodeBuilder(functionDescriptor);
             bool wasSuccess = Register(builder);
             if (!wasSuccess)
             {
-                throw new Exception($"Unsuccessful registration for FunctionDescriptor : {funcDesc.Name}");
+                string msg = $"Unsuccessful registration for FunctionDescriptor : {functionDescriptor.Name}";
+                throw new Exception(msg);
             }
             return ((IRegistryEntry)builder).GetRegistryKey();
+        }
+
+        /// <summary>
+        /// Registers a node (represented as a pure data NodeDescriptor) as a topology
+        /// available through the registry.
+        /// </summary>
+        internal RegistryKey Register(NodeDescriptor nodeDescriptor)
+        {
+            INodeDefinitionBuilder builder = new NodeDescriptorNodeBuilder(nodeDescriptor);
+            bool wasSuccessfullyRegistered = Register(builder);
+            if (!wasSuccessfullyRegistered)
+            {
+                string msg = $"Unsuccessful registration for NodeDescriptor : {nodeDescriptor.Name}";
+                throw new Exception(msg);
+            }
+            return builder.GetRegistryKey();
         }
 
         private bool Register(IRegistryEntry builder) {
