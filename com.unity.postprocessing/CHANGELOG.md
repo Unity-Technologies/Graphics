@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation error when built-in VR module is disabled (case 1389160)
 - Fixed bug where alpha could not be used with HDR on mobile (case 1387848). HDR texture format is now set from Graphics Tier Settings when using Unity 2019.3 or newer.
 - Fixed incorrect Screen-space Reflections rendering on OpenGL platforms (case 1368370)
+- Fixed FXAA artefact when trying to preserve alpha channel output.
 
 ## [3.2.0] - 2021-11-15
 
