@@ -20,7 +20,6 @@
   },
   "disableProjectUpdate": true,
   "testables": [
-    "com.unity.postprocessing",
-    "com.unity.testframework.graphics"
+    "com.unity.postprocessing"
   ]
 }
