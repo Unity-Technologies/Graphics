@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     isNonPreviewableType = true;
 
                 if (!isStatic) continue;
-                if (uiHints.ContainsKey(portReader.ID.LocalPath + StaticPortsInspector.inspectorOnlyHint)) continue;
+                if (parameterUIDescriptor.InspectorOnly) continue;
 
                 if (isGradientType)
                 {

@@ -11,13 +11,15 @@ namespace UnityEditor.ShaderGraph.Defs
         public string Tooltip { get; }
         public bool UseColor { get; }
         public bool UseSlider { get; }
+        public bool InspectorOnly { get; }
 
         public ParameterUIDescriptor(
             string name,
             string displayName = null,
             string tooltip = "",
             bool useColor = false,
-            bool useSlider = false
+            bool useSlider = false,
+            bool inspectorOnly = false
         )
         {
             Name = name;
@@ -25,6 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Tooltip = tooltip;
             UseColor = useColor;
             UseSlider = useSlider;
+            InspectorOnly = inspectorOnly;
         }
     }
 }
