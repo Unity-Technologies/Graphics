@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 Assert.IsTrue(shaderGraphModel.TryConnect(fromDataPort, toDataPort));
 
                 // Notify preview manager that this nodes connections have changed
-                previewManager.OnNodeFlowChanged(toDataPort.graphDataNodeModel.graphDataName);
+                previewManager.OnNodeFlowChanged(toDataPort.portModelOwner.graphDataName);
             }
         }
 

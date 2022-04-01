@@ -5,6 +5,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class GraphDataPortModel : PortModel
     {
         public string graphDataName => UniqueName;
-        public GraphDataNodeModel graphDataNodeModel => (GraphDataNodeModel) NodeModel;
+        public IGraphDataPortModelOwner portModelOwner => (IGraphDataPortModelOwner)NodeModel;
     }
 }

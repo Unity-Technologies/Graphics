@@ -65,8 +65,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (src.PortDataType != dst.PortDataType)
                 return false;
 
-            return GraphHandler.TestConnection(dst.graphDataNodeModel.graphDataName,
-                dst.graphDataName, src.graphDataNodeModel.graphDataName,
+            return GraphHandler.TestConnection(dst.portModelOwner.graphDataName,
+                dst.graphDataName, src.portModelOwner.graphDataName,
                 src.graphDataName, RegistryInstance);
         }
 
@@ -79,8 +79,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
-                src.graphDataNodeModel.graphDataName, src.graphDataName,
-                dst.graphDataNodeModel.graphDataName, dst.graphDataName,
+                src.portModelOwner.graphDataName, src.graphDataName,
+                dst.portModelOwner.graphDataName, dst.graphDataName,
                 RegistryInstance);
         }
 
@@ -128,8 +128,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if ((fromPort, toPort) is (GraphDataPortModel fromDataPort, GraphDataPortModel toDataPort))
             {
-                return fromDataPort.graphDataNodeModel.existsInGraphData &&
-                       toDataPort.graphDataNodeModel.existsInGraphData &&
+                return fromDataPort.portModelOwner.existsInGraphData &&
+                       toDataPort.portModelOwner.existsInGraphData &&
                        TestConnection(fromDataPort, toDataPort);
             }
 
@@ -306,15 +306,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             Action<VariableNodeModel> initCallback = variableNodeModel =>
             {
-                if (declarationModel is GraphDataVariableDeclarationModel model)
+                if (declarationModel is GraphDataVariableDeclarationModel model && variableNodeModel is GraphDataVariableNodeModel graphDataVariable)
                 {
                     variableNodeModel.VariableDeclarationModel = model;
                     // Every time a variable node is added to the graph, add a node referencing that variable on the CLDS level
                     GraphHandler.AddReferenceNode(variableNodeModel.Guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance);
+
+                    // Currently using GTF guid of the variable node as its graph data name
+                    graphDataVariable.graphDataName = graphDataVariable.Guid.ToString();
                 }
             };
 
-            return this.CreateNode<GraphDataVariableNodeModel>(declarationModel.DisplayTitle, position, guid, initCallback, spawnFlags);
+            return this.CreateNode<GraphDataVariableNodeModel>(guid.ToString(), position, guid, initCallback, spawnFlags);
         }
 
         protected override Type GetDefaultVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
