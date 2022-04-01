@@ -364,7 +364,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var length = constant.GetLength();
             var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
             var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
-            var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.portName);
+            var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
 
             if (length >= 3 && parameterUIDescriptor.UseColor)
             {
