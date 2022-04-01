@@ -65,8 +65,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (src.PortDataType != dst.PortDataType)
                 return false;
 
-            return GraphHandler.TestConnection(dst.portModelOwner.graphDataName,
-                dst.graphDataName, src.portModelOwner.graphDataName,
+            return GraphHandler.TestConnection(dst.owner.graphDataName,
+                dst.graphDataName, src.owner.graphDataName,
                 src.graphDataName, RegistryInstance);
         }
 
@@ -79,8 +79,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
-                src.portModelOwner.graphDataName, src.graphDataName,
-                dst.portModelOwner.graphDataName, dst.graphDataName,
+                src.owner.graphDataName, src.graphDataName,
+                dst.owner.graphDataName, dst.graphDataName,
                 RegistryInstance);
         }
 
@@ -128,8 +128,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if ((fromPort, toPort) is (GraphDataPortModel fromDataPort, GraphDataPortModel toDataPort))
             {
-                return fromDataPort.portModelOwner.existsInGraphData &&
-                       toDataPort.portModelOwner.existsInGraphData &&
+                return fromDataPort.owner.existsInGraphData &&
+                       toDataPort.owner.existsInGraphData &&
                        TestConnection(fromDataPort, toDataPort);
             }
 

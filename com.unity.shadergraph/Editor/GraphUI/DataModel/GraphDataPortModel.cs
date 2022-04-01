@@ -13,8 +13,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public string graphDataName => UniqueName;
 
         /// <summary>
-        /// Represents the entity that owns this port, current candidates that can own a IGraphDataPortModelOwner are GraphDataNodeModel and GraphDataVariableNodeModel
+        /// Represents the entity that owns this port, current classes that implement this are GraphDataNodeModel and GraphDataVariableNodeModel
         /// </summary>
-        public IGraphDataPortModelOwner portModelOwner => (IGraphDataPortModelOwner)NodeModel;
+        public IGraphDataOwner owner => (IGraphDataOwner)NodeModel;
     }
 }
