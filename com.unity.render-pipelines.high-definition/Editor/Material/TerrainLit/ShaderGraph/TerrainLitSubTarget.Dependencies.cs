@@ -17,10 +17,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new SubShaderDescriptor()
             {
+                hideTags = true,
                 generatesPreview = false,
                 customTags = GetBaseMapTags(),
                 passes = GetPasses(),
                 additionalShaderID = "Hidden/{Name}_BaseMapGen",
+                shaderCustomEditors = new List<ShaderCustomEditor>(),
+                shaderCustomEditor = "",
+                shaderFallback = "",
             };
 
             List<string> GetBaseMapTags()

@@ -21,11 +21,51 @@ $RefractionThin:                    #define _REFRACTION_THIN 1
 #define SHADERPASS_METALLICTEX (28)
 
 #if SHADERPASS == SHADERPASS_METALLICTEX
-#define OVERRIDE_SPLAT_SAMPLER_NAME sampler_Mask0
+#define sampler_Splat0 sampler_Mask0
+#define sampler_Splat1 sampler_Mask1
+#define sampler_Splat2 sampler_Mask2
+#define sampler_Splat3 sampler_Mask3
+#define sampler_Splat4 sampler_Mask4
+#define sampler_Splat5 sampler_Mask5
+#define sampler_Splat6 sampler_Mask6
+#define sampler_Splat7 sampler_Mask7
 #endif
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
 #define ENABLE_TERRAIN_PERPIXEL_NORMAL
+#endif
+
+SAMPLER(sampler_Mask0);
+SAMPLER(sampler_Splat1);
+SAMPLER(sampler_Splat2);
+SAMPLER(sampler_Splat3);
+SAMPLER(sampler_Splat4);
+SAMPLER(sampler_Splat5);
+SAMPLER(sampler_Splat6);
+SAMPLER(sampler_Splat7);
+
+SAMPLER(sampler_Control1);
+
+#define SampleLayerAlbedo(i) SampleLayerAlbedoGrad(_Splat##i, sampler_Splat##i, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _DiffuseRemapScale##i.xyz)
+
+#ifdef _NORMALMAP
+    #define SampleLayerNormal(i) SampleLayerNormalGrad(_Normal##i, sampler_Splat##i, splat##i##uv, splat##i##dxuv, splat##i##dyuv, _NormalScale##i)
+#else
+    #define SampleLayerNormal(i) float3(0, 0, 0)
+#endif
+
+float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
+{
+    return masks * remapScale + remapOffset;
+}
+
+#ifdef _MASKMAP
+    #define LayerMaskMode(i)    RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat##i, splat##i##uv, splat##i##dxuv, splat##i##dyuv), _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
+    #define SampleLayerMasks(i) lerp(DefaultMask(i), LayerMaskMode(i), _LayerHasMask##i)
+    #define NullLayerMask(i)    float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
+#else
+    #define SampleLayerMasks(i) DefaultMask(i)
+    #define NullLayerMask(i)    float4(0, 1, 0, 0)
 #endif
 
 #define DECLARE_SPLAT_PREREQUISITES \

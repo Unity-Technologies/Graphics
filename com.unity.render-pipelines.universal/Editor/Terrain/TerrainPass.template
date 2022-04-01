@@ -56,14 +56,14 @@ Pass
     $splice(GraphDefines)
     $splice(DotsInstancingVars)
 
-    // Specific Terrain Define
-    $include("TerrainPassDefine.template.hlsl")
-
     // custom interpolator pre-include
     $splice(sgci_CustomInterpolatorPreInclude)
 
     // Includes
     $splice(PreGraphIncludes)
+
+    // Specific Terrain Define
+    $include("TerrainPassDefine.template.hlsl")
 
     // --------------------------------------------------
     // Structs and Packing

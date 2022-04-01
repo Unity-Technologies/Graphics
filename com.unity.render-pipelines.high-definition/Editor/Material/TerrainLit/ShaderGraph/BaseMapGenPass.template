@@ -107,8 +107,6 @@ Pass
         #endif
     #endif
 
-    // Specific Material Define
-    $include("ShaderPassDefine.template.hlsl")
     // Caution: we can use the define SHADER_UNLIT onlit after the above Material include as it is the Unlit template who define it
 
     // -- Graph Properties
@@ -125,6 +123,9 @@ Pass
     // Includes
     $splice(PreGraphIncludes)
 	$splice(GraphIncludes)
+
+    // Specific Material Define
+    $include("ShaderPassDefine.template.hlsl")
 
     // --------------------------------------------------
     // Structs and Packing

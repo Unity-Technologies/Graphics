@@ -18,6 +18,42 @@
 #define GetSplat3UV(x) 0.0
 #endif
 
+SAMPLER(sampler_Splat1);
+SAMPLER(sampler_Splat2);
+SAMPLER(sampler_Splat3);
+
+SAMPLER(sampler_Normal1);
+SAMPLER(sampler_Normal2);
+SAMPLER(sampler_Normal3);
+
+SAMPLER(sampler_Mask1);
+SAMPLER(sampler_Mask2);
+SAMPLER(sampler_Mask3);
+
+#ifdef SampleLayerAlbedo
+#undef SampleLayerAlbedo
+#endif
+#ifdef SampleLayerNormal
+#undef SampleLayerNormal
+#endif
+#ifdef SampleLayerMasks
+#undef SampleLayerMasks
+#endif
+
+#define SampleLayerAlbedo(i) (SAMPLE_TEXTURE2D(_Splat##i, sampler_Splat##i, splat##i##uv) * half4(_DiffuseRemapScale##i.rgb, 1.0h))
+
+#ifdef _NORMALMAP
+    #define SampleLayerNormal(i) UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal##i, sampler_Normal##i, splat##i##uv), _NormalScale##i)
+#else
+    #define SampleLayerNormal(i) half3(0.0, 0.0, 1.0)
+#endif
+
+#ifdef _MASKMAP
+    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * lerp(0.5h, SAMPLE_TEXTURE2D(_Mask##i, sampler_Mask##i, splat##i##uv), _LayerHasMask##i));
+#else
+    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * 0.5h);
+#endif
+
 #define DECLARE_SPLAT_ATTRIBUTES(i) \
     half2 splat##i##uv;             \
     half4 albedoSmoothness##i;      \

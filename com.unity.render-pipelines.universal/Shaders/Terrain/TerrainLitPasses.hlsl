@@ -291,30 +291,6 @@ Varyings SplatmapVert(Attributes v)
     return o;
 }
 
-void ComputeMasks(out half4 masks[4], half4 hasMask, Varyings IN)
-{
-    masks[0] = 0.5h;
-    masks[1] = 0.5h;
-    masks[2] = 0.5h;
-    masks[3] = 0.5h;
-
-#ifdef _MASKMAP
-    masks[0] = lerp(masks[0], SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy), hasMask.x);
-    masks[1] = lerp(masks[1], SAMPLE_TEXTURE2D(_Mask1, sampler_Mask0, IN.uvSplat01.zw), hasMask.y);
-    masks[2] = lerp(masks[2], SAMPLE_TEXTURE2D(_Mask2, sampler_Mask0, IN.uvSplat23.xy), hasMask.z);
-    masks[3] = lerp(masks[3], SAMPLE_TEXTURE2D(_Mask3, sampler_Mask0, IN.uvSplat23.zw), hasMask.w);
-#endif
-
-    masks[0] *= _MaskMapRemapScale0.rgba;
-    masks[0] += _MaskMapRemapOffset0.rgba;
-    masks[1] *= _MaskMapRemapScale1.rgba;
-    masks[1] += _MaskMapRemapOffset1.rgba;
-    masks[2] *= _MaskMapRemapScale2.rgba;
-    masks[2] += _MaskMapRemapOffset2.rgba;
-    masks[3] *= _MaskMapRemapScale3.rgba;
-    masks[3] += _MaskMapRemapOffset3.rgba;
-}
-
 // Used in Standard Terrain shader
 #ifdef TERRAIN_GBUFFER
 FragmentOutput SplatmapFragment(Varyings IN)
