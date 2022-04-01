@@ -314,6 +314,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     // Currently using GTF guid of the variable node as its graph data name
                     graphDataVariable.graphDataName = graphDataVariable.Guid.ToString();
+
+                    graphDataVariable.outputPortModel.UniqueName = ReferenceNodeBuilder.kOutput;
                 }
             };
 

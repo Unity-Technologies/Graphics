@@ -37,6 +37,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        public GraphDataPortModel outputPortModel => (GraphDataPortModel)m_MainPortModel;
+
         /// <summary>
         /// Determines whether or not this node has a valid backing representation at the data layer.
         /// </summary>
