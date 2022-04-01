@@ -13,6 +13,9 @@ namespace UnityEditor.TestTools.Graphics
     {
         string m_ReferenceImagePath = string.Empty;
 
+        public const string ReferenceImagesRoot = "Assets/ReferenceImages";
+        public const string ReferenceImagesBaseRoot = "Assets/ReferenceImagesBase";
+
         public EditorGraphicsTestCaseProvider()
         {
         }
@@ -37,10 +40,12 @@ namespace UnityEditor.TestTools.Graphics
 
         public IEnumerable<GraphicsTestCase> GetTestCases()
         {
-            var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath,
+            var allImagesSpecific = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath,
                 UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice, UseGraphicsTestCasesAttribute.LoadedXRDevice);
+            var allImagesBase = CollectReferenceImageBasePaths(ReferenceImagesBaseRoot);
 
-            EditorUtils.SetupReferenceImageImportSettings(allImages.Values);
+            EditorUtils.SetupReferenceImageImportSettings(allImagesSpecific.Values);
+            EditorUtils.SetupReferenceImageImportSettings(allImagesBase.Values);
 
             var scenes = GetTestScenePaths();
             foreach (var scenePath in scenes)
@@ -48,8 +53,13 @@ namespace UnityEditor.TestTools.Graphics
                 Texture2D referenceImage = null;
 
                 string imagePath;
-                if (allImages.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
+                if (allImagesSpecific.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
                 {
+                    referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+                }
+                else
+                {
+                    imagePath = $"{ReferenceImagesBaseRoot}/{Path.GetFileNameWithoutExtension(scenePath)}.png";
                     referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
                 }
 
@@ -61,21 +71,24 @@ namespace UnityEditor.TestTools.Graphics
         {
             GraphicsTestCase output = null;
 
-            var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath,
+            var allImagesSpecific = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath,
                 UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
 
             Texture2D referenceImage = null;
 
             string imagePath;
-            if (allImages.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
+            if (allImagesSpecific.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
                 referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+            else
+            {
+                imagePath = $"{ReferenceImagesBaseRoot}/{Path.GetFileNameWithoutExtension(scenePath)}.png";
+                referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+            }
 
             output = new GraphicsTestCase(scenePath, referenceImage);
 
             return output;
         }
-
-        public const string ReferenceImagesRoot = "Assets/ReferenceImages";
 
         public static Dictionary<string, string> CollectReferenceImagePathsFor(string referenceImageRoot, ColorSpace colorSpace, RuntimePlatform runtimePlatform,
             GraphicsDeviceType graphicsApi, string xrsdk = "None")
@@ -90,6 +103,34 @@ namespace UnityEditor.TestTools.Graphics
             foreach (var assetPath in AssetDatabase.GetAllAssetPaths()
                 .Where(p => p.StartsWith(fullPathPrefix, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(p => p.Count(ch => ch == '/')))
+            {
+                // Skip directories
+                if (!File.Exists(assetPath))
+                    continue;
+
+                var fileName = Path.GetFileNameWithoutExtension(assetPath);
+                if (fileName == null)
+                    continue;
+
+                var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+                if (!texture)
+                    continue;
+
+                result[fileName] = assetPath;
+            }
+
+            return result;
+        }
+
+        public static Dictionary<string, string> CollectReferenceImageBasePaths(string referenceImageBaseRoot)
+        {
+            var result = new Dictionary<string, string>();
+
+            if (!Directory.Exists(referenceImageBaseRoot))
+                return result;
+
+            foreach (var assetPath in AssetDatabase.GetAllAssetPaths()
+                .Where(p => p.StartsWith(referenceImageBaseRoot, StringComparison.OrdinalIgnoreCase)))
             {
                 // Skip directories
                 if (!File.Exists(assetPath))

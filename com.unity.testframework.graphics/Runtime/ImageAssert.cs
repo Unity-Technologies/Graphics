@@ -195,7 +195,7 @@ namespace UnityEngine.TestTools.Graphics
         /// <param name="expected">What the image is supposed to look like.</param>
         /// <param name="actual">What the image actually looks like.</param>
         /// <param name="settings">Optional settings that control how the comparison is performed. Can be null, in which case the images are required to be exactly identical.</param>
-        public static void AreEqual(Texture2D expected, Texture2D actual, ImageComparisonSettings settings = null)
+        public static void AreEqual(Texture2D expected, Texture2D actual, ImageComparisonSettings settings = null, bool saveFailedImage = true)
         {
             if (actual == null)
                 throw new ArgumentNullException(nameof(actual));
@@ -205,15 +205,16 @@ namespace UnityEngine.TestTools.Graphics
 
             var dirName = Path.Combine(actualImagePath, TestUtils.GetCurrentTestResultsFolderPath());
 
+            var imageName = TestContext.CurrentContext.Test.MethodName != null ? TestContext.CurrentContext.Test.Name : "NoName";
             var failedImageMessage = new FailedImageMessage
             {
                 PathName = dirName,
-                ImageName = StripParametricTestCharacters(TestContext.CurrentContext.Test.Name),
+                ImageName = StripParametricTestCharacters(imageName),
             };
 
             try
             {
-                Assert.That(expected, Is.Not.Null, "No reference image was provided.");
+                Assert.That(expected, Is.Not.Null, "No reference image was provided. Path: " + dirName);
 
                 Assert.That(actual.width, Is.EqualTo(expected.width),
                     "The expected image had width {0}px, but the actual image had width {1}px.", expected.width,
@@ -287,7 +288,8 @@ namespace UnityEngine.TestTools.Graphics
             {
                 failedImageMessage.ActualImage = actual.EncodeToPNG();
 #if UNITY_EDITOR
-                ImageHandler.instance.SaveImage(failedImageMessage);
+                if (saveFailedImage)
+                    ImageHandler.instance.SaveImage(failedImageMessage);
 #else
                 PlayerConnection.instance.Send(FailedImageMessage.MessageId, failedImageMessage.Serialize());
 #endif
@@ -590,6 +592,11 @@ public class ImageHandler : ScriptableSingleton<ImageHandler>
             File.WriteAllBytes(expectedImagesPath, failedImageMessage.ExpectedImage);
             ReportArtifact(expectedImagesPath);
         }
+    }
+
+    public void PromoteImageToBaseImage(string imagePath)
+    {
+
     }
 
     private void ReportArtifact(string artifactPath)

@@ -1,0 +1,65 @@
+editors:
+  - version: trunk
+    cmd: -u trunk
+  - version: 2022.1
+    cmd: -u 2022.1/staging
+  - version: 2021.2
+    cmd: -u 2021.2/staging
+  - version: 2020.3
+    cmd: -u 2020.3/staging
+  - version: 2019.4
+    cmd: -u 2019.4/staging
+
+platforms:
+  # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
+  # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
+  - os: macos
+    components:
+      - editor
+      - il2cpp
+  - os: android
+    components:
+      - editor
+      - il2cpp
+      - android
+  - os: windows
+    components:
+      - editor
+      - il2cpp
+  - os: linux
+    components:
+      - editor
+      - il2cpp
+---
+
+{% for platform in platforms %}
+{% for editor in editors %}
+editor:priming:{{ editor.version }}:{{ platform.os }}:
+  name: "[{{ editor.version }},{{ platform.os }}] Editor priming"
+  agent:
+    type: Unity::VM
+    image: 'slough-ops/ubuntu-20.04-base:stable'
+    flavor: b1.small
+  skip_checkout: true
+  variables:
+    PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+    DISPLAY: ":0"
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    # {% if editor.version == 'CUSTOM-REVISION' %}
+    # CUSTOM_REVISION: custom_revision_not_set
+    # {% endif %}
+  commands:
+    - |
+      curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      sudo apt update
+      sudo apt install unity-downloader-cli -y
+    - >
+      unity-downloader-cli {{ editor.cmd }} {% if platform.os == "android" %} -o windows {% else %} -o {{ platform.os }} {% endif %} --wait --skip-download {% for component in platform.components -%} -c {{ component }} {% endfor -%}
+      > unity_revision.txt
+  artifacts:
+    unity_revision.zip:
+      paths:
+        - "unity_revision.txt"
+{% endfor -%}
+{% endfor %}

@@ -137,6 +137,17 @@ namespace UnityEditor.TestTools.Graphics
                         assetNames = images.Values.ToArray()
                     });
                 }
+
+                string ReferenceImagesBaseRoot = "Assets/ReferenceImagesBase";
+                var imagesBase = EditorGraphicsTestCaseProvider.CollectReferenceImageBasePaths(ReferenceImagesBaseRoot);
+                EditorUtils.SetupReferenceImageImportSettings(imagesBase.Values);
+
+                bundleBuilds.Add(new AssetBundleBuild
+                {
+                    assetBundleName = "referenceimagesbase",
+                    addressableNames = imagesBase.Keys.ToArray(),
+                    assetNames = imagesBase.Values.ToArray()
+                });
             }
 
             if (bundleBuilds.Count > 0)

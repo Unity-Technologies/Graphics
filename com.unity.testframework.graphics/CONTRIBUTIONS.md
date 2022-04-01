@@ -16,11 +16,11 @@ By making a pull request, you are confirming agreement to the terms and conditio
     * More info on how ot test a package locally: https://docs.unity3d.com/Manual/upm-ui-local.html
     * If you created a new project for testing, make sure to add the graphics test framework package to testables in the project manifest: https://docs.unity3d.com/Manual/cus-tests.html
 * Bigger changes should be tested against multiple branches/platforms:
-    * Make a branch in the [Graphics](https://github.com/Unity-Technologies/Graphics) repo
-    * Find the manifest.json of the projects you want to test on
+    * Make a branch in the [ant-graphics-ci](https://github.cds.internal.unity3d.com/unity/ant-graphics-ci) repo
+    * Find the manifest.json of the projects you want to test on (the projects live [here](https://github.cds.internal.unity3d.com/unity/unity/tree/trunk/Tests/SRPTests/Projects) now)
     * Replace the graphics test framework version with an ssh git url pointing to your graphics test framework branch, eg
         * `"com.unity.testframework.graphics": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git#your-branch-here"`
-    * Run the jobs in the Graphics yamato project
+    * Run the jobs in the [ant-graphics-ci yamato project](https://unity-ci.cds.internal.unity3d.com/project/1647)
 
 ## Publishing and promoting
 The package is now on "Lifecycle V2" of Package Manager, more info here https://docs.unity3d.com/Packages/com.unity.package-validation-suite@0.23/manual/lifecycle_validation_error.html#lifecycle-v2-tagging-rules

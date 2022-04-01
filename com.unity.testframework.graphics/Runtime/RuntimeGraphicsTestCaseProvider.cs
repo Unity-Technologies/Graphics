@@ -10,6 +10,7 @@ namespace UnityEngine.TestTools.Graphics
         public IEnumerable<GraphicsTestCase> GetTestCases()
         {
             AssetBundle referenceImagesBundle = null;
+            AssetBundle referenceImagesBaseBundle = null;
             string[] scenePaths;
 
             // apparently unity automatically saves the asset bundle as all lower case
@@ -18,19 +19,25 @@ namespace UnityEngine.TestTools.Graphics
                 UseGraphicsTestCasesAttribute.Platform.ToUniqueString(),
                 UseGraphicsTestCasesAttribute.GraphicsDevice,
                 UseGraphicsTestCasesAttribute.LoadedXRDevice).ToLower();
-
             referenceImagesBundlePath = Path.Combine(Application.streamingAssetsPath, referenceImagesBundlePath);
+
+            var referenceImagesBaseBundlePath = "referenceimagesbase";
+            referenceImagesBaseBundlePath = Path.Combine(Application.streamingAssetsPath, referenceImagesBaseBundlePath);
 
 #if UNITY_ANDROID
             // Unlike standalone where you can use File.Read methods and pass the path to the file,
             // Android requires UnityWebRequest to read files from local storage
             referenceImagesBundle = GetRefImagesBundleViaWebRequest(referenceImagesBundlePath);
+            referenceImagesBaseBundle = GetRefImagesBundleViaWebRequest(referenceImagesBaseBundlePath);
 
             // Same applies to the scene list
             scenePaths = GetScenePathsViaWebRequest(Application.streamingAssetsPath + "/SceneList.txt");
 #else
             if (File.Exists(referenceImagesBundlePath))
                 referenceImagesBundle = AssetBundle.LoadFromFile(referenceImagesBundlePath);
+
+            if (File.Exists(referenceImagesBaseBundlePath))
+                referenceImagesBaseBundle = AssetBundle.LoadFromFile(referenceImagesBaseBundlePath);
 
             scenePaths = File.ReadAllLines(Application.streamingAssetsPath + "/SceneList.txt");
 #endif
@@ -42,7 +49,10 @@ namespace UnityEngine.TestTools.Graphics
                 Texture2D referenceImage = null;
 
                 // The bundle might not exist if there are no reference images for this configuration yet
-                if (referenceImagesBundle != null)
+                if (referenceImagesBaseBundle != null && referenceImagesBaseBundle.Contains(imagePath))
+                    referenceImage = referenceImagesBaseBundle.LoadAsset<Texture2D>(imagePath);
+
+                else if (referenceImagesBundle != null && referenceImagesBundle.Contains(imagePath))
                     referenceImage = referenceImagesBundle.LoadAsset<Texture2D>(imagePath);
 
                 yield return new GraphicsTestCase(scenePath, referenceImage);
@@ -57,6 +67,7 @@ namespace UnityEngine.TestTools.Graphics
             GraphicsTestCase output = null;
 
             AssetBundle referenceImagesBundle = null;
+            AssetBundle referenceImagesBaseBundle = null;
 
             var referenceImagesBundlePath = string.Format("referenceimages-{0}-{1}-{2}-{3}",
                 UseGraphicsTestCasesAttribute.ColorSpace,
@@ -66,15 +77,24 @@ namespace UnityEngine.TestTools.Graphics
 
             referenceImagesBundlePath = Path.Combine(Application.streamingAssetsPath, referenceImagesBundlePath);
 
+            var referenceImagesBaseBundlePath = "referenceimagesbase";
+            referenceImagesBaseBundlePath = Path.Combine(Application.streamingAssetsPath, referenceImagesBaseBundlePath);
+
             if (File.Exists(referenceImagesBundlePath))
                 referenceImagesBundle = AssetBundle.LoadFromFile(referenceImagesBundlePath);
+
+            if (File.Exists(referenceImagesBaseBundlePath))
+                referenceImagesBaseBundle = AssetBundle.LoadFromFile(referenceImagesBaseBundlePath);
 
             var imagePath = Path.GetFileNameWithoutExtension(scenePath);
 
             Texture2D referenceImage = null;
 
             // The bundle might not exist if there are no reference images for this configuration yet
-            if (referenceImagesBundle != null)
+            if (referenceImagesBaseBundle != null)
+                referenceImage = referenceImagesBaseBundle.LoadAsset<Texture2D>(imagePath);
+
+            else if (referenceImagesBundle != null)
                 referenceImage = referenceImagesBundle.LoadAsset<Texture2D>(imagePath);
 
             output = new GraphicsTestCase(scenePath, referenceImage);
