@@ -998,7 +998,7 @@ namespace UnityEditor.VFX.Test
             VisualEffectAsset asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetMainSubgraph);
             VisualEffectResource resource = asset.GetResource();
             window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph), null);
-            
+
             var viewController = VFXViewController.GetController(VisualEffectResource.GetResourceAtPath(testAssetMainSubgraph));
 
             var graph = viewController.graph;
@@ -1088,7 +1088,7 @@ namespace UnityEditor.VFX.Test
             var otherParamName = "programatically_new_name_test";
             newParam.SetSettingValue("m_ExposedName", otherParamName);
             viewController.ApplyChanges();
-            
+
             resource.WriteAsset();
 
             yield return null;
@@ -1115,7 +1115,7 @@ namespace UnityEditor.VFX.Test
             }
             yield return null;
 
-            //Removing old slots, shouldn't get unexpected removed 
+            //Removing old slots, shouldn't get unexpected removed
             {
                 File.WriteAllText(testSubgraphSubOperatorAssetName, oneOutputState);
                 AssetDatabase.Refresh();

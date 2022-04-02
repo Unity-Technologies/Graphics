@@ -96,7 +96,7 @@ public class ShaderGraphParser
         if (containNodes.Count > 0)
         {
             Debug.Log("# of Contaned Nodes " + containNodes.Count + " out of " + nodeDict.Count + "\n");
-            
+
             if (listContained)
             {
                 foreach (string s in containNodes)
@@ -117,7 +117,7 @@ public class ShaderGraphParser
                                .Where(myType => myType.IsClass &&
                                !myType.IsAbstract
                                && myType.IsSubclassOf(abstractMatNode)).ToList();
-        
+
         // Need assembly
         // Type abstractMatNode = typeof(AbstractMaterialNode);
         // Type masterNodeType = typeof(IMasterNode);

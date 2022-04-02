@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Rendering;
@@ -15,7 +15,7 @@ public class HDRPEditorPerformanceTests : EditorPerformanceTests
 {
     const int k_BuildTimeout = 10 * 60 * 1000;    // 10 min for each build test
     const string k_ShaderNameFilter = "HDRP";
-    
+
     // Match this line in the editor log: Compiled shader 'HDRP/Lit' in 69.48s
     static readonly Regex s_CompiledShaderRegex = new Regex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$");
     // Match this line in the editor log: d3d11 (total internal programs: 204, unique: 192)
@@ -52,7 +52,7 @@ public class HDRPEditorPerformanceTests : EditorPerformanceTests
 
         yield return null;
     }
-    
+
     static void ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
     {
         if (!shader.name.Contains(k_ShaderNameFilter))

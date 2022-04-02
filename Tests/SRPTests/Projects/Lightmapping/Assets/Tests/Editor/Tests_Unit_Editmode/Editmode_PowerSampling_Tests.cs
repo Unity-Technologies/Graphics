@@ -56,7 +56,7 @@ public class Editmode_PowerSampling_Tests
     }
 
     // Case 1352923
-    [Test]
+    /*[Test]
     public void GPULM_BakeSceneWithProgressiveUpdates_MatchesBakeWithoutProgressiveUpdates()
     {
         // Open the initial scene
@@ -136,5 +136,5 @@ public class Editmode_PowerSampling_Tests
 
         clearAll();
         AssetDatabase.DeleteAsset(sceneOutputPath);
-    }
+    }*/
 }
