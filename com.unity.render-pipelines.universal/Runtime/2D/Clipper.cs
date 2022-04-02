@@ -50,6 +50,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 //using System.Text;          //for Int128.AsString() & StringBuilder
 //using System.IO;            //debugging with streamReader & StreamWriter
 //using System.Windows.Forms; //debugging to clipboard
@@ -57,8 +58,8 @@ using Unity.Collections;
 namespace UnityEngine.Rendering.Universal
 {
     using ClipInt = Int64;
-    using Path = List<IntPoint>;
-    using Paths = List<List<IntPoint>>;
+    using Path = UnsafeList<IntPoint>;
+    using Paths = UnsafeList<UnsafeList<IntPoint>>;
 
     internal struct DoublePoint
     {
@@ -124,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
     internal class PolyNode
     {
         internal PolyNode m_Parent;
-        internal Path m_polygon = new Path();
+        internal Path m_polygon = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
         internal int m_Index;
         internal JoinType m_jointype;
         internal EndType m_endtype;
@@ -884,7 +885,7 @@ namespace UnityEngine.Rendering.Universal
                 throw new ClipperException("AddPath: Open paths have been disabled.");
 #endif
 
-            int highI = (int)pg.Count - 1;
+            int highI = (int)pg.Length - 1;
             if (Closed) while (highI > 0 && (pg[highI] == pg[0])) --highI;
             while (highI > 0 && (pg[highI] == pg[highI - 1])) --highI;
             if ((Closed && highI < 2) || (!Closed && highI < 1)) return false;
@@ -1049,7 +1050,7 @@ namespace UnityEngine.Rendering.Universal
         public bool AddPaths(Paths ppg, PolyType polyType, bool closed)
         {
             bool result = false;
-            for (int i = 0; i < ppg.Count; ++i)
+            for (int i = 0; i < ppg.Length; ++i)
                 if (AddPath(ppg[i], polyType, closed)) result = true;
             return result;
         }
@@ -1165,8 +1166,8 @@ namespace UnityEngine.Rendering.Universal
 
         public static IntRect GetBounds(Paths paths)
         {
-            int i = 0, cnt = paths.Count;
-            while (i < cnt && paths[i].Count == 0) i++;
+            int i = 0, cnt = paths.Length;
+            while (i < cnt && paths[i].Length == 0) i++;
             if (i == cnt) return new IntRect(0, 0, 0, 0);
             IntRect result = new IntRect();
             result.left = paths[i][0].X;
@@ -1174,7 +1175,7 @@ namespace UnityEngine.Rendering.Universal
             result.top = paths[i][0].Y;
             result.bottom = result.top;
             for (; i < cnt; i++)
-                for (int j = 0; j < paths[i].Count; j++)
+                for (int j = 0; j < paths[i].Length; j++)
                 {
                     if (paths[i][j].X < result.left) result.left = paths[i][j].X;
                     else if (paths[i][j].X > result.right) result.right = paths[i][j].X;
@@ -3402,7 +3403,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static void ReversePaths(Paths polys)
         {
-            for(int i=0;i<polys.Count;i++)
+            for(int i=0;i<polys.Length;i++)
             {
                 var poly = polys[i];
                 poly.Reverse();
@@ -3445,7 +3446,7 @@ namespace UnityEngine.Rendering.Universal
                 OutPt p = outRec.Pts.Prev;
                 int cnt = PointCount(p);
                 if (cnt < 2) continue;
-                Path pg = new Path(cnt);
+                Path pg = new Path(cnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
                 for (int j = 0; j < cnt; j++)
                 {
                     pg.Add(p.Pt);
@@ -3861,7 +3862,7 @@ namespace UnityEngine.Rendering.Universal
             //returns 0 if false, +1 if true, -1 if pt ON polygon boundary
             //See "The Point in Polygon Problem for Arbitrary Polygons" by Hormann & Agathos
             //http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
-            int result = 0, cnt = path.Count;
+            int result = 0, cnt = path.Length;
             if (cnt < 3) return 0;
             IntPoint ip = path[0];
             for (int i = 1; i <= cnt; ++i)
@@ -4198,7 +4199,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static double Area(Path poly)
         {
-            int cnt = (int)poly.Count;
+            int cnt = (int)poly.Length;
             if (cnt < 3) return 0;
             double a = 0;
             for (int i = 0, j = cnt - 1; i < cnt; ++i)
@@ -4240,7 +4241,7 @@ namespace UnityEngine.Rendering.Universal
         public static Paths SimplifyPolygon(Path poly,
             PolyFillType fillType = PolyFillType.pftEvenOdd)
         {
-            Paths result = new Paths();
+            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             c.StrictlySimple = true;
             c.AddPath(poly, PolyType.ptSubject, true);
@@ -4253,7 +4254,7 @@ namespace UnityEngine.Rendering.Universal
         public static Paths SimplifyPolygons(Paths polys,
             PolyFillType fillType = PolyFillType.pftEvenOdd)
         {
-            Paths result = new Paths();
+            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             c.StrictlySimple = true;
             c.AddPaths(polys, PolyType.ptSubject, true);
@@ -4343,9 +4344,9 @@ namespace UnityEngine.Rendering.Universal
             //Default ~= sqrt(2) so when adjacent vertices or semi-adjacent vertices have
             //both x & y coords within 1 unit, then the second vertex will be stripped.
 
-            int cnt = path.Count;
+            int cnt = path.Length;
 
-            if (cnt == 0) return new Path();
+            if (cnt == 0) return new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
             OutPt[] outPts = new OutPt[cnt];
             for (int i = 0; i < cnt; ++i) outPts[i] = new OutPt();
@@ -4386,7 +4387,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (cnt < 3) cnt = 0;
-            Path result = new Path(cnt);
+            Path result = new Path(cnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < cnt; ++i)
             {
                 result.Add(op.Pt);
@@ -4401,8 +4402,8 @@ namespace UnityEngine.Rendering.Universal
         public static Paths CleanPolygons(Paths polys,
             double distance = 1.415)
         {
-            Paths result = new Paths(polys.Count);
-            for (int i = 0; i < polys.Count; i++)
+            Paths result = new Paths(polys.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            for (int i = 0; i < polys.Length; i++)
                 result.Add(CleanPolygon(polys[i], distance));
             return result;
         }
@@ -4412,14 +4413,14 @@ namespace UnityEngine.Rendering.Universal
         internal static Paths Minkowski(Path pattern, Path path, bool IsSum, bool IsClosed)
         {
             int delta = (IsClosed ? 1 : 0);
-            int polyCnt = pattern.Count;
-            int pathCnt = path.Count;
-            Paths result = new Paths(pathCnt);
+            int polyCnt = pattern.Length;
+            int pathCnt = path.Length;
+            Paths result = new Paths(pathCnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
             if (IsSum)
                 for (int i = 0; i < pathCnt; i++)
                 {
-                    Path p = new Path(polyCnt);
-                    for(int patternIndex=0; patternIndex < pattern.Count; patternIndex++)
+                    Path p = new Path(polyCnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
+                    for(int patternIndex=0; patternIndex < pattern.Length; patternIndex++)
                     {
                         IntPoint ip = pattern[patternIndex];
                         p.Add(new IntPoint(path[i].X + ip.X, path[i].Y + ip.Y));
@@ -4429,8 +4430,8 @@ namespace UnityEngine.Rendering.Universal
             else
                 for (int i = 0; i < pathCnt; i++)
                 {
-                    Path p = new Path(polyCnt);
-                    for (int patternIndex = 0; patternIndex < pattern.Count; patternIndex++)
+                    Path p = new Path(polyCnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
+                    for (int patternIndex = 0; patternIndex < pattern.Length; patternIndex++)
                     {
                         IntPoint ip = pattern[patternIndex];
                         p.Add(new IntPoint(path[i].X - ip.X, path[i].Y - ip.Y));
@@ -4438,11 +4439,11 @@ namespace UnityEngine.Rendering.Universal
                     result.Add(p);
                 }
 
-            Paths quads = new Paths((pathCnt + delta) * (polyCnt + 1));
+            Paths quads = new Paths((pathCnt + delta) * (polyCnt + 1), Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < pathCnt - 1 + delta; i++)
                 for (int j = 0; j < polyCnt; j++)
                 {
-                    Path quad = new Path(4);
+                    Path quad = new Path(4, Allocator.Temp, NativeArrayOptions.ClearMemory);
                     quad.Add(result[i % pathCnt][j % polyCnt]);
                     quad.Add(result[(i + 1) % pathCnt][j % polyCnt]);
                     quad.Add(result[(i + 1) % pathCnt][(j + 1) % polyCnt]);
@@ -4468,8 +4469,8 @@ namespace UnityEngine.Rendering.Universal
 
         private static Path TranslatePath(Path path, IntPoint delta)
         {
-            Path outPath = new Path(path.Count);
-            for (int i = 0; i < path.Count; i++)
+            Path outPath = new Path(path.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            for (int i = 0; i < path.Length; i++)
                 outPath.Add(new IntPoint(path[i].X + delta.X, path[i].Y + delta.Y));
             return outPath;
         }
@@ -4478,9 +4479,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static Paths MinkowskiSum(Path pattern, Paths paths, bool pathIsClosed)
         {
-            Paths solution = new Paths();
+            Paths solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
-            for (int i = 0; i < paths.Count; ++i)
+            for (int i = 0; i < paths.Length; ++i)
             {
                 Paths tmp = Minkowski(pattern, paths[i], true, pathIsClosed);
                 c.AddPaths(tmp, PolyType.ptSubject, true);
@@ -4512,7 +4513,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static Paths PolyTreeToPaths(PolyTree polytree)
         {
-            Paths result = new Paths();
+            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             result.Capacity = polytree.Total;
             AddPolyNodeToPaths(polytree, NodeType.ntAny, result);
             return result;
@@ -4530,7 +4531,7 @@ namespace UnityEngine.Rendering.Universal
                 default: break;
             }
 
-            if (polynode.m_polygon.Count > 0 && match)
+            if (polynode.m_polygon.Length > 0 && match)
                 paths.Add(polynode.m_polygon);
             foreach (PolyNode pn in polynode.Childs)
                 AddPolyNodeToPaths(pn, nt, paths);
@@ -4540,7 +4541,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static Paths OpenPathsFromPolyTree(PolyTree polytree)
         {
-            Paths result = new Paths();
+            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             result.Capacity = polytree.ChildCount;
             for (int i = 0; i < polytree.ChildCount; i++)
                 if (polytree.Childs[i].IsOpen)
@@ -4552,7 +4553,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static Paths ClosedPathsFromPolyTree(PolyTree polytree)
         {
-            Paths result = new Paths();
+            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             result.Capacity = polytree.Total;
             AddPolyNodeToPaths(polytree, NodeType.ntClosed, result);
             return result;
@@ -4603,7 +4604,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void AddPath(Path path, JoinType joinType, EndType endType)
         {
-            int highI = path.Count - 1;
+            int highI = path.Length - 1;
             if (highI < 0) return;
             PolyNode newNode = new PolyNode();
             newNode.m_jointype = joinType;
@@ -4646,7 +4647,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void AddPaths(Paths paths, JoinType joinType, EndType endType)
         {
-            for (int i = 0; i < paths.Count; i++)
+            for (int i = 0; i < paths.Length; i++)
             {
                 Path p = paths[i];
                 AddPath(p, joinType, endType);
@@ -4702,7 +4703,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void DoOffset(double delta)
         {
-            m_destPolys = new Paths();
+            m_destPolys = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             m_delta = delta;
 
             //if Zero offset, just copy any CLOSED polygons to m_p and return ...
@@ -4738,13 +4739,13 @@ namespace UnityEngine.Rendering.Universal
                 PolyNode node = m_polyNodes.Childs[i];
                 m_srcPoly = node.m_polygon;
 
-                int len = m_srcPoly.Count;
+                int len = m_srcPoly.Length;
 
                 if (len == 0 || (delta <= 0 && (len < 3 ||
                                                 node.m_endtype != EndType.etClosedPolygon)))
                     continue;
 
-                m_destPoly = new Path();
+                m_destPoly = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
                 if (len == 1)
                 {
@@ -4802,7 +4803,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int j = 0; j < len; j++)
                         OffsetPoint(j, ref k, node.m_jointype);
                     m_destPolys.Add(m_destPoly);
-                    m_destPoly = new Path();
+                    m_destPoly = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
                     //re-build m_normals ...
                     DoublePoint n = m_normals[len - 1];
                     for (int j = len - 1; j > 0; j--)
@@ -4866,7 +4867,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 IntRect r = Clipper.GetBounds(m_destPolys);
-                Path outer = new Path(4);
+                Path outer = new Path(4, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
                 outer.Add(new IntPoint(r.left - 10, r.bottom + 10));
                 outer.Add(new IntPoint(r.right + 10, r.bottom + 10));
@@ -4876,7 +4877,7 @@ namespace UnityEngine.Rendering.Universal
                 clpr.AddPath(outer, PolyType.ptSubject, true);
                 clpr.ReverseSolution = true;
                 clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
-                if (solution.Count > 0) solution.RemoveAt(0);
+                if (solution.Length > 0) solution.RemoveAt(0);
             }
         }
 
@@ -4899,7 +4900,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 IntRect r = Clipper.GetBounds(m_destPolys);
-                Path outer = new Path(4);
+                Path outer = new Path(4, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
                 outer.Add(new IntPoint(r.left - 10, r.bottom + 10));
                 outer.Add(new IntPoint(r.right + 10, r.bottom + 10));

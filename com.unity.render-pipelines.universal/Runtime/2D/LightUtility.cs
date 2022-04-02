@@ -5,11 +5,12 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.Rendering.Universal.LibTessDotNet;
 using UnityEngine.U2D;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.Universal
 {
-    using Path = List<IntPoint>;
-    using Paths = List<List<IntPoint>>;
+    using Path = UnsafeList<IntPoint>;
+    using Paths = UnsafeList<UnsafeList<IntPoint>>;
 
     internal static class LightUtility
     {
@@ -91,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
 
         static bool TestPivot(Path path, int activePoint, long lastPoint)
         {
-            for (int i = activePoint; i < path.Count; ++i)
+            for (int i = activePoint; i < path.Length; ++i)
             {
                 if (path[i].N > lastPoint)
                     return true;
@@ -103,10 +104,10 @@ namespace UnityEngine.Rendering.Universal
         // Degenerate Pivots at the End Points.
         static Path DegeneratePivots(Path path, Path inPath)
         {
-            Path degenerate = new Path();
+            Path degenerate = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             var minN = path[0].N;
             var maxN = path[0].N;
-            for (int i = 1; i < path.Count; ++i)
+            for (int i = 1; i < path.Length; ++i)
             {
                 if (path[i].N != -1)
                 {
@@ -122,10 +123,10 @@ namespace UnityEngine.Rendering.Universal
                 degenerate.Add(ins);
             }
 
-            degenerate.AddRange(path.GetRange(0, path.Count));
+            degenerate.AddRange(path.GetRange(0, path.Length));
             //path.CopyTo(0, degenerate, 0, path.Count);
 
-            for (long i = maxN + 1; i < inPath.Count; ++i)
+            for (long i = maxN + 1; i < inPath.Length; ++i)
             {
                 IntPoint ins = inPath[(int)i];
                 ins.N = i;
@@ -137,12 +138,12 @@ namespace UnityEngine.Rendering.Universal
         // Ensure that we get a valid path from 0.
         static Path SortPivots(Path outPath, Path inPath)
         {
-            Path sorted = new Path();
+            Path sorted = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             var min = outPath[0].N;
             var max = outPath[0].N;
             var minIndex = 0;
             bool newMin = true;
-            for (int i = 1; i < outPath.Count; ++i)
+            for (int i = 1; i < outPath.Length; ++i)
             {
                 if (max > outPath[i].N && newMin && outPath[i].N != -1)
                 {
@@ -157,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            sorted.AddRange(outPath.GetRange(minIndex, (outPath.Count - minIndex)));
+            sorted.AddRange(outPath.GetRange(minIndex, (outPath.Length - minIndex)));
             sorted.AddRange(outPath.GetRange(0, minIndex));
 
             //outPath.CopyTo(minIndex, sorted, 0, outPath.Count - minIndex);
@@ -173,9 +174,9 @@ namespace UnityEngine.Rendering.Universal
             long pivotPoint = path[0].N;
 
             // Connect Points for Overlaps.
-            for (int i = 1; i < path.Count; ++i)
+            for (int i = 1; i < path.Length; ++i)
             {
-                var j = (i == path.Count - 1) ? 0 : (i + 1);
+                var j = (i == path.Length - 1) ? 0 : (i + 1);
                 var prev = path[i - 1];
                 var curr = path[i];
                 var next = path[j];
@@ -188,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
                         if (prev.N == next.N)
                             curr.N = prev.N;
                         else
-                            curr.N = (pivotPoint + 1) < inPath.Count ? (pivotPoint + 1) : 0;
+                            curr.N = (pivotPoint + 1) < inPath.Length ? (pivotPoint + 1) : 0;
                         curr.D = 3;
                         path[i] = curr;
                     }
@@ -197,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Insert Skipped Points.
-            for (int i = 1; i < path.Count - 1;)
+            for (int i = 1; i < path.Length - 1;)
             {
                 var prev = path[i - 1];
                 var curr = path[i];
@@ -232,22 +233,23 @@ namespace UnityEngine.Rendering.Universal
         internal static List<Vector2> GetOutlinePath(Vector3[] shapePath, float offsetDistance)
         {
             const float kClipperScale = 10000.0f;
-            Path path = new Path();
+            Path path = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             List<Vector2> output = new List<Vector2>();
             for (var i = 0; i < shapePath.Length; ++i)
             {
                 var newPoint = new Vector2(shapePath[i].x, shapePath[i].y) * kClipperScale;
                 path.Add(new IntPoint((System.Int64)(newPoint.x), (System.Int64)(newPoint.y)));
             }
-            Paths solution = new Paths();
+            Paths solution = new Paths(1, Allocator.Persistent, NativeArrayOptions.ClearMemory);
             ClipperOffset clipOffset = new ClipperOffset(2048.0f);
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
-            clipOffset.Execute(ref solution, kClipperScale * offsetDistance, path.Count);
-            if (solution.Count > 0)
+            clipOffset.Execute(ref solution, kClipperScale * offsetDistance, path.Length);
+            if (solution.Length > 0)
             {
-                for (int i = 0; i < solution[0].Count; ++i)
+                for (int i = 0; i < solution[0].Length; ++i)
                     output.Add(new Vector2(solution[0][i].X / kClipperScale, solution[0][i].Y / kClipperScale));
             }
+            solution.Dispose();
             return output;
         }
 
@@ -291,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
             Tessellate(tess, ElementType.Polygons, indices, vertices, meshInteriorColor, ref vcount, ref icount);
 
             // Create falloff geometry
-            Path path = new Path();
+            Path path = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (var i = 0; i < inputPointCount; ++i)
             {
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
@@ -302,26 +304,26 @@ namespace UnityEngine.Rendering.Universal
             var lastPointIndex = inputPointCount - 1;
 
             // Generate Bevels.
-            Paths solution = new Paths();
+            Paths solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             ClipperOffset clipOffset = new ClipperOffset(24.0f);
             clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
-            clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Count);
+            clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Length);
 
-            if (solution.Count > 0)
+            if (solution.Length > 0)
             {
                 // Fix path for Pivots.
                 var outPath = solution[0];
                 var minPath = (long)inputPointCount;
-                for (int i = 0; i < outPath.Count; ++i)
+                for (int i = 0; i < outPath.Length; ++i)
                     minPath = (outPath[i].N != -1) ? Math.Min(minPath, outPath[i].N) : minPath;
                 var containsStart = minPath == 0;
                 outPath = FixPivots(outPath, path);
 
                 // Tessellate.
-                var bIndices = new NativeArray<ushort>(icount + (outPath.Count * 6) + 6, Allocator.Temp);
+                var bIndices = new NativeArray<ushort>(icount + (outPath.Length * 6) + 6, Allocator.Temp);
                 for (int i = 0; i < icount; ++i)
                     bIndices[i] = indices[i];
-                var bVertices = new NativeArray<LightMeshVertex>(vcount + outPath.Count + inputPointCount, Allocator.Temp);
+                var bVertices = new NativeArray<LightMeshVertex>(vcount + outPath.Length + inputPointCount, Allocator.Temp);
                 for (int i = 0; i < vcount; ++i)
                     bVertices[i] = vertices[i];
 
@@ -342,7 +344,7 @@ namespace UnityEngine.Rendering.Universal
                 var pathStart = saveIndex;
                 var prevIndex = outPath[0].N == -1 ? 0 : outPath[0].N;
 
-                for (int i = 0; i < outPath.Count; ++i)
+                for (int i = 0; i < outPath.Length; ++i)
                 {
                     var curr = outPath[i];
                     var currPoint = new float2(curr.X / kClipperScale, curr.Y / kClipperScale);
