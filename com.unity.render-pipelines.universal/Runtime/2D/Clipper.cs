@@ -1458,10 +1458,10 @@ namespace UnityEngine.Rendering.Universal
         }
         //------------------------------------------------------------------------------
 
-        public bool Execute(ClipType clipType, Paths solution,
+        public bool Execute(ClipType clipType, ref Paths solution,
             PolyFillType FillType = PolyFillType.pftEvenOdd)
         {
-            return Execute(clipType, solution, FillType, FillType);
+            return Execute(clipType, ref solution, FillType, FillType);
         }
 
         //------------------------------------------------------------------------------
@@ -1474,7 +1474,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public bool Execute(ClipType clipType, Paths solution,
+        public bool Execute(ClipType clipType, ref Paths solution,
             PolyFillType subjFillType, PolyFillType clipFillType)
         {
             if (m_ExecuteLocked) return false;
@@ -1493,7 +1493,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 succeeded = ExecuteInternal();
                 //build the return polygons ...
-                if (succeeded) BuildResult(solution);
+                if (succeeded) BuildResult(ref solution);
             }
             finally
             {
@@ -3401,7 +3401,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static void ReversePaths(Paths polys)
+        public static void ReversePaths(ref Paths polys)
         {
             for(int i=0;i<polys.Length;i++)
             {
@@ -3412,9 +3412,9 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static bool Orientation(Path poly)
+        public static bool Orientation(ref Path poly)
         {
-            return Area(poly) >= 0;
+            return Area(ref poly) >= 0;
         }
 
         //------------------------------------------------------------------------------
@@ -3435,7 +3435,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void BuildResult(Paths polyg)
+        private void BuildResult(ref Paths polyg)
         {
             polyg.Clear();
             polyg.Capacity = m_PolyOuts.Count;
@@ -3857,7 +3857,7 @@ namespace UnityEngine.Rendering.Universal
 
         //----------------------------------------------------------------------
 
-        public static int PointInPolygon(IntPoint pt, Path path)
+        public static int PointInPolygon(IntPoint pt, ref Path path)
         {
             //returns 0 if false, +1 if true, -1 if pt ON polygon boundary
             //See "The Point in Polygon Problem for Arbitrary Polygons" by Hormann & Agathos
@@ -4197,7 +4197,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static double Area(Path poly)
+        public static double Area(ref Path poly)
         {
             int cnt = (int)poly.Length;
             if (cnt < 3) return 0;
@@ -4238,27 +4238,27 @@ namespace UnityEngine.Rendering.Universal
         // Convert self-intersecting polygons into simple polygons
         //------------------------------------------------------------------------------
 
-        public static Paths SimplifyPolygon(Path poly,
+        public static Paths SimplifyPolygon(ref Path poly,
             PolyFillType fillType = PolyFillType.pftEvenOdd)
         {
             Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             c.StrictlySimple = true;
             c.AddPath(poly, PolyType.ptSubject, true);
-            c.Execute(ClipType.ctUnion, result, fillType, fillType);
+            c.Execute(ClipType.ctUnion, ref result, fillType, fillType);
             return result;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths SimplifyPolygons(Paths polys,
+        public static Paths SimplifyPolygons(ref Paths polys,
             PolyFillType fillType = PolyFillType.pftEvenOdd)
         {
             Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             c.StrictlySimple = true;
             c.AddPaths(polys, PolyType.ptSubject, true);
-            c.Execute(ClipType.ctUnion, result, fillType, fillType);
+            c.Execute(ClipType.ctUnion, ref result, fillType, fillType);
             return result;
         }
 
@@ -4338,7 +4338,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static Path CleanPolygon(Path path, double distance = 1.415)
+        public static Path CleanPolygon(ref Path path, double distance = 1.415)
         {
             //distance = proximity in units/pixels below which vertices will be stripped.
             //Default ~= sqrt(2) so when adjacent vertices or semi-adjacent vertices have
@@ -4399,18 +4399,20 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static Paths CleanPolygons(Paths polys,
+        public static Paths CleanPolygons(ref Paths polys,
             double distance = 1.415)
         {
             Paths result = new Paths(polys.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < polys.Length; i++)
-                result.Add(CleanPolygon(polys[i], distance));
+            {
+                result.Add(CleanPolygon(ref polys.GetIndexByRef(i), distance));
+            }
             return result;
         }
 
         //------------------------------------------------------------------------------
 
-        internal static Paths Minkowski(Path pattern, Path path, bool IsSum, bool IsClosed)
+        internal static Paths Minkowski(ref Path pattern, ref Path path, bool IsSum, bool IsClosed)
         {
             int delta = (IsClosed ? 1 : 0);
             int polyCnt = pattern.Length;
@@ -4448,7 +4450,7 @@ namespace UnityEngine.Rendering.Universal
                     quad.Add(result[(i + 1) % pathCnt][j % polyCnt]);
                     quad.Add(result[(i + 1) % pathCnt][(j + 1) % polyCnt]);
                     quad.Add(result[i % pathCnt][(j + 1) % polyCnt]);
-                    if (!Orientation(quad)) quad.Reverse();
+                    if (!Orientation(ref quad)) quad.Reverse();
                     quads.Add(quad);
                 }
             return quads;
@@ -4456,18 +4458,18 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static Paths MinkowskiSum(Path pattern, Path path, bool pathIsClosed)
+        public static Paths MinkowskiSum(ref Path pattern, ref Path path, bool pathIsClosed)
         {
-            Paths paths = Minkowski(pattern, path, true, pathIsClosed);
+            Paths paths = Minkowski(ref pattern, ref path, true, pathIsClosed);
             Clipper c = new Clipper();
             c.AddPaths(paths, PolyType.ptSubject, true);
-            c.Execute(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+            c.Execute(ClipType.ctUnion, ref paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
             return paths;
         }
 
         //------------------------------------------------------------------------------
 
-        private static Path TranslatePath(Path path, IntPoint delta)
+        private static Path TranslatePath(ref Path path, IntPoint delta)
         {
             Path outPath = new Path(path.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < path.Length; i++)
@@ -4477,33 +4479,33 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static Paths MinkowskiSum(Path pattern, Paths paths, bool pathIsClosed)
+        public static Paths MinkowskiSum(ref Path pattern, ref Paths paths, bool pathIsClosed)
         {
             Paths solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             for (int i = 0; i < paths.Length; ++i)
             {
-                Paths tmp = Minkowski(pattern, paths[i], true, pathIsClosed);
+                Paths tmp = Minkowski(ref pattern, ref paths.GetIndexByRef(i), true, pathIsClosed);
                 c.AddPaths(tmp, PolyType.ptSubject, true);
                 if (pathIsClosed)
                 {
-                    Path path = TranslatePath(paths[i], pattern[0]);
-                    c.AddPath(path, PolyType.ptClip, true);
+                    Path translatedPath = TranslatePath(ref paths.GetIndexByRef(i), pattern[0]);
+                    c.AddPath(translatedPath, PolyType.ptClip, true);
                 }
             }
-            c.Execute(ClipType.ctUnion, solution,
+            c.Execute(ClipType.ctUnion, ref solution,
                 PolyFillType.pftNonZero, PolyFillType.pftNonZero);
             return solution;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths MinkowskiDiff(Path poly1, Path poly2)
+        public static Paths MinkowskiDiff(ref Path poly1, ref Path poly2)
         {
-            Paths paths = Minkowski(poly1, poly2, false, true);
+            Paths paths = Minkowski(ref poly1, ref poly2, false, true);
             Clipper c = new Clipper();
             c.AddPaths(paths, PolyType.ptSubject, true);
-            c.Execute(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+            c.Execute(ClipType.ctUnion, ref paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
             return paths;
         }
 
@@ -4602,7 +4604,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public void AddPath(Path path, JoinType joinType, EndType endType)
+        public void AddPath(ref Path path, JoinType joinType, EndType endType)
         {
             int highI = path.Length - 1;
             if (highI < 0) return;
@@ -4645,12 +4647,12 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public void AddPaths(Paths paths, JoinType joinType, EndType endType)
+        public void AddPaths(ref Paths paths, JoinType joinType, EndType endType)
         {
             for (int i = 0; i < paths.Length; i++)
             {
                 Path p = paths[i];
-                AddPath(p, joinType, endType);
+                AddPath(ref p, joinType, endType);
             }
         }
 
@@ -4661,14 +4663,14 @@ namespace UnityEngine.Rendering.Universal
             //fixup orientations of all closed paths if the orientation of the
             //closed path with the lowermost vertex is wrong ...
             if (m_lowest.X >= 0 &&
-                !Clipper.Orientation(m_polyNodes.Childs[(int)m_lowest.X].m_polygon))
+                !Clipper.Orientation(ref m_polyNodes.Childs[(int)m_lowest.X].m_polygon))
             {
                 for (int i = 0; i < m_polyNodes.ChildCount; i++)
                 {
                     PolyNode node = m_polyNodes.Childs[i];
                     if (node.m_endtype == EndType.etClosedPolygon ||
                         (node.m_endtype == EndType.etClosedLine &&
-                         Clipper.Orientation(node.m_polygon)))
+                         Clipper.Orientation(ref node.m_polygon)))
                         node.m_polygon.Reverse();
                 }
             }
@@ -4678,7 +4680,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     PolyNode node = m_polyNodes.Childs[i];
                     if (node.m_endtype == EndType.etClosedLine &&
-                        !Clipper.Orientation(node.m_polygon))
+                        !Clipper.Orientation(ref node.m_polygon))
                         node.m_polygon.Reverse();
                 }
             }
@@ -4861,7 +4863,7 @@ namespace UnityEngine.Rendering.Universal
             clpr.LastIndex = inputSize - 1;
             if (delta > 0)
             {
-                clpr.Execute(ClipType.ctUnion, solution,
+                clpr.Execute(ClipType.ctUnion, ref solution,
                     PolyFillType.pftPositive, PolyFillType.pftPositive);
             }
             else
@@ -4876,7 +4878,7 @@ namespace UnityEngine.Rendering.Universal
 
                 clpr.AddPath(outer, PolyType.ptSubject, true);
                 clpr.ReverseSolution = true;
-                clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
+                clpr.Execute(ClipType.ctUnion, ref solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
                 if (solution.Length > 0) solution.RemoveAt(0);
             }
         }

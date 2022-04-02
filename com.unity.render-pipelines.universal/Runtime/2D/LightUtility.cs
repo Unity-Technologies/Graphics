@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
             }
             Paths solution = new Paths(1, Allocator.Persistent, NativeArrayOptions.ClearMemory);
             ClipperOffset clipOffset = new ClipperOffset(2048.0f);
-            clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
+            clipOffset.AddPath(ref path, JoinType.jtRound, EndType.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * offsetDistance, path.Length);
             if (solution.Length > 0)
             {
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.Universal
             // Generate Bevels.
             Paths solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             ClipperOffset clipOffset = new ClipperOffset(24.0f);
-            clipOffset.AddPath(path, JoinType.jtRound, EndType.etClosedPolygon);
+            clipOffset.AddPath(ref path, JoinType.jtRound, EndType.etClosedPolygon);
             clipOffset.Execute(ref solution, kClipperScale * falloffDistance, path.Length);
 
             if (solution.Length > 0)

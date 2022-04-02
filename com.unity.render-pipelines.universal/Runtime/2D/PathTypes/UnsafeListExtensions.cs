@@ -52,4 +52,12 @@ public static class UnsafeListExtension
 
         return rangeValues;
     }
+
+    public static ref T GetIndexByRef<T>(this UnsafeList<T> list, int index) where T : unmanaged
+    {
+        unsafe
+        {
+            return ref list.Ptr[index];
+        }
+    }
 }
