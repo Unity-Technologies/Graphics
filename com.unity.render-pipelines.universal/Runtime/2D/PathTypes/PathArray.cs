@@ -13,19 +13,22 @@ namespace UnityEngine.Rendering.Universal
         {
             public int elementSize;
             public int length;
-            public int usedElements;
         }
 
         private unsafe IntPtr m_InternalArrayPtr;
         private unsafe IntPtr m_InternalArrayInfoPtr;
 
-
-
         public int Length
         {
             get
             {
-                return GetArrayInfo().length;
+                unsafe
+                {
+                    if (m_InternalArrayInfoPtr.ToPointer() == null)
+                        return 0;
+                    else
+                        return GetArrayInfo().length;
+                }
             }
         }
 
@@ -36,20 +39,6 @@ namespace UnityEngine.Rendering.Universal
                 unsafe
                 {
                     return m_InternalArrayPtr.ToPointer() != null;
-                }
-            }
-        }
-
-        public int UsedElements
-        {
-            get { return GetArrayInfo().usedElements; }
-            set
-            {
-                unsafe
-                {
-                    ArrayInfo arrayInfo = GetArrayInfo();
-                    arrayInfo.usedElements = value;
-                    UnsafeUtility.CopyStructureToPtr<ArrayInfo>(ref arrayInfo, m_InternalArrayInfoPtr.ToPointer());
                 }
             }
         }
@@ -71,7 +60,6 @@ namespace UnityEngine.Rendering.Universal
                 ArrayInfo arrayInfo = new ArrayInfo();
                 arrayInfo.elementSize = sizeOfT;
                 arrayInfo.length = count;
-                arrayInfo.usedElements = 0;
 
                 void* ptrToArrayInfo = (void*)UnsafeUtility.Malloc(sizeof(ArrayInfo), UnsafeUtility.AlignOf<ArrayInfo>(), Allocator.Persistent);
                 m_InternalArrayInfoPtr = new IntPtr(ptrToArrayInfo);
@@ -145,12 +133,9 @@ namespace UnityEngine.Rendering.Universal
 
                     UnsafeUtility.Free(internalArray, Allocator.Persistent);
                     UnsafeUtility.Free(m_InternalArrayPtr.ToPointer(), Allocator.Persistent);
+                    UnsafeUtility.Free(m_InternalArrayInfoPtr.ToPointer(), Allocator.Persistent);
                     m_InternalArrayPtr = new IntPtr(null);
-
-                    ArrayInfo arrayInfo = GetArrayInfo();
-                    arrayInfo.usedElements = 0;
-                    arrayInfo.length = 0;
-                    UnsafeUtility.CopyStructureToPtr<ArrayInfo>(ref arrayInfo, m_InternalArrayInfoPtr.ToPointer());
+                    m_InternalArrayInfoPtr = new IntPtr(null);
                 }
             }
         }

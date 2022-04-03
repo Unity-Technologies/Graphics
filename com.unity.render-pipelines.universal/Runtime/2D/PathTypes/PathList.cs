@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
     internal struct PathList<T> : IDisposable where T : struct 
     {
         IntPtr m_InternalArrayPtr; // Pointer to a PathArray
+        IntPtr m_CountPtr;  // This is the PathList count. The Array length is the PathList Capacity
 
         public bool IsCreated
         {
@@ -20,12 +21,27 @@ namespace UnityEngine.Rendering.Universal
                     return m_InternalArrayPtr.ToPointer() != null;
                 }
             }
-         
         }
 
         public PathList(int capacity)
         {
-            m_InternalArrayPtr = AllocatePathArray(capacity);
+            unsafe
+            {
+                m_InternalArrayPtr = AllocatePathArray(capacity);
+                m_CountPtr = AllocateCount(0);
+            }
+        }
+
+        static private IntPtr AllocateCount(int value)
+        {
+            unsafe
+            {
+                int count = value;
+                void* ptr = UnsafeUtility.Malloc(sizeof(int), UnsafeUtility.AlignOf<int>(), Allocator.Persistent);
+                UnsafeUtility.CopyStructureToPtr<int>(ref count, ptr);
+
+                return new IntPtr(ptr);
+            }
         }
 
         static private IntPtr AllocatePathArray(int capacity)
@@ -109,22 +125,22 @@ namespace UnityEngine.Rendering.Universal
             }
             set
             {
-                int newCapacity = value;
-                PathArray<T> newArray = new PathArray<T>(newCapacity);
-
-                if (IsCreated && internalArray.Length > 0)
-                {
-                    CopyTo(newArray, 0);
-                    newArray.UsedElements = internalArray.UsedElements;
-                }
-
-                // This will be false the very first time this is set
                 if (IsCreated)
-                    internalArray.Dispose(PathTypes.DisposeOptions.Shallow);  // A shallow dispose is done since the elements are copied to the new array
-                else
-                    m_InternalArrayPtr = AllocatePathArray(newCapacity);
+                {
+                    int newCapacity = value;
+                    PathArray<T> newArray = new PathArray<T>(newCapacity);
 
-                internalArray = newArray;
+                    if (internalArray.Length > 0)
+                        CopyTo(newArray, 0);
+
+                    internalArray.Dispose(PathTypes.DisposeOptions.Shallow);  // A shallow dispose is done since the elements are copied to the new array
+                    internalArray = newArray;
+                }
+                else
+                {
+                    m_InternalArrayPtr = AllocatePathArray(value);
+                    m_CountPtr = AllocateCount(0);
+                }
             }
         }
 
@@ -132,13 +148,27 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (IsCreated)
-                    return internalArray.UsedElements;
-                else
-                    return 0;
+                unsafe
+                {
+                    if (IsCreated)
+                    {
+                        int count;
+                        UnsafeUtility.CopyPtrToStructure<int>(m_CountPtr.ToPointer(), out count);
+                        return count;
+                    }
+                    else
+                        return 0;
+                }
+            }
+            set
+            {
+                unsafe
+                {
+                    Debug.Assert(IsCreated);
+                    UnsafeUtility.CopyStructureToPtr<int>(ref value, m_CountPtr.ToPointer());
+                }
             }
         }
-
 
         public T this[int index]
         {
@@ -168,10 +198,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
         public void Reverse()
         {
-            Reverse(0, internalArray.UsedElements);
+            Reverse(0, Count);
         }
 
         // Needs test
@@ -187,10 +216,10 @@ namespace UnityEngine.Rendering.Universal
         {
             TryAdjustCapacityRequirements();
 
-            SetArrayElement(internalArray.UsedElements, item);
+            SetArrayElement(Count, item);
 
             PathArray<T> pathArray = internalArray;
-            pathArray.UsedElements = (internalArray.UsedElements + 1);
+            Count = (Count + 1);
         }
 
         public void Insert(int index, T item)
@@ -198,48 +227,49 @@ namespace UnityEngine.Rendering.Universal
             TryAdjustCapacityRequirements();
 
             // move everything over
-            for (int i = internalArray.UsedElements; i > index; i--)
+            for (int i = Count; i > index; i--)
                 SetArrayElement(i, internalArray[i - 1]);
 
 
             SetArrayElement(index, item);
 
             PathArray<T> pathArray = internalArray;
-            pathArray.UsedElements = pathArray.UsedElements + 1;
+            Count = Count + 1;
         }
 
         // Needs Test
         public void RemoveAt(int index)
         {
-            if (IsCreated)
-            {
-                PathArray<T> pathArray = internalArray;
-                pathArray.UsedElements = pathArray.UsedElements - 1;
+            Debug.Assert(IsCreated, PathTypes.k_CreationError);
+            Debug.Assert(index >= 0 && index < Count, PathTypes.k_OutOfRangeError);
 
-                for (int i = index; i < internalArray.UsedElements; i++)
-                {
-                    SetArrayElement(i, internalArray[i + 1]);
-                }
+            PathArray<T> pathArray = internalArray;
+            int newCount = Count - 1;
+
+            for (int i = index; i < newCount; i++)
+            {
+                SetArrayElement(i, internalArray[i + 1]);
             }
+
+            Count = newCount;
         }
 
         public void Clear(PathTypes.DisposeOptions option = PathTypes.DisposeOptions.Deep)
         {
-            if (IsCreated)
-            {
-                if (option == PathTypes.DisposeOptions.Deep)
-                    internalArray.DisposeElements(0, internalArray.UsedElements);
+            Debug.Assert(IsCreated, PathTypes.k_CreationError);
 
-                PathArray<T> pathArray = internalArray;
-                pathArray.UsedElements = 0;
-            }
+            if (option == PathTypes.DisposeOptions.Deep)
+                internalArray.DisposeElements(0, Count);
+
+            PathArray<T> pathArray = internalArray;
+            Count = 0;
         }
 
         public void Dispose(PathTypes.DisposeOptions option)
         {
-            if (IsCreated)
+            unsafe
             {
-                unsafe
+                if (IsCreated)
                 {
                     internalArray.Dispose(option);
                     UnsafeUtility.Free(m_InternalArrayPtr.ToPointer(), Allocator.Persistent);
