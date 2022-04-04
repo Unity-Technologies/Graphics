@@ -296,7 +296,7 @@ namespace UnityEngine.Rendering.Universal
                     persistantShapeObject.SetShape(vertices, indices, radii, ShadowShape2D.WindingOrder.CounterClockwise);
 
                     // Shadow is no longer dirty.
-                    m_ShadowDirty = true;
+                    m_ShadowDirty = false;
 
                     // Clean up.
                     radii.Dispose();
