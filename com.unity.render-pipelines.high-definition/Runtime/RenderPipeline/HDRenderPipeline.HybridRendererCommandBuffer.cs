@@ -99,7 +99,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void RequestImmediateMode(bool enabled)
             {
-                Debug.Assert(debugSubmittedSystemState.Count == 0);
                 immediateModeEnabledNext = enabled;
             }
 
