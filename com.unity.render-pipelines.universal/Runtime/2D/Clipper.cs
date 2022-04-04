@@ -4238,28 +4238,26 @@ namespace UnityEngine.Rendering.Universal
         // Convert self-intersecting polygons into simple polygons
         //------------------------------------------------------------------------------
 
-        public static Paths SimplifyPolygon(ref Path poly,
+        public static void SimplifyPolygon(ref Path poly, out Paths result,
             PolyFillType fillType = PolyFillType.pftEvenOdd)
         {
-            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             c.StrictlySimple = true;
             c.AddPath(poly, PolyType.ptSubject, true);
             c.Execute(ClipType.ctUnion, ref result, fillType, fillType);
-            return result;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths SimplifyPolygons(ref Paths polys,
+        public static void SimplifyPolygons(ref Paths polys, out Paths result,
             PolyFillType fillType = PolyFillType.pftEvenOdd)
         {
-            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             c.StrictlySimple = true;
             c.AddPaths(polys, PolyType.ptSubject, true);
             c.Execute(ClipType.ctUnion, ref result, fillType, fillType);
-            return result;
         }
 
         //------------------------------------------------------------------------------
@@ -4338,7 +4336,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static Path CleanPolygon(ref Path path, double distance = 1.415)
+        public static void CleanPolygon(ref Path path, out Path cleanPath, double distance = 1.415)
         {
             //distance = proximity in units/pixels below which vertices will be stripped.
             //Default ~= sqrt(2) so when adjacent vertices or semi-adjacent vertices have
@@ -4346,7 +4344,11 @@ namespace UnityEngine.Rendering.Universal
 
             int cnt = path.Length;
 
-            if (cnt == 0) return new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            if (cnt == 0)
+            {
+                cleanPath = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+                return;
+            }
 
             OutPt[] outPts = new OutPt[cnt];
             for (int i = 0; i < cnt; ++i) outPts[i] = new OutPt();
@@ -4394,30 +4396,33 @@ namespace UnityEngine.Rendering.Universal
                 op = op.Next;
             }
             outPts = null;
-            return result;
+
+            cleanPath = result;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths CleanPolygons(ref Paths polys,
+        public static void CleanPolygons(ref Paths polys, out Paths result,
             double distance = 1.415)
         {
-            Paths result = new Paths(polys.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            result = new Paths(polys.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < polys.Length; i++)
             {
-                result.Add(CleanPolygon(ref polys.GetIndexByRef(i), distance));
+                Path cleanPath;
+                CleanPolygon(ref polys.GetIndexByRef(i), out cleanPath, distance);
+                result.Add(cleanPath);
             }
-            return result;
         }
 
         //------------------------------------------------------------------------------
 
-        internal static Paths Minkowski(ref Path pattern, ref Path path, bool IsSum, bool IsClosed)
+        internal static void Minkowski(ref Path pattern, ref Path path, bool IsSum, bool IsClosed, out Paths result)
         {
             int delta = (IsClosed ? 1 : 0);
             int polyCnt = pattern.Length;
             int pathCnt = path.Length;
-            Paths result = new Paths(pathCnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
+
+            result = new Paths(pathCnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
             if (IsSum)
                 for (int i = 0; i < pathCnt; i++)
                 {
@@ -4453,72 +4458,68 @@ namespace UnityEngine.Rendering.Universal
                     if (!Orientation(ref quad)) quad.Reverse();
                     quads.Add(quad);
                 }
-            return quads;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths MinkowskiSum(ref Path pattern, ref Path path, bool pathIsClosed)
+        public static void MinkowskiSum(ref Path pattern, ref Path path, bool pathIsClosed, out Paths paths)
         {
-            Paths paths = Minkowski(ref pattern, ref path, true, pathIsClosed);
+            Minkowski(ref pattern, ref path, true, pathIsClosed, out paths);
             Clipper c = new Clipper();
             c.AddPaths(paths, PolyType.ptSubject, true);
             c.Execute(ClipType.ctUnion, ref paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
-            return paths;
         }
 
         //------------------------------------------------------------------------------
 
-        private static Path TranslatePath(ref Path path, IntPoint delta)
+        private static void TranslatePath(ref Path path, IntPoint delta, out Path outPath)
         {
-            Path outPath = new Path(path.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            outPath = new Path(path.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < path.Length; i++)
                 outPath.Add(new IntPoint(path[i].X + delta.X, path[i].Y + delta.Y));
-            return outPath;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths MinkowskiSum(ref Path pattern, ref Paths paths, bool pathIsClosed)
+        public static void MinkowskiSum(ref Path pattern, ref Paths paths, bool pathIsClosed, out Paths solution)
         {
-            Paths solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             Clipper c = new Clipper();
             for (int i = 0; i < paths.Length; ++i)
             {
-                Paths tmp = Minkowski(ref pattern, ref paths.GetIndexByRef(i), true, pathIsClosed);
+                Paths tmp;
+                Minkowski(ref pattern, ref paths.GetIndexByRef(i), true, pathIsClosed, out tmp);
                 c.AddPaths(tmp, PolyType.ptSubject, true);
                 if (pathIsClosed)
                 {
-                    Path translatedPath = TranslatePath(ref paths.GetIndexByRef(i), pattern[0]);
+                    Path translatedPath;
+                    TranslatePath(ref paths.GetIndexByRef(i), pattern[0], out translatedPath);
                     c.AddPath(translatedPath, PolyType.ptClip, true);
                 }
             }
             c.Execute(ClipType.ctUnion, ref solution,
                 PolyFillType.pftNonZero, PolyFillType.pftNonZero);
-            return solution;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths MinkowskiDiff(ref Path poly1, ref Path poly2)
+        public static void MinkowskiDiff(ref Path poly1, ref Path poly2, out Paths paths)
         {
-            Paths paths = Minkowski(ref poly1, ref poly2, false, true);
+            Minkowski(ref poly1, ref poly2, false, true, out paths);
             Clipper c = new Clipper();
             c.AddPaths(paths, PolyType.ptSubject, true);
             c.Execute(ClipType.ctUnion, ref paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
-            return paths;
         }
 
         //------------------------------------------------------------------------------
 
         internal enum NodeType { ntAny, ntOpen, ntClosed };
 
-        public static Paths PolyTreeToPaths(PolyTree polytree)
+        public static void PolyTreeToPaths(PolyTree polytree, out Paths result)
         {
-            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             result.Capacity = polytree.Total;
             AddPolyNodeToPaths(polytree, NodeType.ntAny, result);
-            return result;
         }
 
         //------------------------------------------------------------------------------
@@ -4541,24 +4542,22 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public static Paths OpenPathsFromPolyTree(PolyTree polytree)
+        public static void OpenPathsFromPolyTree(PolyTree polytree, out Paths result)
         {
-            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             result.Capacity = polytree.ChildCount;
             for (int i = 0; i < polytree.ChildCount; i++)
                 if (polytree.Childs[i].IsOpen)
                     result.Add(polytree.Childs[i].m_polygon);
-            return result;
         }
 
         //------------------------------------------------------------------------------
 
-        public static Paths ClosedPathsFromPolyTree(PolyTree polytree)
+        public static void ClosedPathsFromPolyTree(PolyTree polytree, out Paths result)
         {
-            Paths result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             result.Capacity = polytree.Total;
             AddPolyNodeToPaths(polytree, NodeType.ntClosed, result);
-            return result;
         }
 
         //------------------------------------------------------------------------------

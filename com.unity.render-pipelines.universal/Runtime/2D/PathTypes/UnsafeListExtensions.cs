@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public static class UnsafeListExtension
     {
-        public static void Reverse<T>(this UnsafeList<T> list, int index, int count) where T : unmanaged
+        public static void Reverse<T>(ref this UnsafeList<T> list, int index, int count) where T : unmanaged
         {
             int halfCount = count >> 1;
             for (int i = 0; i < halfCount; i++)
@@ -23,12 +23,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void Reverse<T>(this UnsafeList<T> list) where T : unmanaged
+        public static void Reverse<T>(ref this UnsafeList<T> list) where T : unmanaged
         {
             list.Reverse(0, list.Length);
         }
 
-        public static void Insert<T>(this UnsafeList<T> list, int index, T item) where T : unmanaged
+        public static void Insert<T>(ref this UnsafeList<T> list, int index, T item) where T : unmanaged
         {
             list.Add(default(T));
 
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
             list[index] = item;
         }
 
-        public static void AddRange<T>(this UnsafeList<T> list, UnsafeList<T> rangeValues) where T : unmanaged
+        public static void AddRange<T>(ref this UnsafeList<T> list, UnsafeList<T> rangeValues) where T : unmanaged
         {
             for (int i = rangeValues.Length - 1; i >= 0; i--)
                 list.Add(rangeValues[i]);
@@ -49,8 +49,9 @@ namespace UnityEngine.Rendering.Universal
         {
             UnsafeList<T> rangeValues = new UnsafeList<T>(count, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
-            for (int i = count - 1; i >= 0; i--)
+            for (int i = 0; i < count; i++)
                 rangeValues.Add(list[index + i]);
+            //rangeValues.Add(rangeValues.Length, list[index + i]);
 
             return rangeValues;
         }
