@@ -55,11 +55,11 @@ Pass
     $splice(GraphDefines)
     $splice(DotsInstancingVars)
 
-    // Specific Terrain Define
-    $include("TerrainPassDefine.template.hlsl")
-
     // Includes
     $splice(PreGraphIncludes)
+
+    // Specific Terrain Define
+    $include("TerrainPassDefine.template.hlsl")
 
     // --------------------------------------------------
     // Structs and Packing
