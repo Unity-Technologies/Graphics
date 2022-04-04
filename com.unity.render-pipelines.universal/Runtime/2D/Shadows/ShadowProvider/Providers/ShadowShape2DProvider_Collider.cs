@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
                 var shapeGroupVertices = m_ShadowShapeGroup.groupVertices;
 
                 // Create visible shape indices.
-                var visibleShapeIndices = new NativeArray<int>(shapeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
+                var visibleShapeIndices = new NativeArray<int>(shapeCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 // We have to iterate the shapes to figure out both the vertex and index counts
                 // because we're dealing with NativeArray which we have to specify a size for up-front.
@@ -141,8 +141,16 @@ namespace UnityEngine.Rendering.Universal
                                 break;
 
                             case PhysicsShapeType2D.Edges:
-                                indexCount += 2 * (shapeVertexCount - 1);
+                            {
+                                // Calculate if this defines open edges i.e. the start/end vertex are not coincident.
+                                var startVertex = shapeGroupVertices[shape.vertexStartIndex];
+                                var endVertex = shapeGroupVertices[shape.vertexStartIndex + shape.vertexCount - 1];
+                                var openEdges = (endVertex - startVertex).sqrMagnitude > Mathf.Epsilon;                              
+
+                                // If we're open then we have one less index.
+                                indexCount += 2 * (openEdges ? shapeVertexCount-1 : shapeVertexCount);
                                 break;
+                            }
                         }
 
                         // Add the shape to the visible shape indices.
@@ -218,6 +226,7 @@ namespace UnityEngine.Rendering.Universal
 
                             case PhysicsShapeType2D.Edges:
                                 {
+                                    var startIndex = vertexIndex;
                                     var edgeIndex = vertexIndex;
                                     for (var n = 0; n < (shapeVertexCount - 1); ++n)
                                     {
@@ -228,6 +237,18 @@ namespace UnityEngine.Rendering.Universal
                                     }
                                     radii[vertexIndex] = radius;
                                     vertices[vertexIndex++] = toShadowSpace.MultiplyPoint3x4(shapeGroupVertices[shapeVertexIndex++]);
+
+                                    // Calculate if this defines open edges i.e. the start/end vertex are not coincident.
+                                    // NOTE: We're forced to calculate this again because we have no way to persist this from the index counting earlier.
+                                    var startVertex = shapeGroupVertices[shape.vertexStartIndex];
+                                    var endVertex = shapeGroupVertices[shape.vertexStartIndex + shape.vertexCount - 1];
+                                    var openEdges = (endVertex - startVertex).sqrMagnitude > Mathf.Epsilon;
+                                    if (!openEdges)
+                                    {
+                                        indices[indiceIndex++] = edgeIndex;
+                                        indices[indiceIndex++] = startIndex;
+                                    }
+
                                     break;
                                 }
                         }
