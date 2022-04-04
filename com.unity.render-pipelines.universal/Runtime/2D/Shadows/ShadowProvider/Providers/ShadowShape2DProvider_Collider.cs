@@ -32,9 +32,18 @@ namespace UnityEngine.Rendering.Universal
                 max = bounds.max;
             }
         };
+
+        // Compare bounds.
+        private static bool CompareApproximately(ref Bounds a, ref Bounds b)
+        {
+            return !(((a.min - b.min).sqrMagnitude > Mathf.Epsilon) || ((a.max - b.max).sqrMagnitude > Mathf.Epsilon));
+        }
+
         private List<Bounds> m_ShadowShapeBounds;
         private List<MinMaxBounds> m_ShadowShapeMinMaxBounds;
         private MinMaxBounds m_ShadowCombinedShapeMinMaxBounds;
+        private Bounds m_LastWorldCullingBounds;
+        private bool m_ShadowDirty = true;
         private UInt32 m_ShadowStateHash = 0;
         private PhysicsShapeGroup2D m_ShadowShapeGroup;
 
@@ -74,6 +83,9 @@ namespace UnityEngine.Rendering.Universal
                 if (collider.GetShapes(m_ShadowShapeGroup) == 0)
                     return;
 
+                // Reset the last world culling bounds.
+                m_LastWorldCullingBounds = default;
+
                 // Fetch the shadow bounds.
                 var combinedBounds = collider.GetShapeBounds(m_ShadowShapeBounds, useRadii: true, useWorldSpace: false);
                 m_ShadowCombinedShapeMinMaxBounds = new MinMaxBounds(ref combinedBounds);
@@ -86,10 +98,28 @@ namespace UnityEngine.Rendering.Universal
                     var shapeBounds = m_ShadowShapeBounds[i];
                     m_ShadowShapeMinMaxBounds.Add(new MinMaxBounds(ref shapeBounds));
                 }
+
+                // Flag the shadow as dirty.
+                m_ShadowDirty = true;
+            }
+            else
+            {
+                // Have the bounds changed?
+                if (CompareApproximately(ref m_LastWorldCullingBounds, ref worldCullingBounds))
+                {
+                    // No, so finish.
+                    return;
+                }
+
+                // Yes, so store the last world culling bounds.
+                m_LastWorldCullingBounds = worldCullingBounds;
+
+                // Flag the shadow as dirty.
+                m_ShadowDirty = true;
             }
 
-            // Finish if we have no shadow shapes.
-            if (m_ShadowShapeGroup.shapeCount == 0)
+            // Finish if the shadow data hasn't changed or we have no shadow shapes.
+            if (!m_ShadowDirty || m_ShadowShapeGroup.shapeCount == 0)
                 return;
 
             // Fetch collider space.
@@ -165,7 +195,8 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 #if false
-            Debug.Log($"PVS: {shapeCount} / Vis: {visibleShapeCount}");
+            //Debug.Log($"PVS: {shapeCount} / Vis: {visibleShapeCount}");
+            //Debug.Log($"CENTER: {cullCenter} / Extents: {worldCullExtents}");
 #endif
                 // Do we have any visible shapes?
                 if (visibleShapeCount > 0)
@@ -263,6 +294,9 @@ namespace UnityEngine.Rendering.Universal
 
                     // Set the shadow shape.
                     persistantShapeObject.SetShape(vertices, indices, radii, ShadowShape2D.WindingOrder.CounterClockwise);
+
+                    // Shadow is no longer dirty.
+                    m_ShadowDirty = true;
 
                     // Clean up.
                     radii.Dispose();
