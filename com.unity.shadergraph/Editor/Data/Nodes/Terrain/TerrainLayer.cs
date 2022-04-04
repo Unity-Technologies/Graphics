@@ -123,72 +123,29 @@ namespace UnityEditor.ShaderGraph
             m_SmoothnessEdge = owner.GetEdges(m_SmoothnessNode.slotReference);
             m_OcclusionEdge = owner.GetEdges(m_OcclusionNode.slotReference);
 
-            GenerateNodeCodeInUniversalTerrain(sb, inputLayerIndex);
-            GenerateNodeCodeInHDTerrain(sb, inputLayerIndex);
-            GenerateNodeCodeInNullTerrain(sb);
-        }
+            sb.AppendLine("");
+            sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
+            sb.AppendLine("#error TerrainLayer Node is working under 'TerrainLit' MaterialType");
+            sb.AppendLine("#endif");
+            sb.AppendLine("");
 
-        private void GenerateNodeCodeInUniversalTerrain(ShaderStringBuilder sb, int inputLayerIndex)
-        {
-            string universalTerrainDef = "#if defined(UNIVERSAL_TERRAIN_ENABLED)";
-
-            sb.AppendLine(universalTerrainDef);
-            sb.IncreaseIndent();
-            sb.AppendLine("#ifndef SPLAT_PREREQUISITES");
-            sb.AppendLine("#define SPLAT_PREREQUISITES");
-            sb.AppendLine("DECLARE_SPLAT_PREREQUISITES");
-            sb.AppendLine("#endif // SPLAT_PREREQUISITES");
-            sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndex);
-            sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", inputLayerIndex);
+            sb.AppendLine("#ifndef LAYER_PREREQUISITES");
+            sb.AppendLine("#define LAYER_PREREQUISITES");
+            sb.AppendLine("DECLARE_LAYER_PREREQUISITES");
+            sb.AppendLine("#endif // LAYER_PREREQUISITES");
+            sb.AppendLine("#ifndef LAYER{0}_ATTRIBUTES", inputLayerIndex);
+            sb.AppendLine("#define LAYER{0}_ATTRIBUTES", inputLayerIndex);
             if (inputLayerIndex < 4)
-                sb.AppendLine("DECLARE_AND_FETCH_SPLAT_ATTRIBUTES({0})", inputLayerIndex);
+                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES({0})", inputLayerIndex);
             else
-                sb.AppendLine("DECLARE_AND_FETCH_SPLAT_ATTRIBUTES_8LAYERS({0}, {1})", inputLayerIndex, inputLayerIndex - 4);
-            sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", inputLayerIndex);
-            sb.DecreaseIndent();
+                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS({0}, {1})", inputLayerIndex, inputLayerIndex - 4);
+            sb.AppendLine("#endif // LAYER{0}_ATTRIBUTES", inputLayerIndex);
 
             if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerAlbedo({2}, {3});", m_AlbedoType, m_AlbedoValue, inputLayerIndex, m_ControlValue);
             if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerNormal({2}, {3});", m_NormalType, m_NormalValue, inputLayerIndex, m_ControlValue);
             if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerMetallic({2}, {3});", m_MetallicType, m_MetallicValue, inputLayerIndex, m_ControlValue);
             if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerSmoothness({2}, {3});", m_SmoothnessType, m_SmoothnessValue, inputLayerIndex, m_ControlValue);
             if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerOcclusion({2}, {3});", m_OcclusionType, m_OcclusionValue, inputLayerIndex, m_ControlValue);
-        }
-
-        private void GenerateNodeCodeInHDTerrain(ShaderStringBuilder sb, int inputLayerIndex)
-        {
-            string hdTerrainDef = inputLayerIndex < 4
-                ? "#elif defined(HD_TERRAIN_ENABLED)"
-                : "#elif defined(HD_TERRAIN_ENABLED) && defined(_TERRAIN_8_LAYERS)";
-
-            sb.AppendLine(hdTerrainDef);
-            sb.IncreaseIndent();
-            sb.AppendLine("#ifndef SPLAT_PREREQUISITES");
-            sb.AppendLine("#define SPLAT_PREREQUISITES");
-            sb.AppendLine("DECLARE_SPLAT_PREREQUISITES");
-            sb.AppendLine("#endif // SPLAT_PREREQUISITES");
-            sb.AppendLine("#ifndef SPLAT{0}_ATTRIBUTES", inputLayerIndex);
-            sb.AppendLine("#define SPLAT{0}_ATTRIBUTES", inputLayerIndex);
-            sb.AppendLine("DECLARE_AND_FETCH_SPLAT_ATTRIBUTES({0})", inputLayerIndex);
-            sb.AppendLine("#endif // SPLAT{0}_ATTRIBUTES", inputLayerIndex);
-            sb.DecreaseIndent();
-
-            if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = albedo[{2}].xyz * {3};", m_AlbedoType, m_AlbedoValue, inputLayerIndex, m_ControlValue);
-            if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = normal[{2}] * {3};", m_NormalType, m_NormalValue, inputLayerIndex, m_ControlValue);
-            if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = masks[{2}].x * {3};", m_MetallicType, m_MetallicValue, inputLayerIndex, m_ControlValue);
-            if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = masks[{2}].w * {3};", m_SmoothnessType, m_SmoothnessValue, inputLayerIndex, m_ControlValue);
-            if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = masks[{2}].y * {3};", m_OcclusionType, m_OcclusionValue, inputLayerIndex, m_ControlValue);
-        }
-
-        private void GenerateNodeCodeInNullTerrain(ShaderStringBuilder sb)
-        {
-            sb.AppendLine("#else");
-
-            if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_AlbedoType, m_AlbedoValue);
-            if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_NormalType, m_NormalValue);
-            if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_MetallicType, m_MetallicValue);
-            if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_SmoothnessType, m_SmoothnessValue);
-            if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_OcclusionType, m_OcclusionValue);
-            sb.AppendLine("#endif // UNIVERSAL_TERRAIN_ENABLED / HD_TERRAIN_ENABLED");
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

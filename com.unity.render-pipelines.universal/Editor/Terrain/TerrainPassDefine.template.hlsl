@@ -62,10 +62,10 @@ SAMPLER(sampler_Mask3);
     #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * 0.5h);
 #endif
 
-#define DECLARE_SPLAT_PREREQUISITES \
+#define DECLARE_LAYER_PREREQUISITES \
     half2 splatuv;
 
-#define DECLARE_SPLAT_ATTRIBUTES(i) \
+#define DECLARE_LAYER_ATTRIBUTES(i) \
     half4 albedoSmoothness##i;      \
     half3 normal##i;                \
     half4 mask##i;                  \
@@ -74,7 +74,7 @@ SAMPLER(sampler_Mask3);
     half defaultOcclusion##i;       \
     half basemapLerp##i;
 
-#define FETCH_SPLAT_ATTRIBUTES(i)                                                                           \
+#define FETCH_LAYER_ATTRIBUTES(i)                                                                           \
     splatuv = GetSplat##i##UV(IN);                                                                          \
     albedoSmoothness##i = SampleLayerAlbedo(i);                                                             \
     normal##i = SampleLayerNormal(i);                                                                       \
@@ -84,23 +84,23 @@ SAMPLER(sampler_Mask3);
     defaultOcclusion##i = _MaskMapRemapScale##i.g * _MaskMapRemapOffset##i.g;                               \
     basemapLerp##i = _DstBlend;
 
-#define FETCH_SPLAT_ATTRIBUTES_8LAYERS(splatIndex, sampleIndex)                                             \
+#define FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex)                                             \
     splatuv = GetSplat##sampleIndex##UV(IN);                                                                \
-    albedoSmoothness##splatIndex = SampleLayerAlbedo(sampleIndex);                                          \
-    normal##splatIndex = SampleLayerNormal(sampleIndex);                                                    \
-    mask##splatIndex = SampleLayerMasks(sampleIndex);                                                       \
-    defaultSmoothness##splatIndex = albedoSmoothness##splatIndex.a * _Smoothness##sampleIndex;              \
-    defaultMetallic##splatIndex = _Metallic##sampleIndex;                                                   \
-    defaultOcclusion##splatIndex = _MaskMapRemapScale##sampleIndex.g * _MaskMapRemapOffset##sampleIndex.g;  \
-    basemapLerp##splatIndex = 1.0 - _DstBlend;
+    albedoSmoothness##layerIndex = SampleLayerAlbedo(sampleIndex);                                          \
+    normal##layerIndex = SampleLayerNormal(sampleIndex);                                                    \
+    mask##layerIndex = SampleLayerMasks(sampleIndex);                                                       \
+    defaultSmoothness##layerIndex = albedoSmoothness##layerIndex.a * _Smoothness##sampleIndex;              \
+    defaultMetallic##layerIndex = _Metallic##sampleIndex;                                                   \
+    defaultOcclusion##layerIndex = _MaskMapRemapScale##sampleIndex.g * _MaskMapRemapOffset##sampleIndex.g;  \
+    basemapLerp##layerIndex = 1.0 - _DstBlend;
 
-#define DECLARE_AND_FETCH_SPLAT_ATTRIBUTES(i)                               \
-    DECLARE_SPLAT_ATTRIBUTES(i)                                             \
-    FETCH_SPLAT_ATTRIBUTES(i)
+#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i)                               \
+    DECLARE_LAYER_ATTRIBUTES(i)                                             \
+    FETCH_LAYER_ATTRIBUTES(i)
 
-#define DECLARE_AND_FETCH_SPLAT_ATTRIBUTES_8LAYERS(splatIndex, sampleIndex) \
-    DECLARE_SPLAT_ATTRIBUTES(splatIndex)                                    \
-    FETCH_SPLAT_ATTRIBUTES_8LAYERS(splatIndex, sampleIndex)
+#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex) \
+    DECLARE_LAYER_ATTRIBUTES(layerIndex)                                    \
+    FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex)
 
 #define FetchLayerAlbedo0 albedoSmoothness0.rgb
 #define FetchLayerAlbedo1 albedoSmoothness1.rgb
@@ -240,12 +240,16 @@ SAMPLER(sampler_Mask3);
 #endif
 
 #if !defined(_TERRAIN_BASEMAP_GEN)
+    #define FetchControl splatControl
+
     #define FetchLayerAlbedo(i, control) (FetchLayerAlbedo##i * control)
     #define FetchLayerNormal(i, control) (FetchLayerNormal##i * control)
     #define FetchLayerMetallic(i, control) (FetchLayerMetallic##i * control)
     #define FetchLayerSmoothness(i, control) (FetchLayerSmoothness##i * control)
     #define FetchLayerOcclusion(i, control) (FetchLayerOcclusion##i * control)
 #else
+    #define FetchControl lerp(splatControl, 0.0, basemapLerp##i)
+
     #define FetchLayerAlbedo(i, control) (FetchLayerAlbedo##i * lerp(control, 0.0, basemapLerp##i))
     #define FetchLayerNormal(i, control) (FetchLayerNormal##i * lerp(control, 0.0, basemapLerp##i))
     #define FetchLayerMetallic(i, control) (FetchLayerMetallic##i * lerp(control, 0.0, basemapLerp##i))
