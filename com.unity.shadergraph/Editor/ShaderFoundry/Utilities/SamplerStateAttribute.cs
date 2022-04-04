@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -58,6 +59,18 @@ namespace UnityEditor.ShaderFoundry
 
         static void ParseWrapMode(ShaderAttributeParam attributeParam, int parameterIndex, ref SamplerStateAttribute target)
         {
+            // Handles emitting a warning if a value was specified twice.
+            void UpdateWrapMode(ref WrapModeEnum? wrapMode, WrapModeEnum value, WrapModeParameterStates paramValue)
+            {
+                if(wrapMode != null)
+                    Debug.Log($"Wrap mode '{paramValue}' will override state '{wrapMode.Value}'.");
+                wrapMode = value;
+            }
+            WrapModeEnum? wrapModeUVW = null;
+            WrapModeEnum? wrapModeU = null;
+            WrapModeEnum? wrapModeV = null;
+            WrapModeEnum? wrapModeW = null;
+            
             var tokens = attributeParam.Value.Split(WrapModeDelimeter);
             foreach (var token in tokens)
             {
@@ -69,63 +82,59 @@ namespace UnityEditor.ShaderFoundry
                 switch (enumValue)
                 {
                     case WrapModeParameterStates.Clamp:
-                        target.WrapModeU = WrapModeEnum.Clamp;
-                        target.WrapModeV = WrapModeEnum.Clamp;
-                        target.WrapModeW = WrapModeEnum.Clamp;
+                        UpdateWrapMode(ref wrapModeUVW, WrapModeEnum.Clamp, enumValue);
                         break;
                     case WrapModeParameterStates.ClampU:
-                        target.WrapModeU = WrapModeEnum.Clamp;
+                        UpdateWrapMode(ref wrapModeU, WrapModeEnum.Clamp, enumValue);
                         break;
                     case WrapModeParameterStates.ClampV:
-                        target.WrapModeV = WrapModeEnum.Clamp;
+                        UpdateWrapMode(ref wrapModeV, WrapModeEnum.Clamp, enumValue);
                         break;
                     case WrapModeParameterStates.ClampW:
-                        target.WrapModeW = WrapModeEnum.Clamp;
+                        UpdateWrapMode(ref wrapModeW, WrapModeEnum.Clamp, enumValue);
                         break;
                     case WrapModeParameterStates.Repeat:
-                        target.WrapModeU = WrapModeEnum.Repeat;
-                        target.WrapModeV = WrapModeEnum.Repeat;
-                        target.WrapModeW = WrapModeEnum.Repeat;
+                        UpdateWrapMode(ref wrapModeUVW, WrapModeEnum.Repeat, enumValue);
                         break;
                     case WrapModeParameterStates.RepeatU:
-                        target.WrapModeU = WrapModeEnum.Repeat;
+                        UpdateWrapMode(ref wrapModeU, WrapModeEnum.Repeat, enumValue);
                         break;
                     case WrapModeParameterStates.RepeatV:
-                        target.WrapModeV = WrapModeEnum.Repeat;
+                        UpdateWrapMode(ref wrapModeV, WrapModeEnum.Repeat, enumValue);
                         break;
                     case WrapModeParameterStates.RepeatW:
-                        target.WrapModeW = WrapModeEnum.Repeat;
+                        UpdateWrapMode(ref wrapModeW, WrapModeEnum.Repeat, enumValue);
                         break;
                     case WrapModeParameterStates.Mirror:
-                        target.WrapModeU = WrapModeEnum.Mirror;
-                        target.WrapModeV = WrapModeEnum.Mirror;
-                        target.WrapModeW = WrapModeEnum.Mirror;
+                        UpdateWrapMode(ref wrapModeUVW, WrapModeEnum.Mirror, enumValue);
                         break;
                     case WrapModeParameterStates.MirrorU:
-                        target.WrapModeU = WrapModeEnum.Mirror;
+                        UpdateWrapMode(ref wrapModeU, WrapModeEnum.Mirror, enumValue);
                         break;
                     case WrapModeParameterStates.MirrorV:
-                        target.WrapModeV = WrapModeEnum.Mirror;
+                        UpdateWrapMode(ref wrapModeV, WrapModeEnum.Mirror, enumValue);
                         break;
                     case WrapModeParameterStates.MirrorW:
-                        target.WrapModeW = WrapModeEnum.Mirror;
+                        UpdateWrapMode(ref wrapModeW, WrapModeEnum.Mirror, enumValue);
                         break;
                     case WrapModeParameterStates.MirrorOnce:
-                        target.WrapModeU = WrapModeEnum.MirrorOnce;
-                        target.WrapModeV = WrapModeEnum.MirrorOnce;
-                        target.WrapModeW = WrapModeEnum.MirrorOnce;
+                        UpdateWrapMode(ref wrapModeUVW, WrapModeEnum.MirrorOnce, enumValue);
                         break;
                     case WrapModeParameterStates.MirrorOnceU:
-                        target.WrapModeU = WrapModeEnum.MirrorOnce;
+                        UpdateWrapMode(ref wrapModeU, WrapModeEnum.MirrorOnce, enumValue);
                         break;
                     case WrapModeParameterStates.MirrorOnceV:
-                        target.WrapModeV = WrapModeEnum.MirrorOnce;
+                        UpdateWrapMode(ref wrapModeV, WrapModeEnum.MirrorOnce, enumValue);
                         break;
                     case WrapModeParameterStates.MirrorOnceW:
-                        target.WrapModeW = WrapModeEnum.MirrorOnce;
+                        UpdateWrapMode(ref wrapModeW, WrapModeEnum.MirrorOnce, enumValue);
                         break;
                 }
             }
+            // Always use the local value if it was specified, otherwise fall back to the full-width value, otherwise fall-back to repeat.
+            target.WrapModeU = wrapModeU ?? wrapModeUVW ?? WrapModeEnum.Repeat;
+            target.WrapModeV = wrapModeV ?? wrapModeUVW ?? WrapModeEnum.Repeat;
+            target.WrapModeW = wrapModeW ?? wrapModeUVW ?? WrapModeEnum.Repeat;
         }
 
         static void ParseAnisotropicLevel(ShaderAttributeParam attributeParam, int parameterIndex, ref int result)

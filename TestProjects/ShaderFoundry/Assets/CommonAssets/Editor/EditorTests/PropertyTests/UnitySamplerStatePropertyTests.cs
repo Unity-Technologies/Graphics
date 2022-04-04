@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 using FilterModeEnum = UnityEditor.ShaderFoundry.SamplerStateAttribute.FilterModeEnum;
 using WrapModeParameterStates = UnityEditor.ShaderFoundry.SamplerStateAttribute.WrapModeParameterStates;
 
@@ -107,13 +109,25 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         // Check all three states being the same
         [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.ClampV, WrapModeParameterStates.ClampW }, "_Linear_Clamp")]
         // Check setting a state twice (last wins)
-        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.MirrorU}, "_Linear_Repeat_MirrorU")]
-        // This includes setting the full channel state wiping out the previous sub-states
-        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.Mirror}, "_Linear_Mirror")]
+        // Setting a full-channel value doesn't wipe out a single channel value, even if specified afterwards
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.Mirror}, "_Linear_Mirror_ClampU")]
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampV, WrapModeParameterStates.Mirror}, "_Linear_Mirror_ClampV")]
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampW, WrapModeParameterStates.Mirror}, "_Linear_Mirror_ClampW")]
         // Different parameter order doesn't affect declaration order
         [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.MirrorOnceW, WrapModeParameterStates.ClampU, WrapModeParameterStates.MirrorV}, "_Linear_ClampU_MirrorV_MirrorOnceW")]
         public void SamplerState_ValidateMultipleWrapModes_UniformIsExpectedName(WrapModeParameterStates[] wrapModes, string postfix)
         {
+            SamplerState_ValidateWrapModes(wrapModes.ToList(), postfix);
+        }
+
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.ClampU, WrapModeParameterStates.RepeatU }, "_Linear_Repeat", "Wrap mode 'RepeatU' will override state 'Clamp'.")]
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.RepeatV, WrapModeParameterStates.MirrorV }, "_Linear_Repeat_MirrorV", "Wrap mode 'MirrorV' will override state 'Repeat'.")]
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.MirrorW, WrapModeParameterStates.MirrorOnceW }, "_Linear_Repeat_MirrorOnceW", "Wrap mode 'MirrorOnceW' will override state 'Mirror'.")]
+        [TestCase(new WrapModeParameterStates[] { WrapModeParameterStates.MirrorOnce, WrapModeParameterStates.Clamp }, "_Linear_Clamp", "Wrap mode 'Clamp' will override state 'MirrorOnce'.")]
+        public void SamplerState_DuplicateWrapMode_WarningIsReported(WrapModeParameterStates[] wrapModes, string postfix, string expectedWarning)
+        {
+            LogAssert.Expect(LogType.Log, expectedWarning);
+            // Make sure to still validate the name (verifying that the last value wins still)
             SamplerState_ValidateWrapModes(wrapModes.ToList(), postfix);
         }
 
