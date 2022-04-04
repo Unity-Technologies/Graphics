@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     //Class representing lights in the context of a view.
-    internal partial class HDProcessedVisibleLightsBuilder
+    internal abstract partial class HDProcessedVisibleLightsBuilder
     {
         #region internal HDRP API
         [Flags]
@@ -98,6 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeArray<LightBakingOutput> m_VisibleLightBakingOutput;
         private NativeArray<LightShadowCasterMode> m_VisibleLightShadowCasterMode;
         private NativeArray<LightShadows> m_VisibleLightShadows;
+        private NativeArray<bool> m_VisibleLightIsFromVisibleList;
         private NativeArray<LightVolumeType> m_ProcessedLightVolumeType;
         private NativeArray<HDProcessedVisibleLight> m_ProcessedEntities;
 
@@ -115,6 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightBakingOutput.ResizeArray(m_Capacity);
             m_VisibleLightShadowCasterMode.ResizeArray(m_Capacity);
             m_VisibleLightShadows.ResizeArray(m_Capacity);
+            m_VisibleLightIsFromVisibleList.ResizeArray(m_Capacity);
 
             m_ProcessedLightVolumeType.ResizeArray(m_Capacity);
             m_ProcessedEntities.ResizeArray(m_Capacity);
@@ -136,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightBakingOutput.Dispose();
             m_VisibleLightShadowCasterMode.Dispose();
             m_VisibleLightShadows.Dispose();
+            m_VisibleLightIsFromVisibleList.Dispose();
 
             m_ProcessedLightVolumeType.Dispose();
             m_ProcessedEntities.Dispose();

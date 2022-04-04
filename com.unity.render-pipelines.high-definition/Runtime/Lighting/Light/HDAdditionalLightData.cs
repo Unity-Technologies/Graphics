@@ -1191,7 +1191,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool affectDynamicGI
         {
             get => m_AffectDynamicGI;
-            set => m_AffectDynamicGI = value;
+            set
+            {
+                if (m_AffectDynamicGI == value)
+                    return;
+
+                m_AffectDynamicGI = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).affectDynamicGI = m_AffectDynamicGI;
+            }
         }
         
         /// <summary>
@@ -3523,6 +3531,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.spotLightShape = m_SpotLightShape;
             lightRenderData.areaLightShape = m_AreaLightShape;
             lightRenderData.lightLayer = m_LightlayersMask;
+            lightRenderData.affectDynamicGI = m_AffectDynamicGI;
             lightRenderData.fadeDistance = m_FadeDistance;
             lightRenderData.distance = m_Distance;
             lightRenderData.angularDiameter = m_AngularDiameter;

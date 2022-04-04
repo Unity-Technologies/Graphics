@@ -562,7 +562,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Keep sorting array around to avoid garbage
         uint[] m_SortKeys = null;
-        // DynamicArray<ProcessedLightData> m_ProcessedDynamicGILightData = new DynamicArray<ProcessedLightData>(); // GG: Review
         DynamicArray<ProcessedProbeData> m_ProcessedReflectionProbeData = new DynamicArray<ProcessedProbeData>();
         DynamicArray<ProcessedProbeData> m_ProcessedPlanarProbeData = new DynamicArray<ProcessedProbeData>();
 
@@ -614,7 +613,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal LightList m_lightList;
-        internal HDProcessedVisibleLightsBuilder m_ProcessedLightsBuilder;
+        internal HDProcessedVisibleLightsRegularBuilder m_ProcessedLightsBuilder;
+        internal HDProcessedVisibleLightsDynamicBuilder m_ProcessedLightsDynamicBuilder;
         internal HDGpuLightsBuilder m_GpuLightsBuilder;
 
         internal HDGpuLightsBuilder gpuLightList => m_GpuLightsBuilder;
@@ -854,7 +854,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList = new LightList();
             m_lightList.Allocate();
 
-            m_ProcessedLightsBuilder = new HDProcessedVisibleLightsBuilder();
+            m_ProcessedLightsBuilder = new HDProcessedVisibleLightsRegularBuilder();
+            m_ProcessedLightsDynamicBuilder = new HDProcessedVisibleLightsDynamicBuilder();
             m_GpuLightsBuilder = new HDGpuLightsBuilder();
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
@@ -1063,6 +1064,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HierarchicalVarianceScreenSpaceShadowsData.Clear(float.MaxValue, -float.MaxValue);
 
             m_ProcessedLightsBuilder.Cleanup();
+            m_ProcessedLightsDynamicBuilder.Cleanup();
             m_GpuLightsBuilder.Cleanup();
         }
 
@@ -1290,19 +1292,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
 
             lightData.bounceIntensity = lightComponent.bounceIntensity;
-
-            // fix up shadow information
-            lightData.shadowIndex = shadowIndex;
-            if (shadowIndex != -1)
-            {
-                m_CurrentSunLight = lightComponent;
-            }
-
-            // Fallback to the first non shadow casting directional light.
-            m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
-
-            // TODO: only apply for real-time lights, but lightComponent.lightmapBakeType is not available outside in built players, Editor only...
-            lightData.affectDynamicGI = additionalLightData.affectDynamicGI ? 1 : 0;
         }
         */
 
@@ -1326,8 +1315,6 @@ namespace UnityEngine.Rendering.HighDefinition
             in ProcessedLightData processedData, int shadowIndex, BoolScalableSetting contactShadowsScalableSetting, bool isRasterization, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref LightData lightData)
         {
             // TODO: only apply for real-time lights, but lightComponent.lightmapBakeType is not available outside in built players, Editor only...
-            lightData.affectDynamicGI = additionalLightData.affectDynamicGI ? 1 : 0;
-
             lightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
             if ((gpuLightType == GPULightType.Point) || (gpuLightType == GPULightType.Spot))
             {
@@ -1773,17 +1760,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProcessDirectionalAndCookies)))
             {
-                // GG: This data wasn't being populated in the R&D PR
-                /*
-                // custom-begin:
-#if UNITY_EDITOR
-                // Skip light sources that are hidden by the scene visibility toggle.
-                // This is necessary to support hiding light sources in baked reflection probes.
-                contributesToLighting &= !UnityEditor.SceneVisibilityManager.instance.IsHidden(light.light.gameObject);
-#endif
-                // custom-end
-                */
-
                 int visibleLightCounts = m_ProcessedLightsBuilder.sortedLightCounts;
                 var lightEntities = HDLightRenderDatabase.instance;
                 for (int i = 0; i < visibleLightCounts; ++i)
@@ -1808,130 +1784,39 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // GG: Review
-        /*
         // This will go through the list of all visible & offscreen dynamic GI lights and do two main things:
         // - Precompute data that will be reused through the light loop
         // - Discard all lights considered unnecessary (too far away, explicitly discarded by type, ...)
-        int PreprocessDynamicGILights(HDCamera hdCamera, CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
+        void PreprocessDynamicGILights(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
         {
-            var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
+            var lightLoopSettings = asset.currentPlatformRenderPipelineSettings.lightLoopSettings;
+            m_ProcessedLightsDynamicBuilder.Build(
+                hdCamera,
+                cullResults,
+                m_ShadowManager,
+                m_ShadowInitParameters,
+                aovRequest,
+                lightLoopSettings,
+                m_CurrentDebugDisplaySettings);
 
-            var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
-            var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
-
-            // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
-            // If we reach maximum of lights available on screen, then we discard the light.
-            // Lights are processed in order, so we don't discards light based on their importance but based on their ordering in visible lights list.
-            int directionalLightcount = 0;
-            int punctualLightcount = 0;
-            int areaLightCount = 0;
-
-            int totalLightCount = cullResults.visibleLights.Length + cullResults.visibleOffscreenVertexLights.Length;
-            m_ProcessedDynamicGILightData.Resize(totalLightCount);
-
-            int lightCount = Math.Min(totalLightCount, m_MaxLightsOnScreen);
-            UpdateSortKeysArray(lightCount);
-            int sortCount = 0;
-            for (int lightIndex = 0, numLights = totalLightCount; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProcessDynamicGICookies)))
             {
-                VisibleLight light;
-                bool isFromVisibleList = false;
-                if (lightIndex < cullResults.visibleLights.Length)
+                int visibleLightCounts = m_ProcessedLightsDynamicBuilder.sortedLightCounts;
+                var lightEntities = HDLightRenderDatabase.instance;
+                for (int i = 0; i < visibleLightCounts; ++i)
                 {
-                    isFromVisibleList = true;
-                    light = cullResults.visibleLights[lightIndex];
+                    uint sortKey = m_ProcessedLightsDynamicBuilder.sortKeys[i];
+                    HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var _, out var _, out var _, out var lightIndex);
+                    HDProcessedVisibleLight processedLightEntity = m_ProcessedLightsDynamicBuilder.processedEntities[lightIndex];
+                    HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[processedLightEntity.dataIndex];
+                    if (additionalLightData == null)
+                        continue;
+
+                    ReserveCookieAtlasTexture(additionalLightData, additionalLightData.legacyLight, processedLightEntity.lightType);
                 }
-                else
-                {
-                    int offScreenLightIndex = lightIndex - cullResults.visibleLights.Length;
-                    light = cullResults.visibleOffscreenVertexLights[offScreenLightIndex];
-                }
-
-                // First we do all the trivial rejects.
-                if (TrivialRejectDynamicGILight(light, hdCamera, aovRequest, isFromVisibleList))
-                    continue;
-
-                // Then we compute all light data that will be reused for the rest of the light loop.
-                ref ProcessedLightData processedData = ref m_ProcessedDynamicGILightData[lightIndex];
-                PreprocessLightData(ref processedData, light, hdCamera);
-
-                // Then we can reject lights based on processed data.
-                var additionalData = processedData.additionalLightData;
-
-                if (!additionalData.affectDynamicGI)
-                    continue;
-
-                // If the camera is in ray tracing mode and the light is disabled in ray tracing mode, we skip this light.
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !additionalData.includeForRayTracing)
-                    continue;
-
-                var lightType = processedData.lightType;
-                if (ShaderConfig.s_AreaLights == 0 && (lightType == HDLightType.Area && (additionalData.areaLightShape == AreaLightShape.Rectangle || additionalData.areaLightShape == AreaLightShape.Tube)))
-                    continue;
-
-                bool contributesToLighting = ((additionalData.lightDimmer > 0) && (additionalData.affectDiffuse || additionalData.affectSpecular)) || (additionalData.volumetricDimmer > 0) || additionalData.affectDynamicGI;
-                contributesToLighting = contributesToLighting && (processedData.lightDistanceFade > 0);
-
-                // custom-begin:
-#if UNITY_EDITOR
-                // Skip light sources that are hidden by the scene visibility toggle.
-                // This is necessary to support hiding light sources in baked reflection probes.
-                contributesToLighting &= !UnityEditor.SceneVisibilityManager.instance.IsHidden(light.light.gameObject);
-#endif
-                // custom-end
-
-                if (!contributesToLighting)
-                    continue;
-
-                // Do NOT process lights beyond the specified limit!
-                switch (processedData.lightCategory)
-                {
-                    case LightCategory.Punctual:
-                        if (processedData.gpuLightType == GPULightType.Directional) // Our directional lights are "punctual"...
-                        {
-                            if (!debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight || directionalLightcount >= m_MaxDirectionalLightsOnScreen) continue;
-                            directionalLightcount++;
-                            break;
-                        }
-                        if (!debugDisplaySettings.data.lightingDebugSettings.showPunctualLight || punctualLightcount >= m_MaxPunctualLightsOnScreen) continue;
-                        punctualLightcount++;
-                        break;
-                    case LightCategory.Area:
-                        if (!debugDisplaySettings.data.lightingDebugSettings.showAreaLight || areaLightCount >= m_MaxAreaLightsOnScreen) continue;
-                        areaLightCount++;
-                        break;
-                    default:
-                        break;
-                }
-
-                // First we should evaluate the shadow information for this frame
-                //if (!isFromVisibleList)
-                //{
-                //    additionalData.EvaluateShadowState(hdCamera, processedData, cullResults, hdCamera.frameSettings, lightIndex);
-
-                //    // Reserve shadow map resolutions and check if light needs to render shadows
-                //    if (additionalData.WillRenderShadowMap())
-                //    {
-                //        additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light, lightType);
-                //    }
-                //}
-
-                // Reserve the cookie resolution in the 2D atlas
-                ReserveCookieAtlasTexture(additionalData, light.light, lightType);
-
-                if (hasDebugLightFilter
-                    && !debugLightFilter.IsEnabledFor(processedData.gpuLightType, additionalData.spotLightShape))
-                    continue;
-
-                // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
-                m_SortKeys[sortCount++] = (uint)processedData.lightCategory << 27 | (uint)processedData.gpuLightType << 22 | (uint)processedData.lightVolumeType << 17 | (uint)lightIndex;
             }
-
-            CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
-            return sortCount;
         }
-        */
+
 
         private class HierarchicalVarianceScreenSpaceShadowsData
         {
@@ -2308,8 +2193,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, MaskVolumeList maskVolumes,
-        DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, MaskVolumeList maskVolumes,
+            DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2387,13 +2272,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // GG: review
                 bool dynamicGIEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI);
-                /*
                 if (dynamicGIEnabled)
                 {
-                    int processedLightCount = PreprocessDynamicGILights(hdCamera, cullResults, debugDisplaySettings, aovRequest);
-                    PrepareDynamicGIGPULightdata(cmd, hdCamera, cullResults, processedLightCount);
+                    PreprocessDynamicGILights(cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest);
+                    //PrepareDynamicGIGPULightdata(cmd, hdCamera, cullResults, processedLightCount);
                 }
-                */
 
                 if (cullResults.visibleReflectionProbes.Length != 0 || hdProbeCullingResults.visibleProbes.Count != 0)
                 {

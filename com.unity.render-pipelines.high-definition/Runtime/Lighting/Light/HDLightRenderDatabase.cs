@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public SpotLightShape spotLightShape;
         public AreaLightShape areaLightShape;
         public LightLayerEnum lightLayer;
+        public bool affectDynamicGI;
         public float fadeDistance;
         public float distance;
         public float angularDiameter;

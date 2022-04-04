@@ -42,22 +42,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.BuildVisibleLightEntities)))
             {
-                if (cullResults.visibleLights.Length == 0
-                    || HDLightRenderDatabase.instance == null)
+                int totalLightCount = GetTotalLightCount(cullResults);
+
+                if (totalLightCount == 0 || HDLightRenderDatabase.instance == null)
                     return;
 
-                if (cullResults.visibleLights.Length > m_Capacity)
+                if (totalLightCount > m_Capacity)
                 {
-                    ResizeArrays(cullResults.visibleLights.Length);
+                    ResizeArrays(totalLightCount);
                 }
 
-                m_Size = cullResults.visibleLights.Length;
+                m_Size = totalLightCount;
 
                 //TODO: this should be accelerated by a c++ API
                 var defaultEntity = HDLightRenderDatabase.instance.GetDefaultLightEntity();
-                for (int i = 0; i < cullResults.visibleLights.Length; ++i)
+                for (int i = 0; i < totalLightCount; ++i)
                 {
-                    Light light = cullResults.visibleLights[i].light;
+                    Light light = GetLightByIndex(cullResults, i, out bool isFromVisibleList);
+
                     int dataIndex = HDLightRenderDatabase.instance.FindEntityDataIndex(light);
                     if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
                     {
@@ -76,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_VisibleLightBakingOutput[i] = light.bakingOutput;
                     m_VisibleLightShadowCasterMode[i] = light.lightShadowCasterMode;
                     m_VisibleLightShadows[i] = light.shadows;
+                    m_VisibleLightIsFromVisibleList[i] = isFromVisibleList;
                 }
             }
         }
@@ -139,8 +142,55 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!aovRequest.IsLightEnabled(go))
                     m_VisibleLightEntityDataIndices[i] = HDLightRenderDatabase.InvalidDataIndex;
+
+                // custom-begin:
+#if UNITY_EDITOR
+                if (UnityEditor.SceneVisibilityManager.instance.IsHidden(go))
+                    m_VisibleLightEntityDataIndices[i] = HDLightRenderDatabase.InvalidDataIndex;
+#endif
+                // custom-end
             }
         }
 
+        protected abstract int GetTotalLightCount(in CullingResults cullResults);
+        protected abstract Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList);
     }
+
+    internal partial class HDProcessedVisibleLightsRegularBuilder : HDProcessedVisibleLightsBuilder
+    {
+        protected override int GetTotalLightCount(in CullingResults cullResults)
+        {
+            return cullResults.visibleLights.Length;
+        }
+
+        protected override Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList)
+        {
+            isFromVisibleList = true;
+            return cullResults.visibleLights[index].light;
+        }
+    }
+
+    internal partial class HDProcessedVisibleLightsDynamicBuilder : HDProcessedVisibleLightsBuilder
+    {
+        protected override int GetTotalLightCount(in CullingResults cullResults)
+        {
+            return cullResults.visibleLights.Length + cullResults.visibleOffscreenVertexLights.Length;
+        }
+
+        protected override Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList)
+        {
+            if (index < cullResults.visibleLights.Length)
+            {
+                isFromVisibleList = true;
+                return cullResults.visibleLights[index].light;
+            }
+            else
+            {
+                int offScreenLightIndex = index - cullResults.visibleLights.Length;
+                isFromVisibleList = false;
+                return cullResults.visibleOffscreenVertexLights[offScreenLightIndex].light;
+            }
+        }
+    }
+
 }

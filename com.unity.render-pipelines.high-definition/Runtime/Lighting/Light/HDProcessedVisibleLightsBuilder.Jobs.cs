@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_BURST_1_5_0_OR_NEWER
         [Unity.Burst.BurstCompile]
 #endif
-        struct ProcessVisibleLightJob : IJobParallelFor
+        protected struct ProcessVisibleLightJob : IJobParallelFor
         {
             #region Light entity data
             [NativeDisableContainerSafetyRestriction]
@@ -30,6 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<LightBakingOutput> visibleLightBakingOutput;
             [ReadOnly]
             public NativeArray<LightShadows> visibleLightShadows;
+            [ReadOnly]
+            public NativeArray<bool> visibleLightIsFromVisibleList; // GG: Instead of this array we could store the cutoff index such that any idx < cutoff is from the visible list
             #endregion
 
             #region Parameters
@@ -41,6 +43,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public int pixelCount;
             [ReadOnly]
             public bool enableAreaLights;
+            [ReadOnly]
+            public bool onlyDynamicGI;
+            [ReadOnly]
+            public bool evaluateShadowStates;
+            [ReadOnly]
+            public bool alwaysContributeToLightingWhenAffectsDynamicGI;
             [ReadOnly]
             public bool enableRayTracing;
             [ReadOnly]
@@ -78,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<int> shadowLightsDataIndices;
             #endregion
 
-            private bool TrivialRejectLight(in VisibleLight light, int dataIndex)
+            private bool TrivialRejectLight(in VisibleLight light, int dataIndex, bool isFromVisibleList)
             {
                 if (dataIndex < 0)
                     return true;
@@ -86,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
                 // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
                 const int minimumPixelAreaOnScreen = 1;
-                if ((light.screenRect.height * light.screenRect.width * pixelCount) < minimumPixelAreaOnScreen)
+                if (isFromVisibleList && (light.screenRect.height * light.screenRect.width * pixelCount) < minimumPixelAreaOnScreen)
                     return true;
 
                 return false;
@@ -234,10 +242,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 int dataIndex = visibleLightEntityDataIndices[index];
                 LightBakingOutput bakingOutput = visibleLightBakingOutput[index];
                 LightShadows shadows = visibleLightShadows[index];
-                if (TrivialRejectLight(visibleLight, dataIndex))
+                bool isFromVisibleList = visibleLightIsFromVisibleList[index];
+                if (TrivialRejectLight(visibleLight, dataIndex, isFromVisibleList))
                     return;
 
                 ref HDLightRenderData lightRenderData = ref GetLightData(dataIndex);
+
+                if (onlyDynamicGI && !lightRenderData.affectDynamicGI)
+                    return;
 
                 if (enableRayTracing && !lightRenderData.includeForRayTracing)
                     return;
@@ -268,12 +280,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 float volumetricDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.volumetricFadeDistance);
 
                 bool contributesToLighting = ((lightRenderData.lightDimmer > 0) && (lightRenderData.affectDiffuse || lightRenderData.affectSpecular)) || ((lightRenderData.affectVolumetric ? lightRenderData.volumetricDimmer : 0.0f) > 0);
+                contributesToLighting = contributesToLighting || (alwaysContributeToLightingWhenAffectsDynamicGI && lightRenderData.affectDynamicGI);
                 contributesToLighting = contributesToLighting && (lightDistanceFade > 0);
 
-                var shadowMapFlags = EvaluateShadowState(
-                    shadows, lightType, gpuLightType, areaLightShape,
-                    lightRenderData.useScreenSpaceShadows, lightRenderData.useRayTracedShadows,
-                    lightRenderData.shadowDimmer, lightRenderData.shadowFadeDistance, distanceToCamera, lightVolumeType);
+                var shadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None;
+                if (evaluateShadowStates && isFromVisibleList)
+                {
+                    shadowMapFlags = EvaluateShadowState(
+                        shadows, lightType, gpuLightType, areaLightShape,
+                        lightRenderData.useScreenSpaceShadows, lightRenderData.useRayTracedShadows,
+                        lightRenderData.shadowDimmer, lightRenderData.shadowFadeDistance, distanceToCamera, lightVolumeType);
+                }
 
                 if (!contributesToLighting)
                     return;
@@ -348,6 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 visibleLightEntityDataIndices = m_VisibleLightEntityDataIndices,
                 visibleLightBakingOutput = m_VisibleLightBakingOutput,
                 visibleLightShadows = m_VisibleLightShadows,
+                visibleLightIsFromVisibleList = m_VisibleLightIsFromVisibleList,
 
                 //Output processed lights.
                 processedVisibleLightCountsPtr = m_ProcessVisibleLightCounts,
@@ -356,6 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortKeys = m_SortKeys,
                 shadowLightsDataIndices = m_ShadowLightsDataIndices
             };
+            OverrideProcessVisibleLightJobParameters(ref processVisibleLightJob);
 
             m_ProcessVisibleLightJobHandle = processVisibleLightJob.Schedule(m_Size, 32);
         }
@@ -366,6 +385,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_ProcessVisibleLightJobHandle.Complete();
+        }
+
+        protected abstract void OverrideProcessVisibleLightJobParameters(ref ProcessVisibleLightJob job);
+    }
+
+    internal partial class HDProcessedVisibleLightsRegularBuilder : HDProcessedVisibleLightsBuilder
+    {
+        protected override void OverrideProcessVisibleLightJobParameters(ref ProcessVisibleLightJob job)
+        {
+            job.onlyDynamicGI = false;
+            job.alwaysContributeToLightingWhenAffectsDynamicGI = false;
+            job.evaluateShadowStates = true;
+        }
+    }
+
+    internal partial class HDProcessedVisibleLightsDynamicBuilder : HDProcessedVisibleLightsBuilder
+    {
+        protected override void OverrideProcessVisibleLightJobParameters(ref ProcessVisibleLightJob job)
+        {
+            job.onlyDynamicGI = true;
+            job.alwaysContributeToLightingWhenAffectsDynamicGI = true;
+            job.evaluateShadowStates = false;
         }
     }
 }

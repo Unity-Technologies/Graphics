@@ -161,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareLightsForGPU,
         PrepareGPULightData,
         ProcessDirectionalAndCookies,
+        ProcessDynamicGICookies,
         SortVisibleLights,
         BuildVisibleLightEntities,
         ProcessShadows,
