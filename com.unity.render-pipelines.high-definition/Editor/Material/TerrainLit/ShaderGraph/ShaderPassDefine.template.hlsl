@@ -68,6 +68,18 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     #define NullLayerMask(i)    float4(0, 1, 0, 0)
 #endif
 
+#define FETCH_SPLAT_CONTROL0                                                                            \
+    float2 controlUV0 = (IN.uv0.xy * (_Control0_TexelSize.zw - 1.0) + 0.5) * _Control0_TexelSize.xy;    \
+    half4 splatControl0 = SAMPLE_TEXTURE2D(_Control0, sampler_Control0, controlUV0);
+
+#ifdef _TERRAIN_8_LAYERS
+    #define FETCH_SPLAT_CONTROL1                                                                            \
+        float2 controlUV1 = (IN.uv0.xy * (_Control1_TexelSize.zw - 1.0) + 0.5) * _Control1_TexelSize.xy;    \
+        half4 splatControl1 = SAMPLE_TEXTURE2D(_Control1, sampler_Control1, controlUV1);
+#else
+    #define FETCH_SPLAT_CONTROL1
+#endif
+
 #define DECLARE_LAYER_PREREQUISITES \
     float4 albedo[_LAYER_COUNT];    \
     float3 normal[_LAYER_COUNT];    \
@@ -85,10 +97,12 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     masks[i] = SampleLayerMasks(i);
 
 #ifdef _TERRAIN_8_LAYERS
-#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j) DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i)
+    #define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j) DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i)
 #else
-#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j)
+    #define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j)
 #endif
+
+#define FetchControl0 splatControl0
 
 #define FetchLayerAlbedo0 albedo[0].rgb
 #define FetchLayerAlbedo1 albedo[1].rgb
@@ -116,6 +130,8 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
 #define FetchLayerOcclusion3 masks[3].g
 
 #ifdef _TERRAIN_8_LAYERS
+    #define FetchControl1 splatControl1
+
     #define FetchLayerAlbedo4 albedo[4].rgb
     #define FetchLayerAlbedo5 albedo[5].rgb
     #define FetchLayerAlbedo6 albedo[6].rgb
@@ -141,6 +157,8 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     #define FetchLayerOcclusion6 masks[6].g
     #define FetchLayerOcclusion7 masks[7].g
 #else
+    #define FetchControl1 float4(0.0, 0.0, 0.0, 0.0)
+
     #define FetchLayerAlbedo4 0.0
     #define FetchLayerAlbedo5 0.0
     #define FetchLayerAlbedo6 0.0
@@ -166,6 +184,8 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     #define FetchLayerOcclusion6 0.0
     #define FetchLayerOcclusion7 0.0
 #endif
+
+#define FetchControl(i) FetchControl##i
 
 #define FetchLayerAlbedo(i, control) (FetchLayerAlbedo##i * control)
 #define FetchLayerNormal(i, control) (FetchLayerNormal##i * control)
