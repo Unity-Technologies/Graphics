@@ -59,6 +59,9 @@ namespace UnityEngine.Rendering.Universal
                 // Set the current shadow shape hash.
                 m_ShadowStateHash = shapeHash;
 
+                // Clear the shapes.
+                m_ShadowShapeGroup.Clear();
+
                 // Finish if we don't have any shapes to return.
                 if (collider.shapeCount == 0)
                 {
@@ -84,6 +87,10 @@ namespace UnityEngine.Rendering.Universal
                     m_ShadowShapeMinMaxBounds.Add(new MinMaxBounds(ref shapeBounds));
                 }
             }
+
+            // Finish if we have no shadow shapes.
+            if (m_ShadowShapeGroup.shapeCount == 0)
+                return;
 
             // Fetch collider space.
             var colliderSpace = collider.LocalToWorld;
