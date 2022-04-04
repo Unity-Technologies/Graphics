@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph
             if (m_ControlBEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).b;", m_ControlBType, m_ControlBValue, inputSplatIndex);
             if (m_ControlAEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).a;", m_ControlAType, m_ControlAValue, inputSplatIndex);
         }
-        
+
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             using (var tempSlots = PooledList<MaterialSlot>.Get())
