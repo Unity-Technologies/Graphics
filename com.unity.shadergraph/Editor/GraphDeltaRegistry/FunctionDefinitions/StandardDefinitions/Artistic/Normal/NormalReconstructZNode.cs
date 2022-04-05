@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -42,15 +41,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "derive z" },
-            { "Tooltip", "creates a normal from just the X and Y components" },
-            { "Category", "Artistic, Normal" },
-            { "DisplayName", "Normal Reconstruct Z" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "return normal from just the X and Y components" }
-        };
     }
 }

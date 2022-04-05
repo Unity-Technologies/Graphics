@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -46,14 +45,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Artistic, Adjustment" },
-            { "Tooltip", "adjusts the color intensity" },
-            { "Parameters.In.Tooltip", "a color to adjust" },
-            { "Parameters.Saturation.Tooltip", "less than 1 is less saturated, more than 1 is more saturated" },
-            { "Parameters.Out.Tooltip", "color with adjusted saturation" }
-        };
     }
 }
