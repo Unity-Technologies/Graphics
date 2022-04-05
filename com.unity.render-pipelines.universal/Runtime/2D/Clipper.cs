@@ -87,30 +87,25 @@ namespace UnityEngine.Rendering.Universal
     // PolyNode classes
     //------------------------------------------------------------------------------
 
-    internal class PolyNode
+    internal struct PolyNode
     {
-        internal PolyNode m_Parent;
-        internal Path m_polygon = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+        internal bool m_IsCreated;
+        internal Path m_polygon;
         internal int m_Index;
         internal JoinType m_jointype;
         internal EndType m_endtype;
-        internal List<PolyNode> m_Childs = new List<PolyNode>();
+        internal UnsafeList<PolyNode> m_Childs;
 
-        private bool IsHoleNode()
+        public void Initialize()
         {
-            bool result = true;
-            PolyNode node = m_Parent;
-            while (node != null)
-            {
-                result = !result;
-                node = node.m_Parent;
-            }
-            return result;
+            m_IsCreated = true;
+            m_polygon = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            m_Childs = new UnsafeList<PolyNode>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
         }
 
         public int ChildCount
         {
-            get { return m_Childs.Count; }
+            get { return m_Childs.Length; }
         }
 
         public Path Contour
@@ -120,43 +115,22 @@ namespace UnityEngine.Rendering.Universal
 
         internal void AddChild(PolyNode Child)
         {
-            int cnt = m_Childs.Count;
+            int cnt = m_Childs.Length;
             m_Childs.Add(Child);
-            Child.m_Parent = this;
             Child.m_Index = cnt;
         }
 
         public PolyNode GetNext()
         {
-            if (m_Childs.Count > 0)
+            if (m_Childs.Length > 0)
                 return m_Childs[0];
             else
-                return GetNextSiblingUp();
+                return default(PolyNode); // will not be initialized
         }
 
-        internal PolyNode GetNextSiblingUp()
-        {
-            if (m_Parent == null)
-                return null;
-            else if (m_Index == m_Parent.m_Childs.Count - 1)
-                return m_Parent.GetNextSiblingUp();
-            else
-                return m_Parent.m_Childs[m_Index + 1];
-        }
-
-        public List<PolyNode> Childs
+        public UnsafeList<PolyNode> Childs
         {
             get { return m_Childs; }
-        }
-
-        public PolyNode Parent
-        {
-            get { return m_Parent; }
-        }
-
-        public bool IsHole
-        {
-            get { return IsHoleNode(); }
         }
 
         public bool IsOpen { get; set; }
@@ -1212,7 +1186,7 @@ namespace UnityEngine.Rendering.Universal
             result.FirstLeft = null;
             result.Pts = null;
             result.BottomPt = null;
-            result.PolyNode = null;
+            result.PolyNode = default(PolyNode);
             m_PolyOuts.Add(result);
             result.Idx = m_PolyOuts.Count - 1;
             return result;
@@ -4421,17 +4395,17 @@ namespace UnityEngine.Rendering.Universal
         //------------------------------------------------------------------------------
     } //end Clipper
 
-    internal class ClipperOffset
+    internal struct ClipperOffset
     {
         private Paths m_destPolys;
         private Path m_srcPoly;
         private Path m_destPoly;
-        private List<DoublePoint> m_normals = new List<DoublePoint>();
+        private UnsafeList<DoublePoint> m_normals;
         private double m_delta, m_sinA, m_sin, m_cos;
         private double m_StepsPerRad;
 
         private IntPoint m_lowest;
-        private PolyNode m_polyNodes = new PolyNode();
+        private PolyNode m_polyNodes;
 
         public double ArcTolerance { get; set; }
 
@@ -4440,8 +4414,21 @@ namespace UnityEngine.Rendering.Universal
 
         public ClipperOffset(double arcTolerance = def_arc_tolerance)
         {
+            m_destPolys = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            m_srcPoly = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            m_destPoly = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            m_normals = new UnsafeList<DoublePoint>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            m_polyNodes = new PolyNode();
+            m_polyNodes.Initialize();
+
+            m_delta = 0;
+            m_sinA = 0;
+            m_sin = 0;
+            m_cos = 0;
+            m_StepsPerRad = 0;
+
             ArcTolerance = arcTolerance;
-            m_lowest.X = -1;
+            m_lowest = new IntPoint(-1, 0);
         }
 
         //------------------------------------------------------------------------------
@@ -4466,6 +4453,8 @@ namespace UnityEngine.Rendering.Universal
             int highI = path.Length - 1;
             if (highI < 0) return;
             PolyNode newNode = new PolyNode();
+            newNode.Initialize();
+
             newNode.m_jointype = joinType;
             newNode.m_endtype = endType;
 
@@ -4517,10 +4506,11 @@ namespace UnityEngine.Rendering.Universal
 
         private void FixOrientations()
         {
+            Path polygon = m_polyNodes.Childs[(int)m_lowest.X].m_polygon;
             //fixup orientations of all closed paths if the orientation of the
             //closed path with the lowermost vertex is wrong ...
             if (m_lowest.X >= 0 &&
-                !Clipper.Orientation(ref m_polyNodes.Childs[(int)m_lowest.X].m_polygon))
+                !Clipper.Orientation(ref polygon))
             {
                 for (int i = 0; i < m_polyNodes.ChildCount; i++)
                 {

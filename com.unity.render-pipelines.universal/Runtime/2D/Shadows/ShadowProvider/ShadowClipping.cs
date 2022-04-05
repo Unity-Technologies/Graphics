@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Initialize()
         {
-            m_ClipOffset = new ClipperOffset();
+            m_ClipOffset = new ClipperOffset(0.25f);
             m_Solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
         }
 
