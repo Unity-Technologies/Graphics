@@ -87,7 +87,8 @@ namespace UnityEditor.ShaderGraph.Defs
             // Create a port.
             var port = node.AddPort<GraphType>(
                 param.Name,
-                param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local, registry
+                param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local,
+                registry
             );
 
             TypeDescriptor paramType = param.TypeDescriptor;

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -29,11 +30,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => interfaceType.IsAssignableFrom(p));
-            foreach (var t in types)
+            var tArr = types.ToArray();
+
+            Debug.LogWarning(tArr);
+
+            foreach (Type t in types)
             {
                 if (t != interfaceType)
                 {
                     var ndMethod = t.GetMethod(GET_ND_METHOD_NAME);
+                    var fdMethod = t.GetMethod(GET_FD_METHOD_NAME);
                     if (ndMethod != null)
                     {
                         var nd = (NodeDescriptor)ndMethod.Invoke(null, null);
@@ -42,16 +48,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             RegistryKey registryKey = reg.Register(nd);
                             afterNodeRegistered?.Invoke(registryKey, t);
                         }
-                        else
-                        { // use the FunctionDescriptor
-                            var fdMethod = t.GetMethod(GET_FD_METHOD_NAME);
-                            if (fdMethod != null)
-                            {
-                                var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
-                                RegistryKey registryKey = reg.Register(fd);
-                                afterNodeRegistered?.Invoke(registryKey, t);
-                            }
+                    }
+                    else if (fdMethod != null)
+                    {
+                        var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
+                        if (!fd.Equals(default(NodeDescriptor)))
+                        {  // use the FunctionDescriptor
+                            RegistryKey registryKey = reg.Register(fd);
+                            afterNodeRegistered?.Invoke(registryKey, t);
                         }
+                    }
+                    else
+                    {
+                        var msg = $"IStandard node {t} has no node or function descriptor. It was not registered.";
+                        Debug.LogWarning(msg);
                     }
                 }
             }

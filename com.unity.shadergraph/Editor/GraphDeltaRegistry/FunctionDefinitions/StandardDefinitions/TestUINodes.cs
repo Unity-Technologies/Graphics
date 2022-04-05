@@ -3,33 +3,33 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    //internal class TestMultiFunctionNode : IStandardNode
-    //{
-    //    public static NodeDescriptor NodeDescriptor => new(
-    //        1,
-    //        "TestMultiFuctionNode",
-    //        new FunctionDescriptor[] {
-    //            new(
-    //                1,
-    //                "Function1",
-    //                "Local = In + Static; Out = Local;",
-    //                new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
-    //                new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
-    //                new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
-    //                new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
-    //            ),
-    //            new(
-    //                1,
-    //                "Function2",
-    //                "Local = In + Static; Out = Local;",
-    //                new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
-    //                new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
-    //                new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
-    //                new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
-    //            )
-    //        }
-    //    );
-    //}
+    internal class TestMultiFunctionNode : IStandardNode
+    {
+        public static NodeDescriptor NodeDescriptor => new(
+            1,
+            "TestMultiFuctionNode",
+            new FunctionDescriptor[] {
+                new(
+                    1,
+                    "Function1",
+                    "Local = In + Static; Out = Local;",
+                    new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
+                    new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
+                    new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
+                    new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "Function2",
+                    "Local = In + Static; Out = Local;",
+                    new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
+                    new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
+                    new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
+                    new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
+                )
+            }
+        );
+    }
 
     internal class TestUIMat3Node : IStandardNode
     {

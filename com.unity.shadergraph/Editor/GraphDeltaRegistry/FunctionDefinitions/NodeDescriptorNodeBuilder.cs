@@ -71,23 +71,26 @@ namespace UnityEditor.ShaderGraph.Defs
             // if there is no default function return without changing the node.
             if (m_defaultFunction == null) return;
 
-            // In building we add the selected-function field to the node.
-            // Initially, set the default function.
-            FunctionDescriptor defaultFunction = (FunctionDescriptor)m_defaultFunction;
-            node.AddField(SELECTED_FUNCTION_FIELD_NAME, defaultFunction.Name);
+            FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
 
-            // Read from the user data layer to see if a different function is selected
-            var selectedFunction = node.GetField<string>(SELECTED_FUNCTION_FIELD_NAME).GetData();
-
-            // Build the current node topology based on the selected function.
+            // check node metadata for a selected function name
+            if (node.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
+            {
+                string functionName = node.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
+                if (m_nameToFunction.ContainsKey(functionName))
+                {
+                    selectedFunction = m_nameToFunction[functionName];
+                }
+            }
 
             // TODO (Brett) THIS IS WRONG!
             // TODO (Brett) The fallback type should be determined with the currently selected FD.
+            // determine a fallback type
             TypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
 
-            foreach (var param in m_nameToFunction[selectedFunction].Parameters)
+            // setup the node topology
+            foreach (var param in selectedFunction.Parameters)
             {
-                //userData.TryGetPort(param.Name, out IPortReader portReader);
                 NodeBuilderUtils.ParameterDescriptorToField(
                     param,
                     fallbackType,
