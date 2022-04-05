@@ -49,12 +49,8 @@ namespace UnityEngine.Rendering.Universal
             Path clippedPath = m_Solution[pathIndex];
 
             int length = (int)(outPath.Length > clippedPath.Length ? clippedPath.Length : outPath.Length);
-
-            outPath = new NativeArray<Vector3>(length + startIndex, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < length; i++)
-            {
                 outPath[i + startIndex] = new Vector3(clippedPath[i].X / k_FloatMultipler, clippedPath[i].Y / k_FloatMultipler, 0);
-            }
         }
 
         public void AddInputPath(NativeArray<Vector3> inPath)

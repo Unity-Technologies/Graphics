@@ -84,43 +84,8 @@ namespace UnityEngine.Rendering.Universal
 
 
     //------------------------------------------------------------------------------
-    // PolyTree & PolyNode classes
+    // PolyNode classes
     //------------------------------------------------------------------------------
-
-    internal class PolyTree : PolyNode
-    {
-        internal List<PolyNode> m_AllPolys = new List<PolyNode>();
-
-        //The GC probably handles this cleanup more efficiently ...
-        //~PolyTree(){Clear();}
-
-        public void Clear()
-        {
-            for (int i = 0; i < m_AllPolys.Count; i++)
-                m_AllPolys[i] = null;
-            m_AllPolys.Clear();
-            m_Childs.Clear();
-        }
-
-        public PolyNode GetFirst()
-        {
-            if (m_Childs.Count > 0)
-                return m_Childs[0];
-            else
-                return null;
-        }
-
-        public int Total
-        {
-            get
-            {
-                int result = m_AllPolys.Count;
-                //with negative offsets, ignore the hidden outer polygon ...
-                if (result > 0 && m_Childs[0] != m_AllPolys[0]) result--;
-                return result;
-            }
-        }
-    }
 
     internal class PolyNode
     {
@@ -1466,14 +1431,6 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        public bool Execute(ClipType clipType, PolyTree polytree,
-            PolyFillType FillType = PolyFillType.pftEvenOdd)
-        {
-            return Execute(clipType, polytree, FillType, FillType);
-        }
-
-        //------------------------------------------------------------------------------
-
         public bool Execute(ClipType clipType, ref Paths solution,
             PolyFillType subjFillType, PolyFillType clipFillType)
         {
@@ -1494,32 +1451,6 @@ namespace UnityEngine.Rendering.Universal
                 succeeded = ExecuteInternal();
                 //build the return polygons ...
                 if (succeeded) BuildResult(ref solution);
-            }
-            finally
-            {
-                DisposeAllPolyPts();
-                m_ExecuteLocked = false;
-            }
-            return succeeded;
-        }
-
-        //------------------------------------------------------------------------------
-
-        public bool Execute(ClipType clipType, PolyTree polytree,
-            PolyFillType subjFillType, PolyFillType clipFillType)
-        {
-            if (m_ExecuteLocked) return false;
-            m_ExecuteLocked = true;
-            m_SubjFillType = subjFillType;
-            m_ClipFillType = clipFillType;
-            m_ClipType = clipType;
-            m_UsingPolyTree = true;
-            bool succeeded;
-            try
-            {
-                succeeded = ExecuteInternal();
-                //build the return polygons ...
-                if (succeeded) BuildResult2(polytree);
             }
             finally
             {
@@ -3458,52 +3389,6 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void BuildResult2(PolyTree polytree)
-        {
-            polytree.Clear();
-
-            //add each output polygon/contour to polytree ...
-            polytree.m_AllPolys.Capacity = m_PolyOuts.Count;
-            for (int i = 0; i < m_PolyOuts.Count; i++)
-            {
-                OutRec outRec = m_PolyOuts[i];
-                int cnt = PointCount(outRec.Pts);
-                if ((outRec.IsOpen && cnt < 2) ||
-                    (!outRec.IsOpen && cnt < 3)) continue;
-                FixHoleLinkage(outRec);
-                PolyNode pn = new PolyNode();
-                polytree.m_AllPolys.Add(pn);
-                outRec.PolyNode = pn;
-                pn.m_polygon.Capacity = cnt;
-                OutPt op = outRec.Pts.Prev;
-                for (int j = 0; j < cnt; j++)
-                {
-                    pn.m_polygon.Add(op.Pt);
-                    op = op.Prev;
-                }
-            }
-
-            //fixup PolyNode links etc ...
-            polytree.m_Childs.Capacity = m_PolyOuts.Count;
-            for (int i = 0; i < m_PolyOuts.Count; i++)
-            {
-                OutRec outRec = m_PolyOuts[i];
-                if (outRec.PolyNode == null) continue;
-                else if (outRec.IsOpen)
-                {
-                    outRec.PolyNode.IsOpen = true;
-                    polytree.AddChild(outRec.PolyNode);
-                }
-                else if (outRec.FirstLeft != null &&
-                         outRec.FirstLeft.PolyNode != null)
-                    outRec.FirstLeft.PolyNode.AddChild(outRec.PolyNode);
-                else
-                    polytree.AddChild(outRec.PolyNode);
-            }
-        }
-
-        //------------------------------------------------------------------------------
-
         private void FixupOutPolyline(OutRec outrec)
         {
             OutPt pp = outrec.Pts;
@@ -4515,13 +4400,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal enum NodeType { ntAny, ntOpen, ntClosed };
 
-        public static void PolyTreeToPaths(PolyTree polytree, out Paths result)
-        {
-            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
-            result.Capacity = polytree.Total;
-            AddPolyNodeToPaths(polytree, NodeType.ntAny, result);
-        }
-
         //------------------------------------------------------------------------------
 
         internal static void AddPolyNodeToPaths(PolyNode polynode, NodeType nt, Paths paths)
@@ -4538,26 +4416,6 @@ namespace UnityEngine.Rendering.Universal
                 paths.Add(polynode.m_polygon);
             foreach (PolyNode pn in polynode.Childs)
                 AddPolyNodeToPaths(pn, nt, paths);
-        }
-
-        //------------------------------------------------------------------------------
-
-        public static void OpenPathsFromPolyTree(PolyTree polytree, out Paths result)
-        {
-            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
-            result.Capacity = polytree.ChildCount;
-            for (int i = 0; i < polytree.ChildCount; i++)
-                if (polytree.Childs[i].IsOpen)
-                    result.Add(polytree.Childs[i].m_polygon);
-        }
-
-        //------------------------------------------------------------------------------
-
-        public static void ClosedPathsFromPolyTree(PolyTree polytree, out Paths result)
-        {
-            result = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
-            result.Capacity = polytree.Total;
-            AddPolyNodeToPaths(polytree, NodeType.ntClosed, result);
         }
 
         //------------------------------------------------------------------------------
@@ -4911,50 +4769,6 @@ namespace UnityEngine.Rendering.Universal
                 clpr.ReverseSolution = true;
                 clpr.Execute(ClipType.ctUnion, ref solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
                 if (solution.Length > 0) solution.RemoveAt(0);
-            }
-        }
-
-        //------------------------------------------------------------------------------
-
-        public void Execute(ref PolyTree solution, double delta)
-        {
-            solution.Clear();
-            FixOrientations();
-            DoOffset(delta);
-
-            //now clean up 'corners' ...
-            Clipper clpr = new Clipper();
-            clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
-            if (delta > 0)
-            {
-                clpr.Execute(ClipType.ctUnion, solution,
-                    PolyFillType.pftPositive, PolyFillType.pftPositive);
-            }
-            else
-            {
-                IntRect r = Clipper.GetBounds(m_destPolys);
-                Path outer = new Path(4, Allocator.Temp, NativeArrayOptions.ClearMemory);
-
-                outer.Add(new IntPoint(r.left - 10, r.bottom + 10));
-                outer.Add(new IntPoint(r.right + 10, r.bottom + 10));
-                outer.Add(new IntPoint(r.right + 10, r.top - 10));
-                outer.Add(new IntPoint(r.left - 10, r.top - 10));
-
-                clpr.AddPath(outer, PolyType.ptSubject, true);
-                clpr.ReverseSolution = true;
-                clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
-                //remove the outer PolyNode rectangle ...
-                if (solution.ChildCount == 1 && solution.Childs[0].ChildCount > 0)
-                {
-                    PolyNode outerNode = solution.Childs[0];
-                    solution.Childs.Capacity = outerNode.ChildCount;
-                    solution.Childs[0] = outerNode.Childs[0];
-                    solution.Childs[0].m_Parent = solution;
-                    for (int i = 1; i < outerNode.ChildCount; i++)
-                        solution.AddChild(outerNode.Childs[i]);
-                }
-                else
-                    solution.Clear();
             }
         }
 
