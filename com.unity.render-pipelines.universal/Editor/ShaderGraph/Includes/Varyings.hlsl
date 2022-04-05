@@ -56,10 +56,6 @@ Varyings BuildVaryings(Attributes input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if defined(UNIVERSAL_TERRAIN_ENABLED)
-    TerrainFunc(input, output);
-#endif
-
 #if defined(FEATURES_GRAPH_VERTEX)
 
 #if defined(HAVE_VFX_MODIFICATION)
@@ -99,16 +95,6 @@ Varyings BuildVaryings(Attributes input)
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
-#if defined(UNIVERSAL_TERRAIN_ENABLED) && defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
-    float4 vertexTangent = float4(cross(float3(0.0, 0.0, 1.0), input.normalOS), 1.0);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, vertexTangent);
-
-    output.normalViewDir = float4(normalInput.normalWS, viewDirWS.x);
-    output.tangentViewDir = float4(normalInput.tangentWS, viewDirWS.y);
-    output.bitangentViewDir = float4(normalInput.bitangentWS, viewDirWS.z);
-#endif
-
     // TODO: Change to inline ifdef
     // Do vertex modification in camera relative space (if enabled)
 #if defined(HAVE_VERTEX_MODIFICATION)
@@ -141,7 +127,7 @@ Varyings BuildVaryings(Attributes input)
         output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #endif
 #elif (SHADERPASS == SHADERPASS_META)
-    output.positionCS = UnityMetaVertexPosition(input.positionOS, input.uv1.xy, input.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
+    output.positionCS = UnityMetaVertexPosition(input.positionOS, input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
 #else
     output.positionCS = TransformWorldToHClip(positionWS);
 #endif
