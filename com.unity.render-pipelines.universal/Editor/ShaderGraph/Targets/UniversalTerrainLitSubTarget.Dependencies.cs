@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
-using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -94,51 +93,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static PassDescriptor Forward(UniversalTarget target, bool blendModePreserveSpecular, PragmaCollection pragmas = null)
             {
-                var result = new PassDescriptor()
-                {
-                    // Definition
-                    displayName = "Universal Forward",
-                    referenceName = "SHADERPASS_FORWARD",
-                    lightMode = "UniversalForward",
-                    useInPreview = true,
-
-                    // Template
-                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
-                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
-
-                    // Port Mask
-                    validVertexBlocks = TerrainBlockMasks.Vertex,
-                    validPixelBlocks = TerrainBlockMasks.FragmentLit,
-
-                    // Fields
-                    structs = TerrainStructCollections.Default,
-                    requiredFields = TerrainRequiredFields.Forward,
-                    fieldDependencies = CoreFieldDependencies.Default,
-
-                    // Conditional State
-                    renderStates = AdditionalLayersRenderState(),
-                    pragmas = pragmas ?? TerrainCorePragmas.Forward,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog, },
-                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, TerrainLitKeywords.Forward },
-                    includes = TerrainCoreIncludes.Forward,
-
-                    // Custom Interpolator Support
-                    customInterpolators = CoreCustomInterpDescriptors.Common
-                };
-
-                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
+                var result = TerrainLitPasses.Forward(target, blendModePreserveSpecular, pragmas);
+                result.renderStates = AdditionalLayersRenderState();
                 result.defines.Add(TerrainDefines.TerrainAddPass, 1);
-                result.keywords.Add(TerrainDefines.TerrainNormalmap);
-                result.keywords.Add(TerrainDefines.TerrainMaskmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
-                result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
-                result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
-                result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
-
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
-                TerrainLitPasses.AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
 
                 return result;
             }
@@ -146,50 +103,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Deferred only in SM4.5, MRT not supported in GLES2
             public static PassDescriptor GBuffer(UniversalTarget target, bool blendModePreserveSpecular)
             {
-                var result = new PassDescriptor
-                {
-                    // Definition
-                    displayName = "GBuffer",
-                    referenceName = "SHADERPASS_GBUFFER",
-                    lightMode = "UniversalGBuffer",
-
-                    // Template
-                    passTemplatePath = TerrainLitTemplate.kPassTemplate,
-                    sharedTemplateDirectories = TerrainLitTemplate.kSharedTemplateDirectories,
-
-                    // Port Mask
-                    validVertexBlocks = TerrainBlockMasks.Vertex,
-                    validPixelBlocks = TerrainBlockMasks.FragmentLit,
-
-                    // Fields
-                    structs = TerrainStructCollections.Default,
-                    requiredFields = TerrainRequiredFields.GBuffer,
-                    fieldDependencies = CoreFieldDependencies.Default,
-
-                    // Conditional State
-                    renderStates = AdditionalLayersRenderState(),
-                    pragmas = TerrainCorePragmas.DOTSGBuffer,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, TerrainLitKeywords.GBuffer },
-                    includes = TerrainCoreIncludes.GBuffer,
-
-                    // Custom Interpolator Support
-                    customInterpolators = CoreCustomInterpDescriptors.Common
-                };
-
-                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
-                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
+                var result = TerrainLitPasses.GBuffer(target, blendModePreserveSpecular);
+                result.renderStates = AdditionalLayersRenderState();
                 result.defines.Add(TerrainDefines.TerrainAddPass, 1);
-                result.keywords.Add(TerrainDefines.TerrainNormalmap);
-                result.keywords.Add(TerrainDefines.TerrainMaskmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
-                result.keywords.Add(TerrainDefines.TerrainInstancedPerPixelNormal);
-                result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
-                result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
-
-                CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
-                TerrainLitPasses.AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
 
                 return result;
             }
