@@ -83,7 +83,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
             // And if needed rescale the whole atlas
-            m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
+            if (LayoutShadowMaps)
+            {
+                m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
+            }
 
             // Using the same pattern than shadowmaps, light have requested space in the atlas for their
             // cookies and now we can layout the atlas (re-insert all entries by order of size) if needed
@@ -419,34 +422,45 @@ namespace UnityEngine.Rendering.HighDefinition
                 int shadowIndex = -1;
 
                 // Manage shadow requests
-                if (lightComponent != null && (processedEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
+                if (ManageShadowRequests)
                 {
-                    VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
-                    ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
-                    int shadowRequestCount;
-                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
+                    if (lightComponent != null && (processedEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
+                    {
+                        VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
+                        ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
+                        int shadowRequestCount;
+                        shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
 
 #if UNITY_EDITOR
-                    if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
-                         || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
-                        && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
-                    {
-                        m_DebugSelectedLightShadowIndex = shadowIndex;
-                        m_DebugSelectedLightShadowCount = shadowRequestCount;
-                    }
+                        if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
+                             || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                            && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
+                        {
+                            m_DebugSelectedLightShadowIndex = shadowIndex;
+                            m_DebugSelectedLightShadowCount = shadowRequestCount;
+                        }
 #endif
+                    }
+                }
+                else if (CopyShadowIndices)
+                {
+                    // use the same shadow index from the previously computed one for visible lights
+                    shadowIndex = additionalLightData.shadowIndex; // GG: Review
                 }
 
                 if (gpuLightType == GPULightType.Directional)
                 {
-                    VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
-                    ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
-                    int directionalLightDataIndex = sortKeyIndex;
-                    DirectionalLightData* lightDataPtr = directionalLightArrayPtr + directionalLightDataIndex;
-                    ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
-                    CalculateDirectionalLightDataTextureInfo(
-                        ref lightData, cmd, light, lightComponent, additionalLightData,
-                        hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
+                    if (!SkipDirectionalLights)
+                    {
+                        VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
+                        ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
+                        int directionalLightDataIndex = sortKeyIndex;
+                        DirectionalLightData* lightDataPtr = directionalLightArrayPtr + directionalLightDataIndex;
+                        ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
+                        CalculateDirectionalLightDataTextureInfo(
+                            ref lightData, cmd, light, lightComponent, additionalLightData,
+                            hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
+                    }
                 }
                 else
                 {
@@ -460,5 +474,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        protected abstract bool LayoutShadowMaps { get; }
+        protected abstract bool ManageShadowRequests { get; }
+        protected abstract bool CopyShadowIndices { get; }
+        protected abstract bool SkipDirectionalLights { get; }
+    }
+
+    internal partial class HDGpuLightsRegularBuilder : HDGpuLightsBuilder
+    {
+        protected override bool LayoutShadowMaps => true;
+        protected override bool ManageShadowRequests => true;
+        protected override bool CopyShadowIndices => false;
+        protected override bool SkipDirectionalLights => false;
+    }
+
+    internal partial class HDGpuLightsDynamicBuilder : HDGpuLightsBuilder
+    {
+        protected override bool LayoutShadowMaps => false;
+        protected override bool ManageShadowRequests => false;
+        protected override bool CopyShadowIndices => true;
+        protected override bool SkipDirectionalLights => true;
     }
 }

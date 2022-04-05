@@ -62,6 +62,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCounts;
             [ReadOnly]
             public bool useCameraRelativePosition;
+            [ReadOnly]
+            public bool skipDirectionalLights;
+            [ReadOnly]
+            public bool modulateByBounceIntensity;
+            [ReadOnly]
+            public bool computeLightDataVolumeAndBound;
 
             //sky settings
             [ReadOnly]
@@ -90,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<HDProcessedVisibleLight> processedEntities;
             [ReadOnly]
             public NativeArray<VisibleLight> visibleLights;
+            [ReadOnly]
+            public NativeArray<VisibleLight> visibleOffscreenLights;
             [ReadOnly]
             public NativeArray<LightBakingOutput> visibleLightBakingOutput;
             [ReadOnly]
@@ -339,7 +347,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 int outputIndex, int lightIndex,
                 LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType)
             {
-                var light = visibleLights[lightIndex];
+                bool isFromVisibleList = lightIndex < visibleLights.Length;
+                var light = isFromVisibleList ? visibleLights[lightIndex] : visibleOffscreenLights[lightIndex - visibleLights.Length];
                 var processedEntity = processedEntities[lightIndex];
                 var lightData = new LightData();
                 ref HDLightRenderData lightRenderData = ref GetLightData(processedEntity.dataIndex);
@@ -354,12 +363,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     out var lightDimensions,
                     ref lightData);
 
-                for (int viewId = 0; viewId < viewCounts; ++viewId)
+                if (modulateByBounceIntensity)
                 {
-                    var lightsPerViewContainer = lightsPerView[viewId];
-                    ComputeLightVolumeDataAndBound(
-                        lightCategory, gpuLightType, lightVolumeType,
-                        light, lightData, lightDimensions, lightsPerViewContainer.worldToView, outputIndex + lightsPerViewContainer.boundsOffset);
+                    lightData.color *= visibleLightBounceIntensity[lightIndex];
+                }
+
+                if (computeLightDataVolumeAndBound)
+                {
+                    for (int viewId = 0; viewId < viewCounts; ++viewId)
+                    {
+                        var lightsPerViewContainer = lightsPerView[viewId];
+                        ComputeLightVolumeDataAndBound(
+                            lightCategory, gpuLightType, lightVolumeType,
+                            light, lightData, lightDimensions, lightsPerViewContainer.worldToView, outputIndex + lightsPerViewContainer.boundsOffset);
+                    }
                 }
 
                 if (useCameraRelativePosition)
@@ -680,8 +697,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (gpuLightType == GPULightType.Directional)
                 {
-                    int outputIndex = index;
-                    ConvertDirectionalLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType);
+                    if (!skipDirectionalLights)
+                    {
+                        int outputIndex = index;
+                        ConvertDirectionalLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType);
+                    }
                 }
                 else
                 {
@@ -718,6 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 defaultDataIndex = lightEntities.GetEntityDataIndex(lightEntities.GetDefaultLightEntity()),
                 viewCounts = hdCamera.viewCount,
                 useCameraRelativePosition = ShaderConfig.s_CameraRelativeRendering != 0,
+                skipDirectionalLights = SkipDirectionalLights,
 
                 planetCenterPosition = skySettings.GetPlanetCenterPosition(hdCamera.camera.transform.position),
                 planetaryRadius = skySettings.GetPlanetaryRadius(),
@@ -733,6 +754,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortKeys = visibleLights.sortKeys,
                 processedEntities = visibleLights.processedEntities,
                 visibleLights = cullingResult.visibleLights,
+                visibleOffscreenLights = cullingResult.visibleOffscreenVertexLights,
                 visibleLightBakingOutput = visibleLights.visibleLightBakingOutput,
                 visibleLightShadowCasterMode = visibleLights.visibleLightShadowCasterMode,
                 visibleLightBounceIntensity = visibleLights.visibleLightBounceIntensity,
@@ -745,6 +767,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightBounds = m_LightBounds,
                 lightVolumes = m_LightVolumes
             };
+            OverrideCreateGpuLightDataJobParameters(ref createGpuLightDataJob);
 
             m_CreateGpuLightDataJobHandle = createGpuLightDataJob.Schedule(visibleLights.sortedLightCounts, 32);
         }
@@ -752,6 +775,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public void CompleteGpuLightDataJob()
         {
             m_CreateGpuLightDataJobHandle.Complete();
+        }
+
+        protected abstract void OverrideCreateGpuLightDataJobParameters(ref CreateGpuLightDataJob job);
+    }
+
+    internal partial class HDGpuLightsRegularBuilder : HDGpuLightsBuilder
+    {
+        protected override void OverrideCreateGpuLightDataJobParameters(ref CreateGpuLightDataJob job)
+        {
+            job.modulateByBounceIntensity = false;
+            job.computeLightDataVolumeAndBound = true;
+        }
+    }
+
+    internal partial class HDGpuLightsDynamicBuilder : HDGpuLightsBuilder
+    {
+        protected override void OverrideCreateGpuLightDataJobParameters(ref CreateGpuLightDataJob job)
+        {
+            job.modulateByBounceIntensity = true;
+            job.computeLightDataVolumeAndBound = false;
         }
     }
 }

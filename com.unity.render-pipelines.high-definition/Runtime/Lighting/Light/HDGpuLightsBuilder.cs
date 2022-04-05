@@ -5,7 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal partial class HDGpuLightsBuilder
+    internal abstract partial class HDGpuLightsBuilder
     {
         #region internal HDRP API
 
