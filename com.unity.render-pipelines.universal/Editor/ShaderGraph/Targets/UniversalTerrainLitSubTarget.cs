@@ -654,27 +654,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
             };
 
-            public static StructDescriptor SurfaceDescriptionInputs = new StructDescriptor()
+            private static StructDescriptor SurfaceDescriptionInputsImpl()
             {
-                name = "SurfaceDescriptionInputs",
-                packFields = false,
-                populateWithCustomInterpolators = true,
-                fields = new FieldDescriptor[]
+                var surfaceDescriptionInputs = Structs.SurfaceDescriptionInputs;
+                var terrainFieldList = new List<FieldDescriptor>();
+
+                for (int i = 0; i < surfaceDescriptionInputs.fields.Length; ++i)
+                    terrainFieldList.Add(surfaceDescriptionInputs.fields[i]);
+
+                terrainFieldList.Add(TerrainStructFields.SurfaceDescriptionInputs.uvSplat01);
+                terrainFieldList.Add(TerrainStructFields.SurfaceDescriptionInputs.uvSplat23);
+
+                return new StructDescriptor()
                 {
-                    StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,
-                    StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,
-                    StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,
-                    StructFields.SurfaceDescriptionInputs.TangentSpaceNormal,
+                    name = "SurfaceDescriptionInputs",
+                    packFields = false,
+                    populateWithCustomInterpolators = true,
+                    fields = terrainFieldList.ToArray(),
+                };
+            }
 
-                    StructFields.SurfaceDescriptionInputs.uv0,
-                    StructFields.SurfaceDescriptionInputs.uv1,
-                    StructFields.SurfaceDescriptionInputs.uv2,
-                    StructFields.SurfaceDescriptionInputs.uv3,
-
-                    TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
-                    TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
-                }
-            };
+            public static StructDescriptor SurfaceDescriptionInputs => SurfaceDescriptionInputsImpl();
         }
 
         static class TerrainStructCollections
