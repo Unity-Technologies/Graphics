@@ -52,9 +52,6 @@ namespace UnityEditor.Rendering.HighDefinition
         private MaterialProperty heightTransition = null;
         private MaterialProperty enableInstancedPerPixelNormal = null;
 
-        // Custom fields
-        private List<MaterialProperty> customProperties = new List<MaterialProperty>();
-
         private bool m_ShowChannelRemapping = false;
         private HeightParametrization m_HeightParametrization = HeightParametrization.Amplitude;
 
@@ -87,9 +84,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(enableInstancedPerPixelNormal, Styles.enableInstancedPerPixelNormal);
                 EditorGUI.EndDisabledGroup();
             }
-
-            foreach (var prop in customProperties)
-                materialEditor.ShaderProperty(prop, prop.displayName);
         }
 
         public bool OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
@@ -279,7 +273,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected void FindTerrainLitProperties(MaterialProperty[] props)
         {
-            customProperties.Clear();
             foreach (var prop in props)
             {
                 if (prop.name == HDMaterialProperties.kEnableHeightBlend)
@@ -288,8 +281,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     heightTransition = prop;
                 else if (prop.name == HDMaterialProperties.kEnableInstancedPerPixelNormal)
                     enableInstancedPerPixelNormal = prop;
-                else if ((prop.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) == 0)
-                    customProperties.Add(prop);
             }
         }
     }

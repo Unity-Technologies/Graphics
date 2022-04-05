@@ -15,21 +15,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
             new TerrainSurfaceOptionsUIBlock(MaterialUIBlock.ExpandableBit.Other),
+            new ShaderGraphUIBlock(MaterialUIBlock.ExpandableBit.ShaderGraph),
             new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, features: advancedOptionsFeatures),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            uiBlocks.Initialize(materialEditor, props);
-
-            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
-            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
-
-            uiBlocks.FetchUIBlock<TerrainSurfaceOptionsUIBlock>().UpdateMaterialProperties(props);
-            uiBlocks.FetchUIBlock<TerrainSurfaceOptionsUIBlock>().OnGUI();
-
-            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
-            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
