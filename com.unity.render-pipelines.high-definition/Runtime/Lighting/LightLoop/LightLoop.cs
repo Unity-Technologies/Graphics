@@ -598,7 +598,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public class LightList
         // custom-end
         {
-            // public List<LightData> dynamicGILights; // GG: Review
             public List<EnvLightData> envLights;
 
             public void Clear()
@@ -1285,16 +1284,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 C, R, L, X);
         }
 
-        // GG: This data wasn't being populated in the R&D PR
-        /*
-        internal void GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, VisibleLight light, Light lightComponent, int lightIndex, int shadowIndex,
-            int sortedIndex, bool isPhysicallyBasedSkyActive, ref int screenSpaceShadowIndex, ref int screenSpaceShadowslot)
-        {
-
-            lightData.bounceIntensity = lightComponent.bounceIntensity;
-        }
-        */
-
         // This function evaluates if there is currently enough screen space sahdow slots of a given light based on its light type
         bool EnoughScreenSpaceShadowSlots(GPULightType gpuLightType, int screenSpaceChannelSlot)
         {
@@ -1308,25 +1297,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return screenSpaceChannelSlot < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots;
             }
         }
-
-        // GG: This data wasn't being populated in the R&D PR
-        /*
-        internal void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
-            in ProcessedLightData processedData, int shadowIndex, BoolScalableSetting contactShadowsScalableSetting, bool isRasterization, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref LightData lightData)
-        {
-            // TODO: only apply for real-time lights, but lightComponent.lightmapBakeType is not available outside in built players, Editor only...
-            lightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
-            if ((gpuLightType == GPULightType.Point) || (gpuLightType == GPULightType.Spot))
-            {
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.HierarchicalVarianceScreenSpaceShadows)
-                    && additionalLightData.useHierarchicalVarianceScreenSpaceShadows)
-                {
-                    float lightDepthVS = Vector3.Dot(hdCamera.camera.transform.forward, lightData.positionRWS - hdCamera.camera.transform.position);
-                    lightData.hierarchicalVarianceScreenSpaceShadowsIndex = m_HierarchicalVarianceScreenSpaceShadowsData.Push(lightData.positionRWS, lightDepthVS, lightData.range);
-                }
-            }
-        }
-        */
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
@@ -1818,7 +1788,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        private class HierarchicalVarianceScreenSpaceShadowsData
+        // GG: Could move this into the GPULightsBuilder
+        public class HierarchicalVarianceScreenSpaceShadowsData
         {
             public int count = 0;
             public Vector3[] positionsWS = new Vector3[4];
@@ -1856,7 +1827,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // 2. Go through all lights, convert them to GPU format.
                 // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
-                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings);
+                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings, ref m_HierarchicalVarianceScreenSpaceShadowsData);
 
                 m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
                 m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;

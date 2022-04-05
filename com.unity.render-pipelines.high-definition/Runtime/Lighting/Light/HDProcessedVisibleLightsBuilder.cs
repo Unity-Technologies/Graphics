@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public NativeArray<int> visibleLightEntityDataIndices => m_VisibleLightEntityDataIndices;
         public NativeArray<LightVolumeType> processedLightVolumeType => m_ProcessedLightVolumeType;
         public NativeArray<HDProcessedVisibleLight> processedEntities => m_ProcessedEntities;
+        public NativeArray<float> visibleLightBounceIntensity => m_VisibleLightBounceIntensity;
 
         //Indexed by sorted lights.
         public NativeArray<uint> sortKeys => m_SortKeys;
@@ -99,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeArray<LightShadowCasterMode> m_VisibleLightShadowCasterMode;
         private NativeArray<LightShadows> m_VisibleLightShadows;
         private NativeArray<bool> m_VisibleLightIsFromVisibleList;
+        private NativeArray<float> m_VisibleLightBounceIntensity;
         private NativeArray<LightVolumeType> m_ProcessedLightVolumeType;
         private NativeArray<HDProcessedVisibleLight> m_ProcessedEntities;
 
@@ -117,6 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightShadowCasterMode.ResizeArray(m_Capacity);
             m_VisibleLightShadows.ResizeArray(m_Capacity);
             m_VisibleLightIsFromVisibleList.ResizeArray(m_Capacity);
+            m_VisibleLightBounceIntensity.ResizeArray(m_Capacity);
 
             m_ProcessedLightVolumeType.ResizeArray(m_Capacity);
             m_ProcessedEntities.ResizeArray(m_Capacity);
@@ -139,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightShadowCasterMode.Dispose();
             m_VisibleLightShadows.Dispose();
             m_VisibleLightIsFromVisibleList.Dispose();
+            m_VisibleLightBounceIntensity.Dispose();
 
             m_ProcessedLightVolumeType.Dispose();
             m_ProcessedEntities.Dispose();

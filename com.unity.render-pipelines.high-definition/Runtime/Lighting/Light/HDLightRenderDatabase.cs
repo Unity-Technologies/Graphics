@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float volumetricFadeDistance;
         public bool includeForRayTracing;
         public bool useScreenSpaceShadows;
+        public bool useHierarchicalVarianceScreenSpaceShadows;
         public bool useRayTracedShadows;
         public bool colorShadow;
         public float lightDimmer;

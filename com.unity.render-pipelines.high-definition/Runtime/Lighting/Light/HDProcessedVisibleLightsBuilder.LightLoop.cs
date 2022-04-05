@@ -79,6 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_VisibleLightShadowCasterMode[i] = light.lightShadowCasterMode;
                     m_VisibleLightShadows[i] = light.shadows;
                     m_VisibleLightIsFromVisibleList[i] = isFromVisibleList;
+                    m_VisibleLightBounceIntensity[i] = light.bounceIntensity;
                 }
             }
         }

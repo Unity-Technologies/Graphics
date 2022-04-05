@@ -749,6 +749,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_UseHierarchicalVarianceScreenSpaceShadows = value;
+
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).useHierarchicalVarianceScreenSpaceShadows = m_UseHierarchicalVarianceScreenSpaceShadows;
             }
         }
 
@@ -3538,6 +3541,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.volumetricFadeDistance = m_VolumetricFadeDistance;
             lightRenderData.includeForRayTracing = m_IncludeForRayTracing;
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
+            lightRenderData.useHierarchicalVarianceScreenSpaceShadows = m_UseHierarchicalVarianceScreenSpaceShadows;
             lightRenderData.useRayTracedShadows = m_UseRayTracedShadows;
             lightRenderData.colorShadow = m_ColorShadow;
             lightRenderData.lightDimmer = m_LightDimmer;

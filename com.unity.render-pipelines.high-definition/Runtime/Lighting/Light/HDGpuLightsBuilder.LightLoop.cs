@@ -78,7 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProcessedVisibleLightsBuilder visibleLights,
             HDLightRenderDatabase lightEntities,
             in HDShadowInitParameters shadowInitParams,
-            DebugDisplaySettings debugDisplaySettings)
+            DebugDisplaySettings debugDisplaySettings,
+            ref HDRenderPipeline.HierarchicalVarianceScreenSpaceShadowsData hierarchicalVarianceScreenSpaceShadowsData)
         {
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
             // And if needed rescale the whole atlas
@@ -114,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
                 StartCreateGpuLightDataJob(hdCamera, cullingResult, hdShadowSettings, visibleLights, lightEntities);
                 CompleteGpuLightDataJob();
-                CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings);
+                CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings, ref hierarchicalVarianceScreenSpaceShadowsData);
             }
 
             //Sanity check
@@ -288,6 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.cookieMode = CookieMode.None;
             }
 
+            // GG: This could be a duplicate, as we're already doing this in the job
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 lightData.positionRWS -= hdCamera.camera.transform.position;
@@ -310,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void CalculateLightDataTextureInfo(
             ref LightData lightData, CommandBuffer cmd, in Light lightComponent, HDAdditionalLightData additionalLightData, in HDShadowInitParameters shadowInitParams,
             in HDCamera hdCamera, BoolScalableSetting contactShadowScalableSetting,
-            HDLightType lightType, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, bool rayTracingEnabled, int lightDataIndex, int shadowIndex)
+            HDLightType lightType, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, bool rayTracingEnabled, int lightDataIndex, int shadowIndex, GPULightType gpuLightType, ref HDRenderPipeline.HierarchicalVarianceScreenSpaceShadowsData hierarchicalVarianceScreenSpaceShadowsData)
         {
             ProcessLightDataShadowIndex(
                 cmd,
@@ -357,6 +359,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     m_ScreenSpaceShadowChannelSlot++;
             }
+
+            lightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
+            if ((gpuLightType == GPULightType.Point) || (gpuLightType == GPULightType.Spot))
+            {
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.HierarchicalVarianceScreenSpaceShadows)
+                    && additionalLightData.useHierarchicalVarianceScreenSpaceShadows)
+                {
+                    float lightDepthVS = Vector3.Dot(hdCamera.camera.transform.forward, lightData.positionRWS - hdCamera.camera.transform.position);
+                    lightData.hierarchicalVarianceScreenSpaceShadowsIndex = hierarchicalVarianceScreenSpaceShadowsData.Push(lightData.positionRWS, lightDepthVS, lightData.range);
+                }
+            }
         }
 
         private unsafe void CalculateAllLightDataTextureInfo(
@@ -367,7 +380,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightRenderDatabase lightEntities,
             HDShadowSettings hdShadowSettings,
             in HDShadowInitParameters shadowInitParams,
-            DebugDisplaySettings debugDisplaySettings)
+            DebugDisplaySettings debugDisplaySettings,
+            ref HDRenderPipeline.HierarchicalVarianceScreenSpaceShadowsData hierarchicalVarianceScreenSpaceShadowsData)
         {
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
             bool rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
@@ -442,7 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     CalculateLightDataTextureInfo(
                         ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
                         hdCamera, contactShadowScalableSetting,
-                        lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex);
+                        lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, ref hierarchicalVarianceScreenSpaceShadowsData);
                 }
             }
         }
