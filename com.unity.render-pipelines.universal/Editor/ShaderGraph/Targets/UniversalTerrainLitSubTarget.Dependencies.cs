@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = AdditionalLayersRenderState(),
                     pragmas = pragmas ?? TerrainCorePragmas.Forward,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog, },
-                    keywords = new KeywordCollection() { TerrainLitKeywords.Forward },
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, TerrainLitKeywords.Forward },
                     includes = TerrainCoreIncludes.Forward,
 
                     // Custom Interpolator Support
@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = AdditionalLayersRenderState(),
                     pragmas = TerrainCorePragmas.DOTSGBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { TerrainLitKeywords.GBuffer },
+                    keywords = new KeywordCollection() { TerrainSubShaders.AlphaTestOn, TerrainLitKeywords.GBuffer },
                     includes = TerrainCoreIncludes.GBuffer,
 
                     // Custom Interpolator Support

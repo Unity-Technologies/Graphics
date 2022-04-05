@@ -202,7 +202,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     overrideReferenceName = "_EnableHeightBlend",
                     displayName = "Enable Height Blend",
                 });
-
                 collector.AddShaderProperty(new Vector1ShaderProperty
                 {
                     floatType = FloatType.Slider,
@@ -213,7 +212,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     overrideReferenceName = "_HeightTransition",
                     displayName = "Height Transition",
                 });
-
                 collector.AddShaderProperty(new BooleanShaderProperty
                 {
                     value = enableInstancedPerPixelNormal,
@@ -223,8 +221,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     overrideReferenceName = "_EnableInstancedPerPixelNormal",
                     displayName = "Enable Instanced per Pixel Normal",
                 });
-
-                #if true
+                collector.AddShaderProperty(new Texture2DShaderProperty
+                {
+                    defaultType = Texture2DShaderProperty.DefaultType.White,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                    overrideReferenceName = "_TerrainHolesTexture",
+                    displayName = "Holes Map (RGB)",
+                });
                 collector.AddShaderProperty(new Texture2DShaderProperty
                 {
                     defaultType = Texture2DShaderProperty.DefaultType.White,
@@ -305,7 +310,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "Layer 0 (R)",
                     useTilingAndOffset = true,
                 });
-                #endif
                 collector.AddShaderProperty(new Vector1ShaderProperty
                 {
                     floatType = FloatType.Slider,
