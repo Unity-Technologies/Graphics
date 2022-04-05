@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where ShadowCaster2Ds were sometimes being rendered twice in the editor while in playmode.
-
+- Fixed SSAO to work in VR mode. Normal buffer stores normals in world space.
 
 ## [10.9.0] - 2021-12-06
 

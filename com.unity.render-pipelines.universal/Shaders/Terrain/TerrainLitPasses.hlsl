@@ -562,7 +562,7 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
     #endif
 
     half3 normalWS = IN.normal.xyz;
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+    return float4(PackNormalOctRectEncode(normalize(normalWS)), 0.0, 0.0);
 }
 
 #endif

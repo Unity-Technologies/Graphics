@@ -291,7 +291,7 @@ GrassVertexDepthNormalOutput DepthNormalOnlyVertex(GrassVertexDepthNormalInput v
 half4 DepthNormalOnlyFragment(GrassVertexDepthNormalOutput input) : SV_TARGET
 {
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(NormalizeNormalPerPixel(input.normal), true)), 0.0, 0.0);
+    return float4(PackNormalOctRectEncode(normalize(input.normal)), 0.0, 0.0);
 }
 
 #endif
