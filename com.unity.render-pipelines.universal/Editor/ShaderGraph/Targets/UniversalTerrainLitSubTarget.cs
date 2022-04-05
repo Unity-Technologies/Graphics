@@ -1555,6 +1555,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Includes
         static class TerrainCoreIncludes
         {
+            public static readonly string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/Varyings.hlsl";
+            public static readonly string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
             public static readonly string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
             public static readonly string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
             public static readonly string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/DepthOnlyPass.hlsl";
@@ -1569,19 +1571,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly string kTerrainLitInput = "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl";
             public static readonly string kTerrainPassUtils = "Packages/com.unity.render-pipelines.universal/Editor/Terrain/TerrainPassUtils.hlsl";
 
+            public static readonly IncludeCollection CorePostgraph = new IncludeCollection
+            {
+                { kShaderPass, IncludeLocation.Pregraph },
+                { kVaryings, IncludeLocation.Postgraph },
+            };
+
             public static readonly IncludeCollection Forward = new IncludeCollection
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
-                { kShadows, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kForwardPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kForwardPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection DepthOnly = new IncludeCollection
@@ -1589,12 +1597,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kDepthOnlyPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kDepthOnlyPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection DepthNormalsOnly = new IncludeCollection
@@ -1602,12 +1610,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection ShadowCaster = new IncludeCollection
@@ -1615,28 +1623,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kShadowCasterPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kShadowCasterPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection GBuffer = new IncludeCollection
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
-                { kShadows, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kGBuffer, IncludeLocation.Postgraph },
-                { kPBRGBufferPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kGBuffer, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.kPBRGBufferPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection Meta = new IncludeCollection
@@ -1644,13 +1652,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { kMetaInput, IncludeLocation.Pregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kMetaInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kLightingMetaPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kLightingMetaPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection SceneSelection = new IncludeCollection
@@ -1658,12 +1666,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kSelectionPickingPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kSelectionPickingPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection ScenePicking = new IncludeCollection
@@ -1671,12 +1679,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { kTerrainLitInput, IncludeLocation.Pregraph },
-                { kTerrainPassUtils, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainLitInput, IncludeLocation.Pregraph },
+                { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kSelectionPickingPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainCoreIncludes.kSelectionPickingPass, IncludeLocation.Postgraph },
             };
         }
         #endregion

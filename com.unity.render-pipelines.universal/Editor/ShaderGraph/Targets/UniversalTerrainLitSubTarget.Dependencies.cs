@@ -244,8 +244,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kBaseMapPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainBaseGenPasses.kBaseMapPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection BaseGenMetallicTexIncludes = new IncludeCollection
@@ -256,8 +256,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { TerrainCoreIncludes.kTerrainPassUtils, IncludeLocation.Pregraph },
 
                 // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kBaseMapPass, IncludeLocation.Postgraph },
+                { TerrainCoreIncludes.CorePostgraph },
+                { TerrainBaseGenPasses.kBaseMapPass, IncludeLocation.Postgraph },
             };
 
             public static readonly AdditionalCommandCollection BaseMapMainTex = new AdditionalCommandCollection()
