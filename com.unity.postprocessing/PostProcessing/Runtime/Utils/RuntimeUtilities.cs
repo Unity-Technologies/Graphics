@@ -897,7 +897,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         /// <param name="format">The format to test</param>
         /// <returns><c>true</c> if the format has an alpha channel, <c>false</c> otherwise</returns>
-        public static bool hasAlpha(RenderTextureFormat format)
+        internal static bool hasAlpha(RenderTextureFormat format)
         {
             UnityEngine.Experimental.Rendering.GraphicsFormat gformat = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(format, RenderTextureReadWrite.Default);
             return UnityEngine.Experimental.Rendering.GraphicsFormatUtility.HasAlphaChannel(gformat);
