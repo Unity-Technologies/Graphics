@@ -4884,6 +4884,38 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
+        public void Execute(ref Paths solution, double delta)
+        {
+            solution.Clear();
+            FixOrientations();
+            DoOffset(delta);
+            //now clean up 'corners' ...
+            Clipper clpr = new Clipper();
+            clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
+            if (delta > 0)
+            {
+                clpr.Execute(ClipType.ctUnion, ref solution,
+                  PolyFillType.pftPositive, PolyFillType.pftPositive);
+            }
+            else
+            {
+                IntRect r = Clipper.GetBounds(m_destPolys);
+                Path outer = new Path(4, Allocator.Temp, NativeArrayOptions.ClearMemory);
+
+                outer.Add(new IntPoint(r.left - 10, r.bottom + 10));
+                outer.Add(new IntPoint(r.right + 10, r.bottom + 10));
+                outer.Add(new IntPoint(r.right + 10, r.top - 10));
+                outer.Add(new IntPoint(r.left - 10, r.top - 10));
+
+                clpr.AddPath(outer, PolyType.ptSubject, true);
+                clpr.ReverseSolution = true;
+                clpr.Execute(ClipType.ctUnion, ref solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
+                if (solution.Length > 0) solution.RemoveAt(0);
+            }
+        }
+
+        //------------------------------------------------------------------------------
+
         public void Execute(ref PolyTree solution, double delta)
         {
             solution.Clear();

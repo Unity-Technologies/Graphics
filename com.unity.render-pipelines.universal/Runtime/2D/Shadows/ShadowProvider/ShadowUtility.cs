@@ -491,7 +491,11 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
             NativeArray<int> tmpShapeStartingEdge = new NativeArray<int>(inShapeStartingEdge.Length, Allocator.Temp);
 
-            ShadowShape2DClipper.Clear();
+            ShadowClipping shadowClipper = new ShadowClipping();
+            shadowClipper.Initialize();
+            
+
+            shadowClipper.Clear();
 
             for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
                 tmpShapeStartingEdge[i] = -1;
@@ -514,7 +518,7 @@ namespace UnityEngine.Rendering.Universal
 
                     verticesToClip[numberOfEdges] = inVertices[inEdges[numberOfEdges + currentShapeStart - 1].v1];
 
-                    ShadowShape2DClipper.AddInputPath(verticesToClip);
+                    shadowClipper.AddInputPath(verticesToClip);
                 }
                 // If its an open shape just copy it to our output
                 else
@@ -536,17 +540,17 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            ShadowShape2DClipper.ContractPath(-contractEdge);
+            shadowClipper.ContractPath(-contractEdge);
 
             // If we have an output path copy it out
-            int outputPaths = ShadowShape2DClipper.GetOutputPaths();
+            int outputPaths = shadowClipper.GetOutputPaths();
             for (int outputPath = 0; outputPath < outputPaths; outputPath++)
             {
-                int outputPathLength = ShadowShape2DClipper.GetOutputPathLength(outputPath);
+                int outputPathLength = shadowClipper.GetOutputPathLength(outputPath);
                 if (outputPathLength > 0 && tmpShapeStartingEdge.Length > outputPath)
                 {
                     tmpShapeStartingEdge[outputPath] = currentTempEdgeIndex;
-                    ShadowShape2DClipper.GetOutputPath(outputPath, tempVertices, currentTempVertexIndex);
+                    shadowClipper.GetOutputPath(outputPath, ref tempVertices, currentTempVertexIndex);
 
                     // Create edges
                     int lastVertexIndex = (outputPathLength - 1) + currentTempVertexIndex;

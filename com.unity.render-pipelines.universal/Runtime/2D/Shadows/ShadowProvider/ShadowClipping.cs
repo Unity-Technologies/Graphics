@@ -16,6 +16,24 @@ namespace UnityEngine.Rendering.Universal
         ClipperOffset m_ClipOffset;
         Paths m_Solution;
 
+
+        public void Initialize()
+        {
+            m_ClipOffset = new ClipperOffset();
+            m_Solution = new Paths(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+        }
+
+        public void Clear()
+        {
+            m_ClipOffset.Clear();
+        }
+
+        public void ContractPath(float offset)
+        {
+            m_ClipOffset.ArcTolerance = 200.0f / 4.0f; // low detail
+            m_ClipOffset.Execute(ref m_Solution, k_FloatMultipler * offset);
+        }
+
         public int GetOutputPaths()
         {
             return m_Solution.Length;
@@ -30,9 +48,13 @@ namespace UnityEngine.Rendering.Universal
         {
             Path clippedPath = m_Solution[pathIndex];
 
-            outPath = new NativeArray<Vector3>(clippedPath.Length, Allocator.Temp);
-            for(int i=0;i<outPath.Length;i++)
-                outPath[i] = new Vector3(clippedPath[i].X, clippedPath[i].Y, 0);
+            int length = (int)(outPath.Length > clippedPath.Length ? clippedPath.Length : outPath.Length);
+
+            outPath = new NativeArray<Vector3>(length + startIndex, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            for (int i = 0; i < length; i++)
+            {
+                outPath[i + startIndex] = new Vector3(clippedPath[i].X / k_FloatMultipler, clippedPath[i].Y / k_FloatMultipler, 0);
+            }
         }
 
         public void AddInputPath(NativeArray<Vector3> inPath)
@@ -44,17 +66,6 @@ namespace UnityEngine.Rendering.Universal
 
             //m_ClipOffset.AddPath(ref input, JoinType.jtSquare, EndType.etClosedPolygon);
             m_ClipOffset.AddPath(ref input, JoinType.jtRound, EndType.etClosedPolygon);
-        }
-
-        public void Clear()
-        {
-            m_ClipOffset.Clear();
-        }
-
-        public void ContractPath(float offset)
-        {
-            m_ClipOffset.ArcTolerance = 200.0f / 4.0f; // low detail
-            m_ClipOffset.Execute(ref m_Solution, k_FloatMultipler * offset, m_Solution.Length);
         }
     }
 }
