@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
         const AdvancedOptionsUIBlock.Features advancedOptionsFeatures = AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion;
 
-        protected  MaterialUIBlockList uiBlocks = new MaterialUIBlockList
+        protected MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
             new TerrainSurfaceOptionsUIBlock(MaterialUIBlock.ExpandableBit.Other),
@@ -20,16 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            uiBlocks.Initialize(materialEditor, props);
-
-            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
-            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
-
-            uiBlocks.FetchUIBlock<TerrainSurfaceOptionsUIBlock>().UpdateMaterialProperties(props);
-            uiBlocks.FetchUIBlock<TerrainSurfaceOptionsUIBlock>().OnGUI();
-
-            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
-            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
