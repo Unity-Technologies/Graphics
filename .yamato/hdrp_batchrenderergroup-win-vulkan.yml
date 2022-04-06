@@ -15,11 +15,11 @@ HDRP_BatchRendererGroup_Win_Vulkan_playmode_mono_Linear_2022.1:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -50,11 +50,11 @@ HDRP_BatchRendererGroup_Win_Vulkan_playmode_XR_mono_Linear_2022.1:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -85,11 +85,11 @@ HDRP_BatchRendererGroup_Win_Vulkan_Standalone_mono_Linear_2022.1:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -117,11 +117,11 @@ Build_HDRP_BatchRendererGroup_Win_Vulkan_Standalone_mono_Linear_2022.1:
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -155,11 +155,11 @@ HDRP_BatchRendererGroup_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -190,11 +190,11 @@ HDRP_BatchRendererGroup_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -225,11 +225,11 @@ HDRP_BatchRendererGroup_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -257,11 +257,11 @@ Build_HDRP_BatchRendererGroup_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat

@@ -14,12 +14,12 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_2022.1:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -46,12 +46,12 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_2022.1:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -78,12 +78,12 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_2022.1:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -110,12 +110,12 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -142,12 +142,12 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_CUSTOM-REVISIO
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -174,12 +174,12 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat

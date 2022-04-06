@@ -10,10 +10,10 @@
 URP_Perf_2022.1:
     name: URP_Perf on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_2022.1
          rerun: on_new_revision
@@ -26,10 +26,10 @@ URP_Perf_2022.1:
 URP_Perf_CUSTOM-REVISION:
     name: URP_Perf on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision

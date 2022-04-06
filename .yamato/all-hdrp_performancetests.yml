@@ -10,11 +10,11 @@
 HDRP_PerformanceTests_2022.1:
     name: HDRP_PerformanceTests on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        GIT_BRANCH: master
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        GIT_BRANCH: master
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_2022.1
          rerun: on_new_revision
@@ -27,11 +27,11 @@ HDRP_PerformanceTests_2022.1:
 HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        GIT_BRANCH: master
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        GIT_BRANCH: master
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

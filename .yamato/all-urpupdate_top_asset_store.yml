@@ -10,12 +10,12 @@
 PR_URPUpdate_Top_Asset_Store_2022.1:
     name: PR URPUpdate_Top_Asset_Store on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_2022.1
          rerun: on_new_revision
@@ -24,22 +24,22 @@ PR_URPUpdate_Top_Asset_Store_2022.1:
 Extra_URPUpdate_Top_Asset_Store_2022.1:
     name: Extra URPUpdate_Top_Asset_Store on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 URPUpdate_Top_Asset_Store_2022.1:
     name: URPUpdate_Top_Asset_Store on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_2022.1
          rerun: on_new_revision
@@ -48,12 +48,12 @@ URPUpdate_Top_Asset_Store_2022.1:
 PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: PR URPUpdate_Top_Asset_Store on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -62,22 +62,22 @@ PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
 Extra_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: Extra URPUpdate_Top_Asset_Store on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION
          rerun: on_new_revision

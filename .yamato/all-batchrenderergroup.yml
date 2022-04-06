@@ -10,10 +10,10 @@
 BatchRendererGroup_2022.1:
     name: BatchRendererGroup on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-batchrenderergroup.yml#PR_BatchRendererGroup_2022.1
          rerun: on_new_revision
@@ -22,10 +22,10 @@ BatchRendererGroup_2022.1:
 PR_BatchRendererGroup_2022.1:
     name: PR BatchRendererGroup on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_batchrenderergroup.yml#PR_Universal_BatchRendererGroup_2022.1
          rerun: on_new_revision
@@ -34,10 +34,10 @@ PR_BatchRendererGroup_2022.1:
 Extra_BatchRendererGroup_2022.1:
     name: Extra BatchRendererGroup on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_batchrenderergroup.yml#Extra_Universal_BatchRendererGroup_2022.1
          rerun: on_new_revision
@@ -46,10 +46,10 @@ Extra_BatchRendererGroup_2022.1:
 BatchRendererGroup_CUSTOM-REVISION:
     name: BatchRendererGroup on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-batchrenderergroup.yml#PR_BatchRendererGroup_CUSTOM-REVISION
          rerun: on_new_revision
@@ -58,10 +58,10 @@ BatchRendererGroup_CUSTOM-REVISION:
 PR_BatchRendererGroup_CUSTOM-REVISION:
     name: PR BatchRendererGroup on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_batchrenderergroup.yml#PR_Universal_BatchRendererGroup_CUSTOM-REVISION
          rerun: on_new_revision
@@ -70,10 +70,10 @@ PR_BatchRendererGroup_CUSTOM-REVISION:
 Extra_BatchRendererGroup_CUSTOM-REVISION:
     name: Extra BatchRendererGroup on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_batchrenderergroup.yml#Extra_Universal_BatchRendererGroup_CUSTOM-REVISION
          rerun: on_new_revision

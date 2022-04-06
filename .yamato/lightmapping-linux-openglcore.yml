@@ -15,11 +15,11 @@ Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_2022.1:
         model: rtx2080
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -55,11 +55,11 @@ Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_2022.1:
         model: rtx2080
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -89,11 +89,11 @@ Build_Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_2022.1:
         model: rtx2080
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -132,11 +132,11 @@ Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_CUSTOM-REVISION:
         model: rtx2080
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -172,11 +172,11 @@ Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_CUSTOM-REVISION:
         model: rtx2080
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -206,11 +206,11 @@ Build_Lightmapping_Linux_OpenGlCore_Standalone_mono_Linear_CUSTOM-REVISION:
         model: rtx2080
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2

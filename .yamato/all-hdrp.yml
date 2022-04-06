@@ -10,10 +10,10 @@
 PR_HDRP_2022.1:
     name: PR HDRP on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_2022.1
          rerun: on_new_revision
@@ -44,10 +44,10 @@ PR_HDRP_2022.1:
 Extra_HDRP_2022.1:
     name: Extra HDRP on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_XR_mono_Linear_2022.1
          rerun: on_new_revision
@@ -68,10 +68,10 @@ Extra_HDRP_2022.1:
 HDRP_2022.1:
     name: HDRP on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_2022.1
          rerun: on_new_revision
@@ -80,10 +80,10 @@ HDRP_2022.1:
 Nightly_HDRP_2022.1:
     name: Nightly HDRP on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_2022.1
          rerun: on_new_revision
@@ -92,10 +92,10 @@ Nightly_HDRP_2022.1:
 PR_HDRP_CUSTOM-REVISION:
     name: PR HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -126,10 +126,10 @@ PR_HDRP_CUSTOM-REVISION:
 Extra_HDRP_CUSTOM-REVISION:
     name: Extra HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -150,10 +150,10 @@ Extra_HDRP_CUSTOM-REVISION:
 HDRP_CUSTOM-REVISION:
     name: HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -162,10 +162,10 @@ HDRP_CUSTOM-REVISION:
 Nightly_HDRP_CUSTOM-REVISION:
     name: Nightly HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision
