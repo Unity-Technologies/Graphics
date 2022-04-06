@@ -39,16 +39,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "DisplayName", "Cross Product" },
-            { "Category", "Math, Vector" },
-            { "Name.Synonyms", "perpendicular" },
-            { "Tooltip", "returns a vector that is perpendicular to the two input vectors" },
-            { "Parameters.A.Tooltip", "Vector A" },
-            { "Parameters.B.Tooltip", "Vector B" },
-            { "Parameters.Out.Tooltip", "a vector that is perpendicular to the two input vectors" }
-        };
     }
 }

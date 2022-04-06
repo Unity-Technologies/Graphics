@@ -34,19 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "!" },
-            { "Tooltip", "returns the opposite of the input " },
-            { "Category", "Utility, Logic" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the opposite of the input " },
-        };
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "Preview.Exists", 0 }
-        };
     }
 }

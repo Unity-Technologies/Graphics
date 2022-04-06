@@ -33,14 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "atan" },
-            { "Tooltip", "returns the arctangent of each component of the input" },
-            { "Category", "Math, Trigonometry" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the arctangent of each component of the input" }
-        };
     }
 }

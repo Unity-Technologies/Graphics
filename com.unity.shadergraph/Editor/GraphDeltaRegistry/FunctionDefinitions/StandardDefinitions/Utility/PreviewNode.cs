@@ -32,12 +32,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Utility" },
-            { "Tooltip", "enables you to inspect a preview at a specific point" },
-            { "Parameters.Out.Tooltip", "the exact same value as the input" }
-        };
     }
 }

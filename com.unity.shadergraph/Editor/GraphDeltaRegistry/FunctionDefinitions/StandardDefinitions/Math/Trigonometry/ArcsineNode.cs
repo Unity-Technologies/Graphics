@@ -34,14 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "asine" },
-            { "Tooltip", "returns the arcsine of each component of the input" },
-            { "Category", "Math, Trigonometry" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the arcsine of each component of the input" }
-        };
     }
 }
