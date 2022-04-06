@@ -4,8 +4,7 @@
 name: postprocessing
 test_editors:
   - trunk
-  - 2021.2
-  - 2021.1
+  - 2021.3
   - 2020.2
   - 2019.4
 test_platforms:
