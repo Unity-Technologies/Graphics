@@ -599,15 +599,45 @@ namespace UnityEngine.Rendering.HighDefinition
         // custom-end
         {
             public List<EnvLightData> envLights;
+            // GG: Could move these custom containers out of the light list
+            public struct LightsPerView
+            {
+                public List<SFiniteLightBound> probeVolumesBounds;
+                public List<LightVolumeData> probeVolumesLightVolumes;
+                public List<SFiniteLightBound> maskVolumesBounds;
+                public List<LightVolumeData> maskVolumesLightVolumes;
+            }
+
+            public List<LightsPerView> lightsPerView;
 
             public void Clear()
             {
                 envLights.Clear();
+
+                for (int i = 0; i < lightsPerView.Count; ++i)
+                {
+                    lightsPerView[i].probeVolumesBounds.Clear();
+                    lightsPerView[i].probeVolumesLightVolumes.Clear();
+                    lightsPerView[i].maskVolumesBounds.Clear();
+                    lightsPerView[i].maskVolumesLightVolumes.Clear();
+                }
             }
 
             public void Allocate()
             {
                 envLights = new List<EnvLightData>();
+
+                lightsPerView = new List<LightsPerView>();
+                for (int i = 0; i < TextureXR.slices; ++i)
+                {
+                    lightsPerView.Add(new LightsPerView
+                    {
+                        probeVolumesBounds = new List<SFiniteLightBound>(),
+                        probeVolumesLightVolumes = new List<LightVolumeData>(),
+                        maskVolumesBounds = new List<SFiniteLightBound>(),
+                        maskVolumesLightVolumes = new List<LightVolumeData>()
+                    });
+                }
             }
         }
 
@@ -2178,8 +2208,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                     }
 
-                    // GG: Review
-                    /*
                     for (int i = 0, n = m_ProbeVolumeCount; i < n; i++)
                     {
                         LightFeatureFlags featureFlags = LightFeatureFlags.ProbeVolume;
@@ -2194,9 +2222,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         else
                         {
-
-                            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
-                            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+                            m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                         }
                     }
 
@@ -2209,13 +2235,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_lightList.lightsPerView[viewIndex].maskVolumesLightVolumes.Add(volumeData);
                         m_lightList.lightsPerView[viewIndex].maskVolumesBounds.Add(bound);
                     }
-                    */
                 }
 
                 m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
 
-                // GG: Review
-                /*
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
                 {
                     m_TotalLightCount += m_ProbeVolumeCount;
@@ -2243,7 +2266,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_lightList.lightsPerView[viewIndex].maskVolumesLightVolumes.Count == m_MaskVolumeCount);
                     m_lightList.lightsPerView[0].maskVolumesLightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].maskVolumesLightVolumes);
                 }
-                */
                 Debug.Assert(m_TotalLightCount == m_GpuLightsBuilder.lightsPerView[0].boundsCount);
 
                 PushLightDataGlobalParams(cmd, dynamicGIEnabled);
@@ -3120,8 +3142,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_GpuLightsBuilder.lightVolumes, inputStartIndex, outputStartIndex, lightsPerView.boundsCount);
             }
 
-            // GG: Review
-            /*
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
             {
                 m_ProbeVolumeClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].probeVolumesBounds);
@@ -3130,7 +3150,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_MaskVolumeClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].maskVolumesBounds);
             m_MaskVolumeClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].maskVolumesLightVolumes);
-            */
 
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
             cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
@@ -3141,16 +3160,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_LightLoopLightData.decalData);
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
 
-            // GG: review
-            /*
             if (dynamicGIEnabled)
             {
-                m_LightLoopLightData.dynamicGILightData.SetData(m_lightList.dynamicGILights);
+                m_LightLoopLightData.dynamicGILightData.SetData(m_GpuLightsDynamicBuilder.lights, 0, 0, m_GpuLightsDynamicBuilder.lightsCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._DynamicGILightDatas, m_LightLoopLightData.dynamicGILightData);
-                cmd.SetGlobalInt(HDShaderIDs._DynamicGIPunctualLightCount, m_lightList.dynamicGIPunctualLightCount);
-                cmd.SetGlobalInt(HDShaderIDs._DynamicGIAreaLightCount, m_lightList.dynamicGIAreaLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DynamicGIPunctualLightCount, m_GpuLightsDynamicBuilder.punctualLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DynamicGIAreaLightCount, m_GpuLightsDynamicBuilder.areaLightCount);
             }
-            */
         }
 
         void PushShadowGlobalParams(CommandBuffer cmd)
