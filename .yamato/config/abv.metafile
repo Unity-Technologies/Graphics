@@ -25,7 +25,7 @@ jobs:
       # - .yamato/all-batchrenderergroup.yml#BatchRendererGroup_<TRACK>
       # - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
       - .yamato/_templates.yml#all_template_ci_<TRACK>
-      - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
+      # - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
     triggers:
         recurring:
           -  branch: 2022.1/staging

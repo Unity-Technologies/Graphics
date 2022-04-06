@@ -40,8 +40,6 @@ graphics_repo_nightly_2022.1:
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_2022.1
          rerun: on_new_revision
-      -  path: .yamato/all-postprocessing.yml#PostProcessing_2022.1
-         rerun: on_new_revision
 all_project_ci_nightly_2022.1:
     name: Nightly on 2022.1
     variables:
@@ -165,8 +163,6 @@ graphics_repo_nightly_CUSTOM-REVISION:
         UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
          rerun: on_new_revision
 all_project_ci_nightly_CUSTOM-REVISION:
     name: Nightly on CUSTOM-REVISION
