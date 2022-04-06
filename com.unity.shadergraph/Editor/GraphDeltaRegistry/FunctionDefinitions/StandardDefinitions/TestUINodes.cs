@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -143,12 +142,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            {"In.UseColor", 1}, // Use color picker for In (float value is ignored)
-            {"Static.UseColor", 1}
-        };
     }
 
     internal class TestUIColorRGBANode : IStandardNode
@@ -190,12 +183,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            {"In.UseColor", 1}, // Use color picker for In (float value is ignored)
-            {"Static.UseColor", 1}
-        };
     }
 
     internal class TestUISliderNode : IStandardNode
@@ -228,11 +215,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "In.UseSlider", 1 } // Use a slider for In (float value is ignored)
-        };
     }
 
     internal class TestUIPropertyNode : IStandardNode
@@ -268,10 +250,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "StaticInspectorIn.InspectorOnly", 1 }
-        };
     }
 }
