@@ -25,6 +25,22 @@ all_project_ci_2021.3:
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_2021.3
          rerun: on_new_revision
+graphics_repo_nightly_2021.3:
+    name: Graphics repo nightly on 2021.3
+    variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
+    triggers:
+        recurring:
+          -  branch: 2021.3/staging
+             frequency: 1 * * ?
+
+
+    dependencies:
+      -  path: .yamato/_templates.yml#all_template_ci_2021.3
+         rerun: on_new_revision
 all_project_ci_nightly_2021.3:
     name: Nightly on 2021.3
     variables:
@@ -134,6 +150,16 @@ all_project_ci_CUSTOM-REVISION:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
+         rerun: on_new_revision
+graphics_repo_nightly_CUSTOM-REVISION:
+    name: Graphics repo nightly on CUSTOM-REVISION
+    variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
+    dependencies:
+      -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
          rerun: on_new_revision
 all_project_ci_nightly_CUSTOM-REVISION:
     name: Nightly on CUSTOM-REVISION
