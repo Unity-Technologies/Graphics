@@ -16,9 +16,9 @@ comment:
         - TestProjects/HDRP*/**/*
       body: |
         **HDRP**
-        `/jobDefinition/.yamato%2Fall-hdrp.yml%23PR_HDRP_2021.2`
+        `/jobDefinition/.yamato%2Fall-hdrp.yml%23PR_HDRP_2021.3`
         With changes to HDRP packages, you should also run
-        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_2021.2`
+        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_2021.3`
     - id: URP
       files:
         - com.unity.render-pipelines.universal/**/*
@@ -26,9 +26,9 @@ comment:
         - TestProjects/Universal*/**/*
       body: |
         **URP**
-        `/jobDefinition/.yamato%2Fall-urp.yml%23PR_URP_2021.2`
+        `/jobDefinition/.yamato%2Fall-urp.yml%23PR_URP_2021.3`
         With changes to URP packages, you should also run
-        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_2021.2`
+        `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_2021.3`
     - id: ShaderGraph
       files:
         - com.unity.shadergraph/**/*
@@ -36,10 +36,10 @@ comment:
         - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
       body: |
         **Shader Graph**
-        `/jobDefinition/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2`
+        `/jobDefinition/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.3`
         Depending on your PR, you may also want
-        `/jobDefinition/.yamato%252Fall-shadergraph_builtin_foundation.yml%2523PR_ShaderGraph_BuiltIn_Foundation_2021.2`
-         /jobDefinition/.yamato%2Fall-shadergraph_builtin_lighting.yml%23PR_ShaderGraph_BuiltIn_Lighting_2021.2
+        `/jobDefinition/.yamato%252Fall-shadergraph_builtin_foundation.yml%2523PR_ShaderGraph_BuiltIn_Foundation_2021.3`
+         /jobDefinition/.yamato%2Fall-shadergraph_builtin_lighting.yml%23PR_ShaderGraph_BuiltIn_Lighting_2021.3
     - id: VFX
       files:
         - com.unity.visualeffectgraph/**/*
@@ -47,12 +47,12 @@ comment:
         - TestProjects/VisualEffectGraph*/**/*
       body: |
         **VFX**
-        `/jobDefinition/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.2`
+        `/jobDefinition/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.3`
     - id: Core
       files:
         - com.unity.render-pipelines.core/**/*
       body: |
         **SRP Core**
         You could run ABV on your branch before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:
-        `/jobDefinition/.yamato%2F_abv.yml%23all_project_ci_2021.2`
+        `/jobDefinition/.yamato%2F_abv.yml%23all_project_ci_2021.3`
         Be aware that any modifications to the Core package impacts everyone in the Graphics repo so please discuss the PR with your lead.

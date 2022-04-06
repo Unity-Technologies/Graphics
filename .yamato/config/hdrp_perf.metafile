@@ -2,7 +2,7 @@ project:
   name: HDRP_PerformanceTests
   folder: HDRP_PerformanceTests
   variables:
-    GIT_BRANCH: 2021.2/staging
+    GIT_BRANCH: 2021.3/staging
 
 reuse_blocks:
   cache_server:

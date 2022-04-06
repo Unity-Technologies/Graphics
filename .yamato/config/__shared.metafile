@@ -1,13 +1,13 @@
-target_branch: 2021.2/staging # specifies the branch on which recurrent or pr triggers are created, etc
-target_editor: 2021.2 # specifies the target editor used for some package/preview publish jobs
+target_branch: 2021.3/staging # specifies the branch on which recurrent or pr triggers are created, etc
+target_editor: 2021.3 # specifies the target editor used for some package/preview publish jobs
 conditional_jobs: # some jobs are relevent only depending on the branch
   preview_publish: True
   formatting: True
   packages.package_publish_all: True
   packages.project_publish_all: True
 editors: # applied for all yml files
-  - track: 2021.2
-    name: 2021.2
+  - track: 2021.3
+    name: 2021.3
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_2021_2
     editor_pinning:

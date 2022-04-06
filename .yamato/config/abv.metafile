@@ -25,10 +25,10 @@ jobs:
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     # triggers:
     #     recurring:
-    #       -  branch: 2021.2/staging
+    #       -  branch: 2021.3/staging
     #          frequency: 1 * * ?
     #     allow_on:
-    #       - 2021.2
+    #       - 2021.3
 
   - name: General Checks
     # triggers:
