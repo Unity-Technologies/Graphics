@@ -12,9 +12,8 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
         half3 SH = 0;
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-        float2 sampleCoords = (input.texCoord0.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
         half3 normalTS = surfaceDescription.NormalTS;
-        half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
+        half3 normalWS = input.normalWS;
         half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
         inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
         half3 SH = 0;
@@ -75,6 +74,13 @@ FragmentOutput frag(PackedVaryings packedInput)
 
 #ifdef _ALPHATEST_ON
     ClipHoles(unpacked.texCoord0.xy);
+#endif
+
+#ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+    float2 sampleCoords = (unpacked.texCoord0.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
+    float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb;
+    normalOS = normalize(normalOS * 2.0 - 1.0);
+    unpacked.normalWS = TransformObjectToWorldNormal(normalOS);
 #endif
 
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
