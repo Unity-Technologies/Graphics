@@ -367,7 +367,7 @@ namespace UnityEditor.VFX
             var parameterBuffer = new VFXShaderWriter();
             parameterBuffer.WriteCBuffer(contextData.uniformMapper, "parameters");
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             parameterBuffer.WriteLine();
             parameterBuffer.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
             parameterBuffer.WriteLine();
@@ -550,7 +550,7 @@ namespace UnityEditor.VFX
             var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
