@@ -34,15 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "complement, invert, opposite" },
-            { "Tooltip", "subtracts the input from one" },
-            { "Category", "Math, Range" },
-            { "DisplayName", "One Minus" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the input subtracted from one" }
-        };
     }
 }

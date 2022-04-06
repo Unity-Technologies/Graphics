@@ -35,21 +35,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "Determinant" },
-            { "Tooltip", "returns the determinant of the matrix defined by the input" },
-            { "Category", "Math, Matrix" },
-            { "DisplayName", "Matrix Determinant" },
-            { "Parameters.In.Tooltip", "input matrix" },
-            { "Parameters.Out.Tooltip", "the determinant of the input matrix" }
-        };
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "Preview.Exists", 0 }
-        };
     }
 }

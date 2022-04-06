@@ -35,20 +35,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "Transpose" },
-            { "Tooltip", "returns the transposed value of the input matrix" },
-            { "Category", "Math, Matrix" },
-            { "DisplayName", "Matrix Transpose" },
-            { "Parameters.In.Tooltip", "input matrix" },
-            { "Parameters.Out.Tooltip", "the transposed value of the input matrix" }
-        };
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "Preview.Exists", 0 }
-        };
     }
 }

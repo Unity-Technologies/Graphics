@@ -44,16 +44,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Interpolation" },
-            { "DisplayName", "Inverse Lerp" },
-            { "Tooltip", "returns the linear parameter that produces the interpolant specified by T within the range of A to B" },
-            { "Parameters.A.Tooltip", "out will be this value when T is zero" },
-            { "Parameters.B.Tooltip", "out will be this value when T is one" },
-            { "Parameters.T.Tooltip", "the blend value" },
-            { "Parameters.Out.Tooltip", "the linear parameter that produces the interpolant specified by T within the range of A to B" }
-        };
     }
 }

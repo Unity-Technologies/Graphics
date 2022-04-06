@@ -44,16 +44,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Interpolation" },
-            { "Name.Synonyms", "curve" },
-            { "Tooltip", "returns the result of a smooth Hermite interpolation between 0 and 1" },
-            { "Parameters.Edge1.Tooltip", "	minimum step value" },
-            { "Parameters.Edge2.Tooltip", "maximum step value" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the result of a smooth Hermite interpolation between 0 and 1" }
-        };
     }
 }

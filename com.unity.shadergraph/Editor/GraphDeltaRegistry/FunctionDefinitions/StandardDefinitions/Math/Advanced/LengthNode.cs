@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -33,14 +32,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "measure" },
-            { "Tooltip", "returns the magnitude or length of the input vector " },
-            { "Category", "Math, Advanced" },
-            { "Parameters.In.Tooltip", "input vector" },
-            { "Parameters.Out.Tooltip", "the length of the input vector" }
-        };
     }
 }
