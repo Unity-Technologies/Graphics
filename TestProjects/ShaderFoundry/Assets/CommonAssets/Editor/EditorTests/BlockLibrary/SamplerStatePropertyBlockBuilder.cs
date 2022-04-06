@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             PropertyAttribute = new PropertyAttributeData();
         }
 
-        public string GetUniformName() => PropertyAttribute.UniformName ?? FieldName;
+        public string GetUniformName() => SamplerStateAttribute.BaseUniformName;
 
         public Block Build(ShaderContainer container)
         {

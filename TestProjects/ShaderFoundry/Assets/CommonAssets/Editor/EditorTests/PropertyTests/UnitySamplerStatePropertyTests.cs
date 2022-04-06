@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return propBuilder;
         }
 
-        [TestCase("MySampler", "MySampler_Linear_Repeat")]
+        [TestCase("MySampler", "_SamplerState_Linear_Repeat")]
         public void SamplerState_NoOverrides_NameIsExpected(string fieldName, string expectedUniformName)
         {
             var container = CreateContainer();
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             TestUniformName(container, block, propBuilder.BlockName, expectedUniformName);
         }
 
-        [TestCase("MySampler", "_MySampler", "_MySampler_Linear_Repeat")]
+        [TestCase("MySampler", "_MySampler", "_SamplerState_Linear_Repeat")]
         public void SamplerState_UniformNameOverride_NameIsExpected(string fieldName, string uniformName, string expectedUniformName)
         {
             var container = CreateContainer();
@@ -192,6 +192,111 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         [Test]
+        public void MultipleSamplerStates_SettingsAreTheSame_NameIsDeduplicated()
+        {
+            var container = CreateContainer();
+            var propBuilder1 = BuildWithoutNameOverrides("SamplerState1");
+            propBuilder1.FilterMode = FilterModeEnum.Point;
+            propBuilder1.AnisotropicLevel = 2;
+            var block1 = propBuilder1.Build(container);
+
+            var propBuilder2 = BuildWithoutNameOverrides("SamplerState2");
+            propBuilder2.FilterMode = FilterModeEnum.Point;
+            propBuilder2.AnisotropicLevel = 2;
+            var block2 = propBuilder2.Build(container);
+
+            var blocks = new List<Block> { block1, block2 };
+            var shaderCode = BuildSimpleSurfaceShader(container, "SamplerStates", blocks);
+
+            string expectedUniformName = $"{SamplerStateAttribute.BaseUniformName}_Point_Repeat_aniso2";
+            TestUniformName(shaderCode, expectedUniformName);
+        }
+
+        [Test]
+        public void MultipleSamplerStates_FilterModeIsDifferent_SeparateSamplerStatesDeclared()
+        {
+            var container = CreateContainer();
+            var propBuilder1 = BuildWithoutNameOverrides("SamplerState1");
+            propBuilder1.FilterMode = FilterModeEnum.Trilinear;
+            var block1 = propBuilder1.Build(container);
+
+            var propBuilder2 = BuildWithoutNameOverrides("SamplerState2");
+            propBuilder2.FilterMode = FilterModeEnum.Point;
+            var block2 = propBuilder2.Build(container);
+
+            var blocks = new List<Block> { block1, block2 };
+            var shaderCode = BuildSimpleSurfaceShader(container, "SamplerStates", blocks);
+
+            string expectedUniformName1 = $"{SamplerStateAttribute.BaseUniformName}_Trilinear_Repeat";
+            string expectedUniformName2 = $"{SamplerStateAttribute.BaseUniformName}_Point_Repeat";
+            TestUniformName(shaderCode, expectedUniformName1);
+            TestUniformName(shaderCode, expectedUniformName2);
+        }
+
+        [Test]
+        public void MultipleSamplerStates_WrapModeIsDifferent_SeparateSamplerStatesDeclared()
+        {
+            var container = CreateContainer();
+            var propBuilder1 = BuildWithoutNameOverrides("SamplerState1");
+            propBuilder1.WrapModes = new List<WrapModeParameterStates> { WrapModeParameterStates.Clamp };
+            var block1 = propBuilder1.Build(container);
+
+            var propBuilder2 = BuildWithoutNameOverrides("SamplerState2");
+            propBuilder2.WrapModes = new List<WrapModeParameterStates> { WrapModeParameterStates.Mirror };
+            var block2 = propBuilder2.Build(container);
+
+            var blocks = new List<Block> { block1, block2 };
+            var shaderCode = BuildSimpleSurfaceShader(container, "SamplerStates", blocks);
+
+            string expectedUniformName1 = $"{SamplerStateAttribute.BaseUniformName}_Linear_Clamp";
+            string expectedUniformName2 = $"{SamplerStateAttribute.BaseUniformName}_Linear_Mirror";
+            TestUniformName(shaderCode, expectedUniformName1);
+            TestUniformName(shaderCode, expectedUniformName2);
+        }
+
+        [Test]
+        public void MultipleSamplerStates_AnisotropicLevelIsDifferent_SeparateSamplerStatesDeclared()
+        {
+            var container = CreateContainer();
+            var propBuilder1 = BuildWithoutNameOverrides("SamplerState1");
+            propBuilder1.AnisotropicLevel = 2;
+            var block1 = propBuilder1.Build(container);
+
+            var propBuilder2 = BuildWithoutNameOverrides("SamplerState2");
+            propBuilder2.AnisotropicLevel = 4;
+            var block2 = propBuilder2.Build(container);
+
+            var blocks = new List<Block> { block1, block2 };
+            var shaderCode = BuildSimpleSurfaceShader(container, "SamplerStates", blocks);
+
+            string expectedUniformName1 = $"{SamplerStateAttribute.BaseUniformName}_Linear_Repeat_aniso2";
+            string expectedUniformName2 = $"{SamplerStateAttribute.BaseUniformName}_Linear_Repeat_aniso4";
+            TestUniformName(shaderCode, expectedUniformName1);
+            TestUniformName(shaderCode, expectedUniformName2);
+        }
+
+        [Test]
+        public void MultipleSamplerStates_DepthCompareIsDifferent_SeparateSamplerStatesDeclared()
+        {
+            var container = CreateContainer();
+            var propBuilder1 = BuildWithoutNameOverrides("SamplerState1");
+            propBuilder1.DepthCompare = false;
+            var block1 = propBuilder1.Build(container);
+
+            var propBuilder2 = BuildWithoutNameOverrides("SamplerState2");
+            propBuilder2.DepthCompare = true;
+            var block2 = propBuilder2.Build(container);
+
+            var blocks = new List<Block> { block1, block2 };
+            var shaderCode = BuildSimpleSurfaceShader(container, "SamplerStates", blocks);
+
+            string expectedUniformName1 = $"{SamplerStateAttribute.BaseUniformName}_Linear_Repeat";
+            string expectedUniformName2 = $"{SamplerStateAttribute.BaseUniformName}_Linear_Repeat_compare";
+            TestUniformName(shaderCode, expectedUniformName1);
+            TestUniformName(shaderCode, expectedUniformName2);
+        }
+
+        [Test]
         public void SamplerState_NoSamplerStateAttribute_ErrorIsReported()
         {
             string fieldName = "MySampler";
@@ -310,9 +415,14 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
         static void TestUniformName(ShaderContainer container, Block block, string shaderName, string expectedUniformName)
         {
+            var shaderCode = BuildSimpleSurfaceBlockShader(container, shaderName, block);
+            TestUniformName(shaderCode, expectedUniformName);
+        }
+
+        static void TestUniformName(string shaderCode, string expectedUniformName)
+        {
             // Check for the full uniform declaration. This also helps avoid partial string matches (e.g. Wrap matching to WrapU).
             var uniformDeclaration = $"SAMPLER({expectedUniformName})";
-            var shaderCode = BuildSimpleSurfaceBlockShader(container, shaderName, block);
             Assert.AreNotEqual(-1, shaderCode.IndexOf(uniformDeclaration), $"Expected to find uniform declaration {uniformDeclaration}");
         }
     }

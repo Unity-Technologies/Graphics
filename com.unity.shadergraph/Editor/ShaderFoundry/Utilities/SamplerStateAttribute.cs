@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderFoundry
             Clamp, Repeat, Mirror, MirrorOnce
         }
 
+        public const string BaseUniformName = "_SamplerState";
         internal const char WrapModeDelimeter = ',';
         internal const string AttributeName = "SamplerState";
         internal const string FilterModeParamName = "filterMode";
@@ -62,15 +63,16 @@ namespace UnityEditor.ShaderFoundry
             // Handles emitting a warning if a value was specified twice.
             void UpdateWrapMode(ref WrapModeEnum? wrapMode, WrapModeEnum value, WrapModeParameterStates paramValue)
             {
-                if(wrapMode != null)
+                if (wrapMode != null)
                     Debug.Log($"Wrap mode '{paramValue}' will override state '{wrapMode.Value}'.");
                 wrapMode = value;
             }
+
             WrapModeEnum? wrapModeUVW = null;
             WrapModeEnum? wrapModeU = null;
             WrapModeEnum? wrapModeV = null;
             WrapModeEnum? wrapModeW = null;
-            
+
             var tokens = attributeParam.Value.Split(WrapModeDelimeter);
             foreach (var token in tokens)
             {
@@ -162,10 +164,10 @@ namespace UnityEditor.ShaderFoundry
             return result;
         }
 
-        public string BuildUniformName(string baseUniformName)
+        public string BuildUniformName()
         {
             var uniformNameBuilder = new ShaderBuilder();
-            uniformNameBuilder.Add(baseUniformName);
+            uniformNameBuilder.Add(BaseUniformName);
             uniformNameBuilder.Add($"_{FilterMode}");
 
             AppendWrapModeName(uniformNameBuilder, WrapModeU, WrapModeV, WrapModeW);

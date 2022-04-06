@@ -239,7 +239,7 @@ namespace UnityEditor.ShaderFoundry
                 return false;
             }
 
-            var uniformName = samplerStateAttribute.BuildUniformName(context.UniformName);
+            var uniformName = samplerStateAttribute.BuildUniformName();
             var accessorFnName = "UnityBuildSamplerStateStruct";
 
             result.UniformReadingData = new UniformReadingData { Rhs = $"{accessorFnName}({uniformName})" };
