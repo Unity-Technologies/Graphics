@@ -41,7 +41,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
     if (!IsAbove(mtlData))
         return false;
 
-    mtlData.bsdfWeight[0] = Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
+    mtlData.bsdfWeight[0] = Luminance(mtlData.bsdfData.diffuseColor) * max(mtlData.bsdfData.ambientOcclusion, 0.001);
 
     // If N.V < 0 (can happen with normal mapping, or smooth normals on coarsely tesselated objects) we want to avoid spec sampling
     float NdotV = dot(GetSpecularNormal(mtlData), mtlData.V);

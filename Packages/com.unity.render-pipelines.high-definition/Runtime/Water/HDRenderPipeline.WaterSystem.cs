@@ -919,7 +919,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the water is disabled, no need to render or simulate
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water) || numWaterSurfaces == 0)
+            if (!settings.enable.value
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
+                || numWaterSurfaces == 0
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
             {
                 // Set the textures handles for the water gbuffer
                 outputGBuffer.waterGBuffer0 = renderGraph.defaultResources.blackTextureXR;
@@ -1015,7 +1018,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the water is disabled, no need to render or simulate
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water) || numWaterSurfaces == 0)
+            if (!settings.enable.value
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
+                || numWaterSurfaces == 0
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
             // Request all the gbuffer textures we will need
@@ -1087,7 +1093,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If the water is disabled, no need to render
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water) || WaterSurface.instanceCount == 0)
+            if (!settings.enable.value
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
+                || WaterSurface.instanceCount == 0
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
             // Push the water profiles to the GPU for the deferred lighting pass

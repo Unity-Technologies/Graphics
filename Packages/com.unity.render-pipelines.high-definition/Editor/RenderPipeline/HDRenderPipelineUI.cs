@@ -632,7 +632,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.BeginChangeCheck();
                     maxPercentage = EditorGUILayout.DelayedFloatField(HDRenderPipelineUI.Styles.maxPercentage, maxPercentage);
                     if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, 0.0f, 100.0f);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, minPercentage, 100.0f);
 
                     EditorGUI.showMixedValue = false;
                 }

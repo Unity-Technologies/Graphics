@@ -13,9 +13,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [SerializeField, FormerlySerializedAs("m_ShapeType")]
         ProxyShape m_Shape = ProxyShape.Box;
-        [SerializeField]
+        [SerializeField, Min(0)]
         Vector3 m_BoxSize = Vector3.one;
-        [SerializeField]
+        [SerializeField, Min(0)]
         float m_SphereRadius = 1;
 
         /// <summary>The shape of the proxy</summary>

@@ -92,7 +92,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         float coatingTransmissionWeight = Luminance(coatingTransmission);
         mtlData.bsdfWeight[2] = coatingTransmissionWeight * (1.0 - mtlData.bsdfData.lobeMix) * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessAT + mtlData.bsdfData.roughnessAB)) * GetSpecularCompensationA(mtlData);
         mtlData.bsdfWeight[3] = coatingTransmissionWeight * mtlData.bsdfData.lobeMix * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessBT + mtlData.bsdfData.roughnessBB)) * GetSpecularCompensationB(mtlData);
-        mtlData.bsdfWeight[0] = coatingTransmissionWeight * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
+        mtlData.bsdfWeight[0] = coatingTransmissionWeight * Luminance(mtlData.bsdfData.diffuseColor) * max(mtlData.bsdfData.ambientOcclusion, 0.001);
     }
 
     // Normalize the weights

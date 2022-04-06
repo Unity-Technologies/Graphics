@@ -525,7 +525,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
-                materialEditor.ShaderProperty(uvMappingSpace, Styles.uvMappingSpace);
+                // The uv mapping is not always defined in shader (e.g. for layered lit).
+                if (uvMappingSpace != null)
+                    materialEditor.ShaderProperty(uvMappingSpace, Styles.uvMappingSpace);
+
                 materialEditor.ShaderProperty(TexWorldScale[m_LayerIndex], Styles.texWorldScaleText);
             }
             materialEditor.TextureScaleOffsetProperty(baseColorMap[m_LayerIndex]);

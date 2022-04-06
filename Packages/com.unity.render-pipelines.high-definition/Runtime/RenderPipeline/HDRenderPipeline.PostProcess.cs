@@ -504,9 +504,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Save the post process screen size before any resolution group change
             var postProcessScreenSize = hdCamera.postProcessScreenSize;
 
-            //default always to downsampled resolution group.
-            //when DRS is off this resolution group is the same.
-            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.BeforeDynamicResUpscale);
+            //The resGroup is always expected to be in BeforeDynamicResUpscale state at the beginning of post processing.
+            //If this assert fails, it means that some effects prior might be using the wrong resolution.
+            Assert.IsTrue(resGroup == ResolutionGroup.BeforeDynamicResUpscale, "Resolution group must always be reset before calling RenderPostProcess");
 
             // Note: whether a pass is really executed or not is generally inside the Do* functions.
             // with few exceptions.
@@ -570,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // HDRP to reduce the amount of resolution lost at the center of the screen
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBuffer, sunOcclusionTexture);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph);
@@ -3215,7 +3215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.viewProjMatrix,
+                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.

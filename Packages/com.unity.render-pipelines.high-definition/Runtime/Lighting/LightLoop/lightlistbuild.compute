@@ -449,7 +449,11 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         int idxCoarse;
         int uLightVolume;
         LoadLightVolumeCache(l, idxCoarse, uLightVolume);
-        bool lightValid = false;
+
+        // WARNING: we use here a uint for lightValid because there is a bug with the unity vulkan compiler.
+        // If this is a bool, the second dword of uLightsFlags never gets written to, which causes light tile artifacts
+        // on tiles that have more than 32 lights.
+        uint lightValid = 0;
         if (uLightVolume == LIGHTVOLUMETYPE_CONE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
@@ -534,7 +538,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         else
             break;
 
-        uLightsFlags[l<32 ? 0 : 1] |= ((lightValid ? 1 : 0)<<(l&31));
+        uLightsFlags[l<32 ? 0 : 1] |= lightValid << (l&31);
     }
 
     InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
