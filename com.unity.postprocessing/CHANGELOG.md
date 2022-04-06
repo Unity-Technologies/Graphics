@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.2.2] - 2022-04-05
+
+### Fixed
+- Fixed FXAA artefact when trying to preserve alpha channel output.
+
 ## [3.2.1] - 2022-01-12
 
 ### Fixed
@@ -12,7 +17,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation error when built-in VR module is disabled (case 1389160)
 - Fixed bug where alpha could not be used with HDR on mobile (case 1387848). HDR texture format is now set from Graphics Tier Settings when using Unity 2019.3 or newer.
 - Fixed incorrect Screen-space Reflections rendering on OpenGL platforms (case 1368370)
-- Fixed FXAA artefact when trying to preserve alpha channel output.
 
 ## [3.2.0] - 2021-11-15
 
