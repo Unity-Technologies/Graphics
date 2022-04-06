@@ -9,7 +9,7 @@ editors: # applied for all yml files
   - track: 2021.3
     name: 2021.3
     rerun_strategy: on_new_revision
-    ono_branch_var: ONO_BRANCH_2021_2
+    ono_branch_var: ONO_BRANCH_2021_3
     editor_pinning:
       enabled: True
       nr_commits_to_retrieve: 1
@@ -488,7 +488,7 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                    set unityVersion={{2021_2.changeset.id}}
+                    set unityVersion={{2021_3.changeset.id}}
                     set artifactPath=Boatattack/Quest
                     set jenkinsJob=SBR_Quest_RunTest
                     set jenkinsNodeLabel=Quest

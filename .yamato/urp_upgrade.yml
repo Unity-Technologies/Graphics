@@ -1,8 +1,8 @@
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.3.metafile -%}
 
 name: URP_Upgrade
 test_editors:
-  - name: 2021.2
+  - name: 2021.3
   - name: CUSTOM-REVISION
 test_platforms:
   - name: win

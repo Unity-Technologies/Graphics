@@ -32,7 +32,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -44,7 +44,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -120,7 +120,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -132,7 +132,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -208,7 +208,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -220,7 +220,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -262,7 +262,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -274,7 +274,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -350,7 +350,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -362,7 +362,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -438,7 +438,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
@@ -450,7 +450,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                set unityVersion={{2021_2.changeset.id}}
+                set unityVersion={{2021_3.changeset.id}}
                 set artifactPath=Boatattack/Quest
                 set jenkinsJob=SBR_Quest_RunTest
                 set jenkinsNodeLabel=Quest
