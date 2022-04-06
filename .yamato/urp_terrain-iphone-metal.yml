@@ -7,18 +7,18 @@
 
 ---
 
-URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.2:
-    name: URP_Terrain on iPhone_Metal_Standalone_il2cpp_Linear on version 2021.2
+URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.3:
+    name: URP_Terrain on iPhone_Metal_Standalone_il2cpp_Linear on version 2021.3
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -35,22 +35,22 @@ URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:iPhone
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-iphone-metal.yml#Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.2
+      -  path: .yamato/urp_terrain-iphone-metal.yml#Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.3
          rerun: on_new_revision
-Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.2:
-    name: Build URP_Terrain on iPhone_Metal_il2cpp_Linear_Standalone_build_Player on version 2021.2
+Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.3:
+    name: Build URP_Terrain on iPhone_Metal_il2cpp_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -76,7 +76,7 @@ Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.2:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:iPhone
          rerun: on_new_revision
 URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Terrain on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION
@@ -85,11 +85,11 @@ URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -117,11 +117,11 @@ Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2

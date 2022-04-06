@@ -7,19 +7,19 @@
 
 ---
 
-URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.2:
-    name: URP_Foundation on Win_Vulkan_Standalone_mono_Linear on version 2021.2
+URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.3:
+    name: URP_Foundation on Win_Vulkan_Standalone_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -37,22 +37,22 @@ URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.2
+      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.2:
-    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_build_Player on version 2021.2
+Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.3:
+    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -77,21 +77,21 @@ Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_2021.2:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-URP_Foundation_Win_Vulkan_playmode_mono_Linear_2021.2:
-    name: URP_Foundation on Win_Vulkan_playmode_mono_Linear on version 2021.2
+URP_Foundation_Win_Vulkan_playmode_mono_Linear_2021.3:
+    name: URP_Foundation on Win_Vulkan_playmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -113,20 +113,20 @@ URP_Foundation_Win_Vulkan_playmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-URP_Foundation_Win_Vulkan_editmode_mono_Linear_2021.2:
-    name: URP_Foundation on Win_Vulkan_editmode_mono_Linear on version 2021.2
+URP_Foundation_Win_Vulkan_editmode_mono_Linear_2021.3:
+    name: URP_Foundation on Win_Vulkan_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -148,21 +148,21 @@ URP_Foundation_Win_Vulkan_editmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_2021.2:
-    name: URP_Foundation on Win_Vulkan_playmode_XR_mono_Linear on version 2021.2
+URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_2021.3:
+    name: URP_Foundation on Win_Vulkan_playmode_XR_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -184,21 +184,21 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.2:
-    name: URP_Foundation on Win_Vulkan_Standalone_XR_mono_Linear on version 2021.2
+URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.3:
+    name: URP_Foundation on Win_Vulkan_Standalone_XR_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -216,22 +216,22 @@ URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.2
+      -  path: .yamato/urp_foundation-win-vulkan.yml#Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.3
          rerun: on_new_revision
-Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.2:
-    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_XR_build_Player on version 2021.2
+Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.3:
+    name: Build URP_Foundation on Win_Vulkan_mono_Linear_Standalone_XR_build_Player on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -256,7 +256,7 @@ Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_2021.2:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
 URP_Foundation_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
@@ -266,11 +266,11 @@ URP_Foundation_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -299,11 +299,11 @@ Build_URP_Foundation_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -338,11 +338,11 @@ URP_Foundation_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -373,11 +373,11 @@ URP_Foundation_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -409,11 +409,11 @@ URP_Foundation_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -445,11 +445,11 @@ URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
@@ -478,11 +478,11 @@ Build_URP_Foundation_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"

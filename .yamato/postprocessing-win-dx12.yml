@@ -7,19 +7,19 @@
 
 ---
 
-PostProcessing_Win_DX12_playmode_mono_Linear_2021.2:
-    name: PostProcessing on Win_DX12_playmode_mono_Linear on version 2021.2
+PostProcessing_Win_DX12_playmode_mono_Linear_2021.3:
+    name: PostProcessing on Win_DX12_playmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -40,20 +40,20 @@ PostProcessing_Win_DX12_playmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-PostProcessing_Win_DX12_editmode_mono_Linear_2021.2:
-    name: PostProcessing on Win_DX12_editmode_mono_Linear on version 2021.2
+PostProcessing_Win_DX12_editmode_mono_Linear_2021.3:
+    name: PostProcessing on Win_DX12_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -74,21 +74,21 @@ PostProcessing_Win_DX12_editmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-PostProcessing_Win_DX12_Standalone_mono_Linear_2021.2:
-    name: PostProcessing on Win_DX12_Standalone_mono_Linear on version 2021.2
+PostProcessing_Win_DX12_Standalone_mono_Linear_2021.3:
+    name: PostProcessing on Win_DX12_Standalone_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -105,22 +105,22 @@ PostProcessing_Win_DX12_Standalone_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-      -  path: .yamato/postprocessing-win-dx12.yml#Build_PostProcessing_Win_DX12_Standalone_mono_Linear_2021.2
+      -  path: .yamato/postprocessing-win-dx12.yml#Build_PostProcessing_Win_DX12_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-Build_PostProcessing_Win_DX12_Standalone_mono_Linear_2021.2:
-    name: Build PostProcessing on Win_DX12_mono_Linear_Standalone_build_Player on version 2021.2
+Build_PostProcessing_Win_DX12_Standalone_mono_Linear_2021.3:
+    name: Build PostProcessing on Win_DX12_mono_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -144,7 +144,7 @@ Build_PostProcessing_Win_DX12_Standalone_mono_Linear_2021.2:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
 PostProcessing_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
@@ -154,11 +154,11 @@ PostProcessing_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -188,11 +188,11 @@ PostProcessing_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -223,11 +223,11 @@ PostProcessing_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -255,11 +255,11 @@ Build_PostProcessing_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat

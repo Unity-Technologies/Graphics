@@ -7,20 +7,20 @@
 
 ---
 
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.2:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version 2021.2
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.3:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version 2021.3
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
          retries: 2
@@ -54,24 +54,24 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Android
          rerun: on_new_revision
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.2
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.3
          rerun: on_new_revision
-Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.2:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2021.2
+Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.3:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
@@ -128,22 +128,22 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Android
          rerun: on_new_revision
-URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_2021.2:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version 2021.2
+URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_2021.3:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
@@ -200,7 +200,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Android
          rerun: on_new_revision
 URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
@@ -209,13 +209,13 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
          retries: 2
@@ -260,13 +260,13 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
@@ -332,13 +332,13 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3

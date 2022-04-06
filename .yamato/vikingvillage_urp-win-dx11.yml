@@ -7,21 +7,21 @@
 
 ---
 
-VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.2:
-    name: VikingVillage_URP on Win_DX11_performance_playmode_runtime_mono_Linear on version 2021.2
+VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.3:
+    name: VikingVillage_URP on Win_DX11_performance_playmode_runtime_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
         model: rtx2080
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -38,24 +38,24 @@ VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-      -  path: .yamato/vikingvillage_urp-win-dx11.yml#Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.2
+      -  path: .yamato/vikingvillage_urp-win-dx11.yml#Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.3
          rerun: on_new_revision
-Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.2:
-    name: Build VikingVillage_URP on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version 2021.2
+Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.3:
+    name: Build VikingVillage_URP on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -100,23 +100,23 @@ Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_2021.2
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-VikingVillage_URP_Win_DX11_performance_playmode_editor_mono_Linear_2021.2:
-    name: VikingVillage_URP on Win_DX11_performance_playmode_editor_mono_Linear on version 2021.2
+VikingVillage_URP_Win_DX11_performance_playmode_editor_mono_Linear_2021.3:
+    name: VikingVillage_URP on Win_DX11_performance_playmode_editor_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
         model: rtx2080
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -158,22 +158,22 @@ VikingVillage_URP_Win_DX11_performance_playmode_editor_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-VikingVillage_URP_Win_DX11_performance_build_editmode_mono_Linear_2021.2:
-    name: VikingVillage_URP on Win_DX11_performance_build_editmode_mono_Linear on version 2021.2
+VikingVillage_URP_Win_DX11_performance_build_editmode_mono_Linear_2021.3:
+    name: VikingVillage_URP on Win_DX11_performance_build_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -215,7 +215,7 @@ VikingVillage_URP_Win_DX11_performance_build_editmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
 VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_URP on Win_DX11_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
@@ -225,13 +225,13 @@ VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVIS
         flavor: b1.large
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -259,13 +259,13 @@ Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -320,13 +320,13 @@ VikingVillage_URP_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-REVISI
         flavor: b1.large
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -377,13 +377,13 @@ VikingVillage_URP_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REVISIO
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3

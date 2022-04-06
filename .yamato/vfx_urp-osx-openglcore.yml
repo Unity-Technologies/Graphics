@@ -7,18 +7,18 @@
 
 ---
 
-VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2:
-    name: VFX_URP on OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear on version 2021.2
+VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.3:
+    name: VFX_URP on OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::osx
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -34,22 +34,22 @@ VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2
+      -  path: .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.3
          rerun: on_new_revision
-Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2:
-    name: Build VFX_URP on OSX_OpenGLCore_mono_Linear_Standalone_PerformanceTests_build_Player on version 2021.2
+Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.3:
+    name: Build VFX_URP on OSX_OpenGLCore_mono_Linear_Standalone_PerformanceTests_build_Player on version 2021.3
     agent:
         type: Unity::VM::osx
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -73,20 +73,20 @@ Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
          rerun: on_new_revision
-VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_2021.2:
-    name: VFX_URP on OSX_OpenGLCore_playmode_mono_Linear on version 2021.2
+VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_2021.3:
+    name: VFX_URP on OSX_OpenGLCore_playmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::osx
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -107,20 +107,20 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
          rerun: on_new_revision
-VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_2021.2:
-    name: VFX_URP on OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear on version 2021.2
+VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_2021.3:
+    name: VFX_URP on OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::osx
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -141,20 +141,20 @@ VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
          rerun: on_new_revision
-VFX_URP_OSX_OpenGLCore_editmode_mono_Linear_2021.2:
-    name: VFX_URP on OSX_OpenGLCore_editmode_mono_Linear on version 2021.2
+VFX_URP_OSX_OpenGLCore_editmode_mono_Linear_2021.3:
+    name: VFX_URP on OSX_OpenGLCore_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::osx
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -175,20 +175,20 @@ VFX_URP_OSX_OpenGLCore_editmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
          rerun: on_new_revision
-VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_2021.2:
-    name: VFX_URP on OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear on version 2021.2
+VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_2021.3:
+    name: VFX_URP on OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::osx
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -209,7 +209,7 @@ VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
          rerun: on_new_revision
 VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear on version CUSTOM-REVISION
@@ -218,11 +218,11 @@ VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -249,11 +249,11 @@ Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVI
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -286,11 +286,11 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -320,11 +320,11 @@ VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -354,11 +354,11 @@ VFX_URP_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -388,11 +388,11 @@ VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
         image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2

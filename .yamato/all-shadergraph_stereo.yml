@@ -7,45 +7,45 @@
 
 ---
 
-PR_ShaderGraph_Stereo_2021.2:
-    name: PR ShaderGraph_Stereo on 2021.2
+PR_ShaderGraph_Stereo_2021.3:
+    name: PR ShaderGraph_Stereo on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_Linear_2021.2
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_Linear_2021.2
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-Extra_ShaderGraph_Stereo_2021.2:
-    name: Extra ShaderGraph_Stereo on 2021.2
+Extra_ShaderGraph_Stereo_2021.3:
+    name: Extra ShaderGraph_Stereo on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
-ShaderGraph_Stereo_2021.2:
-    name: ShaderGraph_Stereo on 2021.2
+ShaderGraph_Stereo_2021.3:
+    name: ShaderGraph_Stereo on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_2021.2
+      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_stereo.yml#Extra_ShaderGraph_Stereo_2021.2
+      -  path: .yamato/all-shadergraph_stereo.yml#Extra_ShaderGraph_Stereo_2021.3
          rerun: on_new_revision
 PR_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: PR ShaderGraph_Stereo on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -54,18 +54,18 @@ PR_ShaderGraph_Stereo_CUSTOM-REVISION:
 Extra_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: Extra ShaderGraph_Stereo on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 ShaderGraph_Stereo_CUSTOM-REVISION:
     name: ShaderGraph_Stereo on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
          rerun: on_new_revision

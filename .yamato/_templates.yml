@@ -7,8 +7,8 @@
 
 ---
 
-pre_pack_hdrp_template_Win_2021.2:
-    name: Pre-Pack HDRP Template Win 2021.2
+pre_pack_hdrp_template_Win_2021.3:
+    name: Pre-Pack HDRP Template Win 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -18,7 +18,7 @@ pre_pack_hdrp_template_Win_2021.2:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:Win
     artifacts:
         primed:
             paths:
@@ -28,8 +28,8 @@ pre_pack_hdrp_template_Win_2021.2:
         logs:
             paths:
               -  "Editor.log"
-pack_hdrp_template_Win_2021.2:
-    name: Pack HDRP Template Win 2021.2
+pack_hdrp_template_Win_2021.3:
+    name: Pack HDRP Template Win 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -42,15 +42,15 @@ pack_hdrp_template_Win_2021.2:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-test_hdrp_template_Win_2021.2:
-    name: Test HDRP Template Win 2021.2
+test_hdrp_template_Win_2021.3:
+    name: Test HDRP Template Win 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.2
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.3
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -60,8 +60,8 @@ test_hdrp_template_Win_2021.2:
         logs:
             paths:
               -  "**/test-results/**"
-pre_pack_hdrp_template_OSX_2021.2:
-    name: Pre-Pack HDRP Template OSX 2021.2
+pre_pack_hdrp_template_OSX_2021.3:
+    name: Pre-Pack HDRP Template OSX 2021.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -70,7 +70,7 @@ pre_pack_hdrp_template_OSX_2021.2:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
     artifacts:
         primed:
             paths:
@@ -80,8 +80,8 @@ pre_pack_hdrp_template_OSX_2021.2:
         logs:
             paths:
               -  "Editor.log"
-pack_hdrp_template_OSX_2021.2:
-    name: Pack HDRP Template OSX 2021.2
+pack_hdrp_template_OSX_2021.3:
+    name: Pack HDRP Template OSX 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -94,15 +94,15 @@ pack_hdrp_template_OSX_2021.2:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-test_hdrp_template_OSX_2021.2:
-    name: Test HDRP Template OSX 2021.2
+test_hdrp_template_OSX_2021.3:
+    name: Test HDRP Template OSX 2021.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.2
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.3
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -111,39 +111,39 @@ test_hdrp_template_OSX_2021.2:
         logs:
             paths:
               -  "**/test-results/**"
-publish_hdrp_template_2021.2:
+publish_hdrp_template_2021.3:
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
-    name: Publish HDRP Template 2021.2
+    name: Publish HDRP Template 2021.3
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_2021.2
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_2021.2
-      -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.2
-      -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.2
+      -  .yamato/_templates.yml#test_hdrp_template_Win_2021.3
+      -  .yamato/_templates.yml#test_hdrp_template_OSX_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.3
     artifacts:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-publish_hdrp_template_2021.2_dry_run:
+publish_hdrp_template_2021.3_dry_run:
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
-    name: Publish HDRP Template 2021.2 Dry Run
+    name: Publish HDRP Template 2021.3 Dry Run
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd --dry-run
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_2021.2
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_2021.2
-      -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.2
-      -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.2
+      -  .yamato/_templates.yml#test_hdrp_template_Win_2021.3
+      -  .yamato/_templates.yml#test_hdrp_template_OSX_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.3
     artifacts:
         packages:
             paths:
@@ -291,8 +291,8 @@ publish_hdrp_template_CUSTOM-REVISION_dry_run:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-pre_pack_universal_template_Win_2021.2:
-    name: Pre-Pack Universal Template Win 2021.2
+pre_pack_universal_template_Win_2021.3:
+    name: Pre-Pack Universal Template Win 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -302,7 +302,7 @@ pre_pack_universal_template_Win_2021.2:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:Win
     artifacts:
         primed:
             paths:
@@ -312,8 +312,8 @@ pre_pack_universal_template_Win_2021.2:
         logs:
             paths:
               -  "Editor.log"
-pack_universal_template_Win_2021.2:
-    name: Pack Universal Template Win 2021.2
+pack_universal_template_Win_2021.3:
+    name: Pack Universal Template Win 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -326,15 +326,15 @@ pack_universal_template_Win_2021.2:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-test_universal_template_Win_2021.2:
-    name: Test Universal Template Win 2021.2
+test_universal_template_Win_2021.3:
+    name: Test Universal Template Win 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template_Win_2021.2
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  .yamato/_templates.yml#pack_universal_template_Win_2021.3
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -344,8 +344,8 @@ test_universal_template_Win_2021.2:
         logs:
             paths:
               -  "**/test-results/**"
-pre_pack_universal_template_OSX_2021.2:
-    name: Pre-Pack Universal Template OSX 2021.2
+pre_pack_universal_template_OSX_2021.3:
+    name: Pre-Pack Universal Template OSX 2021.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -354,7 +354,7 @@ pre_pack_universal_template_OSX_2021.2:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
     artifacts:
         primed:
             paths:
@@ -364,8 +364,8 @@ pre_pack_universal_template_OSX_2021.2:
         logs:
             paths:
               -  "Editor.log"
-pack_universal_template_OSX_2021.2:
-    name: Pack Universal Template OSX 2021.2
+pack_universal_template_OSX_2021.3:
+    name: Pack Universal Template OSX 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -378,15 +378,15 @@ pack_universal_template_OSX_2021.2:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-test_universal_template_OSX_2021.2:
-    name: Test Universal Template OSX 2021.2
+test_universal_template_OSX_2021.3:
+    name: Test Universal Template OSX 2021.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template_OSX_2021.2
-      -  .yamato/_editor_priming.yml#editor:priming:2021.2:OSX
+      -  .yamato/_templates.yml#pack_universal_template_OSX_2021.3
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -395,39 +395,39 @@ test_universal_template_OSX_2021.2:
         logs:
             paths:
               -  "**/test-results/**"
-publish_universal_template_2021.2:
+publish_universal_template_2021.3:
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
-    name: Publish Universal Template 2021.2
+    name: Publish Universal Template 2021.3
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal
     dependencies:
-      -  .yamato/_templates.yml#test_universal_template_Win_2021.2
-      -  .yamato/_templates.yml#test_universal_template_OSX_2021.2
-      -  .yamato/_templates.yml#pack_universal_template_Win_2021.2
-      -  .yamato/_templates.yml#pack_universal_template_OSX_2021.2
+      -  .yamato/_templates.yml#test_universal_template_Win_2021.3
+      -  .yamato/_templates.yml#test_universal_template_OSX_2021.3
+      -  .yamato/_templates.yml#pack_universal_template_Win_2021.3
+      -  .yamato/_templates.yml#pack_universal_template_OSX_2021.3
     artifacts:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-publish_universal_template_2021.2_dry_run:
+publish_universal_template_2021.3_dry_run:
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
-    name: Publish Universal Template 2021.2 Dry Run
+    name: Publish Universal Template 2021.3 Dry Run
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal --dry-run
     dependencies:
-      -  .yamato/_templates.yml#test_universal_template_Win_2021.2
-      -  .yamato/_templates.yml#test_universal_template_OSX_2021.2
-      -  .yamato/_templates.yml#pack_universal_template_Win_2021.2
-      -  .yamato/_templates.yml#pack_universal_template_OSX_2021.2
+      -  .yamato/_templates.yml#test_universal_template_Win_2021.3
+      -  .yamato/_templates.yml#test_universal_template_OSX_2021.3
+      -  .yamato/_templates.yml#pack_universal_template_Win_2021.3
+      -  .yamato/_templates.yml#pack_universal_template_OSX_2021.3
     artifacts:
         packages:
             paths:
@@ -575,17 +575,17 @@ publish_universal_template_CUSTOM-REVISION_dry_run:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
-all_template_ci_2021.2:
-    name: Pack and test all templates - 2021.2
+all_template_ci_2021.3:
+    name: Pack and test all templates - 2021.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_2021.2
-      -  .yamato/_templates.yml#test_universal_template_Win_2021.2
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_2021.2
-      -  .yamato/_templates.yml#test_universal_template_OSX_2021.2
+      -  .yamato/_templates.yml#test_hdrp_template_Win_2021.3
+      -  .yamato/_templates.yml#test_universal_template_Win_2021.3
+      -  .yamato/_templates.yml#test_hdrp_template_OSX_2021.3
+      -  .yamato/_templates.yml#test_universal_template_OSX_2021.3
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t

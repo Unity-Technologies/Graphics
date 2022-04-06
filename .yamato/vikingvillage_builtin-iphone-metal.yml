@@ -7,20 +7,20 @@
 
 ---
 
-VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2021.2:
-    name: VikingVillage_BuiltIn on iPhone_Metal_performance_playmode_runtime_il2cpp_Linear on version 2021.2
+VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2021.3:
+    name: VikingVillage_BuiltIn on iPhone_Metal_performance_playmode_runtime_il2cpp_Linear on version 2021.3
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -37,24 +37,24 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_20
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:iPhone
          rerun: on_new_revision
-      -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2021.2
+      -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2021.3
          rerun: on_new_revision
-Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2021.2:
-    name: Build VikingVillage_BuiltIn on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2021.2
+Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2021.3:
+    name: Build VikingVillage_BuiltIn on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2021.3
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -99,22 +99,22 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:iPhone
          rerun: on_new_revision
-VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_2021.2:
-    name: VikingVillage_BuiltIn on iPhone_Metal_performance_build_editmode_il2cpp_Linear on version 2021.2
+VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_2021.3:
+    name: VikingVillage_BuiltIn on iPhone_Metal_performance_build_editmode_il2cpp_Linear on version 2021.3
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -158,7 +158,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_2021
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:iPhone
          rerun: on_new_revision
 VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on iPhone_Metal_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
@@ -167,13 +167,13 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CU
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -201,13 +201,13 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
         image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3
@@ -261,13 +261,13 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUST
         image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
          retries: 3

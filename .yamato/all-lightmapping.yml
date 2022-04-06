@@ -7,51 +7,51 @@
 
 ---
 
-PR_Lightmapping_2021.2:
-    name: PR Lightmapping on 2021.2
+PR_Lightmapping_2021.3:
+    name: PR Lightmapping on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_2021.2
+      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_Standalone_mono_Linear_2021.2
+      -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_editmode_mono_Linear_2021.2
+      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_Standalone_mono_Linear_2021.2
+      -  path: .yamato/lightmapping-linux-vulkan.yml#Lightmapping_Linux_Vulkan_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/lightmapping-linux-openglcore.yml#Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_2021.2
+      -  path: .yamato/lightmapping-linux-openglcore.yml#Lightmapping_Linux_OpenGlCore_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-Extra_Lightmapping_2021.2:
-    name: Extra Lightmapping on 2021.2
+Extra_Lightmapping_2021.3:
+    name: Extra Lightmapping on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
-Lightmapping_2021.2:
-    name: Lightmapping on 2021.2
+Lightmapping_2021.3:
+    name: Lightmapping on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-lightmapping.yml#PR_Lightmapping_2021.2
+      -  path: .yamato/all-lightmapping.yml#PR_Lightmapping_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-lightmapping.yml#Extra_Lightmapping_2021.2
+      -  path: .yamato/all-lightmapping.yml#Extra_Lightmapping_2021.3
          rerun: on_new_revision
 PR_Lightmapping_CUSTOM-REVISION:
     name: PR Lightmapping on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -66,18 +66,18 @@ PR_Lightmapping_CUSTOM-REVISION:
 Extra_Lightmapping_CUSTOM-REVISION:
     name: Extra Lightmapping on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Lightmapping_CUSTOM-REVISION:
     name: Lightmapping on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-lightmapping.yml#PR_Lightmapping_CUSTOM-REVISION
          rerun: on_new_revision

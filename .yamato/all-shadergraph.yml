@@ -7,79 +7,79 @@
 
 ---
 
-PR_ShaderGraph_2021.2:
-    name: PR ShaderGraph on 2021.2
+PR_ShaderGraph_2021.3:
+    name: PR ShaderGraph on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_2021.2
+      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_2021.2
+      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_2021.3
          rerun: on_new_revision
-      -  path: .yamato/_abv.yml#General_Checks_2021.2
+      -  path: .yamato/_abv.yml#General_Checks_2021.3
          rerun: on_new_revision
-Extra_ShaderGraph_2021.2:
-    name: Extra ShaderGraph on 2021.2
+Extra_ShaderGraph_2021.3:
+    name: Extra ShaderGraph on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_2021.2
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_2021.3
          rerun: on_new_revision
-ShaderGraph_2021.2:
-    name: ShaderGraph on 2021.2
+ShaderGraph_2021.3:
+    name: ShaderGraph on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2021.2
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#Extra_ShaderGraph_2021.2
+      -  path: .yamato/all-shadergraph.yml#Extra_ShaderGraph_2021.3
          rerun: on_new_revision
-Nightly_ShaderGraph_2021.2:
-    name: Nightly ShaderGraph on 2021.2
+Nightly_ShaderGraph_2021.3:
+    name: Nightly ShaderGraph on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-shadergraph.yml#ShaderGraph_2021.2
+      -  path: .yamato/all-shadergraph.yml#ShaderGraph_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_stereo.yml#ShaderGraph_Stereo_2021.2
+      -  path: .yamato/all-shadergraph_stereo.yml#ShaderGraph_Stereo_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_2021.2
+      -  path: .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_2021.2
+      -  path: .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_2021.3
          rerun: on_new_revision
 PR_ShaderGraph_CUSTOM-REVISION:
     name: PR ShaderGraph on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -98,10 +98,10 @@ PR_ShaderGraph_CUSTOM-REVISION:
 Extra_ShaderGraph_CUSTOM-REVISION:
     name: Extra ShaderGraph on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -114,10 +114,10 @@ Extra_ShaderGraph_CUSTOM-REVISION:
 ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
@@ -126,10 +126,10 @@ ShaderGraph_CUSTOM-REVISION:
 Nightly_ShaderGraph_CUSTOM-REVISION:
     name: Nightly ShaderGraph on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph.yml#ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision

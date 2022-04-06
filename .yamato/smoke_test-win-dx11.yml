@@ -7,18 +7,18 @@
 
 ---
 
-Smoke_Test_Win_DX11_playmode_mono_Linear_2021.2:
-    name: Smoke_Test on Win_DX11_playmode_mono_Linear on version 2021.2
+Smoke_Test_Win_DX11_playmode_mono_Linear_2021.3:
+    name: Smoke_Test on Win_DX11_playmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -39,20 +39,20 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-Smoke_Test_Win_DX11_editmode_mono_Linear_2021.2:
-    name: Smoke_Test on Win_DX11_editmode_mono_Linear on version 2021.2
+Smoke_Test_Win_DX11_editmode_mono_Linear_2021.3:
+    name: Smoke_Test on Win_DX11_editmode_mono_Linear on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -73,20 +73,20 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.2:
-    name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version 2021.2
+Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.3:
+    name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version 2021.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -103,22 +103,22 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.2:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.2
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.2:
-    name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version 2021.2
+Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.3:
+    name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version 2021.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -143,7 +143,7 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.2:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:2021.2:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.3:Win
          rerun: on_new_revision
 Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
@@ -152,11 +152,11 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -186,11 +186,11 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -220,11 +220,11 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -252,11 +252,11 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
