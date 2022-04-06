@@ -90,6 +90,10 @@ namespace UnityEditor.ShaderFoundry
                 passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
                 passBuilder.DisplayName = legacyPassDescriptor.displayName;
                 passBuilder.SetPassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
+                // Ideally we'd also set the other descriptors here (command, define, include, keyword, pragma).
+                // This isn't easy to do here due to:
+                // - The old conditional system which requires the active fields. This could potentially be built from the target though.
+                // - Many of the old descriptors are single strings that would require us to parse into the individual elements (e.g. pragmas)
                 ++subPassIndex;
 
                 BuildLegacyTemplateEntryPoints(legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);

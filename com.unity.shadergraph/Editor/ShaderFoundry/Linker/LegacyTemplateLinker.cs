@@ -541,11 +541,11 @@ namespace UnityEditor.ShaderFoundry
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
             var sharedFunctions = "// GraphFunctions: <None>";
-            var shaderCommands = new List<CommandDescriptor>();
-            var shaderDefines = new List<DefineDescriptor>();
-            var shaderIncludes = new List<UnityEditor.ShaderFoundry.IncludeDescriptor>();
-            var shaderKeywords = new List<UnityEditor.ShaderFoundry.KeywordDescriptor>();
-            var shaderPragmas = new List<UnityEditor.ShaderFoundry.PragmaDescriptor>();
+            var shaderCommands = new List<CommandDescriptor>(templatePass.CommandDescriptors);
+            var shaderDefines = new List<DefineDescriptor>(templatePass.DefineDescriptors);
+            var shaderIncludes = new List<UnityEditor.ShaderFoundry.IncludeDescriptor>(templatePass.IncludeDescriptors);
+            var shaderKeywords = new List<UnityEditor.ShaderFoundry.KeywordDescriptor>(templatePass.KeywordDescriptors);
+            var shaderPragmas = new List<UnityEditor.ShaderFoundry.PragmaDescriptor>(templatePass.PragmaDescriptors);
 
             var shaderUniforms = new ShaderUniformCollection();
             shaderUniforms.Add(shaderProperties);
