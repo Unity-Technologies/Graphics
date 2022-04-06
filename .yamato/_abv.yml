@@ -25,6 +25,23 @@ all_project_ci_2022.1:
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_2022.1
          rerun: on_new_revision
+graphics_repo_nightly_2022.1:
+    name: Graphics repo nightly on 2022.1
+    variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
+    triggers:
+        recurring:
+          -  branch: 2022.1/staging
+             frequency: 1 * * ?
+
+    dependencies:
+      -  path: .yamato/_templates.yml#all_template_ci_2022.1
+         rerun: on_new_revision
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_2022.1
+         rerun: on_new_revision
 all_project_ci_nightly_2022.1:
     name: Nightly on 2022.1
     variables:
@@ -138,6 +155,18 @@ all_project_ci_CUSTOM-REVISION:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
+         rerun: on_new_revision
+graphics_repo_nightly_CUSTOM-REVISION:
+    name: Graphics repo nightly on CUSTOM-REVISION
+    variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
+    dependencies:
+      -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
          rerun: on_new_revision
 all_project_ci_nightly_CUSTOM-REVISION:
     name: Nightly on CUSTOM-REVISION
