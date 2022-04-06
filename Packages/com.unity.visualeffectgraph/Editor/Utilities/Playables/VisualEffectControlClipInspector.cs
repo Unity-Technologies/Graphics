@@ -379,7 +379,7 @@ namespace UnityEditor.VFX
             m_ReoderableClipEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Clip Events"); };
             m_ReoderableClipEvents.onAddCallback = (ReorderableList list) =>
             {
-                var playable = clipEventsProperty.serializedObject.targetObject as VisualEffectControlClip;
+                var playable = (VisualEffectControlClip)clipEventsProperty.serializedObject.targetObject;
                 Undo.RegisterCompleteObjectUndo(playable, "Add new clip event");
                 clipEventsProperty.serializedObject.ApplyModifiedProperties();
 
@@ -415,7 +415,7 @@ namespace UnityEditor.VFX
             m_ReoderableSingleEvents.drawHeaderCallback += (Rect r) => { EditorGUI.LabelField(r, "Single Events"); };
             m_ReoderableSingleEvents.onAddCallback = (ReorderableList list) =>
             {
-                var playable = singleEventsProperty.serializedObject.targetObject as VisualEffectControlClip;
+                var playable = (VisualEffectControlClip)singleEventsProperty.serializedObject.targetObject;
                 Undo.RegisterCompleteObjectUndo(playable, "Add new single event");
                 singleEventsProperty.serializedObject.ApplyModifiedProperties();
 
@@ -430,18 +430,40 @@ namespace UnityEditor.VFX
                 playable.singleEvents.Add(newSingleEvent);
                 singleEventsProperty.serializedObject.Update();
             };
-        }
 
-        private HashSet<EventAttribute> m_CacheEventAttributes = new HashSet<EventAttribute>(); //Only used to save garbage while checking unicity
-        private bool CheckNoDuplicate(IEnumerable<EventAttribute> eventAttributes)
-        {
-            m_CacheEventAttributes.Clear();
-            foreach (var evt in eventAttributes)
+            //Detect duplication of serialized reference (e.g.: 'Duplicate Array Element' is called)
+            m_ReoderableClipEvents.onChangedCallback += (ReorderableList list) =>
             {
-                if (!m_CacheEventAttributes.Add(evt))
-                    return false;
-            }
-            return true;
+                var playable = (VisualEffectControlClip)singleEventsProperty.serializedObject.targetObject;
+                var allAttributes = playable.clipEvents.SelectMany(o => o.enter.eventAttributes.content.Concat(o.exit.eventAttributes.content));
+                if (allAttributes.Count() != allAttributes.Distinct().Count())
+                {
+                    for (int i = 0; i < playable.clipEvents.Count; ++i)
+                    {
+                        var source = playable.clipEvents[i];
+                        var copy = new VisualEffectControlClip.ClipEvent();
+                        copy.editorColor = source.editorColor;
+                        copy.enter = DeepClone(source.enter);
+                        copy.exit = DeepClone(source.exit);
+                        playable.clipEvents[i] = copy;
+                    }
+                }
+            };
+
+            m_ReoderableSingleEvents.onChangedCallback += (ReorderableList list) =>
+            {
+                var playable = (VisualEffectControlClip)singleEventsProperty.serializedObject.targetObject;
+                var allAttributes = playable.singleEvents.SelectMany(o => o.eventAttributes.content);
+                if (allAttributes.Count() != allAttributes.Distinct().Count())
+                {
+                    for (int i = 0; i < playable.singleEvents.Count; ++i)
+                    {
+                        var source = playable.singleEvents[i];
+                        var copy = DeepClone(source);
+                        playable.singleEvents[i] = copy;
+                    }
+                }
+            };
         }
 
         public override void OnInspectorGUI()
@@ -484,36 +506,6 @@ namespace UnityEditor.VFX
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
-
-#if FIX_DUPLICATE
-                //See case 1381005
-                //Special detection of duplicated referenced element due to manual duplicate in reordable list
-                var playable = serializedObject.targetObject as VisualEffectControlClip;
-                var enterEvents = playable.clipEvents.Where(o => o.enter.eventAttributes.content != null).SelectMany(o => o.enter.eventAttributes.content);
-                var exitEvents = playable.clipEvents.Where(o => o.exit.eventAttributes.content != null).SelectMany(o => o.exit.eventAttributes.content);
-                var singleEvents = playable.singleEvents.Where(o => o.eventAttributes.content != null).SelectMany(o => o.eventAttributes.content);
-                var allAttributes = enterEvents.Concat(exitEvents.Concat(singleEvents));
-                if (!CheckNoDuplicate(allAttributes))
-                {
-                    for (int i = 0; i < playable.clipEvents.Count; ++i)
-                    {
-                        var source = playable.clipEvents[i];
-                        VisualEffectControlClip.ClipEvent copy;
-                        copy.enter = DeepClone(source.enter);
-                        copy.exit = DeepClone(source.exit);
-                        playable.clipEvents[i] = copy;
-                    }
-
-                    for (int i = 0; i < playable.singleEvents.Count; ++i)
-                    {
-                        var source = playable.singleEvents[i];
-                        var copy = DeepClone(source);
-                        playable.singleEvents[i] = copy;
-                    }
-
-                    serializedObject.Update();
-                }
-#endif
             }
         }
     }
