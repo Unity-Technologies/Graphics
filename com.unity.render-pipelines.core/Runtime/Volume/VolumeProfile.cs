@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -13,7 +16,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// A list of every setting that this Volume Profile stores.
         /// </summary>
-        public List<VolumeComponent> components = new List<VolumeComponent>();
+        public List<VolumeComponent> components = new();
 
         /// <summary>
         /// A dirty check used to redraw the profile inspector when something has changed. This is
@@ -30,6 +33,54 @@ namespace UnityEngine.Rendering
             // harmless and happens because Unity does a redraw of the editor (and thus the current
             // frame) before the recompilation step.
             components.RemoveAll(x => x == null);
+
+#if UNITY_EDITOR
+            // Attempt to upgrade any deprecated components to their new component type.
+            // Find all the components on the volume that are marked as deprecated
+            var toUpgrade = new List<IDeprecatedVolumeComponent>();
+            foreach (var volumeComponent in components)
+            {
+                if (volumeComponent != null && volumeComponent is IDeprecatedVolumeComponent)
+                {
+                    var deprecatedComponent = (volumeComponent as IDeprecatedVolumeComponent);
+                    toUpgrade.Add(deprecatedComponent);
+                }
+            }
+
+            // Remove them from the volume.
+            foreach (var volumeComponent in toUpgrade)
+                Remove(volumeComponent.GetType());
+
+            // Add all the upgraded components.
+            foreach (var volumeComponent in toUpgrade)
+            {
+                var newType = volumeComponent.GetNewComponentType();
+                if (newType == null)
+                    continue;
+
+                Add(newType);
+
+                if (TryGet<VolumeComponent>(volumeComponent.GetNewComponentType(), out var component))
+                {
+                    volumeComponent.CopyToNewComponent(component);
+
+                    if (EditorUtility.IsPersistent(this))
+                    {
+                        EditorUtility.SetDirty(this);
+                        AssetDatabase.AddObjectToAsset(component, this);
+                        AssetDatabase.RemoveObjectFromAsset(volumeComponent as ScriptableObject);
+                    }
+                }
+            }
+
+            if (toUpgrade.Count > 0)
+            {
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                Reset();
+                VolumeManager.instance.RebuildDefaultStack();
+            }
+#endif
         }
 
         /// <summary>

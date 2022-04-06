@@ -4,23 +4,6 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    ///  Implement this interface on every post process volumes
-    /// </summary>
-    public interface IPostProcessComponent
-    {
-        /// <summary>
-        /// Tells if the post process needs to be rendered or not.
-        /// </summary>
-        /// <returns>True if the component is active, otherwise false.</returns>
-        bool IsActive();
-
-        bool IsTileCompatible();
-    }
-}
-
-namespace UnityEngine.Rendering.Universal
-{
-    /// <summary>
     /// Renders the post-processing effect stack.
     /// </summary>
     internal class PostProcessPass : ScriptableRenderPass

@@ -122,4 +122,44 @@ namespace UnityEngine.Rendering
             return attribute != null;
         }
     }
+
+    /// <summary>
+    /// Attribute to define the help url which will redirect to the active RP
+    /// </summary>
+    /// <example>
+    /// [RPRedirectHelpURLAttribute("Volume")]
+    /// public class Volume : MonoBehaviour
+    /// </example>
+    [Conditional("UNITY_EDITOR")]
+    public class RPRedirectHelpURLAttribute : CoreRPHelpURLAttribute
+    {
+        public RPRedirectHelpURLAttribute(string pageName)
+            : base(pageName, Documentation.packageName)
+        {
+        }
+    }
+
+    internal class Documentation : DocumentationInfo
+    {
+        /// <summary>
+        /// The name of the package
+        /// </summary>
+        public static string packageName
+        {
+            get
+            {
+                if (GraphicsSettings.currentRenderPipeline.GetType().FullName == "UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset")
+                    return "com.unity.render-pipelines.high-definition";
+
+                return "com.unity.render-pipelines.universal";
+            }
+        }
+
+        /// <summary>
+        /// Generates a help url for the given package and page name
+        /// </summary>
+        /// <param name="pageName">The page name</param>
+        /// <returns>The full url page</returns>
+        public static string GetPageLink(string pageName) => GetPageLink(packageName, pageName);
+    }
 }

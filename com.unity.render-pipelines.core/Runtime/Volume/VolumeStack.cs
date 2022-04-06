@@ -55,7 +55,14 @@ namespace UnityEngine.Rendering
         /// or <c>null</c> if the type is invalid.</returns>
         public VolumeComponent GetComponent(Type type)
         {
-            components.TryGetValue(type, out var comp);
+            VolumeComponent comp = null;
+            while (comp == null)
+            {
+                components.TryGetValue(type, out comp);
+                type = type.BaseType;
+                if (type == typeof(VolumeComponent) || type == null)
+                    break;
+            }
             return comp;
         }
 
