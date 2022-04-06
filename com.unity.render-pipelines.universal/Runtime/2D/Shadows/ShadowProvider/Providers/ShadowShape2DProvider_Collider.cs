@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             // Fetch collider space.
-            var colliderSpace = collider.LocalToWorld;
+            var colliderSpace = collider.localToWorldMatrix;
 
             // Calculate current collider-space culling bounds.
             var toColliderSpace = Matrix4x4.Inverse(colliderSpace);
