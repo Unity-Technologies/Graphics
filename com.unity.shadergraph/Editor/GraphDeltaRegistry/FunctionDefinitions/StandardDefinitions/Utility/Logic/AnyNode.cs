@@ -34,18 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "returns true if any of the components of the input In are non-zero" },
-            { "Category", "Utility, Logic" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "true if any input components are non-zero" }
-        };
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "Preview.Exists", 0 }
-        };
     }
 }

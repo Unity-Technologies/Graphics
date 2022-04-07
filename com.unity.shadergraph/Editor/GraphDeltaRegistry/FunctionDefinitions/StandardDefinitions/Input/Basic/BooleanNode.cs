@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -33,13 +32,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Input, Basic" },
-            { "Name.Synonyms", "switch, true, false, on, off" },
-            { "Tooltip", "a true/false check box" },
-            { "Parameters.Out.Tooltip", "a constant true or false value" }
-        };
     }
 }

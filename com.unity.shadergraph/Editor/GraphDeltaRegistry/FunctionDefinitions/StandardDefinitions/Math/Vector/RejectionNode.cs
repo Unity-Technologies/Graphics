@@ -38,14 +38,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Vector" },
-            { "Tooltip", "returns the projection of input A onto the plane orthogonal, or perpendicular, to input B" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
-            { "Parameters.Out.Tooltip", "the projection of A onto the plane orthogonal, or perpendicular, to B" }
-        };
     }
 }

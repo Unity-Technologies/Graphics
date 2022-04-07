@@ -33,13 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "returns the sine of the input" },
-            { "Category", "Math, Trigonometry" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the sine of the input" }
-        };
     }
 }

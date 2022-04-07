@@ -30,15 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     name: "Out",
                     tooltip: "the whole number of the input without the decimal portion"
                 )
-    }
+            }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "returns the integer, or whole number, component of the input" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Category", "Math, Round" },
-            { "Parameters.Out.Tooltip", "the whole number of the input without the decimal portion" }
-        };
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -58,17 +57,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Artistic, Adjustment" },
-            { "DisplayName", "Replace Color" },
-            { "Tooltip", "converts the chosen colors to another color value" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.From.Tooltip", "color to replace" },
-            { "Parameters.Range.Tooltip", "replace colors within this range from input From" },
-            { "Parameters.Fuzziness.Tooltip", "soften edges around selection" },
-            { "Parameters.Out.Tooltip", "in color with colors replaced" }
-        };
     }
 }

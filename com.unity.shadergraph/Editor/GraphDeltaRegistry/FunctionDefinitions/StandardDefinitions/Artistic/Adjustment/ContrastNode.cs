@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -45,15 +44,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Artistic, Adjustment" },
-            { "Name.Synonyms", "intensity" },
-            { "Tooltip", "make the darks darker and the brights brighter" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Contrast.Tooltip", "less than 1 reduces contrast, greater than 1 increases it" },
-            { "Parameters.Out.Tooltip", "color with adjusted contrast" }
-        };
     }
 }

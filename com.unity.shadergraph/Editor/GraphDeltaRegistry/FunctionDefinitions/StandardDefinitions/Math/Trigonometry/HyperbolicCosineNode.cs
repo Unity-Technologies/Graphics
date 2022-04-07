@@ -34,15 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "cosh" },
-            { "Tooltip", "returns the hyperbolic cosine of the input" },
-            { "Category", "Math, Trigonometry" },
-            { "DisplayName", "Hyperbolic Cosine" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the hyperbolic cosine of the input" },
-        };
     }
 }

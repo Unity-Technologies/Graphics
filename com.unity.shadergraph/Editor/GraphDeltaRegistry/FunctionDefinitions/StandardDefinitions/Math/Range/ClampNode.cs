@@ -43,16 +43,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Range" },
-            { "Name.Synonyms", "limit" },
-            { "Tooltip", "prevents the input from going below min or above max" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Min.Tooltip", "minimum value" },
-            { "Parameters.Max.Tooltip", "maximum value" },
-            { "Parameters.Out.Tooltip", "inupt value clamped between Min and Max" }
-        };
     }
 }

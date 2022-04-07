@@ -50,17 +50,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "DisplayName", "Noise Sine Wave" },
-            { "Category", "Math, Wave" },
-            { "Name.Synonyms", "wave, noise, sine" },
-            { "Tooltip", "creates a sine wave with noise added to the amplitude for randomness" },
-            { "Parameters.In.Tooltip", "the input value" },
-            { "Parameters.Min.Tooltip", "Minimum value for noise intensity" },
-            { "Parameters.Max.Tooltip", "Maximum value for noise intensity" },
-            { "Parameters.Out.Tooltip", "a sine wave with noise added to the amplitude for randomness" }
-        };
     }
 }
