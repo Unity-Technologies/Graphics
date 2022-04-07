@@ -4,6 +4,12 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.3.2] - 2022-04-08
+
+### Added
+- Added PS5 to QualitySettings.asset.
+- Added GameCore platforms to QualitySettings.asset.
+
 ## [12.3.1] - 2022-02-15
 
 ### Changed
