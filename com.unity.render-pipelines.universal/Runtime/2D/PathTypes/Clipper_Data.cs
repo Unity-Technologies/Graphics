@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
     internal partial struct Clipper
     {
         Reference<ClipperDataStruct> m_Data;
+        TEdge NULL_TEdge;
 
         public void Initialize()
         {

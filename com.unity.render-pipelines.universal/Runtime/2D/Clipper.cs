@@ -390,8 +390,6 @@ namespace UnityEngine.Rendering.Universal
 
     internal partial struct Clipper
     {
-        TEdge NULL_TEdge;
-
         //------------------------------------------------------------------------------
         // Constructor
         //------------------------------------------------------------------------------
@@ -578,7 +576,7 @@ namespace UnityEngine.Rendering.Universal
                 TEdge lb = lm.LeftBound;
                 TEdge rb = lm.RightBound;
 
-                OutPt Op1;
+                OutPt Op1 = new OutPt();  // This will be null by default
                 if (lb.IsNull)
                 {
                     InsertEdgeIntoAEL(rb, NULL_TEdge);
@@ -1177,7 +1175,7 @@ namespace UnityEngine.Rendering.Universal
         private void SetHoleState(TEdge e, OutRec outRec)
         {
             TEdge e2 = e.PrevInAEL;
-            TEdge eTmp;
+            TEdge eTmp = new TEdge();
             while (e2.NotNull)
             {
                 if (e2.OutIdx >= 0 && e2.WindDelta != 0)
@@ -1239,7 +1237,7 @@ namespace UnityEngine.Rendering.Universal
 
         private OutPt GetBottomPt(OutPt pp)
         {
-            OutPt dups;
+            OutPt dups = new OutPt();
             OutPt p = pp.Next;
             while (p != pp)
             {
@@ -1705,7 +1703,7 @@ namespace UnityEngine.Rendering.Universal
 
             GetHorzDirection(horzEdge, out dir, out horzLeft, out horzRight);
 
-            TEdge eLastHorz = horzEdge, eMaxPair;
+            TEdge eLastHorz = horzEdge, eMaxPair = new TEdge();
             while (eLastHorz.NextInLML.NotNull && IsHorizontal(eLastHorz.NextInLML))
                 eLastHorz = eLastHorz.NextInLML;
             if (eLastHorz.NextInLML.IsNull)
@@ -1730,7 +1728,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            OutPt op1;
+            OutPt op1 = new OutPt();
             for (; ; ) //loop through consec. horizontal edges
             {
                 bool IsLastHorz = (horzEdge == eLastHorz);
@@ -2257,7 +2255,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (IsIntermediate(e, topY))
                 {
-                    OutPt op;
+                    OutPt op = new OutPt();
                     if (e.OutIdx >= 0)
                         op = AddOutPt(e, e.Top);
                     UpdateEdgeIntoAEL(ref e);
@@ -2425,7 +2423,7 @@ namespace UnityEngine.Rendering.Universal
         {
             //FixupOutPolygon() - removes duplicate points and simplifies consecutive
             //parallel edges by removing the middle vertex.
-            OutPt lastOK;
+            OutPt lastOK = new OutPt();
             outRec.BottomPt.SetNull();
             OutPt pp = outRec.Pts;
             bool preserveCol = PreserveCollinear || StrictlySimple;
