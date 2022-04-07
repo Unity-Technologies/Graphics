@@ -10,10 +10,10 @@
 PR_Lightmapping_trunk:
     name: PR Lightmapping on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -28,10 +28,10 @@ PR_Lightmapping_trunk:
 Extra_Lightmapping_trunk:
     name: Extra Lightmapping on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/lightmapping-osx_apple_silicon-metal.yml#Lightmapping_OSX_Apple_Silicon_Metal_editmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -40,10 +40,10 @@ Extra_Lightmapping_trunk:
 Lightmapping_trunk:
     name: Lightmapping on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-lightmapping.yml#PR_Lightmapping_trunk
          rerun: on_new_revision
@@ -52,10 +52,10 @@ Lightmapping_trunk:
 PR_Lightmapping_CUSTOM-REVISION:
     name: PR Lightmapping on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/lightmapping-win-dx11.yml#Lightmapping_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -70,10 +70,10 @@ PR_Lightmapping_CUSTOM-REVISION:
 Extra_Lightmapping_CUSTOM-REVISION:
     name: Extra Lightmapping on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/lightmapping-osx_apple_silicon-metal.yml#Lightmapping_OSX_Apple_Silicon_Metal_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -82,10 +82,10 @@ Extra_Lightmapping_CUSTOM-REVISION:
 Lightmapping_CUSTOM-REVISION:
     name: Lightmapping on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-lightmapping.yml#PR_Lightmapping_CUSTOM-REVISION
          rerun: on_new_revision

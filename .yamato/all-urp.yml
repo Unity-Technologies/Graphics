@@ -10,10 +10,10 @@
 PR_URP_trunk:
     name: PR URP on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_split.yml#PR_Universal_Split_trunk
          rerun: on_new_revision
@@ -30,20 +30,20 @@ PR_URP_trunk:
 Extra_URP_trunk:
     name: Extra URP on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_split.yml#Extra_Universal_Split_trunk
          rerun: on_new_revision
 URP_trunk:
     name: URP on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#PR_URP_trunk
          rerun: on_new_revision
@@ -52,10 +52,10 @@ URP_trunk:
 Nightly_URP_trunk:
     name: Nightly URP on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#URP_trunk
          rerun: on_new_revision
@@ -72,10 +72,10 @@ Nightly_URP_trunk:
 All_URP_on_Win_DX11_playmode_trunk:
     name: All URP on Win DX11 playmode on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -90,10 +90,10 @@ All_URP_on_Win_DX11_playmode_trunk:
 PR_URP_CUSTOM-REVISION:
     name: PR URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_split.yml#PR_Universal_Split_CUSTOM-REVISION
          rerun: on_new_revision
@@ -110,20 +110,20 @@ PR_URP_CUSTOM-REVISION:
 Extra_URP_CUSTOM-REVISION:
     name: Extra URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_split.yml#Extra_Universal_Split_CUSTOM-REVISION
          rerun: on_new_revision
 URP_CUSTOM-REVISION:
     name: URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#PR_URP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -132,10 +132,10 @@ URP_CUSTOM-REVISION:
 Nightly_URP_CUSTOM-REVISION:
     name: Nightly URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#URP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -152,10 +152,10 @@ Nightly_URP_CUSTOM-REVISION:
 All_URP_on_Win_DX11_playmode_CUSTOM-REVISION:
     name: All URP on Win DX11 playmode on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

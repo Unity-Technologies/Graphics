@@ -10,10 +10,10 @@
 all_project_ci_trunk:
     name: ABV (all PR jobs) on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
          rerun: on_new_revision
@@ -25,13 +25,29 @@ all_project_ci_trunk:
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
+graphics_repo_nightly_trunk:
+    name: Graphics repo nightly on trunk
+    variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: 1 * * ?
+    dependencies:
+      -  path: .yamato/_templates.yml#all_template_ci_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
+         rerun: on_new_revision
 all_project_ci_nightly_trunk:
     name: Nightly on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on_new_revision
@@ -54,10 +70,10 @@ all_project_ci_nightly_trunk:
 General_Checks_trunk:
     name: General Checks on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on_new_revision
@@ -76,10 +92,10 @@ General_Checks_trunk:
 Safety_net_trunk:
     name: Safety net on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -90,10 +106,10 @@ Safety_net_trunk:
 Trunk_verification_trunk:
     name: Trunk verification on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -132,10 +148,10 @@ Trunk_verification_trunk:
 all_project_ci_CUSTOM-REVISION:
     name: ABV (all PR jobs) on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -147,13 +163,25 @@ all_project_ci_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
+graphics_repo_nightly_CUSTOM-REVISION:
+    name: Graphics repo nightly on CUSTOM-REVISION
+    variables:
+        CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
+    dependencies:
+      -  path: .yamato/_templates.yml#all_template_ci_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
+         rerun: on_new_revision
 all_project_ci_nightly_CUSTOM-REVISION:
     name: Nightly on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -176,10 +204,10 @@ all_project_ci_nightly_CUSTOM-REVISION:
 General_Checks_CUSTOM-REVISION:
     name: General Checks on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: on_new_revision
@@ -198,10 +226,10 @@ General_Checks_CUSTOM-REVISION:
 Safety_net_CUSTOM-REVISION:
     name: Safety net on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -212,10 +240,10 @@ Safety_net_CUSTOM-REVISION:
 Trunk_verification_CUSTOM-REVISION:
     name: Trunk verification on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -14,13 +14,13 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
@@ -106,13 +106,13 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
@@ -192,13 +192,13 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
@@ -278,13 +278,13 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
@@ -370,13 +370,13 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
@@ -456,13 +456,13 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
       -  command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
