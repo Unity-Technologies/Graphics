@@ -14,11 +14,11 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk:
         image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -45,11 +45,11 @@ Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk:
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -82,11 +82,11 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_trunk:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -115,11 +115,11 @@ ShaderGraph_Win_DX11_editmode_mono_Linear_trunk:
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -148,11 +148,11 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         image: automation-tooling/win-10:v0.0.1-971269
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -179,11 +179,11 @@ Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -216,11 +216,11 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         flavor: b1.xlarge
         model: rtx2080
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -249,11 +249,11 @@ ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
         CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
+        CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2

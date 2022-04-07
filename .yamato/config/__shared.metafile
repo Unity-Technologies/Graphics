@@ -11,9 +11,9 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
-      enabled: false
-      nr_commits_to_retrieve: 100
-    allow_triggers: false
+      enabled: True
+      nr_commits_to_retrieve: 1
+    allow_triggers: True
     variables:
       CACHE_ARGS: '{{cache.flags}}'
   - track: CUSTOM-REVISION

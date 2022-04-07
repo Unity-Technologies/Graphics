@@ -10,30 +10,30 @@
 PR_HDRP_DXR_trunk:
     name: PR HDRP_DXR on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk
          rerun: on_new_revision
 Extra_HDRP_DXR_trunk:
     name: Extra HDRP_DXR on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
 HDRP_DXR_trunk:
     name: HDRP_DXR on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_trunk
          rerun: on_new_revision
@@ -42,30 +42,30 @@ HDRP_DXR_trunk:
 PR_HDRP_DXR_CUSTOM-REVISION:
     name: PR HDRP_DXR on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_HDRP_DXR_CUSTOM-REVISION:
     name: Extra HDRP_DXR on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 HDRP_DXR_CUSTOM-REVISION:
     name: HDRP_DXR on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision

@@ -14,12 +14,12 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_trunk:
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -53,12 +53,12 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_trunk:
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -92,12 +92,12 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_trunk:
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -131,12 +131,12 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_memory_il2cpp_Linear_CUSTOM-REVIS
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -170,12 +170,12 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_counters_il2cpp_Linear_CUSTOM-REV
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
@@ -209,12 +209,12 @@ HDRP_PerformanceTests_Linux_Vulkan_performance_run_build_il2cpp_Linear_CUSTOM-RE
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
         GIT_BRANCH: master
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
