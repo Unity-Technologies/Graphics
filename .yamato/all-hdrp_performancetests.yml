@@ -3,31 +3,31 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.3.metafile -%}
 
 ---
 
-HDRP_PerformanceTests_2021.2:
-    name: HDRP_PerformanceTests on 2021.2
+HDRP_PerformanceTests_2021.3:
+    name: HDRP_PerformanceTests on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        GIT_BRANCH: 2021.2/staging
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        GIT_BRANCH: 2021.3/staging
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_2021.2
+      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_2021.2
+      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_2021.3
          rerun: on_new_revision
 HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        GIT_BRANCH: 2021.2/staging
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        GIT_BRANCH: 2021.3/staging
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -3,65 +3,65 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.3.metafile -%}
 
 ---
 
-PR_VFX_HDRP_2021.2:
-    name: PR VFX_HDRP on 2021.2
+PR_VFX_HDRP_2021.3:
+    name: PR VFX_HDRP on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_mono_Linear_2021.3
          rerun: on_new_revision
-Extra_VFX_HDRP_2021.2:
-    name: Extra VFX_HDRP on 2021.2
+Extra_VFX_HDRP_2021.3:
+    name: Extra VFX_HDRP on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_mono_Linear_2021.3
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_mono_Linear_2021.2
+      -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_mono_Linear_2021.3
          rerun: on_new_revision
-VFX_HDRP_2021.2:
-    name: VFX_HDRP on 2021.2
+VFX_HDRP_2021.3:
+    name: VFX_HDRP on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2021.2
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_2021.2
+      -  path: .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_2021.3
          rerun: on_new_revision
 PR_VFX_HDRP_CUSTOM-REVISION:
     name: PR VFX_HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -72,10 +72,10 @@ PR_VFX_HDRP_CUSTOM-REVISION:
 Extra_VFX_HDRP_CUSTOM-REVISION:
     name: Extra VFX_HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -94,10 +94,10 @@ Extra_VFX_HDRP_CUSTOM-REVISION:
 VFX_HDRP_CUSTOM-REVISION:
     name: VFX_HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision

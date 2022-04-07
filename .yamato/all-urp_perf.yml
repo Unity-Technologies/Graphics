@@ -3,33 +3,33 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.3.metafile -%}
 
 ---
 
-URP_Perf_2021.2:
-    name: URP_Perf on 2021.2
+URP_Perf_2021.3:
+    name: URP_Perf on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_2021.2
+      -  path: .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-urp_performance_lostcrypt.yml#URP_Performance_LostCrypt_2021.2
+      -  path: .yamato/all-urp_performance_lostcrypt.yml#URP_Performance_LostCrypt_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-vikingvillage_builtin.yml#VikingVillage_BuiltIn_2021.2
+      -  path: .yamato/all-vikingvillage_builtin.yml#VikingVillage_BuiltIn_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-vikingvillage_urp.yml#VikingVillage_URP_2021.2
+      -  path: .yamato/all-vikingvillage_urp.yml#VikingVillage_URP_2021.3
          rerun: on_new_revision
 URP_Perf_CUSTOM-REVISION:
     name: URP_Perf on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision

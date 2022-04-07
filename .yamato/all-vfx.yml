@@ -3,65 +3,65 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.3.metafile -%}
 
 ---
 
-PR_VFX_2021.2:
-    name: PR VFX on 2021.2
+PR_VFX_2021.3:
+    name: PR VFX on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2021.2
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2021.2
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2021.3
          rerun: on_new_revision
-      -  path: .yamato/_abv.yml#General_Checks_2021.2
+      -  path: .yamato/_abv.yml#General_Checks_2021.3
          rerun: on_new_revision
-Extra_VFX_2021.2:
-    name: Extra VFX on 2021.2
+Extra_VFX_2021.3:
+    name: Extra VFX on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_2021.2
+      -  path: .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#Extra_VFX_URP_2021.2
+      -  path: .yamato/all-vfx_urp.yml#Extra_VFX_URP_2021.3
          rerun: on_new_revision
-VFX_2021.2:
-    name: VFX on 2021.2
+VFX_2021.3:
+    name: VFX on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-vfx.yml#PR_VFX_2021.2
+      -  path: .yamato/all-vfx.yml#PR_VFX_2021.3
          rerun: on_new_revision
-      -  path: .yamato/all-vfx.yml#Extra_VFX_2021.2
+      -  path: .yamato/all-vfx.yml#Extra_VFX_2021.3
          rerun: on_new_revision
-Nightly_VFX_2021.2:
-    name: Nightly VFX on 2021.2
+Nightly_VFX_2021.3:
+    name: Nightly VFX on 2021.3
     variables:
-        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2021_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-vfx.yml#VFX_2021.2
+      -  path: .yamato/all-vfx.yml#VFX_2021.3
          rerun: on_new_revision
 PR_VFX_CUSTOM-REVISION:
     name: PR VFX on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -72,10 +72,10 @@ PR_VFX_CUSTOM-REVISION:
 Extra_VFX_CUSTOM-REVISION:
     name: Extra VFX on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -84,10 +84,10 @@ Extra_VFX_CUSTOM-REVISION:
 VFX_CUSTOM-REVISION:
     name: VFX on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-vfx.yml#PR_VFX_CUSTOM-REVISION
          rerun: on_new_revision
@@ -96,10 +96,10 @@ VFX_CUSTOM-REVISION:
 Nightly_VFX_CUSTOM-REVISION:
     name: Nightly VFX on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-vfx.yml#VFX_CUSTOM-REVISION
          rerun: on_new_revision
