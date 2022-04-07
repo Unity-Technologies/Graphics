@@ -10,12 +10,12 @@
 URP_Performance_LostCrypt_2022.1:
     name: URP_Performance_LostCrypt on 2022.1
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_2022.1
          rerun: on_new_revision
@@ -48,12 +48,12 @@ URP_Performance_LostCrypt_2022.1:
 URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on CUSTOM-REVISION
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
-        CACHE_ARGS: '{{cache.flags}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

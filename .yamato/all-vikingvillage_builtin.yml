@@ -10,12 +10,12 @@
 VikingVillage_BuiltIn_2022.1:
     name: VikingVillage_BuiltIn on 2022.1
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_2022.1
          rerun: on_new_revision
@@ -40,12 +40,12 @@ VikingVillage_BuiltIn_2022.1:
 VikingVillage_BuiltIn_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on CUSTOM-REVISION
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
         TEST_FILTER: .*
+        UTR_VERSION: "current"
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -10,10 +10,10 @@
 PR_URP_Lighting_2022.1:
     name: PR URP_Lighting on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_mono_Linear_2022.1
          rerun: on_new_revision
@@ -42,10 +42,10 @@ PR_URP_Lighting_2022.1:
 Extra_URP_Lighting_2022.1:
     name: Extra URP_Lighting on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_2022.1
          rerun: on_new_revision
@@ -58,10 +58,10 @@ Extra_URP_Lighting_2022.1:
 URP_Lighting_2022.1:
     name: URP_Lighting on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_2022.1
          rerun: on_new_revision
@@ -70,10 +70,10 @@ URP_Lighting_2022.1:
 PR_URP_Lighting_CUSTOM-REVISION:
     name: PR URP_Lighting on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -102,10 +102,10 @@ PR_URP_Lighting_CUSTOM-REVISION:
 Extra_URP_Lighting_CUSTOM-REVISION:
     name: Extra URP_Lighting on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -118,10 +118,10 @@ Extra_URP_Lighting_CUSTOM-REVISION:
 URP_Lighting_CUSTOM-REVISION:
     name: URP_Lighting on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_CUSTOM-REVISION
          rerun: on_new_revision

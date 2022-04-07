@@ -10,10 +10,10 @@
 PR_Universal_Split_2022.1:
     name: PR Universal_Split on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_2022.1
          rerun: on_new_revision
@@ -28,10 +28,10 @@ PR_Universal_Split_2022.1:
 Extra_Universal_Split_2022.1:
     name: Extra Universal_Split on 2022.1
     variables:
-        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2022_1.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_2022.1
          rerun: on_new_revision
@@ -46,10 +46,10 @@ Extra_Universal_Split_2022.1:
 PR_Universal_Split_CUSTOM-REVISION:
     name: PR Universal_Split on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_CUSTOM-REVISION
          rerun: on_new_revision
@@ -64,10 +64,10 @@ PR_Universal_Split_CUSTOM-REVISION:
 Extra_Universal_Split_CUSTOM-REVISION:
     name: Extra Universal_Split on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_CUSTOM-REVISION
          rerun: on_new_revision
