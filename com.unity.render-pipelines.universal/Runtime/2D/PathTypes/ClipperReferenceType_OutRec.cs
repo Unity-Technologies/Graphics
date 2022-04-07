@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal
         public bool IsEqual(OutRec node) { return m_Data.IsEqual(node.m_Data); }
         public static bool operator ==(OutRec a, OutRec b) { return a.IsEqual(b); }
         public static bool operator !=(OutRec a, OutRec b) { return !a.IsEqual(b); }
+        public override int GetHashCode() { return m_Data.GetHashCode(); }
+        public override bool Equals(object obj) { return GetHashCode() == obj.GetHashCode(); }
 
         //-----------------------------------------------------------------
         //                      Properties
