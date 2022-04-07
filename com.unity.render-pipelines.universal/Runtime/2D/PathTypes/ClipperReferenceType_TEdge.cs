@@ -16,7 +16,13 @@ namespace UnityEngine.Rendering.Universal
 
         public bool IsCreated { get { return m_Data.IsCreated; } }
         public bool IsNull { get { return m_Data.IsNull; } }
+        public bool NotNull { get { return !m_Data.IsNull; } }
+        public void SetNull() { m_Data.SetNull(); }
         public bool IsEqual(TEdge node) { return m_Data.IsEqual(node.m_Data); }
+
+        public static bool operator ==(TEdge a, TEdge b) { return a.IsEqual(b); }
+        public static bool operator !=(TEdge a, TEdge b) { return !a.IsEqual(b); }
+
 
         //-----------------------------------------------------------------
         //                      Properties

@@ -12,8 +12,12 @@ namespace UnityEngine.Rendering.Universal
 
         public bool IsCreated { get { return m_Data.IsCreated; } }
         public bool IsNull { get { return m_Data.IsNull; } }
+        public bool NotNull { get { return !m_Data.IsNull; } }
+        public void SetNull() { m_Data.SetNull(); }
         public bool IsEqual(OutPt node) { return m_Data.IsEqual(node.m_Data); }
-        public void Clear() { m_Data.Clear(); }
+        public static bool operator ==(OutPt a, OutPt b) { return a.IsEqual(b); }
+        public static bool operator !=(OutPt a, OutPt b) { return !a.IsEqual(b); }
+
 
         //-----------------------------------------------------------------
         //                      Properties

@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
         internal ref TEdge m_ActiveEdges { get { return ref m_Data.DeRef().m_ActiveEdges; } }
         internal ref bool m_UseFullRange { get { return ref m_Data.DeRef().m_UseFullRange; } }
         internal ref bool m_HasOpenPaths { get { return ref m_Data.DeRef().m_HasOpenPaths; } }
-        internal ref bool PreserveCollinear { get { return ref m_Data.DeRef().m_PreserveCollinear; } }
+        internal ref bool PreserveCollinear { get { return ref m_Data.DeRef().PreserveCollinear; } }
 
         // Needs initialization..
         internal ref UnsafeList<UnsafeList<TEdge>> m_edges { get { return ref m_Data.DeRef().m_edges; } }
@@ -64,10 +64,10 @@ namespace UnityEngine.Rendering.Universal
         internal ref Maxima m_Maxima { get { return ref m_Data.DeRef().m_Maxima; } }
         internal ref TEdge m_SortedEdges { get { return ref m_Data.DeRef().m_SortedEdges; } }
         internal ref UnsafeList<IntersectNode> m_IntersectList { get { return ref m_Data.DeRef().m_IntersectList; } }
-        internal ref IComparer<IntersectNode> m_IntersectNodeComparer { get { return ref m_Data.DeRef().m_IntersectNodeCompare; } }
+        internal ref MyIntersectNodeSort m_IntersectNodeComparer { get { return ref m_Data.DeRef().m_IntersectNodeComparer; } }
         internal ref bool m_ExecuteLocked { get { return ref m_Data.DeRef().m_ExecuteLocked; } }
         internal ref PolyFillType m_ClipFillType { get { return ref m_Data.DeRef().m_ClipFillType; } }
-        internal ref PolyFillType m_SubjFillType { get { return ref m_Data.DeRef().m_SubFillType; } }
+        internal ref PolyFillType m_SubjFillType { get { return ref m_Data.DeRef().m_SubjFillType; } }
         internal ref UnsafeList<Join> m_Joins { get { return ref m_Data.DeRef().m_Joins; } }
         internal ref UnsafeList<Join> m_GhostJoins { get { return ref m_Data.DeRef().m_GhostJoins; } }
         internal ref bool m_UsingPolyTree { get { return ref m_Data.DeRef().m_UsingPolyTree; } }

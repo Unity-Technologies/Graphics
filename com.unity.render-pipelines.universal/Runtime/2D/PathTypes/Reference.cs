@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsCreated { get { return m_Ptr != IntPtr.Zero; } }
         public bool IsNull { get { return m_Ptr == IntPtr.Zero; } }
         public bool IsEqual(Reference<T> arg) { return m_Ptr == arg.m_Ptr; }
-        public void Clear() { m_Ptr = new IntPtr(0); }
+        public void SetNull() { m_Ptr = new IntPtr(0); }
+
     }
 }

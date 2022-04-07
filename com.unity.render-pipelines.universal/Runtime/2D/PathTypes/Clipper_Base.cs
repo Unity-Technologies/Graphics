@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 
@@ -126,9 +127,9 @@ namespace UnityEngine.Rendering.Universal
         public void Clear()
         {
             DisposeLocalMinimaList();
-            for (int i = 0; i < m_edges.Count; ++i)
+            for (int i = 0; i < m_edges.Length; ++i)
             {
-                for (int j = 0; j < m_edges[i].Count; ++j) m_edges[i][j] = null;
+                for (int j = 0; j < m_edges[i].Length; ++j) m_edges[i][j].SetNull();
                 m_edges[i].Clear();
             }
             m_edges.Clear();
@@ -140,13 +141,13 @@ namespace UnityEngine.Rendering.Universal
 
         private void DisposeLocalMinimaList()
         {
-            while (m_MinimaList != null)
+            while (m_MinimaList.NotNull)
             {
                 LocalMinima tmpLm = m_MinimaList.Next;
-                m_MinimaList = null;
+                m_MinimaList.SetNull();
                 m_MinimaList = tmpLm;
             }
-            m_CurrentLM = null;
+            m_CurrentLM.SetNull();
         }
 
         //------------------------------------------------------------------------------
@@ -248,9 +249,9 @@ namespace UnityEngine.Rendering.Universal
                     else
                         E = Result.Prev;
                     LocalMinima locMin = new LocalMinima();
-                    locMin.Next = null;
+                    locMin.Next.SetNull();
                     locMin.Y = E.Bot.Y;
-                    locMin.LeftBound = null;
+                    locMin.LeftBound.SetNull();
                     locMin.RightBound = E;
                     E.WindDelta = 0;
                     Result = ProcessBound(E, LeftBoundIsForward);
@@ -345,7 +346,7 @@ namespace UnityEngine.Rendering.Universal
             if ((Closed && highI < 2) || (!Closed && highI < 1)) return false;
 
             //create a new edge array ...
-            List<TEdge> edges = new List<TEdge>(highI + 1);
+            UnsafeList<TEdge> edges = new UnsafeList<TEdge>(highI + 1, Allocator.Temp, Unity.Collections.NativeArrayOptions.ClearMemory);
             for (int i = 0; i <= highI; i++) edges.Add(new TEdge());
 
             bool IsFlat = true;
@@ -425,9 +426,9 @@ namespace UnityEngine.Rendering.Universal
                 if (Closed) return false;
                 E.Prev.OutIdx = Skip;
                 LocalMinima locMin = new LocalMinima();
-                locMin.Next = null;
+                locMin.Next.SetNull();
                 locMin.Y = E.Bot.Y;
-                locMin.LeftBound = null;
+                locMin.LeftBound.SetNull();
                 locMin.RightBound = E;
                 locMin.RightBound.Side = EdgeSide.esRight;
                 locMin.RightBound.WindDelta = 0;
@@ -445,7 +446,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_edges.Add(edges);
             bool leftBoundIsForward;
-            TEdge EMin = null;
+            TEdge EMin = new TEdge();
 
             //workaround to avoid an endless loop in the while loop below when
             //open paths have matching start and end points ...
@@ -455,12 +456,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 E = FindNextLocMin(E);
                 if (E == EMin) break;
-                else if (EMin == null) EMin = E;
+                else if (EMin.IsNull) EMin = E;
 
                 //E and E.Prev now share a local minima (left aligned if horizontal).
                 //Compare their slopes to find which starts which bound ...
                 LocalMinima locMin = new LocalMinima();
-                locMin.Next = null;
+                locMin.Next.SetNull();
                 locMin.Y = E.Bot.Y;
                 if (E.Dx < E.Prev.Dx)
                 {
@@ -490,9 +491,9 @@ namespace UnityEngine.Rendering.Universal
                 if (E2.OutIdx == Skip) E2 = ProcessBound(E2, !leftBoundIsForward);
 
                 if (locMin.LeftBound.OutIdx == Skip)
-                    locMin.LeftBound = null;
+                    locMin.LeftBound.SetNull();
                 else if (locMin.RightBound.OutIdx == Skip)
-                    locMin.RightBound = null;
+                    locMin.RightBound.SetNull();
                 InsertLocalMinima(locMin);
                 if (!leftBoundIsForward) E = E2;
             }
@@ -526,7 +527,7 @@ namespace UnityEngine.Rendering.Universal
             e.Prev.Next = e.Next;
             e.Next.Prev = e.Prev;
             TEdge result = e.Next;
-            e.Prev = null; //flag as removed (see ClipperBase.Clear)
+            e.Prev.SetNull(); //flag as removed (see ClipperBase.Clear)
             return result;
         }
 
@@ -544,7 +545,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void InsertLocalMinima(LocalMinima newLm)
         {
-            if (m_MinimaList == null)
+            if (m_MinimaList.IsNull)
             {
                 m_MinimaList = newLm;
             }
@@ -556,7 +557,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 LocalMinima tmpLm = m_MinimaList;
-                while (tmpLm.Next != null && (newLm.Y < tmpLm.Next.Y))
+                while (tmpLm.Next.NotNull && (newLm.Y < tmpLm.Next.Y))
                     tmpLm = tmpLm.Next;
                 newLm.Next = tmpLm.Next;
                 tmpLm.Next = newLm;
@@ -568,7 +569,7 @@ namespace UnityEngine.Rendering.Universal
         internal Boolean PopLocalMinima(ClipInt Y, out LocalMinima current)
         {
             current = m_CurrentLM;
-            if (m_CurrentLM != null && m_CurrentLM.Y == Y)
+            if (m_CurrentLM.NotNull && m_CurrentLM.Y == Y)
             {
                 m_CurrentLM = m_CurrentLM.Next;
                 return true;
@@ -591,29 +592,29 @@ namespace UnityEngine.Rendering.Universal
         internal void Reset()
         {
             m_CurrentLM = m_MinimaList;
-            if (m_CurrentLM == null) return; //ie nothing to process
+            if (m_CurrentLM.IsNull) return; //ie nothing to process
 
             //reset all edges ...
-            m_Scanbeam = null;
+            m_Scanbeam.SetNull();
             LocalMinima lm = m_MinimaList;
-            while (lm != null)
+            while (lm.NotNull)
             {
                 InsertScanbeam(lm.Y);
                 TEdge e = lm.LeftBound;
-                if (e != null)
+                if (e.NotNull)
                 {
                     e.Curr = e.Bot;
                     e.OutIdx = Unassigned;
                 }
                 e = lm.RightBound;
-                if (e != null)
+                if (e.NotNull)
                 {
                     e.Curr = e.Bot;
                     e.OutIdx = Unassigned;
                 }
                 lm = lm.Next;
             }
-            m_ActiveEdges = null;
+            m_ActiveEdges.SetNull();
         }
 
         //------------------------------------------------------------------------------
@@ -644,10 +645,10 @@ namespace UnityEngine.Rendering.Universal
         internal void InsertScanbeam(ClipInt Y)
         {
             //single-linked list: sorted descending, ignoring dups.
-            if (m_Scanbeam == null)
+            if (m_Scanbeam.IsNull)
             {
                 m_Scanbeam = new Scanbeam();
-                m_Scanbeam.Next = null;
+                m_Scanbeam.Next.SetNull();
                 m_Scanbeam.Y = Y;
             }
             else if (Y > m_Scanbeam.Y)
@@ -660,7 +661,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 Scanbeam sb2 = m_Scanbeam;
-                while (sb2.Next != null && (Y <= sb2.Next.Y)) sb2 = sb2.Next;
+                while (sb2.Next.NotNull && (Y <= sb2.Next.Y)) sb2 = sb2.Next;
                 if (Y == sb2.Y) return; //ie ignores duplicates
                 Scanbeam newSb = new Scanbeam();
                 newSb.Y = Y;
@@ -673,7 +674,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal Boolean PopScanbeam(out ClipInt Y)
         {
-            if (m_Scanbeam == null)
+            if (m_Scanbeam.IsNull)
             {
                 Y = 0;
                 return false;
@@ -687,7 +688,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal Boolean LocalMinimaPending()
         {
-            return (m_CurrentLM != null);
+            return (m_CurrentLM.NotNull);
         }
 
         //------------------------------------------------------------------------------
@@ -698,12 +699,12 @@ namespace UnityEngine.Rendering.Universal
             result.Idx = Unassigned;
             result.IsHole = false;
             result.IsOpen = false;
-            result.FirstLeft = null;
-            result.Pts = null;
-            result.BottomPt = null;
+            result.FirstLeft.SetNull();
+            result.Pts.SetNull();
+            result.BottomPt.SetNull();
             result.PolyNode = default(PolyNode);
             m_PolyOuts.Add(result);
-            result.Idx = m_PolyOuts.Count - 1;
+            result.Idx = m_PolyOuts.Length - 1;
             return result;
         }
 
@@ -712,24 +713,24 @@ namespace UnityEngine.Rendering.Universal
         internal void DisposeOutRec(int index)
         {
             OutRec outRec = m_PolyOuts[index];
-            outRec.Pts = null;
-            outRec = null;
-            m_PolyOuts[index] = null;
+            outRec.Pts.SetNull();
+            outRec.SetNull();
+            m_PolyOuts[index].SetNull();
         }
 
         //------------------------------------------------------------------------------
 
         internal void UpdateEdgeIntoAEL(ref TEdge e)
         {
-            if (e.NextInLML == null)
+            if (e.NextInLML.IsNull)
                 throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
             TEdge AelPrev = e.PrevInAEL;
             TEdge AelNext = e.NextInAEL;
             e.NextInLML.OutIdx = e.OutIdx;
-            if (AelPrev != null)
+            if (AelPrev.NotNull)
                 AelPrev.NextInAEL = e.NextInLML;
             else m_ActiveEdges = e.NextInLML;
-            if (AelNext != null)
+            if (AelNext.NotNull)
                 AelNext.PrevInAEL = e.NextInLML;
             e.NextInLML.Side = e.Side;
             e.NextInLML.WindDelta = e.WindDelta;
@@ -753,10 +754,10 @@ namespace UnityEngine.Rendering.Universal
             if (edge1.NextInAEL == edge2)
             {
                 TEdge next = edge2.NextInAEL;
-                if (next != null)
+                if (next.NotNull)
                     next.PrevInAEL = edge1;
                 TEdge prev = edge1.PrevInAEL;
-                if (prev != null)
+                if (prev.NotNull)
                     prev.NextInAEL = edge2;
                 edge2.PrevInAEL = prev;
                 edge2.NextInAEL = edge1;
@@ -766,10 +767,10 @@ namespace UnityEngine.Rendering.Universal
             else if (edge2.NextInAEL == edge1)
             {
                 TEdge next = edge1.NextInAEL;
-                if (next != null)
+                if (next.NotNull)
                     next.PrevInAEL = edge2;
                 TEdge prev = edge2.PrevInAEL;
-                if (prev != null)
+                if (prev.NotNull)
                     prev.NextInAEL = edge1;
                 edge1.PrevInAEL = prev;
                 edge1.NextInAEL = edge2;
@@ -781,22 +782,22 @@ namespace UnityEngine.Rendering.Universal
                 TEdge next = edge1.NextInAEL;
                 TEdge prev = edge1.PrevInAEL;
                 edge1.NextInAEL = edge2.NextInAEL;
-                if (edge1.NextInAEL != null)
+                if (edge1.NextInAEL.NotNull)
                     edge1.NextInAEL.PrevInAEL = edge1;
                 edge1.PrevInAEL = edge2.PrevInAEL;
-                if (edge1.PrevInAEL != null)
+                if (edge1.PrevInAEL.NotNull)
                     edge1.PrevInAEL.NextInAEL = edge1;
                 edge2.NextInAEL = next;
-                if (edge2.NextInAEL != null)
+                if (edge2.NextInAEL.NotNull)
                     edge2.NextInAEL.PrevInAEL = edge2;
                 edge2.PrevInAEL = prev;
-                if (edge2.PrevInAEL != null)
+                if (edge2.PrevInAEL.NotNull)
                     edge2.PrevInAEL.NextInAEL = edge2;
             }
 
-            if (edge1.PrevInAEL == null)
+            if (edge1.PrevInAEL.IsNull)
                 m_ActiveEdges = edge1;
-            else if (edge2.PrevInAEL == null)
+            else if (edge2.PrevInAEL.IsNull)
                 m_ActiveEdges = edge2;
         }
 
@@ -806,15 +807,15 @@ namespace UnityEngine.Rendering.Universal
         {
             TEdge AelPrev = e.PrevInAEL;
             TEdge AelNext = e.NextInAEL;
-            if (AelPrev == null && AelNext == null && (e != m_ActiveEdges))
+            if (AelPrev.IsNull && AelNext.IsNull && (e != m_ActiveEdges))
                 return; //already deleted
-            if (AelPrev != null)
+            if (AelPrev.NotNull)
                 AelPrev.NextInAEL = AelNext;
             else m_ActiveEdges = AelNext;
-            if (AelNext != null)
+            if (AelNext.NotNull)
                 AelNext.PrevInAEL = AelPrev;
-            e.NextInAEL = null;
-            e.PrevInAEL = null;
+            e.NextInAEL.SetNull();
+            e.PrevInAEL.SetNull();
         }
     }
 }
