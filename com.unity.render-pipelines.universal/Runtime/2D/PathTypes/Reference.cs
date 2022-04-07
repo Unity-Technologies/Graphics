@@ -10,28 +10,33 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace UnityEngine.Rendering.Universal
 {
 
-    internal struct Reference<T> where T : struct
+    internal struct Reference<T> where T : unmanaged
     {
         unsafe IntPtr m_Ptr;
 
-        static public Reference<T> Create()
+        static public Reference<T> Create(T value)
         {
             unsafe
             {
                 Reference<T> retRef = new Reference<T>();
                 retRef.m_Ptr = new IntPtr(UnsafeUtility.Malloc(UnsafeUtility.SizeOf(typeof(T)), UnsafeUtility.AlignOf<T>(), Allocator.Temp));
+                retRef.DeRef() = value;
                 return retRef;
             }
         }
 
-        public void SetValue(T value)
+        public ref T DeRef()
         {
-            Marshal.StructureToPtr<T>(value, m_Ptr, false);
+            unsafe
+            {
+                ref T foo = ref (*((T*)(m_Ptr.ToPointer())));
+                return ref foo;
+            }
         }
 
-        public T GetValue()
-        {
-            return Marshal.PtrToStructure<T>(m_Ptr);
-        }
+        public bool IsCreated { get { return m_Ptr != IntPtr.Zero; } }
+        public bool IsNull { get { return m_Ptr == IntPtr.Zero; } }
+        public bool IsEqual(Reference<T> arg) { return m_Ptr == arg.m_Ptr; }
+        public void Clear() { m_Ptr = new IntPtr(0); }
     }
 }
