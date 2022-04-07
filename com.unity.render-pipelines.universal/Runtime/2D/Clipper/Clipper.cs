@@ -44,6 +44,15 @@
 // * Above functionality has been tested against single path Offset.
 // * Removed unused/unsupported code.
 
+// Additional changes introduced. (Chris Chu).
+// * Changed base and derived clipper class into a single struct
+// * Split clipper into 3 files.
+// * Made Clipper garbage free
+//      * Replaced List with UnsafeList
+//      * Replaced Classes with RefStrucs
+//      * Replaced Null compares with IsNull
+//      * Replaced Null assignments with SetNull
+
 // use_lines: Enables open path clipping. Adds a very minor cost to performance.
 #define use_lines
 
@@ -176,8 +185,6 @@ namespace UnityEngine.Rendering.Universal
 
         public static bool operator ==(Int128 val1, Int128 val2)
         {
-            if ((object)val1 == (object)val2) return true;
-            else if ((object)val1.IsNull || (object)val2.IsNull) return false;
             return (val1.hi == val2.hi && val1.lo == val2.lo);
         }
 
@@ -188,8 +195,11 @@ namespace UnityEngine.Rendering.Universal
 
         public override bool Equals(System.Object obj)
         {
-            if (obj.IsNull || !(obj is Int128))
+            Debug.Assert(false, "This should not be called");
+
+            if (obj == null || !(obj is Int128))
                 return false;
+
             Int128 i128 = (Int128)obj;
             return (i128.hi == hi && i128.lo == lo);
         }
@@ -325,7 +335,8 @@ namespace UnityEngine.Rendering.Universal
 
         public override bool Equals(object obj)
         {
-            if (obj.IsNull) return false;
+            Debug.Assert(false, "This should not be called");
+            if (obj == null) return false;
             if (obj is IntPoint)
             {
                 IntPoint a = (IntPoint)obj;
@@ -395,7 +406,7 @@ namespace UnityEngine.Rendering.Universal
         //------------------------------------------------------------------------------
         public Clipper(int InitOptions = 0) 
         {
-            Initialize();   
+            Initialize(out this);   
         }
 
         //------------------------------------------------------------------------------

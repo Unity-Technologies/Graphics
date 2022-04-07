@@ -13,10 +13,11 @@ namespace UnityEngine.Rendering.Universal
         Reference<ClipperDataStruct> m_Data;
         TEdge NULL_TEdge;
 
-        public void Initialize()
+        public static void Initialize(out Clipper clipper)
         {
             ClipperDataStruct initialValue = new ClipperDataStruct();
-            m_Data = Reference<ClipperDataStruct>.Create(initialValue);
+            clipper.m_Data = Reference<ClipperDataStruct>.Create(initialValue);
+            clipper.NULL_TEdge = new TEdge();
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }
