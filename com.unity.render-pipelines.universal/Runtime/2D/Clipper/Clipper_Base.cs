@@ -454,7 +454,6 @@ namespace UnityEngine.Rendering.Universal
             m_edges.Add(edges);
             bool leftBoundIsForward;
             TEdge EMin = new TEdge();
-            EMin.Initialize();
 
             //workaround to avoid an endless loop in the while loop below when
             //open paths have matching start and end points ...
@@ -463,8 +462,10 @@ namespace UnityEngine.Rendering.Universal
             for (; ; )
             {
                 E = FindNextLocMin(ref E);
-                    if (E == EMin) break;
-                else if (EMin.IsNull) EMin = E;
+                if (E == EMin)
+                    break;
+                else if (EMin.IsNull)
+                    EMin = E;
 
                 //E and E.Prev now share a local minima (left aligned if horizontal).
                 //Compare their slopes to find which starts which bound ...

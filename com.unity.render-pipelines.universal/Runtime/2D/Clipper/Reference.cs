@@ -10,7 +10,7 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace UnityEngine.Rendering.Universal
 {
 
-    internal struct Reference<T> where T : unmanaged
+    internal struct Reference<T> where T : unmanaged 
     {
         unsafe IntPtr m_Ptr;
 
@@ -34,10 +34,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public bool IsCreated { get { return m_Ptr != IntPtr.Zero; } }
-        public bool IsNull { get { return m_Ptr == IntPtr.Zero; } }
-        public bool IsEqual(Reference<T> arg) { return m_Ptr == arg.m_Ptr; }
-        public void SetNull() { m_Ptr = new IntPtr(0); }
+        public bool IsCreated { get { unsafe { return m_Ptr.ToPointer() == null; } } }
+        public bool IsNull { get { unsafe { return m_Ptr.ToPointer() == null; } } }
+        public bool IsEqual(Reference<T> arg)
+        {
+            unsafe
+            {
+                return m_Ptr.ToPointer() == arg.m_Ptr.ToPointer();
+            }
+        }
+        public void SetNull() { unsafe { m_Ptr = new IntPtr(null); }  }
 
     }
 }
