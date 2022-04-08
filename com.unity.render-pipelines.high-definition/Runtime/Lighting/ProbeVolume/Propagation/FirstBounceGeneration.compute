@@ -94,7 +94,7 @@ bool GetNextValidPunctualLightData(inout int currentIndex, out LightData lightDa
     for (; currentIndex < (int)_PunctualLightCount; ++currentIndex)
     {
         lightData = _LightDatas[currentIndex];
-        if (lightData.affectDynamicGI > 0)
+       // if (lightData.affectDynamicGI > 0)
         {
             currentIndex++;
             return true;

@@ -180,8 +180,9 @@ void TraceExtraData(int probeAxisPair)
 	// Unwrap what we found before. We only care about the distance really.
     HitData prevHit;
     float4 albedoAndDist = UnpackAlbedoAndDistance(data.x);
-	//if (rayIntersection.t > 0 && (wasAMiss || rayIntersection.t < albedoAndDist.w))
+//	if (rayIntersection.t > 0.03 /*&& (rayIntersection.t < albedoAndDist.w)*/)
 	{
+		rayIntersection.t = rayIntersection.t < 0.0 ? 0.0 : rayIntersection.t;
 		// We need to pack the data now.
 		data.x = PackAlbedo(rayIntersection.albedo, rayIntersection.t);
 		data.y = PackNormalAndAxis(rayIntersection.normalWS, axisDirection);
