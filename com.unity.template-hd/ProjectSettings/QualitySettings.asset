@@ -115,7 +115,10 @@ QualitySettings:
     customRenderPipeline: {fileID: 11400000, guid: 168a2336534e4e043b2a210b6f8d379a, type: 2}
     excludedTargetPlatforms: []
   m_PerPlatformDefaultQuality:
+    GameCoreScarlett: 1
+    GameCoreXboxOne: 1
     PS4: 1
+    PS5: 1
     Server: 1
     Standalone: 1
     Windows Store Apps: 1
