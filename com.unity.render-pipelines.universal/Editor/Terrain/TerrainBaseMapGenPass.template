@@ -27,7 +27,6 @@ Pass
     $NormalDropOffOS: #define _NORMAL_DROPOFF_OS 1
     $NormalDropOffWS: #define _NORMAL_DROPOFF_WS 1
     $Attributes.normalOS: #define ATTRIBUTES_NEED_NORMAL
-    $Attributes.tangentOS: #define ATTRIBUTES_NEED_TANGENT
     $Attributes.uv0: #define ATTRIBUTES_NEED_TEXCOORD0
     $Attributes.uv1: #define ATTRIBUTES_NEED_TEXCOORD1
     $Attributes.uv2: #define ATTRIBUTES_NEED_TEXCOORD2

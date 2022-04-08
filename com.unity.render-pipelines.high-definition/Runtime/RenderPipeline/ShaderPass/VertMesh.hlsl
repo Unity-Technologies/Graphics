@@ -177,6 +177,8 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 
 #ifdef ATTRIBUTES_NEED_TANGENT
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+#else
+    float4 tangentWS = float4(1.0, 0.0, 0.0, 0.0);
 #endif
 
     // Do vertex modification in camera relative space (if enable)

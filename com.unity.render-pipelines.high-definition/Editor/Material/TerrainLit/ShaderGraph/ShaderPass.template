@@ -44,20 +44,13 @@ Pass
 
     // Attribute
     $AttributesMesh.normalOS:                           #define ATTRIBUTES_NEED_NORMAL
-    $AttributesMesh.tangentOS:                          #define ATTRIBUTES_NEED_TANGENT
     $AttributesMesh.uv0:                                #define ATTRIBUTES_NEED_TEXCOORD0
-    $AttributesMesh.uv1:                                #define ATTRIBUTES_NEED_TEXCOORD1
-    $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXCOORD2
-    $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
     $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
     $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
     $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
     $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
     $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD
     $VaryingsMeshToPS.texCoord0:                        #define VARYINGS_NEED_TEXCOORD0
-    $VaryingsMeshToPS.texCoord1:                        #define VARYINGS_NEED_TEXCOORD1
-    $VaryingsMeshToPS.texCoord2:                        #define VARYINGS_NEED_TEXCOORD2
-    $VaryingsMeshToPS.texCoord3:                        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
     $VaryingsMeshToPS.elementToWorld0:                  #define VARYINGS_NEED_ELEMENT_TO_WORLD
     $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
@@ -191,9 +184,9 @@ Pass
 
     // --------------------------------------------------
     // Build Graph Inputs
-    $features.graphVertex:  $include("Vertex.template.hlsl")
-    $features.graphTessellation:  $include("Tessellation.template.hlsl")
-    $features.graphPixel:   $include("Pixel.template.hlsl")
+    $features.graphVertex: $include("Vertex.template.hlsl")
+    $features.graphTessellation: $include("Tessellation.template.hlsl")
+    $features.graphPixel: $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
     // Build Surface Data (Specific Material)
@@ -206,6 +199,13 @@ Pass
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
     {
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+        float2 terrainNormalMapUV = (fragInputs.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
+        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2.0 - 1.0;
+        float3 normalWS = TransformObjectToWorldNormal(normalOS);
+        float4 tangentOS = ConstructTerrainTangent(normalOS, float3(0.0, 0.0, 1.0));
+        float4 tangentWS = float4(TransformObjectToWorldNormal(tangentOS.xyz), 0.0);
+
+        fragInputs.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
         fragInputs.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
 #endif
 

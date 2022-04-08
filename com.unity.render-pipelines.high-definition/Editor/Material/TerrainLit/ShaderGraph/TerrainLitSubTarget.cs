@@ -97,21 +97,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passes = new PassCollection()
                 {
-                    GenerateShadowCaster(supportLighting, systemData.tessellation),
-                    GenerateMETA(supportLighting),
-                    GenerateScenePicking(systemData.tessellation),
-                    GenerateSceneSelection(supportLighting, systemData.tessellation),
+                    HDTerrainPasses.GenerateShadowCaster(supportLighting, systemData.tessellation),
+                    HDTerrainPasses.GenerateMETA(supportLighting),
+                    HDTerrainPasses.GenerateScenePicking(systemData.tessellation),
+                    HDTerrainPasses.GenerateSceneSelection(supportLighting, systemData.tessellation),
                 };
 
                 if (supportForward)
                 {
-                    passes.Add(GenerateDepthForwardOnlyPass(supportLighting, systemData.tessellation));
-                    passes.Add(GenerateForwardOnlyPass(supportLighting, systemData.tessellation));
+                    passes.Add(HDTerrainPasses.GenerateDepthForwardOnlyPass(supportLighting, systemData.tessellation));
+                    passes.Add(HDTerrainPasses.GenerateForwardOnlyPass(supportLighting, systemData.tessellation));
                 }
 
-                passes.Add(GenerateLitDepthOnly(systemData.tessellation));
-                passes.Add(GenerateGBuffer(systemData.tessellation));
-                passes.Add(GenerateLitForward(systemData.tessellation));
+                passes.Add(HDTerrainPasses.GenerateLitDepthOnly(systemData.tessellation));
+                passes.Add(HDTerrainPasses.GenerateGBuffer(systemData.tessellation));
+                passes.Add(HDTerrainPasses.GenerateLitForward(systemData.tessellation));
                 //if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
                 //    passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
@@ -217,27 +217,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common block between all "surface" master nodes
             // Vertex
             context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            //context.AddBlock(BlockFields.VertexDescription.Normal);
+            //context.AddBlock(BlockFields.VertexDescription.Tangent);
 
             // Surface
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
-
-            // Alpha Test
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.alphaTest && builtinData.transparentDepthPrepass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.alphaTest && builtinData.transparentDepthPostpass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
-
-            context.AddBlock(HDBlockFields.VertexDescription.CustomVelocity, systemData.customVelocity);
-
-            context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
-            context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
 
             context.AddBlock(BlockFields.SurfaceDescription.Metallic);
 
@@ -448,6 +437,74 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return base.ComputeMaterialNeedsUpdateHash() * 23 + terrainLitData.rayTracing.GetHashCode();
         }
 
+        #region Structs
+        static class HDTerrainStructs
+        {
+            public static StructDescriptor AttributesMesh = new StructDescriptor()
+            {
+                name = "AttributesMesh",
+                packFields = false,
+                fields = new FieldDescriptor[]
+                {
+                    HDStructFields.AttributesMesh.positionOS,
+                    HDStructFields.AttributesMesh.normalOS,
+                    HDStructFields.AttributesMesh.uv0,
+                    HDStructFields.AttributesMesh.color,
+                    HDStructFields.AttributesMesh.instanceID,
+                    HDStructFields.AttributesMesh.vertexID,
+                }
+            };
+
+            public static StructDescriptor VaryingsMeshToPS = new StructDescriptor()
+            {
+                name = "VaryingsMeshToPS",
+                packFields = true,
+                populateWithCustomInterpolators = true,
+                fields = new FieldDescriptor[]
+                {
+                    HDStructFields.VaryingsMeshToPS.positionCS,
+                    HDStructFields.VaryingsMeshToPS.positionRWS,
+                    HDStructFields.VaryingsMeshToPS.positionPredisplacementRWS,
+                    HDStructFields.VaryingsMeshToPS.normalWS,
+                    HDStructFields.VaryingsMeshToPS.tangentWS,
+                    HDStructFields.VaryingsMeshToPS.texCoord0,
+                    HDStructFields.VaryingsMeshToPS.color,
+                    HDStructFields.VaryingsMeshToPS.instanceID,
+                }
+            };
+        }
+        #endregion
+
+        #region StructCollections
+        static class TerrainStructCollections
+        {
+            public static StructCollection Basic = new StructCollection
+            {
+                { HDTerrainStructs.AttributesMesh },
+                { HDTerrainStructs.VaryingsMeshToPS },
+                { Structs.VertexDescriptionInputs },
+                { Structs.SurfaceDescriptionInputs },
+            };
+        }
+        #endregion
+
+        #region RequiredFields
+        static class TerrainRequiredFields
+        {
+            public static FieldCollection BasicLighting = new FieldCollection()
+            {
+                HDStructFields.AttributesMesh.positionOS,
+                HDStructFields.AttributesMesh.normalOS,
+                HDStructFields.AttributesMesh.uv0,
+                HDStructFields.FragInputs.positionRWS,
+                HDStructFields.FragInputs.tangentToWorld,
+                HDStructFields.FragInputs.texCoord0,
+                HDStructFields.FragInputs.texCoord1,
+                HDStructFields.FragInputs.texCoord2,
+            };
+        }
+        #endregion
+
         #region KeywordDescriptors
         static class TerrainKeywordDescriptors
         {
@@ -516,35 +573,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
         #endregion
 
-        #region Pragmas
-        static class HDTerrainPasses
-        {
-            public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
-            {
-                displayName = "_ALPHATEST_ON",
-                referenceName = "_ALPHATEST_ON",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-            };
-
-            public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useTessellation)
-            {
-                var pragmas = HDShaderPasses.GeneratePragmas(input, false, useTessellation);
-
-                pragmas.Add(Pragma.InstancingOptions(new []
-                {
-                    InstancingOptions.AssumeUniformScaling,
-                    InstancingOptions.NoMatrices,
-                    InstancingOptions.NoLightProbe,
-                    InstancingOptions.NoLightmap,
-                }));
-
-                return pragmas;
-            }
-        }
-        #endregion
-
         #region Includes
         static class TerrainIncludes
         {
@@ -599,388 +627,423 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #endregion
 
         #region Passes
-        static public PassDescriptor GenerateShadowCaster(bool supportLighting, bool useTessellation)
+        static class HDTerrainPasses
         {
-            return new PassDescriptor()
+            public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
             {
-                // Definition
-                displayName = "ShadowCaster",
-                referenceName = "SHADERPASS_SHADOWS",
-                lightMode = "ShadowCaster",
-                useInPreview = false,
-                validPixelBlocks = new BlockFieldDescriptor[]
-                {
-                    BlockFields.SurfaceDescription.Alpha, BlockFields.SurfaceDescription.AlphaClipThreshold,
-                    HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
-                    HDBlockFields.SurfaceDescription.DepthOffset,
-                    HDBlockFields.SurfaceDescription
-                        .DiffusionProfileHash // not used, but keeps the UnityPerMaterial cbuffer identical
-                },
-
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                requiredFields = CoreRequiredFields.Basic,
-                renderStates = CoreRenderStates.ShadowCaster,
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(null, false, useTessellation),
-                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
-                includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
+                displayName = "_ALPHATEST_ON",
+                referenceName = "_ALPHATEST_ON",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
             };
 
-            IncludeCollection GenerateIncludes()
+            public static StructCollection GenerateStructs(StructCollection input)
             {
-                var includes = new IncludeCollection();
+                StructCollection structs = input == null ? new StructCollection() : new StructCollection { input };
+                structs.Add(TerrainStructCollections.Basic);
 
-                includes.Add(CoreIncludes.CorePregraph);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                if (supportLighting)
+                return structs;
+            }
+
+            public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useTessellation)
+            {
+                var pragmas = HDShaderPasses.GeneratePragmas(input, false, useTessellation);
+
+                pragmas.Add(Pragma.InstancingOptions(new []
                 {
-                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                    InstancingOptions.AssumeUniformScaling,
+                    InstancingOptions.NoMatrices,
+                    InstancingOptions.NoLightProbe,
+                    InstancingOptions.NoLightmap,
+                }));
+
+                return pragmas;
+            }
+
+            public static PassDescriptor GenerateShadowCaster(bool supportLighting, bool useTessellation)
+            {
+                return new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "ShadowCaster",
+                    referenceName = "SHADERPASS_SHADOWS",
+                    lightMode = "ShadowCaster",
+                    useInPreview = false,
+                    validPixelBlocks = new BlockFieldDescriptor[]
+                    {
+                        BlockFields.SurfaceDescription.Alpha, BlockFields.SurfaceDescription.AlphaClipThreshold,
+                        HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
+                        HDBlockFields.SurfaceDescription.DepthOffset,
+                        HDBlockFields.SurfaceDescription
+                            .DiffusionProfileHash // not used, but keeps the UnityPerMaterial cbuffer identical
+                    },
+
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    requiredFields = CoreRequiredFields.Basic,
+                    renderStates = CoreRenderStates.ShadowCaster,
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(null, false, useTessellation),
+                    keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
+                    includes = GenerateIncludes(),
+                    customInterpolators = CoreCustomInterpolators.Common,
+                };
+
+                IncludeCollection GenerateIncludes()
+                {
+                    var includes = new IncludeCollection();
+
+                    includes.Add(CoreIncludes.CorePregraph);
+                    if (supportLighting)
+                        includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CoreUtility);
+                    if (supportLighting)
+                    {
+                        includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                        includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                    }
+
+                    includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                    return includes;
+                }
+            }
+
+            public static PassDescriptor GenerateMETA(bool supportLighting)
+            {
+                return new PassDescriptor
+                {
+                    // Definition
+                    displayName = "META",
+                    referenceName = "SHADERPASS_LIGHT_TRANSPORT",
+                    lightMode = "META",
+                    useInPreview = false,
+
+                    // We don't need any vertex inputs on meta pass:
+                    validVertexBlocks = new BlockFieldDescriptor[0],
+
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    requiredFields = CoreRequiredFields.Meta,
+                    renderStates = CoreRenderStates.Meta,
+                    // Note: no tessellation for meta pass
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, false),
+                    defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, false),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization, HDTerrainPasses.AlphaTestOn, },
+                    includes = GenerateIncludes(),
+                };
+
+                IncludeCollection GenerateIncludes()
+                {
+                    var includes = new IncludeCollection();
+
+                    includes.Add(CoreIncludes.CorePregraph);
+                    if (supportLighting)
+                        includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CoreUtility);
+                    if (supportLighting)
+                    {
+                        includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                        includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                    }
+                    includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassLightTransport, IncludeLocation.Postgraph);
+
+                    return includes;
+                }
+            }
+
+            public static PassDescriptor GenerateScenePicking(bool useTessellation)
+            {
+                return new PassDescriptor
+                {
+                    // Definition
+                    displayName = "ScenePickingPass",
+                    referenceName = "SHADERPASS_DEPTH_ONLY",
+                    lightMode = "Picking",
+                    useInPreview = false,
+
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    requiredFields = GenerateRequiredFields(),
+                    renderStates = CoreRenderStates.ScenePicking,
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(CoreDefines.ScenePicking, false, useTessellation),
+                    keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
+                    includes = GenerateIncludes(),
+                    customInterpolators = CoreCustomInterpolators.Common,
+                };
+
+                FieldCollection GenerateRequiredFields()
+                {
+                    var fieldCollection = new FieldCollection();
+
+                    fieldCollection.Add(CoreRequiredFields.Basic);
+                    fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+
+                    return fieldCollection;
                 }
 
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
-
-                return includes;
-            }
-        }
-
-        public static PassDescriptor GenerateMETA(bool supportLighting)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "META",
-                referenceName = "SHADERPASS_LIGHT_TRANSPORT",
-                lightMode = "META",
-                useInPreview = false,
-
-                // We don't need any vertex inputs on meta pass:
-                validVertexBlocks = new BlockFieldDescriptor[0],
-
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, false),
-                requiredFields = CoreRequiredFields.Meta,
-                renderStates = CoreRenderStates.Meta,
-                // Note: no tessellation for meta pass
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, false),
-                defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, false),
-                keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization, HDTerrainPasses.AlphaTestOn, },
-                includes = GenerateIncludes(),
-            };
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-
-                includes.Add(CoreIncludes.CorePregraph);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                if (supportLighting)
+                IncludeCollection GenerateIncludes()
                 {
-                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                    var includes = new IncludeCollection();
+
+                    includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CorePregraph);
+                    includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CoreUtility);
+                    includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                    return includes;
                 }
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassLightTransport, IncludeLocation.Postgraph);
-
-                return includes;
-            }
-        }
-
-        public static PassDescriptor GenerateScenePicking(bool useTessellation)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "ScenePickingPass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "Picking",
-                useInPreview = false,
-
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                requiredFields = GenerateRequiredFields(),
-                renderStates = CoreRenderStates.ScenePicking,
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(CoreDefines.ScenePicking, false, useTessellation),
-                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
-                includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                var fieldCollection = new FieldCollection();
-
-                fieldCollection.Add(CoreRequiredFields.Basic);
-                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
-
-                return fieldCollection;
             }
 
-            IncludeCollection GenerateIncludes()
+            public static PassDescriptor GenerateSceneSelection(bool supportLighting, bool useTessellation)
             {
-                var includes = new IncludeCollection();
-
-                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CorePregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
-
-                return includes;
-            }
-        }
-
-        public static PassDescriptor GenerateSceneSelection(bool supportLighting, bool useTessellation)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "SceneSelectionPass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "SceneSelectionPass",
-                useInPreview = false,
-
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                requiredFields = CoreRequiredFields.Basic,
-                renderStates = CoreRenderStates.SceneSelection,
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(CoreDefines.SceneSelection, false, useTessellation),
-                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
-                includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-
-                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CorePregraph);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                if (supportLighting)
+                return new PassDescriptor
                 {
-                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
-                }
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+                    // Definition
+                    displayName = "SceneSelectionPass",
+                    referenceName = "SHADERPASS_DEPTH_ONLY",
+                    lightMode = "SceneSelectionPass",
+                    useInPreview = false,
 
-                return includes;
-            }
-        }
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    requiredFields = CoreRequiredFields.Basic,
+                    renderStates = CoreRenderStates.SceneSelection,
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(CoreDefines.SceneSelection, false, useTessellation),
+                    keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
+                    includes = GenerateIncludes(),
+                    customInterpolators = CoreCustomInterpolators.Common,
+                };
 
-        public static PassDescriptor GenerateDepthForwardOnlyPass(bool supportLighting, bool useTessellation)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "DepthForwardOnly",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "DepthForwardOnly",
-                useInPreview = true,
-
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                requiredFields = GenerateRequiredFields(),
-                renderStates = GenerateRenderState(),
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit, false, useTessellation),
-                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
-                includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                var fieldCollection = new FieldCollection();
-
-                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic);
-                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
-
-                return fieldCollection;
-            }
-
-            RenderStateCollection GenerateRenderState()
-            {
-                var renderState = new RenderStateCollection { CoreRenderStates.DepthOnly };
-                return renderState;
-            }
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-
-                includes.Add(CoreIncludes.CorePregraph);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
-
-                return includes;
-            }
-        }
-
-        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting, bool useTessellation)
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "ForwardOnly",
-                referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
-                lightMode = "ForwardOnly",
-                useInPreview = true,
-
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
-                renderStates = CoreRenderStates.Forward,
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, false, useTessellation),
-                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
-                includes = GenerateIncludes(),
-
-                virtualTextureFeedback = true,
-                customInterpolators = CoreCustomInterpolators.Common
-            };
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-
-                includes.Add(CoreIncludes.CorePregraph);
-                if (supportLighting)
+                IncludeCollection GenerateIncludes()
                 {
-                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                    var includes = new IncludeCollection();
+
+                    includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CorePregraph);
+                    if (supportLighting)
+                        includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CoreUtility);
+                    if (supportLighting)
+                    {
+                        includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                        includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                    }
+                    includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                    return includes;
                 }
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                if (supportLighting)
+            }
+
+            public static PassDescriptor GenerateDepthForwardOnlyPass(bool supportLighting, bool useTessellation)
+            {
+                return new PassDescriptor
                 {
-                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                    // Definition
+                    displayName = "DepthForwardOnly",
+                    referenceName = "SHADERPASS_DEPTH_ONLY",
+                    lightMode = "DepthForwardOnly",
+                    useInPreview = true,
+
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    requiredFields = GenerateRequiredFields(),
+                    renderStates = GenerateRenderState(),
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit, false, useTessellation),
+                    keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
+                    includes = GenerateIncludes(),
+                    customInterpolators = CoreCustomInterpolators.Common,
+                };
+
+                FieldCollection GenerateRequiredFields()
+                {
+                    var fieldCollection = new FieldCollection();
+
+                    fieldCollection.Add(supportLighting ? TerrainRequiredFields.BasicLighting : CoreRequiredFields.Basic);
+                    fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+
+                    return fieldCollection;
                 }
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
-                includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
-                else
-                    includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
 
-                return includes;
+                RenderStateCollection GenerateRenderState()
+                {
+                    var renderState = new RenderStateCollection { CoreRenderStates.DepthOnly };
+                    return renderState;
+                }
+
+                IncludeCollection GenerateIncludes()
+                {
+                    var includes = new IncludeCollection();
+
+                    includes.Add(CoreIncludes.CorePregraph);
+                    if (supportLighting)
+                        includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CoreUtility);
+                    if (supportLighting)
+                        includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                    return includes;
+                }
             }
-        }
 
-        public static PassDescriptor GenerateLitDepthOnly(bool useTessellation)
-        {
-            return new PassDescriptor
+            public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting, bool useTessellation)
             {
-                displayName = "DepthOnly",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "DepthOnly",
-                useInPreview = true,
+                return new PassDescriptor
+                {
+                    // Definition
+                    displayName = "ForwardOnly",
+                    referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
+                    lightMode = "ForwardOnly",
+                    useInPreview = true,
 
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                requiredFields = GenerateRequiredFields(),
-                renderStates = CoreRenderStates.DepthOnly,
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
-                keywords = new KeywordCollection() { CoreKeywordDescriptors.WriteNormalBuffer, HDTerrainPasses.AlphaTestOn, },
-                includes = DepthOnlyIncludes,
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
+                    requiredFields = supportLighting ? TerrainRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
+                    renderStates = CoreRenderStates.Forward,
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, false, useTessellation),
+                    keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
+                    includes = GenerateIncludes(),
 
-            FieldCollection GenerateRequiredFields()
-            {
-                var fieldCollection = new FieldCollection();
+                    virtualTextureFeedback = true,
+                    customInterpolators = CoreCustomInterpolators.Common
+                };
 
-                fieldCollection.Add(CoreRequiredFields.Basic);
-                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+                IncludeCollection GenerateIncludes()
+                {
+                    var includes = new IncludeCollection();
 
-                return fieldCollection;
+                    includes.Add(CoreIncludes.CorePregraph);
+                    if (supportLighting)
+                    {
+                        includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                        includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                        includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                    }
+                    includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                    if (supportLighting)
+                        includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.CoreUtility);
+                    if (supportLighting)
+                    {
+                        includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                        includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                    }
+                    includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kTerrainLitSurfaceData, IncludeLocation.Pregraph);
+                    includes.Add(TerrainIncludes.kSplatmap, IncludeLocation.Pregraph);
+                    if (supportLighting)
+                        includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
+                    else
+                        includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
+
+                    return includes;
+                }
             }
-        }
 
-        public static PassDescriptor GenerateGBuffer(bool useTessellation)
-        {
-            return new PassDescriptor
+            public static PassDescriptor GenerateLitDepthOnly(bool useTessellation)
             {
-                // Definition
-                displayName = "GBuffer",
-                referenceName = "SHADERPASS_GBUFFER",
-                lightMode = "GBuffer",
-                useInPreview = true,
+                return new PassDescriptor
+                {
+                    displayName = "DepthOnly",
+                    referenceName = "SHADERPASS_DEPTH_ONLY",
+                    lightMode = "DepthOnly",
+                    useInPreview = true,
 
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                requiredFields = CoreRequiredFields.BasicLighting,
-                renderStates = HDShaderPasses.GBufferRenderState,
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
-                keywords = new KeywordCollection() { CoreKeywordDescriptors.LightLayers, HDTerrainPasses.AlphaTestOn, },
-                includes = GBufferIncludes,
-                virtualTextureFeedback = true,
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
-        }
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    requiredFields = GenerateRequiredFields(),
+                    renderStates = CoreRenderStates.DepthOnly,
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.WriteNormalBuffer, HDTerrainPasses.AlphaTestOn, },
+                    includes = DepthOnlyIncludes,
+                    customInterpolators = CoreCustomInterpolators.Common,
+                };
 
-        public static PassDescriptor GenerateLitForward(bool useTessellation)
-        {
-            return new PassDescriptor
+                FieldCollection GenerateRequiredFields()
+                {
+                    var fieldCollection = new FieldCollection();
+
+                    fieldCollection.Add(CoreRequiredFields.Basic);
+                    fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+
+                    return fieldCollection;
+                }
+            }
+
+            public static PassDescriptor GenerateGBuffer(bool useTessellation)
             {
-                // Definition
-                displayName = "Forward",
-                referenceName = "SHADERPASS_FORWARD",
-                lightMode = "Forward",
-                useInPreview = true,
+                return new PassDescriptor
+                {
+                    // Definition
+                    displayName = "GBuffer",
+                    referenceName = "SHADERPASS_GBUFFER",
+                    lightMode = "GBuffer",
+                    useInPreview = true,
 
-                // Collections
-                structs = HDShaderPasses.GenerateStructs(null, false, useTessellation),
-                // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = CoreRequiredFields.BasicLighting,
-                renderStates = CoreRenderStates.Forward,
-                pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
-                defines = HDShaderPasses.GenerateDefines(CoreDefines.ForwardLit, false, useTessellation),
-                keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
-                includes = ForwardIncludes,
-                virtualTextureFeedback = true,
-                customInterpolators = CoreCustomInterpolators.Common,
-            };
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    requiredFields = TerrainRequiredFields.BasicLighting,
+                    renderStates = HDShaderPasses.GBufferRenderState,
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.LightLayers, HDTerrainPasses.AlphaTestOn, },
+                    includes = GBufferIncludes,
+                    virtualTextureFeedback = true,
+                    customInterpolators = CoreCustomInterpolators.Common,
+                };
+            }
+
+            public static PassDescriptor GenerateLitForward(bool useTessellation)
+            {
+                return new PassDescriptor
+                {
+                    // Definition
+                    displayName = "Forward",
+                    referenceName = "SHADERPASS_FORWARD",
+                    lightMode = "Forward",
+                    useInPreview = true,
+
+                    // Collections
+                    structs = HDTerrainPasses.GenerateStructs(null),
+                    // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
+                    requiredFields = TerrainRequiredFields.BasicLighting,
+                    renderStates = CoreRenderStates.Forward,
+                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    defines = HDShaderPasses.GenerateDefines(CoreDefines.ForwardLit, false, useTessellation),
+                    keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
+                    includes = ForwardIncludes,
+                    virtualTextureFeedback = true,
+                    customInterpolators = CoreCustomInterpolators.Common,
+                };
+            }
         }
         #endregion
 

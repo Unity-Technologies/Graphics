@@ -1,5 +1,5 @@
 
-#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Terrain/Varyings.hlsl"
 
 PackedVaryings vert(Attributes input)
 {

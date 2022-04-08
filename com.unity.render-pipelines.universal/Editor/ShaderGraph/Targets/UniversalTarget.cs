@@ -339,14 +339,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            bool isNotFullscreenSubTarget = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>);
+            bool isNotTerrainSubTarget = !(m_ActiveSubTarget.value is UniversalTerrainLitSubTarget);
+
             // Core blocks
-            if (!(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>))
-            {
+            bool allowsVertexPosition = isNotFullscreenSubTarget;
+            bool allowsVertexNormal = isNotFullscreenSubTarget && isNotTerrainSubTarget;
+            bool allowsVertexTangent = isNotFullscreenSubTarget && isNotTerrainSubTarget;
+            bool allowsSurfaceBaseColor = isNotFullscreenSubTarget;
+
+            if (allowsVertexPosition)
                 context.AddBlock(BlockFields.VertexDescription.Position);
+            if (allowsVertexNormal)
                 context.AddBlock(BlockFields.VertexDescription.Normal);
+            if (allowsVertexTangent)
                 context.AddBlock(BlockFields.VertexDescription.Tangent);
+            if (allowsSurfaceBaseColor)
                 context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
-            }
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);

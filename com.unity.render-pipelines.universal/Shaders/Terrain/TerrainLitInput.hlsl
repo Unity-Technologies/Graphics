@@ -129,7 +129,6 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.emission = 0;
 }
 
-
 void TerrainInstancing(inout float4 positionOS, inout float3 normal, inout float2 uv)
 {
 #ifdef UNITY_INSTANCING_ENABLED
@@ -155,5 +154,11 @@ void TerrainInstancing(inout float4 positionOS, inout float3 normal)
 {
     float2 uv = { 0, 0 };
     TerrainInstancing(positionOS, normal, uv);
+}
+
+void TerrainInstancing(inout float4 positionOS)
+{
+    float3 normal = { 0, 0, 0 };
+    TerrainInstancing(positionOS, normal);
 }
 #endif

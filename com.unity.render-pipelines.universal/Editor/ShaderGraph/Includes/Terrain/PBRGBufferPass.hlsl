@@ -80,7 +80,13 @@ FragmentOutput frag(PackedVaryings packedInput)
     float2 sampleCoords = (unpacked.texCoord0.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
     float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb;
     normalOS = normalize(normalOS * 2.0 - 1.0);
+
     unpacked.normalWS = TransformObjectToWorldNormal(normalOS);
+
+    #ifdef VARYINGS_NEED_TANGENT_WS
+        float4 tangentOS = normalize(ConstructTerrainTangent(normalOS, float3(0.0, 0.0, 1.0)));
+        unpacked.tangentWS = float4(TransformObjectToWorldNormal(tangentOS.xyz), 0.0);
+    #endif
 #endif
 
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);

@@ -72,12 +72,6 @@ Varyings BuildVaryings(Attributes input)
 
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
-    #if defined(VARYINGS_NEED_NORMAL_WS)
-        input.normalOS = vertexDescription.Normal;
-    #endif //FEATURES_GRAPH_NORMAL
-    #if defined(VARYINGS_NEED_TANGENT_WS)
-        input.tangentOS.xyz = vertexDescription.Tangent.xyz;
-    #endif //FEATURES GRAPH TANGENT
 #endif //FEATURES_GRAPH_VERTEX
 
     // TODO: Avoid path via VertexPositionInputs (Universal)
@@ -93,14 +87,16 @@ Varyings BuildVaryings(Attributes input)
     float3 normalWS = float3(0.0, 0.0, 0.0);
 #endif
 
-#ifdef ATTRIBUTES_NEED_TANGENT
-    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+#if defined(ATTRIBUTES_NEED_NORMAL) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    float4 tangentOS = normalize(ConstructTerrainTangent(input.normalOS, float3(0.0, 0.0, 1.0)));
+    float4 tangentWS = float4(TransformObjectToWorldDir(tangentOS.xyz), tangentOS.w);
+#else
+    float4 tangentWS = float4(1.0, 0.0, 0.0, 0.0);
 #endif
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
-    float4 vertexTangent = float4(cross(float3(0.0, 0.0, 1.0), input.normalOS), 1.0);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, vertexTangent);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, tangentOS);
 
     output.normalViewDir = float4(normalInput.normalWS, viewDirWS.x);
     output.tangentViewDir = float4(normalInput.tangentWS, viewDirWS.y);

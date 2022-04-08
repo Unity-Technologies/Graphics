@@ -124,8 +124,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             base.GetFields(ref context);
 
-            var descs = context.blocks.Select(x => x.descriptor);
-
             // TerrainLit -- always controlled by subtarget
             context.AddField(UniversalFields.NormalDropOffOS, normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddField(UniversalFields.NormalDropOffTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
@@ -135,18 +133,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,           normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,           normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,    normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,    normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,    normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
             // when the surface options are material controlled, we must show all of these blocks
             // when target controlled, we can cull the unnecessary blocks
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,           target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular,    target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.Metallic);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              (target.alphaClip) || target.allowMaterialOverride);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, (target.alphaClip) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha,       target.allowMaterialOverride);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -534,7 +531,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { BlockFields.SurfaceDescription.Smoothness, 4 },
                 { BlockFields.SurfaceDescription.Occlusion, 5 },
                 { BlockFields.SurfaceDescription.Alpha, 6 },
-                { BlockFields.SurfaceDescription.AlphaClipThreshold, 7 },
             };
 
             blockMap.Add(BlockFields.SurfaceDescription.Metallic, 2);
@@ -562,42 +558,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
                 ChangeVersion(latestVersion);
             }
-        }
-
-        static class UniversalTerrainStructs
-        {
-            public static StructDescriptor Varyings = new StructDescriptor()
-            {
-                name = "Varyings",
-                packFields = true,
-                populateWithCustomInterpolators = true,
-                fields = new FieldDescriptor[]
-                {
-                    StructFields.Varyings.positionCS,
-                    StructFields.Varyings.positionWS,
-                    StructFields.Varyings.normalWS,
-                    StructFields.Varyings.texCoord0,
-                    StructFields.Varyings.texCoord1,
-                    StructFields.Varyings.texCoord2,
-                    StructFields.Varyings.texCoord3,
-                    StructFields.Varyings.color,
-                    StructFields.Varyings.screenPosition,
-                    TerrainStructFields.Varyings.uvSplat01,
-                    TerrainStructFields.Varyings.uvSplat23,
-                    TerrainStructFields.Varyings.normalViewDir,
-                    TerrainStructFields.Varyings.tangentViewDir,
-                    TerrainStructFields.Varyings.bitangentViewDir,
-                    UniversalStructFields.Varyings.staticLightmapUV,
-                    UniversalStructFields.Varyings.dynamicLightmapUV,
-                    UniversalStructFields.Varyings.sh,
-                    UniversalStructFields.Varyings.fogFactorAndVertexLight,
-                    UniversalStructFields.Varyings.shadowCoord,
-                    StructFields.Varyings.instanceID,
-                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
-                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
-                    StructFields.Varyings.cullFace,
-                }
-            };
         }
 
         #region Template
@@ -654,6 +614,37 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
             };
 
+            public static StructDescriptor Varyings = new StructDescriptor()
+            {
+                name = "Varyings",
+                packFields = true,
+                populateWithCustomInterpolators = true,
+                fields = new FieldDescriptor[]
+                {
+                    StructFields.Varyings.positionCS,
+                    StructFields.Varyings.positionWS,
+                    StructFields.Varyings.normalWS,
+                    StructFields.Varyings.tangentWS,
+                    StructFields.Varyings.texCoord0,
+                    StructFields.Varyings.color,
+                    StructFields.Varyings.screenPosition,
+                    TerrainStructFields.Varyings.uvSplat01,
+                    TerrainStructFields.Varyings.uvSplat23,
+                    TerrainStructFields.Varyings.normalViewDir,
+                    TerrainStructFields.Varyings.tangentViewDir,
+                    TerrainStructFields.Varyings.bitangentViewDir,
+                    UniversalStructFields.Varyings.staticLightmapUV,
+                    UniversalStructFields.Varyings.dynamicLightmapUV,
+                    UniversalStructFields.Varyings.sh,
+                    UniversalStructFields.Varyings.fogFactorAndVertexLight,
+                    UniversalStructFields.Varyings.shadowCoord,
+                    StructFields.Varyings.instanceID,
+                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
+                    StructFields.Varyings.cullFace,
+                }
+            };
+
             private static StructDescriptor SurfaceDescriptionInputsImpl()
             {
                 var surfaceDescriptionInputs = Structs.SurfaceDescriptionInputs;
@@ -682,9 +673,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly StructCollection Default = new StructCollection
             {
                 { TerrainStructs.Attributes },
-                { UniversalTerrainStructs.Varyings },
-                { TerrainStructs.SurfaceDescriptionInputs },
+                { TerrainStructs.Varyings },
                 { Structs.VertexDescriptionInputs },
+                { TerrainStructs.SurfaceDescriptionInputs },
             };
         }
         #endregion
@@ -1263,7 +1254,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
             {
                 BlockFields.VertexDescription.Position,
-                BlockFields.VertexDescription.Normal,
             };
 
             public static readonly BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
