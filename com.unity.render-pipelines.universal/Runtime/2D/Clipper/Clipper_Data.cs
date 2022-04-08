@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.Universal
@@ -18,6 +19,11 @@ namespace UnityEngine.Rendering.Universal
             ClipperDataStruct initialValue = new ClipperDataStruct();
             clipper.m_Data = Reference<ClipperDataStruct>.Create(initialValue);
             clipper.NULL_TEdge = new TEdge();
+            clipper.m_edges = new UnsafeList<UnsafeList<TEdge>>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            clipper.m_PolyOuts = new UnsafeList<OutRec>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            clipper.m_IntersectList = new UnsafeList<IntersectNode>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            clipper.m_Joins = new UnsafeList<Join>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            clipper.m_GhostJoins = new UnsafeList<Join>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }
