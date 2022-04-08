@@ -117,8 +117,11 @@ QualitySettings:
   m_PerPlatformDefaultQuality:
     Android: 1
     Lumin: 2
+    GameCoreScarlett: 2
+    GameCoreXboxOne: 2
     Nintendo Switch: 2
     PS4: 2
+    PS5: 2
     Stadia: 2
     Standalone: 2
     WebGL: 1

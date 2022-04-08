@@ -1,10 +1,10 @@
 {
   "name": "com.unity.template.hd",
   "displayName": "High Definition RP",
-  "version": "12.4.0",
+  "version": "12.4.1",
   "type": "template",
   "host": "hub",
-  "unity": "2021.2",
+  "unity": "2021.3",
   "description": "This template utilizes the High Definition Render Pipeline. Making it a good starting point for people focused on high-end graphics that want to develop games for platforms that support Shader Model 5.0 (DX11 and above). \n\nBeyond being tuned for High End visuals this project includes\n\u25aa Shadergraph \n\u25aa Visual Effect Graph  \n\u25aa Presets \n\u25aa Example content",
   "dependencies": {
     "com.unity.collab-proxy": "1.9.0",
@@ -13,7 +13,7 @@
     "com.unity.cinemachine": "2.8.1",
     "com.unity.inputsystem": "1.1.1",
     "com.unity.learn.iet-framework": "2.1.1",
-    "com.unity.render-pipelines.high-definition": "12.1.2",
+    "com.unity.render-pipelines.high-definition": "12.1.6",
     "com.unity.timeline": "1.6.2",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualscripting": "1.7.6"
