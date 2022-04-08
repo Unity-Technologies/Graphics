@@ -78,14 +78,15 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
 
             CameraRenderType originalCamType = (CameraRenderType)p.cameraType.intValue;
-            CameraRenderType camType = (originalCamType != CameraRenderType.Base && isDeferred) ? CameraRenderType.Base : originalCamType;
-
+            CameraRenderType camType = scriptableRenderer.SupportsCameraStackingType(CameraRenderType.Overlay) ? originalCamType : CameraRenderType.Base;
+            EditorGUI.BeginDisabledGroup(scriptableRenderer.SupportedCameraStackingTypes() == 0);
             camType = (CameraRenderType)EditorGUILayout.EnumPopup(
                 Styles.cameraType,
                 camType,
-                e => !isDeferred || (CameraRenderType)e != CameraRenderType.Overlay,
+                e => scriptableRenderer.SupportsCameraStackingType((CameraRenderType)e),
                 false
             );
+            EditorGUI.EndDisabledGroup();
 
             if (EditorGUI.EndChangeCheck() || camType != originalCamType)
             {

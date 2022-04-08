@@ -43,6 +43,20 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
         }
 
+        /// <inheritdoc/>
+        public override int SupportedCameraStackingTypes()
+        {
+            switch (m_RenderingMode)
+            {
+                case RenderingMode.Forward:
+                    return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
+                case RenderingMode.Deferred:
+                    return 1 << (int)CameraRenderType.Base;
+                default:
+                    return 0;
+            }
+        }
+
         // Rendering mode setup from UI.
         internal RenderingMode renderingMode => m_RenderingMode;
 
@@ -274,10 +288,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthInfoTexture.Init("_DepthInfoTexture");
             m_TileDepthInfoTexture.Init("_TileDepthInfoTexture");
 
-            supportedRenderingFeatures = new RenderingFeatures()
-            {
-                cameraStacking = true,
-            };
+            supportedRenderingFeatures = new RenderingFeatures();
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
