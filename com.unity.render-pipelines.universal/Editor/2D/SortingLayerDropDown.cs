@@ -95,6 +95,13 @@ namespace UnityEditor.Rendering.Universal
                 m_ApplyToSortingLayersList.Add(layerID);
 
             UpdateApplyToSortingLayersArray(layerSelectionDataObject);
+
+            if(EditorWindow.HasOpenInstances<LayerExplorer>())
+            {
+                var layerExplorer = EditorWindow.GetWindow<LayerExplorer>();
+                if (layerExplorer != null)
+                    layerExplorer.RefreshBatchView();
+            }
         }
 
         public void OnTargetSortingLayers(SerializedObject serializedObject, Object[] targets, GUIContent labelContent, System.Action<SerializedObject> selectionChangedCallback)

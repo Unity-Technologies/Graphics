@@ -1,0 +1,31 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+
+        <ui:VisualElement name="ParentElement" style="flex-direction:column">
+            <Style src="LayerExplorer.uss" />
+
+            <ui:VisualElement class="InfoView Header">
+                <ui:Label name="InfoTitle"/>
+                <ui:Label name="InfoTitle2"/>
+            </ui:VisualElement>
+
+            <ui:TwoPaneSplitView fixed-pane-initial-dimension="200">                          
+                <ui:VisualElement>
+                    <ui:Box class="BatchList HeaderContainer">
+                        <ui:Label class="BatchList IndexColumn Header" text="Batch ID"/>
+                        <ui:VisualElement class="BatchList ColorColumn Container">
+                            <ui:Label text="|" class="BatchList ColorColumn Splitter"/>
+                        </ui:VisualElement>
+                        <ui:Label class="BatchList NameColumn Header" text="Layer Names"/>
+                    </ui:Box>
+                    <ui:ListView name="BatchList" class="BatchList List"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement>
+                    <ui:VisualElement name="InfoContainer" class="InfoContainer">
+                        <ui:Label name="InitialPrompt" text="Select a batch to begin..." class="InitialPrompt"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:TwoPaneSplitView>
+
+        </ui:VisualElement>
+</ui:UXML>

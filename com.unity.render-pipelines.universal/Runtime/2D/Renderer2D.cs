@@ -6,6 +6,10 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
+        NormalPass m_NormalPass;
+        LightingPass m_LightingPass;
+        TransparencyPass m_TransparencyPass;
+
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         UpscalePass m_UpscalePass;
@@ -48,6 +52,10 @@ namespace UnityEngine.Rendering.Universal
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
+
+            m_NormalPass = new NormalPass(data);
+            m_LightingPass = new LightingPass(data);
+            m_TransparencyPass = new TransparencyPass(data);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
@@ -227,9 +235,36 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var needsDepth = m_CreateDepthTexture || m_UseDepthStencilBuffer;
-            m_Render2DLightingPass.Setup(needsDepth);
-            m_Render2DLightingPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
-            EnqueuePass(m_Render2DLightingPass);
+
+            // New Passes - For each layer in layer batches do NORMAL, LIGHTING, TRANSPARENCY
+            bool newPass = true;
+            //bool newPass = false;
+
+            if (newPass)
+            {
+                LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
+                ShadowRendering.InitializeBudget(m_Renderer2DData.shadowRenderTextureMemoryBudget);
+
+                m_Renderer2DData.currLayerBatch = 0;
+                m_Renderer2DData.layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out var batchCount);
+                for (int i = 0; i < batchCount; ++i)
+                {
+                    m_NormalPass.Setup(needsDepth);
+                    m_NormalPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
+                    EnqueuePass(m_NormalPass);
+                    EnqueuePass(m_LightingPass);
+                }
+
+                m_TransparencyPass.Setup(batchCount);
+                m_TransparencyPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
+                EnqueuePass(m_TransparencyPass);
+            }
+            else
+            {
+                m_Render2DLightingPass.Setup(needsDepth);
+                m_Render2DLightingPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
+                EnqueuePass(m_Render2DLightingPass);
+            }
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,

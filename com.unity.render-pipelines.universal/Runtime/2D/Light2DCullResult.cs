@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     internal struct LightStats
     {
         public int totalLights;
+        public int totalShadowCasters;
         public int totalNormalMapUsage;
         public int totalVolumetricUsage;
         public uint blendStylesUsed;
@@ -27,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
         public bool IsSceneLit()
         {
-            if (visibleLights.Count > 0)
+            /*if (visibleLights.Count > 0)
                 return true;
 
             foreach (var light in Light2DManager.lights)
@@ -36,7 +37,8 @@ namespace UnityEngine.Rendering.Universal
                     return true;
             }
 
-            return false;
+            return false;*/
+            return Light2DManager.lights.Count > 0;
         }
 
         public LightStats GetLightStatsByLayer(int layer)
@@ -58,6 +60,23 @@ namespace UnityEngine.Rendering.Universal
                     returnStats.blendStylesWithLights |= (uint)(1 << light.blendStyleIndex);
             }
 
+            if(ShadowCasterGroup2DManager.shadowCasterGroups != null)
+            {
+                foreach (var shadowGroup in ShadowCasterGroup2DManager.shadowCasterGroups)
+                {
+                    if (shadowGroup != null)
+                    {
+                        foreach (var shadowCaster in shadowGroup.GetShadowCasters())
+                        {
+                            if (shadowCaster != null && !shadowCaster.IsShadowedLayer(layer))
+                                continue;
+
+                            returnStats.totalShadowCasters++;
+                        }
+                    }
+                }
+            }
+
             return returnStats;
         }
 
@@ -65,6 +84,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Profiler.BeginSample("Cull 2D Lights");
             m_VisibleLights.Clear();
+
             foreach (var light in Light2DManager.lights)
             {
                 if ((camera.cullingMask & (1 << light.gameObject.layer)) == 0)

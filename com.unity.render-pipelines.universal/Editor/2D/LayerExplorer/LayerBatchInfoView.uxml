@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/LayerExplorer/LayerExplorer.uss?fileID=7433441132597879392&amp;guid=fd5cb3dd3de574f1585db92b6689f86a&amp;type=3#LayerExplorer" />
+
+    <ui:ScrollView name="InfoScroller" class="InfoScroller">
+        <ui:Label name="InfoLabel1" class="InfoView Content"/>
+        <ui:VisualElement name="InfoBubble1" class="InfoView Content PillContainer"/>
+        <ui:Label name="InfoLabel2" class="InfoView Content"/>
+        <ui:VisualElement name="InfoBubble2" class="InfoView Content PillContainer"/>
+        <ui:Label name="InfoLabel3" class="InfoView Content"/>
+        <ui:VisualElement name="InfoBubble3" class="InfoView Content PillContainer"/>
+    </ui:ScrollView>
+
+</ui:UXML>
