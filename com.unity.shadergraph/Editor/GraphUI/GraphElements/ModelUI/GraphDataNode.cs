@@ -8,18 +8,30 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class GraphDataNode : CollapsibleInOutNode
     {
         public const string PREVIEW_HINT = "Preview.Exists";
-        NodePreviewPart m_NodePreviewPart;
         public NodePreviewPart NodePreview => m_NodePreviewPart;
+        NodePreviewPart m_NodePreviewPart;
+        GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
 
         protected override void BuildPartList()
         {
             base.BuildPartList();
 
+            if (Model is not GraphDataNodeModel graphDataNodeModel)
+                return;
+
+            // Retrieve the UI information about this node from its
+            // NodeUIDescriptor, stored in the ShaderGraphStencil.
             var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
             var nodeUIDescriptor = stencil.GetUIHints(m_GraphDataNodeModel.registryKey);
 
-            if (Model is not GraphDataNodeModel graphDataNodeModel) return;
-            if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader)) return;
+            // If the node has multiple possible topologies, show a selector.
+            if (nodeUIDescriptor.SelectableFunctions.Count > 0)
+            {
+                Debug.Log(nodeUIDescriptor.SelectableFunctions.Keys);
+            }
+
+            if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader))
+                return;
 
             var isNonPreviewableType = false;
 
@@ -30,25 +42,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var portKey = portReader.GetTypeField().GetRegistryKey();
                 bool isStatic = staticField?.GetData() ?? false;
                 bool isGradientType = portKey.Name == Registry.ResolveKey<GradientType>().Name;
-
                 var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portReader.LocalID);
 
-                // GradientType cannot be previewed if directly acting as the output, disable preview part on it if so
+                // GradientType cannot be previewed if directly acting as the output,
+                // disable preview part on it if so
                 if (isGradientType && !portReader.IsInput)
                     isNonPreviewableType = true;
 
-                if (!isStatic) continue;
-                if (parameterUIDescriptor.InspectorOnly) continue;
+                if (!isStatic)
+                    continue;
+
+                if (parameterUIDescriptor.InspectorOnly)
+                    continue;
 
                 if (isGradientType)
                 {
-                    PartList.InsertPartAfter(portContainerPartName, new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.LocalID));
+                    PartList.InsertPartAfter(
+                        portContainerPartName,
+                        new GradientPart("sg-gradient", GraphElementModel, this, ussClassName, portReader.LocalID));
                     continue;
                 }
-                if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name) continue;
+
+                if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name)
+                    continue;
 
                 var typeField = portReader.GetTypeField();
-                if (typeField == null) continue;
+                if (typeField == null)
+                    continue;
 
                 // Figure out the correct part to display based on the port's fields.
                 var length = GraphTypeHelpers.GetLength(typeField);
@@ -93,7 +113,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             default:
                                 break;
                         }
-
                         break;
                     }
                     case GraphType.Length.Two:
@@ -134,7 +153,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 new Vector4Part("sg-vector4", GraphElementModel, this, ussClassName, portReader.LocalID)
                             );
                         }
-
                         break;
                     case GraphType.Length.Any:
                         // Not valid, the size should've been resolved.
@@ -155,8 +173,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PartList.AppendPart(m_NodePreviewPart);
 
         }
-
-        GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
