@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -15,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public string DisplayName { get; }
         public string Tooltip { get; }
         public bool HasPreview { get; }
-
+        public IReadOnlyDictionary<string, string> SelectableFunctions { get; }
         public IReadOnlyCollection<ParameterUIDescriptor> Parameters { get; }
         public IReadOnlyCollection<string> Synonyms { get; }
         public IReadOnlyCollection<string> Categories { get; }
@@ -27,7 +28,8 @@ namespace UnityEditor.ShaderGraph.Defs
             string[] categories,
             string[] synonyms,
             string displayName = null,
-            bool hasPreview = true, // By default we assume all nodes should have previews
+            bool hasPreview = true, // By default we assume all nodes should have previews,
+            Dictionary<string, string> selectableFunctions = null,
             ParameterUIDescriptor[] parameters = null
         )
         {
@@ -39,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Categories = categories.ToList().AsReadOnly();
             HasPreview = hasPreview;
             Parameters = parameters?.ToList().AsReadOnly();
+            SelectableFunctions = new ReadOnlyDictionary<string, string>(selectableFunctions);
         }
 
         public ParameterUIDescriptor GetParameterInfo(string parameterName)

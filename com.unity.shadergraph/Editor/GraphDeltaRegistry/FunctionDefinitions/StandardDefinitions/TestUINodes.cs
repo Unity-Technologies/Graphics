@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -38,7 +39,13 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: String.Empty,
             categories: new string [1] { "Test" },
             synonyms: Array.Empty<string>(),
-            hasPreview: true
+            displayName: "Test MultiFunction Node",
+            hasPreview: false,
+            selectableFunctions: new ()
+            {
+                { "Function1", "Function One" },
+                { "Function2", "Function Two" }
+            }
         );
     }
 
