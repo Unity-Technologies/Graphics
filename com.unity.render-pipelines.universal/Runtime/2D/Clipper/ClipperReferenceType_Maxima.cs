@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             MaximaStruct initialValue = new MaximaStruct();
-            m_Data = Reference<MaximaStruct>.Create(initialValue);
+            Reference<MaximaStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

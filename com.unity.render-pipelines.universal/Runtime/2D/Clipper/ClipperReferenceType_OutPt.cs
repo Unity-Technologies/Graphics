@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             OutPtStruct initialValue = new OutPtStruct();
-            m_Data = Reference<OutPtStruct>.Create(initialValue);
+            Reference<OutPtStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

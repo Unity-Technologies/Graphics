@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         public static void Initialize(out Clipper clipper)
         {
             ClipperDataStruct initialValue = new ClipperDataStruct();
-            clipper.m_Data = Reference<ClipperDataStruct>.Create(initialValue);
+            Reference<ClipperDataStruct>.Create(initialValue, out clipper.m_Data);
             clipper.NULL_TEdge = new TEdge();
             clipper.m_edges = new UnsafeList<UnsafeList<TEdge>>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
             clipper.m_PolyOuts = new UnsafeList<OutRec>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);

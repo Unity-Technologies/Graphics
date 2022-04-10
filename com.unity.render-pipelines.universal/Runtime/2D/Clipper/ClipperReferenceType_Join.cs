@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             JoinStruct initialValue = new JoinStruct();
-            m_Data = Reference<JoinStruct>.Create(initialValue);
+            Reference<JoinStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

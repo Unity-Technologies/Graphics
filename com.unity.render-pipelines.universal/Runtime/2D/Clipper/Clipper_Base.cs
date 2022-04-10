@@ -216,11 +216,12 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private TEdge ProcessBound(ref TEdge E, bool LeftBoundIsForward)
+        private void ProcessBound(ref TEdge E, bool LeftBoundIsForward, out TEdge Result)
         {
-            TEdge EStart, Result = E;
+            TEdge EStart;
             TEdge Horz;
 
+            Result = E;
             if (Result.OutIdx == Skip)
             {
                 //check if there are edges beyond the skip edge in the bound and if so
@@ -255,10 +256,9 @@ namespace UnityEngine.Rendering.Universal
                     locMin.LeftBound.SetNull();
                     locMin.RightBound = E;
                     E.WindDelta = 0;
-                    Result = ProcessBound(ref E, LeftBoundIsForward);
+                    ProcessBound(ref E, LeftBoundIsForward, out Result);
                     InsertLocalMinima(ref locMin);
                 }
-                return Result;
             }
 
             if (E.Dx == horizontal)
@@ -325,7 +325,6 @@ namespace UnityEngine.Rendering.Universal
                     ReverseHorizontal(ref E);
                 Result = Result.Prev; //move to the edge just beyond current bound
             }
-            return Result;
         }
 
         //------------------------------------------------------------------------------
@@ -494,11 +493,12 @@ namespace UnityEngine.Rendering.Universal
                 else locMin.LeftBound.WindDelta = 1;
                 locMin.RightBound.WindDelta = -locMin.LeftBound.WindDelta;
 
-                E = ProcessBound(ref locMin.LeftBound, leftBoundIsForward);
-                if (E.OutIdx == Skip) E = ProcessBound(ref E, leftBoundIsForward);
+                ProcessBound(ref locMin.LeftBound, leftBoundIsForward, out E);
+                if (E.OutIdx == Skip) ProcessBound(ref E, leftBoundIsForward, out E);
 
-                TEdge E2 = ProcessBound(ref locMin.RightBound, !leftBoundIsForward);
-                if (E2.OutIdx == Skip) E2 = ProcessBound(ref E2, !leftBoundIsForward);
+                TEdge E2;
+                ProcessBound(ref locMin.RightBound, !leftBoundIsForward, out E2);
+                if (E2.OutIdx == Skip) ProcessBound(ref E2, !leftBoundIsForward, out E2);
 
                 if (locMin.LeftBound.OutIdx == Skip)
                     locMin.LeftBound.SetNull();
@@ -706,9 +706,9 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal OutRec CreateOutRec()
+        internal void CreateOutRec(out OutRec result)
         {
-            OutRec result = new OutRec();
+            result = new OutRec();
             result.Initialize();
             result.Idx = Unassigned;
             result.IsHole = false;
@@ -719,7 +719,6 @@ namespace UnityEngine.Rendering.Universal
             result.PolyNode = default(PolyNode);
             m_PolyOuts.Add(result);
             result.Idx = m_PolyOuts.Length - 1;
-            return result;
         }
 
         //------------------------------------------------------------------------------

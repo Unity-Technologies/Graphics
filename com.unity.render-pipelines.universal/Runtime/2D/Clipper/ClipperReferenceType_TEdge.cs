@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             TEdgeStruct initialValue = new TEdgeStruct();
-            m_Data = Reference<TEdgeStruct>.Create(initialValue);
+            Reference<TEdgeStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

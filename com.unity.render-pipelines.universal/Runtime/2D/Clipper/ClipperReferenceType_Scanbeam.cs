@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             ScanbeamStruct initialValue = new ScanbeamStruct();
-            m_Data = Reference<ScanbeamStruct>.Create(initialValue);
+            Reference<ScanbeamStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

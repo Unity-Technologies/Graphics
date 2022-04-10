@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             IntersectNodeStruct initialValue = new IntersectNodeStruct();
-            m_Data = Reference<IntersectNodeStruct>.Create(initialValue);
+            Reference<IntersectNodeStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

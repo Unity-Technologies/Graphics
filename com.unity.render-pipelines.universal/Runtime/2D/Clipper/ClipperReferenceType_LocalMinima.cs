@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             LocalMinimaStruct initialValue = new LocalMinimaStruct();
-            m_Data = Reference<LocalMinimaStruct>.Create(initialValue);
+            Reference<LocalMinimaStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

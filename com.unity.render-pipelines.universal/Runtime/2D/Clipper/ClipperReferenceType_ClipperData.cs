@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         public void Initialize()
         {
             ClipperDataStruct initialValue = new ClipperDataStruct();
-            m_Data = Reference<ClipperDataStruct>.Create(initialValue);
+            Reference<ClipperDataStruct>.Create(initialValue, out m_Data);
         }
 
         public bool IsCreated { get { return m_Data.IsCreated; } }

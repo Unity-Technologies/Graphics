@@ -14,14 +14,13 @@ namespace UnityEngine.Rendering.Universal
     {
         unsafe IntPtr m_Ptr;
 
-        static public Reference<T> Create(T value)
+        static public void Create(T value, out Reference<T> retRef)
         {
             unsafe
             {
-                Reference<T> retRef = new Reference<T>();
+                retRef = new Reference<T>();
                 retRef.m_Ptr = new IntPtr(UnsafeUtility.Malloc(UnsafeUtility.SizeOf(typeof(T)), UnsafeUtility.AlignOf<T>(), Allocator.Temp));
                 retRef.DeRef() = value;
-                return retRef;
             }
         }
 
