@@ -5,7 +5,8 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         static string Name { get; }
         static int Version { get; }
-        static FunctionDescriptor FunctionDescriptor { get; }
+        static NodeDescriptor NodeDescriptor { get; }
         static NodeUIDescriptor NodeUIDescriptor { get; }
+        static FunctionDescriptor FunctionDescriptor { get; }
     }
 }
