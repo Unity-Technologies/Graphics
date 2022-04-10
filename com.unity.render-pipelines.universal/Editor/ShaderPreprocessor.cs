@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
+        LODCrossFade = (1 << 31)
     }
 
     [Flags]
@@ -111,6 +112,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendHigh;
         LocalKeyword m_ClusteredRendering;
         LocalKeyword m_EditorVisualization;
+        LocalKeyword m_LODFadeCrossFade;
 
         LocalKeyword m_LocalDetailMulx2;
         LocalKeyword m_LocalDetailScaled;
@@ -183,6 +185,7 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
             m_ClusteredRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
+            m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
@@ -500,6 +503,11 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendLow, ShaderFeatures.DecalNormalBlendLow,
                 m_DecalNormalBlendMedium, ShaderFeatures.DecalNormalBlendMedium,
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
+                return true;
+
+            var stripUnusedLODCrossFadeVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedLODCrossFadeVariants == true;
+            if (stripUnusedLODCrossFadeVariants &&
+                stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
                 return true;
 
             return false;
@@ -923,6 +931,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.supportsLightLayers)
                 shaderFeatures |= ShaderFeatures.LightLayers;
+
+            if (pipelineAsset.enableLODCrossFade)
+                shaderFeatures |= ShaderFeatures.LODCrossFade;
 
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;

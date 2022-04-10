@@ -46,6 +46,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         half alpha = half(1.0);
     #endif
 
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(unpacked.positionCS);
+    #endif
+
 #if defined(_ALPHAMODULATE_ON)
     surfaceDescription.BaseColor = AlphaModulate(surfaceDescription.BaseColor, alpha);
 #endif

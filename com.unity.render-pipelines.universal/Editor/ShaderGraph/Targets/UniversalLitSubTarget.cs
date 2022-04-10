@@ -469,6 +469,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -520,6 +521,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -561,6 +563,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -674,6 +677,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -713,6 +717,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }

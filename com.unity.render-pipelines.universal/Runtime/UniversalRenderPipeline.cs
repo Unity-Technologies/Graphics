@@ -203,6 +203,8 @@ namespace UnityEngine.Rendering.Universal
 
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
+
+            QualitySettings.enableLODCrossFade = asset.enableLODCrossFade;
         }
 
         /// <inheritdoc/>
@@ -789,7 +791,8 @@ namespace UnityEngine.Rendering.Universal
                 receiveShadows = false,
                 reflectionProbes = false,
                 reflectionProbesBlendDistance = true,
-                particleSystemInstancing = true
+                particleSystemInstancing = true,
+                overridesEnableLODCrossFade = true
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif
@@ -1314,6 +1317,17 @@ namespace UnityEngine.Rendering.Universal
 
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
+
+            if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BayerMatrix)
+            {
+                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.bayerMatrixTex.width);
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.bayerMatrixTex);
+            }
+            else if (asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.BlueNoise)
+            {
+                Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.blueNoise64LTex.width);
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.blueNoise64LTex);
+            }
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

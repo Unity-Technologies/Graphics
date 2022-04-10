@@ -288,6 +288,9 @@ EditorBuildSettings:
     path: Assets/Scenes/206_Motion_Vectors.unity
     guid: aa08e99a89c77574e9a00b9888fc75ce
   - enabled: 1
+    path: Assets/Scenes/248_LOD_CrossFade.unity
+    guid: 3b4bfea1d564d9541bb3a139484410ef
+  - enabled: 1
     path: Assets/Scenes/055_SoftShadowQuality_Low.unity
     guid: e9e5c842eb0ba4a1798a7ddb05f68d7e
   - enabled: 1

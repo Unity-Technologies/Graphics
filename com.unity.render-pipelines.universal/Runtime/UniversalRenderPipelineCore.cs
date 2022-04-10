@@ -552,6 +552,9 @@ namespace UnityEngine.Rendering.Universal
 
         // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
+
+        public static readonly int ditheringTexture = Shader.PropertyToID("_DitheringTexture");
+        public static readonly int ditheringTextureInvSize = Shader.PropertyToID("_DitheringTextureInvSize");
     }
 
     /// <summary>
@@ -658,6 +661,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
         public static readonly string DEBUG_DISPLAY = "DEBUG_DISPLAY";
+        public static readonly string LOD_FADE_CROSSFADE = "LOD_FADE_CROSSFADE";
 
         public static readonly string _EMISSION = "_EMISSION";
         public static readonly string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";

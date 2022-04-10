@@ -21,6 +21,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(unpacked.positionCS);
+    #endif
+
     return packedInput.positionCS.z;
 }
 
