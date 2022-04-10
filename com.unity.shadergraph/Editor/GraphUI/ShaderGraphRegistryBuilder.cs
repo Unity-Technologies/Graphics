@@ -30,10 +30,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => interfaceType.IsAssignableFrom(p));
-            var tArr = types.ToArray();
-
-            Debug.LogWarning(tArr);
-
             foreach (Type t in types)
             {
                 if (t != interfaceType)
