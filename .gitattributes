@@ -52,4 +52,4 @@ LightingData.asset binary
 *.[gG][zZ] filter=lfs diff=lfs merge=lfs -text
 *.[rR][aA][rR] filter=lfs diff=lfs merge=lfs -text
 *.[tT][aA][rR] filter=lfs diff=lfs merge=lfs -text
-TestProjects/ShaderGraph/Assets/TestbedAssets/Textures/Texture2DArray/*.asset filter=lfs diff=lfs merge=lfs -text
+**/ShaderGraph/Assets/TestbedAssets/Textures/Texture2DArray/*.asset filter=lfs diff=lfs merge=lfs -text
