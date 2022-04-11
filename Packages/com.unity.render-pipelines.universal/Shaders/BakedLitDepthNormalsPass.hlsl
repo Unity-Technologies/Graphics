@@ -2,6 +2,9 @@
 #define UNIVERSAL_BAKEDLIT_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#if defined(LOD_FADE_CROSSFADE)
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
 
 struct Attributes
 {
@@ -15,7 +18,7 @@ struct Attributes
 
 struct Varyings
 {
-    float4 vertex       : SV_POSITION;
+    float4 positionCS   : SV_POSITION;
     float2 uv           : TEXCOORD0;
     half3 normalWS      : TEXCOORD1;
 
@@ -34,7 +37,7 @@ Varyings DepthNormalsVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    output.vertex = vertexInput.positionCS;
+    output.positionCS = vertexInput.positionCS;
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap).xy;
 
     // normalWS and tangentWS already normalize.
@@ -58,6 +61,10 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
     half4 texColor = (half4) SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.positionCS);
+    #endif
 
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);

@@ -21,6 +21,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(unpacked.positionCS);
+    #endif
+
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(unpacked.normalWS);
         float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms

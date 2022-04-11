@@ -919,21 +919,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         new KeywordEntry() { displayName = "HIGH", referenceName = "HIGH" },
                     }
                 };
-
-                public static readonly KeywordDescriptor LodCrossFade = new KeywordDescriptor()
-                {
-                    displayName = "LOD Cross Fade",
-                    referenceName = "LOD_FADE_CROSSFADE",
-                    type = KeywordType.Boolean,
-                    definition = KeywordDefinition.MultiCompile,
-                    scope = KeywordScope.Global,
-                };
             }
 
             public static KeywordCollection DBufferMesh = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
-                { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
+                { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
             public static KeywordCollection DBufferProjector = new KeywordCollection
@@ -954,7 +945,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.ClusteredRendering },
                 { Descriptors.DecalsNormalBlend },
-                { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
+                { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
@@ -979,7 +970,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.RenderPassEnabled },
-                { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
+                { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
@@ -1003,6 +994,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
             const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
             const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
+            const string kLODCrossFade = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl";
 
             public static IncludeCollection DecalPregraph = new IncludeCollection
             {
@@ -1024,6 +1016,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.ShaderGraphPregraph },
                 { DecalPregraph },
                 { kDBuffer, IncludeLocation.Pregraph },
+                { kLODCrossFade, IncludeLocation.Pregraph, new FieldCondition(Fields.LodCrossFade, true) },
 
                 // Post-graph
                 { DecalPostgraph },
@@ -1035,6 +1028,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { DecalPregraph },
+                { kLODCrossFade, IncludeLocation.Pregraph, new FieldCondition(Fields.LodCrossFade, true) },
 
                 // Post-graph
                 { DecalPostgraph },
@@ -1047,6 +1041,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.ShaderGraphPregraph },
                 { kGBuffer, IncludeLocation.Pregraph },
                 { DecalPregraph },
+                { kLODCrossFade, IncludeLocation.Pregraph, new FieldCondition(Fields.LodCrossFade, true) },
 
                 // Post-graph
                 { DecalPostgraph },

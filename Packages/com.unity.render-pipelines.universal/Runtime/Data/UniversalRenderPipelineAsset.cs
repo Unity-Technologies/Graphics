@@ -367,6 +367,17 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Type of the LOD cross-fade.
+    /// </summary>
+    public enum LODCrossFadeDitheringType
+    {
+        /// <summary>Unity uses the Bayer matrix texture to compute the LOD cross-fade dithering.</summary>
+        BayerMatrix,
+        /// <summary>Unity uses the precomputed blue noise texture to compute the LOD cross-fade dithering.</summary>
+        BlueNoise
+    }
+
+    /// <summary>
     /// The asset that contains the URP setting.
     /// You can use this asset as a graphics quality level.
     /// <see cref="RenderPipelineAsset"\>
@@ -380,8 +391,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 10;
-        [SerializeField] int k_AssetPreviousVersion = 10;
+        [SerializeField] int k_AssetVersion = 11;
+        [SerializeField] int k_AssetPreviousVersion = 11;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -406,6 +417,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
+        [SerializeField] bool m_EnableLODCrossFade = true;
+        [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
@@ -468,6 +481,8 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
+        [SerializeField] TextureResources m_Textures;
+
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
@@ -502,6 +517,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Only enable for new URP assets by default
             instance.m_ConservativeEnclosingSphere = true;
+
+            ResourceReloader.ReloadAllNullIn(instance, packagePath);
 
             return instance;
         }
@@ -953,6 +970,16 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        public bool enableLODCrossFade
+        {
+            get { return m_EnableLODCrossFade; }
+        }
+
+        public LODCrossFadeDitheringType lodCrossFadeDitheringType
+        {
+            get { return m_LODCrossFadeDitheringType; }
         }
 
         /// <summary>
@@ -1473,6 +1500,25 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public string[] lightLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.lightLayerNames;
 
+        /// <summary>
+        /// Returns asset texture resources
+        /// </summary>
+        public TextureResources textures
+        {
+            get
+            {
+                if (m_Textures == null)
+                    m_Textures = new TextureResources();
+
+#if UNITY_EDITOR
+                if (m_Textures.NeedsReload())
+                    ResourceReloader.ReloadAllNullIn(this, packagePath);
+#endif
+
+                return m_Textures;
+            }
+        }
+
         /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
@@ -1564,6 +1610,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 10;
             }
 
+            if (k_AssetVersion < 11)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 11;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1608,6 +1660,12 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 10;
             }
 
+            if(asset.k_AssetPreviousVersion < 11)
+            {
+                ResourceReloader.ReloadAllNullIn(asset, packagePath);
+                asset.k_AssetPreviousVersion = 11;
+            }
+
             EditorUtility.SetDirty(asset);
         }
 
@@ -1647,6 +1705,21 @@ namespace UnityEngine.Rendering.Universal
             // Check to see if you are asking for the default renderer
             if (index == -1) index = m_DefaultRendererIndex;
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
+        }
+
+        [Serializable, ReloadGroup]
+        public sealed class TextureResources
+        {
+            [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
+            public Texture2D blueNoise64LTex;
+
+            [Reload("Textures/BayerMatrix.png")]
+            public Texture2D bayerMatrixTex;
+
+            public bool NeedsReload()
+            {
+                return blueNoise64LTex == null || bayerMatrixTex == null;
+            }
         }
     }
 }

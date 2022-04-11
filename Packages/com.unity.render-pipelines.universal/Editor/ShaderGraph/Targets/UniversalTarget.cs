@@ -140,6 +140,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_ReceiveShadows = true;
 
         [SerializeField]
+        bool m_SupportsLODCrossFade = false;
+
+        [SerializeField]
         string m_CustomEditorGUI;
 
         [SerializeField]
@@ -243,6 +246,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_ReceiveShadows;
             set => m_ReceiveShadows = value;
+        }
+
+        public bool supportsLodCrossFade
+        {
+            get => m_SupportsLODCrossFade;
+            set => m_SupportsLODCrossFade = value;
         }
 
         public string customEditorGUI
@@ -532,6 +541,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     receiveShadows = evt.newValue;
                     onChange();
                 });
+
+            context.AddProperty("Supports LOD Cross Fade", new Toggle() { value = supportsLodCrossFade }, (evt) =>
+            {
+                if (Equals(supportsLodCrossFade, evt.newValue))
+                    return;
+
+                registerUndo("Change Supports LOD Cross Fade");
+                supportsLodCrossFade = evt.newValue;
+                onChange();
+            });
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)
@@ -777,6 +796,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
         }
 
+        internal static void AddLODCrossFadeControlToPass(ref PassDescriptor pass, UniversalTarget target)
+        {
+            if (target.supportsLodCrossFade)
+            {
+                pass.includes.Add(CoreIncludes.LODCrossFade);
+                pass.keywords.Add(CoreKeywordDescriptors.LODFadeCrossFade);
+            }
+        }
+
         internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             // the surface settings can either be material controlled or target controlled
@@ -840,6 +868,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            AddLODCrossFadeControlToPass(ref result, target);
 
             return result;
         }
@@ -880,6 +909,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            AddLODCrossFadeControlToPass(ref result, target);
 
             return result;
         }
@@ -920,6 +950,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            AddLODCrossFadeControlToPass(ref result, target);
 
             return result;
         }
@@ -959,6 +990,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            AddLODCrossFadeControlToPass(ref result, target);
 
             return result;
         }
@@ -1475,6 +1507,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
         const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
+        const string kLODCrossFade = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1554,6 +1587,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kSelectionPickingPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection LODCrossFade = new IncludeCollection
+        {
+            { kLODCrossFade, IncludeLocation.Pregraph }
         };
     }
     #endregion
@@ -1925,6 +1963,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor LODFadeCrossFade = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
+            referenceName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
     }
     #endregion

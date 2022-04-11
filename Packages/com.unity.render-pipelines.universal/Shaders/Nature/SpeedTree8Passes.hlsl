@@ -4,6 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "SpeedTreeUtility.hlsl"
+#if defined(LOD_FADE_CROSSFADE)
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
 
 struct SpeedTreeVertexInput
 {
@@ -361,20 +364,15 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
-    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        #ifdef EFFECT_BUMP
-            half3 viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
-        #else
-            half3 viewDirectionWS = input.interpolated.viewDirWS;
-        #endif
-        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.interpolated.clipPos.xy), unity_LODFade.x);
-    #endif
-
     half2 uv = input.interpolated.uv;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha, 0.3333);
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.interpolated.clipPos);
+    #endif
 
     half3 albedo = diffuse.rgb;
     half3 emission = 0;
@@ -492,15 +490,15 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(ComputeFadeMaskSeed(input.viewDirWS, input.clipPos.xy), unity_LODFade.x);
-    #endif
-
     half2 uv = input.uv;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.color.a;
     AlphaDiscard(alpha, 0.3333);
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.clipPos);
+    #endif
 
     #if defined(SCENESELECTIONPASS)
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
@@ -549,20 +547,15 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
-    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        #ifdef EFFECT_BUMP
-            half3 viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
-        #else
-            half3 viewDirectionWS = input.interpolated.viewDirWS;
-        #endif
-        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.interpolated.clipPos.xy), unity_LODFade.x);
-    #endif
-
     half2 uv = input.interpolated.uv;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha, 0.3333);
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.interpolated.clipPos);
+    #endif
 
     // normal
     #if defined(EFFECT_BUMP)

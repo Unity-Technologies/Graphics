@@ -103,17 +103,7 @@ Pass
     // --------------------------------------------------
     // Build Surface Data
 
-    uint2 ComputeFadeMaskSeed(uint2 positionSS)
-    {
-        uint2 fadeMaskSeed;
-
-        // Can't use the view direction, it is the same across the entire screen.
-        fadeMaskSeed = positionSS;
-
-        return fadeMaskSeed;
-    }
-
-    void GetSurfaceData(Varyings input, half3 viewDirectioWS, uint2 positionSS, float angleFadeFactor, out DecalSurfaceData surfaceData)
+    void GetSurfaceData(Varyings input, half3 viewDirectioWS, float4 positionCS, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
             half4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
@@ -125,8 +115,8 @@ Pass
             $Varyings.texCoord2: input.texCoord2.xy = input.texCoord2.xy * scale + offset;
             $Varyings.texCoord3: input.texCoord3.xy = input.texCoord3.xy * scale + offset;
         #else
-            #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-                LODDitheringTransition(ComputeFadeMaskSeed(positionSS), unity_LODFade.x);
+            #ifdef LOD_FADE_CROSSFADE
+                LODFadeCrossFade(positionCS);
             #endif
 
             half fadeFactor = half(1.0);

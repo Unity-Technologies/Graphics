@@ -68,6 +68,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripDebugVariants, Styles.stripDebugVariantsLabel);
                     EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
                     EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
+                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedLODCrossFadeVariants, Styles.stripUnusedLODCrossFadeVariantsLabel);
                 }
             }))),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
