@@ -15,7 +15,7 @@ MonoBehaviour:
   version: 6
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -23,13 +23,16 @@ Material:
   m_Name: Broadleaf_Desktop_Field_Billboard
   m_Shader: {fileID: -6465566751694194690, guid: 9920c1f1781549a46ba081a2a15a16ec,
     type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ShaderKeywords: BACKFACE_NORMAL_MODE_MIRROR EFFECT_BILLBOARD _WINDQUALITY_FASTEST
-  m_LightmapFlags: 4
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 1
-  m_DoubleSidedGI: 1
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -67,18 +70,15 @@ Material:
     - EFFECT_BILLBOARD: 1
     - EFFECT_EXTRA_TEX: 1
     - _AlphaClipThreshold: 0.33
-    - _BillboardKwToggle: 1
-    - _BillboardShadowFade: 0.5
     - _Glossiness: 0.5
     - _HueVariationKwToggle: 1
     - _Metallic: 0
     - _NormalMapKwToggle: 1
-    - _OldHueVarBehavior: 1
+    - _OldHueVarBehavior: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _SubsurfaceIndirect: 0.25
     - _SubsurfaceKwToggle: 1
-    - _TwoSided: 2
     - _WINDQUALITY: 1
     - _WindQuality: 1
     m_Colors:

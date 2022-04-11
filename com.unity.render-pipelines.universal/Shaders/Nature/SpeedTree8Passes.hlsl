@@ -187,7 +187,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
         // crossfade faces
         bool topDown = (input.texcoord.z > 0.5);
         float3 viewDir = UNITY_MATRIX_IT_MV[2].xyz;
-        float3 cameraDir = normalize(mul((float3x3)UNITY_MATRIX_M, _WorldSpaceCameraPos - treePos));
+        float3 cameraDir = normalize(mul(_WorldSpaceCameraPos - treePos, (float3x3)UNITY_MATRIX_M));
         float viewDot = max(dot(viewDir, input.normal), dot(cameraDir, input.normal));
         viewDot *= viewDot;
         viewDot *= viewDot;
