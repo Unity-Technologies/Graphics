@@ -231,7 +231,7 @@ Breaking down the merges into 2 steps makes it more manageable:
     * 2021.3: [ad85b534d7ac336305f8e0d87c02cc23cbcbd6be](https://github.com/Unity-Technologies/Graphics/commit/ad85b534d7ac336305f8e0d87c02cc23cbcbd6be)
 2. Then merge the actual restructured mainline
 
-In case you want to merge <branch> into <mainline>, it’s safer to first merge <mainline> into <branch> than the other way around. ([https://stackoverflow.com/a/57313561/5804755](https://stackoverflow.com/a/57313561/5804755)). Side effect: you now have <mainline> into <branch>.
+In case you want to merge `<branch>` into `<mainline>`, it’s safer to first merge `<mainline>` into `<branch>` than the other way around. ([https://stackoverflow.com/a/57313561/5804755](https://stackoverflow.com/a/57313561/5804755)). Side effect: you now have `<mainline>` into `<branch>`.
 
 
 # Solution
