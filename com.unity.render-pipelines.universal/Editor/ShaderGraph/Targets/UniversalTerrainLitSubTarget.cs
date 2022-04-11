@@ -148,257 +148,214 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            #if false
-            if (collector.shaderName.EndsWith("_AddPass"))
+            collector.AddShaderProperty(new BooleanShaderProperty
             {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = enableInstancedPerPixelNormal,
-                    hidden = false,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_EnableInstancedPerPixelNormal",
-                    displayName = "Enable Instanced per Pixel Normal",
-                });
+                value = enableHeightBlend,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_EnableHeightBlend",
+                displayName = "Enable Height Blend",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Slider,
+                value = heightTransition,
+                hidden = false,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_HeightTransition",
+                displayName = "Height Transition",
+            });
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = enableInstancedPerPixelNormal,
+                hidden = false,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_EnableInstancedPerPixelNormal",
+                displayName = "Enable Instanced per Pixel Normal",
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_TerrainHolesTexture",
+                displayName = "Holes Map (RGB)",
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Splat0",
+                displayName = "Layer 0 (R)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Splat1",
+                displayName = "Layer 1 (G)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Splat2",
+                displayName = "Layer 2 (B)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Splat3",
+                displayName = "Layer 3 (A)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.Grey,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Mask3",
+                displayName = "Layer 3 (A)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.Grey,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Mask2",
+                displayName = "Layer 2 (B)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.Grey,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Mask1",
+                displayName = "Layer 1 (G)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.Grey,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Mask0",
+                displayName = "Layer 0 (R)",
+                useTilingAndOffset = true,
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Slider,
+                hidden = true,
+                gammaSpace = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Metallic0",
+                displayName = "Metallic 0",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Slider,
+                hidden = true,
+                gammaSpace = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Metallic1",
+                displayName = "Metallic 1",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Slider,
+                hidden = true,
+                gammaSpace = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Metallic2",
+                displayName = "Metallic 2",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Slider,
+                hidden = true,
+                gammaSpace = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Metallic3",
+                displayName = "Metallic 3",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                value = 1.0f,
+                floatType = FloatType.Slider,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Smoothness0",
+                displayName = "Smoothness 0",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                value = 1.0f,
+                floatType = FloatType.Slider,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Smoothness1",
+                displayName = "Smoothness 1",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                value = 1.0f,
+                floatType = FloatType.Slider,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Smoothness2",
+                displayName = "Smoothness 2",
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                value = 1.0f,
+                floatType = FloatType.Slider,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_Smoothness3",
+                displayName = "Smoothness 3",
+            });
 
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_TerrainHolesTexture",
-                    displayName = "Holes Map (RGB)",
-                });
-            }
-            else if (collector.shaderName.EndsWith("_BaseMap"))
+            collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_TerrainHolesTexture",
-                    displayName = "Holes Map (RGB)",
-                });
-            }
-            else if (collector.shaderName.EndsWith("_BaseMapGen"))
-            {
-
-            }
-            else
-            #endif
-            {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = enableHeightBlend,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_EnableHeightBlend",
-                    displayName = "Enable Height Blend",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    floatType = FloatType.Slider,
-                    value = heightTransition,
-                    hidden = false,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_HeightTransition",
-                    displayName = "Height Transition",
-                });
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = enableInstancedPerPixelNormal,
-                    hidden = false,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_EnableInstancedPerPixelNormal",
-                    displayName = "Enable Instanced per Pixel Normal",
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_TerrainHolesTexture",
-                    displayName = "Holes Map (RGB)",
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Splat0",
-                    displayName = "Layer 0 (R)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Splat1",
-                    displayName = "Layer 1 (G)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Splat2",
-                    displayName = "Layer 2 (B)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.White,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Splat3",
-                    displayName = "Layer 3 (A)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Mask3",
-                    displayName = "Layer 3 (A)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Mask2",
-                    displayName = "Layer 2 (B)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Mask1",
-                    displayName = "Layer 1 (G)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Texture2DShaderProperty
-                {
-                    defaultType = Texture2DShaderProperty.DefaultType.Grey,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Mask0",
-                    displayName = "Layer 0 (R)",
-                    useTilingAndOffset = true,
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    gammaSpace = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Metallic0",
-                    displayName = "Metallic 0",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    gammaSpace = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Metallic1",
-                    displayName = "Metallic 1",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    gammaSpace = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Metallic2",
-                    displayName = "Metallic 2",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    gammaSpace = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Metallic3",
-                    displayName = "Metallic 3",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    value = 1.0f,
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Smoothness0",
-                    displayName = "Smoothness 0",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    value = 1.0f,
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Smoothness1",
-                    displayName = "Smoothness 1",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    value = 1.0f,
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Smoothness2",
-                    displayName = "Smoothness 2",
-                });
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    value = 1.0f,
-                    floatType = FloatType.Slider,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                    overrideReferenceName = "_Smoothness3",
-                    displayName = "Smoothness 3",
-                });
-
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    floatType = FloatType.Default,
-                    value = 0.0f,
-                    hidden = true,
-                    overrideHLSLDeclaration = true,
-                    hlslDeclarationOverride = HLSLDeclaration.Global,
-                    overrideReferenceName = "_DstBlend",
-                    displayName = "DstBlend",
-                });
-            }
+                floatType = FloatType.Default,
+                value = 0.0f,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.Global,
+                overrideReferenceName = "_DstBlend",
+                displayName = "DstBlend",
+            });
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
