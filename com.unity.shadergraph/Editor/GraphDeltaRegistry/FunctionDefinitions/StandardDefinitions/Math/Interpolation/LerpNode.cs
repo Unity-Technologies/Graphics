@@ -43,16 +43,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Interpolation" },
-            { "Name.Synonyms", "Mix, Blend, Interpolate, Extrapolate, Linear Interpolate" },
-            { "Tooltip", "blends between A and B given the value of T" },
-            { "Parameters.A.Tooltip", "Out will be this value when T is zero" },
-            { "Parameters.B.Tooltip", "Out will be this value when T is one" },
-            { "Parameters.T.Tooltip", "the blend value.  Will return A when this is 0 and B when this is 1" },
-            { "Parameters.Out.Tooltip", "A * (1-T) + B * T" }
-        };
     }
 }

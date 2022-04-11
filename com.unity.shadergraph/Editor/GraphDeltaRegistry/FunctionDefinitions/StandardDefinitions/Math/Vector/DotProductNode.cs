@@ -39,15 +39,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "DisplayName", "Dot Product" },
-            { "Category", "Math, Vector" },
-            { "Tooltip", "returns the dot product between two vectors" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
-            { "Parameters.Out.Tooltip", "the dot product of A and B" }
-        };
     }
 }

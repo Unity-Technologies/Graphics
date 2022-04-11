@@ -39,20 +39,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Utility, Logic" },
-            { "Name.Synonyms", "&&" },
-            { "Tooltip", "returns true if both A and B are true" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
-            { "Parameters.Out.Tooltip", "true if both A and B are true" }
-        };
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "Preview.Exists", 0 }
-        };
     }
 }

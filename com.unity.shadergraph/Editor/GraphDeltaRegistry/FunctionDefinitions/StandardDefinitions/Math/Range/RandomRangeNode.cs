@@ -48,16 +48,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Range" },
-            { "DisplayName", "Random Range" },
-            { "Tooltip", "returns a psuedo-random value base on input Seed between Min and Max" },
-            { "Parameters.Seed.Tooltip", "input Seed" },
-            { "Parameters.Min.Tooltip", "minimum value" },
-            { "Parameters.Max.Tooltip", "maximum value" },
-            { "Parameters.Out.Tooltip", "a psuedo-random value between min and max" }
-        };
     }
 }

@@ -44,17 +44,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Vector" },
-            { "DisplayName", "Fresnel Effect" },
-            { "Tooltip", "returns the inverted dot product between the view direction and the normal" },
-            { "Parameters.Normal.Tooltip", "normal direction" },
-            { "Parameters.ViewDir.Tooltip", "view direction" },
-            { "Parameters.Power.Tooltip", "exponent of the power calculation" },
-            { "Parameters.Out.Tooltip", "the inverted dot product between the view direction and the normal" }
-        };
     }
 }

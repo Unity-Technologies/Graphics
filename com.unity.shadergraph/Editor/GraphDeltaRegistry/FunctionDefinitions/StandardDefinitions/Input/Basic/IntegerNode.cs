@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -34,13 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Input, Basic" },
-            { "Name.Synonyms", "whole number" },
-            { "Tooltip", "a constant, single-channel, whole number value" },
-            { "Parameters.Out.Tooltip", "a single channel value without a decimal" }
-        };
     }
 }

@@ -34,15 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "triangle wave" },
-            { "Tooltip", "creates a wave form with a slow, linear ramp up and then an instant drop" },
-            { "Category", "Math, Wave" },
-            { "DisplayName", "Sawtooth Wave" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "a sawtooth wave" }
-        };
     }
 }

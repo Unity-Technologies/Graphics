@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -38,15 +37,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Advanced" },
-            { "Name.Synonyms", "quantize" },
-            { "Tooltip", "returns the quantized value of In" },
-            { "Parameters.In.Tooltip", "a value to quantize" },
-            { "Parameters.Steps.Tooltip", "the number of quantization steps" },
-            { "Parameters.Out.Tooltip", "the quantized value of In" }
-        };
     }
 }

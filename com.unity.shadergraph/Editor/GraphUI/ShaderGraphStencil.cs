@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string DefaultAssetName = "NewShaderGraph";
         public const string Extension = "sg2";
         private Registry RegistryInstance = null;
-        private NodeUIInfo NodeUIInfo = null;
+        private readonly NodeUIInfo NodeUIInfo = null;
 
         public string ToolName =>
             Name;
@@ -34,7 +34,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             NodeUIInfo = new ();
         }
 
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) =>
+            new SGBlackboardGraphModel(graphAssetModel);
 
         // See ShaderGraphExampleTypes.GetGraphType for more details
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
@@ -119,7 +120,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // ShaderGraphExampleTypes.GradientTypeHandle,  TODO: Awaiting GradientType support
         };
 
-        public override void PopulateBlackboardCreateMenu(string sectionName, List<MenuItem> menuItems, IRootView view, IGroupModel selectedGroup = null)
+        public override void PopulateBlackboardCreateMenu(
+            string sectionName,
+            List<MenuItem> menu,
+            IRootView view,
+            IGroupModel selectedGroup = null)
         {
             // Only populate the Properties section for now. Will change in the future.
             if (sectionName != sections[0]) return;
@@ -127,7 +132,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             foreach (var type in k_SupportedBlackboardTypes)
             {
                 var displayName = TypeMetadataResolver.Resolve(type)?.FriendlyName ?? type.Name;
-                menuItems.Add(new MenuItem
+                menu.Add(new MenuItem
                 {
                     name = $"Create {displayName}",
                     action = () =>

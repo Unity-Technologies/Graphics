@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -53,25 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     name: "Out",
                     tooltip: "mask produced from color matches in the input"
                 ),
-
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "MaskColor.UseColor", 1 } // this doesn't work yet
-        };
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Artistic, Mask" },
-            { "Name.Synonyms", "intensity" },
-            { "Tooltip", "creates a mask where the input values match the selected color" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.MaskColor.Tooltip", "color to use for mask" },
-            { "Parameters.Range.Tooltip", "select colors within this range from input Mask Color" },
-            { "Parameters.Fuzziness.Tooltip", "feather edges around selection. Higher values result in a softer selection mask" },
-            { "Parameters.Out.Tooltip", "mask produced from color matches in the input" }
-        };
     }
 }

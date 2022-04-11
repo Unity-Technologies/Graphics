@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -43,16 +42,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "DisplayName", "Vector 2" },
-            { "Category", "Input, Basic" },
-            { "Name.Synonyms", "2, v2, vec2, float2" },
-            { "Tooltip", "a user-defined value with 2 channels" },
-            { "Parameters.X.Tooltip", "the first component" },
-            { "Parameters.Y.Tooltip", "the second component" },
-            { "Parameters.Out.Tooltip", "a user-defined value with 2 channels" }
-        };
     }
 }

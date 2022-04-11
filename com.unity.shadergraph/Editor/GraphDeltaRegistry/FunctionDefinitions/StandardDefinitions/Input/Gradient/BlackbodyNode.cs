@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -47,12 +46,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "samples a Gradient that simulates the effect of black body radiation" },
-            { "Category", "Input, Gradient" },
-            { "Parameters.Out.Tooltip", "a blackbody color value determined by the input temperature" }
-        };
     }
 }

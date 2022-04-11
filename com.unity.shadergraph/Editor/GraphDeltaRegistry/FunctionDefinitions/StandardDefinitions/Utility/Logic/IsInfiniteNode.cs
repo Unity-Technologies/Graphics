@@ -35,18 +35,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "returns true if the input In is an infinite value" },
-            { "Category", "Utility, Logic" },
-            { "DisplayName", "Is Infinite" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "true if the input is an infinite value" }
-        };
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "Preview.Exists", 0 }
-        };
     }
 }

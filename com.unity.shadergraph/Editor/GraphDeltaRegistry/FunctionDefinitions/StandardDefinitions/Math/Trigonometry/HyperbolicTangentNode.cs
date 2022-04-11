@@ -34,15 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "tanh" },
-            { "Tooltip", "returns the hyperbolic tangent of the input" },
-            { "Category", "Math, Trigonometry" },
-            { "DisplayName", "Hyperbolic Tangent" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the hyperbolic tangent of the input" }
-        };
     }
 }

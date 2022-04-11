@@ -38,15 +38,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Range" },
-            { "Name.Synonyms", "biggest, greatest, largest, most" },
-            { "Tooltip", "returns the greater of A or B" },
-            { "Parameters.A.Tooltip", "Input A" },
-            { "Parameters.B.Tooltip", "Input B" },
-            { "Parameters.Out.Tooltip", "the greater of the two input values" }
-        };
     }
 }

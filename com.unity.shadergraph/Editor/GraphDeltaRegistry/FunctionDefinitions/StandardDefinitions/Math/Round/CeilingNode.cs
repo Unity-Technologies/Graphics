@@ -34,14 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "up" },
-            { "Tooltip", "rounds the input up to the nearest whole number" },
-            { "Category", "Math, Round" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the input rounded up to the nearest whole number" }
-        };
     }
 }

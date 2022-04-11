@@ -1,16 +1,12 @@
 using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.ShaderGraph.Defs;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphDataNode : CollapsibleInOutNode
     {
-        private const string COLOR_HINT = ".UseColor";
-        private const string SLIDER_HINT = ".UseSlider";
-
         public const string PREVIEW_HINT = "Preview.Exists";
         NodePreviewPart m_NodePreviewPart;
         public NodePreviewPart NodePreview => m_NodePreviewPart;

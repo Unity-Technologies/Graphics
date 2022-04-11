@@ -34,15 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "sinh" },
-            { "Tooltip", "returns the hyperbolic sine of the input" },
-            { "Category", "Math, Trigonometry" },
-            { "DisplayName", "Hyperbolic Sine" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the hyperbolic sine of the input" }
-        };
     }
 }

@@ -38,15 +38,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Vector" },
-            { "Name.Synonyms", "mirror" },
-            { "Tooltip", "creates a new vector mirrored around the axis of the input normal" },
-            { "Parameters.In.Tooltip", "a vector to mirror" },
-            { "Parameters.Normal.Tooltip", "the facing direction of the surface" },
-            { "Parameters.Out.Tooltip", "the In vector mirrored around the axis of the Normal" }
-        };
     }
 }

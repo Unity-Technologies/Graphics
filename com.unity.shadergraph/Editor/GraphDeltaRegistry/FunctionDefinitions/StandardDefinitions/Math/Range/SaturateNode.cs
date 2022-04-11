@@ -33,14 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "clamp" },
-            { "Tooltip", "Clamps the input between 0 and 1" },
-            { "Category", "Math, Range" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the input clamped between 0 and 1" }
-        };
     }
 }

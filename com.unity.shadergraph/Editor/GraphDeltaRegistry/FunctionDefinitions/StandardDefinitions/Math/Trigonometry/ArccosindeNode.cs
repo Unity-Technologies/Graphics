@@ -33,14 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "acos" },
-            { "Tooltip", "returns the arccosine of each component of the input" },
-            { "Category", "Math, Trigonometry" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the arccosine of each component of the input" }
-        };
     }
 }
