@@ -1301,7 +1301,7 @@ namespace UnityEditor.Rendering
                 path = profilePath + Path.DirectorySeparatorChar;
             }
 
-            path += targetName + ".asset";
+            path += targetName.ReplaceInvalidFileNameCharacters() + ".asset";
             path = AssetDatabase.GenerateUniqueAssetPath(path);
 
             var profile = ScriptableObject.CreateInstance<T>();
