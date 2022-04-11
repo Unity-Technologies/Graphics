@@ -120,11 +120,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var pool = m_Pool as ComputeBufferPool;
             if (!pool.TryGetResource(hashCode, out graphicsResource))
             {
-                CreateGraphicsResource();
+                CreateGraphicsResource(desc.name);
             }
 
             cachedHash = hashCode;
             pool.RegisterFrameAllocation(cachedHash, graphicsResource);
+            graphicsResource.name = desc.name;
         }
 
         public override void ReleasePooledGraphicsResource(int frameIndex)

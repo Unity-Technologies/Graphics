@@ -1,6 +1,6 @@
+using System;
 using NUnit.Framework;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -309,6 +309,189 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(5, m_DynamicArray[4]);
             Assert.AreEqual(8, m_DynamicArray[5]);
             Assert.AreEqual(12, m_DynamicArray[6]);
+        }
+
+        [Test]
+        public void TestForEach_FullRange()
+        {
+            m_DynamicArray.Add(8);
+            m_DynamicArray.Add(4);
+            m_DynamicArray.Add(3);
+            m_DynamicArray.Add(6);
+
+            var sum = 0;
+            foreach (var i in m_DynamicArray)
+            {
+                sum += i;
+            }
+            Assert.AreEqual(21, sum);
+
+            // now check if we are _not_ iterating on empty array
+            sum = 0;
+            m_DynamicArray.Clear();
+            foreach (var i in m_DynamicArray)
+            {
+                sum += i;
+            }
+            Assert.AreEqual(0, sum);
+        }
+        [Test]
+        public void TestForEach_SubRange()
+        {
+            m_DynamicArray.Add(8);
+            m_DynamicArray.Add(4);
+            m_DynamicArray.Add(3);
+            m_DynamicArray.Add(6);
+
+            var sum = 0;
+            foreach (var i in m_DynamicArray.SubRange(1,2))
+            {
+                sum += i;
+            }
+
+            Assert.AreEqual(7, sum);
+
+            //remove item of array and test again
+            m_DynamicArray.RemoveAt(1);
+            sum = 0;
+            foreach (var i in m_DynamicArray.SubRange(1,2))
+            {
+                sum += i;
+            }
+            Assert.AreEqual(9, sum);
+        }
+
+        [Test]
+        public void GetEnumerators_ArgumentValidation()
+        {
+            Assert.Throws<ArgumentNullException>(() => {
+                var iterator = new DynamicArray<int>.Iterator(null);
+            });
+
+            Assert.Throws<ArgumentNullException>(() => {
+                var iterator = new DynamicArray<int>.RangeEnumerable.RangeIterator(null, 0,0);
+            });
+
+            m_DynamicArray.Add(12);
+            m_DynamicArray.Add(2);
+
+            Assert.Throws<IndexOutOfRangeException>(() => { var iterator = m_DynamicArray.SubRange(-5, 1); });
+            Assert.Throws<IndexOutOfRangeException>(() => { var iterator = m_DynamicArray.SubRange(17, 1); });
+            Assert.Throws<IndexOutOfRangeException>(() => { var iterator = m_DynamicArray.SubRange(0, 12); });
+            Assert.Throws<IndexOutOfRangeException>(() => { var iterator = m_DynamicArray.SubRange(1, 2); });
+            Assert.DoesNotThrow(() => { var iterator = m_DynamicArray.SubRange(1, 1); });
+            Assert.Throws<IndexOutOfRangeException>(() => { var iterator = m_DynamicArray.SubRange(2, 1); });
+        }
+
+        [Test]
+        public void Foreach_TestNoModificationsAllowed()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                m_DynamicArray.Add(3);
+                m_DynamicArray.Add(3);
+
+                foreach (var i in m_DynamicArray)
+                {
+                    m_DynamicArray.Remove(i);
+                }
+            });
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                m_DynamicArray.Add(3);
+                m_DynamicArray.Add(3);
+
+                foreach (var i in m_DynamicArray)
+                {
+                    m_DynamicArray.Add(1);
+                }
+            });
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                m_DynamicArray.Add(8);
+                m_DynamicArray.Add(3);
+
+                foreach (var i in m_DynamicArray)
+                {
+                    if (i == 3)
+                    {
+                        m_DynamicArray.Add(1);
+                        m_DynamicArray.RemoveAt(0);
+                    }
+                }
+            });
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                m_DynamicArray.Add(8);
+                m_DynamicArray.Add(3);
+                m_DynamicArray.Add(7);
+
+                foreach (var i in m_DynamicArray)
+                {
+                    if (i == 3)
+                    {
+                        m_DynamicArray.QuickSort();
+                    }
+                }
+            });
+        }
+
+        static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
+        static int CountGCAllocs(Action action)
+        {
+            gcAllocRecorder.FilterToCurrentThread();
+            gcAllocRecorder.enabled = false;
+            gcAllocRecorder.enabled = true;
+
+            action();
+
+            gcAllocRecorder.enabled = false;
+            return gcAllocRecorder.sampleBlockCount;
+        }
+        static void ValidateNoGCAllocs(Action action)
+        {
+            // warmup
+            // this will catch static c'tors etc
+            CountGCAllocs(action);
+
+            // actual test
+            var count = CountGCAllocs(action);
+            if (count != 0)
+                throw new AssertionException($"Expected 0 GC allocations but there were {count}");
+        }
+
+        [Test]
+        public void Foreach_NoGC()
+        {
+            m_DynamicArray.Reserve(4);
+            m_DynamicArray.Add(12);
+            m_DynamicArray.Add(4);
+            m_DynamicArray.Add(8);
+            m_DynamicArray.Add(2);
+
+            var sum = 0;
+            ValidateNoGCAllocs(() =>
+            {
+                sum = 0;
+                foreach (var i in m_DynamicArray)
+                {
+                     sum += i;
+                }
+            });
+            Assert.AreEqual(sum, 26);
+
+            ValidateNoGCAllocs(() =>
+            {
+                sum = 0;
+                foreach (var i in m_DynamicArray.SubRange(0, 2))
+                {
+                    sum += i;
+                }
+            });
+            Assert.AreEqual(sum, 16);
         }
     }
 }

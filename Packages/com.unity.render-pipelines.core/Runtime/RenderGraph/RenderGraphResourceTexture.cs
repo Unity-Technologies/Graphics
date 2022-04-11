@@ -320,11 +320,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var pool = m_Pool as TexturePool;
             if (!pool.TryGetResource(hashCode, out graphicsResource))
             {
-                CreateGraphicsResource();
+                CreateGraphicsResource(desc.name);
             }
 
             cachedHash = hashCode;
             pool.RegisterFrameAllocation(cachedHash, graphicsResource);
+            graphicsResource.m_Name = desc.name;
         }
 
         public override void ReleasePooledGraphicsResource(int frameIndex)

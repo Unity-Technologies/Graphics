@@ -352,9 +352,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new TextureHandle(newHandle);
         }
 
+        internal int GetResourceCount(RenderGraphResourceType type)
+        {
+            return m_RenderGraphResources[(int)type].resourceArray.size;
+        }
+
         internal int GetTextureResourceCount()
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray.size;
+            return GetResourceCount(RenderGraphResourceType.Texture);
         }
 
         TextureResource GetTextureResource(in ResourceHandle handle)
@@ -408,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal int GetComputeBufferResourceCount()
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].resourceArray.size;
+            return GetResourceCount(RenderGraphResourceType.ComputeBuffer);
         }
 
         ComputeBufferResource GetComputeBufferResource(in ResourceHandle handle)
@@ -459,6 +464,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
         }
+        internal void CreatePooledResource(RenderGraphContext rgContext, ResourceHandle handle)
+        {
+            CreatePooledResource(rgContext, handle.iType, handle.index);
+        }
 
         void CreateTextureCallback(RenderGraphContext rgContext, IRenderGraphResource res)
         {
@@ -499,6 +508,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 resource.ReleasePooledGraphicsResource(m_CurrentFrameIndex);
             }
+        }
+
+        internal void ReleasePooledResource(RenderGraphContext rgContext, ResourceHandle handle)
+        {
+            ReleasePooledResource(rgContext, handle.iType, handle.index);
         }
 
         void ReleaseTextureCallback(RenderGraphContext rgContext, IRenderGraphResource res)
