@@ -44,4 +44,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public IVolumeDebugSettings volumeDebugSettings = new HDVolumeDebugSettings();
         }
     }
+
+    /// <summary>
+    /// AmbientOcclusion has been renamed. Use ScreenSpaceAmbientOcclusion instead
+    /// </summary>
+    [Obsolete("AmbientOcclusion has been renamed. Use ScreenSpaceAmbientOcclusion instead @from(2022.2) (UnityUpgradable) -> ScreenSpaceAmbientOcclusion")]
+    public sealed class AmbientOcclusion
+    {
+    }
 }
