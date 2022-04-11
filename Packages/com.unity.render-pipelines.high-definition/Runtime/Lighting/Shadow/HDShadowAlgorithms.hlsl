@@ -196,14 +196,15 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
 
 int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 positionWS, out float alpha, out int cascadeCount)
 {
-    uint   i = 0;
+    int shadowSplitIndex = -1;
     float  relDistance = 0.0;
     float3 wposDir, splitSphere;
 
     HDDirectionalShadowData dsd = shadowContext.directionalShadowData;
 
     // find the current cascade
-    for (; i < _CascadeShadowCount; i++)
+    [unroll]
+    for (uint i = 0; i < _CascadeShadowCount; i++)
     {
         float4  sphere  = dsd.sphereCascades[i];
                 wposDir = -sphere.xyz + positionWS;
@@ -213,10 +214,10 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
         {
             splitSphere = sphere.xyz;
             wposDir    /= sqrt(distSq);
+            shadowSplitIndex = i < _CascadeShadowCount ? i : -1;
             break;
         }
     }
-    int shadowSplitIndex = i < _CascadeShadowCount ? i : -1;
 
     cascadeCount = dsd.cascadeDirection.w;
     float border = dsd.cascadeBorders[shadowSplitIndex];
