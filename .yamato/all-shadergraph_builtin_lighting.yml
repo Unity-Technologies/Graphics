@@ -10,10 +10,10 @@
 PR_ShaderGraph_BuiltIn_Lighting_trunk:
     name: PR ShaderGraph_BuiltIn_Lighting on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph_builtin_lighting-win-dx11.yml#ShaderGraph_BuiltIn_Lighting_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -34,18 +34,18 @@ PR_ShaderGraph_BuiltIn_Lighting_trunk:
 Extra_ShaderGraph_BuiltIn_Lighting_trunk:
     name: Extra ShaderGraph_BuiltIn_Lighting on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 ShaderGraph_BuiltIn_Lighting_trunk:
     name: ShaderGraph_BuiltIn_Lighting on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph_builtin_lighting.yml#PR_ShaderGraph_BuiltIn_Lighting_trunk
          rerun: on_new_revision
@@ -54,10 +54,10 @@ ShaderGraph_BuiltIn_Lighting_trunk:
 PR_ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION:
     name: PR ShaderGraph_BuiltIn_Lighting on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/shadergraph_builtin_lighting-win-dx11.yml#ShaderGraph_BuiltIn_Lighting_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -78,18 +78,18 @@ PR_ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION:
 Extra_ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION:
     name: Extra ShaderGraph_BuiltIn_Lighting on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION:
     name: ShaderGraph_BuiltIn_Lighting on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-shadergraph_builtin_lighting.yml#PR_ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION
          rerun: on_new_revision

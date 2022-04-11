@@ -893,6 +893,17 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
+        /// Checks if a given render texture format has an alpha channel.
+        /// </summary>
+        /// <param name="format">The format to test</param>
+        /// <returns><c>true</c> if the format has an alpha channel, <c>false</c> otherwise</returns>
+        internal static bool hasAlpha(RenderTextureFormat format)
+        {
+            UnityEngine.Experimental.Rendering.GraphicsFormat gformat = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(format, RenderTextureReadWrite.Default);
+            return UnityEngine.Experimental.Rendering.GraphicsFormatUtility.HasAlphaChannel(gformat);
+        }
+
+        /// <summary>
         /// Properly destroys a given Unity object.
         /// </summary>
         /// <param name="obj">The object to destroy</param>

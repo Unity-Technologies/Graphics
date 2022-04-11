@@ -10,10 +10,10 @@
 PR_URP_2D_trunk:
     name: PR URP_2D on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -40,10 +40,10 @@ PR_URP_2D_trunk:
 Extra_URP_2D_trunk:
     name: Extra URP_2D on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -56,10 +56,10 @@ Extra_URP_2D_trunk:
 URP_2D_trunk:
     name: URP_2D on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_trunk
          rerun: on_new_revision
@@ -68,10 +68,10 @@ URP_2D_trunk:
 PR_URP_2D_CUSTOM-REVISION:
     name: PR URP_2D on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -98,10 +98,10 @@ PR_URP_2D_CUSTOM-REVISION:
 Extra_URP_2D_CUSTOM-REVISION:
     name: Extra URP_2D on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -114,10 +114,10 @@ Extra_URP_2D_CUSTOM-REVISION:
 URP_2D_CUSTOM-REVISION:
     name: URP_2D on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_CUSTOM-REVISION
          rerun: on_new_revision

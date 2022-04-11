@@ -14,13 +14,13 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_t
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
          retries: 2
@@ -57,13 +57,13 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -118,13 +118,13 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_tru
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -179,13 +179,13 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_C
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
          retries: 2
@@ -222,13 +222,13 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
@@ -283,13 +283,13 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUS
         image: automation-tooling/win-10:v0.0.1-971268
         flavor: b1.large
     variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
-        CACHE_ARGS: '{{cache.flags}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
     commands:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
