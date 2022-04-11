@@ -1030,6 +1030,7 @@ namespace UnityEditor.VFX
                 foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
 
+
                 IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
@@ -1048,6 +1049,9 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Process dependencies", 2 / nbSteps);
                 foreach (var data in compilableData)
                     data.ProcessDependencies();
+
+                // Sort the systems by layer so they get updated in the right order. It has to be done after processing the dependencies
+                compilableData = compilableData.OrderBy(d => d.layer);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compiling expression Graph", 3 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();

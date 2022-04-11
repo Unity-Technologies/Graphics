@@ -128,7 +128,12 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                 //       Also, it is possible to increase several times if run per camera with multiple cameras.
 
                 //Increase offset (from 0 if it is the first time)
-                uint oldOffset = data.indexCount != 0xffffffff ? outputAdditional.Load((data.indexCount * 2 + 1) << 2) : 0;
+                uint oldOffset = 0;
+                [branch]
+                if (data.indexCount != 0xffffffff)
+                {
+                    oldOffset = outputAdditional.Load((data.indexCount * 2 + 1) << 2);
+                }
                 outputAdditional.Store((index * 2 + 1) << 2, oldOffset + elementCount);
 
                 args.y = args.z = 1u;
