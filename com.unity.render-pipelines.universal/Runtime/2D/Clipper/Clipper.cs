@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ClipInt botY, topY;
                 if (!PopScanbeam(out botY)) return false;
-                InsertLocalMinimaIntoAEL(ref botY);
+                InsertLocalMinimaIntoAEL(botY);
                 while (PopScanbeam(out topY) || LocalMinimaPending())
                 {
                     ProcessHorizontals();
@@ -505,31 +505,31 @@ namespace UnityEngine.Rendering.Universal
                     if (!ProcessIntersections(topY)) return false;
                     ProcessEdgesAtTopOfScanbeam(topY);
                     botY = topY;
-                    InsertLocalMinimaIntoAEL(ref botY);
+                    InsertLocalMinimaIntoAEL(botY);
                 }
 
                 //fix orientations ...
                 for(int i=0;i<m_PolyOuts.Length;i++)
                 {
-                    ref OutRec outRec = ref m_PolyOuts.GetIndexByRef(i);
+                    OutRec outRec = m_PolyOuts.GetIndexByRef(i);
 
                     if (outRec.Pts.IsNull || outRec.IsOpen) continue;
-                    if ((outRec.IsHole ^ ReverseSolution) == (Area(ref outRec) > 0))
-                        ReversePolyPtLinks(ref outRec.Pts);
+                    if ((outRec.IsHole ^ ReverseSolution) == (Area(outRec) > 0))
+                        ReversePolyPtLinks(outRec.Pts);
                 }
 
                 JoinCommonEdges();
 
                 for(int i=0;i<m_PolyOuts.Length;i++)
                 {
-                    ref OutRec outRec = ref m_PolyOuts.GetIndexByRef(i);
+                    OutRec outRec = m_PolyOuts.GetIndexByRef(i);
 
                     if (outRec.Pts.IsNull)
                         continue;
                     else if (outRec.IsOpen)
-                        FixupOutPolyline(ref outRec);
+                        FixupOutPolyline(outRec);
                     else
-                        FixupOutPolygon(ref outRec);
+                        FixupOutPolygon(outRec);
                 }
 
                 if (StrictlySimple) DoSimplePolygons();
@@ -553,7 +553,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void AddJoin(ref OutPt Op1, ref OutPt Op2, IntPoint OffPt)
+        private void AddJoin(OutPt Op1, OutPt Op2, IntPoint OffPt)
         {
             Join j = new Join();
             j.Initialize();
@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void AddGhostJoin(ref OutPt Op, IntPoint OffPt)
+        private void AddGhostJoin(OutPt Op, IntPoint OffPt)
         {
             Join j = new Join();
             j.Initialize();
@@ -574,10 +574,10 @@ namespace UnityEngine.Rendering.Universal
             m_GhostJoins.Add(j);
         }
 
-        private void InsertLocalMinimaIntoAEL(ref ClipInt botY)
+        private void InsertLocalMinimaIntoAEL(ClipInt botY)
         {
             LocalMinima lm;
-            while (PopLocalMinima(ref botY, out lm))
+            while (PopLocalMinima(botY, out lm))
             {
                 TEdge lb = lm.LeftBound;
                 TEdge rb = lm.RightBound;
@@ -585,47 +585,47 @@ namespace UnityEngine.Rendering.Universal
                 OutPt Op1 = new OutPt();  // This will be null by default
                 if (lb.IsNull)
                 {
-                    InsertEdgeIntoAEL(ref rb, ref NULL_TEdge);
-                    SetWindingCount(ref rb);
-                    if (IsContributing(ref rb))
-                        Op1 = AddOutPt(ref rb, rb.Bot);
+                    InsertEdgeIntoAEL(rb, NULL_TEdge);
+                    SetWindingCount(rb);
+                    if (IsContributing(rb))
+                        Op1 = AddOutPt(rb, rb.Bot);
                 }
                 else if (rb.IsNull)
                 {
-                    InsertEdgeIntoAEL(ref lb, ref NULL_TEdge);
-                    SetWindingCount(ref lb);
-                    if (IsContributing(ref lb))
-                        Op1 = AddOutPt(ref lb, lb.Bot);
-                    InsertScanbeam(ref lb.Top.Y);
+                    InsertEdgeIntoAEL(lb, NULL_TEdge);
+                    SetWindingCount(lb);
+                    if (IsContributing(lb))
+                        Op1 = AddOutPt(lb, lb.Bot);
+                    InsertScanbeam(lb.Top.Y);
                 }
                 else
                 {
-                    InsertEdgeIntoAEL(ref lb, ref NULL_TEdge);
-                    InsertEdgeIntoAEL(ref rb, ref lb);
-                    SetWindingCount(ref lb);
+                    InsertEdgeIntoAEL(lb, NULL_TEdge);
+                    InsertEdgeIntoAEL(rb, lb);
+                    SetWindingCount(lb);
                     rb.WindCnt = lb.WindCnt;
                     rb.WindCnt2 = lb.WindCnt2;
-                    if (IsContributing(ref lb))
-                        Op1 = AddLocalMinPoly(ref lb, ref rb, lb.Bot);
-                    InsertScanbeam(ref lb.Top.Y);
+                    if (IsContributing(lb))
+                        Op1 = AddLocalMinPoly(lb, rb, lb.Bot);
+                    InsertScanbeam(lb.Top.Y);
                 }
 
                 if (rb.NotNull)
                 {
-                    if (IsHorizontal(ref rb))
+                    if (IsHorizontal(rb))
                     {
                         if (rb.NextInLML.NotNull)
-                            InsertScanbeam(ref rb.NextInLML.Top.Y);
-                        AddEdgeToSEL(ref rb);
+                            InsertScanbeam(rb.NextInLML.Top.Y);
+                        AddEdgeToSEL(rb);
                     }
                     else
-                        InsertScanbeam(ref rb.Top.Y);
+                        InsertScanbeam(rb.Top.Y);
                 }
 
                 if (lb.IsNull || rb.IsNull) continue;
 
                 //if output polygons share an Edge with a horizontal rb, they'll need joining later ...
-                if (Op1.NotNull && IsHorizontal(ref rb) &&
+                if (Op1.NotNull && IsHorizontal(rb) &&
                     m_GhostJoins.Length > 0 && rb.WindDelta != 0)
                 {
                     for (int i = 0; i < m_GhostJoins.Length; i++)
@@ -634,7 +634,7 @@ namespace UnityEngine.Rendering.Universal
                         //the 'ghost' join to a real join ready for later ...
                         Join j = m_GhostJoins[i];
                         if (HorzSegmentsOverlap(j.OutPt1.Pt.X, j.OffPt.X, rb.Bot.X, rb.Top.X))
-                            AddJoin(ref j.OutPt1, ref Op1, j.OffPt);
+                            AddJoin(j.OutPt1, Op1, j.OffPt);
                     }
                 }
 
@@ -644,8 +644,8 @@ namespace UnityEngine.Rendering.Universal
                     SlopesEqual(lb.PrevInAEL.Curr, lb.PrevInAEL.Top, lb.Curr, lb.Top, m_UseFullRange) &&
                     lb.WindDelta != 0 && lb.PrevInAEL.WindDelta != 0)
                 {
-                    OutPt Op2 = AddOutPt(ref lb.PrevInAEL, lb.Bot);
-                    AddJoin(ref Op1, ref Op2, lb.Top);
+                    OutPt Op2 = AddOutPt(lb.PrevInAEL, lb.Bot);
+                    AddJoin(Op1, Op2, lb.Top);
                 }
 
                 if (lb.NextInAEL != rb)
@@ -654,8 +654,8 @@ namespace UnityEngine.Rendering.Universal
                         SlopesEqual(rb.PrevInAEL.Curr, rb.PrevInAEL.Top, rb.Curr, rb.Top, m_UseFullRange) &&
                         rb.WindDelta != 0 && rb.PrevInAEL.WindDelta != 0)
                     {
-                        OutPt Op2 = AddOutPt(ref rb.PrevInAEL, rb.Bot);
-                        AddJoin(ref Op1, ref Op2, rb.Top);
+                        OutPt Op2 = AddOutPt(rb.PrevInAEL, rb.Bot);
+                        AddJoin(Op1, Op2, rb.Top);
                     }
 
                     TEdge e = lb.NextInAEL;
@@ -664,7 +664,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             //nb: For calculating winding counts etc, IntersectEdges() assumes
                             //that param1 will be to the right of param2 ABOVE the intersection ...
-                            IntersectEdges(ref rb, ref e, lb.Curr); //order important here
+                            IntersectEdges(rb, e, lb.Curr); //order important here
                             e = e.NextInAEL;
                         }
                 }
@@ -673,7 +673,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void InsertEdgeIntoAEL(ref TEdge edge, ref TEdge startEdge)
+        private void InsertEdgeIntoAEL(TEdge edge, TEdge startEdge)
         {
             if (m_ActiveEdges.IsNull)
             {
@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering.Universal
                 edge.NextInAEL.SetNull();
                 m_ActiveEdges = edge;
             }
-            else if (startEdge.IsNull && E2InsertsBeforeE1(ref m_ActiveEdges, ref edge))
+            else if (startEdge.IsNull && E2InsertsBeforeE1(m_ActiveEdges, edge))
             {
                 edge.PrevInAEL.SetNull();
                 edge.NextInAEL = m_ActiveEdges;
@@ -692,7 +692,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (startEdge.IsNull) startEdge = m_ActiveEdges;
                 while (startEdge.NextInAEL.NotNull &&
-                       !E2InsertsBeforeE1(ref startEdge.NextInAEL, ref edge))
+                       !E2InsertsBeforeE1(startEdge.NextInAEL, edge))
                     startEdge = startEdge.NextInAEL;
                 edge.NextInAEL = startEdge.NextInAEL;
                 if (startEdge.NextInAEL.NotNull) startEdge.NextInAEL.PrevInAEL = edge;
@@ -703,20 +703,20 @@ namespace UnityEngine.Rendering.Universal
 
         //----------------------------------------------------------------------
 
-        private bool E2InsertsBeforeE1(ref TEdge e1, ref TEdge e2)
+        private bool E2InsertsBeforeE1(TEdge e1, TEdge e2)
         {
             if (e2.Curr.X == e1.Curr.X)
             {
                 if (e2.Top.Y > e1.Top.Y)
-                    return e2.Top.X < TopX(ref e1, e2.Top.Y);
-                else return e1.Top.X > TopX(ref e2, e1.Top.Y);
+                    return e2.Top.X < TopX(e1, e2.Top.Y);
+                else return e1.Top.X > TopX(e2, e1.Top.Y);
             }
             else return e2.Curr.X < e1.Curr.X;
         }
 
         //------------------------------------------------------------------------------
 
-        private bool IsEvenOddFillType(ref TEdge edge)
+        private bool IsEvenOddFillType(TEdge edge)
         {
             if (edge.PolyTyp == PolyType.ptSubject)
                 return m_SubjFillType == PolyFillType.pftEvenOdd;
@@ -726,7 +726,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private bool IsEvenOddAltFillType(ref TEdge edge)
+        private bool IsEvenOddAltFillType(TEdge edge)
         {
             if (edge.PolyTyp == PolyType.ptSubject)
                 return m_ClipFillType == PolyFillType.pftEvenOdd;
@@ -736,7 +736,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private bool IsContributing(ref TEdge edge)
+        private bool IsContributing(TEdge edge)
         {
             PolyFillType pft, pft2;
             if (edge.PolyTyp == PolyType.ptSubject)
@@ -834,7 +834,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void SetWindingCount(ref TEdge edge)
+        private void SetWindingCount(TEdge edge)
         {
             TEdge e = edge.PrevInAEL;
             //find the edge of the same polytype that immediately preceeds 'edge' in AEL
@@ -854,7 +854,7 @@ namespace UnityEngine.Rendering.Universal
                 edge.WindCnt2 = e.WindCnt2;
                 e = e.NextInAEL; //ie get ready to calc WindCnt2
             }
-            else if (IsEvenOddFillType(ref edge))
+            else if (IsEvenOddFillType(edge))
             {
                 //EvenOdd filling ...
                 if (edge.WindDelta == 0)
@@ -913,7 +913,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             //update WindCnt2 ...
-            if (IsEvenOddAltFillType(ref edge))
+            if (IsEvenOddAltFillType(edge))
             {
                 //EvenOdd filling ...
                 while (e != edge)
@@ -936,7 +936,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void AddEdgeToSEL(ref TEdge edge)
+        private void AddEdgeToSEL(TEdge edge)
         {
             //SEL pointers in PEdge are use to build transient lists of horizontal edges.
             //However, since we don't need to worry about processing order, all additions
@@ -987,7 +987,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void SwapPositionsInSEL(ref TEdge edge1, ref TEdge edge2)
+        private void SwapPositionsInSEL(TEdge edge1, TEdge edge2)
         {
             if (edge1.NextInSEL.IsNull && edge1.PrevInSEL.IsNull)
                 return;
@@ -1047,30 +1047,30 @@ namespace UnityEngine.Rendering.Universal
         //------------------------------------------------------------------------------
 
 
-        private void AddLocalMaxPoly(ref TEdge e1, ref TEdge e2, IntPoint pt)
+        private void AddLocalMaxPoly(TEdge e1, TEdge e2, IntPoint pt)
         {
-            AddOutPt(ref e1, pt);
-            if (e2.WindDelta == 0) AddOutPt(ref e2, pt);
+            AddOutPt(e1, pt);
+            if (e2.WindDelta == 0) AddOutPt(e2, pt);
             if (e1.OutIdx == e2.OutIdx)
             {
                 e1.OutIdx = Unassigned;
                 e2.OutIdx = Unassigned;
             }
             else if (e1.OutIdx < e2.OutIdx)
-                AppendPolygon(ref e1, ref e2);
+                AppendPolygon(e1, e2);
             else
-                AppendPolygon(ref e2, ref e1);
+                AppendPolygon(e2, e1);
         }
 
         //------------------------------------------------------------------------------
 
-        private OutPt AddLocalMinPoly(ref TEdge e1, ref TEdge e2, IntPoint pt)
+        private OutPt AddLocalMinPoly(TEdge e1, TEdge e2, IntPoint pt)
         {
             OutPt result;
             TEdge e, prevE;
-            if (IsHorizontal(ref e2) || (e1.Dx > e2.Dx))
+            if (IsHorizontal(e2) || (e1.Dx > e2.Dx))
             {
-                result = AddOutPt(ref e1, pt);
+                result = AddOutPt(e1, pt);
                 e2.OutIdx = e1.OutIdx;
                 e1.Side = EdgeSide.esLeft;
                 e2.Side = EdgeSide.esRight;
@@ -1082,7 +1082,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                result = AddOutPt(ref e2, pt);
+                result = AddOutPt(e2, pt);
                 e1.OutIdx = e2.OutIdx;
                 e1.Side = EdgeSide.esRight;
                 e2.Side = EdgeSide.esLeft;
@@ -1095,13 +1095,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (prevE.NotNull && prevE.OutIdx >= 0 && prevE.Top.Y < pt.Y && e.Top.Y < pt.Y)
             {
-                ClipInt xPrev = TopX(ref prevE, pt.Y);
-                ClipInt xE = TopX(ref e, pt.Y);
+                ClipInt xPrev = TopX(prevE, pt.Y);
+                ClipInt xE = TopX(e, pt.Y);
                 if ((xPrev == xE) && (e.WindDelta != 0) && (prevE.WindDelta != 0) &&
                     SlopesEqual(new IntPoint(xPrev, pt.Y), prevE.Top, new IntPoint(xE, pt.Y), e.Top, m_UseFullRange))
                 {
-                    OutPt outPt = AddOutPt(ref prevE, pt);
-                    AddJoin(ref result, ref outPt, e.Top);
+                    OutPt outPt = AddOutPt(prevE, pt);
+                    AddJoin(result, outPt, e.Top);
                 }
             }
             return result;
@@ -1109,7 +1109,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private OutPt AddOutPt(ref TEdge e, IntPoint pt)
+        private OutPt AddOutPt(TEdge e, IntPoint pt)
         {
             if (e.OutIdx < 0)
             {
@@ -1124,7 +1124,7 @@ namespace UnityEngine.Rendering.Universal
                 newOp.Next = newOp;
                 newOp.Prev = newOp;
                 if (!outRec.IsOpen)
-                    SetHoleState(ref e, ref outRec);
+                    SetHoleState(e, outRec);
                 e.OutIdx = outRec.Idx; //nb: do this after SetZ !
                 return newOp;
             }
@@ -1152,7 +1152,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void GetLastOutPt(ref TEdge e, out OutPt outPt)
+        private void GetLastOutPt(TEdge e, out OutPt outPt)
         {
             OutRec outRec = m_PolyOuts[e.OutIdx];
             if (e.Side == EdgeSide.esLeft)
@@ -1181,7 +1181,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void SetHoleState(ref TEdge e, ref OutRec outRec)
+        private void SetHoleState(TEdge e, OutRec outRec)
         {
             TEdge e2 = e.PrevInAEL;
             TEdge eTmp = new TEdge();
@@ -1220,7 +1220,7 @@ namespace UnityEngine.Rendering.Universal
 
         //---------------------------------------------------------------------------
 
-        private bool FirstIsBottomPt(ref OutPt btmPt1, ref OutPt btmPt2)
+        private bool FirstIsBottomPt(OutPt btmPt1, OutPt btmPt2)
         {
             OutPt p = btmPt1.Prev;
             while ((p.Pt == btmPt1.Pt) && (p != btmPt1)) p = p.Prev;
@@ -1238,14 +1238,14 @@ namespace UnityEngine.Rendering.Universal
 
             if (Math.Max(dx1p, dx1n) == Math.Max(dx2p, dx2n) &&
                 Math.Min(dx1p, dx1n) == Math.Min(dx2p, dx2n))
-                return Area(ref btmPt1) > 0; //if otherwise identical use orientation
+                return Area(btmPt1) > 0; //if otherwise identical use orientation
             else
                 return (dx1p >= dx2p && dx1p >= dx2n) || (dx1n >= dx2p && dx1n >= dx2n);
         }
 
         //------------------------------------------------------------------------------
 
-        private void GetBottomPt(ref OutPt pp, out OutPt outPt)
+        private void GetBottomPt(OutPt pp, out OutPt outPt)
         {
             OutPt dups = new OutPt();
             dups.Initialize();
@@ -1276,7 +1276,7 @@ namespace UnityEngine.Rendering.Universal
                 //there appears to be at least 2 vertices at bottomPt so ...
                 while (dups != p)
                 {
-                    if (!FirstIsBottomPt(ref p, ref dups)) pp = dups;
+                    if (!FirstIsBottomPt(p, dups)) pp = dups;
                     dups = dups.Next;
                     while (dups.Pt != pp.Pt) dups = dups.Next;
                 }
@@ -1286,13 +1286,13 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void GetLowermostRec(ref OutRec outRec1, ref OutRec outRec2, out OutRec returnRec)
+        private void GetLowermostRec(OutRec outRec1, OutRec outRec2, out OutRec returnRec)
         {
             //work out which polygon fragment has the correct hole state ...
             if (outRec1.BottomPt.IsNull)
-                GetBottomPt(ref outRec1.Pts, out outRec1.BottomPt);
+                GetBottomPt(outRec1.Pts, out outRec1.BottomPt);
             if (outRec2.BottomPt.IsNull)
-                GetBottomPt(ref outRec2.Pts, out outRec2.BottomPt);
+                GetBottomPt(outRec2.Pts, out outRec2.BottomPt);
             OutPt bPt1 = outRec1.BottomPt;
             OutPt bPt2 = outRec2.BottomPt;
             if (bPt1.Pt.Y > bPt2.Pt.Y) returnRec = outRec1;
@@ -1301,13 +1301,13 @@ namespace UnityEngine.Rendering.Universal
             else if (bPt1.Pt.X > bPt2.Pt.X) returnRec = outRec2;
             else if (bPt1.Next == bPt1) returnRec = outRec2;
             else if (bPt2.Next == bPt2) returnRec = outRec1;
-            else if (FirstIsBottomPt(ref bPt1, ref bPt2)) returnRec = outRec1;
+            else if (FirstIsBottomPt(bPt1, bPt2)) returnRec = outRec1;
             else returnRec = outRec2;
         }
 
         //------------------------------------------------------------------------------
 
-        bool OutRec1RightOfOutRec2(ref OutRec outRec1, ref OutRec outRec2)
+        bool OutRec1RightOfOutRec2(OutRec outRec1, OutRec outRec2)
         {
             do
             {
@@ -1330,18 +1330,18 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void AppendPolygon(ref TEdge e1, ref TEdge e2)
+        private void AppendPolygon(TEdge e1, TEdge e2)
         {
             OutRec outRec1 = m_PolyOuts[e1.OutIdx];
             OutRec outRec2 = m_PolyOuts[e2.OutIdx];
 
             OutRec holeStateRec;
-            if (OutRec1RightOfOutRec2(ref outRec1, ref outRec2))
+            if (OutRec1RightOfOutRec2(outRec1, outRec2))
                 holeStateRec = outRec2;
-            else if (OutRec1RightOfOutRec2(ref outRec2, ref outRec1))
+            else if (OutRec1RightOfOutRec2(outRec2, outRec1))
                 holeStateRec = outRec1;
             else
-                GetLowermostRec(ref outRec1, ref outRec2, out holeStateRec);
+                GetLowermostRec(outRec1, outRec2, out holeStateRec);
 
             //get the start and ends of both output polygons and
             //join E2 poly onto E1 poly and delete pointers to E2 ...
@@ -1356,7 +1356,7 @@ namespace UnityEngine.Rendering.Universal
                 if (e2.Side == EdgeSide.esLeft)
                 {
                     //z y x a b c
-                    ReversePolyPtLinks(ref p2_lft);
+                    ReversePolyPtLinks(p2_lft);
                     p2_lft.Next = p1_lft;
                     p1_lft.Prev = p2_lft;
                     p1_rt.Next = p2_rt;
@@ -1378,7 +1378,7 @@ namespace UnityEngine.Rendering.Universal
                 if (e2.Side == EdgeSide.esRight)
                 {
                     //a b c z y x
-                    ReversePolyPtLinks(ref p2_lft);
+                    ReversePolyPtLinks(p2_lft);
                     p1_rt.Next = p2_rt;
                     p2_rt.Prev = p1_rt;
                     p2_lft.Next = p1_lft;
@@ -1428,7 +1428,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void ReversePolyPtLinks(ref OutPt pp)
+        private void ReversePolyPtLinks(OutPt pp)
         {
             if (pp.IsNull) return;
             OutPt pp1;
@@ -1446,7 +1446,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private static void SwapSides(ref TEdge edge1, ref TEdge edge2)
+        private static void SwapSides(TEdge edge1, TEdge edge2)
         {
             EdgeSide side = edge1.Side;
             edge1.Side = edge2.Side;
@@ -1455,7 +1455,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private static void SwapPolyIndexes(ref TEdge edge1, ref TEdge edge2)
+        private static void SwapPolyIndexes(TEdge edge1, TEdge edge2)
         {
             int outIdx = edge1.OutIdx;
             edge1.OutIdx = edge2.OutIdx;
@@ -1464,7 +1464,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void IntersectEdges(ref TEdge e1, ref TEdge e2, IntPoint pt)
+        private void IntersectEdges(TEdge e1, TEdge e2, IntPoint pt)
         {
             //e1 will be to the left of e2 BELOW the intersection. Therefore e1 is before
             //e2 in AEL except when e1 is being inserted at the intersection point ...
@@ -1487,7 +1487,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (e2Contributing)
                         {
-                            AddOutPt(ref e1, pt);
+                            AddOutPt(e1, pt);
                             if (e1Contributing) e1.OutIdx = Unassigned;
                         }
                     }
@@ -1495,7 +1495,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (e1Contributing)
                         {
-                            AddOutPt(ref e2, pt);
+                            AddOutPt(e2, pt);
                             if (e2Contributing) e2.OutIdx = Unassigned;
                         }
                     }
@@ -1505,13 +1505,13 @@ namespace UnityEngine.Rendering.Universal
                     if ((e1.WindDelta == 0) && Math.Abs(e2.WindCnt) == 1 &&
                         (m_ClipType != ClipType.ctUnion || e2.WindCnt2 == 0))
                     {
-                        AddOutPt(ref e1, pt);
+                        AddOutPt(e1, pt);
                         if (e1Contributing) e1.OutIdx = Unassigned;
                     }
                     else if ((e2.WindDelta == 0) && (Math.Abs(e1.WindCnt) == 1) &&
                              (m_ClipType != ClipType.ctUnion || e1.WindCnt2 == 0))
                     {
-                        AddOutPt(ref e2, pt);
+                        AddOutPt(e2, pt);
                         if (e2Contributing) e2.OutIdx = Unassigned;
                     }
                 }
@@ -1523,7 +1523,7 @@ namespace UnityEngine.Rendering.Universal
             //assumes that e1 will be to the Right of e2 ABOVE the intersection
             if (e1.PolyTyp == e2.PolyTyp)
             {
-                if (IsEvenOddFillType(ref e1))
+                if (IsEvenOddFillType(e1))
                 {
                     int oldE1WindCnt = e1.WindCnt;
                     e1.WindCnt = e2.WindCnt;
@@ -1539,9 +1539,9 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (!IsEvenOddFillType(ref e2)) e1.WindCnt2 += e2.WindDelta;
+                if (!IsEvenOddFillType(e2)) e1.WindCnt2 += e2.WindDelta;
                 else e1.WindCnt2 = (e1.WindCnt2 == 0) ? 1 : 0;
-                if (!IsEvenOddFillType(ref e1)) e2.WindCnt2 -= e1.WindDelta;
+                if (!IsEvenOddFillType(e1)) e2.WindCnt2 -= e1.WindDelta;
                 else e2.WindCnt2 = (e2.WindCnt2 == 0) ? 1 : 0;
             }
 
@@ -1586,32 +1586,32 @@ namespace UnityEngine.Rendering.Universal
                 if ((e1Wc != 0 && e1Wc != 1) || (e2Wc != 0 && e2Wc != 1) ||
                     (e1.PolyTyp != e2.PolyTyp && m_ClipType != ClipType.ctXor))
                 {
-                    AddLocalMaxPoly(ref e1, ref e2, pt);
+                    AddLocalMaxPoly(e1, e2, pt);
                 }
                 else
                 {
-                    AddOutPt(ref e1, pt);
-                    AddOutPt(ref e2, pt);
-                    SwapSides(ref e1, ref e2);
-                    SwapPolyIndexes(ref e1, ref e2);
+                    AddOutPt(e1, pt);
+                    AddOutPt(e2, pt);
+                    SwapSides(e1, e2);
+                    SwapPolyIndexes(e1, e2);
                 }
             }
             else if (e1Contributing)
             {
                 if (e2Wc == 0 || e2Wc == 1)
                 {
-                    AddOutPt(ref e1, pt);
-                    SwapSides(ref e1, ref e2);
-                    SwapPolyIndexes(ref e1, ref e2);
+                    AddOutPt(e1, pt);
+                    SwapSides(e1, e2);
+                    SwapPolyIndexes(e1, e2);
                 }
             }
             else if (e2Contributing)
             {
                 if (e1Wc == 0 || e1Wc == 1)
                 {
-                    AddOutPt(ref e2, pt);
-                    SwapSides(ref e1, ref e2);
-                    SwapPolyIndexes(ref e1, ref e2);
+                    AddOutPt(e2, pt);
+                    SwapSides(e1, e2);
+                    SwapPolyIndexes(e1, e2);
                 }
             }
             else if ((e1Wc == 0 || e1Wc == 1) && (e2Wc == 0 || e2Wc == 1))
@@ -1633,36 +1633,36 @@ namespace UnityEngine.Rendering.Universal
 
                 if (e1.PolyTyp != e2.PolyTyp)
                 {
-                    AddLocalMinPoly(ref e1, ref e2, pt);
+                    AddLocalMinPoly(e1, e2, pt);
                 }
                 else if (e1Wc == 1 && e2Wc == 1)
                     switch (m_ClipType)
                     {
                         case ClipType.ctIntersection:
                             if (e1Wc2 > 0 && e2Wc2 > 0)
-                                AddLocalMinPoly(ref e1, ref e2, pt);
+                                AddLocalMinPoly(e1, e2, pt);
                             break;
                         case ClipType.ctUnion:
                             if (e1Wc2 <= 0 && e2Wc2 <= 0)
-                                AddLocalMinPoly(ref e1, ref e2, pt);
+                                AddLocalMinPoly(e1, e2, pt);
                             break;
                         case ClipType.ctDifference:
                             if (((e1.PolyTyp == PolyType.ptClip) && (e1Wc2 > 0) && (e2Wc2 > 0)) ||
                                 ((e1.PolyTyp == PolyType.ptSubject) && (e1Wc2 <= 0) && (e2Wc2 <= 0)))
-                                AddLocalMinPoly(ref e1, ref e2, pt);
+                                AddLocalMinPoly(e1, e2, pt);
                             break;
                         case ClipType.ctXor:
-                            AddLocalMinPoly(ref e1, ref e2, pt);
+                            AddLocalMinPoly(e1, e2, pt);
                             break;
                     }
                 else
-                    SwapSides(ref e1, ref e2);
+                    SwapSides(e1, e2);
             }
         }
 
         //------------------------------------------------------------------------------
 
-        private void DeleteFromSEL(ref TEdge e)
+        private void DeleteFromSEL(TEdge e)
         {
             TEdge SelPrev = e.PrevInSEL;
             TEdge SelNext = e.NextInSEL;
@@ -1683,12 +1683,12 @@ namespace UnityEngine.Rendering.Universal
         {
             TEdge horzEdge; //m_SortedEdges;
             while (PopEdgeFromSEL(out horzEdge))
-                ProcessHorizontal(ref horzEdge);
+                ProcessHorizontal(horzEdge);
         }
 
         //------------------------------------------------------------------------------
 
-        void GetHorzDirection(ref TEdge HorzEdge, out Direction Dir, out ClipInt Left, out ClipInt Right)
+        void GetHorzDirection(TEdge HorzEdge, out Direction Dir, out ClipInt Left, out ClipInt Right)
         {
             if (HorzEdge.Bot.X < HorzEdge.Top.X)
             {
@@ -1706,20 +1706,20 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------
 
-        private void ProcessHorizontal(ref TEdge horzEdge)
+        private void ProcessHorizontal(TEdge horzEdge)
         {
             Direction dir;
             ClipInt horzLeft, horzRight;
             bool IsOpen = horzEdge.WindDelta == 0;
 
-            GetHorzDirection(ref horzEdge, out dir, out horzLeft, out horzRight);
+            GetHorzDirection(horzEdge, out dir, out horzLeft, out horzRight);
 
             TEdge eLastHorz = horzEdge, eMaxPair = new TEdge();
             eMaxPair.Initialize();
-            while (eLastHorz.NextInLML.NotNull && IsHorizontal(ref eLastHorz.NextInLML))
+            while (eLastHorz.NextInLML.NotNull && IsHorizontal(eLastHorz.NextInLML))
                 eLastHorz = eLastHorz.NextInLML;
             if (eLastHorz.NextInLML.IsNull)
-                GetMaximaPair(ref eLastHorz, out eMaxPair);
+                GetMaximaPair(eLastHorz, out eMaxPair);
 
             Maxima currMax = m_Maxima;
             if (currMax.NotNull)
@@ -1740,13 +1740,20 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+
+            int maxIterations = k_MaxIterations;
             OutPt op1 = new OutPt();
             op1.Initialize();
             for (; ; ) //loop through consec. horizontal edges
             {
+                if(maxIterations-- > 0)
+                    Debug.Assert(false, "Max iterations reached");
+
+                maxIterations--;
+
                 bool IsLastHorz = (horzEdge == eLastHorz);
                 TEdge e;
-                GetNextInAEL(ref horzEdge, dir, out e);
+                GetNextInAEL(horzEdge, dir, out e);
                 while (e.NotNull)
                 {
                     //this code block inserts extra coords into horizontal edges (in output
@@ -1759,7 +1766,7 @@ namespace UnityEngine.Rendering.Universal
                             while (currMax.NotNull && currMax.X < e.Curr.X)
                             {
                                 if (horzEdge.OutIdx >= 0 && !IsOpen)
-                                    AddOutPt(ref horzEdge, new IntPoint(currMax.X, horzEdge.Bot.Y));
+                                    AddOutPt(horzEdge, new IntPoint(currMax.X, horzEdge.Bot.Y));
                                 currMax = currMax.Next;
                             }
                         }
@@ -1768,7 +1775,7 @@ namespace UnityEngine.Rendering.Universal
                             while (currMax.NotNull && currMax.X > e.Curr.X)
                             {
                                 if (horzEdge.OutIdx >= 0 && !IsOpen)
-                                    AddOutPt(ref horzEdge, new IntPoint(currMax.X, horzEdge.Bot.Y));
+                                    AddOutPt(horzEdge, new IntPoint(currMax.X, horzEdge.Bot.Y));
                                 currMax = currMax.Prev;
                             }
                         }
@@ -1784,7 +1791,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (horzEdge.OutIdx >= 0 && !IsOpen) //note: may be done multiple times
                     {
-                        op1 = AddOutPt(ref horzEdge, e.Curr);
+                        op1 = AddOutPt(horzEdge, e.Curr);
                         TEdge eNextHorz = m_SortedEdges;
                         while (eNextHorz.NotNull)
                         {
@@ -1793,12 +1800,12 @@ namespace UnityEngine.Rendering.Universal
                                     horzEdge.Top.X, eNextHorz.Bot.X, eNextHorz.Top.X))
                             {
                                 OutPt op2;
-                                GetLastOutPt(ref eNextHorz, out op2);
-                                AddJoin(ref op2, ref op1, eNextHorz.Top);
+                                GetLastOutPt(eNextHorz, out op2);
+                                AddJoin(op2, op1, eNextHorz.Top);
                             }
                             eNextHorz = eNextHorz.NextInSEL;
                         }
-                        AddGhostJoin(ref op1, horzEdge.Bot);
+                        AddGhostJoin(op1, horzEdge.Bot);
                     }
 
                     //OK, so far we're still in range of the horizontal Edge  but make sure
@@ -1806,39 +1813,39 @@ namespace UnityEngine.Rendering.Universal
                     if (e == eMaxPair && IsLastHorz)
                     {
                         if (horzEdge.OutIdx >= 0)
-                            AddLocalMaxPoly(ref horzEdge, ref eMaxPair, horzEdge.Top);
-                        DeleteFromAEL(ref horzEdge);
-                        DeleteFromAEL(ref eMaxPair);
+                            AddLocalMaxPoly(horzEdge, eMaxPair, horzEdge.Top);
+                        DeleteFromAEL(horzEdge);
+                        DeleteFromAEL(eMaxPair);
                         return;
                     }
 
                     if (dir == Direction.dLeftToRight)
                     {
                         IntPoint Pt = new IntPoint(e.Curr.X, horzEdge.Curr.Y);
-                        IntersectEdges(ref horzEdge, ref e, Pt);
+                        IntersectEdges(horzEdge, e, Pt);
                     }
                     else
                     {
                         IntPoint Pt = new IntPoint(e.Curr.X, horzEdge.Curr.Y);
-                        IntersectEdges(ref e, ref horzEdge, Pt);
+                        IntersectEdges(e, horzEdge, Pt);
                     }
                     TEdge eNext;
-                    GetNextInAEL(ref e, dir, out eNext);
-                    SwapPositionsInAEL(ref horzEdge, ref e);
+                    GetNextInAEL(e, dir, out eNext);
+                    SwapPositionsInAEL(horzEdge, e);
                     e = eNext;
                 } //end while(e.NotNull)
 
                 //Break out of loop if HorzEdge.NextInLML is not also horizontal ...
-                if (horzEdge.NextInLML.IsNull || !IsHorizontal(ref horzEdge.NextInLML)) break;
+                if (horzEdge.NextInLML.IsNull || !IsHorizontal(horzEdge.NextInLML)) break;
 
                 UpdateEdgeIntoAEL(ref horzEdge);
-                if (horzEdge.OutIdx >= 0) AddOutPt(ref horzEdge, horzEdge.Bot);
-                GetHorzDirection(ref horzEdge, out dir, out horzLeft, out horzRight);
+                if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Bot);
+                GetHorzDirection(horzEdge, out dir, out horzLeft, out horzRight);
             } //end for (;;)
 
             if (horzEdge.OutIdx >= 0 && op1.IsNull)
             {
-                GetLastOutPt(ref horzEdge, out op1);
+                GetLastOutPt(horzEdge, out op1);
                 TEdge eNextHorz = m_SortedEdges;
                 while (eNextHorz.NotNull)
                 {
@@ -1847,19 +1854,19 @@ namespace UnityEngine.Rendering.Universal
                             horzEdge.Top.X, eNextHorz.Bot.X, eNextHorz.Top.X))
                     {
                         OutPt op2;
-                        GetLastOutPt(ref eNextHorz, out op2);
-                        AddJoin(ref op2, ref op1, eNextHorz.Top);
+                        GetLastOutPt(eNextHorz, out op2);
+                        AddJoin(op2, op1, eNextHorz.Top);
                     }
                     eNextHorz = eNextHorz.NextInSEL;
                 }
-                AddGhostJoin(ref op1, horzEdge.Top);
+                AddGhostJoin(op1, horzEdge.Top);
             }
 
             if (horzEdge.NextInLML.NotNull)
             {
                 if (horzEdge.OutIdx >= 0)
                 {
-                    op1 = AddOutPt(ref horzEdge, horzEdge.Top);
+                    op1 = AddOutPt(horzEdge, horzEdge.Top);
 
                     UpdateEdgeIntoAEL(ref horzEdge);
                     if (horzEdge.WindDelta == 0) return;
@@ -1869,18 +1876,18 @@ namespace UnityEngine.Rendering.Universal
                     if (ePrev.NotNull && ePrev.Curr.X == horzEdge.Bot.X &&
                         ePrev.Curr.Y == horzEdge.Bot.Y && ePrev.WindDelta != 0 &&
                         (ePrev.OutIdx >= 0 && ePrev.Curr.Y > ePrev.Top.Y &&
-                         SlopesEqual(ref horzEdge, ref ePrev, m_UseFullRange)))
+                         SlopesEqual(horzEdge, ePrev, m_UseFullRange)))
                     {
-                        OutPt op2 = AddOutPt(ref ePrev, horzEdge.Bot);
-                        AddJoin(ref op1, ref op2, horzEdge.Top);
+                        OutPt op2 = AddOutPt(ePrev, horzEdge.Bot);
+                        AddJoin(op1, op2, horzEdge.Top);
                     }
                     else if (eNext.NotNull && eNext.Curr.X == horzEdge.Bot.X &&
                              eNext.Curr.Y == horzEdge.Bot.Y && eNext.WindDelta != 0 &&
                              eNext.OutIdx >= 0 && eNext.Curr.Y > eNext.Top.Y &&
-                             SlopesEqual(ref horzEdge, ref eNext, m_UseFullRange))
+                             SlopesEqual(horzEdge, eNext, m_UseFullRange))
                     {
-                        OutPt op2 = AddOutPt(ref eNext, horzEdge.Bot);
-                        AddJoin(ref op1, ref op2, horzEdge.Top);
+                        OutPt op2 = AddOutPt(eNext, horzEdge.Bot);
+                        AddJoin(op1, op2, horzEdge.Top);
                     }
                 }
                 else
@@ -1888,42 +1895,42 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (horzEdge.OutIdx >= 0) AddOutPt(ref horzEdge, horzEdge.Top);
-                DeleteFromAEL(ref horzEdge);
+                if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Top);
+                DeleteFromAEL(horzEdge);
             }
         }
 
         //------------------------------------------------------------------------------
 
-        private void GetNextInAEL(ref TEdge e, Direction Direction, out TEdge outEdge)
+        private void GetNextInAEL(TEdge e, Direction Direction, out TEdge outEdge)
         {
             outEdge = Direction == Direction.dLeftToRight ? e.NextInAEL : e.PrevInAEL;
         }
 
         //------------------------------------------------------------------------------
 
-        private bool IsMinima(ref TEdge e)
+        private bool IsMinima(TEdge e)
         {
             return e.NotNull && (e.Prev.NextInLML != e) && (e.Next.NextInLML != e);
         }
 
         //------------------------------------------------------------------------------
 
-        private bool IsMaxima(ref TEdge e, double Y)
+        private bool IsMaxima(TEdge e, double Y)
         {
             return (e.NotNull && e.Top.Y == Y && e.NextInLML.IsNull);
         }
 
         //------------------------------------------------------------------------------
 
-        private bool IsIntermediate(ref TEdge e, double Y)
+        private bool IsIntermediate(TEdge e, double Y)
         {
             return (e.Top.Y == Y && e.NextInLML.NotNull);
         }
 
         //------------------------------------------------------------------------------
 
-        internal void GetMaximaPair(ref TEdge e, out TEdge outEdge)
+        internal void GetMaximaPair(TEdge e, out TEdge outEdge)
         {
             if ((e.Next.Top == e.Top) && e.Next.NextInLML.IsNull)
                 outEdge = e.Next;
@@ -1935,13 +1942,13 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal TEdge GetMaximaPairEx(ref TEdge e)
+        internal TEdge GetMaximaPairEx(TEdge e)
         {
             //as above but returns null if MaxPair isn't in AEL (unless it's horizontal)
             TEdge result;
-            GetMaximaPair(ref e, out result);
+            GetMaximaPair(e, out result);
             if (result.IsNull || result.OutIdx == Skip ||
-                ((result.NextInAEL == result.PrevInAEL) && !IsHorizontal(ref result))) return NULL_TEdge;
+                ((result.NextInAEL == result.PrevInAEL) && !IsHorizontal(result))) return NULL_TEdge;
             return result;
         }
 
@@ -1982,7 +1989,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 e.PrevInSEL = e.PrevInAEL;
                 e.NextInSEL = e.NextInAEL;
-                e.Curr.X = TopX(ref e, topY);
+                e.Curr.X = TopX(e, topY);
                 e = e.NextInAEL;
             }
 
@@ -1998,9 +2005,9 @@ namespace UnityEngine.Rendering.Universal
                     IntPoint pt;
                     if (e.Curr.X > eNext.Curr.X)
                     {
-                        IntersectPoint(ref e, ref eNext, out pt);
+                        IntersectPoint(e, eNext, out pt);
                         if (pt.Y < topY)
-                            pt = new IntPoint(TopX(ref e, topY), topY);
+                            pt = new IntPoint(TopX(e, topY), topY);
                         IntersectNode newNode = new IntersectNode();
                         newNode.Initialize();
                         newNode.Edge1 = e;
@@ -2008,7 +2015,7 @@ namespace UnityEngine.Rendering.Universal
                         newNode.Pt = pt;
                         m_IntersectList.Add(newNode);
 
-                        SwapPositionsInSEL(ref e, ref eNext);
+                        SwapPositionsInSEL(e, eNext);
                         isModified = true;
                     }
                     else
@@ -2022,7 +2029,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private bool EdgesAdjacent(ref IntersectNode inode)
+        private bool EdgesAdjacent(IntersectNode inode)
         {
             return (inode.Edge1.NextInSEL == inode.Edge2) ||
                 (inode.Edge1.PrevInSEL == inode.Edge2);
@@ -2030,7 +2037,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private static int IntersectNodeSort(ref IntersectNode node1, ref IntersectNode node2)
+        private static int IntersectNodeSort(IntersectNode node1, IntersectNode node2)
         {
             //the following typecast is safe because the differences in Pt.Y will
             //be limited to the height of the scanbeam.
@@ -2050,17 +2057,17 @@ namespace UnityEngine.Rendering.Universal
             int cnt = m_IntersectList.Length;
             for (int i = 0; i < cnt; i++)
             {
-                if (!EdgesAdjacent(ref m_IntersectList.GetIndexByRef(i)))
+                if (!EdgesAdjacent(m_IntersectList.GetIndexByRef(i)))
                 {
                     int j = i + 1;
-                    while (j < cnt && !EdgesAdjacent(ref m_IntersectList.GetIndexByRef(j))) j++;
+                    while (j < cnt && !EdgesAdjacent(m_IntersectList.GetIndexByRef(j))) j++;
                     if (j == cnt) return false;
 
                     IntersectNode tmp = m_IntersectList[i];
                     m_IntersectList[i] = m_IntersectList[j];
                     m_IntersectList[j] = tmp;
                 }
-                SwapPositionsInSEL(ref m_IntersectList[i].Edge1, ref m_IntersectList[i].Edge2);
+                SwapPositionsInSEL(m_IntersectList[i].Edge1, m_IntersectList[i].Edge2);
             }
             return true;
         }
@@ -2073,8 +2080,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 IntersectNode iNode = m_IntersectList[i];
                 {
-                    IntersectEdges(ref iNode.Edge1, ref iNode.Edge2, iNode.Pt);
-                    SwapPositionsInAEL(ref iNode.Edge1, ref iNode.Edge2);
+                    IntersectEdges(iNode.Edge1, iNode.Edge2, iNode.Pt);
+                    SwapPositionsInAEL(iNode.Edge1, iNode.Edge2);
                 }
             }
             m_IntersectList.Clear();
@@ -2089,7 +2096,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private static ClipInt TopX(ref TEdge edge, ClipInt currentY)
+        private static ClipInt TopX(TEdge edge, ClipInt currentY)
         {
             if (currentY == edge.Top.Y)
                 return edge.Top.X;
@@ -2098,7 +2105,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void IntersectPoint(ref TEdge edge1, ref TEdge edge2, out IntPoint ip)
+        private void IntersectPoint(TEdge edge1, TEdge edge2, out IntPoint ip)
         {
             ip = new IntPoint();
             long pivotPoint = -1;
@@ -2138,7 +2145,7 @@ namespace UnityEngine.Rendering.Universal
             if (edge1.Dx == edge2.Dx)
             {
                 ip.Y = edge1.Curr.Y;
-                ip.X = TopX(ref edge1, ip.Y);
+                ip.X = TopX(edge1, ip.Y);
                 return;
             }
 
@@ -2146,7 +2153,7 @@ namespace UnityEngine.Rendering.Universal
             if (edge1.Delta.X == 0)
             {
                 ip.X = edge1.Bot.X;
-                if (IsHorizontal(ref edge2))
+                if (IsHorizontal(edge2))
                 {
                     ip.Y = edge2.Bot.Y;
                 }
@@ -2159,7 +2166,7 @@ namespace UnityEngine.Rendering.Universal
             else if (edge2.Delta.X == 0)
             {
                 ip.X = edge2.Bot.X;
-                if (IsHorizontal(ref edge1))
+                if (IsHorizontal(edge1))
                 {
                     ip.Y = edge1.Bot.Y;
                 }
@@ -2188,9 +2195,9 @@ namespace UnityEngine.Rendering.Universal
                 else
                     ip.Y = edge2.Top.Y;
                 if (Math.Abs(edge1.Dx) < Math.Abs(edge2.Dx))
-                    ip.X = TopX(ref edge1, ip.Y);
+                    ip.X = TopX(edge1, ip.Y);
                 else
-                    ip.X = TopX(ref edge2, ip.Y);
+                    ip.X = TopX(edge2, ip.Y);
             }
             //finally, don't allow 'ip' to be BELOW curr.Y (ie bottom of scanbeam) ...
             if (ip.Y > edge1.Curr.Y)
@@ -2198,9 +2205,9 @@ namespace UnityEngine.Rendering.Universal
                 ip.Y = edge1.Curr.Y;
                 //better to use the more vertical edge to derive X ...
                 if (Math.Abs(edge1.Dx) > Math.Abs(edge2.Dx))
-                    ip.X = TopX(ref edge2, ip.Y);
+                    ip.X = TopX(edge2, ip.Y);
                 else
-                    ip.X = TopX(ref edge1, ip.Y);
+                    ip.X = TopX(edge1, ip.Y);
             }
         }
 
@@ -2213,35 +2220,35 @@ namespace UnityEngine.Rendering.Universal
             {
                 //1. process maxima, treating them as if they're 'bent' horizontal edges,
                 //   but exclude maxima with horizontal edges. nb: e can't be a horizontal.
-                bool IsMaximaEdge = IsMaxima(ref e, topY);
+                bool IsMaximaEdge = IsMaxima(e, topY);
 
                 if (IsMaximaEdge)
                 {
-                    TEdge eMaxPair = GetMaximaPairEx(ref e);
-                    IsMaximaEdge = (eMaxPair.IsNull || !IsHorizontal(ref eMaxPair));
+                    TEdge eMaxPair = GetMaximaPairEx(e);
+                    IsMaximaEdge = (eMaxPair.IsNull || !IsHorizontal(eMaxPair));
                 }
 
                 if (IsMaximaEdge)
                 {
                     if (StrictlySimple) InsertMaxima(e.Top.X);
                     TEdge ePrev = e.PrevInAEL;
-                    DoMaxima(ref e);
+                    DoMaxima(e);
                     if (ePrev.IsNull) e = m_ActiveEdges;
                     else e = ePrev.NextInAEL;
                 }
                 else
                 {
                     //2. promote horizontal edges, otherwise update Curr.X and Curr.Y ...
-                    if (IsIntermediate(ref e, topY) && IsHorizontal(ref e.NextInLML))
+                    if (IsIntermediate(e, topY) && IsHorizontal(e.NextInLML))
                     {
                         UpdateEdgeIntoAEL(ref e);
                         if (e.OutIdx >= 0)
-                            AddOutPt(ref e, e.Bot);
-                        AddEdgeToSEL(ref e);
+                            AddOutPt(e, e.Bot);
+                        AddEdgeToSEL(e);
                     }
                     else
                     {
-                        e.Curr.X = TopX(ref e, topY);
+                        e.Curr.X = TopX(e, topY);
                         e.Curr.Y = topY;
                     }
                     //When StrictlySimple and 'e' is being touched by another edge, then
@@ -2254,9 +2261,9 @@ namespace UnityEngine.Rendering.Universal
                             (ePrev.WindDelta != 0))
                         {
                             IntPoint ip = new IntPoint(e.Curr);
-                            OutPt op = AddOutPt(ref ePrev, ip);
-                            OutPt op2 = AddOutPt(ref e, ip);
-                            AddJoin(ref op, ref op2, ip); //StrictlySimple (type-3) join
+                            OutPt op = AddOutPt(ePrev, ip);
+                            OutPt op2 = AddOutPt(e, ip);
+                            AddJoin(op, op2, ip); //StrictlySimple (type-3) join
                         }
                     }
 
@@ -2272,12 +2279,12 @@ namespace UnityEngine.Rendering.Universal
             e = m_ActiveEdges;
             while (e.NotNull)
             {
-                if (IsIntermediate(ref e, topY))
+                if (IsIntermediate(e, topY))
                 {
                     OutPt op = new OutPt();
                     op.Initialize();
                     if (e.OutIdx >= 0)
-                        op = AddOutPt(ref e, e.Top);
+                        op = AddOutPt(e, e.Top);
                     UpdateEdgeIntoAEL(ref e);
 
                     //if output polygons share an edge, they'll need joining later ...
@@ -2289,8 +2296,8 @@ namespace UnityEngine.Rendering.Universal
                         SlopesEqual(e.Curr, e.Top, ePrev.Curr, ePrev.Top, m_UseFullRange) &&
                         (e.WindDelta != 0) && (ePrev.WindDelta != 0))
                     {
-                        OutPt op2 = AddOutPt(ref ePrev, e.Bot);
-                        AddJoin(ref op, ref op2, e.Top);
+                        OutPt op2 = AddOutPt(ePrev, e.Bot);
+                        AddJoin(op, op2, e.Top);
                     }
                     else if (eNext.NotNull && eNext.Curr.X == e.Bot.X &&
                              eNext.Curr.Y == e.Bot.Y && op.NotNull &&
@@ -2298,8 +2305,8 @@ namespace UnityEngine.Rendering.Universal
                              SlopesEqual(e.Curr, e.Top, eNext.Curr, eNext.Top, m_UseFullRange) &&
                              (e.WindDelta != 0) && (eNext.WindDelta != 0))
                     {
-                        OutPt op2 = AddOutPt(ref eNext, e.Bot);
-                        AddJoin(ref op, ref op2, e.Top);
+                        OutPt op2 = AddOutPt(eNext, e.Bot);
+                        AddJoin(op, op2, e.Top);
                     }
                 }
                 e = e.NextInAEL;
@@ -2308,52 +2315,52 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void DoMaxima(ref TEdge e)
+        private void DoMaxima(TEdge e)
         {
-            TEdge eMaxPair = GetMaximaPairEx(ref e);
+            TEdge eMaxPair = GetMaximaPairEx(e);
             if (eMaxPair.IsNull)
             {
                 if (e.OutIdx >= 0)
-                    AddOutPt(ref e, e.Top);
-                DeleteFromAEL(ref e);
+                    AddOutPt(e, e.Top);
+                DeleteFromAEL(e);
                 return;
             }
 
             TEdge eNext = e.NextInAEL;
             while (eNext.NotNull && eNext != eMaxPair)
             {
-                IntersectEdges(ref e, ref eNext, e.Top);
-                SwapPositionsInAEL(ref e, ref eNext);
+                IntersectEdges(e, eNext, e.Top);
+                SwapPositionsInAEL(e, eNext);
                 eNext = e.NextInAEL;
             }
 
             if (e.OutIdx == Unassigned && eMaxPair.OutIdx == Unassigned)
             {
-                DeleteFromAEL(ref e);
-                DeleteFromAEL(ref eMaxPair);
+                DeleteFromAEL(e);
+                DeleteFromAEL(eMaxPair);
             }
             else if (e.OutIdx >= 0 && eMaxPair.OutIdx >= 0)
             {
-                if (e.OutIdx >= 0) AddLocalMaxPoly(ref e, ref eMaxPair, e.Top);
-                DeleteFromAEL(ref e);
-                DeleteFromAEL(ref eMaxPair);
+                if (e.OutIdx >= 0) AddLocalMaxPoly(e, eMaxPair, e.Top);
+                DeleteFromAEL(e);
+                DeleteFromAEL(eMaxPair);
             }
 #if use_lines
             else if (e.WindDelta == 0)
             {
                 if (e.OutIdx >= 0)
                 {
-                    AddOutPt(ref e, e.Top);
+                    AddOutPt(e, e.Top);
                     e.OutIdx = Unassigned;
                 }
-                DeleteFromAEL(ref e);
+                DeleteFromAEL(e);
 
                 if (eMaxPair.OutIdx >= 0)
                 {
-                    AddOutPt(ref eMaxPair, e.Top);
+                    AddOutPt(eMaxPair, e.Top);
                     eMaxPair.OutIdx = Unassigned;
                 }
-                DeleteFromAEL(ref eMaxPair);
+                DeleteFromAEL(eMaxPair);
             }
 #endif
             else throw new ClipperException("DoMaxima error");
@@ -2379,7 +2386,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private int PointCount(ref OutPt pts)
+        private int PointCount(OutPt pts)
         {
             if (pts.IsNull) return 0;
             int result = 0;
@@ -2404,7 +2411,7 @@ namespace UnityEngine.Rendering.Universal
                 OutRec outRec = m_PolyOuts[i];
                 if (outRec.Pts.IsNull) continue;
                 OutPt p = outRec.Pts.Prev;
-                int cnt = PointCount(ref p);
+                int cnt = PointCount(p);
                 if (cnt < 2) continue;
                 Path pg = new Path(cnt, Allocator.Temp, NativeArrayOptions.ClearMemory);
                 for (int j = 0; j < cnt; j++)
@@ -2418,7 +2425,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void FixupOutPolyline(ref OutRec outrec)
+        private void FixupOutPolyline(OutRec outrec)
         {
             OutPt pp = outrec.Pts;
             OutPt lastPP = pp.Prev;
@@ -2439,7 +2446,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private void FixupOutPolygon(ref OutRec outRec)
+        private void FixupOutPolygon(OutRec outRec)
         {
             //FixupOutPolygon() - removes duplicate points and simplifies consecutive
             //parallel edges by removing the middle vertex.
@@ -2448,8 +2455,13 @@ namespace UnityEngine.Rendering.Universal
             outRec.BottomPt.SetNull();
             OutPt pp = outRec.Pts;
             bool preserveCol = PreserveCollinear || StrictlySimple;
+
+            int maxIterations = k_MaxIterations;
             for (; ; )
             {
+                if (maxIterations-- > 0)
+                    Debug.Assert(false, "Max iterations reached");
+
                 if (pp.Prev == pp || pp.Prev == pp.Next)
                 {
                     outRec.Pts.SetNull();
@@ -2477,7 +2489,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        void DupOutPt(ref OutPt outPt, bool InsertAfter, out OutPt result)
+        void DupOutPt(OutPt outPt, bool InsertAfter, out OutPt result)
         {
             result = new OutPt();
             result.Initialize();
@@ -2518,7 +2530,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        bool JoinHorz(ref OutPt op1, ref OutPt op1b, ref OutPt op2, ref OutPt op2b,
+        bool JoinHorz(OutPt op1, OutPt op1b, OutPt op2, OutPt op2b,
             IntPoint Pt, bool DiscardLeft)
         {
             Direction Dir1 = (op1.Pt.X > op1b.Pt.X ?
@@ -2538,12 +2550,12 @@ namespace UnityEngine.Rendering.Universal
                        op1.Next.Pt.X >= op1.Pt.X && op1.Next.Pt.Y == Pt.Y)
                     op1 = op1.Next;
                 if (DiscardLeft && (op1.Pt.X != Pt.X)) op1 = op1.Next;
-                DupOutPt(ref op1, !DiscardLeft, out op1b);
+                DupOutPt(op1, !DiscardLeft, out op1b);
                 if (op1b.Pt != Pt)
                 {
                     op1 = op1b;
                     op1.Pt = Pt;
-                    DupOutPt(ref op1, !DiscardLeft, out op1b);
+                    DupOutPt(op1, !DiscardLeft, out op1b);
                 }
             }
             else
@@ -2552,12 +2564,12 @@ namespace UnityEngine.Rendering.Universal
                        op1.Next.Pt.X <= op1.Pt.X && op1.Next.Pt.Y == Pt.Y)
                     op1 = op1.Next;
                 if (!DiscardLeft && (op1.Pt.X != Pt.X)) op1 = op1.Next;
-                DupOutPt(ref op1, DiscardLeft, out op1b);
+                DupOutPt(op1, DiscardLeft, out op1b);
                 if (op1b.Pt != Pt)
                 {
                     op1 = op1b;
                     op1.Pt = Pt;
-                    DupOutPt(ref op1, DiscardLeft, out op1b);
+                    DupOutPt(op1, DiscardLeft, out op1b);
                 }
             }
 
@@ -2567,12 +2579,12 @@ namespace UnityEngine.Rendering.Universal
                        op2.Next.Pt.X >= op2.Pt.X && op2.Next.Pt.Y == Pt.Y)
                     op2 = op2.Next;
                 if (DiscardLeft && (op2.Pt.X != Pt.X)) op2 = op2.Next;
-                DupOutPt(ref op2, !DiscardLeft, out op2b);
+                DupOutPt(op2, !DiscardLeft, out op2b);
                 if (op2b.Pt != Pt)
                 {
                     op2 = op2b;
                     op2.Pt = Pt;
-                    DupOutPt(ref op2, !DiscardLeft, out op2b);
+                    DupOutPt(op2, !DiscardLeft, out op2b);
                 }
             }
             else
@@ -2581,12 +2593,12 @@ namespace UnityEngine.Rendering.Universal
                        op2.Next.Pt.X <= op2.Pt.X && op2.Next.Pt.Y == Pt.Y)
                     op2 = op2.Next;
                 if (!DiscardLeft && (op2.Pt.X != Pt.X)) op2 = op2.Next;
-                DupOutPt(ref op2, DiscardLeft, out op2b);
+                DupOutPt(op2, DiscardLeft, out op2b);
                 if (op2b.Pt != Pt)
                 {
                     op2 = op2b;
                     op2.Pt = Pt;
-                    DupOutPt(ref op2, DiscardLeft, out op2b);
+                    DupOutPt(op2, DiscardLeft, out op2b);
                 }
             }
 
@@ -2609,7 +2621,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private bool JoinPoints(ref Join j, ref OutRec outRec1, ref OutRec outRec2)
+        private bool JoinPoints(Join j, OutRec outRec1, OutRec outRec2)
         {
             OutPt op1 = j.OutPt1, op1b;
             OutPt op2 = j.OutPt2, op2b;
@@ -2638,8 +2650,8 @@ namespace UnityEngine.Rendering.Universal
                 if (reverse1 == reverse2) return false;
                 if (reverse1)
                 {
-                    DupOutPt(ref op1, false, out op1b);
-                    DupOutPt(ref op2, true, out op2b);
+                    DupOutPt(op1, false, out op1b);
+                    DupOutPt(op2, true, out op2b);
                     op1.Prev = op2;
                     op2.Next = op1;
                     op1b.Next = op2b;
@@ -2650,8 +2662,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    DupOutPt(ref op1, true, out op1b);
-                    DupOutPt(ref op2, false, out op2b);
+                    DupOutPt(op1, true, out op1b);
+                    DupOutPt(op2, false, out op2b);
                     op1.Next = op2;
                     op2.Prev = op1;
                     op1b.Prev = op2b;
@@ -2708,7 +2720,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 j.OutPt1 = op1;
                 j.OutPt2 = op2;
-                return JoinHorz(ref op1, ref op1b, ref op2, ref op2b, Pt, DiscardLeftSide);
+                return JoinHorz(op1, op1b, op2, op2b, Pt, DiscardLeftSide);
             }
             else
             {
@@ -2745,8 +2757,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (Reverse1)
                 {
-                    DupOutPt(ref op1, false, out op1b);
-                    DupOutPt(ref op2, true, out op2b);
+                    DupOutPt(op1, false, out op1b);
+                    DupOutPt(op2, true, out op2b);
                     op1.Prev = op2;
                     op2.Next = op1;
                     op1b.Next = op2b;
@@ -2757,8 +2769,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    DupOutPt(ref op1, true, out op1b);
-                    DupOutPt(ref op2, false, out op2b);
+                    DupOutPt(op1, true, out op1b);
+                    DupOutPt(op2, false, out op2b);
                     op1.Next = op2;
                     op2.Prev = op1;
                     op1b.Prev = op2b;
@@ -2821,7 +2833,7 @@ namespace UnityEngine.Rendering.Universal
 
         //See "The Point in Polygon Problem for Arbitrary Polygons" by Hormann & Agathos
         //http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
-        private static int PointInPolygon(IntPoint pt, ref OutPt op)
+        private static int PointInPolygon(IntPoint pt, OutPt op)
         {
             //returns 0 if false, +1 if true, -1 if pt ON polygon boundary
             int result = 0;
@@ -2870,13 +2882,13 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private static bool Poly2ContainsPoly1(ref OutPt outPt1, ref OutPt outPt2)
+        private static bool Poly2ContainsPoly1(OutPt outPt1, OutPt outPt2)
         {
             OutPt op = outPt1;
             do
             {
                 //nb: PointInPolygon returns 0 if false, +1 if true, -1 if pt on polygon
-                int res = PointInPolygon(op.Pt, ref outPt2);
+                int res = PointInPolygon(op.Pt, outPt2);
                 if (res >= 0) return res > 0;
                 op = op.Next;
             }
@@ -2886,15 +2898,15 @@ namespace UnityEngine.Rendering.Universal
 
         //----------------------------------------------------------------------
 
-        private void FixupFirstLefts1(ref OutRec OldOutRec, ref OutRec NewOutRec)
+        private void FixupFirstLefts1(OutRec OldOutRec, OutRec NewOutRec)
         {
             foreach (OutRec outRec in m_PolyOuts)
             {
                 OutRec firstLeft;
-                ParseFirstLeft(ref outRec.FirstLeft, out firstLeft);
+                ParseFirstLeft(outRec.FirstLeft, out firstLeft);
                 if (outRec.Pts.NotNull && firstLeft == OldOutRec)
                 {
-                    if (Poly2ContainsPoly1(ref outRec.Pts, ref NewOutRec.Pts))
+                    if (Poly2ContainsPoly1(outRec.Pts, NewOutRec.Pts))
                         outRec.FirstLeft = NewOutRec;
                 }
             }
@@ -2902,7 +2914,7 @@ namespace UnityEngine.Rendering.Universal
 
         //----------------------------------------------------------------------
 
-        private void FixupFirstLefts2(ref OutRec innerOutRec, ref OutRec outerOutRec)
+        private void FixupFirstLefts2(OutRec innerOutRec, OutRec outerOutRec)
         {
             //A polygon has split into two such that one is now the inner of the other.
             //It's possible that these polygons now wrap around other polygons, so check
@@ -2914,12 +2926,12 @@ namespace UnityEngine.Rendering.Universal
                 if (outRec.Pts.IsNull || outRec == outerOutRec || outRec == innerOutRec)
                     continue;
                 OutRec firstLeft;
-                ParseFirstLeft(ref outRec.FirstLeft, out firstLeft);
+                ParseFirstLeft(outRec.FirstLeft, out firstLeft);
                 if (firstLeft != orfl && firstLeft != innerOutRec && firstLeft != outerOutRec)
                     continue;
-                if (Poly2ContainsPoly1(ref outRec.Pts, ref innerOutRec.Pts))
+                if (Poly2ContainsPoly1(outRec.Pts, innerOutRec.Pts))
                     outRec.FirstLeft = innerOutRec;
-                else if (Poly2ContainsPoly1(ref outRec.Pts, ref outerOutRec.Pts))
+                else if (Poly2ContainsPoly1(outRec.Pts, outerOutRec.Pts))
                     outRec.FirstLeft = outerOutRec;
                 else if (outRec.FirstLeft == innerOutRec || outRec.FirstLeft == outerOutRec)
                     outRec.FirstLeft = orfl;
@@ -2928,13 +2940,13 @@ namespace UnityEngine.Rendering.Universal
 
         //----------------------------------------------------------------------
 
-        private void FixupFirstLefts3(ref OutRec OldOutRec, ref OutRec NewOutRec)
+        private void FixupFirstLefts3(OutRec OldOutRec, OutRec NewOutRec)
         {
             //same as FixupFirstLefts1 but doesn't call Poly2ContainsPoly1()
             foreach (OutRec outRec in m_PolyOuts)
             {
                 OutRec firstLeft;
-                ParseFirstLeft(ref outRec.FirstLeft, out firstLeft);
+                ParseFirstLeft(outRec.FirstLeft, out firstLeft);
                 if (outRec.Pts.NotNull && firstLeft == OldOutRec)
                     outRec.FirstLeft = NewOutRec;
             }
@@ -2942,7 +2954,7 @@ namespace UnityEngine.Rendering.Universal
 
         //----------------------------------------------------------------------
 
-        private static void ParseFirstLeft(ref OutRec FirstLeft, out OutRec result)
+        private static void ParseFirstLeft(OutRec FirstLeft, out OutRec result)
         {
             while (FirstLeft.NotNull && FirstLeft.Pts.IsNull)
                 FirstLeft = FirstLeft.FirstLeft;
@@ -2969,11 +2981,11 @@ namespace UnityEngine.Rendering.Universal
                 //before calling JoinPoints() ...
                 OutRec holeStateRec;
                 if (outRec1 == outRec2) holeStateRec = outRec1;
-                else if (OutRec1RightOfOutRec2(ref outRec1, ref outRec2)) holeStateRec = outRec2;
-                else if (OutRec1RightOfOutRec2(ref outRec2, ref outRec1)) holeStateRec = outRec1;
-                else GetLowermostRec(ref outRec1, ref outRec2, out holeStateRec);
+                else if (OutRec1RightOfOutRec2(outRec1, outRec2)) holeStateRec = outRec2;
+                else if (OutRec1RightOfOutRec2(outRec2, outRec1)) holeStateRec = outRec1;
+                else GetLowermostRec(outRec1, outRec2, out holeStateRec);
 
-                if (!JoinPoints(ref join, ref outRec1, ref outRec2)) continue;
+                if (!JoinPoints(join, outRec1, outRec2)) continue;
 
                 if (outRec1 == outRec2)
                 {
@@ -2985,20 +2997,20 @@ namespace UnityEngine.Rendering.Universal
                     outRec2.Pts = join.OutPt2;
 
                     //update all OutRec2.Pts Idx's ...
-                    UpdateOutPtIdxs(ref outRec2);
+                    UpdateOutPtIdxs(outRec2);
 
-                    if (Poly2ContainsPoly1(ref outRec2.Pts, ref outRec1.Pts))
+                    if (Poly2ContainsPoly1(outRec2.Pts, outRec1.Pts))
                     {
                         //outRec1 contains outRec2 ...
                         outRec2.IsHole = !outRec1.IsHole;
                         outRec2.FirstLeft = outRec1;
 
-                        if (m_UsingPolyTree) FixupFirstLefts2(ref outRec2, ref outRec1);
+                        if (m_UsingPolyTree) FixupFirstLefts2(outRec2, outRec1);
 
-                        if ((outRec2.IsHole ^ ReverseSolution) == (Area(ref outRec2) > 0))
-                            ReversePolyPtLinks(ref outRec2.Pts);
+                        if ((outRec2.IsHole ^ ReverseSolution) == (Area(outRec2) > 0))
+                            ReversePolyPtLinks(outRec2.Pts);
                     }
-                    else if (Poly2ContainsPoly1(ref outRec1.Pts, ref outRec2.Pts))
+                    else if (Poly2ContainsPoly1(outRec1.Pts, outRec2.Pts))
                     {
                         //outRec2 contains outRec1 ...
                         outRec2.IsHole = outRec1.IsHole;
@@ -3006,10 +3018,10 @@ namespace UnityEngine.Rendering.Universal
                         outRec2.FirstLeft = outRec1.FirstLeft;
                         outRec1.FirstLeft = outRec2;
 
-                        if (m_UsingPolyTree) FixupFirstLefts2(ref outRec1, ref outRec2);
+                        if (m_UsingPolyTree) FixupFirstLefts2(outRec1, outRec2);
 
-                        if ((outRec1.IsHole ^ ReverseSolution) == (Area(ref outRec1) > 0))
-                            ReversePolyPtLinks(ref outRec1.Pts);
+                        if ((outRec1.IsHole ^ ReverseSolution) == (Area(outRec1) > 0))
+                            ReversePolyPtLinks(outRec1.Pts);
                     }
                     else
                     {
@@ -3018,7 +3030,7 @@ namespace UnityEngine.Rendering.Universal
                         outRec2.FirstLeft = outRec1.FirstLeft;
 
                         //fixup FirstLeft pointers that may need reassigning to OutRec2
-                        if (m_UsingPolyTree) FixupFirstLefts1(ref outRec1, ref outRec2);
+                        if (m_UsingPolyTree) FixupFirstLefts1(outRec1, outRec2);
                     }
                 }
                 else
@@ -3035,14 +3047,14 @@ namespace UnityEngine.Rendering.Universal
                     outRec2.FirstLeft = outRec1;
 
                     //fixup FirstLeft pointers that may need reassigning to OutRec1
-                    if (m_UsingPolyTree) FixupFirstLefts3(ref outRec2, ref outRec1);
+                    if (m_UsingPolyTree) FixupFirstLefts3(outRec2, outRec1);
                 }
             }
         }
 
         //------------------------------------------------------------------------------
 
-        private void UpdateOutPtIdxs(ref OutRec outrec)
+        private void UpdateOutPtIdxs(OutRec outrec)
         {
             OutPt op = outrec.Pts;
             do
@@ -3082,29 +3094,29 @@ namespace UnityEngine.Rendering.Universal
                             OutRec outrec2;
                             CreateOutRec(out outrec2);
                             outrec2.Pts = op2;
-                            UpdateOutPtIdxs(ref outrec2);
-                            if (Poly2ContainsPoly1(ref outrec2.Pts, ref outrec.Pts))
+                            UpdateOutPtIdxs(outrec2);
+                            if (Poly2ContainsPoly1(outrec2.Pts, outrec.Pts))
                             {
                                 //OutRec2 is contained by OutRec1 ...
                                 outrec2.IsHole = !outrec.IsHole;
                                 outrec2.FirstLeft = outrec;
-                                if (m_UsingPolyTree) FixupFirstLefts2(ref outrec2, ref outrec);
+                                if (m_UsingPolyTree) FixupFirstLefts2(outrec2, outrec);
                             }
-                            else if (Poly2ContainsPoly1(ref outrec.Pts, ref outrec2.Pts))
+                            else if (Poly2ContainsPoly1(outrec.Pts, outrec2.Pts))
                             {
                                 //OutRec1 is contained by OutRec2 ...
                                 outrec2.IsHole = outrec.IsHole;
                                 outrec.IsHole = !outrec2.IsHole;
                                 outrec2.FirstLeft = outrec.FirstLeft;
                                 outrec.FirstLeft = outrec2;
-                                if (m_UsingPolyTree) FixupFirstLefts2(ref outrec, ref outrec2);
+                                if (m_UsingPolyTree) FixupFirstLefts2(outrec, outrec2);
                             }
                             else
                             {
                                 //the 2 polygons are separate ...
                                 outrec2.IsHole = outrec.IsHole;
                                 outrec2.FirstLeft = outrec.FirstLeft;
-                                if (m_UsingPolyTree) FixupFirstLefts1(ref outrec, ref outrec2);
+                                if (m_UsingPolyTree) FixupFirstLefts1(outrec, outrec2);
                             }
                             op2 = op; //ie get ready for the next iteration
                         }
@@ -3133,14 +3145,14 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal double Area(ref OutRec outRec)
+        internal double Area(OutRec outRec)
         {
-            return Area(ref outRec.Pts);
+            return Area(outRec.Pts);
         }
 
         //------------------------------------------------------------------------------
 
-        internal double Area(ref OutPt op)
+        internal double Area(OutPt op)
         {
             OutPt opFirst = op;
             if (op.IsNull) return 0;
@@ -3248,7 +3260,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private static void ExcludeOp(ref OutPt op, out OutPt result)
+        private static void ExcludeOp(OutPt op, out OutPt result)
         {
             result = op.Prev;
             result.Next = op.Next;
@@ -3293,19 +3305,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (PointsAreClose(op.Pt, op.Prev.Pt, distSqrd))
                 {
-                    ExcludeOp(ref op, out op);
+                    ExcludeOp(op, out op);
                     cnt--;
                 }
                 else if (PointsAreClose(op.Prev.Pt, op.Next.Pt, distSqrd))
                 {
                     OutPt unused;
-                    ExcludeOp(ref op.Next, out unused);
-                    ExcludeOp(ref op, out op);
+                    ExcludeOp(op.Next, out unused);
+                    ExcludeOp(op, out op);
                     cnt -= 2;
                 }
                 else if (SlopesNearCollinear(op.Prev.Pt, op.Pt, op.Next.Pt, distSqrd))
                 {
-                    ExcludeOp(ref op, out op);
+                    ExcludeOp(op, out op);
                     cnt--;
                 }
                 else
@@ -3400,7 +3412,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        private static void TranslatePath(ref Path path, ref IntPoint delta, out Path outPath)
+        private static void TranslatePath(ref Path path, IntPoint delta, out Path outPath)
         {
             outPath = new Path(path.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
             for (int i = 0; i < path.Length; i++)
@@ -3422,7 +3434,7 @@ namespace UnityEngine.Rendering.Universal
                 if (pathIsClosed)
                 {
                     Path translatedPath;
-                    TranslatePath(ref paths.GetIndexByRef(i), ref pattern.GetIndexByRef(0), out translatedPath);
+                    TranslatePath(ref paths.GetIndexByRef(i), pattern.GetIndexByRef(0), out translatedPath);
                     c.AddPath(ref translatedPath, PolyType.ptClip, true);
                 }
             }
@@ -3447,7 +3459,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        internal static void AddPolyNodeToPaths(ref PolyNode polynode, ref NodeType nt, ref Paths paths)
+        internal static void AddPolyNodeToPaths(PolyNode polynode, NodeType nt, Paths paths)
         {
             bool match = true;
             switch (nt)
@@ -3463,7 +3475,7 @@ namespace UnityEngine.Rendering.Universal
             for(int i=0;i<polynode.Childs.Length;i++)
             {
                 PolyNode pn = polynode.Childs[i];
-                AddPolyNodeToPaths(ref pn, ref nt, ref paths);
+                AddPolyNodeToPaths(pn, nt, paths);
             }
         }
 
@@ -3718,14 +3730,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     int k = len - 1;
                     for (int j = 0; j < len; j++)
-                        OffsetPoint(j, ref k, node.m_jointype);
+                        OffsetPoint(j, k, node.m_jointype);
                     m_destPolys.Add(m_destPoly);
                 }
                 else if (node.m_endtype == EndType.etClosedLine)
                 {
                     int k = len - 1;
                     for (int j = 0; j < len; j++)
-                        OffsetPoint(j, ref k, node.m_jointype);
+                        OffsetPoint(j, k, node.m_jointype);
                     m_destPolys.Add(m_destPoly);
                     m_destPoly = new Path(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
                     //re-build m_normals ...
@@ -3735,14 +3747,14 @@ namespace UnityEngine.Rendering.Universal
                     m_normals[0] = new DoublePoint(-n.X, -n.Y);
                     k = 0;
                     for (int j = len - 1; j >= 0; j--)
-                        OffsetPoint(j, ref k, node.m_jointype);
+                        OffsetPoint(j, k, node.m_jointype);
                     m_destPolys.Add(m_destPoly);
                 }
                 else
                 {
                     int k = 0;
                     for (int j = 1; j < len - 1; ++j)
-                        OffsetPoint(j, ref k, node.m_jointype);
+                        OffsetPoint(j, k, node.m_jointype);
 
                     {
                         int j = len - 1;
@@ -3760,7 +3772,7 @@ namespace UnityEngine.Rendering.Universal
 
                     k = len - 1;
                     for (int j = k - 1; j > 0; --j)
-                        OffsetPoint(j, ref k, node.m_jointype);
+                        OffsetPoint(j, k, node.m_jointype);
 
                     {
                         k = 1;
@@ -3841,7 +3853,7 @@ namespace UnityEngine.Rendering.Universal
 
         //------------------------------------------------------------------------------
 
-        void OffsetPoint(int j, ref int k, JoinType jointype)
+        void OffsetPoint(int j, int k, JoinType jointype)
         {
             //cross product ...
             m_sinA = (m_normals[k].X * m_normals[j].Y - m_normals[j].X * m_normals[k].Y);

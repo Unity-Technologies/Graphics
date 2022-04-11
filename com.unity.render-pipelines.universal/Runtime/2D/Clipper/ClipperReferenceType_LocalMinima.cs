@@ -6,11 +6,15 @@ namespace UnityEngine.Rendering.Universal
 
     internal struct LocalMinima
     {
+        static int CurrentID;
+
         Reference<LocalMinimaStruct> m_Data;
 
         public void Initialize()
         {
             LocalMinimaStruct initialValue = new LocalMinimaStruct();
+            initialValue.Id = CurrentID;
+            CurrentID++;
             Reference<LocalMinimaStruct>.Create(initialValue, out m_Data);
         }
 
@@ -23,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
         //-----------------------------------------------------------------
         //                      Properties
         //-----------------------------------------------------------------
+        public ref  int Id { get { return ref m_Data.DeRef().Id; } }
         public ref ClipInt Y { get { return ref m_Data.DeRef().Y; }}
 
         public ref TEdge LeftBound { get { return ref m_Data.DeRef().LeftBound; }}

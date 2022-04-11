@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.Universal
         public const int ioStrictlySimple = 2;
         public const int ioPreserveCollinear = 4;
 
+        internal const int k_MaxIterations = 200; // This is a safety check so clipper will not hang unity
+
         //-----------------------------------------------------------------
         //                      Static
         //-----------------------------------------------------------------

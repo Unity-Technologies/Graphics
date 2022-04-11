@@ -18,8 +18,10 @@ namespace UnityEngine.Rendering.Universal
         {
             unsafe
             {
+                int sizeOfT = UnsafeUtility.SizeOf(typeof(T));
                 retRef = new Reference<T>();
-                retRef.m_Ptr = new IntPtr(UnsafeUtility.Malloc(UnsafeUtility.SizeOf(typeof(T)), UnsafeUtility.AlignOf<T>(), Allocator.Temp));
+                retRef.m_Ptr = new IntPtr(UnsafeUtility.Malloc(sizeOfT, UnsafeUtility.AlignOf<T>(), Allocator.Temp));
+                UnsafeUtility.MemClear(retRef.m_Ptr.ToPointer(), sizeOfT);
                 retRef.DeRef() = value;
             }
         }
@@ -28,12 +30,13 @@ namespace UnityEngine.Rendering.Universal
         {
             unsafe
             {
+                Debug.Assert(IsCreated);
                 ref T foo = ref (*((T*)(m_Ptr.ToPointer())));
                 return ref foo;
             }
         }
 
-        public bool IsCreated { get { unsafe { return m_Ptr.ToPointer() == null; } } }
+        public bool IsCreated { get { unsafe { return m_Ptr.ToPointer() != null; } } }
         public bool IsNull { get { unsafe { return m_Ptr.ToPointer() == null; } } }
         public bool IsEqual(Reference<T> arg)
         {

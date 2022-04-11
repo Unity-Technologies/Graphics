@@ -6,14 +6,19 @@ namespace UnityEngine.Rendering.Universal
 {
     internal struct TEdge
     {
+        static int CurrentId;
+
         Reference<TEdgeStruct> m_Data;
 
         public void Initialize()
         {
             TEdgeStruct initialValue = new TEdgeStruct();
+            initialValue.Id = CurrentId;
+            CurrentId++;
             Reference<TEdgeStruct>.Create(initialValue, out m_Data);
         }
 
+        public ref int Id { get { return ref m_Data.DeRef().Id; }  }
         public bool IsCreated { get { return m_Data.IsCreated; } }
         public bool IsNull { get { return m_Data.IsNull; } }
         public bool NotNull { get { return !m_Data.IsNull; } }

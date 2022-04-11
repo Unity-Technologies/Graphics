@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
 
     internal struct TEdgeStruct
     {
+        internal int Id;  // This is for debugging...
         internal IntPoint Bot;
         internal IntPoint Curr; //current (updated for every new scanbeam)
         internal IntPoint Top;
@@ -39,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
 
     internal struct LocalMinimaStruct
     {
+        internal int Id;
         internal ClipInt Y;
         internal TEdge LeftBound;
         internal TEdge RightBound;

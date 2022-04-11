@@ -6,7 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public static class UnsafeListExtension
+    internal static class UnsafeListExtension
     {
         public static void Reverse<T>(ref this UnsafeList<T> list, int index, int count) where T : unmanaged
         {
