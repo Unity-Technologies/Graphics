@@ -146,7 +146,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // Use this variables' generated guid to bind it to an underlying element in the graph data.
                 var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
                 var graphHandler = shaderGraphModel.GraphHandler;
-                var variableDeclarationName = model.Guid.ToString();
+
+                // If the guid starts with a number, it will produce an invalid identifier in HLSL.
+                var variableDeclarationName = "_" + graphDataVar.Guid;
                 var contextName = Registry.ResolveKey<PropertyContext>().Name;
 
                 var propertyContext = graphHandler.GetNode(contextName);

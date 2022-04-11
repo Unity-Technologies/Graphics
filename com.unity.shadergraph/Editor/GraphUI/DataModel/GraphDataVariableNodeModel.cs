@@ -46,6 +46,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         GraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
 
+        protected override void OnDefineNode()
+        {
+            m_MainPortModel = this.AddDataOutputPort(null, this.GetDataType(), ReferenceNodeBuilder.kOutput);
+        }
+
         public bool TryGetNodeReader(out NodeHandler reader)
         {
             try
