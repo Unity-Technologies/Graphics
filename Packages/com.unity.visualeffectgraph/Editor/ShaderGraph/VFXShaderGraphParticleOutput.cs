@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
 
         void UpdateMaterialEditor()
         {
-            var material = ((VFXShaderGraphParticleOutput)target).transientMaterial;
+            var material = ((VFXShaderGraphParticleOutput)target).FindMaterial();
 
             if (material != null)
             {
@@ -167,8 +167,6 @@ namespace UnityEditor.VFX
 
         public event Action OnMaterialChange;
 
-        internal Material transientMaterial;
-
         public ShaderGraphVfxAsset GetOrRefreshShaderGraphObject()
         {
             //This is the only place where shaderGraph property is updated or read
@@ -261,16 +259,16 @@ namespace UnityEditor.VFX
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
-                transientMaterial = material;
                 OnMaterialChange?.Invoke();
             }
         }
 
         public void UpdateMaterialSettings()
         {
-            if (transientMaterial != null)
+            var material = FindMaterial();
+            if (material != null)
             {
-                materialSettings.SyncFromMaterial(transientMaterial);
+                materialSettings.SyncFromMaterial(material);
             }
         }
 
