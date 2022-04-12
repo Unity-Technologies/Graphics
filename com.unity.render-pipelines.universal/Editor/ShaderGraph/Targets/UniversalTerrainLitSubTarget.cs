@@ -571,6 +571,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
             };
 
+            public static StructDescriptor MetaAttributes = new StructDescriptor()
+            {
+                name = "Attributes",
+                packFields = false,
+                fields = new FieldDescriptor[]
+                {
+                    StructFields.Attributes.positionOS,
+                    StructFields.Attributes.normalOS,
+                    StructFields.Attributes.uv0,
+                    StructFields.Attributes.uv1,
+                    StructFields.Attributes.uv2,
+                    StructFields.Attributes.uv3,
+                    StructFields.Attributes.color,
+                    StructFields.Attributes.instanceID,
+                    StructFields.Attributes.vertexID,
+                }
+            };
+
             public static StructDescriptor Varyings = new StructDescriptor()
             {
                 name = "Varyings",
@@ -583,6 +601,40 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.normalWS,
                     StructFields.Varyings.tangentWS,
                     StructFields.Varyings.texCoord0,
+                    StructFields.Varyings.color,
+                    StructFields.Varyings.screenPosition,
+                    TerrainStructFields.Varyings.uvSplat01,
+                    TerrainStructFields.Varyings.uvSplat23,
+                    TerrainStructFields.Varyings.normalViewDir,
+                    TerrainStructFields.Varyings.tangentViewDir,
+                    TerrainStructFields.Varyings.bitangentViewDir,
+                    UniversalStructFields.Varyings.staticLightmapUV,
+                    UniversalStructFields.Varyings.dynamicLightmapUV,
+                    UniversalStructFields.Varyings.sh,
+                    UniversalStructFields.Varyings.fogFactorAndVertexLight,
+                    UniversalStructFields.Varyings.shadowCoord,
+                    StructFields.Varyings.instanceID,
+                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                    UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
+                    StructFields.Varyings.cullFace,
+                }
+            };
+
+            public static StructDescriptor MetaVaryings = new StructDescriptor()
+            {
+                name = "Varyings",
+                packFields = true,
+                populateWithCustomInterpolators = true,
+                fields = new FieldDescriptor[]
+                {
+                    StructFields.Varyings.positionCS,
+                    StructFields.Varyings.positionWS,
+                    StructFields.Varyings.normalWS,
+                    StructFields.Varyings.tangentWS,
+                    StructFields.Varyings.texCoord0,
+                    StructFields.Varyings.texCoord1,
+                    StructFields.Varyings.texCoord2,
+                    StructFields.Varyings.texCoord3,
                     StructFields.Varyings.color,
                     StructFields.Varyings.screenPosition,
                     TerrainStructFields.Varyings.uvSplat01,
@@ -631,6 +683,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { TerrainStructs.Attributes },
                 { TerrainStructs.Varyings },
+                { Structs.VertexDescriptionInputs },
+                { TerrainStructs.SurfaceDescriptionInputs },
+            };
+
+            public static readonly StructCollection Meta = new StructCollection()
+            {
+                { TerrainStructs.MetaAttributes },
+                { TerrainStructs.MetaVaryings },
                 { Structs.VertexDescriptionInputs },
                 { TerrainStructs.SurfaceDescriptionInputs },
             };
@@ -1074,7 +1134,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     validPixelBlocks = TerrainBlockMasks.FragmentMeta,
 
                     // Fields
-                    structs = CoreStructCollections.Default,
+                    structs = TerrainStructCollections.Meta,
                     requiredFields = TerrainRequiredFields.Meta,
                     fieldDependencies = CoreFieldDependencies.Default,
 
@@ -1089,6 +1149,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
+                result.defines.Add(TerrainDefines.TerrainEnabled, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat01, 1);
+                result.defines.Add(TerrainDefines.TerrainSplat23, 1);
                 result.defines.Add(TerrainDefines.MetallicSpecGlossMap, 1);
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
 
@@ -1324,11 +1387,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Attributes.uv2,                            // needed for meta UVs
                 StructFields.Attributes.instanceID,                     // needed for rendering instanced terrain
+                TerrainStructFields.Varyings.uvSplat01,
+                TerrainStructFields.Varyings.uvSplat23,
                 StructFields.Varyings.positionCS,
                 StructFields.Varyings.texCoord0,                        // needed for meta UVs
                 StructFields.Varyings.texCoord1,                        // VizUV
                 StructFields.Varyings.texCoord2,                        // LightCoord
                 StructFields.Varyings.instanceID,
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat01,
+                TerrainStructFields.SurfaceDescriptionInputs.uvSplat23,
             };
         }
         #endregion
