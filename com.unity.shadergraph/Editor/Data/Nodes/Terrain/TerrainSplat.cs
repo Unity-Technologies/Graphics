@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Internal;
 
@@ -9,13 +10,11 @@ namespace UnityEditor.ShaderGraph
     [Title("Terrain", "Terrain Splat")]
     class TerrainSplat : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV // IGeneratesFunction
     {
-        const int InputSplatId = 1;
         const int OutputControlRId = 2;
         const int OutputControlGId = 3;
         const int OutputControlBId = 4;
         const int OutputControlAId = 5;
 
-        const string kInputSplatSlotName = "Splat Index";
         const string kOutputControlRSlotName = "Control(r)";
         const string kOutputControlGSlotName = "Control(g)";
         const string kOutputControlBSlotName = "Control(b)";
@@ -41,6 +40,22 @@ namespace UnityEditor.ShaderGraph
         private IEnumerable<IEdge> m_ControlBEdge;
         private IEnumerable<IEdge> m_ControlAEdge;
 
+        internal enum SplatIndex
+        {
+            Index0 = 0,
+            Index1 = 1,
+        }
+
+        [SerializeField]
+        private SplatIndex m_SplatIndex;
+
+        [EnumControl("")]
+        public SplatIndex splatIndex
+        {
+            get { return m_SplatIndex; }
+            set { m_SplatIndex = value; Dirty(ModificationScope.Graph); }
+        }
+
         public TerrainSplat()
         {
             name = "Terrain Splat";
@@ -49,19 +64,17 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector1MaterialSlot(InputSplatId, kInputSplatSlotName, kInputSplatSlotName, SlotType.Input, 0));
             AddSlot(new Vector1MaterialSlot(OutputControlRId, kOutputControlRSlotName, kOutputControlRSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputControlGId, kOutputControlGSlotName, kOutputControlGSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputControlBId, kOutputControlBSlotName, kOutputControlBSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputControlAId, kOutputControlASlotName, kOutputControlASlotName, SlotType.Output, 0));
 
-            RemoveSlotsNameNotMatching(new[] { InputSplatId, OutputControlRId, OutputControlGId, OutputControlBId, OutputControlAId, });
+            RemoveSlotsNameNotMatching(new[] { OutputControlRId, OutputControlGId, OutputControlBId, OutputControlAId, });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var inputSplatIndexValue = GetSlotValue(InputSplatId, GenerationMode.ForReals);
-            var inputSplatIndex = int.Parse(inputSplatIndexValue);
+            var inputSplatIndex = (int) splatIndex;
 
             // pre-accusitions
             m_ControlRNode = FindOutputSlot<MaterialSlot>(OutputControlRId);
