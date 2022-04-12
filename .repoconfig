@@ -20,7 +20,8 @@ path-ignore=<<EOT
  |com\.unity\.template-hd                                   # Todo: Exclude the Library folder of the checks only (keep checks for C# code files)
  |com\.unity\.template-universal
  |Tests\/SRPTests\/Projects\/.*\/Library
- |Tests\/SRPTests\/Projects\/HDRP_HybridTests                            # So remove the test projects one by one as they are progressively being reformatted
+ |Tests\/SRPTests\/Projects\/HDRP_HybridTests                            # Remove the test projects one by one as they are progressively being reformatted
+ |Tests\/SRPTests\/Projects\/UniversalHybridTest                         # Remove the test projects one by one as they are progressively being reformatted
  |Tests\/SRPTests\/Projects\/HDRP_DXR_Tests                              # Ideally all test projects would be included, but doing it wone by one is less overwhelming for teams
  |Tests\/SRPTests\/Projects\/HDRP_PerformanceTests                       # New test projects folder will automatically be included in the formatting checks since they aren't in that list
  |Tests\/SRPTests\/Projects\/HDRP_RuntimeTests
