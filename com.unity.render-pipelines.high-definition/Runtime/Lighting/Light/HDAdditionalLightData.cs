@@ -245,9 +245,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_LightDimmer == value)
                     return;
 
-                if (lightEntity.valid) // GG: Is this correct? It's saving the value before assigning it
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).lightDimmer = m_LightDimmer;
                 m_LightDimmer = Mathf.Clamp(value, 0.0f, 16.0f);
+
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).lightDimmer = m_LightDimmer;
             }
         }
 
@@ -691,9 +692,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_IncludeForRayTracing == value)
                     return;
 
-                if (lightEntity.valid) // GG: Is this correct? It's saving the value but never assigning to it
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).includeForRayTracing = m_IncludeForRayTracing;
+                m_IncludeForRayTracing = value;
                 UpdateAllLightValues();
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).includeForRayTracing = m_IncludeForRayTracing;
             }
         }
 

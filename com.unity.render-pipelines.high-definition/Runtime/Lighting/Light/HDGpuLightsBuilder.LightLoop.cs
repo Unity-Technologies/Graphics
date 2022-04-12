@@ -292,12 +292,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.cookieMode = CookieMode.None;
             }
 
-            // GG: This could be a duplicate, as we're already doing this in the job
-            if (ShaderConfig.s_CameraRelativeRendering != 0)
-            {
-                lightData.positionRWS -= hdCamera.camera.transform.position;
-            }
-
             if (additionalLightData.surfaceTexture == null)
             {
                 lightData.surfaceTextureScaleOffset = Vector4.zero;
