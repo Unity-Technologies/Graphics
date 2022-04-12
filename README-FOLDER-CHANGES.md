@@ -5,6 +5,9 @@
 * The testing packages were moved from root to Tests/SRPTests/Packages
 * The test projects were moved from root to Tests/SRPTests/Projects **_except PostProcessing_Tests which stayed in the TestProjects/ folder._**
 
+
+Not all folders listed below are part of every release branch, ie, some folders might not be in your branch.
+
 <table>
   <tr>
    <td>
@@ -92,13 +95,13 @@
    </td>
   </tr>
   <tr>
-   <td>TestProjects/BatchRendererGroup_HDRP
+   <td>[master+2022.1/staging] TestProjects/BatchRendererGroup_HDRP
    </td>
    <td><strong>Tests/SRPTests/Projects</strong>/BatchRendererGroup_HDRP
    </td>
   </tr>
   <tr>
-   <td>TestProjects/BatchRendererGroup_URP
+   <td>[master+2022.1/staging] TestProjects/BatchRendererGroup_URP
    </td>
    <td><strong>Tests/SRPTests/Projects</strong>/BatchRendererGroup_URP
    </td>
@@ -215,6 +218,18 @@
    <td>TestProjects/VisualEffectGraph_URP
    </td>
    <td><strong>Tests/SRPTests/Projects</strong>/VisualEffectGraph_URP
+   </td>
+  </tr>
+  <tr>
+   <td>[2021.3/staging] TestProjects/HDRP_HybridTests
+   </td>
+   <td><strong>Tests/SRPTests/Projects</strong>/HDRP_HybridTests
+   </td>
+  </tr>
+  <tr>
+   <td>[2021.3/staging] TestProjects/UniversalHybridTest
+   </td>
+   <td><strong>Tests/SRPTests/Projects</strong>/UniversalHybridTest
    </td>
   </tr>
 </table>
