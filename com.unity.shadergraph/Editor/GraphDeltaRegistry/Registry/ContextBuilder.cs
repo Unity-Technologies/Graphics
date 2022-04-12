@@ -3,7 +3,7 @@ using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-   internal class ContextBuilder : INodeDefinitionBuilder
+    internal class ContextBuilder : INodeDefinitionBuilder
     {
         public static readonly RegistryKey kRegistryKey = new RegistryKey { Name = "_Context", Version = 1 };
         public RegistryKey GetRegistryKey() => kRegistryKey;

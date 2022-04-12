@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -56,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 Assert.IsTrue(shaderGraphModel.TryConnect(fromDataPort, toDataPort));
 
                 // Notify preview manager that this nodes connections have changed
-                previewManager.OnNodeFlowChanged(toDataPort.graphDataNodeModel.graphDataName);
+                previewManager.OnNodeFlowChanged(toDataPort.owner.graphDataName);
             }
         }
 
@@ -255,13 +256,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UpdateConstantValueCommand updateConstantValueCommand)
         {
             var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            if (updateConstantValueCommand.Constant is ICLDSConstant cldsConstant)
+            if (updateConstantValueCommand.Constant is not ICLDSConstant cldsConstant) return;
+
+            if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
             {
-                var nodeWriter = shaderGraphModel.GraphHandler.GetNodeWriter(cldsConstant.NodeName);
-                if (nodeWriter != null)
-                {
-                    previewManager.OnLocalPropertyChanged(cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
-                }
+                previewManager.OnGlobalPropertyChanged(cldsConstant.PortName, updateConstantValueCommand.Value);
+                return;
+            }
+
+            var nodeWriter = shaderGraphModel.GraphHandler.GetNode(cldsConstant.NodeName);
+            if (nodeWriter != null)
+            {
+                previewManager.OnLocalPropertyChanged(cldsConstant.NodeName, cldsConstant.PortName, updateConstantValueCommand.Value);
             }
         }
     }

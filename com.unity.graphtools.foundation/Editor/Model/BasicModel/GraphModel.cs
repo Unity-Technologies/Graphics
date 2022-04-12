@@ -1442,6 +1442,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 (edge as EdgeModel)?.InitAssetModel(this.AssetModel);
             }
 
+            // GTF-EDIT
+            // We need to initialize the Constants wrapped by declaration models
+            // with our GraphHandler and CLDS info. on graph deserialization
+            foreach (var variableModel in m_GraphVariableModels)
+            {
+                variableModel.CreateInitializationValue();
+            }
+
             MigrateNodes();
 
             CheckGroupConsistency();

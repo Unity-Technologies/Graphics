@@ -144,7 +144,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_NodeLookupTable.Remove(nodeName);
         }
 
-        public void OnGlobalPropertyChanged(string propertyName, object newValue) { }
+        public void OnGlobalPropertyChanged(string propertyName, object newValue)
+        {
+            Debug.LogWarning("UNIMPLEMENTED: Preview manager OnGlobalPropertyChanged");
+        }
 
         public void OnLocalPropertyChanged(string nodeName, string propertyName, object newValue)
         {
