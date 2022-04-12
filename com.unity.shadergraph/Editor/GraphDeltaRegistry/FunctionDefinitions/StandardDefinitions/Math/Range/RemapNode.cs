@@ -43,15 +43,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Range" },
-            { "Tooltip", "returns a value between out min and max based on lerping the input between in min and max" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.InMinMax.Tooltip", "minimum and maximum values for input interpolation" },
-            { "Parameters.OutMinMax.Tooltip", "minimum and maximum values for output interpolation" },
-            { "Parameters.Out.Tooltip", "the input value with it's range remapped to the Out Min Max values" }
-        };
     }
 }

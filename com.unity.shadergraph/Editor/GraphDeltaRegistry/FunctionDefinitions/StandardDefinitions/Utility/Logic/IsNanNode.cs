@@ -35,18 +35,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "returns true if the input is not a number (NaN)" },
-            { "Category", "Utility, Logic" },
-            { "DisplayName", "Is Nan" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "true if the input is not a number (NaN)" }
-        };
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "Preview.Exists", 0 }
-        };
     }
 }

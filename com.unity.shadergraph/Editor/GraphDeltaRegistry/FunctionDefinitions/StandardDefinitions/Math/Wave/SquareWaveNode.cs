@@ -34,14 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "creates a wave form in which the amplitude alternates at a steady frequency between fixed min and max values" },
-            { "Category", "Math, Wave" },
-            { "DisplayName", "Square Wave" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "a square wave" }
-        };
     }
 }

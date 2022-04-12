@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -43,16 +42,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Basic" },
-            { "Name.Synonyms", "Exponentiation, ^" },
-            { "Tooltip", "multiplies Base by itself the number of times given by Exp" },
-            { "Parameters.Base.Tooltip", "Base" },
-            { "Parameters.Exp.Tooltip", "Exponent" },
-            { "Parameters.UnsignedBase.Tooltip", "Performing power on negative values results in a NaN. When true, this feature prevents that." },
-            { "Parameters.Out.Tooltip", "Base raised to the power of Exp" }
-        };
     }
 }

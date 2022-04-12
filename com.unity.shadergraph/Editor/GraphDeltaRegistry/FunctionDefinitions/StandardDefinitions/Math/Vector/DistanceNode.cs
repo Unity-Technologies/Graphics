@@ -38,15 +38,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Vector" },
-            { "Name.Synonyms", "length" },
-            { "Tooltip", "returns the distance between A and B" },
-            { "Parameters.A.Tooltip", "Point A" },
-            { "Parameters.B.Tooltip", "Point B" },
-            { "Parameters.Out.Tooltip", "the distance between A and B" }
-        };
     }
 }

@@ -33,13 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Tooltip", "returns 1 if the input is positive and -1 if the input is negative" },
-            { "Category", "Math, Round" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "1 if the input is positive and -1 if the input is negative" }
-        };
     }
 }

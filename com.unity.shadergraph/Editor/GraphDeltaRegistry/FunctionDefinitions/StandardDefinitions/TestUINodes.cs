@@ -1,9 +1,36 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
+    internal class TestMultiFunctionNode : IStandardNode
+    {
+        public static NodeDescriptor NodeDescriptor => new(
+            1,
+            "TestMultiFuctionNode",
+            new FunctionDescriptor[] {
+                new(
+                    1,
+                    "Function1",
+                    "Local = In + Static; Out = Local;",
+                    new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
+                    new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
+                    new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
+                    new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "Function2",
+                    "Local = In + Static; Out = Local;",
+                    new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
+                    new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
+                    new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
+                    new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
+                )
+            }
+        );
+    }
+
     internal class TestUIMat3Node : IStandardNode
     {
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -143,12 +170,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            {"In.UseColor", 1}, // Use color picker for In (float value is ignored)
-            {"Static.UseColor", 1}
-        };
     }
 
     internal class TestUIColorRGBANode : IStandardNode
@@ -190,12 +211,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            {"In.UseColor", 1}, // Use color picker for In (float value is ignored)
-            {"Static.UseColor", 1}
-        };
     }
 
     internal class TestUISliderNode : IStandardNode
@@ -228,11 +243,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "In.UseSlider", 1 } // Use a slider for In (float value is ignored)
-        };
     }
 
     internal class TestUIPropertyNode : IStandardNode
@@ -268,10 +278,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, float> UIHints => new()
-        {
-            { "StaticInspectorIn.InspectorOnly", 1 }
-        };
     }
 }

@@ -34,15 +34,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "degtorad, radians, convert" },
-            { "Tooltip", "converts degrees to radians" },
-            { "Category", "Math, Trigonometry" },
-            { "DisplayName", "Degrees To Radians" },
-            { "Parameters.In.Tooltip", "a value in degrees" },
-            { "Parameters.Out.Tooltip", "the input converted to radians" }
-        };
     }
 }

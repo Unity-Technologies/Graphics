@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.UIElements;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -10,17 +8,8 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    /// <summary>
-    /// GTF constant type for System.DayOfWeek, used to create a simple custom type w/ inline editor
-    /// </summary>
-    public class DayOfWeekConstant : Constant<DayOfWeek>
-    {
-        public static readonly List<DayOfWeek> Values = new((DayOfWeek[])Enum.GetValues(typeof(DayOfWeek)));
-        public static readonly List<string> Names = new(Enum.GetNames(typeof(DayOfWeek)));
-    }
     public static class ShaderGraphExampleTypes
     {
-
         // This is a sister function used with ShaderGraphStencil.GetConstantNodeValueType--
         // TypeHandles are primarily used to setup the icon that GTF will use,
         // but the TypeHandle then gets routed through GetConstantNodeValueType where a type handle is
@@ -82,42 +71,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle Texture3DTypeHandle = typeof(Texture3D).GenerateTypeHandle();
         public static readonly TypeHandle Texture2DArrayTypeHandle = typeof(Texture2DArray).GenerateTypeHandle();
         public static readonly TypeHandle CubemapTypeHandle = typeof(Cubemap).GenerateTypeHandle();
-        public static readonly TypeHandle DayOfWeek = typeof(DayOfWeek).GenerateTypeHandle();
         public static readonly TypeHandle GradientTypeHandle = typeof(Gradient).GenerateTypeHandle();
+        public static readonly TypeHandle Matrix2 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 2");
+        public static readonly TypeHandle Matrix3 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 3");
+        public static readonly TypeHandle Matrix4 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 4");
 
-        public static readonly Dictionary<string, TypeHandle> TypeHandlesByName = new()
+        public static GraphType.Height GetGraphTypeHeight(TypeHandle th)
         {
-            { "MissingType", TypeHandle.MissingType },
-            { "Unknown", TypeHandle.Unknown },
-            { "ExecutionFlow", TypeHandle.ExecutionFlow },
-            { "MissingPort", TypeHandle.MissingPort },
-            { "Bool", TypeHandle.Bool },
-            { "Void", TypeHandle.Void },
-            { "Char", TypeHandle.Char },
-            { "Double", TypeHandle.Double },
-            { "Float", TypeHandle.Float },
-            { "Int", TypeHandle.Int },
-            { "UInt", TypeHandle.UInt },
-            { "Long", TypeHandle.Long },
-            { "Object", TypeHandle.Object },
-            { "GameObject", TypeHandle.GameObject },
-            { "String", TypeHandle.String },
-            { "Vector2", TypeHandle.Vector2 },
-            { "Vector3", TypeHandle.Vector3 },
-            { "Vector4", TypeHandle.Vector4 },
-            { "Quaternion", TypeHandle.Quaternion },
-            { "Color", Color },
-            { "AnimationClip", AnimationClip },
-            { "Mesh", Mesh },
-            { "Texture2D", Texture2DTypeHandle },
-            { "Texture3D", Texture3DTypeHandle },
-            { "Texture2DArray", Texture2DArrayTypeHandle },
-            { "Cubemap", CubemapTypeHandle },
-            { "DayOfWeek", DayOfWeek },
-            { "Gradient", GradientTypeHandle }
-        };
+            if (th == Matrix4) return GraphType.Height.Four;
+            if (th == Matrix3) return GraphType.Height.Three;
+            if (th == Matrix2) return GraphType.Height.Two;
 
-        public static IEnumerable<string> TypeHandleNames => TypeHandlesByName.Keys;
+            return GraphType.Height.One;
+        }
+
+        public static GraphType.Length GetGraphTypeLength(TypeHandle th)
+        {
+            if (th == Matrix4 || th == TypeHandle.Vector4 || th == Color) return GraphType.Length.Four;
+            if (th == Matrix3 || th == TypeHandle.Vector3) return GraphType.Length.Three;
+            if (th == Matrix2 || th == TypeHandle.Vector2) return GraphType.Length.Two;
+
+            return GraphType.Length.One;
+        }
+
+        public static GraphType.Primitive GetGraphTypePrimitive(TypeHandle th)
+        {
+            if (th == TypeHandle.Bool) return GraphType.Primitive.Bool;
+            if (th == TypeHandle.Int) return GraphType.Primitive.Int;
+
+            return GraphType.Primitive.Float;
+        }
     }
 
     public abstract class ICLDSConstant
@@ -282,7 +265,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     default:
                         switch (GetPrimitive())
                         {
-                            case GraphType.Primitive.Int: sc(0, (float)value); return;
+                            case GraphType.Primitive.Int: sc(0, Convert.ToSingle(value)); return;
                             case GraphType.Primitive.Bool: sc(0, (bool)value ? 1 : 0); return;
                             default: sc(0, (float)value); return;
                         }
@@ -363,7 +346,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var length = constant.GetLength();
             var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-            var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.graphDataNodeModel.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey);
             var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
 
             if (length >= 3 && parameterUIDescriptor.UseColor)

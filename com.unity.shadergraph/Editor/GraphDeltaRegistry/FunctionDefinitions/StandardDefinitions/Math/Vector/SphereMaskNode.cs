@@ -49,17 +49,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Vector" },
-            { "DisplayName", "Sphere Mask" },
-            { "Tooltip", "creates a spherical volume mask originating at the given position" },
-            { "Parameters.Coords.Tooltip", "coordinate space input" },
-            { "Parameters.Center.Tooltip", "coordinates of the sphere origin" },
-            { "Parameters.Radius.Tooltip", "radius of the sphere" },
-            { "Parameters.Hardness.Tooltip", "soften falloff of the sphere" },
-            { "Parameters.Out.Tooltip", "a spherical volume mask originating at the given position" }
-        };
     }
 }

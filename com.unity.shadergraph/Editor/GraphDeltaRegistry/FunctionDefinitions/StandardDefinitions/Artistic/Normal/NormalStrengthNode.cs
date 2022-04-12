@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -43,16 +42,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "DisplayName", "Normal Strength" },
-            { "Category", "Artistic, Normal" },
-            { "Name.Synonyms", "intensity" },
-            { "Tooltip", "changes the intensity of a tangent space normal" },
-            { "Parameters.In.Tooltip", "a normal to adjust" },
-            { "Parameters.Strength.Tooltip", "less than 1 is weaker, greater than 1 is stronger" },
-            { "Parameters.Out.Tooltip", "normal with the intensity adjusted" }
-        };
     }
 }

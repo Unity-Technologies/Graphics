@@ -33,14 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "remainder" },
-            { "Tooltip", "returns the decimal portion of the input without the integer portion" },
-            { "Category", "Math, Range" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "the decimal portion of the input" },
-        };
     }
 }

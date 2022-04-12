@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -34,15 +33,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Name.Synonyms", "rsqrt, inversesqrt" },
-            { "Tooltip", "divides 1 by the square root of the input" },
-            { "Category", "Math, Advanced" },
-            { "DisplayName", "Reciprocal Square Root" },
-            { "Parameters.In.Tooltip", "input value" },
-            { "Parameters.Out.Tooltip", "1 divided by the square root of the input" }
-        };
     }
 }

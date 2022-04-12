@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Profiling;
+using UnityEditor.Graphs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -29,6 +32,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return typeof(GraphDataEdgeModel);
         }
 
+        public override Type GetSectionModelType()
+        {
+            return typeof(SectionModel);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            // Assigning this value manually as section models are setup by default to have the asset model reference serialized in, but we modified GTF to prevent that
+            foreach(var sectionModel in SectionModels)
+            {
+                sectionModel.AssetModel = AssetModel;
+            }
+
+            foreach (var variableDeclarationModel in VariableDeclarations)
+            {
+                variableDeclarationModel.AssetModel = AssetModel;
+            }
+        }
+
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.
         /// </summary>
@@ -41,8 +65,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (src.PortDataType != dst.PortDataType)
                 return false;
 
-            return GraphHandler.TestConnection(dst.graphDataNodeModel.graphDataName,
-                dst.graphDataName, src.graphDataNodeModel.graphDataName,
+            return GraphHandler.TestConnection(dst.owner.graphDataName,
+                dst.graphDataName, src.owner.graphDataName,
                 src.graphDataName, RegistryInstance);
         }
 
@@ -55,8 +79,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
-                src.graphDataNodeModel.graphDataName, src.graphDataName,
-                dst.graphDataNodeModel.graphDataName, dst.graphDataName,
+                src.owner.graphDataName, src.graphDataName,
+                dst.owner.graphDataName, dst.graphDataName,
                 RegistryInstance);
         }
 
@@ -104,8 +128,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if ((fromPort, toPort) is (GraphDataPortModel fromDataPort, GraphDataPortModel toDataPort))
             {
-                return fromDataPort.graphDataNodeModel.existsInGraphData &&
-                       toDataPort.graphDataNodeModel.existsInGraphData &&
+                return fromDataPort.owner.existsInGraphData &&
+                       toDataPort.owner.existsInGraphData &&
                        TestConnection(fromDataPort, toDataPort);
             }
 
@@ -276,5 +300,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return false;
             }
         }
+
+        public override IVariableNodeModel CreateVariableNode(IVariableDeclarationModel declarationModel,
+            Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default)
+        {
+            Action<VariableNodeModel> initCallback = variableNodeModel =>
+            {
+                if (declarationModel is GraphDataVariableDeclarationModel model && variableNodeModel is GraphDataVariableNodeModel graphDataVariable)
+                {
+                    variableNodeModel.VariableDeclarationModel = model;
+
+                    // Every time a variable node is added to the graph, add a reference node pointing back to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
+                    GraphHandler.AddReferenceNode(guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance);
+
+                    // Currently using GTF guid of the variable node as its graph data name
+                    graphDataVariable.graphDataName = guid.ToString();
+                }
+            };
+
+            return this.CreateNode<GraphDataVariableNodeModel>(guid.ToString(), position, guid, initCallback, spawnFlags);
+        }
+
+        protected override Type GetDefaultVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
     }
 }

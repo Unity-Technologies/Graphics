@@ -38,15 +38,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Math, Round" },
-            { "Name.Synonyms", "quantize" },
-            { "Tooltip", "returns 1 if the input is greater or equal to Edge else returns 0" },
-            { "Parameters.In.Tooltip", "an input vale" },
-            { "Parameters.Edge.Tooltip", "the rounding point" },
-            { "Parameters.Out.Tooltip", "1 if the input is greater or equal to Edge,  otherwise 0" }
-        };
     }
 }

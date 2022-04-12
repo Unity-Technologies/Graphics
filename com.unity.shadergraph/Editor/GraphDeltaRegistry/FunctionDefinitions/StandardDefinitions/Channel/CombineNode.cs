@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -71,19 +70,5 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
-
-        public static Dictionary<string, string> UIStrings => new()
-        {
-            { "Category", "Channel" },
-            { "Name.Synonyms", "append" },
-            { "Tooltip", "merges two or more float values into a vector" },
-            { "Parameters.R.Tooltip","red channel of output" },
-            { "Parameters.G.Tooltip", "green channel of output" },
-            { "Parameters.B.Tooltip", "blue channel of output" },
-            { "Parameters.A.Tooltip", "alpha channel of output" },
-            { "Parameters.RGBA.Tooltip", "A vector4 formed by the input values" },
-            { "Parameters.RGB.Tooltip", "A vector3 formed by the input values" },
-            { "Parameters.RG.Tooltip", "A vector2 formed by the input values" },
-        };
     }
 }
