@@ -461,7 +461,7 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
     float scale = invNdotL * _ShadowBias.y;
 
     // normal bias is negative since we want to apply an inset normal offset
-    positionWS = lightDirection * _ShadowBias.xxx + positionWS;
+    //positionWS = lightDirection * _ShadowBias.xxx + positionWS;
     positionWS = normalWS * scale.xxx + positionWS;
     return positionWS;
 }

@@ -923,7 +923,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         ref shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.CastingPunctualLightShadow, true);
-                    ShadowUtils.RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings);
+                    ShadowUtils.RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, shadowBias[0]);
                     additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
                     anyShadowSliceRenderer = true;
                 }
