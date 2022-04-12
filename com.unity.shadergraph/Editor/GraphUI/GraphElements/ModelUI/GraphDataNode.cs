@@ -27,7 +27,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // If the node has multiple possible topologies, show a selector.
             if (nodeUIDescriptor.SelectableFunctions.Count > 0)
             {
-                Debug.Log(nodeUIDescriptor.SelectableFunctions.Keys);
+                FunctionSelectorPart part = new (
+                    "sg-function-selector",
+                    GraphElementModel,
+                    this,
+                    ussClassName,
+                    nodeUIDescriptor.SelectableFunctions);
+                PartList.InsertPartAfter(portContainerPartName, part);
             }
 
             if (!graphDataNodeModel.TryGetNodeReader(out var nodeReader))
@@ -169,9 +175,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (shouldShowPreview)
                 m_NodePreviewPart = new NodePreviewPart("node-preview", GraphElementModel, this, ussClassName);
-
             PartList.AppendPart(m_NodePreviewPart);
-
         }
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
