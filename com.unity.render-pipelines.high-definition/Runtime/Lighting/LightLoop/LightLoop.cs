@@ -2503,7 +2503,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Also, we clear all the lists and to be resilient to changes in pipeline.
                 if (parameters.runBigTilePrepass)
                     ClearLightList(parameters, cmd, resources.bigTileLightList);
-                if (parameters.canClearLightList) // This can happen when we dont have a GPULight list builder and a light list instantiated.
+                if (parameters.canClearLightList && resources.lightList != null)
                     ClearLightList(parameters, cmd, resources.lightList);
                 ClearLightList(parameters, cmd, resources.perVoxelOffset);
             }
