@@ -11,7 +11,8 @@ namespace UnityEditor.ShaderGraph.Internal
         View = 1 << 1,
         World = 1 << 2,
         Tangent = 1 << 3,
-        AbsoluteWorld = 1 << 4
+        AbsoluteWorld = 1 << 4,
+        Screen = 1 << 5
     }
 
     public enum CoordinateSpace
@@ -20,7 +21,8 @@ namespace UnityEditor.ShaderGraph.Internal
         View,
         World,
         Tangent,
-        AbsoluteWorld
+        AbsoluteWorld,
+        Screen
     }
 
     public enum InterpolatorType
@@ -61,6 +63,8 @@ namespace UnityEditor.ShaderGraph.Internal
                     return NeededCoordinateSpace.Tangent;
                 case CoordinateSpace.AbsoluteWorld:
                     return NeededCoordinateSpace.AbsoluteWorld;
+                case CoordinateSpace.Screen:
+                    return NeededCoordinateSpace.Screen;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(space), space, null);
             }
@@ -80,6 +84,8 @@ namespace UnityEditor.ShaderGraph.Internal
                     return CoordinateSpace.Tangent;
                 case NeededCoordinateSpace.AbsoluteWorld:
                     return CoordinateSpace.AbsoluteWorld;
+                case NeededCoordinateSpace.Screen:
+                    return CoordinateSpace.Screen;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(space), space, null);
             }

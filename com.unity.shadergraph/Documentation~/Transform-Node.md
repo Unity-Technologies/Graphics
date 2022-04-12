@@ -15,8 +15,8 @@ Returns the result of transforming the input value (**In**) from one coordinate 
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| From      | Dropdown | Object, View, World, Tangent, Absolute World | Selects the space to convert from |
-| To      | Dropdown | Object, View, World, Tangent, Absolute World | Selects the space to convert to |
+| From      | Dropdown | Object, View, World, Tangent, Absolute World, Clip | Selects the space to convert from |
+| To      | Dropdown | Object, View, World, Tangent, Absolute World, Clip | Selects the space to convert to |
 
 ## World and Absolute World
 Use the **World** and **Absolute World** space options to transform the coordinate space of [position](Position-Node.md) values. The **World** space option uses the Scriptable Render Pipeline default world space to convert position values. The **Absolute World** space option uses absolute world space to convert position values in all Scriptable Render Pipelines.
@@ -45,9 +45,7 @@ float3 _Transform_Out = TransformWorldToObject(In);
 float3x3 tangentTransform_World = float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal);
 float3 _Transform_Out = TransformWorldToTangent(In, tangentTransform_World);
 ```
-
 **World > View**
-
 ```
 float3 _Transform_Out = TransformWorldToView(In)
 ```
@@ -55,6 +53,11 @@ float3 _Transform_Out = TransformWorldToView(In)
 
 ```
 float3 _Transform_Out = GetAbsolutePositionWS(In);
+```
+**World > Clip**
+
+```
+float3 _Transform_Out = TransformWorldToHClip(In);
 ```
 **Object > World**
 
@@ -84,6 +87,11 @@ float3 _Transform_Out = TransformWorldToView(TransformObjectToWorld(In));
 
 ```
 float3 _Transform_Out = GetAbsolutePositionWS(TransformObjectToWorld(In));
+```
+**Object > Clip**
+
+```
+float3 _Transform_Out = TransformObjectToHClip(In);
 ```
 **Tangent > World**
 
@@ -117,6 +125,12 @@ float3 _Transform_Out = TransformWorldToView(mul(In, transposeTangent).xyz);
 float3x3 transposeTangent = transpose(float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal));
 float3 _Transform_Out = GetAbsolutePositionWS(mul(In, transposeTangent)).xyz;
 ```
+**Tangent > Clip**
+
+```
+float3x3 transposeTangent = transpose(float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal));
+float3 _Transform_Out = TransformWorldToHClip(mul(In, transposeTangent).xyz);
+```
 **View > World**
 
 ```
@@ -146,6 +160,11 @@ float3 _Transform_Out = In;
 ```
 float3 _Transform_Out = GetAbsolutePositionWS(mul(UNITY_MATRIX_I_V, float4(In, 1))).xyz;
 ```
+**View > Clip**
+
+```
+float3 _Transform_Out = TransformWViewToHClip(In);
+```
 **Absolute World > World**
 
 ```
@@ -174,4 +193,9 @@ float3 _Transform_Out = TransformWorldToView(In)
 
 ```
 float3 _Transform_Out = In;
+```
+**Absolute World > Clip**
+
+```
+float3 _Transform_Out = TransformWorldToHClip(GetCameraRelativePositionWS(In));
 ```
