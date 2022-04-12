@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a motion vectors texture.
         /// </summary>
-        Motion = 1 << 3
+        Motion = 1 << 3,
     }
 
     // Note: Spaced built-in events so we can add events in between them
@@ -412,6 +412,30 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Resets render targets to default.
+        /// This method effectively reset changes done by ConfigureTarget.
+        /// </summary>
+        /// <seealso cref="ConfigureTarget"/>
+        public void ResetTarget()
+        {
+            overrideCameraTarget = false;
+            m_UsesRTHandles = true;
+
+            // Reset depth
+            m_DepthAttachmentId = -1;
+            m_DepthAttachment = null;
+
+            // Reset colors
+            m_ColorAttachments[0] = null;
+            m_ColorAttachmentIds[0] = -1;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+            {
+                m_ColorAttachments[i] = null;
+                m_ColorAttachmentIds[i] = 0;
+            }
+        }
+
+        /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
         /// </summary>
@@ -667,6 +691,19 @@ namespace UnityEngine.Rendering.Universal
 
             Blit(cmd, renderer.cameraColorTargetHandle, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
             renderer.SwapColorBuffer(cmd);
+        }
+
+        /// <summary>
+        /// Add a blit command to the context for execution. This applies the material to the color target.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="source">Source texture or target identifier to blit from.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        public void Blit(CommandBuffer cmd, ref RenderingData data, RTHandle source, Material material, int passIndex = 0)
+        {
+            var renderer = data.cameraData.renderer;
+            Blit(cmd, source, renderer.cameraColorTargetHandle, material, passIndex);
         }
 
         /// <summary>

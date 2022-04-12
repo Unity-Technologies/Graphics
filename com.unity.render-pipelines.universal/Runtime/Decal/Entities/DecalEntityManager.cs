@@ -349,6 +349,7 @@ namespace UnityEngine.Rendering.Universal
             cachedChunk.sceneLayerMasks[arrayIndex] = sceneLayerMask;
             cachedChunk.fadeFactors[arrayIndex] = fadeFactor;
             cachedChunk.scaleModes[arrayIndex] = decalProjector.scaleMode;
+            cachedChunk.decalLayerMasks[arrayIndex] = decalProjector.decalLayerMask;
 
             cachedChunk.positions[arrayIndex] = decalProjector.transform.position;
             cachedChunk.rotation[arrayIndex] = decalProjector.transform.rotation;

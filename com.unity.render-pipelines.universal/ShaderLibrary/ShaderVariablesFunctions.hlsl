@@ -398,4 +398,23 @@ float2 GetNormalizedScreenSpaceUV(float4 positionCS)
     #define UnityStereoTransformScreenSpaceTex(uv) uv
 #endif // defined(UNITY_SINGLE_PASS_STEREO)
 
+uint GetMeshRenderingLayer()
+{
+    return asuint(unity_RenderingLayer.x);
+}
+
+float EncodeMeshRenderingLayer(uint renderingLayer)
+{
+    uint maxInt = (1u << _RenderingLayerMaskSize) - 1u;
+    return saturate(renderingLayer * rcp(maxInt));
+    //return PackInt(renderingLayer, 16);
+}
+
+uint DecodeMeshRenderingLayer(float renderingLayer)
+{
+    uint maxInt = (1u << _RenderingLayerMaskSize) - 1u;
+    return (uint)(renderingLayer * maxInt + 0.5); // Round instead of truncating
+    //return UnpackInt(renderingLayer, 16);
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

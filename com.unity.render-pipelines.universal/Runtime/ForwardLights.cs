@@ -429,7 +429,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             var additionalLightData = light.GetUniversalAdditionalLightData();
-            lightLayerMask = (uint)additionalLightData.lightLayerMask;
+            lightLayerMask = RenderingLayerUtils.ToRenderingLayers(additionalLightData.lightLayerMask);
         }
 
         void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)

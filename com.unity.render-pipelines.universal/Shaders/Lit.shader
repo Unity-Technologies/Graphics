@@ -127,6 +127,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             // -------------------------------------
             // Unity defined keywords
@@ -231,7 +232,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
-            #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             // -------------------------------------
@@ -311,6 +312,10 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             //--------------------------------------
             // GPU Instancing

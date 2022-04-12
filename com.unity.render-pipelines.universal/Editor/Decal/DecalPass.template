@@ -63,7 +63,9 @@ Pass
     #endif
     #if _RENDER_PASS_ENABLED
     #define GBUFFER3 0
+    #define GBUFFER4 1
     FRAMEBUFFER_INPUT_HALF(GBUFFER3);
+    FRAMEBUFFER_INPUT_HALF(GBUFFER4);
     #endif
     // Includes
     $splice(PreGraphIncludes)

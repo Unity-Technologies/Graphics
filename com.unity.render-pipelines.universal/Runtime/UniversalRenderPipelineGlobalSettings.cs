@@ -158,6 +158,15 @@ namespace UnityEngine.Rendering.Universal
                     assetCreated.lightLayerName5 = System.String.Copy(src.lightLayerName5);
                     assetCreated.lightLayerName6 = System.String.Copy(src.lightLayerName6);
                     assetCreated.lightLayerName7 = System.String.Copy(src.lightLayerName7);
+
+                    assetCreated.decalLayerName0 = System.String.Copy(src.decalLayerName0);
+                    assetCreated.decalLayerName1 = System.String.Copy(src.decalLayerName1);
+                    assetCreated.decalLayerName2 = System.String.Copy(src.decalLayerName2);
+                    assetCreated.decalLayerName3 = System.String.Copy(src.decalLayerName3);
+                    assetCreated.decalLayerName4 = System.String.Copy(src.decalLayerName4);
+                    assetCreated.decalLayerName5 = System.String.Copy(src.decalLayerName5);
+                    assetCreated.decalLayerName6 = System.String.Copy(src.decalLayerName6);
+                    assetCreated.decalLayerName7 = System.String.Copy(src.decalLayerName7);
                 }
 
                 AssetDatabase.SaveAssets();
@@ -217,6 +226,15 @@ namespace UnityEngine.Rendering.Universal
             m_RenderingLayerNames[index++] = lightLayerName6;
             m_RenderingLayerNames[index++] = lightLayerName7;
 
+            m_RenderingLayerNames[index++] = decalLayerName0;
+            m_RenderingLayerNames[index++] = decalLayerName1;
+            m_RenderingLayerNames[index++] = decalLayerName2;
+            m_RenderingLayerNames[index++] = decalLayerName3;
+            m_RenderingLayerNames[index++] = decalLayerName4;
+            m_RenderingLayerNames[index++] = decalLayerName5;
+            m_RenderingLayerNames[index++] = decalLayerName6;
+            m_RenderingLayerNames[index++] = decalLayerName7;
+
             // Unused
             for (int i = index; i < m_RenderingLayerNames.Length; ++i)
             {
@@ -273,6 +291,25 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Name for light layer 7.</summary>
         public string lightLayerName7 = k_DefaultLightLayerNames[7];
 
+        static readonly string[] k_DefaultDecalLayerNames = { "Decal Layer default", "Decal Layer 1", "Decal Layer 2", "Decal Layer 3", "Decal Layer 4", "Decal Layer 5", "Decal Layer 6", "Decal Layer 7" };
+
+        /// <summary>Name for decal layer 0.</summary>
+        public string decalLayerName0 = k_DefaultDecalLayerNames[0];
+        /// <summary>Name for decal layer 1.</summary>
+        public string decalLayerName1 = k_DefaultDecalLayerNames[1];
+        /// <summary>Name for decal layer 2.</summary>
+        public string decalLayerName2 = k_DefaultDecalLayerNames[2];
+        /// <summary>Name for decal layer 3.</summary>
+        public string decalLayerName3 = k_DefaultDecalLayerNames[3];
+        /// <summary>Name for decal layer 4.</summary>
+        public string decalLayerName4 = k_DefaultDecalLayerNames[4];
+        /// <summary>Name for decal layer 5.</summary>
+        public string decalLayerName5 = k_DefaultDecalLayerNames[5];
+        /// <summary>Name for decal layer 6.</summary>
+        public string decalLayerName6 = k_DefaultDecalLayerNames[6];
+        /// <summary>Name for decal layer 7.</summary>
+        public string decalLayerName7 = k_DefaultDecalLayerNames[7];
+
         [System.NonSerialized]
         string[] m_LightLayerNames = null;
         /// <summary>
@@ -310,6 +347,15 @@ namespace UnityEngine.Rendering.Universal
             lightLayerName5 = k_DefaultLightLayerNames[5];
             lightLayerName6 = k_DefaultLightLayerNames[6];
             lightLayerName7 = k_DefaultLightLayerNames[7];
+
+            decalLayerName0 = k_DefaultDecalLayerNames[0];
+            decalLayerName1 = k_DefaultDecalLayerNames[1];
+            decalLayerName2 = k_DefaultDecalLayerNames[2];
+            decalLayerName3 = k_DefaultDecalLayerNames[3];
+            decalLayerName4 = k_DefaultDecalLayerNames[4];
+            decalLayerName5 = k_DefaultDecalLayerNames[5];
+            decalLayerName6 = k_DefaultDecalLayerNames[6];
+            decalLayerName7 = k_DefaultDecalLayerNames[7];
         }
 
         #endregion
