@@ -12,9 +12,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
         {
             class TestNode : INodeDefinitionBuilder
             {
+                public const string k_counter = "ConcretizationCounter";
                 public void BuildNode(NodeHandler node, Registry registry)
                 {
-
+                    node.AddPort<GraphType>("Input", true, registry);
+                    node.AddPort<GraphType>("Output", false, registry);
+                    node.DefaultLayer = GraphDelta.k_user;
+                    var field = node.GetField<int>(k_counter);
+                    if (field != null)
+                    {
+                        field.SetData(field.GetData() + 1);
+                    }
+                    else
+                    { 
+                        node.AddField(k_counter,1);
+                    }
+                    node.DefaultLayer = GraphDelta.k_concrete;
                 }
 
                 public RegistryFlags GetRegistryFlags()
@@ -113,7 +126,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             }
 
             [Test]
-            public void ConcretizationTest()
+            public void ConcretizationOnBuildTest()
             {
                 graphHandler.AddNode<TestAddNode>("AddNodeRef", registry);
                 GraphStorage storage = graphHandler.graphDelta.m_data;
@@ -324,6 +337,32 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 // TODO: Maybe have some sort of Clone operation on ITypeDefinitionBuilder?
                 // Assert.AreEqual(GraphType.Primitive.Int, GraphTypeHelpers.GetPrimitive(fooField));
             }
+
+            [Test]
+            public void CanStoreAndLoad()
+            {
+                var graph = new GraphHandler();
+                var registry = new Registry();
+                registry.Register<GraphType>();
+                registry.Register<TestAddNode>();
+                registry.Register<GraphTypeAssignment>();
+
+                var node = graph.AddNode<TestAddNode>("Add1", registry);
+                node.AddField("myData", 45);
+                var field = node.GetField("myData");
+                var data = field.GetData<int>();
+                Assert.AreEqual(data, 45);
+            }
+			
+            [Test]
+            public void ConcretizationTests()
+            {
+                var test = graphHandler.AddNode<TestNode>("test", registry);
+                var concretizationCounter = test.GetField<int>(TestNode.k_counter);
+                Assert.IsNotNull(concretizationCounter);
+                Assert.AreEqual(concretizationCounter.GetData(), 1); //initializes to 1 as AddNode calls BuildNode
+            }
+
         }
     }
 }

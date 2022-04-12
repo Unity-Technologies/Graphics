@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         public FieldHandler<T> AddField<T>(string localID, T value)
         {
-            Writer.AddChild(localID).SetHeader(new FieldHeader<T>());
+            Writer.AddChild(localID,value).SetHeader(new FieldHeader<T>());
             return new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, DefaultLayer);
         }
         public void RemoveField(string localID)
