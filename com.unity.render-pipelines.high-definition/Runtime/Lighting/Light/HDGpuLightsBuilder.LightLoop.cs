@@ -445,7 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (CopyShadowIndices)
                 {
                     // use the same shadow index from the previously computed one for visible lights
-                    shadowIndex = additionalLightData.shadowIndex; // GG: Review
+                    shadowIndex = additionalLightData.shadowIndex;
                 }
 
                 if (gpuLightType == GPULightType.Directional)
