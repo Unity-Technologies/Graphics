@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             FilterVisibleLightsByAOV(aovRequestData);
-            StartProcessVisibleLightJob(hdCamera, cullingResult.visibleLights, lightLoopSettings, debugDisplaySettings);
+            StartProcessVisibleLightJob(hdCamera, cullingResult.visibleLights, cullingResult.visibleOffscreenVertexLights, lightLoopSettings, debugDisplaySettings);
             CompleteProcessVisibleLightJob();
             SortLightKeys();
             ProcessShadows(hdCamera, shadowManager, inShadowInitParameters, cullingResult);

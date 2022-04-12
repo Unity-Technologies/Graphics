@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public NativeArray<VisibleLight> visibleLights;
             [ReadOnly]
+            public NativeArray<VisibleLight> visibleOffscreenVertexLights;
+            [ReadOnly]
             public NativeArray<int> visibleLightEntityDataIndices;
             [ReadOnly]
             public NativeArray<LightBakingOutput> visibleLightBakingOutput;
@@ -238,11 +240,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Execute(int index)
             {
-                VisibleLight visibleLight = visibleLights[index];
+                bool isFromVisibleList = visibleLightIsFromVisibleList[index];
+                VisibleLight visibleLight = isFromVisibleList ? visibleLights[index] : visibleOffscreenVertexLights[index - visibleLights.Length];
                 int dataIndex = visibleLightEntityDataIndices[index];
                 LightBakingOutput bakingOutput = visibleLightBakingOutput[index];
                 LightShadows shadows = visibleLightShadows[index];
-                bool isFromVisibleList = visibleLightIsFromVisibleList[index];
                 if (TrivialRejectLight(visibleLight, dataIndex, isFromVisibleList))
                     return;
 
@@ -300,8 +302,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int outputIndex = NextOutputIndex();
 #if DEBUG
-                if (outputIndex < 0 || outputIndex >= visibleLights.Length)
-                    throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + visibleLights.Length);
+                if (outputIndex < 0 || outputIndex >= sortKeys.Length)
+                    throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + sortKeys.Length);
 #endif
                 sortKeys[outputIndex] = HDGpuLightsBuilder.PackLightSortKey(lightCategory, gpuLightType, lightVolumeType, index);
 
@@ -332,6 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void StartProcessVisibleLightJob(
             HDCamera hdCamera,
             NativeArray<VisibleLight> visibleLights,
+            NativeArray<VisibleLight> visibleOffscreenVertexLights,
             in GlobalLightLoopSettings lightLoopSettings,
             DebugDisplaySettings debugDisplaySettings)
         {
@@ -362,6 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //data of all visible light entities.
                 visibleLights = visibleLights,
+                visibleOffscreenVertexLights = visibleOffscreenVertexLights,
                 visibleLightEntityDataIndices = m_VisibleLightEntityDataIndices,
                 visibleLightBakingOutput = m_VisibleLightBakingOutput,
                 visibleLightShadows = m_VisibleLightShadows,
