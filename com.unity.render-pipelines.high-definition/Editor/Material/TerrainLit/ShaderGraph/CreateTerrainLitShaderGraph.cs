@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateTerrainLitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader Graph/HDRP/TerrainLit Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 8)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/TerrainLit Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 9)]
         public static void CreateTerrainLitGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
