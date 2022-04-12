@@ -133,6 +133,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             nodeHandler.ClearLayerData(k_concrete);
             nodeHandler.DefaultLayer = k_concrete;
             builder.BuildNode(nodeHandler, registry);
+            foreach(var downstream in GetConnectedDownstreamNodes(id))
+            {
+                ReconcretizeNode(downstream.ID, registry);
+            }
             return builder != null;
         }
 
@@ -151,15 +155,38 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data.RemoveHandler(k_user, id);
         }
 
-        public EdgeHandler AddEdge(ElementID output, ElementID input)
+        public EdgeHandler AddEdge(ElementID output, ElementID input, Registry registry)
         {
             m_data.edges.Add(new Edge(output, input));
+            PortHandler port = new PortHandler(input, m_data);
+            ReconcretizeNode(port.GetNode().ID, registry);
             return new EdgeHandler(output, input, m_data);
         }
 
-        public void RemoveEdge(ElementID output, ElementID input)
+        public void RemoveEdge(ElementID output, ElementID input, Registry registry)
         {
             m_data.edges.RemoveAll(e => e.Output.Equals(output) && e.Input.Equals(input));
+            PortHandler port = new PortHandler(input, m_data);
+            ReconcretizeNode(port.GetNode().ID, registry);
+        }
+
+        internal IEnumerable<NodeHandler> GetConnectedDownstreamNodes(ElementID node)
+        {
+            var nodeHandler = m_data.GetHandler(node)?.ToNodeHandler();
+            if (nodeHandler != null)
+            {
+                foreach (var port in nodeHandler.GetPorts())
+                {
+                    if (!port.IsInput)
+                    {
+                        foreach (var connected in GetConnectedPorts(port.ID))
+                        {
+                            yield return connected.GetNode();
+                        }
+                    }
+                }
+            }
+
         }
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID node)
@@ -192,7 +219,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
 
             }
-
         }
 
         public void RemoveNode(string id)

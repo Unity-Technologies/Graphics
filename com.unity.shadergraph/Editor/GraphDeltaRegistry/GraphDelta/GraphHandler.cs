@@ -58,11 +58,25 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<NodeHandler> GetNodes() =>
             graphDelta.GetNodes();
 
-		public EdgeHandler AddEdge(ElementID output, ElementID input) =>
-            graphDelta.AddEdge(output, input);
+        [Obsolete("AddEdge(output, input) is deprecated - use AddEdge(output, input, registry) now instead for auto-concretization", false)]
+        public EdgeHandler AddEdge(ElementID output, ElementID input)
+        {
+            graphDelta.m_data.edges.Add(new Edge(output, input));
+            return new EdgeHandler(output, input, graphDelta.m_data);
+        }
 
-        public void RemoveEdge(ElementID output, ElementID input) =>
-            graphDelta.RemoveEdge(output, input);
+        public void AddEdge(ElementID output, ElementID input, Registry registry) =>
+            graphDelta.AddEdge(output, input, registry);
+
+
+        [Obsolete("RemoveEdge(output, input) is deprecated - use RemoveEdge(output, input, registry) now instead for auto-concretization", false)]
+        public void RemoveEdge(ElementID output, ElementID input)
+        {
+            graphDelta.m_data.edges.RemoveAll(e => e.Output.Equals(output) && e.Input.Equals(input));
+        }
+
+        public void RemoveEdge(ElementID output, ElementID input, Registry registry) =>
+            graphDelta.RemoveEdge(output, input, registry);
 
         public void ReconcretizeAll(Registry registry)
         {

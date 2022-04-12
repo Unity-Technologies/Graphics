@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphType;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -357,10 +358,29 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void ConcretizationTests()
             {
-                var test = graphHandler.AddNode<TestNode>("test", registry);
-                var concretizationCounter = test.GetField<int>(TestNode.k_counter);
-                Assert.IsNotNull(concretizationCounter);
-                Assert.AreEqual(concretizationCounter.GetData(), 1); //initializes to 1 as AddNode calls BuildNode
+                var test1 = graphHandler.AddNode<TestNode>("test1", registry);
+                var cCounter1 = test1.GetField<int>(TestNode.k_counter);
+                Assert.IsNotNull(cCounter1);
+                Assert.AreEqual(1, cCounter1.GetData()); //initializes to 1 as AddNode calls BuildNode
+                var test2 = graphHandler.AddNode<TestNode>("test2", registry);
+                var cCounter2 = test2.GetField<int>(TestNode.k_counter);
+                Assert.IsNotNull(cCounter2);
+                Assert.AreEqual(1, cCounter2.GetData()); //initializes to 1 as AddNode calls BuildNode
+
+                graphHandler.ReconcretizeNode("test2", registry);
+                Assert.AreEqual(2, cCounter2.GetData()); //Explicitly calling reconcretize should increment the value
+
+                graphHandler.AddEdge("test1.Output", "test2.Input", registry);
+                Assert.AreEqual(3, cCounter2.GetData()); //Connecting an edge should reconcretize downstream
+                Assert.AreEqual(1, cCounter1.GetData()); //Connecting an edge should not affect source node 
+
+                test1.SetPortField("Input", "Length", Length.Two); //Should cause reconcretization downstream, includind test1
+                Assert.AreEqual(4, cCounter2.GetData()); 
+                Assert.AreEqual(2, cCounter1.GetData());
+
+                graphHandler.RemoveEdge("test1.Output", "test2.Input", registry);
+                Assert.AreEqual(5, cCounter2.GetData()); 
+                Assert.AreEqual(2, cCounter1.GetData());
             }
 
         }
