@@ -2158,6 +2158,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public bool WillRenderShadowMap()
+        {
+            if (HDRenderPipeline.currentPipeline == null)
+                return false;
+
+            return HDRenderPipeline.currentPipeline.WillRenderShadowMap(this);
+        }
+
         // This offset shift the position of the spotlight used to approximate the area light shadows. The offset is the minimum such that the full
         // area light shape is included in the cone spanned by the spot light.
         internal static float GetAreaLightOffsetForShadows(Vector2 shapeSize, float coneAngle)

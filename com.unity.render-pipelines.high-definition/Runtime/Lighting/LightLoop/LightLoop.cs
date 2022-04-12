@@ -3211,6 +3211,28 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EnableContactShadow && m_ContactShadowIndex != 0;
         }
 
+        public bool WillRenderShadowMap(HDAdditionalLightData light)
+        {
+            if (m_ProcessedLightsBuilder == null || light == null)
+                return false;
+
+            int visibleLightCounts = m_ProcessedLightsBuilder.sortedLightCounts;
+            var lightEntities = HDLightRenderDatabase.instance;
+            for (int i = 0; i < visibleLightCounts; ++i)
+            {
+                uint sortKey = m_ProcessedLightsBuilder.sortKeys[i];
+                HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var _, out var _, out var _, out var lightIndex);
+                HDProcessedVisibleLight processedLightEntity = m_ProcessedLightsBuilder.processedEntities[lightIndex];
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[processedLightEntity.dataIndex];
+                if (additionalLightData == light)
+                {
+                    return (processedLightEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0;
+                }
+            }
+
+            return false;
+        }
+
         void SetContactShadowsTexture(HDCamera hdCamera, RTHandle contactShadowsRT, CommandBuffer cmd)
         {
             if (!WillRenderContactShadow())
