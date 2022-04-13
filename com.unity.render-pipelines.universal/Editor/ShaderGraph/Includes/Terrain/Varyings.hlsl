@@ -96,7 +96,7 @@ Varyings BuildVaryings(Attributes input)
     output.tangentViewDir = float4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentViewDir = float4(normalInput.bitangentWS, viewDirWS.z);
 
-    float4 tangentWS = normalInput.tangentWS;
+    float4 tangentWS = float4(normalInput.tangentWS, 1.0);
 #else
     float4 tangentWS = float4(1.0, 0.0, 0.0, 0.0);
 #endif

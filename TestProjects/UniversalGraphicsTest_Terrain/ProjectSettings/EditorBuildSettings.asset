@@ -71,4 +71,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/241_ShaderGraph_Deferred.unity
     guid: ffae67ba054a6a44fbac11f7cf2e9934
+  - enabled: 1
+    path: Assets/Scenes/242_ShaderGraph_8Layers_Forward.unity
+    guid: 2097c24e30f24f74188a5381ba215c5c
+  - enabled: 1
+    path: Assets/Scenes/243_ShaderGraph_8Layers_Deferred.unity
+    guid: 2a2dab1058db5f1409ec7d5512779424
   m_configObjects: {}
