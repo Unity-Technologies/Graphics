@@ -338,7 +338,6 @@ namespace UnityEngine.Rendering.Universal
             return batchesDrawn;
         }
 
-
         void CalculateFrustumCornersPerspective(Camera camera, float distance, NativeArray<Vector3> corners)
         {
             float verticalFieldOfView = camera.fieldOfView;  // This will need to be converted if user direction is allowed
@@ -361,33 +360,6 @@ namespace UnityEngine.Rendering.Universal
             corners[1] = new Vector3(halfWidth, -halfHeight, distance);
             corners[2] = new Vector3(-halfWidth, halfHeight, distance);
             corners[3] = new Vector3(-halfWidth, -halfHeight, distance);
-        }
-
-        void DrawDebugBox(Vector3 minCorner, Vector3 maxCorner, Color color)
-        {
-            // Draw the front face
-            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y ,minCorner.z), new Vector3(maxCorner.x, minCorner.y, minCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, minCorner.z), new Vector3(maxCorner.x, maxCorner.y, minCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, minCorner.z), new Vector3(minCorner.x, maxCorner.y, minCorner.z), color);
-            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, minCorner.z), new Vector3(minCorner.x, minCorner.y, minCorner.z), color);
-
-            // Draw the back face
-            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y, maxCorner.z), new Vector3(maxCorner.x, minCorner.y, maxCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, maxCorner.z), new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, maxCorner.y, maxCorner.z), color);
-            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, minCorner.y, maxCorner.z), color);
-
-            // Draw the top face
-            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y, minCorner.z), new Vector3(maxCorner.x, minCorner.y, minCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, minCorner.z), new Vector3(maxCorner.x, minCorner.y, maxCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, minCorner.y, maxCorner.z), new Vector3(minCorner.x, minCorner.y, maxCorner.z), color);
-            Debug.DrawLine(new Vector3(minCorner.x, minCorner.y, maxCorner.z), new Vector3(minCorner.x, minCorner.y, minCorner.z), color);
-
-            // Draw the bottom face
-            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, minCorner.z), new Vector3(maxCorner.x, maxCorner.y, minCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, minCorner.z), new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), color);
-            Debug.DrawLine(new Vector3(maxCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, maxCorner.y, maxCorner.z), color);
-            Debug.DrawLine(new Vector3(minCorner.x, maxCorner.y, maxCorner.z), new Vector3(minCorner.x, maxCorner.y, minCorner.z), color);
         }
 
         private Bounds CalculateWorldSpaceBounds(Camera camera, ILight2DCullResult cullResult)
@@ -433,9 +405,6 @@ namespace UnityEngine.Rendering.Universal
                 maxCorner = Vector3.Max(maxCorner, lightPos);
                 minCorner = Vector3.Min(minCorner, lightPos);
             }
-
-            if (camera == Camera.main)
-                DrawDebugBox(minCorner, maxCorner, Color.red);
 
             Vector3 center = 0.5f * (minCorner + maxCorner);
             Vector3 size = maxCorner - minCorner;
