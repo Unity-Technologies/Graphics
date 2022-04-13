@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
     [Title("Terrain", "Terrain Layer")]
     class TerrainLayer : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV // IGeneratesFunction
     {
+        const int InputUVId = 0;
         const int InputControlId = 1;
         const int OutputAlbedoId = 2;
         const int OutputNormalId = 3;
@@ -18,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         const int OutputSmoothnessId = 5;
         const int OutputOcclusionId = 6;
 
+        const string kInputUVSlotName = "UV";
         const string kInputControlName = "Control";
         const string kOutputAlbedoSlotName = "Albedo";
         const string kOutputNormalSlotName = "Normal";
@@ -80,6 +82,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new UVMaterialSlot(InputUVId, kInputUVSlotName, kInputUVSlotName, UVChannel.UV0, hidden: true));
             AddSlot(new Vector1MaterialSlot(InputControlId, kInputControlName, kInputControlName, SlotType.Input, 1));
             AddSlot(new Vector3MaterialSlot(OutputAlbedoId, kOutputAlbedoSlotName, kOutputAlbedoSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(OutputNormalId, kOutputNormalSlotName, kOutputNormalSlotName, SlotType.Output, Vector3.zero));
@@ -87,7 +90,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(OutputSmoothnessId, kOutputSmoothnessSlotName, kOutputSmoothnessSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputOcclusionId, kOutputOcclusionSlotName, kOutputOcclusionSlotName, SlotType.Output, 0));
 
-            RemoveSlotsNameNotMatching(new[] { InputControlId, OutputAlbedoId, OutputNormalId, OutputMetallicId, OutputSmoothnessId, OutputOcclusionId, });
+            RemoveSlotsNameNotMatching(new[] { InputUVId, InputControlId, OutputAlbedoId, OutputNormalId, OutputMetallicId, OutputSmoothnessId, OutputOcclusionId, });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)

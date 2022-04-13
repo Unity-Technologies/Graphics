@@ -10,11 +10,13 @@ namespace UnityEditor.ShaderGraph
     [Title("Terrain", "Terrain Splat")]
     class TerrainSplat : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV // IGeneratesFunction
     {
-        const int OutputControlRId = 2;
-        const int OutputControlGId = 3;
-        const int OutputControlBId = 4;
-        const int OutputControlAId = 5;
+        const int InputUVId = 0;
+        const int OutputControlRId = 1;
+        const int OutputControlGId = 2;
+        const int OutputControlBId = 3;
+        const int OutputControlAId = 4;
 
+        const string kInputUVSlotName = "UV";
         const string kOutputControlRSlotName = "Control(r)";
         const string kOutputControlGSlotName = "Control(g)";
         const string kOutputControlBSlotName = "Control(b)";
@@ -64,12 +66,13 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new UVMaterialSlot(InputUVId, kInputUVSlotName, kInputUVSlotName, UVChannel.UV0, hidden: true));
             AddSlot(new Vector1MaterialSlot(OutputControlRId, kOutputControlRSlotName, kOutputControlRSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputControlGId, kOutputControlGSlotName, kOutputControlGSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputControlBId, kOutputControlBSlotName, kOutputControlBSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(OutputControlAId, kOutputControlASlotName, kOutputControlASlotName, SlotType.Output, 0));
 
-            RemoveSlotsNameNotMatching(new[] { OutputControlRId, OutputControlGId, OutputControlBId, OutputControlAId, });
+            RemoveSlotsNameNotMatching(new[] { InputUVId, OutputControlRId, OutputControlGId, OutputControlBId, OutputControlAId, });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
