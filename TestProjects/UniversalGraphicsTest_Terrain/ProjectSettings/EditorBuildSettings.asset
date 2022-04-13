@@ -65,4 +65,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/230_Decal.unity
     guid: e04a7c287e4c08242a5511645a045ed4
+  - enabled: 1
+    path: Assets/Scenes/240_ShaderGraph_Forward.unity
+    guid: 94b762dfc269af342a37e48a9d1141b4
+  - enabled: 1
+    path: Assets/Scenes/241_ShaderGraph_Deferred.unity
+    guid: ffae67ba054a6a44fbac11f7cf2e9934
   m_configObjects: {}
