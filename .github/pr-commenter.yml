@@ -10,10 +10,10 @@ comment:
   snippets:
     - id: HDRP
       files:
-        - com.unity.render-pipelines.high-definition-config/**/*
-        - com.unity.render-pipelines.high-definition/**/*
-        - com.unity.testing.hdrp/**/*
-        - TestProjects/HDRP*/**/*
+        - Packages/com.unity.render-pipelines.high-definition-config/**/*
+        - Packages/com.unity.render-pipelines.high-definition/**/*
+        - Tests/SRPTests/Packages/com.unity.testing.hdrp/**/*
+        - Tests/SRPTests/Projects/HDRP*/**/*
       body: |
         **HDRP**
         `/jobDefinition/.yamato%2Fall-hdrp.yml%23PR_HDRP_2021.3`
@@ -21,9 +21,9 @@ comment:
         `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_2021.3`
     - id: URP
       files:
-        - com.unity.render-pipelines.universal/**/*
-        - com.unity.testing.urp/**/*
-        - TestProjects/Universal*/**/*
+        - Packages/com.unity.render-pipelines.universal/**/*
+        - Tests/SRPTests/Packages/com.unity.testing.urp/**/*
+        - Tests/SRPTests/Projects/Universal*/**/*
       body: |
         **URP**
         `/jobDefinition/.yamato%2Fall-urp.yml%23PR_URP_2021.3`
@@ -31,9 +31,9 @@ comment:
         `/jobDefinition/.yamato%2Fall-lightmapping.yml%23PR_Lightmapping_2021.3`
     - id: ShaderGraph
       files:
-        - com.unity.shadergraph/**/*
-        - TestProjects/ShaderGraph*/**/*
-        - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
+        - Packages/com.unity.shadergraph/**/*
+        - Tests/SRPTests/Projects/ShaderGraph*/**/*
+        - Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/*
       body: |
         **Shader Graph**
         `/jobDefinition/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.3`
@@ -42,15 +42,15 @@ comment:
          /jobDefinition/.yamato%2Fall-shadergraph_builtin_lighting.yml%23PR_ShaderGraph_BuiltIn_Lighting_2021.3
     - id: VFX
       files:
-        - com.unity.visualeffectgraph/**/*
-        - com.unity.testing.visualeffectgraph/**/*
-        - TestProjects/VisualEffectGraph*/**/*
+        - Packages/com.unity.visualeffectgraph/**/*
+        - Tests/SRPTests/Packages/com.unity.testing.visualeffectgraph/**/*
+        - Tests/SRPTests/Projects/VisualEffectGraph*/**/*
       body: |
         **VFX**
         `/jobDefinition/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.3`
     - id: Core
       files:
-        - com.unity.render-pipelines.core/**/*
+        - Packages/com.unity.render-pipelines.core/**/*
       body: |
         **SRP Core**
         You could run ABV on your branch before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:

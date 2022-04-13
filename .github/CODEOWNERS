@@ -1,20 +1,18 @@
 # Code Ownership File
 
 # Universal RP General
-/com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team @Unity-Technologies/gfx-qa-urp
+/Packages/com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team @Unity-Technologies/gfx-qa-urp
 
 # Universal RP 2D Renderer
-/com.unity.render-pipelines.universal/Editor/2D @Unity-Technologies/2d-graphics
-/com.unity.render-pipelines.universal/Runtime/2D @Unity-Technologies/2d-graphics
-/com.unity.render-pipelines.universal/Shaders/2D @Unity-Technologies/2d-graphics
-/com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
+/Packages/com.unity.render-pipelines.universal/Editor/2D @Unity-Technologies/2d-graphics
+/Packages/com.unity.render-pipelines.universal/Runtime/2D @Unity-Technologies/2d-graphics
+/Packages/com.unity.render-pipelines.universal/Shaders/2D @Unity-Technologies/2d-graphics
+/Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
 
 # Shader Graph
-/com.unity.shadergraph/ @Unity-Technologies/shader-graph
+/Packages/com.unity.shadergraph/ @Unity-Technologies/shader-graph
 
 # Test systems
 /.github/ @Unity-Technologies/gfx-sdets
 /.yamato/ @Unity-Technologies/gfx-sdets
-/katana-ci/ @Unity-Technologies/gfx-sdets
 /Tools/ @Unity-Technologies/gfx-sdets
-/com.unity.testframework.graphics/ @Unity-Technologies/gfx-sdets
