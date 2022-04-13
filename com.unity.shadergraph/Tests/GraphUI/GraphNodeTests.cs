@@ -66,11 +66,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return searcherWindow;
         }
 
-        // Thinking about utility for future tests, we might want:
-        // 1) Ability to create all nodes from the registry based off name
-        // 2) Ability to create some given nodes based on name and connect them
-        // 3) Ease of use for writing tests, meaning that it should be easy to specify how to create nodes instead of having to simulate each key input
-
         [UnityTest]
         public IEnumerator CreateAddNodeFromSearcherTest()
         {
