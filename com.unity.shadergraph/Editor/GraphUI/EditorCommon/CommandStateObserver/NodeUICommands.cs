@@ -76,18 +76,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
         readonly string m_PortName;
         readonly Gradient m_Value;
 
-        public SetGradientTypeValueCommand(GraphDataNodeModel graphDataNodeModel, string portName, Gradient value)
+        public SetGradientTypeValueCommand(
+            GraphDataNodeModel graphDataNodeModel,
+            string portName,
+            Gradient value)
         {
             m_GraphDataNodeModel = graphDataNodeModel;
             m_PortName = portName;
             m_Value = value;
         }
 
-        public static void DefaultCommandHandler(UndoStateComponent undoState,
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
             GraphModelStateComponent graphViewState,
             PreviewManager previewManager,
-            SetGradientTypeValueCommand command
-        )
+            SetGradientTypeValueCommand command)
         {
             using (var undoUpdater = undoState.UpdateScope)
             {

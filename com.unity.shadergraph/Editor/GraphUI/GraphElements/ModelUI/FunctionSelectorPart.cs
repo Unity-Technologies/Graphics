@@ -1,18 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class FunctionSelectorPart : BaseModelViewPart
     {
-        public override VisualElement Root => rootVisualElement;
+        public override VisualElement Root => m_rootVisualElement;
         private static readonly string ROOT_CLASS_NAME = "sg-function-selector-part";
-        private readonly GraphDataNodeModel graphDataNodeModel;
-        private VisualElement rootVisualElement;
-        private readonly Dictionary<string, string> choiceToKey;
+        private readonly GraphDataNodeModel m_graphDataNodeModel;
+        private VisualElement m_rootVisualElement;
+        private readonly Dictionary<string, string> m_choiceToKey;
 
         public FunctionSelectorPart(
             string name,
@@ -22,45 +21,43 @@ namespace UnityEditor.ShaderGraph.GraphUI
             IReadOnlyDictionary<string, string> options) : base(name, model, ownerElement, parentClassName)
         {
             // Invert the options because the values are displayed.
-            choiceToKey = new Dictionary<string, string>();
+            m_choiceToKey = new Dictionary<string, string>();
             foreach (var key in options.Keys)
             {
-                choiceToKey[options[key]] = key;
+                m_choiceToKey[options[key]] = key;
             }
             
-            graphDataNodeModel = model as GraphDataNodeModel;
+            m_graphDataNodeModel = model as GraphDataNodeModel;
         }
 
         protected override void BuildPartUI(VisualElement parent)
         {
-            rootVisualElement = new VisualElement();
+            m_rootVisualElement = new VisualElement();
             GraphElementHelper.LoadTemplateAndStylesheet(
-                container: rootVisualElement,
+                container: m_rootVisualElement,
                 name: "FunctionSelectorPart",
                 rootClassName: ROOT_CLASS_NAME);
-            var uxmlField = rootVisualElement.Q<DropdownField>("function-selector-part");
-            uxmlField.choices = choiceToKey.Keys.ToList();
-            uxmlField.value = uxmlField.choices[0];
-            parent.Add(rootVisualElement);
+            var uxmlField = m_rootVisualElement.Q<DropdownField>("function-selector-part");
+            uxmlField.choices = m_choiceToKey.Keys.ToList();
 
-            //m_Root = new VisualElement { name = PartName };
-            //m_Root.AddStylesheet("StaticPortParts/SingleFieldPart.uss");
-            //GraphElementHelper.LoadTemplate(m_Root, UXMLTemplateName);
-            //m_Field = m_Root.Q<F>(FieldName);
-            //m_Field.RegisterValueChangedCallback(OnFieldValueChanged);
-            //if (m_Field is BaseField<T> baseField)
-            //{
-            //    baseField.label = m_PortName;
-            //}
-            //parent.Add(m_Root);
+            // TODO (Brett) Change this to be the right selection
+            uxmlField.value = uxmlField.choices[0];
+
+            uxmlField.RegisterCallback<ChangeEvent<string>>(HandleSelectionChange);
+            parent.Add(m_rootVisualElement);
         }
 
         protected override void UpdatePartFromModel()
         {
-            if (!graphDataNodeModel.existsInGraphData)
-                return;
-            Debug.LogWarning("UpdatePartFromModel called!");
-            // throw new System.NotImplementedException();
+            // This Part is not effected by updates from the model.
+        }
+
+        private void HandleSelectionChange(ChangeEvent<string> evt)
+        {
+            string newValue = m_choiceToKey[evt.newValue];
+            string previousValue = m_choiceToKey[evt.previousValue];
+            var cmd = new ChangeNodeFunctionCommand(m_graphDataNodeModel, newValue, previousValue);
+            m_OwnerElement.RootView.Dispatch(cmd);
         }
     }
 }
