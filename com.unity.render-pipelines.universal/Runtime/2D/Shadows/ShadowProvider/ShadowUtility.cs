@@ -491,7 +491,8 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowEdge> tempEdges = new NativeArray<ShadowEdge>(inEdges.Length * k_SafeSize, Allocator.Temp);
             NativeArray<int> tmpShapeStartingEdge = new NativeArray<int>(inShapeStartingEdge.Length, Allocator.Temp);
 
-            Clipper2D.Clear();
+            IntPtr clipperDataPtr = Clipper2D.CreateClipperData();
+            Clipper2D.Clear(clipperDataPtr);
 
             for (int i = 0; i < tmpShapeStartingEdge.Length; i++)
                 tmpShapeStartingEdge[i] = -1;
@@ -514,7 +515,7 @@ namespace UnityEngine.Rendering.Universal
 
                     verticesToClip[numberOfEdges] = inVertices[inEdges[numberOfEdges + currentShapeStart - 1].v1];
 
-                    Clipper2D.AddInputPath(verticesToClip);
+                    Clipper2D.AddInputPath(clipperDataPtr, verticesToClip);
                 }
                 // If its an open shape just copy it to our output
                 else
@@ -536,17 +537,17 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            Clipper2D.ContractPath(-contractEdge);
+            Clipper2D.ContractPath(clipperDataPtr, - contractEdge);
 
             // If we have an output path copy it out
-            int outputPaths = Clipper2D.GetOutputPaths();
+            int outputPaths = Clipper2D.GetOutputPaths(clipperDataPtr);
             for (int outputPath = 0; outputPath < outputPaths; outputPath++)
             {
-                int outputPathLength = Clipper2D.GetOutputPathLength(outputPath);
+                int outputPathLength = Clipper2D.GetOutputPathLength(clipperDataPtr, outputPath);
                 if (outputPathLength > 0 && tmpShapeStartingEdge.Length > outputPath)
                 {
                     tmpShapeStartingEdge[outputPath] = currentTempEdgeIndex;
-                    Clipper2D.GetOutputPath(outputPath, tempVertices, currentTempVertexIndex);
+                    Clipper2D.GetOutputPath(clipperDataPtr, outputPath, tempVertices, currentTempVertexIndex);
 
                     // Create edges
                     int lastVertexIndex = (outputPathLength - 1) + currentTempVertexIndex;
@@ -582,6 +583,8 @@ namespace UnityEngine.Rendering.Universal
 
             tempVertices.Dispose();
             tempEdges.Dispose();
+
+            Clipper2D.DisposeClipperData(clipperDataPtr);
         }
     }
 }
