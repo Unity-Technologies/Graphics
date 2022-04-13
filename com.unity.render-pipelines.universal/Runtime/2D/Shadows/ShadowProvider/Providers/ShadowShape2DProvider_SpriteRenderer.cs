@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.Universal
         public override int Priority()  { return 1; }  // give higher than default menu priority
         public override bool IsShapeSource(in Component sourceComponent) { return sourceComponent is SpriteRenderer; }
 
-        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShapeData)
+        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShadowShape)
         {
             SpriteRenderer sr = (SpriteRenderer)sourceComponent;
 
@@ -60,13 +60,13 @@ namespace UnityEngine.Rendering.Universal
                 Sprite sprite = sr.sprite;
                 NativeSlice<Vector3> vertexSlice = sprite.GetVertexAttribute<Vector3>(UnityEngine.Rendering.VertexAttribute.Position);
 
-                m_PersistantShapeData = persistantShapeData;
+                m_PersistantShapeData = persistantShadowShape;
                 SetPersistantShapeData(sprite, m_PersistantShapeData, vertexSlice);
                 sr.RegisterSpriteChangeCallback(UpdatePersistantShapeData);
             }
         }
 
-        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShapeObject)
+        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             SpriteRenderer sr = (SpriteRenderer)sourceComponent;
             if (sr != null && sr.sprite != null)
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
                 if (vertices.Length > 0)
                 {
                     Sprite sprite = sr.sprite;
-                    SetPersistantShapeData(sprite, persistantShapeObject, vertices);
+                    SetPersistantShapeData(sprite, persistantShadowShape, vertices);
                 }
             }
         }

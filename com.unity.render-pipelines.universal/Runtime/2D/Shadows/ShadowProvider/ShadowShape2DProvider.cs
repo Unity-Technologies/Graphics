@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         public virtual void   Enabled(in Component sourceComponent) { }
         public virtual void   Disabled(in Component sourceComponent) { }
         public abstract bool  IsShapeSource(in Component sourceComponent);
-        public abstract void  OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShapeData);
-        public abstract void  OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShapeObject);
+        public abstract void  OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShadowShape);
+        public abstract void  OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape);
     }
 }

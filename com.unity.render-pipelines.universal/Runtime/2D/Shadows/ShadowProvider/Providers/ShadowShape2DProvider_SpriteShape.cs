@@ -71,14 +71,14 @@ namespace UnityEngine.Rendering.Universal
             return sourceComponent as SpriteShapeController;
         }
 
-        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShapeData)
+        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShadowShape)
         {
-            UpdateShadows((SpriteShapeController)sourceComponent, persistantShapeData);
+            UpdateShadows((SpriteShapeController)sourceComponent, persistantShadowShape);
         }
 
-        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShapeObject)
+        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
-            UpdateShadows((SpriteShapeController)sourceComponent, persistantShapeObject);
+            UpdateShadows((SpriteShapeController)sourceComponent, persistantShadowShape);
         }
     }
 }
