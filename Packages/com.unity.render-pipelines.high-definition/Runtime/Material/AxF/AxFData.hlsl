@@ -556,8 +556,8 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
         // Affect both normal and clearcoat normal
 #ifdef DECAL_SURFACE_GRADIENT
         float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
-        normalTS = normalTS * decalSurfaceData.normalWS.w + surfGrad;
-        clearcoatNormalTS = clearcoatNormalTS * decalSurfaceData.normalWS.w + surfGrad;
+        normalTS += surfGrad;
+        clearcoatNormalTS += surfGrad;
 #else
         surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
         surfaceData.clearcoatNormalWS = SafeNormalize(surfaceData.clearcoatNormalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
