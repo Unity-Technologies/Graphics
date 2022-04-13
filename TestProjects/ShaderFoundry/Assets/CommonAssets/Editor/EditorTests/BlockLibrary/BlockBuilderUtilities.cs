@@ -30,8 +30,17 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             fieldBuilder.AddAttribute(propAttributeBuilder.Build());
         }
 
+        internal class FieldData
+        {
+            internal PropertyAttributeData PropertyAttribute;
+            internal List<ShaderAttribute> ExtraAttributes;
+            internal ShaderType Type;
+            internal string Name;
+        }
+
         internal class PropertyDeclarationData
         {
+            internal List<FieldData> Fields;
             internal string OutputInstanceName = "outputs";
             internal string InputInstanceName = "inputs";
 
@@ -52,18 +61,38 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             var blockBuilder = new Block.Builder(container, blockName);
 
             // Build the input type
-            var inputTypeBuilder = new ShaderType.StructBuilder(blockBuilder, "Input");
-            var fieldName = propertyData.FieldName;
-            var inputFieldBuilder = new StructField.Builder(container, fieldName, propertyData.FieldType);
-            if (propertyData.PropertyAttribute != null)
-                MarkAsProperty(container, inputFieldBuilder, propertyData.PropertyAttribute);
-
-            if (propertyData.ExtraAttributes != null)
+            var inputFields = new List<FieldData>();
+            // TODO @ SHADERS: This should get cleaned up eventually to not have the primary field, but all of the tests need to get updated.
+            // Build the primary field into our list of fields.
+            if (propertyData.FieldName != null)
             {
-                foreach (var attribute in propertyData.ExtraAttributes)
-                    inputFieldBuilder.AddAttribute(attribute);
+                var primaryField = new FieldData
+                {
+                    Name = propertyData.FieldName,
+                    Type = propertyData.FieldType,
+                    ExtraAttributes = propertyData.ExtraAttributes,
+                    PropertyAttribute = propertyData.PropertyAttribute,
+                };
+                inputFields.Add(primaryField);
             }
-            inputTypeBuilder.AddField(inputFieldBuilder.Build());
+            if (propertyData.Fields != null)
+                inputFields.AddRange(propertyData.Fields);
+
+            var inputTypeBuilder = new ShaderType.StructBuilder(blockBuilder, "Input");
+            foreach (var fieldData in inputFields)
+            {
+                var fieldBuilder = new StructField.Builder(container, fieldData.Name, fieldData.Type);
+                if (fieldData.PropertyAttribute != null)
+                    MarkAsProperty(container, fieldBuilder, fieldData.PropertyAttribute);
+
+                if (fieldData.ExtraAttributes != null)
+                {
+                    foreach (var attribute in fieldData.ExtraAttributes)
+                        fieldBuilder.AddAttribute(attribute);
+                }
+                inputTypeBuilder.AddField(fieldBuilder.Build());
+            }
+
             var inputAlphaBuilder = new StructField.Builder(container, "Alpha", container._float);
             inputTypeBuilder.AddField(inputAlphaBuilder.Build());
             var inputType = inputTypeBuilder.Build();
