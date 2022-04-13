@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //-----------------------------------------------------------
         // MouseDown Event Helpers
         //-----------------------------------------------------------
-        public void MouseDownEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        public void SendMouseDownEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
             m_Window.SendEvent(
                 new Event
@@ -40,21 +40,21 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 });
         }
 
-        public void MouseDownEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse,
+        public void SendMouseDownEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse,
             EventModifiers eventModifiers = EventModifiers.None)
         {
-            MouseDownEvent(point, 1, mouseButton, eventModifiers);
+            SendMouseDownEvent(point, 1, mouseButton, eventModifiers);
         }
 
-        public void MouseDownEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        public void SendMouseDownEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-            MouseDownEvent(element.worldBound.center, mouseButton, eventModifiers);
+            SendMouseDownEvent(element.worldBound.center, mouseButton, eventModifiers);
         }
 
         //-----------------------------------------------------------
         // MouseUp Event Helpers
         //-----------------------------------------------------------
-        public void MouseUpEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        public void SendMouseUpEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
             m_Window.SendEvent(
                 new Event
@@ -67,30 +67,30 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 });
         }
 
-        public void MouseUpEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse,
+        public void SendMouseUpEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse,
             EventModifiers eventModifiers = EventModifiers.None)
         {
-            MouseUpEvent(point, 1, mouseButton, eventModifiers);
+            SendMouseUpEvent(point, 1, mouseButton, eventModifiers);
         }
 
-        public void MouseUpEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        public void SendMouseUpEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-            MouseUpEvent(element.worldBound.center, mouseButton, eventModifiers);
+            SendMouseUpEvent(element.worldBound.center, mouseButton, eventModifiers);
         }
 
         //-----------------------------------------------------------
         // MouseDown + Up Event Helpers (aka Click)
         //-----------------------------------------------------------
-        public void MouseClickEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        public void SimulateMouseClick(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-            MouseDownEvent(point, 1, mouseButton, eventModifiers);
-            MouseUpEvent(point, 1, mouseButton, eventModifiers);
+            SendMouseDownEvent(point, 1, mouseButton, eventModifiers);
+            SendMouseUpEvent(point, 1, mouseButton, eventModifiers);
         }
 
         //-----------------------------------------------------------
         // MouseDrag Event Helpers
         //-----------------------------------------------------------
-        public void MouseDragEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        public void SendMouseDragEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
             m_Window.SendEvent(
                 new Event
@@ -103,10 +103,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 });
         }
 
+        public void SendMouseDragEvent(VisualElement start, VisualElement end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            SendMouseDragEvent(start.worldBound.center, end.worldBound.center, mouseButton, eventModifiers);
+        }
+
         //-----------------------------------------------------------
         // MouseMove Event Helpers
         //-----------------------------------------------------------
-        public void MouseMoveEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        public void SendMouseMoveEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
             m_Window.SendEvent(
                 new Event
@@ -119,15 +124,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 });
         }
 
-        public void MouseDragEvent(VisualElement start, VisualElement end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
-        {
-            MouseDragEvent(start.worldBound.center, end.worldBound.center, mouseButton, eventModifiers);
-        }
-
         //-----------------------------------------------------------
         // ScrollWheel Event Helpers
         //-----------------------------------------------------------
-        public void ScrollWheelEvent(float scrollDelta, Vector2 mousePosition, EventModifiers eventModifiers = EventModifiers.None)
+        public void SendScrollWheelEvent(float scrollDelta, Vector2 mousePosition, EventModifiers eventModifiers = EventModifiers.None)
         {
             m_Window.SendEvent(
                 new Event
