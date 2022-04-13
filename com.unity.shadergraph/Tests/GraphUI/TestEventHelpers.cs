@@ -29,9 +29,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //-----------------------------------------------------------
         public void MouseDownEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-#if ENABLE_EVENT_HELPER_TRACE
-            Debug.Log("MouseDown: [" + eventModifiers + "][" + mouseButton + "] @" + point);
-#endif
             m_Window.SendEvent(
                 new Event
                 {
@@ -59,10 +56,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //-----------------------------------------------------------
         public void MouseUpEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-#if ENABLE_EVENT_HELPER_TRACE
-            Debug.Log("MouseUp: [" + eventModifiers + "][" + mouseButton + "] @" + point);
-#endif
-
             m_Window.SendEvent(
                 new Event
                 {
@@ -99,10 +92,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //-----------------------------------------------------------
         public void MouseDragEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-#if ENABLE_EVENT_HELPER_TRACE
-            Debug.Log("MouseDrag: [" + eventModifiers + "][" + mouseButton + "] @" + start + " -> " + end);
-#endif
-
             m_Window.SendEvent(
                 new Event
                 {
@@ -119,10 +108,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //-----------------------------------------------------------
         public void MouseMoveEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-#if ENABLE_EVENT_HELPER_TRACE
-            Debug.Log("MouseMove: [" + eventModifiers + "][" + mouseButton + "] @" + start + " -> " + end);
-#endif
-
             m_Window.SendEvent(
                 new Event
                 {
@@ -144,10 +129,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //-----------------------------------------------------------
         public void ScrollWheelEvent(float scrollDelta, Vector2 mousePosition, EventModifiers eventModifiers = EventModifiers.None)
         {
-#if ENABLE_EVENT_HELPER_TRACE
-            Debug.Log("ScrollWheel: [" + eventModifiers + "] @" + mousePosition + " delta:" + scrollDelta);
-#endif
-
             m_Window.SendEvent(
                 new Event
                 {
