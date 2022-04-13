@@ -84,8 +84,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     unpacked.normalWS = TransformObjectToWorldNormal(normalOS);
 
     #ifdef VARYINGS_NEED_TANGENT_WS
-        float4 tangentOS = normalize(ConstructTerrainTangent(normalOS, float3(0.0, 0.0, 1.0)));
-        unpacked.tangentWS = float4(TransformObjectToWorldNormal(tangentOS.xyz), 0.0);
+        float4 tangentOS = ConstructTerrainTangent(normalOS, float3(0.0, 0.0, 1.0));
+        unpacked.tangentWS = float4(TransformObjectToWorldNormal(normalize(tangentOS.xyz)), tangentOS.w);
     #endif
 #endif
 

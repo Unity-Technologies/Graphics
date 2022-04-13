@@ -87,20 +87,18 @@ Varyings BuildVaryings(Attributes input)
     float3 normalWS = float3(0.0, 0.0, 0.0);
 #endif
 
-#if defined(ATTRIBUTES_NEED_NORMAL) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    float4 tangentOS = normalize(ConstructTerrainTangent(input.normalOS, float3(0.0, 0.0, 1.0)));
-    float4 tangentWS = float4(TransformObjectToWorldDir(tangentOS.xyz), tangentOS.w);
-#else
-    float4 tangentWS = float4(1.0, 0.0, 0.0, 0.0);
-#endif
-
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, tangentOS);
+    float4 vertexTangent = float4(cross(float3(0.0, 0.0, 1.0), input.normalOS), 1.0);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, vertexTangent);
 
     output.normalViewDir = float4(normalInput.normalWS, viewDirWS.x);
     output.tangentViewDir = float4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentViewDir = float4(normalInput.bitangentWS, viewDirWS.z);
+
+    float4 tangentWS = normalInput.tangentWS;
+#else
+    float4 tangentWS = float4(1.0, 0.0, 0.0, 0.0);
 #endif
 
     // TODO: Change to inline ifdef

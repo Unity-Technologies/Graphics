@@ -30,9 +30,9 @@ SAMPLER(sampler_Splat1);
 SAMPLER(sampler_Splat2);
 SAMPLER(sampler_Splat3);
 
-//SAMPLER(sampler_Splat1);
-//SAMPLER(sampler_Splat2);
-//SAMPLER(sampler_Splat3);
+//SAMPLER(sampler_Normal1);
+//SAMPLER(sampler_Normal2);
+//SAMPLER(sampler_Normal3);
 
 SAMPLER(sampler_Mask1);
 SAMPLER(sampler_Mask2);
