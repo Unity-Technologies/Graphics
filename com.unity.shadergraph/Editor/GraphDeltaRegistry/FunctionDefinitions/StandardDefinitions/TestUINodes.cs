@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "Function2",
-                    "Out = In;",
-                    new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
-                    new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
+                    "B = A;",
+                    new ParameterDescriptor("A", TYPE.Int, GraphType.Usage.In),
+                    new ParameterDescriptor("B", TYPE.Int, GraphType.Usage.Out)
                 )
             }
         );
