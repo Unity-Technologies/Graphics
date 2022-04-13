@@ -41,8 +41,8 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             selectableFunctions: new ()
             {
-                { "Function1", "Function One" },
-                { "Function2", "Function Two" }
+                { "Function1", "In Out Static" },
+                { "Function2", "A B" }
             }
         );
     }

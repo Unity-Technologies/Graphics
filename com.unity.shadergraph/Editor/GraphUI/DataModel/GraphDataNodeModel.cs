@@ -156,6 +156,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME,
                 newFunctionName);
             graphHandler.ReconcretizeNode(graphDataName, registry);
+            DefineNode();
         }
 
         public void OnPreviewTextureUpdated(Texture newTexture)

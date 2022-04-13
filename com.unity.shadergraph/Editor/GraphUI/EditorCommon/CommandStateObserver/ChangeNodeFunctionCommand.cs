@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ChangeNodeFunctionCommand(
             GraphDataNodeModel graphDataNodeModel,
-            string previousFunctionName,
-            string newFunctionName)
+            string newFunctionName,
+            string previousFunctionName)
         {
             m_GraphDataNodeModel = graphDataNodeModel;
             m_previousFunctionName = previousFunctionName;
