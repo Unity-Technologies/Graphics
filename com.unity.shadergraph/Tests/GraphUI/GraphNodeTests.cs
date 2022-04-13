@@ -23,12 +23,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         ShaderGraphEditorWindow m_Window;
         ShaderGraphView m_GraphView;
 
+        // Used to send events to the highest shader graph editor window
+        TestEventHelpers m_ShaderGraphWindowTestHelper;
+
         string m_TestAssetPath =  $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
 
         protected virtual void CreateWindow()
         {
             m_Window = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             m_Window.shouldCloseWindowNoPrompt = true;
+
+            m_ShaderGraphWindowTestHelper = new TestEventHelpers(m_Window);
         }
 
         [SetUp]
@@ -99,6 +104,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         IEnumerator AddNodeFromSearcherAndValidate(string nodeName)
         {
             var searcherWindow = SummonSearcher();
+            var searcherWindowTestHelper = new TestEventHelpers(searcherWindow);
+
             yield return null;
 
             searcherWindow.Focus();
@@ -107,14 +114,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             foreach (char c in nodeName)
             {
-                TestEventHelpers.SimulateKeyPress(searcherWindow, c.ToString());
+                searcherWindowTestHelper.SimulateKeyPress(c.ToString());
                 yield return null;
             }
 
             // Sending two key-down events followed by a key-up for the Return as we normally do causes an exception
             // it seems like the searcher is waiting for that first Return event and closes immediately after,
             // any further key events sent cause a MissingReferenceException as the searcher window is now invalid
-            TestEventHelpers.SimulateKeyPress(searcherWindow, KeyCode.Return, false, false);
+            searcherWindowTestHelper.SimulateKeyPress(KeyCode.Return, false, false);
             yield return null;
             yield return null;
             yield return null;

@@ -13,72 +13,171 @@ using UIECursor = UnityEngine.UIElements.Cursor;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    static class TestEventHelpers
+    // An instance of this class is meant to be used to send events to a particular editor window
+    // The window provided in the constructor will be the window that all events are sent to using this instance
+    public class TestEventHelpers
     {
-        public static void TestAllElements(VisualElement container, Action<VisualElement> test)
+        EditorWindow m_Window;
+
+        public TestEventHelpers(EditorWindow targetWindow)
         {
-            test(container);
-            for (int i = 0; i < container.hierarchy.childCount; ++i)
-            {
-                var element = container.hierarchy[i];
-                TestAllElements(element, test);
-            }
+            m_Window = targetWindow;
         }
 
-        public static void SendMouseEvent(EditorWindow parentWindow,
-            VisualElement elementToNotify,
-            EventType eventType = EventType.MouseDown,
-            MouseButton mouseButton = MouseButton.LeftMouse,
-            int clickCount = 1,
-            EventModifiers eventModifiers = EventModifiers.None,
-            Vector2 positionOffset = default)
+        //-----------------------------------------------------------
+        // MouseDown Event Helpers
+        //-----------------------------------------------------------
+        public void MouseDownEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
         {
-            var screenButtonPosition = GetScreenPosition(parentWindow, elementToNotify);
-            var mouseEvent = new Event
-            {
-                type = eventType,
-                mousePosition = screenButtonPosition + positionOffset,
-                clickCount = clickCount,
-                button = (int)mouseButton,
-                modifiers = eventModifiers
-            };
-            parentWindow.SendEvent(mouseEvent);
+#if ENABLE_EVENT_HELPER_TRACE
+            Debug.Log("MouseDown: [" + eventModifiers + "][" + mouseButton + "] @" + point);
+#endif
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.MouseDown,
+                    mousePosition = point,
+                    clickCount = count,
+                    button = (int)mouseButton,
+                    modifiers = eventModifiers
+                });
         }
 
-        public static void SimulateKeyPress(EditorWindow targetWindow, KeyCode inputKey, bool sendTwice = true, bool sendKeyUp = true)
-        {
-            SendKeyDownEvent(targetWindow, inputKey, EventModifiers.None, sendTwice);
-            if(sendKeyUp)
-                SendKeyUpEvent(targetWindow);
-        }
-
-        public static void SimulateKeyPress(EditorWindow targetWindow, string inputChar)
-        {
-            SendKeyDownEvent(targetWindow, inputChar);
-            SendKeyUpEvent(targetWindow);
-        }
-
-        public static void SendKeyDownEvent(
-            EditorWindow parentWindow,
-            string keyChar,
+        public void MouseDownEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse,
             EventModifiers eventModifiers = EventModifiers.None)
         {
-            // Builds event with correct keyCode
-            var keyEvent = Event.KeyboardEvent(keyChar);
-            keyEvent.type = EventType.KeyDown;
-            keyEvent.modifiers = eventModifiers;
-            parentWindow.SendEvent(keyEvent);
+            MouseDownEvent(point, 1, mouseButton, eventModifiers);
         }
 
-        public static void SendKeyDownEvent(
-            EditorWindow parentWindow,
+        public void MouseDownEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            MouseDownEvent(element.worldBound.center, mouseButton, eventModifiers);
+        }
+
+        //-----------------------------------------------------------
+        // MouseUp Event Helpers
+        //-----------------------------------------------------------
+        public void MouseUpEvent(Vector2 point, int count, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+#if ENABLE_EVENT_HELPER_TRACE
+            Debug.Log("MouseUp: [" + eventModifiers + "][" + mouseButton + "] @" + point);
+#endif
+
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.MouseUp,
+                    mousePosition = point,
+                    clickCount = count,
+                    button = (int)mouseButton,
+                    modifiers = eventModifiers
+                });
+        }
+
+        public void MouseUpEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse,
+            EventModifiers eventModifiers = EventModifiers.None)
+        {
+            MouseUpEvent(point, 1, mouseButton, eventModifiers);
+        }
+
+        public void MouseUpEvent(VisualElement element, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            MouseUpEvent(element.worldBound.center, mouseButton, eventModifiers);
+        }
+
+        //-----------------------------------------------------------
+        // MouseDown + Up Event Helpers (aka Click)
+        //-----------------------------------------------------------
+        public void MouseClickEvent(Vector2 point, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            MouseDownEvent(point, 1, mouseButton, eventModifiers);
+            MouseUpEvent(point, 1, mouseButton, eventModifiers);
+        }
+
+        //-----------------------------------------------------------
+        // MouseDrag Event Helpers
+        //-----------------------------------------------------------
+        public void MouseDragEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+#if ENABLE_EVENT_HELPER_TRACE
+            Debug.Log("MouseDrag: [" + eventModifiers + "][" + mouseButton + "] @" + start + " -> " + end);
+#endif
+
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.MouseDrag,
+                    mousePosition = end,
+                    button = (int)mouseButton,
+                    delta = end - start,
+                    modifiers = eventModifiers
+                });
+        }
+
+        //-----------------------------------------------------------
+        // MouseMove Event Helpers
+        //-----------------------------------------------------------
+        public void MouseMoveEvent(Vector2 start, Vector2 end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+#if ENABLE_EVENT_HELPER_TRACE
+            Debug.Log("MouseMove: [" + eventModifiers + "][" + mouseButton + "] @" + start + " -> " + end);
+#endif
+
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.MouseMove,
+                    mousePosition = end,
+                    button = (int)mouseButton,
+                    delta = end - start,
+                    modifiers = eventModifiers
+                });
+        }
+
+        public void MouseDragEvent(VisualElement start, VisualElement end, MouseButton mouseButton = MouseButton.LeftMouse, EventModifiers eventModifiers = EventModifiers.None)
+        {
+            MouseDragEvent(start.worldBound.center, end.worldBound.center, mouseButton, eventModifiers);
+        }
+
+        //-----------------------------------------------------------
+        // ScrollWheel Event Helpers
+        //-----------------------------------------------------------
+        public void ScrollWheelEvent(float scrollDelta, Vector2 mousePosition, EventModifiers eventModifiers = EventModifiers.None)
+        {
+#if ENABLE_EVENT_HELPER_TRACE
+            Debug.Log("ScrollWheel: [" + eventModifiers + "] @" + mousePosition + " delta:" + scrollDelta);
+#endif
+
+            m_Window.SendEvent(
+                new Event
+                {
+                    type = EventType.ScrollWheel,
+                    modifiers = eventModifiers,
+                    mousePosition = mousePosition,
+                    delta = new Vector2(scrollDelta, scrollDelta)
+                });
+        }
+
+        //-----------------------------------------------------------
+        // Keyboard Event Helpers
+        //-----------------------------------------------------------
+
+        /* ---- Uses a directly specified keyCode, meant to be used for more obscure keyboard keys */
+        public void SimulateKeyPress(KeyCode inputKey, bool sendTwice = true, bool sendKeyUp = true)
+        {
+            SendKeyDownEvent(inputKey, EventModifiers.None, sendTwice);
+            if(sendKeyUp)
+                SendKeyUpEvent(inputKey);
+        }
+
+        public void SendKeyDownEvent(
             KeyCode key = KeyCode.None,
             EventModifiers eventModifiers = EventModifiers.None,
             bool sendTwice = true)
         {
             // In Unity, key down are sent twice: once with keycode, once with character.
 
-            parentWindow.SendEvent(
+            m_Window.SendEvent(
                 new Event
                 {
                     type = EventType.KeyDown,
@@ -87,7 +186,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 });
 
             if(sendTwice)
-                parentWindow.SendEvent(
+                m_Window.SendEvent(
                     new Event
                     {
                         type = EventType.KeyDown,
@@ -96,18 +195,59 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                     });
         }
 
-        public static void SendKeyUpEvent(
-            EditorWindow parentWindow,
+        public void SendKeyUpEvent(
             KeyCode key = KeyCode.None,
             EventModifiers eventModifiers = EventModifiers.None)
         {
-            parentWindow.SendEvent(
+            m_Window.SendEvent(
                 new Event
                 {
                     type = EventType.KeyUp,
                     keyCode = key,
                     modifiers = eventModifiers
                 });
+        }
+        /* ----  */
+
+        /* ---- Uses a specified string input, figures out what keyCode to use, meant to be used for more typical alpha-numeric input */
+        public void SimulateKeyPress(string inputKey)
+        {
+            SendKeyDownEvent(inputKey);
+            SendKeyUpEvent(inputKey);
+        }
+
+        public void SendKeyDownEvent(
+            string keyChar,
+            EventModifiers eventModifiers = EventModifiers.None)
+        {
+            // Builds event with correct keyCode
+            var keyEvent = Event.KeyboardEvent(keyChar);
+            keyEvent.type = EventType.KeyDown;
+            keyEvent.modifiers = eventModifiers;
+            m_Window.SendEvent(keyEvent);
+        }
+
+        public void SendKeyUpEvent(
+            string keyChar,
+            EventModifiers eventModifiers = EventModifiers.None)
+        {
+            // Builds event with correct keyCode
+            var keyEvent = Event.KeyboardEvent(keyChar);
+            keyEvent.type = EventType.KeyUp;
+            keyEvent.modifiers = eventModifiers;
+            m_Window.SendEvent(keyEvent);
+        }
+
+        /* ---- */
+
+        public static void TestAllElements(VisualElement container, Action<VisualElement> test)
+        {
+            test(container);
+            for (int i = 0; i < container.hierarchy.childCount; ++i)
+            {
+                var element = container.hierarchy[i];
+                TestAllElements(element, test);
+            }
         }
 
         public static Vector2 GetScreenPosition(EditorWindow parentWindow, VisualElement visualElement)
