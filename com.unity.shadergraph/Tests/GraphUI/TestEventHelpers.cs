@@ -45,28 +45,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             parentWindow.SendEvent(mouseEvent);
         }
 
-        // TODO: Reimplement for GTF windows
-        public static void SendDeleteCommand(
-            EditorWindow parentWindow,
-            VisualElement elementToNotify)
+        public static void SimulateKeyPress(EditorWindow targetWindow, KeyCode inputKey, bool sendTwice = true, bool sendKeyUp = true)
         {
-            //var deleteCommand = new ExecuteCommandEvent();
-            //deleteCommand.SetNonPrivateProperty("commandName", "Delete");
-            //if (parentWindow is ShaderGraphEditorWindow editorWindow)
-            //{
-            //    var graphView = materialGraphEditWindow.graphEditorView.graphView;
-            //    graphView.InvokePrivateFunc("OnExecuteCommand", new object[]{ deleteCommand });
-            //}
+            SendKeyDownEvent(targetWindow, inputKey, EventModifiers.None, sendTwice);
+            if(sendKeyUp)
+                SendKeyUpEvent(targetWindow);
         }
 
-        // TODO: Reimplement for GTF windows
-        public static void SendDuplicateCommand(EditorWindow parentWindow)
+        public static void SimulateKeyPress(EditorWindow targetWindow, string inputChar)
         {
-            if (parentWindow is ShaderGraphEditorWindow editorWindow)
-            {
-                //var graphView = materialGraphEditWindow.graphEditorView.graphView;
-                //graphView?.DuplicateSelection();
-            }
+            SendKeyDownEvent(targetWindow, inputChar);
+            SendKeyUpEvent(targetWindow);
         }
 
         public static void SendKeyDownEvent(
@@ -74,15 +63,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             string keyChar,
             EventModifiers eventModifiers = EventModifiers.None)
         {
-            // In Unity, key down are sent twice: once with keycode, once with character.
-
             // Builds event with correct keyCode
             var keyEvent = Event.KeyboardEvent(keyChar);
             keyEvent.type = EventType.KeyDown;
             keyEvent.modifiers = eventModifiers;
-            parentWindow.SendEvent(keyEvent);
-
-            keyEvent.character = keyChar.ToCharArray()[0];
             parentWindow.SendEvent(keyEvent);
         }
 

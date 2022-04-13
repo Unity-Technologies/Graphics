@@ -66,15 +66,42 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return searcherWindow;
         }
 
-        void SimulateKeyInput(EditorWindow targetWindow, KeyCode inputKey, bool sendTwice = true, bool sendKeyUp = true)
-        {
-            TestEventHelpers.SendKeyDownEvent(targetWindow, inputKey, EventModifiers.None, sendTwice);
-            if(sendKeyUp)
-                TestEventHelpers.SendKeyUpEvent(targetWindow);
-        }
+        // Thinking about utility for future tests, we might want:
+        // 1) Ability to create all nodes from the registry based off name
+        // 2) Ability to create some given nodes based on name and connect them
+        // 3) Ease of use for writing tests, meaning that it should be easy to specify how to create nodes instead of having to simulate each key input
 
         [UnityTest]
-        public IEnumerator CreateNodeFromSearcherTest()
+        public IEnumerator CreateAddNodeFromSearcherTest()
+        {
+            return AddNodeFromSearcherAndValidate("Add");
+        }
+
+        /*
+        /* This test needs the ability to distinguish between nodes and non-node graph elements like the Sticky Note
+        /* When we have categories for the searcher items we can distinguish between them
+        [UnityTest]
+        public IEnumerator CreateAllNodesFromSearcherTest()
+        {
+            if (m_Window.GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
+            {
+                var shaderGraphStencil = shaderGraphModel.Stencil as ShaderGraphStencil;
+                var searcherDatabaseProvider = new ShaderGraphSearcherDatabaseProvider(shaderGraphStencil);
+                var searcherDatabases = searcherDatabaseProvider.GetGraphElementsSearcherDatabases(shaderGraphModel);
+                foreach (var database in searcherDatabases)
+                {
+                    foreach (var searcherItem in database.Search(""))
+                    {
+                        return AddNodeFromSearcherAndValidate(searcherItem.Name);
+                    }
+                }
+            }
+
+            return null;
+        }
+        */
+
+        IEnumerator AddNodeFromSearcherAndValidate(string nodeName)
         {
             var searcherWindow = SummonSearcher();
             yield return null;
@@ -83,25 +110,22 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return null;
             yield return null;
 
-            SimulateKeyInput(searcherWindow, KeyCode.A);
-            yield return null;
-
-            SimulateKeyInput(searcherWindow, KeyCode.D);
-            yield return null;
-
-            SimulateKeyInput(searcherWindow, KeyCode.D);
-            yield return null;
+            foreach (char c in nodeName)
+            {
+                TestEventHelpers.SimulateKeyPress(searcherWindow, c.ToString());
+                yield return null;
+            }
 
             // Sending two key-down events followed by a key-up for the Return as we normally do causes an exception
-            // it seems like the searcher is just waiting for that first Return event and closes immediately after,
-            // any further events sent cause a MissingReferenceException
-            SimulateKeyInput(searcherWindow, KeyCode.Return, false, false);
+            // it seems like the searcher is waiting for that first Return event and closes immediately after,
+            // any further key events sent cause a MissingReferenceException as the searcher window is now invalid
+            TestEventHelpers.SimulateKeyPress(searcherWindow, KeyCode.Return, false, false);
             yield return null;
             yield return null;
             yield return null;
             yield return null;
 
-            Assert.IsTrue(FindNodeOnGraphByName("Add"));
+            Assert.IsTrue(FindNodeOnGraphByName(nodeName));
         }
 
         bool FindNodeOnGraphByName(string nodeName)
