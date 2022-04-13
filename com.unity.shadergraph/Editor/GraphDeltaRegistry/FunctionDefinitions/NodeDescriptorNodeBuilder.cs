@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
     /// </summary>
     internal class NodeDescriptorNodeBuilder : INodeDefinitionBuilder
     {
-        private static readonly string SELECTED_FUNCTION_FIELD_NAME = "selected-function-name";
+        public static readonly string SELECTED_FUNCTION_FIELD_NAME = "selected-function-name";
 
         private readonly NodeDescriptor m_nodeDescriptor;
         private readonly FunctionDescriptor? m_defaultFunction;

@@ -24,10 +24,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "Function2",
-                    "Local = In + Static; Out = Local;",
+                    "Out = In;",
                     new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
-                    new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
-                    new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
                     new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
                 )
             }

@@ -29,9 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 undoUpdater.SaveSingleState(graphViewState, command);
             }
-
-            Debug.LogWarning($"ChangeNodeFunctionCommand.DefaultHandler called. - {command.m_newFunctionName}");
-
+            command.m_GraphDataNodeModel.ChangeNodeFunction(command.m_newFunctionName);
             using var graphUpdater = graphViewState.UpdateScope;
             graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
         }
