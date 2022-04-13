@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
 
             Handles.matrix = mat;
 
-            Handles.ArrowHandleCap(0, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero) * 1, Event.current.type);
+            Handles.ArrowHandleCap(currentHashCode, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero) * 1, Event.current.type);
 
             if (m_Property.isEditable && NormalGizmo(Vector3.zero, ref direction.direction, true))
             {
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
             }
             else
             {
-                Handles.ArrowHandleCap(0, Vector3.zero, normalQuat, length, Event.current.type);
+                Handles.ArrowHandleCap(currentHashCode, Vector3.zero, normalQuat, length, Event.current.type);
             }
         }
 

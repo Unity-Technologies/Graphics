@@ -754,17 +754,19 @@ namespace UnityEditor.VFX.UI
                     m_ValueBuilder.Add(o =>
                     {
                         var newValue = o[o.Count - 1];
-                        var target = o[o.Count - 2];
-
-                        if (newValue != null && field.FieldType != newValue.GetType())
+                        if (newValue != null)
                         {
-                            object convertedValue;
-                            if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out convertedValue))
-                                throw new InvalidOperationException(string.Format("VFXDataAnchorGizmo is failing to convert from {0} to {1}", newValue.GetType(), field.FieldType));
-                            newValue = convertedValue;
-                        }
+                            var target = o[o.Count - 2];
 
-                        field.SetValue(target, newValue);
+                            if (field.FieldType != newValue.GetType())
+                            {
+                                if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out var convertedValue))
+                                    throw new InvalidOperationException($"VFXDataAnchorGizmo is failing to convert from {newValue.GetType()} to {field.FieldType}");
+                                newValue = convertedValue;
+                            }
+
+                            field.SetValue(target, newValue);
+                        }
                     });
                     m_ValueBuilder.Add(o => o.RemoveAt(o.Count - 1));
                 }
