@@ -91,7 +91,7 @@ SAMPLER(sampler_Mask3);
     mask##i = SampleLayerMasks(i);                                                                          \
     defaultSmoothness##i = albedoSmoothness##i.a * _Smoothness##i;                                          \
     defaultMetallic##i = _Metallic##i;                                                                      \
-    defaultOcclusion##i = _MaskMapRemapScale##i.g * _MaskMapRemapOffset##i.g;                               \
+    defaultOcclusion##i = _MaskMapRemapScale##i.g + _MaskMapRemapOffset##i.g;                               \
     layerLerp##i = _DstBlend;
 
 #define FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex)                                             \
@@ -101,7 +101,7 @@ SAMPLER(sampler_Mask3);
     mask##layerIndex = SampleLayerMasks(sampleIndex);                                                       \
     defaultSmoothness##layerIndex = albedoSmoothness##layerIndex.a * _Smoothness##sampleIndex;              \
     defaultMetallic##layerIndex = _Metallic##sampleIndex;                                                   \
-    defaultOcclusion##layerIndex = _MaskMapRemapScale##sampleIndex.g * _MaskMapRemapOffset##sampleIndex.g;  \
+    defaultOcclusion##layerIndex = _MaskMapRemapScale##sampleIndex.g + _MaskMapRemapOffset##sampleIndex.g;  \
     layerLerp##layerIndex = 1.0 - _DstBlend;
 
 #define DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i)                               \
