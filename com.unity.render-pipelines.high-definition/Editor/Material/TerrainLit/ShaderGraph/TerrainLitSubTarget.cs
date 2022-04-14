@@ -217,13 +217,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common block between all "surface" master nodes
             // Vertex
             context.AddBlock(BlockFields.VertexDescription.Position);
-            //context.AddBlock(BlockFields.VertexDescription.Normal);
-            //context.AddBlock(BlockFields.VertexDescription.Tangent);
 
             // Surface
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
@@ -626,6 +623,36 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
         #endregion
 
+        #region Pragmas
+        static class TerrainPragmas
+        {
+            public static PragmaCollection DotsInstanced = new PragmaCollection
+            {
+                { Pragma.DOTSInstancing },
+                { Pragma.InstancingOptions(new []
+                {
+                    InstancingOptions.AssumeUniformScaling,
+                    InstancingOptions.NoMatrices,
+                    InstancingOptions.NoLightProbe,
+                    InstancingOptions.NoLightmap,
+                }) },
+            };
+
+            public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
+            {
+                { Pragma.DOTSInstancing },
+                { Pragma.EditorSyncCompilation },
+                { Pragma.InstancingOptions(new []
+                {
+                    InstancingOptions.AssumeUniformScaling,
+                    InstancingOptions.NoMatrices,
+                    InstancingOptions.NoLightProbe,
+                    InstancingOptions.NoLightmap,
+                }) },
+            };
+        }
+        #endregion
+
         #region Passes
         static class HDTerrainPasses
         {
@@ -644,21 +671,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs.Add(TerrainStructCollections.Basic);
 
                 return structs;
-            }
-
-            public static PragmaCollection GeneratePragmas(PragmaCollection input, bool useTessellation)
-            {
-                var pragmas = HDShaderPasses.GeneratePragmas(input, false, useTessellation);
-
-                pragmas.Add(Pragma.InstancingOptions(new []
-                {
-                    InstancingOptions.AssumeUniformScaling,
-                    InstancingOptions.NoMatrices,
-                    InstancingOptions.NoLightProbe,
-                    InstancingOptions.NoLightmap,
-                }));
-
-                return pragmas;
             }
 
             public static PassDescriptor GenerateShadowCaster(bool supportLighting, bool useTessellation)
@@ -683,7 +695,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     structs = HDTerrainPasses.GenerateStructs(null),
                     requiredFields = CoreRequiredFields.Basic,
                     renderStates = CoreRenderStates.ShadowCaster,
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstanced, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(null, false, useTessellation),
                     keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
@@ -732,7 +744,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     requiredFields = CoreRequiredFields.Meta,
                     renderStates = CoreRenderStates.Meta,
                     // Note: no tessellation for meta pass
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, false),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstanced, false, false),
                     defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, false),
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization, HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
@@ -775,7 +787,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     structs = HDTerrainPasses.GenerateStructs(null),
                     requiredFields = GenerateRequiredFields(),
                     renderStates = CoreRenderStates.ScenePicking,
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstancedEditorSync, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(CoreDefines.ScenePicking, false, useTessellation),
                     keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
@@ -823,7 +835,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     structs = HDTerrainPasses.GenerateStructs(null),
                     requiredFields = CoreRequiredFields.Basic,
                     renderStates = CoreRenderStates.SceneSelection,
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstancedEditorSync, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(CoreDefines.SceneSelection, false, useTessellation),
                     keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
@@ -868,7 +880,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     structs = HDTerrainPasses.GenerateStructs(null),
                     requiredFields = GenerateRequiredFields(),
                     renderStates = GenerateRenderState(),
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstanced, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit, false, useTessellation),
                     keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
@@ -926,7 +938,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                     requiredFields = supportLighting ? TerrainRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
                     renderStates = CoreRenderStates.Forward,
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstanced, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, false, useTessellation),
                     keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
@@ -980,7 +992,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     structs = HDTerrainPasses.GenerateStructs(null),
                     requiredFields = GenerateRequiredFields(),
                     renderStates = CoreRenderStates.DepthOnly,
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstanced, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.WriteNormalBuffer, HDTerrainPasses.AlphaTestOn, },
                     includes = DepthOnlyIncludes,
@@ -1012,7 +1024,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     structs = HDTerrainPasses.GenerateStructs(null),
                     requiredFields = TerrainRequiredFields.BasicLighting,
                     renderStates = HDShaderPasses.GBufferRenderState,
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstanced, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, false, useTessellation),
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.LightLayers, HDTerrainPasses.AlphaTestOn, },
                     includes = GBufferIncludes,
@@ -1036,7 +1048,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                     requiredFields = TerrainRequiredFields.BasicLighting,
                     renderStates = CoreRenderStates.Forward,
-                    pragmas = HDTerrainPasses.GeneratePragmas(CorePragmas.DotsInstanced, useTessellation),
+                    pragmas = HDShaderPasses.GeneratePragmas(TerrainPragmas.DotsInstanced, false, useTessellation),
                     defines = HDShaderPasses.GenerateDefines(CoreDefines.ForwardLit, false, useTessellation),
                     keywords = new KeywordCollection() { HDTerrainPasses.AlphaTestOn, },
                     includes = ForwardIncludes,
