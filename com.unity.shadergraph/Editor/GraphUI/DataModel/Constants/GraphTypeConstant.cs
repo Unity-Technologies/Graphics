@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class GraphTypeConstant : ICLDSConstant
     {
-        internal GraphType.Length GetLength() => GraphTypeHelpers.GetLength(GetField());
-        private GraphType.Primitive GetPrimitive() => GraphTypeHelpers.GetPrimitive(GetField());
+        internal GraphType.Length GetLength() => IsInitialized ? GraphTypeHelpers.GetLength(GetField()) : GraphType.Length.Four;
+        private GraphType.Primitive GetPrimitive() => IsInitialized ? GraphTypeHelpers.GetPrimitive(GetField()) : GraphType.Primitive.Float;
         override protected object GetValue()
         {
             switch (GetLength())
