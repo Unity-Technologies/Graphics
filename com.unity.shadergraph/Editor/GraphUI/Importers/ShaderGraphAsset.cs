@@ -87,9 +87,13 @@ namespace UnityEditor.ShaderGraph
             var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
             var key = Registry.ResolveKey<ShaderGraphContext>();
             var node = model.ShaderGraphModel.GraphHandler.GetNodeReader(key.Name);
-            string shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
+            string shaderCode = Interpreter.GetShaderForNode(node, graph, reg, out var defaultTextures);
             var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
             Material mat = new (shader);
+            foreach (var def in defaultTextures)
+            {
+                mat.SetTexture(def.Item1, def.Item2);
+            }
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
 
             ctx.AddObjectToAsset("MainAsset", shader, texture);

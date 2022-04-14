@@ -18,7 +18,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
-        bool wasWindowCloseCancelledInDirtyState;
+        bool m_WasWindowCloseCancelledInDirtyState;
+
+        // This flag gets set by tests to close the editor window directly without prompts to save the dirty asset
+        internal bool shouldCloseWindowNoPrompt = false;
 
         // ShaderGraphMainToolbar Toolbar => m_MainToolbar as ShaderGraphMainToolbar;
 
@@ -52,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDisable()
         {
-            if (!PromptSaveIfDirtyOnQuit())
+            if (!shouldCloseWindowNoPrompt && !PromptSaveIfDirtyOnQuit())
             {
                 // User does not want to close the window.
                 // We can't stop the close from this code path though..
@@ -67,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphEditorWindow.Focus();
                 shaderGraphEditorWindow.SetCurrentSelection(m_GraphTool.ToolState.AssetModel, OpenMode.OpenAndFocus);
                 // Set this flag in order to let anything that would clear the dirty state know that graph is still dirty
-                shaderGraphEditorWindow.wasWindowCloseCancelledInDirtyState = true;
+                shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
             }
 
             base.OnDisable();
@@ -200,11 +203,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void Update()
         {
+            if (GraphTool.ToolState.AssetModel == null)
+                return;
+
             base.Update();
 
             if (!m_PreviewManager.IsInitialized)
             {
-                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, wasWindowCloseCancelledInDirtyState);
+                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, m_WasWindowCloseCancelledInDirtyState);
                 var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
                 ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView.GraphViewModel, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
             }

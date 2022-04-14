@@ -11,16 +11,13 @@ using Assert = UnityEngine.Assertions.Assert;
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     [TestFixture]
-    class UITestFixture
+    class AssetTestFixture
     {
         static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(SelectionDragger.panAreaWidth * 8, SelectionDragger.panAreaWidth * 6));
-
-        //ShaderGraphEditorWindow m_EditorWindow;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            //m_EditorWindow = EditorWindow.GetWindowWithRect<ShaderGraphEditorWindow>(k_WindowRect);
         }
 
         [Test]
@@ -47,7 +44,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNotNull(assetModel);
             var shaderGraphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(assetPath);
             Assert.IsNotNull(shaderGraphAsset);
-
         }
 
         [TearDown]

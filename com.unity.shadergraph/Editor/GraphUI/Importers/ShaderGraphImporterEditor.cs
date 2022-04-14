@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
                 var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
                 var key = Registry.ResolveKey<ShaderGraphContext>();
                 var node = graph.GetNodeReader(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, reg);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, reg, out _);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
                 if (FileHelpers.WriteToFile(path, shaderCode))

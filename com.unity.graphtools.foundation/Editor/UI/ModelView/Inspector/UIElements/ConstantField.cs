@@ -106,6 +106,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (method.Name == nameof(RegisterCallback) && method.GetGenericArguments().Length == 2)
                 {
                     var t = ConstantModel.Type == typeof(EnumValueReference) ? typeof(Enum) : ConstantModel.Type;
+                    // GTF-EDIT
+                    // Temporary fix for https://jira.unity3d.com/projects/GTF/issues/GTF-748
+                    if (typeof(UnityEngine.Object).IsAssignableFrom(t))
+                    {
+                        t = typeof(UnityEngine.Object);
+                    }
                     var changeEventType = typeof(ChangeEvent<>).MakeGenericType(t);
                     return method.MakeGenericMethod(changeEventType, typeof(ConstantField));
                 }
