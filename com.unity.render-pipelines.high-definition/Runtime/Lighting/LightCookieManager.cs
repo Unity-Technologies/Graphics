@@ -49,6 +49,16 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly int        cookieAtlasLastValidMip;
         readonly GraphicsFormat cookieFormat;
 
+        // custom-begin:
+        public enum CookieFilterQuality : int
+        {
+            Low = 0,
+            Medium,
+            High
+        };
+        internal CookieFilterQuality m_CookieFilterQuality = CookieFilterQuality.Low;
+        // custom-end
+
         public LightCookieManager(HDRenderPipelineAsset hdAsset, int maxCacheSize)
         {
             // Keep track of the render pipeline asset
@@ -80,6 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NoMoreSpace = false;
 
             m_CookieAtlas.m_DebugSkipDynamicTextureUpdatesEnabled = HDRenderPipeline.s_CookieAtlasDebugSkipDynamicTextureUpdatesEnabled;
+
+            m_CookieFilterQuality = (HDRenderPipeline.s_CookieFilterQuality >= 0 && HDRenderPipeline.s_CookieFilterQuality <= 2) ? (CookieFilterQuality)HDRenderPipeline.s_CookieFilterQuality : CookieFilterQuality.Low;
         }
 
         public void Release()
@@ -196,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Then operate on all the remaining mip levels
                 Vector4 sourceSize = Vector4.zero;
-                for (int mipIndex=1; mipIndex < mipMapCount; mipIndex++)
+                for (int mipIndex = 1; mipIndex < mipMapCount; mipIndex++)
                 {
                     {   // Perform horizontal blur
                         sourceSize.Set(viewportWidth / (float)sourceWidth * 1.0f, viewportHeight / (float)sourceHeight, 1.0f / sourceWidth, 1.0f / sourceHeight);
@@ -205,14 +217,27 @@ namespace UnityEngine.Rendering.HighDefinition
                         viewportWidth = Mathf.Max(1, viewportWidth >> 1);
                         targetWidth = Mathf.Max(1, targetWidth >> 1);
 
+                        viewportHeight = Mathf.Max(1, viewportHeight >> (m_CookieFilterQuality == CookieFilterQuality.Low ? 1 : 0));
+                        targetHeight = Mathf.Max(1, targetHeight >> (m_CookieFilterQuality == CookieFilterQuality.Low ? 1 : 0));
+
                         m_MPBFilterAreaLights.SetTexture(s_texSource, m_TempRenderTexture0);
                         m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, mipIndex - 1);
                         m_MPBFilterAreaLights.SetVector(s_sourceSize, sourceSize);
                         m_MPBFilterAreaLights.SetVector(s_uvLimits, uvLimits);
 
-                        cmd.SetRenderTarget(m_TempRenderTexture1, mipIndex-1);    // Temp texture is already 1 mip lower than source
+                        cmd.SetRenderTarget(m_TempRenderTexture1, mipIndex - 1);    // Temp texture is already 1 mip lower than source
                         cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
-                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 1, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
+
+                        int passIndex = 1;
+                        switch (m_CookieFilterQuality)
+                        {
+                            case CookieFilterQuality.Low: passIndex = 6; break;
+                            case CookieFilterQuality.Medium: passIndex = 4; break;
+                            case CookieFilterQuality.High: passIndex = 1; break;
+                            default: break;
+                        }
+
+                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, passIndex, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                     }
 
                     sourceWidth = targetWidth;
@@ -221,8 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         sourceSize.Set(viewportWidth / (float)sourceWidth, viewportHeight / (float)sourceHeight * 1.0f, 1.0f / sourceWidth, 1.0f / sourceHeight);
                         Vector4 uvLimits = new Vector4(0, 0, viewportWidth / (float)sourceWidth, viewportHeight / (float)sourceHeight);
 
-                        viewportHeight = Mathf.Max(1, viewportHeight >> 1);
-                        targetHeight = Mathf.Max(1, targetHeight >> 1);
+                        viewportHeight = Mathf.Max(1, viewportHeight >> (m_CookieFilterQuality == CookieFilterQuality.Low ? 0 : 1));
+                        targetHeight = Mathf.Max(1, targetHeight >> (m_CookieFilterQuality == CookieFilterQuality.Low ? 0 : 1));
 
                         m_MPBFilterAreaLights.SetTexture(s_texSource, m_TempRenderTexture1);
                         m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, mipIndex - 1);
@@ -231,7 +256,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         cmd.SetRenderTarget(m_TempRenderTexture0, mipIndex);
                         cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
-                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 2, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
+
+                        int passIndex = 1;
+                        switch (m_CookieFilterQuality)
+                        {
+                            case CookieFilterQuality.Low: passIndex = 6; break;
+                            case CookieFilterQuality.Medium: passIndex = 5; break;
+                            case CookieFilterQuality.High: passIndex = 2; break;
+                            default: break;
+                        }
+
+                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, passIndex, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                     }
 
                     sourceHeight = targetHeight;
