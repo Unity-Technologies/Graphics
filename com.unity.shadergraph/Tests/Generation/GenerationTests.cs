@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         [TestCaseSource("testAsIsSource")]
         public static void TestGraphAsIs((string nodeToCompile, Color expectedColor) input)
         {
-            var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader(input.nodeToCompile), graph, registry);
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader(input.nodeToCompile), graph, registry, out _);
             var shader = MakeShader(shaderString);
             var rt = DrawToTex(shader);
             try
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             graph.AddReferenceNode("FooReference", propertyKey.Name, "Foo", registry);
             graph.AddEdge("FooReference.Output", "Add1.In2");
 
-            var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader("Add1"), graph, registry);
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader("Add1"), graph, registry, out _);
             var shader = MakeShader(shaderString);
             var rt = DrawToTex(shader);
             try

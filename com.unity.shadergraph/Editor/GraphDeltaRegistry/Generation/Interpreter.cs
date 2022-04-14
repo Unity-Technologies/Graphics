@@ -16,12 +16,12 @@ namespace UnityEditor.ShaderGraph.Generation
             return builder.ConvertToString();
         }
 
-        public static string GetBlockCode(NodeHandler node, GraphHandler graph, Registry registry)
+        public static string GetBlockCode(NodeHandler node, GraphHandler graph, Registry registry, ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
             var builder = new ShaderBuilder();
             var container = new ShaderContainer();
             var cpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
-            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref cpBuilder);
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref cpBuilder, ref defaultTextures);
             foreach (var b in cpBuilder.BlockInstances)
                 foreach(var func in b.Block.Functions)
                     builder.AddDeclarationString(func);
@@ -34,39 +34,42 @@ namespace UnityEditor.ShaderGraph.Generation
                               NodeHandler node,
                               GraphHandler graph,
                               Registry registry,
+                              ref List<(string, UnityEngine.Texture)> defaultTextures,
                           out CustomizationPointInstance vertexCPDesc,
                           out CustomizationPointInstance surfaceCPDesc)
         {
             vertexCPDesc = CustomizationPointInstance.Invalid; // we currently do not use the vertex customization point
 
             var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
-            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref surfaceDescBuilder);
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref surfaceDescBuilder, ref defaultTextures);
             surfaceCPDesc = surfaceDescBuilder.Build();
         }
 
 
-        public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry)
+        public static string GetShaderForNode(NodeHandler node, GraphHandler graph, Registry registry, out List<(string, UnityEngine.Texture)> defaultTextures)
         {
+            List<(string, UnityEngine.Texture)> defaults = new();
             void lambda(ShaderContainer container, CustomizationPoint vertex, CustomizationPoint fragment, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance fragmentCPDesc)
-                => GetBlocks(container, vertex, fragment, node, graph, registry, out vertexCPDesc, out fragmentCPDesc);
+                => GetBlocks(container, vertex, fragment, node, graph, registry, ref defaults, out vertexCPDesc, out fragmentCPDesc);
             var shader = SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", lambda, String.Empty);
+
+            defaultTextures = new();
+            defaultTextures.AddRange(defaults);
             return shader.codeString;
         }
 
-        private static ShaderType BuildStructFromVariables(ShaderContainer container, string name, IEnumerable<BlockVariable> variables, Block.Builder blockBuilder)
+        private static ShaderType BuildStructFromVariables(ShaderContainer container, string name, IEnumerable<StructField> variables, Block.Builder blockBuilder)
         {
             var structBuilder = new ShaderType.StructBuilder(blockBuilder, name);
-            foreach (var variable in variables)
-            {
-                var fieldBuilder = new StructField.Builder(container, variable.Name, variable.Type);
-                var structField = fieldBuilder.Build();
-                structBuilder.AddField(structField);
-            }
+
+            foreach (var field in variables)
+                structBuilder.AddField(field);
+
             return structBuilder.Build();
         }
 
 
-        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder)
+        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder, ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
 
             /* PSEDUOCODE
@@ -86,8 +89,8 @@ namespace UnityEditor.ShaderGraph.Generation
             string BlockName = $"ShaderGraphBlock_{rootNode.ID.LocalPath}";
             var blockBuilder = new Block.Builder(container, BlockName);
 
-            var inputVariables = new List<BlockVariable>();
-            var outputVariables = new List<BlockVariable>();
+            var inputVariables = new List<StructField>();
+            var outputVariables = new List<StructField>();
             bool isContext = rootNode.HasMetadata("_contextDescriptor");
             //Evaluate outputs for this block based on root nodes "outputs/endpoints" (horizontal input ports)
             foreach (var port in rootNode.GetPorts())
@@ -96,11 +99,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     var name = port.ID.LocalPath;
                     var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
-                    var varOutBuilder = new BlockVariable.Builder(container)
-                    {
-                        Name = name,
-                        Type = type
-                    };
+                    var varOutBuilder = new StructField.Builder(container, name, type);
                     var varOut = varOutBuilder.Build();
                     outputVariables.Add(varOut);
                 }
@@ -120,7 +119,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (!node.ID.Equals(rootNode.ID))
                     {
                         //evaluate the upstream context's block
-                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref surfaceDescBuilder);
+                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref surfaceDescBuilder, ref defaultTextures);
                         //create inputs to our block based on the upstream context's outputs
                         foreach (var port in node.GetPorts())
                         {
@@ -128,11 +127,7 @@ namespace UnityEditor.ShaderGraph.Generation
                             {
                                 var name = port.ID.LocalPath;
                                 var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
-                                var varInBuilder = new BlockVariable.Builder(container)
-                                {
-                                    Name = name,
-                                    Type = type
-                                };
+                                var varInBuilder = new StructField.Builder(container, name, type);
                                 var varIn = varInBuilder.Build();
                                 inputVariables.Add(varIn);
                             }
@@ -142,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 }
                 else
                 {
-                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
+                    ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref defaultTextures, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
                 }
             }
 
@@ -215,12 +210,10 @@ namespace UnityEditor.ShaderGraph.Generation
                 var remapBuilder = new Block.Builder(container, remapBlockName);
 
                 var remapFromVariables = outputVariables;
-                var remapToVariables = new List<BlockVariable>();
+                var remapToVariables = new List<StructField>();
 
 
-                var colorOutBuilder = new BlockVariable.Builder(container);
-                colorOutBuilder.Name = "BaseColor";
-                colorOutBuilder.Type = container._float3;
+                var colorOutBuilder = new StructField.Builder(container, "BaseColor", container._float3);
                 var colorOut = colorOutBuilder.Build();
                 remapToVariables.Add(colorOut);
 
@@ -308,8 +301,9 @@ namespace UnityEditor.ShaderGraph.Generation
 
         private static void ProcessNode(NodeHandler node,
             ref ShaderContainer container,
-            ref List<BlockVariable> inputVariables,
-            ref List<BlockVariable> outputVariables,
+            ref List<StructField> inputVariables,
+            ref List<StructField> outputVariables,
+            ref List<(string, UnityEngine.Texture)> defaultTextures, // replace this with a generalized default properties solution.
             ref Block.Builder blockBuilder,
             ref ShaderFunction.Builder mainBodyFunctionBuilder,
             ref List<ShaderFunction> shaderFunctions,
@@ -357,14 +351,25 @@ namespace UnityEditor.ShaderGraph.Generation
                         {
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
                             argument = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
+
+                            if (port.GetTypeField().GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
+                            {
+                                var fieldHandler = port.GetTypeField();
+                                var field = BaseTextureType.UniformPromotion(port.GetTypeField(), container, registry);
+                                inputVariables.Add(field);
+
+                                var tex = BaseTextureType.GetTextureAsset(fieldHandler);
+                                var name = BaseTextureType.GetUniqueUniformName(fieldHandler);
+                                if (tex != null && !defaultTextures.Contains((name, tex)))
+                                    defaultTextures.Add((name, tex));
+                            }
                         }
                     }
                     else // this is an output port.
                     {
                         argument = $"SYNTAX_{node.ID.LocalPath}_{port.ID.LocalPath}"; // add to the arguments for the function call.
                         // default initialize this before our function call.
-                        var initValue = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
-                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
+                        mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument};");
                     }
                     arguments += argument + ", ";
                 }

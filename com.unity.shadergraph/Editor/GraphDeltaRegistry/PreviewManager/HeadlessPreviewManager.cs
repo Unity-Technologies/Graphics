@@ -52,6 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public Texture texture;
             public bool isShaderOutOfDate;
             public bool isRenderOutOfDate;
+            public List<(string, Texture)> defaultTextures = new();
 
             // Used to control whether the preview should render in 2D/3D/Inherit from upstream nodes
             public PreviewRenderMode currentRenderMode;
@@ -520,9 +521,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Shader GetNodeShaderObject(NodeHandler nodeReader)
         {
-            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance, out m_CachedPreviewData[nodeReader.ID.LocalPath].defaultTextures);
+            var throwAway = new List<(string, Texture)>(); // gross.
             m_CachedPreviewData[nodeReader.ID.LocalPath].shaderString = shaderOutput;
-            m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            m_CachedPreviewData[nodeReader.ID.LocalPath].blockString = Interpreter.GetBlockCode(nodeReader, m_GraphHandle, m_RegistryInstance, ref throwAway);
             m_CachedPreviewData[nodeReader.ID.LocalPath].functionString = Interpreter.GetFunctionCode(nodeReader, m_RegistryInstance);
             return MakeShader(shaderOutput);
         }
@@ -531,7 +533,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             // TODO: Need a way to query the main context node without having a hard name dependence, from GraphDelta
             var contextNodeReader = m_GraphHandle.GetNode(k_MasterPreviewName);
-            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance);
+            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MasterPreviewData.defaultTextures);
             m_MasterPreviewData.shaderString = shaderOutput;
             return MakeShader(shaderOutput);
         }
@@ -580,6 +582,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 Assert.IsNotNull(previewToUpdate.shader);
 
                 previewToUpdate.material = new Material(previewToUpdate.shader) { hideFlags = HideFlags.HideAndDontSave };
+                foreach (var texDefault in previewToUpdate.defaultTextures)
+                    previewToUpdate.material.SetTexture(texDefault.Item1, texDefault.Item2);
 
                 if (CheckForErrors(previewToUpdate))
                     previewToUpdate.hasShaderError = true;

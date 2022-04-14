@@ -59,6 +59,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return typeof(GradientTypeConstant);
             }
 
+            if (typeHandle == ShaderGraphExampleTypes.Texture2DArrayTypeHandle
+                || typeHandle == ShaderGraphExampleTypes.Texture2DTypeHandle
+                || typeHandle == ShaderGraphExampleTypes.CubemapTypeHandle
+                || typeHandle == ShaderGraphExampleTypes.Texture3DTypeHandle)
+            {
+                return typeof(TextureTypeConstant);
+            }
+
             // There is no inline editor for this port type, so there is no need for CLDS access.
             return typeof(AnyConstant);
         }
