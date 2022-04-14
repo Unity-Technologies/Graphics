@@ -144,6 +144,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<int, int> m_IsGPUTextureUpToDate = new Dictionary<int, int>();
         private Dictionary<int, int> m_TextureHashes = new Dictionary<int, int>();
 
+        // custom-begin:
+        public bool m_DebugSkipDynamicTextureUpdatesEnabled = false;
+        // custom-end
+
         static readonly Vector4 fullScaleOffset = new Vector4(1, 1, 0, 0);
 
         // Maximum mip padding that can be applied to the textures in the atlas (1 << 10 = 1024 pixels)
@@ -372,6 +376,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (rt.updateCount != updateCount)
                     {
+                        // custom-begin:
+                        // Optionally skip texture updates for debugging + profiling purposes.
+                        if (m_DebugSkipDynamicTextureUpdatesEnabled) { return false; }
+                        // custom-end
+
                         m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
                         return true;
                     }

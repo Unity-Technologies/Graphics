@@ -78,6 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CookieAtlas.ResetRequestedTexture();
             m_2DCookieAtlasNeedsLayouting = false;
             m_NoMoreSpace = false;
+
+            m_CookieAtlas.m_DebugSkipDynamicTextureUpdatesEnabled = HDRenderPipeline.s_CookieAtlasDebugSkipDynamicTextureUpdatesEnabled;
         }
 
         public void Release()
