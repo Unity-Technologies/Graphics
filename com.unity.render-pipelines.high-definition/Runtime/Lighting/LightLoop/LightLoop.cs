@@ -1826,7 +1826,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public class HierarchicalVarianceScreenSpaceShadowsData
         {
             public int count = 0;
-            public Vector3[] positionsWS = new Vector3[4];
+            public Vector3[] positionsRWS = new Vector3[4];
             public float[] ranges = new float[4];
             public float depthMin = float.MaxValue;
             public float depthMax = -float.MaxValue;
@@ -1838,10 +1838,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthMax = clipFar;
             }
 
-            public int Push(Vector3 lightPositionWS, float lightDepthVS, float lightRange)
+            public int Push(Vector3 lightPositionRWS, float lightDepthVS, float lightRange)
             {
                 if (count >= 4) { return -1; }
-                positionsWS[count] = lightPositionWS;
+                positionsRWS[count] = lightPositionRWS;
                 ranges[count] = lightRange;
                 int channelIndex = count;
                 ++count;
@@ -1861,7 +1861,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // 2. Go through all lights, convert them to GPU format.
                 // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
-                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings, ref m_HierarchicalVarianceScreenSpaceShadowsData);
+                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings, m_HierarchicalVarianceScreenSpaceShadowsData);
 
                 m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
                 m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;
@@ -1881,7 +1881,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrepareDynamicGIGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
         {
-            m_GpuLightsDynamicBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsDynamicBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings, ref m_HierarchicalVarianceScreenSpaceShadowsData);
+            m_GpuLightsDynamicBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsDynamicBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings, null);
         }
 
 

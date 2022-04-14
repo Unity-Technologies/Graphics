@@ -47,7 +47,7 @@ CBUFFER_START(cb)
     float4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
     float4 _DstOffsetAndLimit; // {x, y, w - 1, h - 1}
     float4 _LODCurrentAndNextAndMax; // {current, next, max, channel}
-    float4 _HVSSSLightPositionWS;
+    float4 _HVSSSLightPositionRWS;
     float4 _DepthMomentsMipChainSize;
     float4 _HVSSSCascadeRaymarchDistancePixelsStartEnd;
     float4 _HVSSSDepthMinMax;
@@ -424,10 +424,10 @@ void RaymarchScreenSpaceShadows(uint3 dispatchThreadId : SV_DispatchThreadID)
         uint lodCurrent = _LODCurrentAndNextAndMax.x;
         uint lodMax = _LODCurrentAndNextAndMax.z;
         uint channel = _LODCurrentAndNextAndMax.w;
-        float3 lightPositionWS = GetCameraRelativePositionWS(_HVSSSLightPositionWS.xyz);
-        float3 lightPositionVS = TransformWorldToView(lightPositionWS);
+        float3 lightPositionRWS = _HVSSSLightPositionRWS.xyz;
+        float3 lightPositionVS = TransformWorldToView(lightPositionRWS);
         float lightDepthLinear = abs(lightPositionVS.z);
-        float4 lightPositionCS = TransformWorldToHClip(lightPositionWS);
+        float4 lightPositionCS = TransformWorldToHClip(lightPositionRWS);
         lightPositionCS.xyz /= lightPositionCS.w;
         float2 lightPositionNDC = lightPositionCS.xy * 0.5 + 0.5;
         lightPositionNDC.y = 1.0 - lightPositionNDC.y;
@@ -460,7 +460,7 @@ void RaymarchScreenSpaceShadows(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float3 lightOffsetVS = centerPositionVS.xyz - lightPositionVS.xyz;
         float lightDistanceSquaredVS = dot(lightOffsetVS, lightOffsetVS);
-        float lightRangeSquared = _HVSSSLightPositionWS.w * _HVSSSLightPositionWS.w;
+        float lightRangeSquared = _HVSSSLightPositionRWS.w * _HVSSSLightPositionRWS.w;
         killRay = killRay || (lightDistanceSquaredVS >= lightRangeSquared);
 
         if (!killRay)

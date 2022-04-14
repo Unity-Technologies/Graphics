@@ -302,6 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.cookieMode = CookieMode.None;
                 lightData.shadowIndex = -1;
                 lightData.screenSpaceShadowIndex = globalConfig.invalidScreenSpaceShadowIndex;
+                lightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
                 lightData.isRayTracedContactShadow = 0.0f;
 
                 // TODO: only apply for real-time lights, but lightComponent.lightmapBakeType is not available outside in built players, Editor only...
