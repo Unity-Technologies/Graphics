@@ -307,6 +307,11 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2DArray  m_DefaultTexture2DArray;
         Cubemap         m_DefaultTextureCube;
 
+        // custom-begin:
+        public static bool s_CookieAtlasDebugSkipDynamicTextureUpdatesEnabled = false;
+        public static int s_CookieFilterQuality = 0; // 0 == Low, 1 == Medium, 2 == High
+        // custom-end
+
         internal class LightLoopTextureCaches
         {
             // Structure for cookies used by directional and spotlights
