@@ -11,21 +11,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     [Serializable]
     public class EdgeHandler
     {
-        internal EdgeHandler(ElementID output, ElementID input, GraphStorage owner)
+        internal EdgeHandler(ElementID output, ElementID input, GraphDelta owner, Registry registry)
         {
             OutputID = output;
             InputID  = input;
             Owner    = owner;
+            Registry = registry;
         }
 
         [SerializeField]
         public ElementID OutputID { get; internal set; }
         [SerializeField]
         public ElementID InputID  { get; internal set; }
-        internal GraphStorage Owner { get; set; }
+        internal GraphDelta Owner { get; set; }
+        internal Registry Registry { get; set; }
 
-        public PortHandler OuptutPort => Owner.GetHandler(OutputID).ToPortHandler();
-        public PortHandler InputPort  => Owner.GetHandler(InputID).ToPortHandler();
+        public PortHandler OuptutPort => Owner.m_data.GetHandler(OutputID, Owner, Registry).ToPortHandler();
+        public PortHandler InputPort  => Owner.m_data.GetHandler(InputID, Owner, Registry).ToPortHandler();
     }
 
     [Serializable]
@@ -65,14 +67,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             AddLayer(1, GraphDelta.k_user,     true);
         }
 
-        internal GraphDataHandler GetHandler(ElementID elementID)
+        internal GraphDataHandler GetHandler(ElementID elementID, GraphDelta delta, Registry registry)
         {
-            return new GraphDataHandler(elementID, this);
+            return new GraphDataHandler(elementID, delta, registry);
         }
 
-        internal GraphDataHandler AddHandler(string layer, ElementID elementID, DataHeader header)
+        internal GraphDataHandler AddHandler(string layer, ElementID elementID, DataHeader header, GraphDelta delta, Registry registry)
         {
-            var output = new GraphDataHandler(elementID, this);
+            var output = new GraphDataHandler(elementID, delta, registry);
             output.GetWriter(layer).SetHeader(header);
             return output;
         }
@@ -98,9 +100,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        internal NodeHandler AddNodeHandler(string layer, ElementID elementID)
+        internal NodeHandler AddNodeHandler(string layer, ElementID elementID, GraphDelta delta, Registry registry)
         {
-            var output = new NodeHandler(elementID, this);
+            var output = new NodeHandler(elementID, delta, registry);
             output.GetWriter(layer).SetHeader(new NodeHeader());
             return output;
         }
@@ -115,13 +117,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return base.SearchRelative(element, elementID);
         }
 
-        internal IEnumerable<NodeHandler> GetNodes()
+        internal IEnumerable<NodeHandler> GetNodes(GraphDelta delta, Registry registry)
         {
             foreach (var data in m_flatStructureLookup.Values)
             {
                 if (data.Header is NodeHeader)
                 {
-                    yield return new NodeHandler(data.ID, this);
+                    yield return new NodeHandler(data.ID, delta, registry);
                 }
             }
         }

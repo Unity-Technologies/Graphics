@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
@@ -12,6 +13,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         [SerializeField]
         public string FullPath { get; private set; }
         public string LocalPath => m_path.Count >= 1 ? m_path[m_path.Count - 1] : "";
+        public string ParentPath => FullPath.Substring(0, Mathf.Max(FullPath.LastIndexOf('.'),0));
 
         public ElementID(string id)
         {

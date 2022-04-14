@@ -8,8 +8,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class FieldHandler : GraphDataHandler
     {
-        internal FieldHandler(ElementID elementID, GraphStorage owner, string defaultLayer = GraphDelta.k_user)
-            : base(elementID, owner, defaultLayer)
+        internal const string k_dataRecon = "_ReconcretizeOnDataChange";
+        internal FieldHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
+            : base(elementID, owner, registry, defaultLayer)
         {
         }
 
@@ -61,29 +62,34 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public FieldHandler AddSubField(string localID)
         {
             Writer.AddChild(localID).SetHeader(new FieldHeader());
-            return new FieldHandler(ID.FullPath + $".{localID}", Owner, DefaultLayer) ;
+            return new FieldHandler(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer) ;
         }
-        public FieldHandler<T> AddSubField<T>(string localID, T value)
+        public FieldHandler<T> AddSubField<T>(string localID, T value, bool reconcretizeOnDataChange = false)
         {
             Writer.AddChild(localID, value).SetHeader(new FieldHeader<T>());
-            return new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, DefaultLayer) ;
+            var output = new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer) ;
+            if(reconcretizeOnDataChange)
+            {
+                output.SetMetadata(k_dataRecon, true);
+            }
+            return output;
         }
         public void RemoveSubField(string localID)
         {
-            throw new System.Exception();
+            throw new System.NotImplementedException();
         }
     }
 
     public class FieldHandler<T> : FieldHandler
     {
-        internal FieldHandler(ElementID elementID, GraphStorage owner, string defaultLayer = GraphDelta.k_user)
-            : base(elementID, owner, defaultLayer)
+        internal FieldHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
+            : base(elementID, owner, registry, defaultLayer)
         {
         }
 
         internal override DataWriter GetWriter(string layerName)
         {
-            var elem = Owner.SearchRelative(Owner.GetLayerRoot(layerName), ID);
+            var elem = Owner.m_data.SearchRelative(Owner.m_data.GetLayerRoot(layerName), ID);
             DataWriter val;
             if (elem != null)
             {
@@ -91,8 +97,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                elem = Owner.AddElementToLayer(layerName, ID, default(T));
-                Owner.SetHeader(elem, GetDefaultHeader()); //Should we default set the header to what our reader is?
+                elem = Owner.m_data.AddElementToLayer(layerName, ID, default(T));
+                Owner.m_data.SetHeader(elem, GetDefaultHeader()); //Should we default set the header to what our reader is?
                 val = elem.GetWriter();
             }
             return val;
@@ -107,7 +113,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         public void SetData(T value)
         {
+            T prev = GetData();
             Writer.SetData(value);
+            if(DefaultLayer.Equals(GraphDelta.k_user) && !prev.Equals(value) && HasMetadata(k_dataRecon))
+            {
+                //Go up until we find an owning node, and trigger reconcretization 
+                ElementID parentID = ID.ParentPath;
+                while (parentID.FullPath.Length > 0)
+                {
+                    if (Owner.m_data.Search(parentID).Element.Header is NodeHeader)
+                    {
+                        Owner.ReconcretizeNode(parentID, Registry);
+                        return;
+                    }
+                    parentID = parentID.ParentPath;
+                }
+            }
         }
     }
 }

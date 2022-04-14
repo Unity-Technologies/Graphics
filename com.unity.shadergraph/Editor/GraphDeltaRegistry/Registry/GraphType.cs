@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static void SetComponent(FieldHandler field, int idx, float val)
         {
-            var sub = field.GetSubField<float>(GraphType.kC(idx)) ?? field.AddSubField(GraphType.kC(idx), val);
+            var sub = field.GetSubField<float>(GraphType.kC(idx)) ?? field.AddSubField(GraphType.kC(idx), val, true);
             sub.SetData(val);
         }
 
@@ -196,10 +196,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public void BuildType(FieldHandler field, Registry registry)
         {
             // default initialize to a float4;
-            field.AddSubField(kPrecision, Precision.Single);
-            field.AddSubField(kPrimitive, Primitive.Float);
-            field.AddSubField(kLength, Length.Four);
-            field.AddSubField(kHeight, Height.One);
+            field.AddSubField(kPrecision, Precision.Single, true);
+            field.AddSubField(kPrimitive, Primitive.Float, true);
+            field.AddSubField(kLength, Length.Four, true);
+            field.AddSubField(kHeight, Height.One, true);
 
 
             var lenField = field.GetSubField<Length>(kLength);

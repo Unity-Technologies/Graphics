@@ -22,16 +22,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public class GraphDataHandler
     {
         public ElementID ID { get; protected set; }
-        internal GraphStorage Owner { get; private set; }
+        internal GraphDelta Owner { get; private set; }
+        internal Registry Registry { get; private set; }
         internal string DefaultLayer { get; set; }
-        internal DataReader Reader => Owner.Search(ID);
+        internal DataReader Reader => Owner.m_data.Search(ID);
 
         [Obsolete("GetName is Obsolete - use ID.LocalPath instead", false)]
         public string GetName() => ID.LocalPath;
 
         internal virtual DataWriter GetWriter(string layerName)
         {
-            var elem = Owner.SearchRelative(Owner.GetLayerRoot(layerName), ID);
+            var elem = Owner.m_data.SearchRelative(Owner.m_data.GetLayerRoot(layerName), ID);
             DataWriter val;
             if (elem != null)
             {
@@ -39,8 +40,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                elem = Owner.AddElementToLayer(layerName, ID);
-                Owner.SetHeader(elem, GetDefaultHeader());
+                elem = Owner.m_data.AddElementToLayer(layerName, ID);
+                Owner.m_data.SetHeader(elem, GetDefaultHeader());
                 val = elem.GetWriter();
             }
             return val;
@@ -53,34 +54,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         internal DataWriter Writer => GetWriter(DefaultLayer);
 
-        internal GraphDataHandler(ElementID elementID, GraphStorage owner, string defaultLayer = GraphDelta.k_user)
+        internal GraphDataHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
         {
             ID = elementID;
             Owner = owner;
+            Registry = registry;
             DefaultLayer = defaultLayer;
         }
 
         internal virtual T GetMetadata<T>(string lookup)
         {
-            return Owner.GetMetadata<T>(ID, lookup);
+            return Owner.m_data.GetMetadata<T>(ID, lookup);
         }
 
         internal virtual void SetMetadata<T>(string lookup, T data)
         {
-            Owner.SetMetadata(ID, lookup, data);
+            Owner.m_data.SetMetadata(ID, lookup, data);
         }
 
         internal virtual bool HasMetadata(string lookup)
         {
-            return Owner.HasMetadata(ID, lookup);
+            return Owner.m_data.HasMetadata(ID, lookup);
         }
 
         internal void ClearLayerData(string layer)
         {
-            var elem = Owner.SearchRelative(Owner.GetLayerRoot(layer), ID);
+            var elem = Owner.m_data.SearchRelative(Owner.m_data.GetLayerRoot(layer), ID);
             if (elem != null)
             {
-                Owner.RemoveDataBranch(elem);
+                Owner.m_data.RemoveDataBranch(elem);
             }
         }
 
@@ -93,7 +95,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                return new GraphDataHandler(childReader.Element.ID, Owner, DefaultLayer);
+                return new GraphDataHandler(childReader.Element.ID, Owner, Registry, DefaultLayer);
             }
         }
 
@@ -121,7 +123,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             if(Reader.Element.Header is NodeHeader)
             {
-                return new NodeHandler(ID, Owner, DefaultLayer);
+                return new NodeHandler(ID, Owner, Registry, DefaultLayer);
             }
             return null;
         }
@@ -130,7 +132,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             if (Reader.Element.Header is PortHeader)
             {
-                return new PortHandler(ID, Owner, DefaultLayer);
+                return new PortHandler(ID, Owner, Registry, DefaultLayer);
             }
             return null;
         }
@@ -139,7 +141,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             if (Reader.Element.Header is FieldHeader)
             {
-                return new FieldHandler(ID, Owner, DefaultLayer);
+                return new FieldHandler(ID, Owner, Registry, DefaultLayer);
             }
             return null;
         }
@@ -148,7 +150,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             if (Reader.Element.Header is FieldHeader<T>)
             {
-                return new FieldHandler<T>(ID, Owner, DefaultLayer);
+                return new FieldHandler<T>(ID, Owner, Registry, DefaultLayer);
             }
             return null;
         }
