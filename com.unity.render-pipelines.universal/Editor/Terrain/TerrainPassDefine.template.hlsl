@@ -57,9 +57,9 @@ SAMPLER(sampler_Mask3);
 #endif
 
 #ifdef _MASKMAP
-    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * lerp(0.5h, SAMPLE_TEXTURE2D(_Mask##i, sampler_Mask##i, splatuv), _LayerHasMask##i));
+    #define SampleLayerMasks(i, blendMask) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * lerp(0.5h, SAMPLE_TEXTURE2D(_Mask##i, sampler_Mask##i, splatuv), _LayerHasMask##i));
 #else
-    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * 0.5h);
+    #define SampleLayerMasks(i, blendMask) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * 0.5h);
 #endif
 
 #define FETCH_SPLAT_CONTROL0                                                                        \
@@ -84,33 +84,33 @@ SAMPLER(sampler_Mask3);
     half defaultOcclusion##i;       \
     half layerLerp##i;
 
-#define FETCH_LAYER_ATTRIBUTES(i)                                                                           \
+#define FETCH_LAYER_ATTRIBUTES(i, control)                                                                  \
     splatuv = GetSplat##i##UV(IN);                                                                          \
     albedoSmoothness##i = SampleLayerAlbedo(i);                                                             \
     normal##i = SampleLayerNormal(i);                                                                       \
-    mask##i = SampleLayerMasks(i);                                                                          \
+    mask##i = SampleLayerMasks(i, control);                                                                 \
     defaultSmoothness##i = albedoSmoothness##i.a * _Smoothness##i;                                          \
     defaultMetallic##i = _Metallic##i;                                                                      \
     defaultOcclusion##i = _MaskMapRemapScale##i.g + _MaskMapRemapOffset##i.g;                               \
     layerLerp##i = _DstBlend;
 
-#define FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex)                                             \
+#define FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex, control)                                    \
     splatuv = GetSplat##sampleIndex##UV(IN);                                                                \
     albedoSmoothness##layerIndex = SampleLayerAlbedo(sampleIndex);                                          \
     normal##layerIndex = SampleLayerNormal(sampleIndex);                                                    \
-    mask##layerIndex = SampleLayerMasks(sampleIndex);                                                       \
+    mask##layerIndex = SampleLayerMasks(sampleIndex, control);                                              \
     defaultSmoothness##layerIndex = albedoSmoothness##layerIndex.a * _Smoothness##sampleIndex;              \
     defaultMetallic##layerIndex = _Metallic##sampleIndex;                                                   \
     defaultOcclusion##layerIndex = _MaskMapRemapScale##sampleIndex.g + _MaskMapRemapOffset##sampleIndex.g;  \
     layerLerp##layerIndex = 1.0 - _DstBlend;
 
-#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i)                               \
-    DECLARE_LAYER_ATTRIBUTES(i)                                             \
-    FETCH_LAYER_ATTRIBUTES(i)
+#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i, control)                               \
+    DECLARE_LAYER_ATTRIBUTES(i)                                                      \
+    FETCH_LAYER_ATTRIBUTES(i, control)
 
-#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex) \
-    DECLARE_LAYER_ATTRIBUTES(layerIndex)                                    \
-    FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex)
+#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex, control) \
+    DECLARE_LAYER_ATTRIBUTES(layerIndex)                                             \
+    FETCH_LAYER_ATTRIBUTES_8LAYERS(layerIndex, sampleIndex, control)
 
 #define FetchControl0 splatControl0
 #define FetchControl1 splatControl1
@@ -160,6 +160,15 @@ SAMPLER(sampler_Mask3);
 #define FetchLayerOcclusion6 lerp(defaultOcclusion6, mask6.g, _LayerHasMask2)
 #define FetchLayerOcclusion7 lerp(defaultOcclusion7, mask7.g, _LayerHasMask3)
 
+#define FetchLayerHeight0 mask0.b
+#define FetchLayerHeight1 mask1.b
+#define FetchLayerHeight2 mask2.b
+#define FetchLayerHeight3 mask3.b
+#define FetchLayerHeight4 mask4.b
+#define FetchLayerHeight5 mask5.b
+#define FetchLayerHeight6 mask6.b
+#define FetchLayerHeight7 mask7.b
+
 #if !defined(_TERRAIN_BASEMAP_GEN) && !defined(TERRAIN_SPLAT_ADDPASS) // 0 ~ 3 layers pass
     #undef FetchControl1
     #define FetchControl1 half4(0.0h, 0.0h, 0.0h, 0.0h)
@@ -208,6 +217,15 @@ SAMPLER(sampler_Mask3);
     #define FetchLayerOcclusion5 0.0
     #define FetchLayerOcclusion6 0.0
     #define FetchLayerOcclusion7 0.0
+
+    #undef FetchLayerHeight4
+    #undef FetchLayerHeight5
+    #undef FetchLayerHeight6
+    #undef FetchLayerHeight7
+    #define FetchLayerHeight4 0.0
+    #define FetchLayerHeight5 0.0
+    #define FetchLayerHeight6 0.0
+    #define FetchLayerHeight7 0.0
 #elif !defined(_TERRAIN_BASEMAP_GEN) && defined(TERRAIN_SPLAT_ADDPASS) // 4 ~ 7 layers pass(addpass)
     #undef FetchControl0
     #define FetchControl0 half4(0.0h, 0.0h, 0.0h, 0.0h)
@@ -256,6 +274,15 @@ SAMPLER(sampler_Mask3);
     #define FetchLayerOcclusion1 0.0
     #define FetchLayerOcclusion2 0.0
     #define FetchLayerOcclusion3 0.0
+
+    #undef FetchLayerHeight0
+    #undef FetchLayerHeight1
+    #undef FetchLayerHeight2
+    #undef FetchLayerHeight3
+    #define FetchLayerHeight0 0.0
+    #define FetchLayerHeight1 0.0
+    #define FetchLayerHeight2 0.0
+    #define FetchLayerHeight3 0.0
 #endif
 
 #if !defined(_TERRAIN_BASEMAP_GEN)

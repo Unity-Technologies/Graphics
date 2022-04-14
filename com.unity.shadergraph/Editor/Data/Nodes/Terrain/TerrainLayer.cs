@@ -136,9 +136,9 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("#ifndef LAYER{0}_ATTRIBUTES", inputLayerIndex);
             sb.AppendLine("#define LAYER{0}_ATTRIBUTES", inputLayerIndex);
             if (inputLayerIndex < 4)
-                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES({0})", inputLayerIndex);
+                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES({0}, {1})", inputLayerIndex, m_ControlValue);
             else
-                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS({0}, {1})", inputLayerIndex, inputLayerIndex - 4);
+                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS({0}, {1}, {2})", inputLayerIndex, inputLayerIndex - 4, m_ControlValue);
             sb.AppendLine("#endif // LAYER{0}_ATTRIBUTES", inputLayerIndex);
 
             if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerAlbedo({2}, {3});", m_AlbedoType, m_AlbedoValue, inputLayerIndex, m_ControlValue);

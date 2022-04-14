@@ -39,7 +39,12 @@ float GetSumHeight(float4 heights0, float4 heights1)
 
 float4 SampleLayerAlbedoGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float3 scale)
 {
+#ifndef _TERRAIN_BASEMAP_GEN
     float4 albedo = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
+#else
+    float4 albedo = SAMPLE_TEXTURE2D(textureName, samplerName, uv);
+#endif
+
     albedo.xyz *= scale;
 
     return albedo;
@@ -47,7 +52,12 @@ float4 SampleLayerAlbedoGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 u
 
 float3 SampleLayerNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
 {
+#ifndef _TERRAIN_BASEMAP_GEN
     float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
+#else
+    float4 nrm = SAMPLE_TEXTURE2D(textureName, samplerName, uv);
+#endif
+
 #ifdef SURFACE_GRADIENT
     #ifdef UNITY_NO_DXT5nm
         return float3(UnpackDerivativeNormalRGB(nrm, scale), 0);
@@ -63,12 +73,18 @@ float3 SampleLayerNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 u
 #endif
 }
 
-float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 remapScale)
+float4 SampleLayerMasksGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float blendMask, float4 remapOffset, float4 remapScale)
 {
-    float4 ret = masks;
-    ret.b *= blendMask; // height needs to be weighted before remapping
-    ret = ret * remapScale + remapOffset;
-    return ret;
+#ifndef _TERRAIN_BASEMAP_GEN
+    float4 masks = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
+#else
+    float4 masks = SAMPLE_TEXTURE2D(textureName, samplerName, uv);
+#endif
+
+    masks.b *= blendMask;
+    masks = masks * remapScale + remapOffset;
+
+    return masks;
 }
 
 #ifdef OVERRIDE_SPLAT_SAMPLER_NAME
@@ -96,8 +112,8 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
 #define DefaultMask(i) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + 0.5 * _MaskMapRemapScale##i.z, albedo[i].a * _Smoothness##i)
 
 #ifdef _MASKMAP
-    #define MaskModeMasks(i, blendMask)    RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
-    #define SampleLayerMasks(i, blendMask) lerp(DefaultMask(i), MaskModeMasks(i, blendMask), _LayerHasMask##i)
+    #define LayerMaskMode(i, blendMask)    SampleLayerMasksGrad(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv, blendMask, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
+    #define SampleLayerMasks(i, blendMask) lerp(DefaultMask(i), LayerMaskMode(i, blendMask), _LayerHasMask##i)
     #define NullMask(i)                    float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
 #else
     #define SampleLayerMasks(i, blendMask) DefaultMask(i)

@@ -54,18 +54,15 @@ SAMPLER(sampler_Control1);
     #define SampleLayerNormal(i) float3(0, 0, 0)
 #endif
 
-float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
-{
-    return masks * remapScale + remapOffset;
-}
-
 #ifdef _MASKMAP
-    #define LayerMaskMode(i)    RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat##i, splatuv, splat##i##dxuv, splat##i##dyuv), _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
-    #define SampleLayerMasks(i) lerp(DefaultMask(i), LayerMaskMode(i), _LayerHasMask##i)
-    #define NullLayerMask(i)    float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
+    #ifdef LayerMaskMode
+    #undef LayerMaskMode
+    #endif
+
+    #define LayerMaskMode(i, blendMask)    SampleLayerMasksGrad(_Mask##i, sampler_Splat##i, splatuv, splat##i##dxuv, splat##i##dyuv, blendMask, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
+    #define SampleLayerMasks(i, blendMask) lerp(DefaultMask(i), LayerMaskMode(i, blendMask), _LayerHasMask##i)
 #else
-    #define SampleLayerMasks(i) DefaultMask(i)
-    #define NullLayerMask(i)    float4(0, 1, 0, 0)
+    #define SampleLayerMasks(i, blendMask) DefaultMask(i)
 #endif
 
 #define FETCH_SPLAT_CONTROL0                                                                            \
@@ -88,18 +85,18 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     float2 dyuv = ddy(IN.uv0.xy);   \
     float2 splatuv;
 
-#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i)                       \
+#define DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i, control)              \
     float2 splat##i##dxuv = dxuv * _Splat##i##_ST.x;                \
     float2 splat##i##dyuv = dyuv * _Splat##i##_ST.x;                \
     splatuv = IN.uv0.xy * _Splat##i##_ST.xy + _Splat##i##_ST.zw;    \
     albedo[i] = SampleLayerAlbedo(i);                               \
     normal[i] = SampleLayerNormal(i);                               \
-    masks[i] = SampleLayerMasks(i);
+    masks[i] = SampleLayerMasks(i, control); // height will be weighted here
 
 #ifdef _TERRAIN_8_LAYERS
-    #define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j) DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i)
+    #define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j, control) DECLARE_AND_FETCH_LAYER_ATTRIBUTES(i, control)
 #else
-    #define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j)
+    #define DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS(i, j, control)
 #endif
 
 #define FetchControl0 splatControl0
@@ -129,6 +126,11 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
 #define FetchLayerOcclusion2 masks[2].g
 #define FetchLayerOcclusion3 masks[3].g
 
+#define FetchLayerHeight0 masks[0].b
+#define FetchLayerHeight1 masks[1].b
+#define FetchLayerHeight2 masks[2].b
+#define FetchLayerHeight3 masks[3].b
+
 #ifdef _TERRAIN_8_LAYERS
     #define FetchControl1 splatControl1
 
@@ -156,6 +158,11 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     #define FetchLayerOcclusion5 masks[5].g
     #define FetchLayerOcclusion6 masks[6].g
     #define FetchLayerOcclusion7 masks[7].g
+
+    #define FetchLayerHeight4 masks[4].b
+    #define FetchLayerHeight5 masks[5].b
+    #define FetchLayerHeight6 masks[6].b
+    #define FetchLayerHeight7 masks[7].b
 #else
     #define FetchControl1 float4(0.0, 0.0, 0.0, 0.0)
 
@@ -183,6 +190,11 @@ float4 RemapMasks(float4 masks, float4 remapOffset, float4 remapScale)
     #define FetchLayerOcclusion5 0.0
     #define FetchLayerOcclusion6 0.0
     #define FetchLayerOcclusion7 0.0
+
+    #define FetchLayerHeight4 0.0
+    #define FetchLayerHeight5 0.0
+    #define FetchLayerHeight6 0.0
+    #define FetchLayerHeight7 0.0
 #endif
 
 #define FetchControl(i) FetchControl##i
