@@ -7,11 +7,11 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    // [Serializable]
-    public abstract class ICLDSConstant : IConstant //, ISerializationCallbackReceiver
+    [Serializable]
+    public abstract class ICLDSConstant : IConstant, ISerializationCallbackReceiver
     {
-        // [SerializeField]
-        // private object tempSerializedValue;
+        [SerializeField]
+        private object tempSerializedValue;
 
         protected GraphHandler graphHandler;
         protected string nodeName, portName;
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public IConstant Clone() { return null; }
         abstract public TypeHandle GetTypeHandle();
 
-        // public void OnBeforeSerialize() => tempSerializedValue = ObjectValue;
-        // public void OnAfterDeserialize() => ObjectValue = tempSerializedValue;
+        public void OnBeforeSerialize() => tempSerializedValue = ObjectValue;
+        public void OnAfterDeserialize() => ObjectValue = tempSerializedValue;
     }
 }
