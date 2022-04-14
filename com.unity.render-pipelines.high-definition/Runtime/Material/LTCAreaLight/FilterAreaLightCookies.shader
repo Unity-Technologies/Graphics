@@ -23,7 +23,8 @@ Shader "Hidden/CoreResources/FilterAreaLightCookies"
 
         // Shared constants
         static const float  DELTA_SCALE = 1.0;
-        static const float4 KERNEL_WEIGHTS = float4( 0.00390625, 0.10937500, 0.21875000, 0.27343750 ) / 0.9375;
+        static const float4 KERNEL_WEIGHTS_SEVEN_TAP = float4( 0.00390625, 0.10937500, 0.21875000, 0.27343750 ) / 0.9375;
+        static const float4 KERNEL_WEIGHTS_FIVE_TAP = float4( 0.0, 0.10937500, 0.21875000, 0.27343750 ) / 0.92969;
 
         struct Attributes
         {
@@ -77,7 +78,7 @@ Shader "Hidden/CoreResources/FilterAreaLightCookies"
             ENDHLSL
         }
 
-        // 1: Horizontal Gaussian
+        // 1: Horizontal Gaussian: 7-tap version
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -89,20 +90,20 @@ Shader "Hidden/CoreResources/FilterAreaLightCookies"
                     float   delta = DELTA_SCALE * _SourceSize.z;
                             UV.x -= 3.0 * delta;
 
-                    float4  sum  = KERNEL_WEIGHTS.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
-                            sum += KERNEL_WEIGHTS.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
-                            sum += KERNEL_WEIGHTS.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
-                            sum += KERNEL_WEIGHTS.w * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta; // Center pixel
-                            sum += KERNEL_WEIGHTS.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
-                            sum += KERNEL_WEIGHTS.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
-                            sum += KERNEL_WEIGHTS.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                    float4  sum  = KERNEL_WEIGHTS_SEVEN_TAP.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.w * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta; // Center pixel
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
                     return sum;
                 }
 
             ENDHLSL
         }
 
-        // 2: Vertical Gaussian
+        // 2: Vertical Gaussian: 7-tap version
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -114,13 +115,13 @@ Shader "Hidden/CoreResources/FilterAreaLightCookies"
                     float   delta = DELTA_SCALE * _SourceSize.w;
                             UV.y -= 3.0 * delta;
 
-                    float4  sum  = KERNEL_WEIGHTS.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
-                            sum += KERNEL_WEIGHTS.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
-                            sum += KERNEL_WEIGHTS.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
-                            sum += KERNEL_WEIGHTS.w * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta; // Center pixel
-                            sum += KERNEL_WEIGHTS.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
-                            sum += KERNEL_WEIGHTS.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
-                            sum += KERNEL_WEIGHTS.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                    float4  sum  = KERNEL_WEIGHTS_SEVEN_TAP.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.w * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta; // Center pixel
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_SEVEN_TAP.x * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
                     return sum;
                 }
             ENDHLSL
@@ -138,6 +139,67 @@ Shader "Hidden/CoreResources/FilterAreaLightCookies"
                 float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
                 return float4(SAMPLE_TEXTURECUBE_LOD(_SourceCubeTexture, sampler_SourceCubeTexture, dir, 0).rgb, 1);
             }
+            ENDHLSL
+        }
+
+        // 4: Horizontal Gaussian: 5-Tap version
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                float4 frag(Varyings input) : SV_Target
+                {
+                    float2  UV = float2(input.texcoord.x, input.texcoord.y) * _SourceSize.xy;
+                    float   delta = DELTA_SCALE * _SourceSize.z;
+                            UV.x -= 2.0 * delta;
+
+                    float4  sum  = KERNEL_WEIGHTS_FIVE_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.w * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta; // Center pixel
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.x += delta;
+                    return sum;
+                }
+
+            ENDHLSL
+        }
+
+        // 5: Vertical Gaussian: 5-Tap version
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                float4 frag(Varyings input) : SV_Target
+                {
+                    float2  UV = float2(input.texcoord.x, input.texcoord.y) * _SourceSize.xy;
+                    float   delta = DELTA_SCALE * _SourceSize.w;
+                            UV.y -= 2.0 * delta;
+
+                    float4  sum  = KERNEL_WEIGHTS_FIVE_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.w * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta; // Center pixel
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.z * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                            sum += KERNEL_WEIGHTS_FIVE_TAP.y * SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel ); UV.y += delta;
+                    return sum;
+                }
+            ENDHLSL
+        }
+
+        // 6: Box Filter: 1-Tap version
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                float4 frag(Varyings input) : SV_Target
+                {
+                    float2  UV = float2(input.texcoord.x, input.texcoord.y) * _SourceSize.xy;
+
+                    return SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, ClampUV(UV), _SourceMipLevel );
+                }
+
             ENDHLSL
         }
     }
