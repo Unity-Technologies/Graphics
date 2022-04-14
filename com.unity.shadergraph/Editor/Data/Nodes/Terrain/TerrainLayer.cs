@@ -123,29 +123,40 @@ namespace UnityEditor.ShaderGraph
             m_SmoothnessEdge = owner.GetEdges(m_SmoothnessNode.slotReference);
             m_OcclusionEdge = owner.GetEdges(m_OcclusionNode.slotReference);
 
-            //sb.AppendLine("");
-            //sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
-            //sb.AppendLine("#error TerrainLayer Node is working under 'TerrainLit' MaterialType");
-            //sb.AppendLine("#endif");
-            //sb.AppendLine("");
+            if (generationMode == GenerationMode.ForReals)
+            {
+                sb.AppendLine("");
+                sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
+                sb.AppendLine("#error TerrainLayer Node is working under 'TerrainLit' MaterialType");
+                sb.AppendLine("#endif");
+                sb.AppendLine("");
 
-            sb.AppendLine("#ifndef LAYER_PREREQUISITES");
-            sb.AppendLine("#define LAYER_PREREQUISITES");
-            sb.AppendLine("DECLARE_LAYER_PREREQUISITES");
-            sb.AppendLine("#endif // LAYER_PREREQUISITES");
-            sb.AppendLine("#ifndef LAYER{0}_ATTRIBUTES", inputLayerIndex);
-            sb.AppendLine("#define LAYER{0}_ATTRIBUTES", inputLayerIndex);
-            if (inputLayerIndex < 4)
-                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES({0}, {1})", inputLayerIndex, m_ControlValue);
+                sb.AppendLine("#ifndef LAYER_PREREQUISITES");
+                sb.AppendLine("#define LAYER_PREREQUISITES");
+                sb.AppendLine("DECLARE_LAYER_PREREQUISITES");
+                sb.AppendLine("#endif // LAYER_PREREQUISITES");
+                sb.AppendLine("#ifndef LAYER{0}_ATTRIBUTES", inputLayerIndex);
+                sb.AppendLine("#define LAYER{0}_ATTRIBUTES", inputLayerIndex);
+                if (inputLayerIndex < 4)
+                    sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES({0}, {1})", inputLayerIndex, m_ControlValue);
+                else
+                    sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS({0}, {1}, {2})", inputLayerIndex, inputLayerIndex - 4, m_ControlValue);
+                sb.AppendLine("#endif // LAYER{0}_ATTRIBUTES", inputLayerIndex);
+
+                if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerAlbedo({2}, {3});", m_AlbedoType, m_AlbedoValue, inputLayerIndex, m_ControlValue);
+                if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerNormal({2}, {3});", m_NormalType, m_NormalValue, inputLayerIndex, m_ControlValue);
+                if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerMetallic({2}, {3});", m_MetallicType, m_MetallicValue, inputLayerIndex, m_ControlValue);
+                if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerSmoothness({2}, {3});", m_SmoothnessType, m_SmoothnessValue, inputLayerIndex, m_ControlValue);
+                if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerOcclusion({2}, {3});", m_OcclusionType, m_OcclusionValue, inputLayerIndex, m_ControlValue);
+            }
             else
-                sb.AppendLine("DECLARE_AND_FETCH_LAYER_ATTRIBUTES_8LAYERS({0}, {1}, {2})", inputLayerIndex, inputLayerIndex - 4, m_ControlValue);
-            sb.AppendLine("#endif // LAYER{0}_ATTRIBUTES", inputLayerIndex);
-
-            if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerAlbedo({2}, {3});", m_AlbedoType, m_AlbedoValue, inputLayerIndex, m_ControlValue);
-            if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerNormal({2}, {3});", m_NormalType, m_NormalValue, inputLayerIndex, m_ControlValue);
-            if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerMetallic({2}, {3});", m_MetallicType, m_MetallicValue, inputLayerIndex, m_ControlValue);
-            if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerSmoothness({2}, {3});", m_SmoothnessType, m_SmoothnessValue, inputLayerIndex, m_ControlValue);
-            if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = FetchLayerOcclusion({2}, {3});", m_OcclusionType, m_OcclusionValue, inputLayerIndex, m_ControlValue);
+            {
+                if (m_AlbedoEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_AlbedoType, m_AlbedoValue);
+                if (m_NormalEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_NormalType, m_NormalValue);
+                if (m_MetallicEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_MetallicType, m_MetallicValue);
+                if (m_SmoothnessEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_SmoothnessType, m_SmoothnessValue);
+                if (m_OcclusionEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_OcclusionType, m_OcclusionValue);
+            }
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

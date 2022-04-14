@@ -100,21 +100,31 @@ namespace UnityEditor.ShaderGraph
             m_ControlBEdge = owner.GetEdges(m_ControlBNode.slotReference);
             m_ControlAEdge = owner.GetEdges(m_ControlANode.slotReference);
 
-            //sb.AppendLine("");
-            //sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
-            //sb.AppendLine("#error TerrainSplat Node is working under 'TerrainLit' MaterialType");
-            //sb.AppendLine("#endif");
-            //sb.AppendLine("");
+            if (generationMode == GenerationMode.ForReals)
+            {
+                sb.AppendLine("");
+                sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
+                sb.AppendLine("#error TerrainSplat Node is working under 'TerrainLit' MaterialType");
+                sb.AppendLine("#endif");
+                sb.AppendLine("");
 
-            sb.AppendLine("#ifndef SPLAT_CONTROL{0}", inputSplatIndex);
-            sb.AppendLine("#define SPLAT_CONTROL{0}", inputSplatIndex);
-            sb.AppendLine("FETCH_SPLAT_CONTROL{0}", inputSplatIndex);
-            sb.AppendLine("#endif // SPLAT_CONTROL{0}", inputSplatIndex);
+                sb.AppendLine("#ifndef SPLAT_CONTROL{0}", inputSplatIndex);
+                sb.AppendLine("#define SPLAT_CONTROL{0}", inputSplatIndex);
+                sb.AppendLine("FETCH_SPLAT_CONTROL{0}", inputSplatIndex);
+                sb.AppendLine("#endif // SPLAT_CONTROL{0}", inputSplatIndex);
 
-            if (m_ControlREdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).r;", m_ControlRType, m_ControlRValue, inputSplatIndex);
-            if (m_ControlGEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).g;", m_ControlGType, m_ControlGValue, inputSplatIndex);
-            if (m_ControlBEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).b;", m_ControlBType, m_ControlBValue, inputSplatIndex);
-            if (m_ControlAEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).a;", m_ControlAType, m_ControlAValue, inputSplatIndex);
+                if (m_ControlREdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).r;", m_ControlRType, m_ControlRValue, inputSplatIndex);
+                if (m_ControlGEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).g;", m_ControlGType, m_ControlGValue, inputSplatIndex);
+                if (m_ControlBEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).b;", m_ControlBType, m_ControlBValue, inputSplatIndex);
+                if (m_ControlAEdge.Any()) sb.AppendLine("{0} {1} = FetchControl({2}).a;", m_ControlAType, m_ControlAValue, inputSplatIndex);
+            }
+            else
+            {
+                if (m_ControlREdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlRType, m_ControlRValue);
+                if (m_ControlGEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlGType, m_ControlGValue);
+                if (m_ControlBEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlBType, m_ControlBValue);
+                if (m_ControlAEdge.Any()) sb.AppendLine("{0} {1} = 0.0;", m_ControlAType, m_ControlAValue);
+            }
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
