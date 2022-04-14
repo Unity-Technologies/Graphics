@@ -123,11 +123,11 @@ namespace UnityEditor.ShaderGraph
             m_SmoothnessEdge = owner.GetEdges(m_SmoothnessNode.slotReference);
             m_OcclusionEdge = owner.GetEdges(m_OcclusionNode.slotReference);
 
-            sb.AppendLine("");
-            sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
-            sb.AppendLine("#error TerrainLayer Node is working under 'TerrainLit' MaterialType");
-            sb.AppendLine("#endif");
-            sb.AppendLine("");
+            //sb.AppendLine("");
+            //sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
+            //sb.AppendLine("#error TerrainLayer Node is working under 'TerrainLit' MaterialType");
+            //sb.AppendLine("#endif");
+            //sb.AppendLine("");
 
             sb.AppendLine("#ifndef LAYER_PREREQUISITES");
             sb.AppendLine("#define LAYER_PREREQUISITES");

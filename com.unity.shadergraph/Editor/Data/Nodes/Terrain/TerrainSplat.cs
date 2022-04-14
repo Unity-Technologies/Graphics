@@ -100,11 +100,11 @@ namespace UnityEditor.ShaderGraph
             m_ControlBEdge = owner.GetEdges(m_ControlBNode.slotReference);
             m_ControlAEdge = owner.GetEdges(m_ControlANode.slotReference);
 
-            sb.AppendLine("");
-            sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
-            sb.AppendLine("#error TerrainSplat Node is working under 'TerrainLit' MaterialType");
-            sb.AppendLine("#endif");
-            sb.AppendLine("");
+            //sb.AppendLine("");
+            //sb.AppendLine("#if !defined(UNIVERSAL_TERRAIN_ENABLED) && !defined(HD_TERRAIN_ENABLED)");
+            //sb.AppendLine("#error TerrainSplat Node is working under 'TerrainLit' MaterialType");
+            //sb.AppendLine("#endif");
+            //sb.AppendLine("");
 
             sb.AppendLine("#ifndef SPLAT_CONTROL{0}", inputSplatIndex);
             sb.AppendLine("#define SPLAT_CONTROL{0}", inputSplatIndex);
