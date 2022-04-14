@@ -121,6 +121,27 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
+        [Obsolete("ReconcretizeAll with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+            "Use ReconcretizeAll() for updated behavior")]
+        public void ReconcretizeAll(Registry registry)
+        {
+            foreach (var name in GetNodes().Select(e => e.ID.LocalPath).ToList())
+            {
+                var node = graphDelta.GetNode(name, registry);
+                if (node != null)
+                {
+                    var builder = registry.GetNodeBuilder(node.GetRegistryKey());
+                    if (builder != null)
+                    {
+                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                        {
+                            ReconcretizeNode(node.ID.FullPath, registry);
+                        }
+                    }
+                }
+            }
+        }
+
         public IEnumerable<PortHandler> GetConnectedPorts(ElementID portID) => graphDelta.GetConnectedPorts(portID, registry);
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
