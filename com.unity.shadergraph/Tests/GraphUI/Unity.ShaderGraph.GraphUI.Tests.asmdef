@@ -5,6 +5,8 @@
     "Unity.ShaderGraph.Editor",
     "Unity.ShaderGraph.GraphUI",
     "Unity.ShaderGraph.GraphDeltaRegistry",
+    "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
+    "Unity.GraphToolsFoundation.Searcher.Editor",
     "Unity.GraphTools.Foundation.Overdrive.Editor",
     "Unity.GraphTools.Foundation.Overdrive.Model"
   ],
