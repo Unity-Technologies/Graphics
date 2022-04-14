@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Utils
                 foreach (var connectedPort in inputPort.GetConnectedPorts())
                 {
                     var connectedNodePath = connectedPort.ID.FullPath.Replace("." + connectedPort.ID.LocalPath, "");
-                    var connectedNode = new NodeHandler(connectedNodePath, connectedPort.Owner);
+                    var connectedNode = new NodeHandler(connectedNodePath, connectedPort.Owner, startingNode.Registry);
                     foreach (var upstreamNode in GetUpstreamNodes(connectedNode))
                         yield return upstreamNode;
                 }
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Utils
                 foreach (var connectedPort in inputPort.GetConnectedPorts())
                 {
                     var connectedNodePath = connectedPort.ID.FullPath.Replace("." + connectedPort.ID.LocalPath, "");
-                    var connectedNode = new NodeHandler(connectedNodePath, connectedPort.Owner);
+                    var connectedNode = new NodeHandler(connectedNodePath, connectedPort.Owner, startingNode.Registry);
                         foreach (var downstreamNodes in GetDownstreamNodes(connectedNode))
                         yield return downstreamNodes;
                 }

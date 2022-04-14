@@ -7,8 +7,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class NodeHandler : GraphDataHandler
     {
-        internal NodeHandler(ElementID elementID, GraphStorage owner, string defaultLayer = GraphDelta.k_user)
-            : base(elementID, owner, defaultLayer)
+        internal NodeHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
+            : base(elementID, owner, registry, defaultLayer)
         {
         }
 
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if(child.Element.Header is PortHeader)
                 {
-                    yield return new PortHandler(child.Element.ID, Owner, DefaultLayer);
+                    yield return new PortHandler(child.Element.ID, Owner, Registry, DefaultLayer);
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if (child.Element.Header is FieldHeader)
                 {
-                    yield return new FieldHandler(child.Element.ID, Owner, DefaultLayer);
+                    yield return new FieldHandler(child.Element.ID, Owner, Registry, DefaultLayer);
                 }
             }
         }
@@ -59,9 +59,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var c = w.AddChild(localID);
             c.SetHeader(new PortHeader());
             var childID = ID.FullPath + $".{localID}";
-            Owner.SetMetadata(childID, PortHeader.kInput, isInput);
-            Owner.SetMetadata(childID, PortHeader.kHorizontal, isHorizontal);
-            return new PortHandler(childID, Owner, DefaultLayer);
+            Owner.m_data.SetMetadata(childID, PortHeader.kInput, isInput);
+            Owner.m_data.SetMetadata(childID, PortHeader.kHorizontal, isHorizontal);
+            return new PortHandler(childID, Owner, Registry, DefaultLayer);
         }
         public void RemovePort(string localID)
         {
@@ -70,12 +70,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public FieldHandler AddField(string localID)
         {
             Writer.AddChild(localID).SetHeader(new FieldHeader());
-            return new FieldHandler(ID.FullPath + $".{localID}", Owner, DefaultLayer);
+            return new FieldHandler(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer);
         }
-        public FieldHandler<T> AddField<T>(string localID, T value)
+        public FieldHandler<T> AddField<T>(string localID, T value = default, bool reconcretizeOnDataChange = false)
         {
             Writer.AddChild(localID,value).SetHeader(new FieldHeader<T>());
-            return new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, DefaultLayer);
+            var output = new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer);
+            if(reconcretizeOnDataChange)
+            {
+                output.SetMetadata(FieldHandler.k_dataRecon, true);
+            }
+            return output;
         }
         public void RemoveField(string localID)
         {

@@ -22,13 +22,13 @@ namespace UnityEditor.ShaderGraph
 
         public GraphHandler ResolveGraph()
         {
-            var graph = GraphHandler.FromSerializedFormat(GraphJSON);
             var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
+            var graph = GraphHandler.FromSerializedFormat(GraphJSON, reg);
 
             //graph.ReconcretizeAll(reg);
             //foreach (var edge in edges)
             //    graph.TryConnect(edge.srcNode, edge.srcPort, edge.dstNode, edge.dstPort, reg);
-            graph.ReconcretizeAll(reg);
+            graph.ReconcretizeAll();
             return graph;
         }
         private static ShaderGraphAssetModel CreateBlankAssetGraph()

@@ -20,11 +20,11 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             // var contextKey = Registry.ResolveKey<Registry.Default.DefaultContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
 
-            graph = new GraphHandler();
 
             registry.Register<GraphType>();
             registry.Register<TestAddNode>();
             registry.Register<GraphTypeAssignment>();
+            graph = new GraphHandler(registry);
 
             graph.AddContextNode(propertyKey, registry);
             // graph.AddContextNode(contextKey, registry);
