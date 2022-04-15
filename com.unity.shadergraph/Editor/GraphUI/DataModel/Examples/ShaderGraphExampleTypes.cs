@@ -103,230 +103,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    public abstract class ICLDSConstant
-    {
-        protected GraphHandler graphHandler;
-        protected string nodeName, portName;
-        public bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
-
-        public FieldHandler GetField()
-        {
-            if (!IsInitialized) return null;
-            var nodeReader = graphHandler.GetNode(nodeName);
-            var portReader = nodeReader.GetPort(portName);
-            return portReader.GetTypeField();
-        }
-
-        public string NodeName => nodeName;
-        public string PortName => portName;
-
-        public void Initialize(GraphHandler handler, string nodeName, string portName)
-        {
-            if (!IsInitialized)
-            {
-                this.graphHandler = handler;
-                this.nodeName = nodeName;
-                this.portName = portName;
-            }
-        }
-    }
-
-    public class TextureTypeConstant : ICLDSConstant, IConstant
-    {
-        public object ObjectValue
-        {
-            get => !IsInitialized ? DefaultValue : BaseTextureType.GetTextureAsset(GetField());
-            set
-            {
-                if (IsInitialized)
-                    BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
-            }
-        }
-
-        public object DefaultValue => null;
-
-        public Type Type => IsInitialized && ObjectValue != null ? ObjectValue.GetType() : typeof(Texture2D);
-
-        public IConstant Clone()
-        {
-            return null;
-        }
-
-        public TypeHandle GetTypeHandle()
-        {
-            switch(ObjectValue)
-            {
-                case Texture2DArray: return ShaderGraphExampleTypes.Texture2DArrayTypeHandle;
-                case Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
-                case Cubemap: return ShaderGraphExampleTypes.CubemapTypeHandle;
-                case Texture2D:
-                default: return ShaderGraphExampleTypes.Texture2DTypeHandle;
-            }
-        }
-
-        public void Initialize(TypeHandle constantTypeHandle) { }
-    }
-
-    public class GraphTypeConstant : ICLDSConstant, IConstant
-    {
-        internal int GetLength()
-        {
-            if (!IsInitialized) return -1;
-            var nodeReader = graphHandler.GetNode(nodeName);
-            var portReader = nodeReader.GetPort(portName);
-            var field = portReader.GetTypeField().GetSubField<GraphType.Length>(GraphType.kLength);
-            return (int)field.GetData();
-        }
-
-        private GraphType.Primitive GetPrimitive()
-        {
-            if (!IsInitialized) return GraphType.Primitive.Float;
-            var nodeReader = graphHandler.GetNode(nodeName);
-            var portReader = nodeReader.GetPort(portName);
-            var field = portReader.GetTypeField().GetSubField<GraphType.Primitive>(GraphType.kPrimitive);
-            return field.GetData();
-        }
-
-        private float gc(int i)
-        {
-            if (!IsInitialized) return 0;
-            var nodeReader = graphHandler.GetNode(nodeName);
-            var port = nodeReader.GetPort(portName);
-            return port.GetTypeField().GetSubField<float>($"c{i}").GetData();
-        }
-
-        private void sc(int i, float v)
-        {
-            if (!IsInitialized) return;
-            var node = graphHandler.GetNode(nodeName);
-            var port = node.GetPort(portName);
-            var field = port.GetTypeField().GetSubField<float>($"c{i}");
-            field.SetData(v);
-        }
-
-        //public void Initialize(GraphDelta.GraphHandler handler, string nodeName, string portName)
-        //{
-        //    if (IsInitialized) return;
-        //    graphHandler = handler;
-        //    this.nodeName = nodeName;
-        //    this.portName = portName;
-        //}
-
-        public void Initialize(TypeHandle constantTypeHandle)
-        {
-
-        }
-
-        public IConstant Clone()
-        {
-            return null;
-        }
-
-        public TypeHandle GetTypeHandle()
-        {
-            switch (GetLength())
-            {
-                case 1:
-                    switch (GetPrimitive())
-                    {
-                        case GraphType.Primitive.Int: return TypeHandle.Int;
-                        case GraphType.Primitive.Bool: return TypeHandle.Bool;
-                        default: return TypeHandle.Float;
-                    }
-                case 2: return TypeHandle.Vector2;
-                case 3: return TypeHandle.Vector3;
-                default: return TypeHandle.Vector4;
-            }
-        }
-
-        public object ObjectValue
-        {
-            get
-            {
-                switch (GetLength())
-                {
-                    case 1:
-                        switch(GetPrimitive())
-                        {
-                            case GraphType.Primitive.Int: return (int)gc(0);
-                            case GraphType.Primitive.Bool: return gc(0) != 0;
-                            default: return gc(0);
-                        }
-                    case 2: return new Vector2(gc(0), gc(1));
-                    case 3: return new Vector3(gc(0), gc(1), gc(2));
-                    case 4: return new Vector4(gc(0), gc(1), gc(2), gc(3));
-                    default: return 0;
-                }
-            }
-            set
-            {
-                switch (GetLength())
-                {
-                    default:
-                        switch (GetPrimitive())
-                        {
-                            case GraphType.Primitive.Int: sc(0, Convert.ToSingle(value)); return;
-                            case GraphType.Primitive.Bool: sc(0, (bool)value ? 1 : 0); return;
-                            default: sc(0, (float)value); return;
-                        }
-                    case 2: var v2 = (Vector2)value; sc(0, v2.x); sc(1, v2.y); return;
-                    case 3: var v3 = (Vector3)value; sc(0, v3.x); sc(1, v3.y); sc(2, v3.z); return;
-                    case 4: var v4 = (Vector4)value; sc(0, v4.x); sc(1, v4.y); sc(2, v4.z); sc(3, v4.w); return;
-                }
-            }
-        }
-        public Type Type
-        {
-            get
-            {
-                switch (GetLength())
-                {
-                    case 2: return typeof(Vector2);
-                    case 3: return typeof(Vector3);
-                    case 4: return typeof(Vector4);
-                    default:
-                        switch (GetPrimitive())
-                        {
-                            case GraphType.Primitive.Int: return typeof(int);
-                            case GraphType.Primitive.Bool: return typeof(bool);
-                            default: return typeof(float);
-                        }
-                }
-            }
-        }
-
-        public object DefaultValue => Activator.CreateInstance(Type);
-    }
-
-    public class GradientTypeConstant : ICLDSConstant, IConstant
-    {
-        public void Initialize(TypeHandle constantTypeHandle)
-        {
-
-        }
-
-        public IConstant Clone()
-        {
-            return null;
-        }
-
-        public TypeHandle GetTypeHandle() => ShaderGraphExampleTypes.GradientTypeHandle;
-
-        public object ObjectValue
-        {
-            get => IsInitialized ? GradientTypeHelpers.GetGradient(GetField()) : DefaultValue;
-            set
-            {
-                if (IsInitialized)
-                    GradientTypeHelpers.SetGradient(GetField(), (Gradient)value);
-            }
-        }
-
-        public Type Type => typeof(Gradient);
-
-        public object DefaultValue => Activator.CreateInstance(Type);
-    }
-
     [GraphElementsExtensionMethodsCache(typeof(GraphView), GraphElementsExtensionMethodsCacheAttribute.toolDefaultPriority)]
     static class GDSExt
     {
@@ -349,7 +125,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey);
             var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
 
-            if (length >= 3 && parameterUIDescriptor.UseColor)
+            if ((int)length >= 3 && parameterUIDescriptor.UseColor)
             {
                 var constantEditor = new SGModelPropertyField<Color>(
                     builder.CommandTarget as RootView,
@@ -362,12 +138,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     Vector4 vector4Value = (Vector4)change.newValue;
                     Vector3 vector3Value = vector4Value;
-                    builder.CommandTarget.Dispatch(new UpdateConstantValueCommand(constant, length == 3 ? vector3Value : vector4Value, builder.ConstantOwner));
+                    builder.CommandTarget.Dispatch(new UpdateConstantValueCommand(constant, (int)length == 3 ? vector3Value : vector4Value, builder.ConstantOwner));
                 }
 
                 if (constantEditor.PropertyField is ColorField colorField)
                 {
-                    colorField.showAlpha = length == 4;
+                    colorField.showAlpha = (int)length == 4;
                     colorField.RegisterValueChangedCallback(OnValueChanged);
                 }
 
