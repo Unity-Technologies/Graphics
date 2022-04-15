@@ -8,7 +8,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Serializable]
-    public abstract class ICLDSConstant : IConstant, ISerializationCallbackReceiver
+    public abstract class BaseShaderGraphConstant : IConstant, ISerializationCallbackReceiver
     {
         [SerializeField]
         private object tempSerializedValue;

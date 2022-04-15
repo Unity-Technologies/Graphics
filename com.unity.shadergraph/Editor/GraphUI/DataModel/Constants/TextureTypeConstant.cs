@@ -6,7 +6,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class TextureTypeConstant : ICLDSConstant
+    public class TextureTypeConstant : BaseShaderGraphConstant
     {
         override protected object GetValue() => BaseTextureType.GetTextureAsset(GetField());
         override protected void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);

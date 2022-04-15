@@ -5,7 +5,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class GradientTypeConstant : ICLDSConstant
+    public class GradientTypeConstant : BaseShaderGraphConstant
     {
         override protected object GetValue() => GradientTypeHelpers.GetGradient(GetField());
         override protected void SetValue(object value) => GradientTypeHelpers.SetGradient(GetField(), (Gradient)value);
