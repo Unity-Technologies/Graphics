@@ -261,10 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int data = m_IsGPUTextureUpToDate[instanceId];
 
             DecodeGPUTextureUpToDateData(data, out int updateCountLast, out int flagsLastUnused);
-            int flags = mipAreValid ? 2 : 1;
-            data = EncodeGPUTextureUpToDateData(updateCountLast, flags);
-
-            m_IsGPUTextureUpToDate[instanceId] = data;
+            m_IsGPUTextureUpToDate[instanceId] = EncodeGPUTextureUpToDateData(updateCountLast, mipAreValid);
         }
 
         protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = 0;
@@ -380,6 +377,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return (updateCount << 2) | (flags & 3);
         }
 
+        private int EncodeGPUTextureUpToDateData(int updateCount, bool mips)
+        {
+            return EncodeGPUTextureUpToDateData(updateCount, mips ? 2 : 1);
+        }
+
         private void DecodeGPUTextureUpToDateData(int data, out int updateCount, out int flags)
         {
             updateCount = data >> 2;
@@ -395,8 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the render texture if needed
             if (rt != null)
             {
-                int updateCountAndFlags;
-                if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCountAndFlags))
+                if (m_IsGPUTextureUpToDate.TryGetValue(key, out int updateCountAndFlags))
                 {
                     DecodeGPUTextureUpToDateData(updateCountAndFlags, out int updateCount, out int flags);
                     bool mipsAlreadyGenerated = flags == 2;
@@ -407,13 +408,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (m_DebugSkipDynamicTextureUpdatesEnabled) { return false; }
                         // custom-end
 
-                        m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
+                        m_IsGPUTextureUpToDate[key] = EncodeGPUTextureUpToDateData((int)rt.updateCount, needMips);
                         return true;
                     }
                 }
                 else
                 {
-                    m_IsGPUTextureUpToDate[key] = EncodeGPUTextureUpToDateData((int)rt.updateCount, needMips ? 2 : 1);
+                    m_IsGPUTextureUpToDate[key] = EncodeGPUTextureUpToDateData((int)rt.updateCount, needMips);
                 }
             }
             // In case the texture settings/import settings have changed, we need to update it
@@ -441,22 +442,23 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the render texture if needed
             if (rtA != null || rtB != null)
             {
-                int updateCount;
-                if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
+                if (m_IsGPUTextureUpToDate.TryGetValue(key, out int updateCountAndFlags))
                 {
-                    if (rtA != null && rtB != null && Math.Min(rtA.updateCount, rtB.updateCount) != updateCount)
+                    DecodeGPUTextureUpToDateData(updateCountAndFlags, out int updateCount, out int flags);
+                    bool hasMips = flags == 2;
+                    if (rtA != null && rtB != null && (Math.Min(rtA.updateCount, rtB.updateCount) != updateCount || (needMips && !hasMips)))
                     {
-                        m_IsGPUTextureUpToDate[key] = (int)Math.Min(rtA.updateCount, rtB.updateCount);
+                        m_IsGPUTextureUpToDate[key] = EncodeGPUTextureUpToDateData((int)Math.Min(rtA.updateCount, rtB.updateCount), needMips);
                         return true;
                     }
-                    else if (rtA != null && rtA.updateCount != updateCount)
+                    else if (rtA != null && (rtA.updateCount != updateCount || (needMips && !hasMips)))
                     {
-                        m_IsGPUTextureUpToDate[key] = (int)rtA.updateCount;
+                        m_IsGPUTextureUpToDate[key] = EncodeGPUTextureUpToDateData((int)rtA.updateCount, needMips);
                         return true;
                     }
-                    else if (rtB.updateCount != updateCount) // implicitly rtB != null
+                    else if (rtB.updateCount != updateCount || (needMips && !hasMips)) // implicitly rtB != null
                     {
-                        m_IsGPUTextureUpToDate[key] = (int)rtB.updateCount;
+                        m_IsGPUTextureUpToDate[key] = EncodeGPUTextureUpToDateData((int)rtB.updateCount, needMips);
                         return true;
                     }
                 }
