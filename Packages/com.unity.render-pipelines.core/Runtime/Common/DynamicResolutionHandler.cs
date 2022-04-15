@@ -216,6 +216,13 @@ namespace UnityEngine.Rendering
             BeforePost,
 
             /// <summary>
+            /// Indicates that upscaling should happen after depth of field but before other post processing.
+            /// This means that everything runs at the source resolution during rasterization and depth of field, and other post processes
+            /// will run at full resolution. More performant alternative for temporal upscalers at the expense of reduced image quality.
+            /// </summary>
+            AfterDepthOfField,
+
+            /// <summary>
             /// Indicates that upscaling must happen after post processing.
             /// This means that everything in the frame runs at the source resolution, and upscaling happens after
             /// the final pass. This is ideal for spatial upscalers.

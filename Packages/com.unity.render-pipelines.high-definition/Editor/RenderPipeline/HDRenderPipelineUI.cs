@@ -548,6 +548,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
 
+                    int injectionPointVal = EditorGUILayout.IntPopup(Styles.DLSSInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue, Styles.DLSSInjectionPointNames, Styles.DLSSInjectionPointValues);
+                    serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue = injectionPointVal;
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
 
                     using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue))
