@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
 using RttTest;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
@@ -21,22 +16,30 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private static DistributedMode s_distributedMode = DistributedMode.None;
+        private static bool s_videoMode = false;
 
-        public static void SetDistributedMode(DistributedMode mode)
+        public static void SetDistributedMode(DistributedMode renderingMode, bool useVideoEncoding = false)
         {
-            s_distributedMode = Application.isEditor ? DistributedMode.None : mode;
+#if UNITY_EDITOR
+            // In editor, we only do non-distributed mode
+            s_distributedMode = DistributedMode.None;
+            // In editor, we don't do video encoding
+            s_videoMode = false;
+#else
+            s_distributedMode = renderingMode;
+            // Video encoding only supports vulkan at this point
+            s_videoMode = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan && useVideoEncoding;
+#endif
         }
 
         public static DistributedMode GetDistributedMode()
         {
-            //Camera camera = hdCamera.camera;
-            if (Application.isEditor)
-            {
-                // In editor, we only do non-distributed mode
-                return DistributedMode.None;
-            }
-
             return s_distributedMode;
+        }
+
+        public static bool GetVideoMode()
+        {
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan && s_videoMode;
         }
 
         private static int FrameID = -1;
@@ -46,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => FrameID;
             set => FrameID = value;
         }
-        
+
         public static int LastSentFrameID { get; set; }
 
         class ReceiveData
@@ -86,6 +89,24 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle computeBuffer;
         }
 
+        TextureDesc GetDistributedIntermediateTextureDesc(Vector2 scale, GraphicsFormat format)
+        {
+            return new TextureDesc(scale, false, false)
+            {
+                autoGenerateMips = false,
+                bindTextureMS = false,
+                clearBuffer = false,
+                anisoLevel = 0,
+                colorFormat = format,
+                depthBufferBits = DepthBits.None,
+                dimension = TextureXR.dimension,
+                slices = TextureXR.slices,
+                filterMode = FilterMode.Trilinear,
+                enableMSAA = false,
+                enableRandomWrite = true
+            };
+        }
+
         void CreateYUVTexture(RenderGraphBuilder builder, Vector2Int layout,
             out TextureHandle yTex,
             out TextureHandle uTex,
@@ -94,35 +115,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GetDistributedMode() == DistributedMode.Renderer)
                 layout = Vector2Int.one;
 
-            TextureDesc GetTextureDesc(Vector2 scale)
-            {
-                return new TextureDesc(scale, false, false)
-                {
-                    autoGenerateMips = false,
-                    bindTextureMS = false,
-                    clearBuffer = false,
-                    anisoLevel = 0,
-                    colorFormat = GraphicsFormat.R16_SFloat,
-                    depthBufferBits = DepthBits.None,
-                    dimension = TextureXR.dimension,
-                    slices = TextureXR.slices,
-                    filterMode = FilterMode.Trilinear,
-                    enableMSAA = false,
-                    enableRandomWrite = true
-                };
-            }
-
             Vector2 fullSize = Vector2.one / layout;
             Vector2 halfSize = fullSize * 0.5f;
 
-            yTex = builder.CreateTransientTexture(GetTextureDesc(fullSize));
-            uTex = builder.CreateTransientTexture(GetTextureDesc(halfSize));
-            vTex = builder.CreateTransientTexture(GetTextureDesc(halfSize));
+            yTex = builder.CreateTransientTexture(GetDistributedIntermediateTextureDesc(fullSize, GraphicsFormat.R16_SFloat));
+            uTex = builder.CreateTransientTexture(GetDistributedIntermediateTextureDesc(halfSize, GraphicsFormat.R16_SFloat));
+            vTex = builder.CreateTransientTexture(GetDistributedIntermediateTextureDesc(halfSize, GraphicsFormat.R16_SFloat));
         }
 
         int GetYUVBufferLength(Vector2Int layout)
         {
-            Vector2Int sectionSize = new Vector2Int(Screen.width / layout.x, Screen.height / layout.y);
+            Vector2Int sectionSize = GetCurrentSubViewportSize(layout);
             int yChannelSize = sectionSize.x * sectionSize.y;
             return 3 * yChannelSize * TextureXR.slices;
         }
@@ -152,19 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.blitYUVToRGBMaterial = GetBlitYUVToRGBMaterial(TextureXR.dimension);
 
-                passData.colorBufferSection = builder.CreateTransientTexture(
-                    new TextureDesc(Vector2.one / passData.layout, false, false)
-                    {
-                        anisoLevel = 0,
-                        autoGenerateMips = false,
-                        bindTextureMS = false,
-                        clearBuffer = false,
-                        colorFormat = GraphicsFormat.R16G16B16A16_SFloat,
-                        depthBufferBits = DepthBits.None,
-                        dimension = TextureXR.dimension,
-                        slices = TextureXR.slices,
-                        enableMSAA = false
-                    });
+                passData.colorBufferSection =
+                    builder.CreateTransientTexture(
+                        GetDistributedIntermediateTextureDesc(Vector2.one / passData.layout, GraphicsFormat.R16G16B16A16_SFloat));
 
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
 
@@ -187,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 datagram = SocketServer.Instance.ReceiveReadyFrame(i);
                                 if (datagram == null)
                                     continue;
-                                
+
                                 RttTestUtilities.ReceiveFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
                                     0, 0, datagram.length);
@@ -203,8 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ComputeShader cs = data.computeBufferToYUVTexturesCS;
                                 int kernelID = cs.FindKernel("BufferToTexture");
 
-                                int width = Screen.width / data.layout.x;
-                                int height = Screen.height / data.layout.y;
+                                Vector2Int viewportSize = GetCurrentSubViewportSize(data.layout);
 
                                 context.cmd.SetComputeBufferParam(cs, kernelID, HDShaderIDs._YUVBufferID,
                                     data.receivedYUVDataBuffer);
@@ -214,8 +206,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.tempUTexture);
                                 context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVVTexID,
                                     data.tempVTexture);
-                                context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullWidthID, width);
-                                context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullHeightID, height);
+                                context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullWidthID, viewportSize.x);
+                                context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullHeightID, viewportSize.y);
                                 int threadGroupZ;
                                 if (TextureXR.dimension == TextureDimension.Tex2DArray)
                                 {
@@ -231,8 +223,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cs.GetKernelThreadGroupSizes(kernelID, out var threadGroupSizeX,
                                     out var threadGroupSizeY, out _);
 
-                                int threadGroupX = Mathf.CeilToInt((float)width / threadGroupSizeX);
-                                int threadGroupY = Mathf.CeilToInt((float)height / threadGroupSizeY);
+                                int threadGroupX = Mathf.CeilToInt((float)viewportSize.x / threadGroupSizeX);
+                                int threadGroupY = Mathf.CeilToInt((float)viewportSize.y / threadGroupSizeY);
 
                                 context.cmd.DispatchCompute(cs, kernelID, threadGroupX, threadGroupY, threadGroupZ);
                             }
@@ -255,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                        new ProfilingSampler($"Copy Section {i} to Color Buffer")))
                             {
                                 RttTestUtilities.CombineFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
-                                
+
                                 context.cmd.SetRenderTarget(data.colorBuffer);
                                 HDUtils.BlitQuadWithPadding(
                                     context.cmd,
@@ -299,9 +291,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int currentFrameID = CurrentFrameID;
                         int rendererId = Const.userID;
-                        
+
                         RttTestUtilities.BeginEncodeYuv(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
-                        
+
                         // Blit color buffer to YUV Textures
                         using (new ProfilingScope(context.cmd,
                                    new ProfilingSampler("Blit Color Buffer to YUV Textures")))
@@ -337,22 +329,21 @@ namespace UnityEngine.Rendering.HighDefinition
                                 threadGroupZ = 1;
                             }
 
-                            int width = Screen.width;
-                            int height = Screen.height;
+                            Vector2Int viewportSize = GetCurrentSubViewportSize(Vector2Int.one);
 
                             context.cmd.SetComputeBufferParam(cs, kernelID, HDShaderIDs._YUVBufferID,
                                 data.computeBuffer);
                             context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVYTexID, data.tempYTexture);
                             context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVUTexID, data.tempUTexture);
                             context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVVTexID, data.tempVTexture);
-                            context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullWidthID, width);
-                            context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullHeightID, height);
+                            context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullWidthID, viewportSize.x);
+                            context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullHeightID, viewportSize.y);
 
                             cs.GetKernelThreadGroupSizes(kernelID, out var threadGroupSizeX, out var threadGroupSizeY,
                                 out _);
 
-                            int threadGroupX = Mathf.CeilToInt((float)width / threadGroupSizeX);
-                            int threadGroupY = Mathf.CeilToInt((float)height / threadGroupSizeY);
+                            int threadGroupX = Mathf.CeilToInt((float)viewportSize.x / threadGroupSizeX);
+                            int threadGroupY = Mathf.CeilToInt((float)viewportSize.y / threadGroupSizeY);
 
                             context.cmd.DispatchCompute(cs, kernelID, threadGroupX, threadGroupY, threadGroupZ);
                         }
@@ -362,7 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                    new ProfilingSampler("Readback and Send Buffer")))
                         {
                             RttTestUtilities.BeginReadBack(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
-                            
+
                             //int currentFrameID = CurrentFrameID;
                             context.cmd.RequestAsyncReadback(data.computeBuffer, request =>
                             {
@@ -371,12 +362,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
 
                                 Profiling.Profiler.BeginSample("Readback and Send Buffer Internal");
-                                
+
                                 RttTestUtilities.FinishReadBack(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
 
                                 NativeArray<byte> nativeData = request.GetData<byte>();
                                 byte[] managedData = nativeData.ToArray();
-                                
+
                                 RttTestUtilities.SendFrame(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
                                 //SocketClient.Instance.ReplaceOrSet(Datagram.DatagramType.VideoFrame, managedData);
                                 SocketClient.Instance.Set(Datagram.DatagramType.VideoFrame, managedData, currentFrameID);
@@ -448,6 +439,13 @@ namespace UnityEngine.Rendering.HighDefinition
             frustumPlanes.top =
                 Mathf.LerpUnclamped(baseFrustumPlanes.bottom, baseFrustumPlanes.top, viewportSubsection.yMax);
             return Matrix4x4.Frustum(frustumPlanes);
+        }
+
+        public static Vector2Int GetCurrentSubViewportSize(Vector2Int layout)
+        {
+            return new Vector2Int(
+                RTHandles.rtHandleProperties.currentViewportSize.x / layout.x,
+                RTHandles.rtHandleProperties.currentViewportSize.y / layout.y);
         }
 
         #endregion

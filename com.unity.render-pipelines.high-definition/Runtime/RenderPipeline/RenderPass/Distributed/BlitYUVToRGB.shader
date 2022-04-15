@@ -44,36 +44,69 @@ Shader "Hidden/HDRP/Distributed/BlitYUVToRGB"
 
         float4 YUVToRGB(float y, float u, float v)
         {
+            // BT.2020
+            float a = 0.2627f;
+            float b = 0.6780f;
+            float c = 0.0593f;
+            float d = 1.8814f;
+            float e = 1.4747f;
+
+            // BT.709
+            // float a = 0.2126f;
+            // float b = 0.7152f;
+            // float c = 0.0722f;
+            // float d = 1.8556f;
+            // float e = 1.5748f;
+
             u = u - 0.5f;
-			v = v - 0.5f;
+            v = v - 0.5f;
 
-			half r = y + 1.28033f * v;
-			half g = y - 0.21482f * v - 0.38059f * u;
-			half b = y + 2.12798f * u;
-
-			return float4(r, g, b, 1);
+            float R = y + e * v;
+            float G = y - (a * e / b) * v - (c * d / b) * u;
+            float B = y + d * u;
+            //float3 rgb = max(float3(0, 0, 0), float3(R, G, B));
+            //rgb = pow(rgb, 2.2f);
+		    //return float4(rgb, 1);
+            return float4(R, G, B, 1);
         }
 
-        float4 Frag(Varyings input, SamplerState s)
+        float4 FragYUV(Varyings input) : SV_Target
         {
+            SamplerState s = sampler_LinearClamp;
+
             float y, u, v;
+
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
             y = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTextureY, s, input.texcoord.xy, _BlitTexArraySlice, 0).r;
             u = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTextureU, s, input.texcoord.xy, _BlitTexArraySlice, 0).r;
             v = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTextureV, s, input.texcoord.xy, _BlitTexArraySlice, 0).r;
-        #endif
-
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        #else
             y = SAMPLE_TEXTURE2D_X_LOD(_BlitTextureY, s, input.texcoord.xy, 0).r;
             u = SAMPLE_TEXTURE2D_X_LOD(_BlitTextureU, s, input.texcoord.xy, 0).r;
             v = SAMPLE_TEXTURE2D_X_LOD(_BlitTextureV, s, input.texcoord.xy, 0).r;
+        #endif
 
             return YUVToRGB(y, u, v);
         }
 
-        float4 FragRGB(Varyings input) : SV_Target
+        float4 FragNV12(Varyings input) : SV_Target
         {
-            return Frag(input, sampler_LinearClamp);
+            SamplerState s = sampler_LinearClamp;
+
+            float y;
+            float2 uv;
+
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
+            y = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTextureY, s, input.texcoord.xy, _BlitTexArraySlice, 0).r;
+            uv = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTextureU, s, input.texcoord.xy, _BlitTexArraySlice, 0).rg;
+        #else
+            y = SAMPLE_TEXTURE2D_X_LOD(_BlitTextureY, s, input.texcoord.xy, 0).r;
+            uv = SAMPLE_TEXTURE2D_X_LOD(_BlitTextureU, s, input.texcoord.xy, 0).rg;
+        #endif
+
+            return YUVToRGB(y, uv.r, uv.g);
         }
 
     ENDHLSL
@@ -88,7 +121,17 @@ Shader "Hidden/HDRP/Distributed/BlitYUVToRGB"
 
             HLSLPROGRAM
                 #pragma vertex Vert
-                #pragma fragment FragRGB
+                #pragma fragment FragYUV
+            ENDHLSL
+        }
+
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragNV12
             ENDHLSL
         }
 

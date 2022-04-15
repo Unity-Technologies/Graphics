@@ -42,21 +42,37 @@ Shader "Hidden/HDRP/Distributed/BlitRGBToYUV"
 
         float3 RGBToYUV(float3 rgb)
         {
-            float y =  0.299f   * rgb.r + 0.587f   * rgb.g + 0.114f   * rgb.b;
-        	float u = -0.14713f * rgb.r - 0.28886f * rgb.g + 0.436f   * rgb.b + 0.5f;
-        	float v =  0.615f   * rgb.r - 0.51499f * rgb.g - 0.10001f * rgb.b + 0.5f;
-			return float3(y, u, v);
+            //rgb = pow(rgb, 1.0f / 2.2f);
+            // BT.2020
+            float a = 0.2627f;
+            float b = 0.6780f;
+            float c = 0.0593f;
+            float d = 1.8814f;
+            float e = 1.4747f;
+
+            // BT.709
+            // float a = 0.2126f;
+            // float b = 0.7152f;
+            // float c = 0.0722f;
+            // float d = 1.8556f;
+            // float e = 1.5748f;
+
+            float y = a * rgb.r + b * rgb.g + c * rgb.b;
+            float u = (rgb.b - y) / d + 0.5;
+            float v = (rgb.r - y) / e + 0.5;
+		    return float3(y, u, v);
         }
 
         float4 Frag(Varyings input, SamplerState s)
         {
             float4 rgb;
-        #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
-            rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTexture, s, input.texcoord.xy, _BlitTexArraySlice, 0);
-        #endif
 
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
+            rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTexture, s, input.texcoord.xy, _BlitTexArraySlice, 0);
+        #else
             rgb = SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, s, input.texcoord.xy, 0);
+        #endif
 
             return float4(RGBToYUV(rgb.rgb), 1);
         }
@@ -65,15 +81,20 @@ Shader "Hidden/HDRP/Distributed/BlitRGBToYUV"
         {
             return Frag(input, sampler_LinearClamp).rrrr;
         }
-    
+
         float4 FragU(Varyings input) : SV_Target
         {
             return Frag(input, sampler_LinearClamp).gggg;
         }
-    
+
         float4 FragV(Varyings input) : SV_Target
         {
             return Frag(input, sampler_LinearClamp).bbbb;
+        }
+
+        float4 FragUV(Varyings input) : SV_Target
+        {
+            return Frag(input, sampler_LinearClamp).gbgb;
         }
 
     ENDHLSL
@@ -109,6 +130,16 @@ Shader "Hidden/HDRP/Distributed/BlitRGBToYUV"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragV
+            ENDHLSL
+        }
+
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragUV
             ENDHLSL
         }
 

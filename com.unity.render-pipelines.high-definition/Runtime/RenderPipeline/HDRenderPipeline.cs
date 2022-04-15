@@ -1060,6 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CleanupNonRenderGraphResources()
         {
+            DestroyCodecs();
             DestroyRenderTextures();
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
