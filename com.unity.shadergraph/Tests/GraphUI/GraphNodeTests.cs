@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine.UIElements;
 using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEngine.TestTools;
 using Assert = UnityEngine.Assertions.Assert;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
@@ -26,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         // Used to send events to the highest shader graph editor window
         TestEventHelpers m_ShaderGraphWindowTestHelper;
 
-        string m_TestAssetPath =  $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
+        string m_TestAssetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
 
         protected virtual void CreateWindow()
         {
@@ -67,7 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             //TestEventHelpers.SendKeyDownEvent(m_Window, KeyCode.Space);
             //TestEventHelpers.SendKeyUpEvent(m_Window, KeyCode.Space);
 
-            var searcherWindow = (SearcherWindow) EditorWindow.GetWindow(typeof(SearcherWindow));
+            var searcherWindow = (SearcherWindow)EditorWindow.GetWindow(typeof(SearcherWindow));
             return searcherWindow;
         }
 
@@ -75,6 +73,59 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator CreateAddNodeFromSearcherTest()
         {
             return AddNodeFromSearcherAndValidate("Add");
+        }
+
+        [UnityTest]
+        public IEnumerator AddEdgesTest()
+        {
+            // TODO: Clean up and possibly move somewhere better
+
+            {
+                yield return AddNodeFromSearcherAndValidate("Add");
+                yield return AddNodeFromSearcherAndValidate("Preview");
+
+                var addNode = (GraphDataNodeModel)m_GraphView.GraphModel.NodeModels.First(n => n is GraphDataNodeModel {Title: "Add"});
+                var previewNode = (GraphDataNodeModel)m_GraphView.GraphModel.NodeModels.First(n => n is GraphDataNodeModel {Title: "Preview"});
+
+                //
+                // var previewNodeView = previewNode.GetView<GraphDataNode>(m_GraphView);
+                // m_ShaderGraphWindowTestHelper.SendMouseDragEvent(previewNodeView.worldBound.center, new Vector2(200, 200));
+                // yield return null;
+                //
+                // yield return new WaitForSeconds(1);
+                //
+                var addOut = addNode.GetOutputPorts().First();
+                var previewIn = previewNode.GetInputPorts().First();
+
+                //
+                // var addOutView = addOut.GetView<Port>(m_GraphView);
+                // var previewInView = previewIn.GetView<Port>(m_GraphView);
+                //
+                // m_ShaderGraphWindowTestHelper.SendMouseDragEvent(addOutView, previewInView);
+                // yield return null;
+
+                // TODO drag out edge?
+                m_GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
+                GraphAssetUtils.SaveImplementation(m_Window.GraphTool);
+            }
+
+            CloseWindow();
+            //
+            // Object.DestroyImmediate(m_Window);
+            // EditorUtility.UnloadUnusedAssetsImmediate();
+            //
+            var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
+            //
+            CreateWindow();
+            m_Window.Show();
+            m_Window.Focus();
+            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            // AssetDatabase.OpenAsset(graphAsset);
+
+            yield return null;
+            yield return null;
+            yield return null;
+            // yield return null;
         }
 
         /*
