@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (GraphModel?.Stencil?.GetConstantNodeValueType(DataType) != null)
             {
                 InitializationModel = GraphModel.Stencil.CreateConstantValue(DataType);
-                if (InitializationModel is ICLDSConstant cldsConstant)
+                if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
                     cldsConstant.Initialize(shaderGraphModel.GraphHandler, contextNodeName, graphDataName);
                 }

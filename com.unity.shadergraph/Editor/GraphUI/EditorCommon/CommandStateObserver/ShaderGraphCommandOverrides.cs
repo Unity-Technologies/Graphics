@@ -256,7 +256,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             UpdateConstantValueCommand updateConstantValueCommand)
         {
             var shaderGraphModel = (ShaderGraphModel)graphModelState.GraphModel;
-            if (updateConstantValueCommand.Constant is not ICLDSConstant cldsConstant) return;
+            if (updateConstantValueCommand.Constant is not BaseShaderGraphConstant cldsConstant) return;
 
             if (cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
             {
