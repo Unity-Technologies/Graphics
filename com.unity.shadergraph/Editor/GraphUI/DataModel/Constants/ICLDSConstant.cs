@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected GraphHandler graphHandler;
         protected string nodeName, portName;
         public bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
-
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;
@@ -24,11 +23,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var portReader = nodeReader.GetPort(portName);
             return portReader.GetTypeField();
         }
-
         public string NodeName => nodeName;
         public string PortName => portName;
-
-
         public void Initialize(GraphHandler handler, string nodeName, string portName)
         {
             if (!IsInitialized)
@@ -38,13 +34,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 this.portName = portName;
             }
         }
-
-
-        abstract protected object GetValue();
-        abstract protected void SetValue(object value);
-
-
-
         public object ObjectValue {
             get => IsInitialized ? GetValue() : DefaultValue;
             set {
@@ -53,11 +42,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        abstract protected object GetValue();
+        abstract protected void SetValue(object value);
         abstract public object DefaultValue { get; }
         abstract public Type Type { get; }
+        abstract public TypeHandle GetTypeHandle();
+
         public void Initialize(TypeHandle constantTypeHandle) { }
         public IConstant Clone() { return null; }
-        abstract public TypeHandle GetTypeHandle();
 
         public void OnBeforeSerialize() => tempSerializedValue = ObjectValue;
         public void OnAfterDeserialize() => ObjectValue = tempSerializedValue;
