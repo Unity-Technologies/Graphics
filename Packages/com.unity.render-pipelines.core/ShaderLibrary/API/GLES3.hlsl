@@ -8,9 +8,15 @@
 #define UNITY_RAW_FAR_CLIP_VALUE (1.0)
 #define VERTEXID_SEMANTIC SV_VertexID
 #define INSTANCEID_SEMANTIC SV_InstanceID
-#define FRONT_FACE_SEMANTIC VFACE
-#define FRONT_FACE_TYPE float
-#define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > 0.0) ? (FRONT) : (BACK))
+#if defined(UNITY_COMPILER_DXC)
+       #define FRONT_FACE_SEMANTIC SV_IsFrontFace
+       #define FRONT_FACE_TYPE bool
+       #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL) ? (FRONT) : (BACK))
+#else
+       #define FRONT_FACE_SEMANTIC VFACE
+       #define FRONT_FACE_TYPE float
+       #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL > 0.0) ? (FRONT) : (BACK))
+#endif
 
 #define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error #funcName is not supported on GLES 3.0
 
