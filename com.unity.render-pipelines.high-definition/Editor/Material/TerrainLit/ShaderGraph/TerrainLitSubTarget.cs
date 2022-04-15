@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Legacy;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -13,7 +14,7 @@ using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed partial class TerrainLitSubTarget : LightingSubTarget, IRequiresData<TerrainLitData>
+    sealed partial class TerrainLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<TerrainLitData>
     {
         public TerrainLitSubTarget() => displayName = "TerrainLit";
 
@@ -132,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
-            // TODO :
+            // TODO : support for raytracing for terrain in shader graph in the future
 
             return descriptor;
         }

@@ -8,7 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
-            throw new System.NotImplementedException();
+            blockMap = null;
+            return false;
         }
     }
 }

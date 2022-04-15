@@ -457,42 +457,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if (!(masterNode is PBRMasterNode1 pbrMasterNode))
-                return false;
-
-            m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
-
-            // Handle mapping of Normal block specifically
-            BlockFieldDescriptor normalBlock;
-            switch (m_NormalDropOffSpace)
-            {
-                case NormalDropOffSpace.Object:
-                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
-                    break;
-                case NormalDropOffSpace.World:
-                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
-                    break;
-                default:
-                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
-                    break;
-            }
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 8 },
-                { BlockFields.VertexDescription.Normal, 9 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
-                { normalBlock, 1 },
-                { BlockFields.SurfaceDescription.Emission, 3 },
-                { BlockFields.SurfaceDescription.Smoothness, 4 },
-                { BlockFields.SurfaceDescription.Occlusion, 5 },
-                { BlockFields.SurfaceDescription.Alpha, 6 },
-            };
-
-            blockMap.Add(BlockFields.SurfaceDescription.Metallic, 2);
-
-            return true;
+            return false;
         }
 
         internal override void OnAfterParentTargetDeserialized()
