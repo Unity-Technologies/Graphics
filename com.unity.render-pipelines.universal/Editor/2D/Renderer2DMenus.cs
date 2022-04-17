@@ -4,6 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using System.IO;
 
 
 namespace UnityEditor.Rendering.Universal
@@ -23,12 +24,36 @@ namespace UnityEditor.Rendering.Universal
 
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer, false) as Renderer2DData;
+                var instance = CreateRendererAsset(pathName, RendererType._2DRenderer, false) as Renderer2DData;
                 Selection.activeObject = instance;
 
                 onCreated?.Invoke(instance);
             }
         }
+
+        static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
+        {
+            string packagePath = "Packages/com.unity.render-pipelines.universal";
+
+            ScriptableRendererData data = CreateRendererData(type);
+            string dataPath;
+            if (relativePath)
+                dataPath =
+                    $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_{suffix}{Path.GetExtension(path)}";
+            else
+                dataPath = path;
+            AssetDatabase.CreateAsset(data, dataPath);
+            ResourceReloader.ReloadAllNullIn(data, packagePath);
+            return data;
+        }
+
+        static ScriptableRendererData CreateRendererData(RendererType type)
+        {
+            var rendererData = ScriptableObject.CreateInstance<Renderer2DData>();
+            rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+            return rendererData;
+        }
+
 
         internal static void PlaceGameObjectInFrontOfSceneView(GameObject go)
         {
