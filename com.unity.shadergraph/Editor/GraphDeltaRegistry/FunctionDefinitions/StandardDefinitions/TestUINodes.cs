@@ -5,9 +5,11 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class TestMultiFunctionNode : IStandardNode
     {
+        static string Name = "TestMultiFuctionNode";
+        static int Version = 1;
         public static NodeDescriptor NodeDescriptor => new(
-            1,
-            "TestMultiFuctionNode",
+            Version,
+            Name,
             new FunctionDescriptor[] {
                 new(
                     1,
@@ -29,105 +31,210 @@ namespace UnityEditor.ShaderGraph.Defs
                 )
             }
         );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
     }
 
     internal class TestUIMat3Node : IStandardNode
     {
+        static string Name = "TestUIMat3";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIMat3", // Name
+            Version, // Version
+            Name, // Name
             "Out = float4(In[0][0], In[1][1], In[2][2], 1.0);",
             new ParameterDescriptor("In", TYPE.Mat3, GraphType.Usage.Static),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
         );
     }
 
     internal class TestUIMat4Node : IStandardNode
     {
+        static string Name = "TestUIMat4";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIMat4", // Name
+            Version, // Version
+            Name, // Name
             "Out = float4(In[0][0], In[1][1], In[2][2], In[3][3]);",
             new ParameterDescriptor("In", TYPE.Mat4, GraphType.Usage.Static),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
         );
     }
 
     internal class TestUIIntNode : IStandardNode
     {
+        static string Name = "TestUIInt";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIInt", // Name
+            Version, // Version
+            Name, // Name
             "Local = In + Static; Out = Local;",
             new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
             new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
         );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
     }
 
     internal class TestUIFloatNode : IStandardNode
     {
+        static string Name = "TestUIFloat";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIFloat", // Name
+            Version, // Version
+            Name, // Name
             "Local = In + Static; Out = Local;",
             new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
             new ParameterDescriptor("Static", TYPE.Float, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Float, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
         );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
     }
 
     internal class TestUIBoolNode : IStandardNode
     {
+        static string Name = "TestUIBool";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIBool", // Name
+            Version, // Version
+            Name, // Name
             "Local = In || Static; Out = Local;",
             new ParameterDescriptor("In", TYPE.Bool, GraphType.Usage.In),
             new ParameterDescriptor("Static", TYPE.Bool, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Bool, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Bool, GraphType.Usage.Out)
         );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
     }
 
     internal class TestUIVec2Node : IStandardNode
     {
+        static string Name = "TestUIVec2";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIVec2", // Name
+            Version, // Version
+            Name, // Name
             "Local = In + Static; Out = Local;",
             new ParameterDescriptor("In", TYPE.Vec2, GraphType.Usage.In),
             new ParameterDescriptor("Static", TYPE.Vec2, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Vec2, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.Out)
         );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
     }
 
     internal class TestUIVec3Node : IStandardNode
     {
+        static string Name = "TestUIVec3";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIVec3", // Name
+            Version, // Version
+            Name, // Name
             "Local = In + Static; Out = Local;",
             new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.In),
             new ParameterDescriptor("Static", TYPE.Vec3, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Vec3, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
         );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
+        );
     }
 
     internal class TestUIVec4Node : IStandardNode
     {
+        static string Name = "TestUIVec4";
+        static int Version = 1;
+
         public static FunctionDescriptor FunctionDescriptor => new(
-            1, // Version
-            "TestUIVec4", // Name
+            Version, // Version
+            Name, // Name
             "Local = In + Static; Out = Local;",
             new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
             new ParameterDescriptor("Static", TYPE.Vec4, GraphType.Usage.Static),
             new ParameterDescriptor("Local", TYPE.Vec4, GraphType.Usage.Local),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string [1] { "Test" },
+            synonyms: Array.Empty<string>(),
+            hasPreview: true
         );
     }
 
@@ -150,7 +257,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: Array.Empty<string>(),
+            categories: new string [1] { "Test" },
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[2] {
@@ -191,7 +298,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: Array.Empty<string>(),
+            categories: new string [1] { "Test" },
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[2] {
@@ -230,7 +337,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: Array.Empty<string>(),
+            categories: new string [1] { "Test" },
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[1] {
@@ -264,7 +371,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             tooltip: String.Empty,
-            categories: Array.Empty<string>(),
+            categories: new string [1] { "Test" },
             synonyms: Array.Empty<string>(),
             hasPreview: true,
             parameters: new ParameterUIDescriptor[1] {

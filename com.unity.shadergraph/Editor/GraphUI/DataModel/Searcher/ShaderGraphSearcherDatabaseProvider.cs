@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using System.Linq;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -16,10 +18,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Stencil = stencil;
         }
 
+        // TODO: (Sai) If we were to specify the category path directly as the path string i.e.
+        // "Artistic/Color" instead of {"Artistic", "Color"} then we could avoid doing this
+        static string GetCategoryPath(NodeUIDescriptor uiDescriptor)
+        {
+            var categoryPath = String.Empty;
+            var categoryData = uiDescriptor.Categories.ToList();
+            for (var i = 0; i < categoryData.Count; ++i)
+            {
+                var pathPiece = categoryData[i];
+                categoryPath += pathPiece;
+                if (i != categoryData.Count - 1)
+                    categoryPath += "/";
+            }
+
+            return categoryPath;
+        }
+
         SearcherDatabaseBase CreateNodeDatabaseFromRegistry(IGraphModel graphModel)
         {
-            // TODO: Handle categories, possible caching
-
             var searcherItems = new List<SearcherItem>();
             if (graphModel is ShaderGraphModel shaderGraphModel &&
                 shaderGraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
@@ -27,8 +44,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var registry = shaderGraphStencil.GetRegistry();
                 foreach (var registryKey in registry.BrowseRegistryKeys())
                 {
-                    if(ShaderGraphModel.ShouldElementBeVisibleToSearcher(shaderGraphModel, registryKey))
-                        searcherItems.Add(new RegistryNodeSearcherItem(graphModel, registryKey, registryKey.Name));
+                    if (ShaderGraphModel.ShouldElementBeVisibleToSearcher(shaderGraphModel, registryKey))
+                    {
+                        var uiHints = m_Stencil.GetUIHints(registryKey);
+                        var categoryPath = GetCategoryPath(uiHints);
+
+                        var searcherItem = new RegistryNodeSearcherItem(graphModel, registryKey, registryKey.Name);
+                        searcherItem.CategoryPath = categoryPath;
+                        searcherItem.Synonyms = uiHints.Synonyms.ToArray();
+                        searcherItems.Add(searcherItem);
+                    }
                 }
             }
             return new SearcherDatabase(searcherItems);
