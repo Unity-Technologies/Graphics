@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public const string kTexture = "Input";
         public const string kUV = "UV";
-        public const string kSampler = "SamplerState";
+        public const string kSampler = "SamplerStateOverride";
         public const string kOutput = "Output";
 
         public void BuildNode(NodeHandler node, Registry registry)
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
             bool hasSampler = isConnected || isInitialized;
 
-            hasSampler = true; // force usage of sampler for testing.
+            // hasSampler = true; // can enable to force usage of sampler for testing.
 
             builder.AddInput(shaderType, kTexture);
             builder.AddInput(container._float2, kUV);

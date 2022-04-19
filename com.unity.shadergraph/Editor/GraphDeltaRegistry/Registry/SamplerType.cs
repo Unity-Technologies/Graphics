@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             // https://docs.unity3d.com/Manual/SL-SamplerStates.html
 
-            string result = $"sampler_{GetFilter(field)}_{GetWrap(field)}";
+            string result = $"SamplerState_{GetFilter(field)}_{GetWrap(field)}";
 
             if (GetDepthComparison(field))
                 result += "_Compare";
@@ -110,7 +110,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             return $"UnityBuildSamplerStateStruct({ToSamplerString(field)})";
         }
+
+
+        internal static StructField UniformPromotion(FieldHandler field, ShaderContainer container, Registry registry)
+        {
+
+            var name = ToSamplerString(field);
+            // There is a bug here in ShaderFoundry where neither container._SamplerState nor container._UnitySamplerState are recognized as valid types by SF.
+            // (The issue shows up before code gen).
+            var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
+            return fieldbuilder.Build();
+        }
     }
+
 
     internal class SamplerStateAssignment : ICastDefinitionBuilder
     {
