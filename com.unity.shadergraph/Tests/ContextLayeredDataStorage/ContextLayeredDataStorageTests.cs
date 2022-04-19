@@ -6,40 +6,61 @@ using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
-        [TestFixture]
-        class ElementIDTests
+    [TestFixture]
+    class ElementIDTests
+    {
+        [Test]
+        public void EmptyID()
         {
-            [Test]
-            public void EmptyID()
-            {
             ElementID test = new ElementID("");
-                Assert.AreEqual(test.FullPath, "");
-                Assert.AreEqual(test.LocalPath, "");
-            }
-
-            [Test]
-            [TestCase("foo")]
-            [TestCase("$.^")]
-            public void SimpleID(string path)
-            {
-            ElementID test = new ElementID(path);
-                Assert.AreEqual(test.FullPath, path);
-                Assert.AreEqual(test.LocalPath, path);
-            }
-
-            [Test]
-            [TestCase(new string[] { }, "", "")]
-            [TestCase(new string[] {""}, "", "")]
-            [TestCase(new string[] {"foo"}, "foo", "foo")]
-            [TestCase(new string[] {"foo", "bar"}, "foo.bar", "bar")]
-            [TestCase(new string[] {"foo", "bar", "baz"}, "foo.bar.baz", "baz")]
-            public void SimpleIDMulti(string[] path, string expectedFullPath, string expectedLocalPath)
-            {
-            ElementID test = new ElementID(path);
-                Assert.AreEqual(test.FullPath, expectedFullPath);
-                Assert.AreEqual(test.LocalPath, expectedLocalPath);
-            }
+            Assert.AreEqual(test.FullPath, "");
+            Assert.AreEqual(test.LocalPath, "");
         }
+
+        [Test]
+        [TestCase("foo")]
+        [TestCase("$.^")]
+        public void SimpleID(string path)
+        {
+            ElementID test = new ElementID(path);
+            Assert.AreEqual(test.FullPath, path);
+            Assert.AreEqual(test.LocalPath, path);
+        }
+
+        [Test]
+        [TestCase(new string[] { }, "", "")]
+        [TestCase(new string[] {""}, "", "")]
+        [TestCase(new string[] {"foo"}, "foo", "foo")]
+        [TestCase(new string[] {"foo", "bar"}, "foo.bar", "bar")]
+        [TestCase(new string[] {"foo", "bar", "baz"}, "foo.bar.baz", "baz")]
+        public void SimpleIDMulti(string[] path, string expectedFullPath, string expectedLocalPath)
+        {
+            ElementID test = new ElementID(path);
+            Assert.AreEqual(test.FullPath, expectedFullPath);
+            Assert.AreEqual(test.LocalPath, expectedLocalPath);
+        }
+
+        [Serializable]
+        public class TestClass
+        {
+            public ElementID id;
+        }
+
+        [Test]
+        [TestCase("")]
+        [TestCase("Foo")]
+        [TestCase("Foo.Bar")]
+        public void TestSerialization(string testCase)
+        {
+            ElementID test = testCase;
+            var testClass = new TestClass();
+            testClass.id = test;
+            string serializationString = EditorJsonUtility.ToJson(testClass);
+            var roundTrip = new TestClass();
+            EditorJsonUtility.FromJsonOverwrite(serializationString, roundTrip);
+            Assert.AreEqual(testCase, roundTrip.id.FullPath);
+        }
+    }
 
     public class TestReader : DataReader
     {
