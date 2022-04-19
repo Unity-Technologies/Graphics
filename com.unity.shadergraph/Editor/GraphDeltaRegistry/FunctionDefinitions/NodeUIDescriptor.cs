@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Synonyms = synonyms.ToList().AsReadOnly();
             Categories = categories.ToList().AsReadOnly();
             HasPreview = hasPreview;
-            Parameters = parameters.ToList().AsReadOnly();
+            Parameters = parameters?.ToList().AsReadOnly();
         }
 
         public ParameterUIDescriptor GetParameterInfo(string parameterName)
