@@ -283,7 +283,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (GetDistributedMode() == DistributedMode.Merger)
                 {
-                    ReceiveColorBuffer(m_RenderGraph, colorBuffer);
+                    if (GetVideoMode())
+                        ReceiveColorBufferVideo(m_RenderGraph, colorBuffer);
+                    else
+                        ReceiveColorBuffer(m_RenderGraph, colorBuffer);
                 }
 
                 if (GetDistributedMode() == DistributedMode.Merger || GetDistributedMode() == DistributedMode.None)
@@ -292,7 +295,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (GetDistributedMode() == DistributedMode.Renderer && CurrentFrameID >= 0 && CurrentFrameID != LastSentFrameID)
             {
-                SendColorBuffer(m_RenderGraph, colorBuffer);
+                if (GetVideoMode())
+                    SendColorBufferVideo(m_RenderGraph, colorBuffer);
+                else
+                    SendColorBuffer(m_RenderGraph, colorBuffer);
             }
 
             // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.

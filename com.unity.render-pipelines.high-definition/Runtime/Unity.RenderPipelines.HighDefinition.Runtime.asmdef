@@ -5,7 +5,8 @@
         "Unity.ugui",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
         "Unity.VisualEffectGraph.Runtime",
-        "Unity.TCPTransmissionDatagrams.Runtime"
+        "Unity.TCPTransmissionDatagrams.Runtime",
+        "Unity.RenderingVideoCodec.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
