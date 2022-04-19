@@ -76,56 +76,57 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         [UnityTest]
-        public IEnumerator AddEdgesTest()
+        public IEnumerator TestSaveLoadEdges()
         {
-            // TODO: Clean up and possibly move somewhere better
+            const string FromNodeName = "Add", FromPortName = "Out";
+            const string ToNodeName = "Preview", ToPortName = "In";
 
+            // Set up the graph
             {
-                yield return AddNodeFromSearcherAndValidate("Add");
-                yield return AddNodeFromSearcherAndValidate("Preview");
+                yield return AddNodeFromSearcherAndValidate(FromNodeName);
+                yield return AddNodeFromSearcherAndValidate(ToNodeName);
 
-                var addNode = (GraphDataNodeModel)m_GraphView.GraphModel.NodeModels.First(n => n is GraphDataNodeModel {Title: "Add"});
-                var previewNode = (GraphDataNodeModel)m_GraphView.GraphModel.NodeModels.First(n => n is GraphDataNodeModel {Title: "Preview"});
+                var nodeModels = m_GraphView.GraphModel.NodeModels;
+                var addNode = (GraphDataNodeModel)nodeModels.First(n => n is GraphDataNodeModel {Title: FromNodeName});
+                var addOut = addNode.GetOutputPorts().First(p => p.UniqueName == FromPortName);
 
-                //
-                // var previewNodeView = previewNode.GetView<GraphDataNode>(m_GraphView);
-                // m_ShaderGraphWindowTestHelper.SendMouseDragEvent(previewNodeView.worldBound.center, new Vector2(200, 200));
-                // yield return null;
-                //
-                // yield return new WaitForSeconds(1);
-                //
-                var addOut = addNode.GetOutputPorts().First();
-                var previewIn = previewNode.GetInputPorts().First();
+                var previewNode = (GraphDataNodeModel)nodeModels.First(n => n is GraphDataNodeModel {Title: ToNodeName});
+                var previewIn = previewNode.GetInputPorts().First(p => p.UniqueName == ToPortName);
 
-                //
-                // var addOutView = addOut.GetView<Port>(m_GraphView);
-                // var previewInView = previewIn.GetView<Port>(m_GraphView);
-                //
-                // m_ShaderGraphWindowTestHelper.SendMouseDragEvent(addOutView, previewInView);
-                // yield return null;
-
-                // TODO drag out edge?
                 m_GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
-                GraphAssetUtils.SaveImplementation(m_Window.GraphTool);
             }
 
-            CloseWindow();
-            //
-            // Object.DestroyImmediate(m_Window);
-            // EditorUtility.UnloadUnusedAssetsImmediate();
-            //
-            var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
-            //
-            CreateWindow();
-            m_Window.Show();
-            m_Window.Focus();
-            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-            // AssetDatabase.OpenAsset(graphAsset);
+            // Save and reload
+            {
+                GraphAssetUtils.SaveImplementation(m_Window.GraphTool);
+                CloseWindow();
+                yield return null;
 
-            yield return null;
-            yield return null;
-            yield return null;
-            // yield return null;
+                var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
+                CreateWindow();
+                m_Window.Show();
+                m_Window.Focus();
+                m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+                yield return null;
+            }
+
+            // Verify that edge is preserved
+            {
+                var edge = m_GraphView.GraphModel.EdgeModels.FirstOrDefault();
+                Assert.IsNotNull(edge, "Edge should exist in loaded graph");
+
+                Assert.IsTrue(edge.FromPort is
+                {
+                    UniqueName: FromPortName,
+                    NodeModel: GraphDataNodeModel {Title: FromNodeName}
+                }, $"Edge should begin at port {FromPortName} on node {FromNodeName}");
+
+                Assert.IsTrue(edge.ToPort is
+                {
+                    UniqueName: ToPortName,
+                    NodeModel: GraphDataNodeModel {Title: ToNodeName}
+                }, $"Edge should end at port {ToPortName} on node {ToNodeName}");
+            }
         }
 
         /*

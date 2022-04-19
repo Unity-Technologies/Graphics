@@ -9,7 +9,7 @@ namespace UnityEditor.ContextLayeredDataStorage
     {
         [SerializeField]
         private List<string> m_path;
-        [SerializeField]
+        [field: SerializeField]
         public string FullPath { get; private set; }
         public string LocalPath => m_path.Count >= 1 ? m_path[m_path.Count - 1] : "";
 
