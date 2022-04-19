@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.Block
                 }
 
                 if (Composition == AttributeCompositionMode.Blend)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend"));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend", new RangeAttribute(0.0f, 1.0f)));
             }
         }
 
