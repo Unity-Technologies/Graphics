@@ -103,12 +103,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnSaveButton()
         {
-            GraphAssetUtils.SaveImplementation(GraphTool);
+            GraphAssetUtils.SaveGraphImplementation(GraphTool);
         }
 
         void OnSaveAsButton()
         {
-            GraphAssetUtils.SaveAsImplementation(GraphTool);
+            GraphAssetUtils.SaveAsGraphImplementation(GraphTool);
         }
 
         void OnShowInProjectButton()
