@@ -60,7 +60,7 @@ Shader "HDRP/Lit"
 
         _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
-        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness("Thickness", Float) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 

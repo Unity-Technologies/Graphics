@@ -199,10 +199,10 @@ Shader "HDRP/LayeredLitTessellation"
         _SubsurfaceMaskMap2("Subsurface Mask Map2", 2D) = "white" {}
         _SubsurfaceMaskMap3("Subsurface Mask Map3", 2D) = "white" {}
 
-        _Thickness0("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness1("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness2("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness3("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness0("Thickness", Float) = 1.0
+        _Thickness1("Thickness", Float) = 1.0
+        _Thickness2("Thickness", Float) = 1.0
+        _Thickness3("Thickness", Float) = 1.0
 
         _ThicknessMap0("Thickness Map", 2D) = "white" {}
         _ThicknessMap1("Thickness Map", 2D) = "white" {}
