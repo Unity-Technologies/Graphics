@@ -1412,6 +1412,7 @@ namespace UnityEngine.Rendering
             var fieldExpression = System.Linq.Expressions.Expression.Field(null, field);
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
             materialEditors = lambda.Compile();
+            LoadSceneViewMethods();
         }
 
 #endif
@@ -1460,6 +1461,34 @@ namespace UnityEngine.Rendering
             }
 #endif
             return false;
+        }
+
+#if UNITY_EDITOR
+        static Func<int> GetSceneViewPrefabStageContext;
+
+        static void LoadSceneViewMethods()
+        {
+            var stageNavigatorManager = typeof(UnityEditor.SceneManagement.PrefabStage).Assembly.GetType("UnityEditor.SceneManagement.StageNavigationManager");
+            var instance = stageNavigatorManager.GetProperty("instance", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.FlattenHierarchy);
+            var renderMode = stageNavigatorManager.GetProperty("contextRenderMode", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+            var renderModeAccessor = System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression.Property(null, instance), renderMode);
+            var internalRenderModeLambda = System.Linq.Expressions.Expression.Lambda<Func<int>>(System.Linq.Expressions.Expression.Convert(renderModeAccessor, typeof(int)));
+            GetSceneViewPrefabStageContext = internalRenderModeLambda.Compile();
+        }
+#endif
+
+        /// <summary>
+        /// Returns true if the currently opened prefab stage context is set to Hidden.
+        /// </summary>
+        /// <returns>True if the currently opened prefab stage context is set to Hidden.</returns>
+        public static bool IsSceneViewPrefabStageContextHidden()
+        {
+#if UNITY_EDITOR
+            return GetSceneViewPrefabStageContext() == 2; // 2 is hidden, see ContextRenderMode enum
+#else
+            return false;
+#endif
         }
 
         /// <summary>
