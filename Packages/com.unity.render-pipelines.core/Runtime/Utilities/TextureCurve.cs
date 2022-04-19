@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering
                 m_Texture.hideFlags = HideFlags.HideAndDontSave;
                 m_Texture.filterMode = FilterMode.Bilinear;
                 m_Texture.wrapMode = TextureWrapMode.Clamp;
+                m_Texture.anisoLevel = 0;
                 m_IsTextureDirty = true;
             }
 
