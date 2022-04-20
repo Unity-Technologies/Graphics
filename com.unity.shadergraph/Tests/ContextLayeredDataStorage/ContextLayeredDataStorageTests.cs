@@ -16,7 +16,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             Assert.AreEqual(test.FullPath, "");
             Assert.AreEqual(test.LocalPath, "");
         }
-    
+
         [Test]
         [TestCase("foo")]
         [TestCase("$.^")]
@@ -26,7 +26,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             Assert.AreEqual(test.FullPath, path);
             Assert.AreEqual(test.LocalPath, path);
         }
-    
+
         [Test]
         [TestCase(new string[] { }, "", "")]
         [TestCase(new string[] {""}, "", "")]
@@ -39,7 +39,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             Assert.AreEqual(test.FullPath, expectedFullPath);
             Assert.AreEqual(test.LocalPath, expectedLocalPath);
         }
-    
+
         [Test]
         [TestCase("", "")]
         [TestCase("Foo", "")]
@@ -48,7 +48,28 @@ namespace UnityEditor.ContextLayeredDataStorage
         public void ParentID(string fullPath, string expectedParentPath)
         {
             ElementID test = fullPath;
-            Assert.AreEqual(expectedParentPath, test.ParentPath); 
+            Assert.AreEqual(expectedParentPath, test.ParentPath);
+        }
+
+        [Serializable]
+        public class TestClass
+        {
+            public ElementID id;
+        }
+
+        [Test]
+        [TestCase("")]
+        [TestCase("Foo")]
+        [TestCase("Foo.Bar")]
+        public void TestSerialization(string testCase)
+        {
+            ElementID test = testCase;
+            var testClass = new TestClass();
+            testClass.id = test;
+            string serializationString = EditorJsonUtility.ToJson(testClass);
+            var roundTrip = new TestClass();
+            EditorJsonUtility.FromJsonOverwrite(serializationString, roundTrip);
+            Assert.AreEqual(testCase, roundTrip.id.FullPath);
         }
     }
 
@@ -286,11 +307,11 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Debug.Log(serialized);
                 TestStorage storeDeserialized = new TestStorage();
                 EditorJsonUtility.FromJsonOverwrite(serialized, storeDeserialized);
-                var elem = storeDeserialized.Search("a.b"); 
+                var elem = storeDeserialized.Search("a.b");
                 Assert.IsNotNull(elem);
                 int data = elem.GetData<int>();
                 Assert.AreEqual(data, 13);
-                elem = storeDeserialized.Search("a.b.c.f"); 
+                elem = storeDeserialized.Search("a.b.c.f");
                 Assert.IsNotNull(elem);
                 Vector3Int data2 = elem.GetData<Vector3Int>();
                 Assert.AreEqual(data2, new Vector3Int(1,2,3));

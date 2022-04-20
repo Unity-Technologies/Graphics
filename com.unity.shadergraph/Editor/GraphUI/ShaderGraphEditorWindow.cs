@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (option == 0) // save
                     {
-                        GraphAssetUtils.SaveImplementation(GraphTool);
+                        GraphAssetUtils.SaveGraphImplementation(GraphTool);
                         return true;
                     }
                     else if (option == 1) // cancel (or escape/close dialog)
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (option == 0)
             {
-                var savedPath = GraphAssetUtils.SaveAsImplementation(GraphTool);
+                var savedPath = GraphAssetUtils.SaveAsGraphImplementation(GraphTool);
                 if (savedPath != null)
                 {
                     saved = true;
