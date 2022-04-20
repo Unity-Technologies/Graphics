@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)
             {
-                if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+                if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
                     OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
             }
 
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var nodeGuid = m_NodeLookupTable[nodeName];
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
-                if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+                if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestNodePreviewImage(nodeName, out var nodeRenderOutput, out var shaderMessages);
                     if (nodeRenderOutput != graphDataNodeModel.PreviewTexture)
@@ -114,8 +114,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         }
 
-        public void OnPreviewExpansionChanged(string nodeName, bool newExpansionState) { }
-
         public void OnPreviewModeChanged(string nodeName, PreviewRenderMode newPreviewMode) { }
 
         public void OnNodeFlowChanged(string nodeName)
@@ -135,6 +133,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Add node to dirty list so preview image can be updated next frame
             m_DirtyNodes.Add(nodeName);
+
             m_NodeLookupTable.Add(nodeName, nodeGuid);
         }
 

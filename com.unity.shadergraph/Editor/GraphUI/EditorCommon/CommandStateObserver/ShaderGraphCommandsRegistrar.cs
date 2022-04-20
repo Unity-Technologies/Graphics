@@ -31,12 +31,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphView.GraphModelState
             );
 
-            //commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, ChangePreviewExpandedCommand>(
-            //    ChangePreviewExpandedCommand.DefaultCommandHandler,
-            //    graphTool.UndoStateComponent,
-            //    graphView.GraphViewState,
-            //    previewManager
-            //);
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewExpandedCommand>(
+                ChangePreviewExpandedCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphModelState,
+                previewManager
+            );
 
             //commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, ChangePreviewModeCommand>(
             //    ChangePreviewModeCommand.DefaultCommandHandler,
