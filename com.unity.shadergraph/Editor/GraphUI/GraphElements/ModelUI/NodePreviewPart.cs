@@ -69,12 +69,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            // m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
         }
 
         void OnExpandButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            // m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
         }
 
         void HandlePreviewExpansionStateChanged(bool previewExpanded)

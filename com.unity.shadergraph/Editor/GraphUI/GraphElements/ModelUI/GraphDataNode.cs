@@ -156,20 +156,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         }
 
-        protected override void PostBuildUI()
-        {
-            base.PostBuildUI();
-
-            if (!m_GraphDataNodeModel.existsInGraphData)
-                return;
-
-            var collapseButton = this.Q("collapse");
-            collapseButton?.RegisterCallback<MouseDownEvent>((evt) => GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new[] { m_GraphDataNodeModel })));
-
-            var expandButton = this.Q("expand");
-            expandButton?.RegisterCallback<MouseDownEvent>((evt) => GraphView.Dispatch(new ChangePreviewExpandedCommand(true, new[] { m_GraphDataNodeModel })));
-        }
-
         GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
