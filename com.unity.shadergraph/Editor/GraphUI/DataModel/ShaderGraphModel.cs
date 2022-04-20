@@ -19,8 +19,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class ShaderGraphModel : GraphModel
     {
-        // TODO: This will eventually delegate to real serialized data. For now, it's kept here ephemerally. Until
-        //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
         public GraphHandler GraphHandler => ShaderGraphAssetModel.GraphHandler;
 
         public ShaderGraphAssetModel ShaderGraphAssetModel => AssetModel as ShaderGraphAssetModel;
