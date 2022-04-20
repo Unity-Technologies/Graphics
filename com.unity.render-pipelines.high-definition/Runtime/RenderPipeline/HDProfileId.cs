@@ -270,5 +270,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         ComputeHierarchicalVarianceScreenSpaceShadows,
+        BlitStaticDensityVolumeMasks,
+        DispatchDynamicDensityVolumeShaders,
+        GenerateDensityVolumeAtlasMipmaps
     }
 }
