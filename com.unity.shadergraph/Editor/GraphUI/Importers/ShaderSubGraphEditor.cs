@@ -1,4 +1,5 @@
 using System.IO;
+using UnityEditor.AssetImporters;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI;
@@ -6,8 +7,8 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [CustomEditor(typeof(ShaderSubGraphAsset))]
-    public class ShaderSubGraphEditor : Editor
+    [CustomEditor(typeof(ShaderSubGraphImporter))]
+    public class ShaderSubGraphEditor : AssetImporterEditor
     {
         [OnOpenAsset(0)]
         public static bool OnOpenShaderSubGraph(int instanceID, int line)
@@ -45,6 +46,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnInspectorGUI()
         {
+            EditorGUILayout.HelpBox("WIP", MessageType.Info);
         }
 
     }

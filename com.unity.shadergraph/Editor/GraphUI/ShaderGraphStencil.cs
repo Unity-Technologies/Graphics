@@ -13,7 +13,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public const string Name = "ShaderGraph";
         public const string DefaultAssetName = "NewShaderGraph";
-        public const string Extension = "sg2";
+        public const string GraphExtension = "sg2";
+        public const string SubGraphExtension = "sg2subgraph";
         private Registry RegistryInstance = null;
         private readonly NodeUIInfo NodeUIInfo = null;
 

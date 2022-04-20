@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,
-                $"{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}",
+                $"{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}",
                 null,
                 null);
         }
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,
-                $"{ShaderGraphStencil.DefaultAssetName}.asset",
+                $"{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.SubGraphExtension}",
                 null,
                 null);
         }
