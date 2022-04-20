@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public NativeArray<LightShadows> visibleLightShadows;
             [ReadOnly]
-            public NativeArray<bool> visibleLightIsFromVisibleList; // GG: Instead of this array we could store the cutoff index such that any idx < cutoff is from the visible list
+            public int visibleLightFromVisibleListCutoffIndex;
             #endregion
 
             #region Parameters
@@ -240,8 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Execute(int index)
             {
-                bool isFromVisibleList = visibleLightIsFromVisibleList[index];
-                VisibleLight visibleLight = isFromVisibleList ? visibleLights[index] : visibleOffscreenVertexLights[index - visibleLights.Length];
+                bool isFromVisibleList = index < visibleLightFromVisibleListCutoffIndex;
+                VisibleLight visibleLight = isFromVisibleList ? visibleLights[index] : visibleOffscreenVertexLights[index - visibleLightFromVisibleListCutoffIndex];
                 int dataIndex = visibleLightEntityDataIndices[index];
                 LightBakingOutput bakingOutput = visibleLightBakingOutput[index];
                 LightShadows shadows = visibleLightShadows[index];
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 visibleLightEntityDataIndices = m_VisibleLightEntityDataIndices,
                 visibleLightBakingOutput = m_VisibleLightBakingOutput,
                 visibleLightShadows = m_VisibleLightShadows,
-                visibleLightIsFromVisibleList = m_VisibleLightIsFromVisibleList,
+                visibleLightFromVisibleListCutoffIndex = visibleLights.Length,
 
                 //Output processed lights.
                 processedVisibleLightCountsPtr = m_ProcessVisibleLightCounts,
