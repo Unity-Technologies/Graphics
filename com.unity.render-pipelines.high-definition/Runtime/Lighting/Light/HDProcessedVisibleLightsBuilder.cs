@@ -132,10 +132,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_SortSupportArray.IsCreated)
                 m_SortSupportArray.Dispose();
 
+            if (m_ProcessVisibleLightCounts.IsCreated)
+                m_ProcessVisibleLightCounts.Dispose();
+
             if (m_Capacity == 0)
                 return;
-
-            m_ProcessVisibleLightCounts.Dispose();
 
             m_VisibleLightEntityDataIndices.Dispose();
             m_VisibleLightBakingOutput.Dispose();
