@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         // Used to send events to the highest shader graph editor window
         TestEventHelpers m_ShaderGraphWindowTestHelper;
 
-        string m_TestAssetPath =  $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
+        string m_TestAssetPath =  $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}";
 
         protected virtual void CreateWindow()
         {
