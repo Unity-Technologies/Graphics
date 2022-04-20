@@ -63,6 +63,10 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
+            if(!Path.GetExtension(path).Equals(ShaderGraphStencil.Extension))
+            {
+                return false;
+            }
             var assetModel = ShaderGraphAsset.HandleLoad(path);
             return ShowWindow(path, assetModel);
         }
