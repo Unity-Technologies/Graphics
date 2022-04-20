@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var defaultEntity = HDLightRenderDatabase.instance.GetDefaultLightEntity();
                 for (int i = 0; i < totalLightCount; ++i)
                 {
-                    Light light = GetLightByIndex(cullResults, i, out bool isFromVisibleList);
+                    Light light = GetLightByIndex(cullResults, i);
 
                     int dataIndex = HDLightRenderDatabase.instance.FindEntityDataIndex(light);
                     if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
@@ -78,7 +78,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_VisibleLightBakingOutput[i] = light.bakingOutput;
                     m_VisibleLightShadowCasterMode[i] = light.lightShadowCasterMode;
                     m_VisibleLightShadows[i] = light.shadows;
-                    m_VisibleLightIsFromVisibleList[i] = isFromVisibleList;
                     m_VisibleLightBounceIntensity[i] = light.bounceIntensity;
                 }
             }
@@ -154,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         protected abstract int GetTotalLightCount(in CullingResults cullResults);
-        protected abstract Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList);
+        protected abstract Light GetLightByIndex(in CullingResults cullResults, int index);
     }
 
     internal partial class HDProcessedVisibleLightsRegularBuilder : HDProcessedVisibleLightsBuilder
@@ -164,9 +163,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return cullResults.visibleLights.Length;
         }
 
-        protected override Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList)
+        protected override Light GetLightByIndex(in CullingResults cullResults, int index)
         {
-            isFromVisibleList = true;
             return cullResults.visibleLights[index].light;
         }
     }
@@ -178,17 +176,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return cullResults.visibleLights.Length + cullResults.visibleOffscreenVertexLights.Length;
         }
 
-        protected override Light GetLightByIndex(in CullingResults cullResults, int index, out bool isFromVisibleList)
+        protected override Light GetLightByIndex(in CullingResults cullResults, int index)
         {
             if (index < cullResults.visibleLights.Length)
             {
-                isFromVisibleList = true;
                 return cullResults.visibleLights[index].light;
             }
             else
             {
                 int offScreenLightIndex = index - cullResults.visibleLights.Length;
-                isFromVisibleList = false;
                 return cullResults.visibleOffscreenVertexLights[offScreenLightIndex].light;
             }
         }
