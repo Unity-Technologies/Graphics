@@ -32,10 +32,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         //Member lights counts
-        public int sortedLightCounts => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.ProcessedLights];
-        public int sortedDirectionalLightCounts => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.DirectionalLights];
+        public int sortedLightCounts => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.ProcessedLights] : 0;
+        public int sortedDirectionalLightCounts => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.DirectionalLights] : 0;
         public int sortedNonDirectionalLightCounts => sortedLightCounts - sortedDirectionalLightCounts;
-        public int bakedShadowsCount => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.BakedShadows];
+        public int bakedShadowsCount => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.BakedShadows] : 0;
 
         //Indexed by VisibleLights
         public NativeArray<LightBakingOutput> visibleLightBakingOutput => m_VisibleLightBakingOutput;
@@ -99,7 +99,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeArray<LightBakingOutput> m_VisibleLightBakingOutput;
         private NativeArray<LightShadowCasterMode> m_VisibleLightShadowCasterMode;
         private NativeArray<LightShadows> m_VisibleLightShadows;
-        private NativeArray<bool> m_VisibleLightIsFromVisibleList;
         private NativeArray<float> m_VisibleLightBounceIntensity;
         private NativeArray<LightVolumeType> m_ProcessedLightVolumeType;
         private NativeArray<HDProcessedVisibleLight> m_ProcessedEntities;
@@ -118,7 +117,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightBakingOutput.ResizeArray(m_Capacity);
             m_VisibleLightShadowCasterMode.ResizeArray(m_Capacity);
             m_VisibleLightShadows.ResizeArray(m_Capacity);
-            m_VisibleLightIsFromVisibleList.ResizeArray(m_Capacity);
             m_VisibleLightBounceIntensity.ResizeArray(m_Capacity);
 
             m_ProcessedLightVolumeType.ResizeArray(m_Capacity);
@@ -132,16 +130,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_SortSupportArray.IsCreated)
                 m_SortSupportArray.Dispose();
 
+            if (m_ProcessVisibleLightCounts.IsCreated)
+                m_ProcessVisibleLightCounts.Dispose();
+
             if (m_Capacity == 0)
                 return;
-
-            m_ProcessVisibleLightCounts.Dispose();
 
             m_VisibleLightEntityDataIndices.Dispose();
             m_VisibleLightBakingOutput.Dispose();
             m_VisibleLightShadowCasterMode.Dispose();
             m_VisibleLightShadows.Dispose();
-            m_VisibleLightIsFromVisibleList.Dispose();
             m_VisibleLightBounceIntensity.Dispose();
 
             m_ProcessedLightVolumeType.Dispose();
