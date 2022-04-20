@@ -160,6 +160,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.PostBuildUI();
 
+            if (!m_GraphDataNodeModel.existsInGraphData)
+                return;
+
             var collapseButton = this.Q("collapse");
             collapseButton?.RegisterCallback<MouseDownEvent>((evt) => GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new[] { m_GraphDataNodeModel })));
 
