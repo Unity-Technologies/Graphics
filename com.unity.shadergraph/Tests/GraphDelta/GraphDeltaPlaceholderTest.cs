@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.GraphType;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -12,9 +13,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
         {
             class TestNode : INodeDefinitionBuilder
             {
+                public const string k_counter = "ConcretizationCounter";
                 public void BuildNode(NodeHandler node, Registry registry)
                 {
-
+                    node.AddPort<GraphType>("Input", true, registry);
+                    node.AddPort<GraphType>("Output", false, registry);
+                    node.DefaultLayer = GraphDelta.k_user;
+                    var field = node.GetField<int>(k_counter);
+                    if (field != null)
+                    {
+                        field.SetData(field.GetData() + 1);
+                    }
+                    else
+                    { 
+                        node.AddField(k_counter,1,false);
+                    }
+                    node.DefaultLayer = GraphDelta.k_concrete;
                 }
 
                 public RegistryFlags GetRegistryFlags()
@@ -43,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 registry.Register<TestNode>();
                 registry.Register<GraphType>();
                 registry.Register<TestAddNode>();
-                graphHandler = new GraphHandler();
+                graphHandler = new GraphHandler(registry);
             }
 
             [Test]
@@ -55,20 +69,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddEmptyNode()
             {
-                graphHandler.AddNode<TestNode>("foo", registry);
+                graphHandler.AddNode<TestNode>("foo");
             }
 
             [Test]
             public void CanAddAndGetNode()
             {
-                graphHandler.AddNode<TestNode>("foo", registry);
+                graphHandler.AddNode<TestNode>("foo");
                 Assert.NotNull(graphHandler.GetNode("foo"));
             }
 
             [Test]
             public void CanAddAndRemoveNode()
             {
-                graphHandler.AddNode<TestNode>("foo", registry);
+                graphHandler.AddNode<TestNode>("foo");
                 Assert.NotNull(graphHandler.GetNode("foo"));
                 graphHandler.RemoveNode("foo");
             }
@@ -76,7 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddNodeAndPorts()
             {
-                var fooNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "foo", registry);
+                var fooNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "foo");
                 fooNode.AddPort("A",   true,  true);
                 fooNode.AddPort("B",   true,  true);
                 fooNode.AddPort("Out", false, true);
@@ -98,12 +112,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanAddTwoNodesAndConnect()
             {
-                var fooNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "foo", registry);
+                var fooNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "foo");
                 fooNode.AddPort("A",   true,  true);
                 fooNode.AddPort("B",   true,  true);
                 fooNode.AddPort("Out", false, true);
 
-                var barNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "bar", registry);
+                var barNode = graphHandler.AddNode(Registry.ResolveKey<TestNode>(), "bar");
                 barNode.AddPort("A",   true,  true);
                 barNode.AddPort("B",   true,  true);
                 barNode.AddPort("Out", false, true);
@@ -113,9 +127,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             }
 
             [Test]
-            public void ConcretizationTest()
+            public void ConcretizationOnBuildTest()
             {
-                graphHandler.AddNode<TestAddNode>("AddNodeRef", registry);
+                graphHandler.AddNode<TestAddNode>("AddNodeRef");
                 GraphStorage storage = graphHandler.graphDelta.m_data;
                 var concreteLayer = storage.GetLayerRoot(GraphDelta.k_concrete);
 
@@ -177,7 +191,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 registry.Register<TestDescriptor>();
                 registry.Register<GraphType>();
-                graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), registry);
+                graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>());
                 var contextNode = graphHandler.GetNode("TestContextDescriptor");
                 Assert.NotNull(contextNode);
                 var fooReader = contextNode.GetPort("Foo");
@@ -197,39 +211,39 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 node.AddPort("Out", false, true);
 
 
-                var nodeRef = graphHandler.GetNodeReader("Add");
+                var nodeRef = graphHandler.GetNode("Add");
                 Assert.NotNull(nodeRef);
                 var portReader = nodeRef.GetPort("A");
                 Assert.NotNull(portReader);
                 Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.AreEqual(portReader.GetNode().ID.LocalPath, "Add");
                 portReader = nodeRef.GetPort("B");
                 Assert.NotNull(portReader);
                 Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.AreEqual(portReader.GetNode().ID.LocalPath, "Add");
                 portReader = nodeRef.GetPort("Out");
                 Assert.NotNull(portReader);
                 Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.AreEqual(portReader.GetNode().ID.LocalPath, "Add");
 
                 var roundTrip = graphHandler.ToSerializedFormat();
-                var deserializedHandler = new GraphHandler(roundTrip);
+                var deserializedHandler = new GraphHandler(roundTrip, registry);
 
                 // Rerun tests on the deserialized version
-                nodeRef = deserializedHandler.GetNodeReader("Add");
+                nodeRef = deserializedHandler.GetNode("Add");
                 Assert.NotNull(nodeRef);
                 portReader = nodeRef.GetPort("A");
                 Assert.NotNull(portReader);
                 Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.AreEqual(portReader.GetNode().ID.LocalPath, "Add");
                 portReader = nodeRef.GetPort("B");
                 Assert.NotNull(portReader);
                 Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.AreEqual(portReader.GetNode().ID.LocalPath, "Add");
                 portReader = nodeRef.GetPort("Out");
                 Assert.NotNull(portReader);
                 Assert.NotNull(portReader.GetNode());
-                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
+                Assert.AreEqual(portReader.GetNode().ID.LocalPath, "Add");
             }
 
 
@@ -246,17 +260,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.IsNotNull(output);
                 Assert.IsNotNull(input);
                 Assert.IsTrue(graphHandler.AddEdge(output.ID, input.ID) != null);
-                var thruEdge = graphDelta.GetConnectedPorts("Foo.Out").FirstOrDefault();
+                var thruEdge = graphDelta.GetConnectedPorts("Foo.Out", registry).FirstOrDefault();
                 Assert.NotNull(thruEdge);
                 Assert.IsTrue(thruEdge.ID.Equals("Bar.A"));
 
                 var roundTrip = graphHandler.ToSerializedFormat();
-                var deserializedHandler = new GraphHandler(roundTrip).graphDelta;
+                var deserializedHandler = new GraphHandler(roundTrip, registry).graphDelta;
 
                 // rerun tests on the serialized version
                 try
                 {
-                    thruEdge = deserializedHandler.GetConnectedPorts("Foo.Out").FirstOrDefault();
+                    thruEdge = deserializedHandler.GetConnectedPorts("Foo.Out", registry).FirstOrDefault();
                 }
                 catch(System.Exception)
                 {
@@ -269,23 +283,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void ReconcretizeGraph()
             {
-                var graph = new GraphHandler();
                 var registry = new Registry();
                 registry.Register<GraphType>();
                 registry.Register<TestAddNode>();
                 registry.Register<GraphTypeAssignment>();
+                var graph = new GraphHandler(registry);
 
                 // should default concretize length to 4.
-                graph.AddNode<TestAddNode>("Add1", registry);
-                var reader = graph.GetNodeReader("Add1");
+                graph.AddNode<TestAddNode>("Add1");
+                var reader = graph.GetNode("Add1");
                 var len = reader.GetPort("In1").GetTypeField().GetSubField<GraphType.Length>("Length").GetData();
                 Assert.AreEqual(4, (int)len);
 
                 var roundTrip = graph.ToSerializedFormat();
-                var deserializedHandler = new GraphHandler(roundTrip);
-                deserializedHandler.ReconcretizeAll(registry);
+                var deserializedHandler = new GraphHandler(roundTrip, registry);
+                deserializedHandler.ReconcretizeAll();
 
-                reader = deserializedHandler.GetNodeReader("Add1");
+                reader = deserializedHandler.GetNode("Add1");
                 len = reader.GetPort("In2").GetTypeField().GetSubField<GraphType.Length>("Length").GetData();
 
                 Assert.AreEqual(4, (int)len);
@@ -296,7 +310,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 registry.Register<TestDescriptor>();
                 registry.Register<GraphType>();
-                graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>(), registry);
+                graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>());
                 var contextNode = graphHandler.GetNode("TestContextDescriptor");
 
                 IContextDescriptor.ContextEntry entry = new()
@@ -328,17 +342,45 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             [Test]
             public void CanStoreAndLoad()
             {
-                var graph = new GraphHandler();
                 var registry = new Registry();
                 registry.Register<GraphType>();
                 registry.Register<TestAddNode>();
                 registry.Register<GraphTypeAssignment>();
+                var graph = new GraphHandler(registry);
 
-                var node = graph.AddNode<TestAddNode>("Add1", registry);
+                var node = graph.AddNode<TestAddNode>("Add1");
                 node.AddField("myData", 45);
                 var field = node.GetField("myData");
                 var data = field.GetData<int>();
                 Assert.AreEqual(data, 45);
+            }
+			
+            [Test]
+            public void ConcretizationTests()
+            {
+                var test1 = graphHandler.AddNode<TestNode>("test1");
+                var cCounter1 = test1.GetField<int>(TestNode.k_counter);
+                Assert.IsNotNull(cCounter1);
+                Assert.AreEqual(1, cCounter1.GetData()); //initializes to 1 as AddNode calls BuildNode
+                var test2 = graphHandler.AddNode<TestNode>("test2");
+                var cCounter2 = test2.GetField<int>(TestNode.k_counter);
+                Assert.IsNotNull(cCounter2);
+                Assert.AreEqual(1, cCounter2.GetData()); //initializes to 1 as AddNode calls BuildNode
+
+                graphHandler.ReconcretizeNode("test2");
+                Assert.AreEqual(2, cCounter2.GetData()); //Explicitly calling reconcretize should increment the value
+
+                graphHandler.AddEdge("test1.Output", "test2.Input");
+                Assert.AreEqual(3, cCounter2.GetData()); //Connecting an edge should reconcretize downstream
+                Assert.AreEqual(1, cCounter1.GetData()); //Connecting an edge should not affect source node 
+
+                test1.SetPortField("Input", "Length", Length.Two); //Should cause reconcretization downstream, includind test1
+                Assert.AreEqual(4, cCounter2.GetData()); 
+                Assert.AreEqual(2, cCounter1.GetData());
+
+                graphHandler.RemoveEdge("test1.Output", "test2.Input");
+                Assert.AreEqual(5, cCounter2.GetData()); 
+                Assert.AreEqual(2, cCounter1.GetData());
             }
 
         }

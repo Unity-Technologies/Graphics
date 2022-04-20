@@ -8,20 +8,30 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public class GraphHandler
     {
         internal GraphDelta graphDelta;
+        internal Registry registry;
 
+        [Obsolete("The empty constructer for GraphHandler is obselete; please provide a Registry for updated behavior", false)]
         public GraphHandler()
         {
             graphDelta = new GraphDelta();
+            registry = null;
         }
 
-        public GraphHandler(string serializedData)
+        public GraphHandler(Registry registry)
+        {
+            graphDelta = new GraphDelta();
+            this.registry = registry;
+        }
+
+        public GraphHandler(string serializedData, Registry registry)
         {
             graphDelta = new GraphDelta(serializedData);
+            this.registry = registry;
         }
 
-        static public GraphHandler FromSerializedFormat(string json)
+        static public GraphHandler FromSerializedFormat(string json, Registry registry)
         {
-            return new GraphHandler(json);
+            return new GraphHandler(json, registry);
         }
 
         public string ToSerializedFormat()
@@ -29,46 +39,73 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return EditorJsonUtility.ToJson(graphDelta.m_data, true);
         }
 
+        [Obsolete("AddNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+            "Use AddNode<T>(string name) for updated behavior")]
         internal NodeHandler AddNode<T>(string name, Registry registry) where T : INodeDefinitionBuilder =>
             graphDelta.AddNode<T>(name, registry);
 
+        internal NodeHandler AddNode<T>(string name) where T : INodeDefinitionBuilder => graphDelta.AddNode<T>(name, registry);
+
+        [Obsolete("AddNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+            "Use AddNode(RegistryKey key, string name) for updated behavior")]
         public NodeHandler AddNode(RegistryKey key, string name, Registry registry) =>
             graphDelta.AddNode(key, name, registry);
 
+        public NodeHandler AddNode(RegistryKey key, string name) =>
+            graphDelta.AddNode(key, name, registry);
+
+        [Obsolete("AddContextNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+            "Use AddContextNode(RegistryKey key) for updated behavior")]
         public NodeHandler AddContextNode(RegistryKey key, Registry registry) =>
             graphDelta.AddContextNode(key, registry);
 
+        public NodeHandler AddContextNode(RegistryKey key) =>
+            graphDelta.AddContextNode(key, registry);
+
+        [Obsolete("ReconcretizeNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+            "Use ReconcretizeNode(string name) for updated behavior")]
         public bool ReconcretizeNode(string name, Registry registry) =>
+            graphDelta.ReconcretizeNode(name, registry);
+
+        public bool ReconcretizeNode(string name) =>
             graphDelta.ReconcretizeNode(name, registry);
 
         [Obsolete("GetNodeReader is obsolete - Use GetNode now", false)]
         public NodeHandler GetNodeReader(string name) =>
-            graphDelta.GetNode(name);
+            graphDelta.GetNode(name, registry);
 
         [Obsolete("GetNodeWriter is obselete - Use GetNode now", false)]
         public NodeHandler GetNodeWriter(string name) =>
-            graphDelta.GetNode(name);
+            graphDelta.GetNode(name, registry);
 
         public NodeHandler GetNode(ElementID name) =>
-            graphDelta.GetNode(name);
+            graphDelta.GetNode(name, registry);
 
         public void RemoveNode(string name) =>
             graphDelta.RemoveNode(name);
 
         public IEnumerable<NodeHandler> GetNodes() =>
-            graphDelta.GetNodes();
+            graphDelta.GetNodes(registry);
 
-		public EdgeHandler AddEdge(ElementID output, ElementID input) =>
-            graphDelta.AddEdge(output, input);
+        //Temporary workaround for deprecated GraphHanlder constructor
+        public EdgeHandler AddEdge(ElementID output, ElementID input) =>
+            registry == null ? graphDelta.AddEdge(output, input) : graphDelta.AddEdge(output, input, registry);
 
-        public void RemoveEdge(ElementID output, ElementID input) =>
-            graphDelta.RemoveEdge(output, input);
 
-        public void ReconcretizeAll(Registry registry)
+        //Temporary workaround for deprecated GraphHanlder constructor
+        public void RemoveEdge(ElementID output, ElementID input)
         {
-            foreach (var name in GetNodes().Select(e => e.GetName()).ToList())
+            if (registry == null)
+                graphDelta.RemoveEdge(output, input);
+            else
+                graphDelta.RemoveEdge(output, input, registry);
+        }
+
+        public void ReconcretizeAll()
+        {
+            foreach (var name in GetNodes().Select(e => e.ID.LocalPath).ToList())
             {
-                var node = GetNodeReader(name);
+                var node = GetNode(name);
                 if (node != null)
                 {
                     var builder = registry.GetNodeBuilder(node.GetRegistryKey());
@@ -76,7 +113,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     {
                         if (builder.GetRegistryFlags() == RegistryFlags.Func)
                         {
-                            ReconcretizeNode(node.GetName(), registry);
+                            ReconcretizeNode(node.ID.FullPath);
                         }
                     }
 
@@ -84,33 +121,29 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-        public IEnumerable<PortHandler> GetConnectedPorts(ElementID portID) => graphDelta.GetConnectedPorts(portID);
+        [Obsolete("ReconcretizeAll with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+            "Use ReconcretizeAll() for updated behavior")]
+        public void ReconcretizeAll(Registry registry)
+        {
+            foreach (var name in GetNodes().Select(e => e.ID.LocalPath).ToList())
+            {
+                var node = graphDelta.GetNode(name, registry);
+                if (node != null)
+                {
+                    var builder = registry.GetNodeBuilder(node.GetRegistryKey());
+                    if (builder != null)
+                    {
+                        if (builder.GetRegistryFlags() == RegistryFlags.Func)
+                        {
+                            ReconcretizeNode(node.ID.FullPath, registry);
+                        }
+                    }
+                }
+            }
+        }
 
-        public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID);
-        //public TargetRef AddTarget(TargetType targetType)
+        public IEnumerable<PortHandler> GetConnectedPorts(ElementID portID) => graphDelta.GetConnectedPorts(portID, registry);
 
-        //public void RemoveTarget(TargetRef targetRef)
-
-        //public List<TargetSetting> GetTargetSettings(TargetRef targetRef)
-
-        //public INodeWriter AddNode(NodeType nodeType)
-
-        //public void RemoveNode(INodeRef nodeRef);
-
-        //public NodeType GetNodeType(NodeRef nodeRef)
-
-        //public IEnumerable<INodeReader> GetNodes();
-
-        //public IEnumerable<IPortReader> GetOutputPorts(INodeReader nodeRef);
-
-        //public bool CanConnect(PortRef outputPort, PortRef inputPort)
-
-        //public ConnectionRef Connect(PortRef outputPort, PortRef inputPort)
-
-        //public ConnectionRef ForceConnect(PortRef outputPort, PortRef inputPort)
-
-        //public List<ConnectionRef> GetConnections(PortRef portRef)
-
-        //public void RemoveConnection(ConnectionRef connectionRef)
+        public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
     }
 }

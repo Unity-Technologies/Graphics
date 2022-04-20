@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var nodeId = nodeReader.ID;
                 void initCallback(IConstant e)
                 {
-                    var constant = e as ICLDSConstant;
+                    var constant = e as BaseShaderGraphConstant;
                     var shaderGraphModel = ((ShaderGraphModel)GraphModel);
                     var handler = shaderGraphModel.GraphHandler;
                     try
@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((ICLDSConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.ID.LocalPath, portReader.LocalID);
                 }
                 else
                     newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);

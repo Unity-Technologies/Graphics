@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!parameterUIDescriptor.InspectorOnly) continue;
 
                 var constant = stencil.CreateConstantValue(ShaderGraphExampleTypes.GetGraphType(port));
-                if (constant is ICLDSConstant cldsConstant)
+                if (constant is BaseShaderGraphConstant cldsConstant)
                 {
                     cldsConstant.Initialize(graphModel.GraphHandler, nodeModel.graphDataName, portName);
                 }

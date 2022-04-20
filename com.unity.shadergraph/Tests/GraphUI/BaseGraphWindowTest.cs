@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         // Used to send events to the highest shader graph editor window
         protected TestEventHelpers m_ShaderGraphWindowTestHelper;
 
-        protected string m_TestAssetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
+        protected string m_TestAssetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}";
 
         [SetUp]
         public void SetUp()
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             m_GraphView = m_Window.GraphView as ShaderGraphView;
 
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
             newGraphAction.Action(0, m_TestAssetPath, "");
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(m_TestAssetPath);
             m_Window.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));

@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [Test]
         public void CreateGraphAssetTest()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateAssetAction>();
-            var assetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            var assetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}";
             newGraphAction.Action(0, assetPath, "");
             var newAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(assetPath);
             Assert.IsNotNull(newAsset);
@@ -33,8 +33,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [Test]
         public void GraphSubAssetAssociationTest()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateAssetAction>();
-            var assetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.Extension}";
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            var assetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}";
             newGraphAction.Action(0, assetPath, "");
             var materialAsset = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
             Assert.IsNotNull(materialAsset);

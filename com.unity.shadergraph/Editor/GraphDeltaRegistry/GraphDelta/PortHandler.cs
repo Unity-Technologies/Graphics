@@ -25,28 +25,28 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<PortHandler> GetConnectedPorts()
         {
             bool input = GetMetadata<bool>(PortHeader.kInput);
-            foreach(var edge in Owner.edges)
+            foreach(var edge in Owner.m_data.edges)
             {
                 if(input && edge.Input.Equals(ID))
                 {
-                    yield return new PortHandler(edge.Output, Owner, DefaultLayer);
+                    yield return new PortHandler(edge.Output, Owner, Registry, DefaultLayer);
                 }
                 else if(!input && edge.Output.Equals(ID))
                 {
-                    yield return new PortHandler(edge.Input, Owner, DefaultLayer);
+                    yield return new PortHandler(edge.Input, Owner, Registry, DefaultLayer);
                 }
 
             }
         }
 
-        internal PortHandler(ElementID elementID, GraphStorage owner, string defaultLayer = GraphDelta.k_user)
-            : base(elementID, owner, defaultLayer)
+        internal PortHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
+            : base(elementID, owner, registry, defaultLayer)
         {
         }
 
         public NodeHandler GetNode()
         {
-            return new NodeHandler(ID.FullPath.Replace($".{ID.LocalPath}",""), Owner, DefaultLayer);
+            return new NodeHandler(ID.FullPath.Replace($".{ID.LocalPath}",""), Owner, Registry, DefaultLayer);
         }
         public IEnumerable<FieldHandler> GetFields()
         {
@@ -63,12 +63,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public FieldHandler AddField(string localID)
         {
             Writer.AddChild(localID).SetHeader(new FieldHeader());
-            return new FieldHandler(ID.FullPath + $".{localID}", Owner, DefaultLayer) ;
+            return new FieldHandler(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer) ;
         }
-        public FieldHandler<T> AddField<T>(string localID, T value = default)
+        public FieldHandler<T> AddField<T>(string localID, T value = default, bool reconcretizeOnDataChange = false)
         {
             Writer.AddChild(localID, value).SetHeader(new FieldHeader());
-            return new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, DefaultLayer);
+            var output = new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer);
+            if(reconcretizeOnDataChange)
+            {
+                output.SetMetadata(FieldHandler.k_dataRecon, true);
+            }
+            return output;
         }
         public void RemoveField(string localID)
         {

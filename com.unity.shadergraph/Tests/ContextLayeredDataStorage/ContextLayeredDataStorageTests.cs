@@ -40,6 +40,17 @@ namespace UnityEditor.ContextLayeredDataStorage
             Assert.AreEqual(test.LocalPath, expectedLocalPath);
         }
 
+        [Test]
+        [TestCase("", "")]
+        [TestCase("Foo", "")]
+        [TestCase("Foo.Bar", "Foo")]
+        [TestCase("Foo.Bar.Baz", "Foo.Bar")]
+        public void ParentID(string fullPath, string expectedParentPath)
+        {
+            ElementID test = fullPath;
+            Assert.AreEqual(expectedParentPath, test.ParentPath);
+        }
+
         [Serializable]
         public class TestClass
         {
@@ -296,11 +307,11 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Debug.Log(serialized);
                 TestStorage storeDeserialized = new TestStorage();
                 EditorJsonUtility.FromJsonOverwrite(serialized, storeDeserialized);
-                var elem = storeDeserialized.Search("a.b"); 
+                var elem = storeDeserialized.Search("a.b");
                 Assert.IsNotNull(elem);
                 int data = elem.GetData<int>();
                 Assert.AreEqual(data, 13);
-                elem = storeDeserialized.Search("a.b.c.f"); 
+                elem = storeDeserialized.Search("a.b.c.f");
                 Assert.IsNotNull(elem);
                 Vector3Int data2 = elem.GetData<Vector3Int>();
                 Assert.AreEqual(data2, new Vector3Int(1,2,3));
