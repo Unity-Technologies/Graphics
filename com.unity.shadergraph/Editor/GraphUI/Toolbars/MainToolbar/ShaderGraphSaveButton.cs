@@ -19,7 +19,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <inheritdoc />
         protected override void OnClick()
         {
-            GraphAssetUtils.SaveGraphImplementation(GraphTool);
+            if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel { IsSubGraph: true })
+            {
+                GraphAssetUtils.SaveSubGraphImplementation(GraphTool);
+            }
+            else
+            {
+                GraphAssetUtils.SaveGraphImplementation(GraphTool);
+            }
         }
     }
 }

@@ -1,4 +1,3 @@
-
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
@@ -28,8 +27,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-
-
         [MenuItem("Assets/Create/Shader Graph 2/Blank Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
         public static void CreateBlankGraphInProjectWindow()
         {
@@ -56,7 +53,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 null);
         }
 
-
         private static void SaveImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAssetModel> SaveAction)
         {
             // If no currently opened graph, early out
@@ -66,13 +62,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
                 SaveAction(assetPath, assetModel);
+
                 // Set to false after saving to clear modification state from editor window tab
                 assetModel.Dirty = false;
             }
-
         }
 
-        public static void SaveGraphImplementation(BaseGraphTool GraphTool)    => SaveImplementation(GraphTool, ShaderGraphAsset.HandleSave);
+        public static void SaveGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderGraphAsset.HandleSave);
         public static void SaveSubGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderSubGraphAsset.HandleSave);
 
         public static string SaveAsGraphImplementation(BaseGraphTool GraphTool)
@@ -88,11 +84,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 path = path.Remove(path.LastIndexOf('/'));
 
                 var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2");
+
                 // If User cancelled operation or provided an invalid path
                 if (destinationPath == String.Empty)
                     return String.Empty;
 
                 ShaderGraphAsset.HandleSave(destinationPath, assetModel);
+
                 // Refresh asset database so newly saved asset shows up
                 AssetDatabase.Refresh();
 
@@ -102,5 +100,40 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return String.Empty;
         }
 
+        public static string SaveAsSubgraphImplementation(BaseGraphTool GraphTool)
+        {
+            // If no currently opened graph, early out
+            if (GraphTool.ToolState.AssetModel == null)
+                return String.Empty;
+
+            if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel assetModel)
+            {
+                if (!assetModel.IsSubGraph)
+                {
+                    Debug.LogError("Attempted to save subgraph as graph"); // ?
+                    return string.Empty;
+                }
+
+                // Get folder of current shader graph asset
+                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                path = path.Remove(path.LastIndexOf('/'));
+
+                // TODO: There's a constant for the extension somewhere
+                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2subgraph");
+
+                // If User cancelled operation or provided an invalid path
+                if (destinationPath == String.Empty)
+                    return String.Empty;
+
+                ShaderSubGraphAsset.HandleSave(destinationPath, assetModel);
+
+                // Refresh asset database so newly saved asset shows up
+                AssetDatabase.Refresh();
+
+                return destinationPath;
+            }
+
+            return String.Empty;
+        }
     }
 }

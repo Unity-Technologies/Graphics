@@ -14,9 +14,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public ShaderGraphModel ShaderGraphModel => GraphModel as ShaderGraphModel;
         public GraphDelta.GraphHandler GraphHandler { get; set; }
 
-        public void Init(GraphDelta.GraphHandler graph = null)
+        // TODO: maybe subclass?
+        public bool IsSubGraph { get; private set; }
+
+        public void Init(GraphDelta.GraphHandler graph = null, bool isSubGraph = false)
         {
             GraphHandler = graph;
+            IsSubGraph = isSubGraph;
             OnEnable();
         }
 
@@ -51,5 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
             Name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this));
         }
+
+        public override bool IsContainerGraph() => !IsSubGraph;
     }
 }
