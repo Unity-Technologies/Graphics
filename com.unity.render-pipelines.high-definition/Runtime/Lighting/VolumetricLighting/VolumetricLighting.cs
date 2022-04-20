@@ -865,7 +865,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var volumeAtlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
             cb._VolumeMaskDimensions = Vector4.zero;
-            if (DensityVolumeManager.manager.volumeAtlas.GetAtlas() != null)
+            if (volumeAtlas != null)
             {
                 cb._VolumeMaskDimensions.x = 1.0f / DensityVolumeManager.manager.volumeAtlas.NumTexturesInAtlas; // 1 / number of textures
                 cb._VolumeMaskDimensions.y = volumeAtlas.rt.width;

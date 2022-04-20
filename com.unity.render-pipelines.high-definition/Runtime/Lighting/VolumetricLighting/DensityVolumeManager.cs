@@ -20,16 +20,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Texture3DAtlas volumeAtlas = null;
+        public DensityVolumeAtlas volumeAtlas = null;
         private bool atlasNeedsRefresh = false;
 
         private DensityVolumeManager()
         {
             volumes = new List<DensityVolume>();
 
-            volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8);
-
-            volumeAtlas.OnAtlasUpdated += AtlasUpdated;
+            volumeAtlas = new DensityVolumeAtlas();
         }
 
         private List<DensityVolume> volumes = null;
@@ -94,10 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void TriggerVolumeAtlasRefresh()
         {
             atlasNeedsRefresh = true;
-        }
-
-        private void AtlasUpdated()
-        {
         }
     }
 }
