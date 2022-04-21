@@ -159,6 +159,8 @@ However, not all materials are supported by every injection point in a draw rend
 
 When Unity renders a material that is not supported by the current injection point, it results in an undefined behavior. For example, rendering GameObjects with lit shaders in the **After Opaque Depth And Normal** injection point produces unexpected results.
 
+Note: HDRP does not support decals on GameObjects rendered in the DrawRenderers pass.
+
 <a name="Custom-Renderers-Pass-shader"></a>
 
 ## Custom Renderers Pass shader

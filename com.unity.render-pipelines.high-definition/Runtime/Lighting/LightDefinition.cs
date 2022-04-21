@@ -95,15 +95,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
+        public Vector2 cascadesBorderFadeScaleBias;
         public float   diffuseDimmer;
         public float   specularDimmer;
         public float   penumbraTint;
         public float   isRayTracedContactShadow;
 
+
         public float   distanceFromCamera;      // -1 -> no sky interaction
         public float   angularDiameter;         // Units: radians
         public float   flareFalloff;
-        public float   __unused__;
+
+        public float   flareCosInner;
+        public float   flareCosOuter;
+        public float   __unused__;		
 
         public Vector3 flareTint;
         public float   flareSize;               // Units: radians

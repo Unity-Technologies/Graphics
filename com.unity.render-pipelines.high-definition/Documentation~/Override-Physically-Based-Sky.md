@@ -27,6 +27,8 @@ Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](O
 
 To change how much the atmosphere attenuates light, you can change the density of both air and aerosol molecules (participating media) in the atmosphere. You can also use aerosols to simulate real-world pollution or fog.
 
+**Note**: HDRP only takes into account Lights that have **Affect Physically Based Sky** enabled. After Unity bakes the lighting in your project, Physically Based Sky ignores all Lights that have their **Mode** property set to **Baked**. To fix this, set the **Mode** to **Realtime** or **Mixed**.
+
 **Note:** When Unity initializes a Physically Based Sky, it performs a resource-intensive operation which can cause the frame rate of your project to drop for a few frames. Once Unity has completed this operation, it stores the data in a cache to access the next time Unity initializes this volume. However, you may experience this frame rate drop if you have two Physically Based Sky volumes with different properties and switch between them.
 
 ![](Images/Override-PhysicallyBasedSky4.png)
@@ -127,6 +129,24 @@ The default values in either mode make it so the planet's surface is at **0** on
 * If in **Spherical Mode**, either decrease the **Planetary  Radius**, or move the **Planet Center Position** down.
 
 * If not in **Spherical Mode**, decrease the **Sea Level**.
+
+## Warmup cost
+
+When you switch to or from a Physically Based Sky, it might cause a noticeable drop in framerate. This is because HDRP performs a large amount of precomputations to render a Physically Based Sky, so the first few frames (depending on the Number of bounces parameter) takes more time to render than other HDRP sky types.
+This also applies when HDRP uses the volume system to interpolate between two different Physically Based Skies with different sets of parameters. To do this, HDRP restarts the precomputation every frame in which it performs interpolation. This causes a noticeable drop in framerate. To avoid this, use a single set of Physically Based Sky parameters for a scene and change the sun light direction and intensity to achieve the result you want.
+
+HDRP restarts precomputation when you change the following parameters:
+- Type
+- Planetary Radius
+- Ground Tint
+- Air Maximum Altitude
+- Air Density
+- Air Tint
+- Aerosol Maximum Altitude
+- Aerosol Density
+- Aerosol Tint
+- Aerosol Anisotropy
+- Number of Bounces
 
 ### Reference list
 

@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_2021_1_OR_NEWER
-        protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
         }
@@ -479,6 +479,10 @@ namespace UnityEngine.Rendering.Universal
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
+            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+            {
+                BeginCameraRendering(context, baseCamera);
+            }
 
             // Update volumeframework before initializing additional camera data
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
@@ -502,12 +506,16 @@ namespace UnityEngine.Rendering.Universal
                     xrActive = true;
                     // Helper function for updating cameraData with xrPass Data
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+
+                    // Update volume manager to use baseCamera's settings for XR multipass rendering.
+                    if (baseCameraData.xr.multipassId > 0)
+                    {
+                        UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+                    }
+					m_XRSystem.BeginLateLatching(baseCamera, xrPass);
                 }
 #endif
-                using(new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-                {
-                    BeginCameraRendering(context, baseCamera);
-                }
+
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                 VFX.VFXManager.PrepareCamera(baseCamera);
@@ -521,7 +529,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     EndCameraRendering(context, baseCamera);
                 }
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+                m_XRSystem.EndLateLatching(baseCamera, xrPass);
+#endif
                 if (isStackedRendering)
                 {
                     for (int i = 0; i < cameraStack.Count; ++i)
@@ -588,29 +598,43 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 
-            // Default values when there's no additional camera data available
-            LayerMask layerMask = 1; // "Default"
-            Transform trigger = camera.transform;
+            // We update the volume framework for:
+            // * All cameras in the editor when not in playmode
+            // * scene cameras
+            // * cameras with update mode set to EveryFrame
+            // * cameras with update mode set to UsePipelineSettings and the URP Asset set to EveryFrame
+            bool shouldUpdate = camera.cameraType == CameraType.SceneView;
+            shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
 
-            if (additionalCameraData != null)
+            #if UNITY_EDITOR
+            shouldUpdate |= Application.isPlaying == false;
+            #endif
+
+            // When we have volume updates per-frame disabled...
+            if (!shouldUpdate && additionalCameraData)
             {
-                layerMask = additionalCameraData.volumeLayerMask;
-                trigger = additionalCameraData.volumeTrigger != null
-                    ? additionalCameraData.volumeTrigger
-                    : trigger;
+                // Create a local volume stack and cache the state if it's null
+                if (additionalCameraData.volumeStack == null)
+                {
+                    camera.UpdateVolumeStack(additionalCameraData);
+                }
+
+                VolumeManager.instance.stack = additionalCameraData.volumeStack;
+                return;
             }
-            else if (camera.cameraType == CameraType.SceneView)
+
+            // When we want to update the volumes every frame...
+
+            // We destroy the volumeStack in the additional camera data, if present, to make sure
+            // it gets recreated and initialized if the update mode gets later changed to ViaScripting...
+            if (additionalCameraData && additionalCameraData.volumeStack != null)
             {
-                // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
-                var mainCamera = Camera.main;
-                UniversalAdditionalCameraData mainAdditionalCameraData = null;
-
-                if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
-                    layerMask = mainAdditionalCameraData.volumeLayerMask;
-
-                trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
+                camera.DestroyVolumeStack(additionalCameraData);
             }
 
+            // Get the mask + trigger and update the stack
+            camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
+            VolumeManager.instance.ResetMainStack();
             VolumeManager.instance.Update(trigger, layerMask);
         }
 

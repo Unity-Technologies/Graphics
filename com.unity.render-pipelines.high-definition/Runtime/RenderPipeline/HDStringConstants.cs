@@ -418,6 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
         public static readonly int _QuadOverdrawMaxQuadCost = Shader.PropertyToID("_QuadOverdrawMaxQuadCost");
         public static readonly int _VertexDensityMaxPixelCost = Shader.PropertyToID("_VertexDensityMaxPixelCost");
+        public static readonly int _MinMotionVector = Shader.PropertyToID("_MinMotionVector");
         public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
@@ -525,7 +526,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionTexture              = Shader.PropertyToID("_SpaceEmissionTexture");
         public static readonly int _SpaceEmissionMultiplier           = Shader.PropertyToID("_SpaceEmissionMultiplier");
 
-        public static readonly int _RenderSunDisk                     = Shader.PropertyToID("_RenderSunDisk");
+        public static readonly int _RenderSunDisk = Shader.PropertyToID("_RenderSunDisk");
 
         public static readonly int _ColorSaturation                   = Shader.PropertyToID("_ColorSaturation");
         public static readonly int _AlphaSaturation                   = Shader.PropertyToID("_AlphaSaturation");

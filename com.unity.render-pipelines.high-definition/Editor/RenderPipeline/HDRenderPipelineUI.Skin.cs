@@ -133,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent rayTracingDX12OnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12.");
+            public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
             internal static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
@@ -229,6 +230,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
+
+            // TEMP: HDShadowFilteringQuality.VeryHigh - This filtering mode is not ready so disabling in UI
+            // To re-enable remove the two following light and re-enable the third one
+            public static readonly GUIContent[] shadowFilteringNames = { new GUIContent("Low"), new GUIContent("Medium"), new GUIContent("High") };
+            public static readonly int[] shadowFilteringValue = { 0, 1, 2 };
 
             public const string memoryDrawback = "Adds GPU memory";
             public const string shaderVariantDrawback = "Adds Shader Variants";

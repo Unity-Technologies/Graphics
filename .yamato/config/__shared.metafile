@@ -10,24 +10,22 @@ editors: # applied for all yml files
   - track: 2020.3
     name: 2020.3
     rerun_strategy: on_new_revision
+    ono_branch_var: ONO_BRANCH_2020_3
     editor_pinning:
       enabled: True
-      green_abv_required: False
-    ci_triggers:
-      pr_triggers_allowed: True # if expression_triggers on PRs allowed
-      nightly_job_trigger: True # if true, adds recurrent trigger to nightly job
-      weekly_job_trigger: False # if true, adds recurrent trigger to weekly job
+      nr_commits_to_retrieve: 1
+    allow_triggers: True
+    variables:
+      CACHE_ARGS: '{{cache.flags}}'
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: on_new_revision
     editor_pinning:
       enabled: False
-      green_abv_required: False
     fast: False
-    ci_triggers:
-      pr_triggers_allowed: False
-      nightly_job_trigger: False
-      weekly_job_trigger: False
+    allow_triggers: False
+    variables:
+      CACHE_ARGS: '{{cache.flags}}'
 build_configs:
   - name: il2cpp_apiNet2
     scripting_backend: IL2CPP
@@ -52,7 +50,9 @@ color_spaces:
   - gamma
 test_platforms:
   - type: Standalone
+    allow_cache: True
     utr_flags:
+      - [OSX_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       # - [all]: --reruncount=2
@@ -79,6 +79,7 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
+      - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --suite=playmode
       - [all]: --build-only
@@ -131,7 +132,9 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
   - type: playmode
+    allow_cache: True
     utr_flags:
+      - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
@@ -160,7 +163,9 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
 
   - type: editmode
+    allow_cache: False
     utr_flags:
+      - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
@@ -226,21 +231,25 @@ platforms:
     commands:
       [DX11, DX12, Vulkan, '']:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+            retries: 2
         call_utr:
-          - |5-
+          - command: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
         call_utr_without_git:
-          - utr <UTR_FLAGS>
+          - command: utr <UTR_FLAGS>
         unity_downloader_cli:
-          - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+            retries: 2
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
+            retries: 2
 
   OSX:
     name: OSX
@@ -256,7 +265,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:latest
+        image: graphics-foundation/mac-10.15:v0.0.1-672710
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -267,39 +276,48 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-          - chmod +x utr
-          - scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-          - scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
+          - command: chmod +x utr
+          - command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+            retries: 2
+          - command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+            retries: 2
         call_utr: # TODO add git commands when needed
-          - |5-
+          - command: |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
                     UTR_RESULT=$?
                     mkdir -p TestProjects/<PROJECT_FOLDER>/test-results/
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>/test-results/
                     exit $UTR_RESULT
         call_utr_without_git:
-          - |5-
+          - command: |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
                     UTR_RESULT=$?
                     mkdir -p TestProjects/<PROJECT_FOLDER>/test-results/
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>/test-results/
                     exit $UTR_RESULT
         unity_downloader_cli:
-          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
+          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+            retries: 2
+          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
+            retries: 2
       [OpenGlCore]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-          - chmod +x utr
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
+          - command: chmod +x utr
         call_utr: # TODO add git commands when needed
-          - ./utr  <UTR_FLAGS>
+          - command: ./utr  <UTR_FLAGS>
         call_utr_without_git:
-          - ./utr  <UTR_FLAGS>
+          - command: ./utr  <UTR_FLAGS>
         unity_downloader_cli:
-          - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - brew install unity-downloader-cli
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+            retries: 2
+          - command: brew install unity-downloader-cli
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+            retries: 2
 
 
   Linux:
@@ -324,19 +342,26 @@ platforms:
     commands:
       [OpenGlCore, Vulkan]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-          - chmod +x utr
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
+          - command: chmod +x utr
         call_utr:
-          - DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
+          - command: DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
         call_utr_without_git:
-          - DISPLAY=:0.0 ./utr <UTR_FLAGS>
+          - command: DISPLAY=:0.0 ./utr <UTR_FLAGS>
         unity_downloader_cli:
-          - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
-          - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-          - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-          - sudo apt update
-          - sudo apt install unity-downloader-cli
-          - sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+            retries: 2
+          - command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+            retries: 2
+          - command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+            retries: 2
+          - command: sudo apt update
+            retries: 2
+          - command: sudo apt install unity-downloader-cli
+            retries: 2
+          - command: sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+            retries: 2
 
 
   Android:
@@ -353,32 +378,48 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+            retries: 2
         call_utr:
-          - |5-
+          - command: |5-
                     set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
+        call_utr_hikey_android_sdk_root:
+          - command: |5-
+                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
+                    utr <UTR_FLAGS>
         call_utr_without_git:
-          - utr <UTR_FLAGS>
+          - command: utr <UTR_FLAGS>
         unity_downloader_cli:
-          - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+          - command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+            retries: 2
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
+            retries: 2
         connect_bokken:
-          - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-          - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+          - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+            retries: 2
+          - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+            retries: 2
         kill_server:
-          - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+          - command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+            retries: 2
 
   iPhone:
     name: iPhone
@@ -399,18 +440,22 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-          - chmod +x ./utr
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+            retries: 2
+          - command: chmod +x ./utr
         call_utr:
-          - |5-
+          - command: |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                     ./utr <UTR_FLAGS>
         call_utr_without_git:
-          - ./utr <UTR_FLAGS>
+          - command: ./utr <UTR_FLAGS>
         unity_downloader_cli:
-          - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - brew install unity/unity/unity-downloader-cli
-          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
+          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+            retries: 2
+          - command: brew install unity/unity/unity-downloader-cli
+            retries: 2
+          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
+            retries: 2
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM

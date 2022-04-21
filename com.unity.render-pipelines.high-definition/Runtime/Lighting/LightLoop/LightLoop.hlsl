@@ -9,7 +9,8 @@
 
 #ifndef SCALARIZE_LIGHT_LOOP
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
-// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
+// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/ .
+// Note that it is currently disabled on gamecore platforms for issues with wave intrinsics and the new compiler, it will be soon investigated, but we disable it in the meantime.
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && !defined(SHADER_API_GAMECORE) && SHADERPASS == SHADERPASS_FORWARD)
 #endif
 
@@ -345,21 +346,46 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     #endif
 
-        EnvLightData envLightData;
-        if (envLightCount > 0)
-        {
-            envLightData = FetchEnvLight(envLightStart, 0);
-        }
-        else
-        {
-            envLightData = InitSkyEnvLightData(0);
-        }
+#if HAS_REFRACTION
 
+        // For refraction to be stable, we should reuse the same refraction probe for the whole object.
+        // Otherwise as if the object span different tiles it could produce a different refraction probe picking and thus have visual artifacts.
+        // For this we need to find the tile that is at the center of the object that is being rendered.
+        // And then select the first refraction probe of this list.
         if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
         {
+            // grab current object position and retrieve in which tile it belongs too
+            float4x4 modelMat = GetObjectToWorldMatrix();
+            float3 objPos = modelMat._m03_m13_m23;
+            float4 posClip = TransformWorldToHClip(objPos);
+            posClip.xyz = posClip.xyz / posClip.w;
+
+            uint2 tileObj = (saturate(posClip.xy * 0.5f + 0.5f) * _ScreenSize.xy) / GetTileSize();
+
+            uint envLightStart, envLightCount;
+
+            // Fetch first env light to provide the scene proxy for screen space refraction computation
+            PositionInputs localInput;
+            ZERO_INITIALIZE(PositionInputs, localInput);
+            localInput.tileCoord = tileObj.xy;
+            localInput.linearDepth = posClip.w;
+
+            GetCountAndStart(localInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+
+            EnvLightData envLightData;
+            if (envLightCount > 0)
+            {
+                envLightData = FetchEnvLight(FetchIndex(envLightStart, 0));
+            }
+            else // If no refraction probe, use sky
+            {
+                envLightData = InitSkyEnvLightData(0);
+            }
+
             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
+#endif
 
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)

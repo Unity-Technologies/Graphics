@@ -11,6 +11,10 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class EmissionUIBlock : MaterialUIBlock
     {
+        // Max EV Value. Equals to LightUtils.ConvertLuminanceToEv(float.MaxValue)
+        // Literal value to avoid precision issue with max float and to be independent of ColorUtils.s_LightMeterCalibrationConstant.
+        static float s_MaxEvValue = 130.0f;
+
         [Flags]
         public enum Features
         {
@@ -114,6 +118,15 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.Update();
         }
 
+        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
+            => emissiveColor.colorValue = emissiveColorLDR.colorValue.linear * emissiveIntensity.floatValue;
+
+        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
+        {
+            Color emissiveColorLDRLinear = emissiveColor.colorValue / emissiveIntensity.floatValue;
+            emissiveColorLDR.colorValue = emissiveColorLDRLinear.gamma;
+        }
+
         void UpdateEmissionUnit(float newUnitFloat)
         {
             foreach (Material target in materials)
@@ -174,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
                                 evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                                newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
+                                newIntensity = Mathf.Clamp(evValue, 0, s_MaxEvValue);
                                 emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
                             }
                             else
@@ -211,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (intensityChanged && !unitIsMixed)
                         emissiveIntensity.floatValue = newIntensity;
 
-                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(emissiveColorLDR, emissiveIntensity, emissiveColor);
                 }
             }
 

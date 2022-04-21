@@ -93,6 +93,10 @@
             * [Diffusion Profile](Diffusion-Profile-Node.md)
             * [Exposure](Exposure-Node.md)
             * [HD Scene Color](HD-Scene-Color-Node.md)
+        * Lighting
+            * [Ambient](Ambient-Node)
+            * [Baked GI](Baked-GI-Node)
+            * [Reflection Probe](Reflection-Probe-Node)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node)  
             * [Matrix 3x3](Matrix-3x3-Node)  
@@ -104,14 +108,12 @@
         * PBR 
             * [Dielectric Specular](Dielectric-Specular-Node)  
             * [Metal Reflectance](Metal-Reflectance-Node)
-        * Scene   
-            * [Ambient](Ambient-Node)  
-            * [Camera](Camera-Node)  
-            * [Fog](Fog-Node)   
-            * [Object](Object-Node)  
-            * [Reflection Probe](Reflection-Probe-Node) 
-            * [Scene Color](Scene-Color-Node)  
-            * [Scene Depth](Scene-Depth-Node)  
+        * Scene
+            * [Camera](Camera-Node)
+            * [Fog](Fog-Node)
+            * [Object](Object-Node)
+            * [Scene Color](Scene-Color-Node)
+            * [Scene Depth](Scene-Depth-Node)
             * [Screen](Screen-Node)
         * Texture  
             * [Cubemap Asset](Cubemap-Asset-Node) 

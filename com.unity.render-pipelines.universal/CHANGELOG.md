@@ -4,11 +4,71 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Fixed an issue where ShadowCaster2Ds were sometimes being rendered twice in the editor while in playmode.
+- Fixed SSAO to work in VR mode. Normal buffer stores normals in world space.
+
+## [10.9.0] - 2021-12-06
+
+### Fixed
+- Fixed a 2D Renderer issue with volumetric lights sometimes not showing. [case 1329119]
+- Fixed an issue with Shader Graph Lit shaders where the "additional lights" keywords could be applied erroneously. [case 1387281]
+
+## [10.8.0] - 2021-09-20
+
+### Added
+- Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
+- Added a DepthNormalOnly pass for UniversalUnlit Shadergraph shaders.
+
+### Changed
+- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
+
+### Fixed
+- Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
+- Fixed memory leak with XR combined occlusion meshes. [case 1366173]
+- Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
+- Fixed depth of field pass usage on unsupported devices. [case 1327076]
+
+## [10.7.0] - 2021-07-02
+
+### Added
+- Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
+- XR: Added Late Latching support to reduce VR latency (Quest).
+
+### Fixed
+- Fixed terrain hole shadowing [case 1349305]
+- Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
+- Fixed an issue where the scene view would turn black when bloom was enabled. [case 1298790](https://issuetracker.unity3d.com/issues/urp-bloom-and-tonemapping-causes-the-screen-to-go-black-in-scene-mode), [case 1340848](https://issuetracker.unity3d.com/issues/urp-bloom-produces-visual-artifacts-when-color-slash-emission-are-not-clamped)
+- Fixed a case where camera dimension can be zero. [case 1321168](https://issuetracker.unity3d.com/issues/urp-attempting-to-get-camera-relative-temporary-rendertexture-is-thrown-when-tweening-the-viewport-rect-values-of-a-camera)
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
+- Fixed UniversalRenderPipelineAsset multi-edit.
+
+## [10.6.0] - 2021-04-29
+
+### Fixed
+- Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629]
+- Fixed an issue where SMAA did not work for OpenGL [case 1336710](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
+- Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331779]
+- Fixed SRP batcher not working on OpenGL.
+- Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature. [case 1323608](https://issuetracker.unity3d.com/product/unity/issues/guid/1323608/)
+- Fixed an issue with Transparency Sort Mode using the 2D Renderer Data [case 1310652](https://issuetracker.unity3d.com/product/unity/issues/guid/1310652/)
+- Fixed an issue with Transparency Sort Axis using the 2D Renderer Data [case 1312229](https://issuetracker.unity3d.com/product/unity/issues/guid/1312229/)
+
 ## [10.5.0] - 2021-04-19
+
+### Added
+- Added a SpeedTree 8 Shader Graph but did not set it as the default for importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
 
 ### Fixed
 - Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
 - Fixed errors when the Profiler is used with XR multipass. [case 1322918](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
+- Fixed ordering of subshaders in the Unlit Shader Graph, such that shader target 4.5 takes priority over 2.0. [case 1328636](https://issuetracker.unity3d.com/product/unity/issues/guid/1328636/)
+
+### Changed
+- Added subsurface scattering to handwritten SpeedTree 8 shader.
 
 ## [10.4.0] - 2021-03-11
 
@@ -26,6 +86,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
 - Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 - Fixed an issue where modified splat weights for Terrain were  zero in some areas and greater than one in others when using the Opacity as Density blending feature.
+- Fixed a performance issue in Hololens when using renderer with custom render passes.
 
 ## [10.3.1] - 2021-01-26
 
@@ -83,6 +144,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
 - Fixed an issue with upgrading material set to cutout didn't properly set alpha clipping. [case 1235516](https://issuetracker.unity3d.com/issues/urp-upgrade-material-utility-does-not-set-the-alpha-clipping-when-material-was-using-a-shader-with-rendering-mode-set-to-cutout)
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
+- Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR. 
 
 ## [10.1.0] - 2020-10-12
 ### Added

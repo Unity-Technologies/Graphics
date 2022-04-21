@@ -48,6 +48,9 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
 
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
+            // Adjust world-space position for XR single-pass and camera relative
+            ApplyCameraRelativeXR(posInput.positionWS);
+
             // Init shadow context
             LightLoopContext context;
             context.shadowContext = InitShadowContext();
@@ -62,7 +65,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
             float3 normalWS = normalData.normalWS;
 
             // Note: we use shading normal here and not GetNormalForShadowBias() as it is not available
-            return GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionSS.xy, posInput.positionWS, normalWS, _DirectionalShadowIndex, L);
+            return GetDirectionalShadowAttenuation(context.shadowContext, posInput.positionSS.xy, posInput.positionWS, normalWS, light.shadowIndex, L);
         }
     ENDHLSL
 

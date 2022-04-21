@@ -418,7 +418,43 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+#if ENABLE_VR && ENABLE_VR_MODULE
+        static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
+        static XR.XRDisplaySubsystem GetFirstXRDisplaySubsystem()
+        {
+            XR.XRDisplaySubsystem display = null;
+            SubsystemManager.GetInstances(displaySubsystemList);
+
+            if (displaySubsystemList.Count > 0)
+                display = displaySubsystemList[0];
+
+            return display;
+        }
+
+        // NB: This method is required for a hotfix in Hololens to prevent creating a render texture when using a renderer
+        // with custom render pass.
+        // TODO: Remove this method and usages when we have proper dependency tracking in the pipeline to know
+        // when a render pass requires camera color as input.
+        internal static bool IsRunningHololens(CameraData cameraData)
+        {
+#if PLATFORM_WINRT
+            if (cameraData.xr.enabled)
+            {
+                var platform = Application.platform;
+                if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64)
+                {
+                    var displaySubsystem = GetFirstXRDisplaySubsystem();
+                    
+                    if (displaySubsystem != null && !displaySubsystem.displayOpaque)
+                        return true;
+                }
+            }
+#endif
+            return false;
+        }
+#endif
+
+        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
 #if UNITY_2021_1_OR_NEWER
         void SortCameras(List<Camera> cameras)
         {
@@ -475,9 +511,26 @@ namespace UnityEngine.Rendering.Universal
                 // is given.
             }
 
+            // Make sure dimension is non zero
+            desc.width = Mathf.Max(1, desc.width);
+            desc.height = Mathf.Max(1, desc.height);
+
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
+
+            // The way RenderTextures handle MSAA fallback when an unsupported sample count of 2 is requested (falling back to numSamples = 1), differs fom the way
+            // the fallback is handled when setting up the Vulkan swapchain (rounding up numSamples to 4, if supported). This caused an issue on Mali GPUs which don't support
+            // 2x MSAA.
+            // The following code makes sure that on Vulkan the MSAA unsupported fallback behaviour is consistent between RenderTextures and Swapchain.
+            // TODO: we should review how all backends handle MSAA fallbacks and move these implementation details in engine code.
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                // if the requested number of samples is 2, and the supported value is 1x, it means that 2x is unsupported on this GPU.
+                // Then we bump up the requested value to 4.
+                if (desc.msaaSamples == 2 && SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc) == 1)
+                    desc.msaaSamples = 4;
+            }
 
             // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to

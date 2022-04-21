@@ -48,5 +48,7 @@ namespace UnityEditor.ShaderGraph
                 m_wrap = value;
             }
         }
+
+        public string defaultPropertyName => $"SamplerState_{filter}_{wrap}";
     }
 }

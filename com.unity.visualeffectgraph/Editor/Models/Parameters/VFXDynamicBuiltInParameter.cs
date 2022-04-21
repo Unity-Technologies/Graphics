@@ -179,6 +179,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        {
+            switch (m_BuiltInParameters)
+            {
+                case BuiltInFlag.LocalToWorld:
+                    return VFXCoordinateSpace.Local;
+                case BuiltInFlag.WorldToLocal:
+                    return VFXCoordinateSpace.World;
+                default:
+                    return (VFXCoordinateSpace)int.MaxValue;
+            }
+        }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var expressions = builtInParameterEnumerable.Select(b => s_BuiltInInfo[b].expression);

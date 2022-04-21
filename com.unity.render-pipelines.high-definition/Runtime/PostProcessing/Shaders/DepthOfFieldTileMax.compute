@@ -36,8 +36,13 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : S
 {
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 
+#if NEAR
     gs_cacheNear[threadIdx] = _InputNearCoCTexture[COORD_TEXTURE2D_X(min(dispatchThreadId, Size))].x;
+#endif
+    
+#if FAR    
     gs_cacheFar[threadIdx] = _InputFarCoCTexture[COORD_TEXTURE2D_X(min(dispatchThreadId, Size))].x;
+#endif
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -47,8 +52,13 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : S
     {
         if (threadIdx < s)
         {
+#if NEAR        
             gs_cacheNear[threadIdx] = max(gs_cacheNear[threadIdx], gs_cacheNear[threadIdx + s]);
+#endif            
+
+#if FAR            
             gs_cacheFar[threadIdx] = max(gs_cacheFar[threadIdx], gs_cacheFar[threadIdx + s]);
+#endif            
         }
 
         GroupMemoryBarrierWithGroupSync();

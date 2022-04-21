@@ -41,9 +41,10 @@ namespace UnityEditor.VFX
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();
-            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
 
-            ResyncSlots(true);
+            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+            if (!VFXGraph.explicitCompile)
+                ResyncSlots(true);
         }
 
         public sealed override string name { get { return m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Block"; } }

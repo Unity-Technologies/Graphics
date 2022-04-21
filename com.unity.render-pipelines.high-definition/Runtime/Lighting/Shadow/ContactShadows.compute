@@ -170,7 +170,7 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 
     uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
     // There might be a mismatch between the size of a tile and the group size of this shader.
-    uint2 tileCoord = groupId * (DEFERRED_SHADOW_TILE_SIZE / TILE_SIZE_FPTL);
+    uint2 tileCoord = (groupId * DEFERRED_SHADOW_TILE_SIZE) / (TILE_SIZE_FPTL);
 
 #ifdef ENABLE_MSAA
     float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;
@@ -200,9 +200,9 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
         // Do the contact shadow for the directional light
         if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
         {
-            if (_DirectionalShadowIndex >= 0)
+            for (uint i = 0; i < _DirectionalLightCount; ++i)
             {
-                DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+                DirectionalLightData light = _DirectionalLightDatas[i];
 
                 if (light.contactShadowMask != 0 && light.isRayTracedContactShadow == 0.0)
                 {
@@ -214,6 +214,7 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
                     // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
                     contactShadowMask |= light.contactShadowMask * occluded;
                 }
+
             }
         }
 

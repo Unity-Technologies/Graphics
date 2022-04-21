@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
-        /// Note: this function has the side effect of caching the last scale size.
+        /// Note: this function has the side effect of caching the last scale size, and the output is always smaller or equal then the input.
         /// </summary>
         /// <param name="size">The starting size of the render target that will be scaled by dynamic resolution.</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
@@ -396,25 +396,34 @@ namespace UnityEngine.Rendering
             }
 
             Vector2Int scaledSize = ApplyScalesOnSize(size);
+
             m_LastScaledSize = scaledSize;
             return scaledSize;
         }
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
+        /// This function uses the internal resolved scale from the dynamic resolution system.
         /// Note: this function is pure (has no side effects), this function does not cache the pre-scale size
         /// </summary>
         /// <param name="size">The size to apply the scaling</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
         public Vector2Int ApplyScalesOnSize(Vector2Int size)
         {
-            Vector2 resolvedScales = GetResolvedScale();
-            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * resolvedScales.x), Mathf.CeilToInt(size.y * resolvedScales.y));
+            return ApplyScalesOnSize(size, GetResolvedScale());
+        }
+
+        internal Vector2Int ApplyScalesOnSize(Vector2Int size, Vector2 scales)
+        {
+            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * scales.x), Mathf.CeilToInt(size.y * scales.y));
             if (m_ForceSoftwareFallback || type != DynamicResolutionType.Hardware)
             {
                 scaledSize.x += (1 & scaledSize.x);
                 scaledSize.y += (1 & scaledSize.y);
             }
+
+            scaledSize.x = Math.Min(scaledSize.x, size.x);
+            scaledSize.y = Math.Min(scaledSize.y, size.y);
 
             return scaledSize;
         }

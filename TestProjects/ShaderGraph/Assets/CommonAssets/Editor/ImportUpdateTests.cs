@@ -68,7 +68,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
             string dirName = Path.GetFileName(sourceDir);
 
             string targetDir = Application.dataPath + "/Testing/ImportTests/" + dirName;
-            DirectoryCopy(sourceDir, targetDir, true, true);
+            try
+            {
+                // pause asset database, until everything is copied
+                AssetDatabase.StartAssetEditing();
+                DirectoryCopy(sourceDir, targetDir, true, true);
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+            AssetDatabase.Refresh();
 
             foreach (var assetFullPath in Directory.GetFiles(targetDir, "*.shader*", SearchOption.TopDirectoryOnly))
             {

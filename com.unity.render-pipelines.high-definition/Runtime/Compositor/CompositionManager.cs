@@ -152,6 +152,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
+        int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
+
         static private CompositionManager s_CompositorInstance;
 
         // Built-in Color.black has an alpha of 1, so defien here a fully transparent black 
@@ -356,6 +358,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             //This is a work-around, to make edit and continue work when editing source code
             UnityEditor.AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
 #endif
+#if UNITY_2021_1_OR_NEWER
+            RenderPipelineManager.beginContextRendering += ResizeCallback;
+#else
+            RenderPipelineManager.beginFrameRendering += ResizeCallback;
+#endif
         }
 
         public void DeleteLayerRTs()
@@ -496,8 +503,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             SetupLayerPriorities();
         }
 
-        // Update is called once per frame
-        void Update()
+        // LateUpdate is called once per frame
+        void LateUpdate()
         {
             // TODO: move all validation calls to onValidate. Before doing it, this needs some extra testing to ensure nothing breaks
             if (enableOutput == false || ValidatePipeline() == false || ValidateAndFixRuntime() == false || RuntimeCheck() == false)
@@ -514,19 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_ShaderPropertiesAreDirty = false;
                 SetupCompositorLayers();//< required to allocate RT for the new layers
             }
-
-            // Detect runtime resolution change
-            foreach (var layer in m_InputLayers)
-            {
-                if (!layer.ValidateRTSize(m_OutputCamera.pixelWidth, m_OutputCamera.pixelHeight))
-                {
-                    DeleteLayerRTs();
-                    SetupCompositorLayers();
-                    break;
-                }
-            }
 #endif
-
             if (m_CompositionProfile)
             {
                 foreach (var layer in m_InputLayers)
@@ -562,6 +557,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
             CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
+#if UNITY_2021_1_OR_NEWER
+            RenderPipelineManager.beginContextRendering -= ResizeCallback;
+#else
+            RenderPipelineManager.beginFrameRendering -= ResizeCallback;
+#endif
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -753,6 +753,63 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
         }
 
+#if UNITY_2021_1_OR_NEWER
+        void ResizeCallback(ScriptableRenderContext cntx, List<Camera> cameras)
+#else
+        void ResizeCallback(ScriptableRenderContext cntx, Camera[] cameras)
+#endif
+        {
+            if (m_OutputCamera && enableOutput)
+            {
+                // Detect runtime resolution change
+                foreach (var layer in m_InputLayers)
+                {
+                    if (!layer.ValidateRTSize(m_OutputCamera.pixelWidth, m_OutputCamera.pixelHeight))
+                    {
+                        for (int i = m_InputLayers.Count - 1; i >= 0; --i)
+                        {
+                            if (m_InputLayers[i].camera)
+                                m_InputLayers[i].camera.targetTexture = null;
+
+                            m_InputLayers[i].DestroyRT();
+                        }
+                        SetupCompositorLayers();
+                        // After a resolution change, redraw the internal layer cameras.
+                        InternalRender(cntx);
+                        break;
+                    }
+                }
+            }
+        }
+
+        void InternalRender(ScriptableRenderContext cntx)
+        {
+            HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (enableOutput && renderPipeline != null)
+            {
+#if UNITY_2021_1_OR_NEWER
+                List<Camera> cameras = new List<Camera>(1);
+#else
+                Camera[] cameras = new Camera[1];
+#endif
+                foreach (var layer in m_InputLayers)
+                {
+                    if (layer.camera && layer.camera.enabled)
+                    {
+                        // Emit geometry manually for this camera (Unity will not do it for us because we call the internal render)
+                        ScriptableRenderContext.EmitGeometryForCamera(layer.camera);
+#if UNITY_2021_1_OR_NEWER
+                        cameras.Clear();
+                        cameras.Add(layer.camera);
+#else
+                        cameras[0] = layer.camera;
+#endif
+                        renderPipeline.InternalRender(cntx, cameras);
+                    }
+                }
+            }
+        }
+
         void CustomRender(ScriptableRenderContext context, HDCamera camera)
         {
             if (camera == null || camera.camera == null || m_Material == null || m_Shader == null)
@@ -802,12 +859,39 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (camera.camera.targetTexture)
             {
+                // When rendering to texture (or to camera bridge) we don't need to flip the image.
+                // If this matrix was used for the game view, then the image would appear flipped, hense the name of the variable.
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 cmd.Blit(null, camera.camera.targetTexture, m_Material, m_Material.FindPass("ForwardOnly"));
+
+                var recorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera.camera);
+                if (recorderCaptureActions != null)
+                {
+                    for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
+                    {
+                        recorderCaptureActions.Current(camera.camera.targetTexture, cmd);
+                    }
+                }
             }
             else
             {
+                var recorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera.camera);
+
+                if (recorderCaptureActions != null)
+                {
+                    m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
+                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    var format = m_InputLayers[0].GetRenderTarget().format;
+                    cmd.GetTemporaryRT(m_RecorderTempRT, camera.camera.pixelWidth, camera.camera.pixelHeight, 0, FilterMode.Point, format);
+                    cmd.Blit(null, m_RecorderTempRT, m_Material, m_Material.FindPass("ForwardOnly"));
+                    for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
+                    {
+                        recorderCaptureActions.Current(m_RecorderTempRT, cmd);
+                    }
+                }
+
+                // When we render directly to game view, we render the image flipped up-side-down, like other HDRP cameras
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));

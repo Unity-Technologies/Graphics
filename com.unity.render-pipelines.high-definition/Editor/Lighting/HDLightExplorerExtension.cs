@@ -239,7 +239,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ColorTemperatureMode, "m_UseColorTemperature", 150),        // 6: Color Temperature Mode
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ColorTemperature, "m_ColorTemperature", 120, (r, prop, dep) => // 7: Color Temperature
                 {
-                    using(new EditorGUI.DisabledScope(!prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue))
+                    // Sometimes during scene transition, the target object can be null, causing exceptions.
+                    using (new EditorGUI.DisabledScope(prop.serializedObject.targetObject == null || !prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue))
                     {
                         EditorGUI.PropertyField(r, prop, GUIContent.none);
                     }
@@ -528,6 +529,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(tLightData, "Changed shadow resolution override");
                         tShadowResolution.@override = sShadowResolution.@override;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 95, (r, prop, dep) =>         // 16: Affect Diffuse
@@ -546,6 +551,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects diffuse");
                         lightData.affectDiffuse = affectDiffuse;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                 {
@@ -580,6 +589,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects specular");
                         lightData.affectSpecular = affectSpecular;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                 {

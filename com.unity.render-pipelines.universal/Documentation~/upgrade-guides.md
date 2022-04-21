@@ -2,6 +2,8 @@
 
 This section contains information about upgrading from an older version of the Universal Render Pipeline (URP) to a more recent version, and about upgrading from the Lightweight Render Pipeline (LWRP) to URP.
 
+* [Upgrading to URP 10.7.x](upgrade-guide-10-7-x.md)
+* [Upgrading to URP 10.6.x](upgrade-guide-10-6-x.md)
 * [Upgrading to URP 10.5.x](upgrade-guide-10-5-x.md)
 * [Upgrading to URP 10.4.x](upgrade-guide-10-4-x.md)
 * [Upgrading to URP 10.3.x](upgrade-guide-10-3-x.md)

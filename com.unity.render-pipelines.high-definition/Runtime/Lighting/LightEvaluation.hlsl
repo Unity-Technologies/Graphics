@@ -12,7 +12,7 @@
 //  cookieIndex, the index of the cookie texture in the Texture2DArray
 //  L, the 4 local-space corners of the area light polygon transformed by the LTC M^-1 matrix
 //  F, the *normalized* vector irradiance
-float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
+float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F, float perceptualRoughness)
 {
     // L[0..3] : LL UL UR LR
 
@@ -78,9 +78,19 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
     float   cookieWidth = cookieScaleOffset.x * _CookieAtlasSize.x; // cookies and atlas are guaranteed to be POT
     float   cookieMipCount = round(log2(cookieWidth));
     float   mipLevel = 0.5 * log2(1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea)) + cookieMipCount;
-    mipLevel = clamp(mipLevel, 0, cookieMipCount);
+
+    // We want to prevent the texture from accessing to the lower mips when evaluating the specular lobe
+    // when operating on low roughness points. We progressively give access from mip 3 the rest of the mips between the range 0.0 -> 0.3
+    // in the perceptual roughness space
+    float mipTrimming = saturate((0.3 - perceptualRoughness) / 0.3);
+    mipLevel = clamp(mipLevel, 0, lerp(cookieMipCount, 3.0, mipTrimming));
 
     return SampleCookie2D(saturate(hitUV), cookieScaleOffset, mipLevel);
+}
+
+float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
+{
+    return SampleAreaLightCookie(cookieScaleOffset, L, F, 1.0f);
 }
 
 // This function transforms a rectangular area light according the the barn door inputs defined by the user.
@@ -180,7 +190,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     // Height fog attenuation.
     {
         // TODO: should probably unify height attenuation somehow...
-        float  cosZenithAngle = L.y;
+        float  cosZenithAngle = max(L.y, 0.001f);
         float  fragmentHeight = posInput.positionWS.y;
         float3 oDepth = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                                               _HeightFogExponents, cosZenithAngle, fragmentHeight);
@@ -259,19 +269,9 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         shadow = lightLoopContext.shadowValue;
 
     #ifdef SHADOWS_SHADOWMASK
-        // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
-        // certainly more efficient to do
-        // We reuse the transition from the cascade system to fade between shadow mask at max distance
-        uint  payloadOffset;
-        real  fade;
-        int cascadeCount;
-        int shadowSplitIndex = 0;
-
-        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, light.shadowIndex, posInput.positionWS, fade, cascadeCount);
-
-        // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
-        // if shadowSplitIndex is -1 it mean we are outside cascade and should return 1.0 to use shadowmask: saturate(-shadowSplitIndex) return 0 for >= 0 and 1 for -1
-        fade = ((shadowSplitIndex + 1) == cascadeCount) ? fade : saturate(-shadowSplitIndex);
+        float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
+        float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+        float fade = saturate(distanceCamToPixel2 * light.cascadesBorderFadeScaleBias.x + light.cascadesBorderFadeScaleBias.y);
 
         // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
         // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
@@ -620,8 +620,8 @@ void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
 {
     // Note: RGB is already premultiplied by A for SSR
     // TODO: check why it isn't consistent between SSR and RTR
-    float weight = _EnableRayTracedReflections ? 1.0 : ssrLighting.a;
-    ssrLighting.rgb *= ssrLighting.a;
+    float weight = _EnableRayTracedReflections ? ssrLighting.a : 1.0;
+    ssrLighting.rgb *= weight;
 }
 #endif
 

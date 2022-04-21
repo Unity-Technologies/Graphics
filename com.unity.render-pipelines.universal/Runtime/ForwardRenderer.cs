@@ -273,7 +273,11 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
+            bool isRunningHololens = false;
+#if ENABLE_VR && ENABLE_VR_MODULE
+            isRunningHololens = UniversalRenderPipeline.IsRunningHololens(cameraData);
+#endif
+            var createColorTexture = (rendererFeatures.Count != 0 && !isRunningHololens) && !isPreviewCamera;
             if (createColorTexture)
             {
                 m_ActiveCameraColorAttachment = m_CameraColorAttachment;
@@ -322,6 +326,10 @@ namespace UnityEngine.Rendering.Universal
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
 
+            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
+            if (cameraData.xr.enabled && requiresDepthTexture)
+                requiresDepthPrepass = true;
+
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
             // When deferred renderer is enabled, we must always create a depth texture and CANNOT use BuiltinRenderTextureType.CameraTarget. This is to get
             // around a bug where during gbuffer pass (MRT pass), the camera depth attachment is correctly bound, but during
@@ -368,6 +376,14 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment = m_CameraColorAttachment;
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
+
+            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
+            // If deferred rendering path was selected, it has already made a copy.
+            bool requiresDepthCopyPass = !requiresDepthPrepass
+                                         && renderingData.cameraData.requiresDepthTexture
+                                         && createDepthTexture
+                                         && this.actualRenderingMode != RenderingMode.Deferred;
+            bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
             // Assign camera targets (color and depth)
             {
@@ -421,7 +437,22 @@ namespace UnityEngine.Rendering.Universal
             if (this.actualRenderingMode == RenderingMode.Deferred)
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
             else
+            {
+                // Optimized store actions are very important on tile based GPUs and have a great impact on performance.
+                // if MSAA is enabled and any of the following passes need a copy of the color or depth target, make sure the MSAA'd surface is stored
+                // if following passes won't use it then just resolve (the Resolve action will still store the resolved surface, but discard the MSAA'd surface, which is very expensive to store).
+                RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
+                if (cameraTargetDescriptor.msaaSamples > 1)
+                    opaquePassColorStoreAction = copyColorPass ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Store;
+
+                // make sure we store the depth only if following passes need it.
+                RenderBufferStoreAction opaquePassDepthStoreAction = (copyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+
+                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
+                m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
+
                 EnqueuePass(m_RenderOpaqueForwardPass);
+            }
 
             Skybox cameraSkybox;
             cameraData.camera.TryGetComponent<Skybox>(out cameraSkybox);
@@ -429,12 +460,6 @@ namespace UnityEngine.Rendering.Universal
             if (camera.clearFlags == CameraClearFlags.Skybox && (RenderSettings.skybox != null || cameraSkybox?.material != null) && !isOverlayCamera)
                 EnqueuePass(m_DrawSkyboxPass);
 
-            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            // If deferred rendering path was selected, it has already made a copy.
-            bool requiresDepthCopyPass = !requiresDepthPrepass
-                                         && renderingData.cameraData.requiresDepthTexture
-                                         && createDepthTexture
-                                         && this.actualRenderingMode != RenderingMode.Deferred;
             if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
@@ -447,7 +472,7 @@ namespace UnityEngine.Rendering.Universal
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
 
-            if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
+            if (copyColorPass)
             {
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
@@ -455,6 +480,9 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
+
+            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
@@ -464,11 +492,21 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TransparentSettingsPass);
                 }
 
+                // if this is not lastCameraInTheStack we still need to Store, since the MSAA buffer might be needed by the Overlay cameras
+                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
+
+                // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
+                if (requiresDepthCopyPass && m_CopyDepthPass.renderPassEvent >= RenderPassEvent.AfterRenderingTransparents)
+                    transparentPassDepthStoreAction = RenderBufferStoreAction.Store;
+
+                m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
+                m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
+
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
-            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                                      renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
@@ -763,7 +801,10 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
+            {
+                isScaledRender = false;
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
+            }
 #endif
 
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;

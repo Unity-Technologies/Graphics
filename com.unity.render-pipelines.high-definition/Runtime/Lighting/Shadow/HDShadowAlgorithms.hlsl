@@ -138,7 +138,7 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
     /* sample the texture */
     // We need to do the check on min/max coordinates because if the shadow spot angle is smaller than the actual cone, then we could have artifacts due to the clamp sampler.
     float2 maxCoord = (sd.shadowMapSize.xy - 0.5f) * texelSize + sd.atlasOffset;
-    float2 minCoord = sd.atlasOffset;
+    float2 minCoord = sd.atlasOffset + 0.5f * texelSize;
     return any(posTC.xy > maxCoord || posTC.xy < minCoord) ? 1.0f : PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS);
 }
 
@@ -237,13 +237,16 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
 
+    float3 basePositionWS = positionWS;
+
     if (shadowSplitIndex >= 0.0)
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-        positionWS = positionWS + sd.cacheTranslationDelta.xyz;
+        positionWS = basePositionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
+		float worldTexelSize = sd.worldTexelSize;
         float3 orig_pos = positionWS;
         float3 normalBias = EvalShadow_NormalBias(sd.worldTexelSize, sd.normalBias, normalWS);
         positionWS += normalBias;
@@ -262,8 +265,14 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
             if (alpha > 0.0)
             {
                 LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+				
+                // We need to modify the bias as the world texel size changes between splits and an update is needed.
+                float biasModifier = (sd.worldTexelSize / worldTexelSize);
+                normalBias *= biasModifier;
+				
+				float3 evaluationPosWS = basePositionWS + sd.cacheTranslationDelta.xyz + normalBias;
                 float3 posNDC;
-                posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, posNDC, false);
+                posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, evaluationPosWS, posNDC, false);
                 /* sample the texture */
                 UNITY_BRANCH
                 if (all(abs(posNDC.xy) <= (1.0 - sd.shadowMapSize.zw * 0.5)))

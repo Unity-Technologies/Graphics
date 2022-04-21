@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Linq;
 using UnityEditor.Graphing;
@@ -23,6 +24,18 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
+        public override float value
+        {
+            get
+            {
+                if (floatType == FloatType.Integer)
+                {
+                    return (int)base.value;
+                }
+                return base.value;
+            }
+            set => base.value = value;
+        }
         string enumTagString
         {
             get
@@ -45,6 +58,15 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            if (decl == HLSLDeclaration.HybridPerInstance)
+                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()})";
+            else
+                return referenceName;
+        }
+
         internal override string GetPropertyBlockString()
         {
             string valueString = NodeUtils.FloatToShaderValueShaderLabSafe(value);
@@ -52,9 +74,9 @@ namespace UnityEditor.ShaderGraph.Internal
             switch(floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {valueString}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.y)})) = {valueString}";
                 case FloatType.Integer:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {valueString}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {((int)value).ToString(CultureInfo.InvariantCulture)}";
                 case FloatType.Enum:
                     return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
                 default:

@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_MessageManager = messageManager;
             previewManager = new PreviewManager(graph, messageManager);
-            previewManager.RenderPreviews(false);
+            previewManager.RenderPreviews(m_EditorWindow, false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
 
@@ -649,7 +649,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(m_EditorWindow);
             m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
             if (wasUndoRedoPerformed)
                 m_InspectorView.Update(InspectorUpdateSource.GraphChanges);
@@ -658,40 +658,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GroupHashSet.Clear();
 
-            foreach (var node in m_Graph.removedNodes)
-            {
-                node.UnregisterCallback(OnNodeChanged);
-                var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node == node);
-                if (nodeView != null)
-                {
-                    nodeView.Dispose();
-
-                    if(node is BlockNode blockNode)
-                    {
-                        var context = m_GraphView.GetContext(blockNode.contextData);
-                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
-                        if (context.Contains(nodeView as Node))
-                        {
-                            context.RemoveElement(nodeView as Node);
-                        }
-                        else
-                        {
-                            m_GraphView.RemoveElement((Node)nodeView);
-                        }
-                    }
-                    else
-                    {
-                        m_GraphView.RemoveElement((Node)nodeView);
-                    }
-
-                    if (node.group != null)
-                    {
-                        var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
-                        m_GroupHashSet.Add(shaderGroup);
-                    }
-                }
-            }
+            HandleRemovedNodes();
 
             foreach (var noteData in m_Graph.removedNotes)
             {
@@ -838,9 +805,57 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // If we auto-remove blocks and something has happened to trigger a check (don't re-check constantly)
+            if (m_Graph.checkAutoAddRemoveBlocks && ShaderGraphPreferences.autoAddRemoveBlocks)
+            {
+                var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
+                m_Graph.AddRemoveBlocksFromActiveList(activeBlocks);
+                m_Graph.checkAutoAddRemoveBlocks = false;
+                // We have to re-check any nodes views that need to be removed since we already handled this above. After leaving this function the states on m_Graph will be cleared so we'll lose track of removed blocks.
+                HandleRemovedNodes();
+            }
+
             UpdateBadges();
 
             RegisterGraphViewCallbacks();
+        }
+
+        void HandleRemovedNodes()
+        {
+            foreach (var node in m_Graph.removedNodes)
+            {
+                node.UnregisterCallback(OnNodeChanged);
+                var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node == node);
+                if (nodeView != null)
+                {
+                    nodeView.Dispose();
+
+                    if (node is BlockNode blockNode)
+                    {
+                        var context = m_GraphView.GetContext(blockNode.contextData);
+                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
+                        if (context.Contains(nodeView as Node))
+                        {
+                            context.RemoveElement(nodeView as Node);
+                        }
+                        else
+                        {
+                            m_GraphView.RemoveElement((Node)nodeView);
+                        }
+                    }
+                    else
+                    {
+                        m_GraphView.RemoveElement((Node)nodeView);
+                    }
+
+                    if (node.group != null)
+                    {
+                        var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
+                        m_GroupHashSet.Add(shaderGroup);
+                    }
+                }
+            }
         }
 
         void UpdateBadges()

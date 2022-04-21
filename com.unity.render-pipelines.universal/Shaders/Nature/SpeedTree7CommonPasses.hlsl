@@ -238,7 +238,7 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
     #endif
 
     float3 normalWS = input.normalWS.xyz;
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+    return float4(PackNormalOctRectEncode(normalize(normalWS)), 0.0, 0.0);
 }
 
 #endif

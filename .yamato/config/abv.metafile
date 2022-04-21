@@ -1,0 +1,76 @@
+project:
+  name: ABV
+
+jobs:
+  - name: ABV (all PR jobs)
+    job_id: all_project_ci
+    dependencies:
+      - .yamato/all-hdrp.yml#PR_HDRP_<TRACK>
+      - .yamato/all-vfx.yml#PR_VFX_<TRACK>
+      - .yamato/all-urp.yml#PR_URP_<TRACK>
+      - .yamato/all-shadergraph.yml#PR_ShaderGraph_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
+    triggers:
+        expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+
+  - name: Nightly
+    job_id: all_project_ci_nightly
+    dependencies:
+      - .yamato/all-hdrp.yml#Nightly_HDRP_<TRACK>
+      - .yamato/all-vfx.yml#Nightly_VFX_<TRACK>
+      - .yamato/all-urp.yml#Nightly_URP_<TRACK>
+      - .yamato/all-shadergraph.yml#Nightly_ShaderGraph_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
+    triggers:
+        recurring:
+          -  branch: 10.x.x/release
+             frequency: 1 * * ?
+
+  - name: General Checks
+    triggers:
+        expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    dependencies:
+      - .yamato/_projectcontext.yml#all_package_ci_project_<TRACK>
+      - .yamato/all-smoke_test.yml#Smoke_Test_<TRACK>
+
+  - name: Trunk verification
+    dependencies:
+      - project: Universal
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode
+            - editmode
+      - project: ShaderGraph
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode
+            - editmode
+      - project: HDRP
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode
+            - editmode
+      - project: VFX_HDRP
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode
+            - editmode
+      - project: VFX_URP
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode

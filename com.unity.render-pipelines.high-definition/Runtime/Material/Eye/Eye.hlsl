@@ -322,7 +322,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
-    preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.diffuseNormalWS, preLightData.NdotV);
+    preLightData.orthoBasisViewDiffuseNormal = GetOrthoBasisViewNormal(V, bsdfData.diffuseNormalWS, dot(V, bsdfData.diffuseNormalWS));
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
 
     return preLightData;
@@ -657,7 +657,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             {
                 // Compute the cookie data for the specular term
                 float3 formFactorS = PolygonFormFactor(LS);
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS, bsdfData.perceptualRoughness);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF

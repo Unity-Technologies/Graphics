@@ -84,6 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 volumetricHistoryIsValid = false;
 
         internal int                volumetricValidFrames = 0;
+        internal int                colorPyramidHistoryValidFrames = 0;
 
         /// <summary>Width actually used for rendering after dynamic resolution and XR is applied.</summary>
         public int                  actualWidth { get; private set; }
@@ -135,6 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            colorPyramidHistoryValidFrames = 0;
+            dofHistoryIsValid = false;
         }
 
         /// <summary>
@@ -343,6 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
+        internal bool didResetPostProcessingHistoryInLastFrame = false;
 
         internal bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -522,10 +526,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHistoryColorPyramidRequired) // Superset of case above
                     numColorPyramidBuffersRequired = 2;
 
-                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                bool forceReallocPyramid = false;
+                int colorBufferID = (int)HDCameraFrameHistoryType.ColorBufferMipChain;
+                int numColorPyramidBuffersAllocated = m_HistoryRTSystem.GetNumFramesAllocated(colorBufferID);
 
-                if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
-                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired))
+                // Check if we have any AOV requests that require history buffer allocations (the actual allocation happens later in this function)
+                foreach (var aovRequest in aovRequests)
+                {
+                    var aovHistory = GetHistoryRTHandleSystem(aovRequest);
+                    if (aovHistory.GetNumFramesAllocated(colorBufferID) != numColorPyramidBuffersRequired)
+                    {
+                        forceReallocPyramid = true;
+                        break;
+                    }
+                }
+
+                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                if ((numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
+                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired) || forceReallocPyramid)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
@@ -560,7 +578,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Mark as init.
-                    m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
                     m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
                 }
             }
@@ -775,6 +792,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale  = exposureMultiplierForProbes;
 
+            // IMPORTANT NOTE: This checks if we have Movec and not Transparent Motion Vectors because in that case we need to write camera motion vectors
+            // for transparent objects, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            // If TransparentsWriteMotionVector the camera motion vectors are baked into the per object motion vectors.
             cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
                                                       !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
@@ -975,7 +995,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
             }
         }
 
@@ -996,7 +1016,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDAdditionalCameraData  m_AdditionalCameraData = null; // Init in Update
         BufferedRTHandleSystem  m_HistoryRTSystem = new BufferedRTHandleSystem();
-        int                     m_NumColorPyramidBuffersAllocated = 0;
         int                     m_NumVolumetricBuffersAllocated   = 0;
         float                   m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
         float                   m_ScreenSpaceAccumulationResolutionScale = 0.0f; // Use another scale if AO & SSR don't have the same resolution
@@ -1017,6 +1036,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock   m_RecorderPropertyBlock = new MaterialPropertyBlock();
         Rect?                   m_OverridePixelRect = null;
+		
+		internal bool hasCaptureActions => m_RecorderCaptureActions != null;
 
         void SetupCurrentMaterialQuality(CommandBuffer cmd)
         {
@@ -1348,7 +1369,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
+        internal Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
             if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
@@ -1396,6 +1417,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 planes.top += planeJitter.y;
                 planes.bottom += planeJitter.y;
 
+                // Reconstruct the far plane for the jittered matrix.
+                // For extremely high far clip planes, the decomposed projection zFar evaluates to infinity.
+                if (float.IsInfinity(planes.zFar))
+                    planes.zFar = frustum.planes[5].distance;
+
                 proj = Matrix4x4.Frustum(planes);
             }
 
@@ -1421,14 +1447,24 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            if (xr.enabled)
-            {
-                var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
-                transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
-                transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
-                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
+            var useGenericMatrix = xr.enabled;
 
-                return transform.transpose;
+            // Asymmetry is also possible from a user-provided projection, so we must check for it too.
+            // Note however, that in case of physical camera, the lens shift term is the only source of
+            // asymmetry, and this is accounted for in the optimized path below. Additionally, Unity C++ will
+            // automatically disable physical camera when the projection is overridden by user.
+            useGenericMatrix |= HDUtils.IsProjectionMatrixAsymmetric(viewConstants.projMatrix) && !camera.usePhysicalProperties;
+
+            if (useGenericMatrix)
+            {
+                var viewSpaceRasterTransform = new Matrix4x4(
+                    new Vector4(2.0f * resolution.z, 0.0f, 0.0f, -1.0f),
+                    new Vector4(0.0f, -2.0f * resolution.w, 0.0f, 1.0f),
+                    new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                var transformT = viewConstants.invViewProjMatrix.transpose * Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f));
+                return viewSpaceRasterTransform * transformT;
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;

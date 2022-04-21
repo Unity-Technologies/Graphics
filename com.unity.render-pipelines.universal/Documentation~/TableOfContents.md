@@ -1,5 +1,6 @@
 * [Universal Render Pipeline](index.md)
 * [Requirements](requirements)
+  * [Building for Closed platform](Building-For-Consoles.md)
 * [What's new in URP 10](whats-new/urp-whats-new.md)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
@@ -14,6 +15,8 @@
     * [Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md)
     * [Ambient Occlusion](post-processing-ssao.md)
 * [Upgrade guides](upgrade-guides.md)
+  * [Upgrading to URP 10.7.x](upgrade-guide-10-7-x.md)
+  * [Upgrading to URP 10.6.x](upgrade-guide-10-6-x.md)
   * [Upgrading to URP 10.5.x](upgrade-guide-10-5-x.md)
   * [Upgrading to URP 10.4.x](upgrade-guide-10-4-x.md)
   * [Upgrading to URP 10.3.x](upgrade-guide-10-3-x.md)
@@ -108,8 +111,6 @@
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
-
-* [Building for consoles](Building-For-Consoles.md)
 
 * [Frequently asked questions (FAQ)](faq.md)
 * [Known issues](known-issues.md)

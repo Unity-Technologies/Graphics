@@ -10,6 +10,8 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
         #pragma target 4.5
 
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
@@ -57,6 +59,14 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
             // Convert from Clip space (-1..1) to NDC 0..1 space
             float2 motionVector = (positionCS - previousPositionCS);
+
+#ifdef KILL_MICRO_MOVEMENT
+            motionVector.x = abs(motionVector.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVector.x;
+            motionVector.y = abs(motionVector.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVector.y;
+#endif
+
+            motionVector = clamp(motionVector, -1.0f + MICRO_MOVEMENT_THRESHOLD, 1.0f - MICRO_MOVEMENT_THRESHOLD);
+
 #if UNITY_UV_STARTS_AT_TOP
             motionVector.y = -motionVector.y;
 #endif

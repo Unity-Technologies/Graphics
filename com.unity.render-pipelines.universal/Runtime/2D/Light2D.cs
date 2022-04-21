@@ -144,6 +144,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return -1;
         }
 
+        internal int GetTopMostLitLayerIndex()
+        {
+            var largestIndex = -1;
+            var largestLayer = 0;
+
+            var layers = Light2DManager.GetCachedSortingLayer();
+            for (var i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+            {
+                for (var layer = layers.Length - 1; layer >= largestLayer; --layer)
+                {
+                    if (layers[layer].id == m_ApplyToSortingLayers[i])
+                    {
+                        largestIndex = layers[layer].value;
+                        largestLayer = layer;
+                    }
+                }
+            }
+
+            return largestIndex;
+        }
+
         internal void UpdateMesh()
         {
             switch (m_LightType)

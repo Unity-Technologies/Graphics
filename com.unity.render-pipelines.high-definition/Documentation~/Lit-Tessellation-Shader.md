@@ -89,8 +89,12 @@ Unity exposes this section if you select **Transparent** from the **Surface Type
 
 ### Advanced options
 
-| **Property**                 | **Description**                                              |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Enable GPU instancing**    | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
-| **Specular Occlusion Mode**  | Use the drop-down to select the mode that HDRP uses to calculate specular occlusion. <br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From Ambient Occlusion**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From Bent Normal**: Calculates specular occlusion from the bent normal map. |
-| **Add Precomputed Velocity** | Enable the checkbox to use precomputed velocity information stored in an Alembic file. |
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)]
+[!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
+[!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+</table>

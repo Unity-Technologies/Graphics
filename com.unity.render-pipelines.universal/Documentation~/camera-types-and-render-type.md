@@ -63,8 +63,6 @@ The Base Camera in a Camera Stack determines most of the properties of the Camer
 * Clipping plans
 * Renderer
 * Clear Depth
-* Opaque Texture
-* Depth Texture
 * Render Shadows
 * Culling Mask
 * Occlusion Culling

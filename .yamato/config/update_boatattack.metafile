@@ -7,8 +7,12 @@ project:
 
 reuse_blocks:
   setup_with_utr:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
+      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
+        retries: 2
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]:
+      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+        retries: 2
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %BA_UPDATE_PROJECT_REVISION%
@@ -27,8 +31,7 @@ test_platforms:
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -46,16 +49,21 @@ platforms:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-        - playmode
-nightly:
-  dependencies:
-    - project: URPUpdate_BoatAttack
-      pr: true
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

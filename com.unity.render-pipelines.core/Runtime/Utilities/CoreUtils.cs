@@ -725,7 +725,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -925,7 +925,7 @@ namespace UnityEngine.Rendering
             if (obj != null)
             {
 #if UNITY_EDITOR
-                if (Application.isPlaying)
+                if (Application.isPlaying && !UnityEditor.EditorApplication.isPaused)
                     UnityObject.Destroy(obj);
                 else
                     UnityObject.DestroyImmediate(obj);
