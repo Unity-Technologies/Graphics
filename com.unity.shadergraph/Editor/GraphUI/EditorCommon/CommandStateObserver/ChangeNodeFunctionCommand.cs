@@ -1,5 +1,4 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
