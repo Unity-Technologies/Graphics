@@ -68,72 +68,39 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        private static string SaveAsImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAssetModel> SaveAction, string extension)
+        {
+            // If no currently opened graph, early out
+            if (GraphTool.ToolState.AssetModel == null)
+                return string.Empty;
+
+            if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel assetModel)
+            {
+                // Get folder of current shader graph asset
+                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                path = path.Remove(path.LastIndexOf('/'));
+
+                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, extension);
+
+                // If User cancelled operation or provided an invalid path
+                if (string.IsNullOrEmpty(destinationPath))
+                    return string.Empty;
+
+                SaveAction(destinationPath, assetModel);
+
+                // Refresh asset database so newly saved asset shows up
+                AssetDatabase.Refresh();
+
+                return destinationPath;
+            }
+
+            return string.Empty;
+        }
+
         public static void SaveGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderGraphAsset.HandleSave);
         public static void SaveSubGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderSubGraphAsset.HandleSave);
 
-        public static string SaveAsGraphImplementation(BaseGraphTool GraphTool)
-        {
-            // If no currently opened graph, early out
-            if (GraphTool.ToolState.AssetModel == null)
-                return String.Empty;
-
-            if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel assetModel)
-            {
-                // Get folder of current shader graph asset
-                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
-                path = path.Remove(path.LastIndexOf('/'));
-
-                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2");
-
-                // If User cancelled operation or provided an invalid path
-                if (destinationPath == String.Empty)
-                    return String.Empty;
-
-                ShaderGraphAsset.HandleSave(destinationPath, assetModel);
-
-                // Refresh asset database so newly saved asset shows up
-                AssetDatabase.Refresh();
-
-                return destinationPath;
-            }
-
-            return String.Empty;
-        }
-
-        public static string SaveAsSubgraphImplementation(BaseGraphTool GraphTool)
-        {
-            // If no currently opened graph, early out
-            if (GraphTool.ToolState.AssetModel == null)
-                return String.Empty;
-
-            if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel assetModel)
-            {
-                if (!assetModel.IsSubGraph)
-                {
-                    Debug.LogError("Attempted to save subgraph as graph"); // ?
-                    return string.Empty;
-                }
-
-                // Get folder of current shader graph asset
-                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
-                path = path.Remove(path.LastIndexOf('/'));
-
-                // TODO: There's a constant for the extension somewhere
-                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2subgraph");
-
-                // If User cancelled operation or provided an invalid path
-                if (destinationPath == String.Empty)
-                    return String.Empty;
-
-                ShaderSubGraphAsset.HandleSave(destinationPath, assetModel);
-
-                // Refresh asset database so newly saved asset shows up
-                AssetDatabase.Refresh();
-
-                return destinationPath;
-            }
-
-            return String.Empty;
-        }
+        public static string SaveAsGraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.GraphExtension);
+        public static string SaveAsSubgraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.SubGraphExtension);
     }
 }

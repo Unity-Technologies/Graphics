@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Text;
-using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 
@@ -14,7 +13,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public ShaderGraphModel ShaderGraphModel => GraphModel as ShaderGraphModel;
         public GraphDelta.GraphHandler GraphHandler { get; set; }
 
-        // TODO: maybe subclass?
         public bool IsSubGraph { get; private set; }
 
         public void Init(GraphDelta.GraphHandler graph = null, bool isSubGraph = false)
@@ -56,6 +54,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this));
         }
 
-        public override bool IsContainerGraph() => !IsSubGraph;
+        public override bool CanBeSubgraph() => IsSubGraph;
     }
 }
