@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -146,6 +147,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void SetSearcherPreviewRegistryKey(RegistryKey key)
         {
             m_PreviewRegistryKey = key;
+        }
+
+        public void ChangeNodeFunction(string newFunctionName)
+        {
+            NodeHandler nodeHandler = graphHandler.GetNode(graphDataName);
+            nodeHandler.SetMetadata(
+                NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME,
+                newFunctionName);
+            graphHandler.ReconcretizeNode(graphDataName, registry);
+            DefineNode();
         }
 
         public void OnPreviewTextureUpdated(Texture newTexture)

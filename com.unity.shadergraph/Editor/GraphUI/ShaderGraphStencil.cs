@@ -92,7 +92,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
                     var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
-
                     if (getNodeUIDescriptor != null)
                     {
                         NodeUIInfo[key] = (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null);

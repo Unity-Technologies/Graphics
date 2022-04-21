@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
     /// </summary>
     internal class NodeDescriptorNodeBuilder : INodeDefinitionBuilder
     {
-        private static readonly string SELECTED_FUNCTION_FIELD_NAME = "selected-function-name";
+        public static readonly string SELECTED_FUNCTION_FIELD_NAME = "selected-function-name";
 
         private readonly NodeDescriptor m_nodeDescriptor;
         private readonly FunctionDescriptor? m_defaultFunction;
@@ -104,8 +104,17 @@ namespace UnityEditor.ShaderGraph.Defs
             ShaderContainer container,
             Registry registry)
         {
-            var selectedName = node.GetField<string>(SELECTED_FUNCTION_FIELD_NAME).GetData();
-            FunctionDescriptor selectedFunction = m_nameToFunction[selectedName];
+            FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
+
+            // check node metadata for a selected function name
+            if (node.HasMetadata(SELECTED_FUNCTION_FIELD_NAME))
+            {
+                string functionName = node.GetMetadata<string>(SELECTED_FUNCTION_FIELD_NAME);
+                if (m_nameToFunction.ContainsKey(functionName))
+                {
+                    selectedFunction = m_nameToFunction[functionName];
+                }
+            }
 
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, selectedFunction.Name);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -23,11 +24,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "Function2",
-                    "Local = In + Static; Out = Local;",
-                    new ParameterDescriptor("In", TYPE.Int, GraphType.Usage.In),
-                    new ParameterDescriptor("Static", TYPE.Int, GraphType.Usage.Static),
-                    new ParameterDescriptor("Local", TYPE.Int, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Int, GraphType.Usage.Out)
+                    "B = A;",
+                    new ParameterDescriptor("A", TYPE.Int, GraphType.Usage.In),
+                    new ParameterDescriptor("B", TYPE.Int, GraphType.Usage.Out)
                 )
             }
         );
@@ -38,7 +37,13 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: String.Empty,
             categories: new string [1] { "Test" },
             synonyms: Array.Empty<string>(),
-            hasPreview: true
+            displayName: "Test MultiFunction Node",
+            hasPreview: false,
+            selectableFunctions: new ()
+            {
+                { "Function1", "In Out Static" },
+                { "Function2", "A B" }
+            }
         );
     }
 
