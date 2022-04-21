@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Defs;
 
@@ -29,6 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 new string[] { },
                 "DEFAULT_DISPLAY_NAME",
                 true,
+                new Dictionary<string, string> { },
                 new ParameterUIDescriptor[] {}
                 );
         }

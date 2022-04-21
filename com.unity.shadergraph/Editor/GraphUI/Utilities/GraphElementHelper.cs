@@ -17,23 +17,32 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        internal static void LoadTemplateAndStylesheet(VisualElement container, string name, string rootClassName, IEnumerable<string> additionalStylesheets = null)
+        internal static void LoadTemplateAndStylesheet(
+            VisualElement container,
+            string name,
+            string rootClassName,
+            IEnumerable<string> additionalStylesheets = null)
         {
-            if (name != null && container != null)
+            if (name == null)
             {
-                var tpl = LoadUXML(name + ".uxml");
-                tpl.CloneTree(container);
-
-                if (additionalStylesheets != null)
-                {
-                    foreach (var additionalStylesheet in additionalStylesheets)
-                    {
-                        container.AddStylesheet(additionalStylesheet + ".uss");
-                    }
-                }
-
-                container.AddStylesheet(name + ".uss");
+                Debug.LogWarning("Template not loaded because name is null.");
+                return;
             }
+            if (container == null)
+            {
+                Debug.LogWarning("Template not loaded because container is null.");
+                return;
+            }
+            var tpl = LoadUXML(name + ".uxml");
+            tpl.CloneTree(container);
+            if (additionalStylesheets != null)
+            {
+                foreach (var additionalStylesheet in additionalStylesheets)
+                {
+                    container.AddStylesheet(additionalStylesheet + ".uss");
+                }
+            }
+            container.AddStylesheet(name + ".uss");
         }
 
         static string StylesheetPath = AssetPath + "GraphElements/Stylesheets/";
@@ -72,7 +81,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 Debug.Log("Failed to load template " + TemplatePath + uxmlName);
             }
-
             return tpl;
         }
     }
