@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
    static class GraphElementHelper
     {
-        internal const string AssetPath = "Packages/com.unity.shadergraph/Editor/GraphUI/";
+        internal const string AssetPath = "Packages/com.unity.sg2/Editor/GraphUI/";
 
         internal static void LoadTemplate(VisualElement container, string name)
         {
