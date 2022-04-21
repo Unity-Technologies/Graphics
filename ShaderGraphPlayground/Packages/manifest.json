@@ -8,6 +8,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../com.unity.render-pipelines.high-definition-config",	
     "com.unity.render-pipelines.universal": "file:../../com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "file:../../com.unity.shadergraph",
+    "com.unity.sg2": "file:../../com.unity.sg2",
     "com.unity.visualeffectgraph": "file:../../com.unity.visualeffectgraph",		
     "com.unity.test-framework": "1.1.29",
     "com.unity.test-framework.build": "0.0.1-preview.3",
