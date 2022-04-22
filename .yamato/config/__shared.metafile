@@ -554,29 +554,21 @@ platforms:
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
-    image: package-ci/ubuntu:stable
+    image: package-ci/ubuntu:v2.0.0-947723
     flavor: b1.large
+  package_ci_ubuntu_xlarge:
+    type: Unity::VM
+    image: package-ci/ubuntu:v2.0.0-947723
+    flavor: b1.xlarge
   package_ci_ubuntu_small:
     type: Unity::VM
-    image: package-ci/ubuntu:stable
-    flavor: b1.small
-  package_ci_ubuntu_small_v124:
-    type: Unity::VM
-    image: package-ci/ubuntu:v1.2.4-701242
+    image: package-ci/ubuntu:v2.0.0-947723
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v2.2.1-1064078
     flavor: b1.large
   package_ci_mac:
     type: Unity::VM::osx
-    image: package-ci/mac:stable
+    image: package-ci/mac:v1.18.4-test.1-1062904
     flavor: m1.mac
-  sdet_win_large:
-    type: Unity::VM
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
-  sdet_win_large_gpu:
-    type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large

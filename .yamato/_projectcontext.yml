@@ -11,7 +11,7 @@ pack_all_project:
     name: Pack all [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -24,7 +24,7 @@ publish_core_project:
     name: Publish Core [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -41,7 +41,7 @@ publish_core_project_dry:
     name: Publish Core [project context] [dry run]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -58,7 +58,7 @@ publish_shadergraph_project:
     name: Publish ShaderGraph [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -75,7 +75,7 @@ publish_shadergraph_project_dry:
     name: Publish ShaderGraph [project context] [dry run]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -92,7 +92,7 @@ publish_hdrp_project:
     name: Publish HDRP [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -109,7 +109,7 @@ publish_hdrp_project_dry:
     name: Publish HDRP [project context] [dry run]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -126,7 +126,7 @@ publish_universal_project:
     name: Publish Universal [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -143,7 +143,7 @@ publish_universal_project_dry:
     name: Publish Universal [project context] [dry run]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -160,7 +160,7 @@ publish_vfx_project:
     name: Publish VFX [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -177,7 +177,7 @@ publish_vfx_project_dry:
     name: Publish VFX [project context] [dry run]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -194,7 +194,7 @@ publish_config_project:
     name: Publish Config [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -211,7 +211,7 @@ publish_config_project_dry:
     name: Publish Config [project context] [dry run]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
@@ -344,7 +344,7 @@ all_package_ci_project_2021.3:
     name: Pack and test all packages - 2021.3 [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_Win_2021.3
@@ -359,7 +359,7 @@ all_package_ci_project_CUSTOM-REVISION:
     name: Pack and test all packages - CUSTOM-REVISION [project context]
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_Win_CUSTOM-REVISION
@@ -383,7 +383,7 @@ publish_all_project_tag:
     name: Publish all packages [project context][manual][tag]
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#publish_core_project
