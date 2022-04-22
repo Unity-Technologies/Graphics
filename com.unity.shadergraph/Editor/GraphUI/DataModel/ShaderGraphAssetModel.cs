@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GraphModel.AssetModel = this;
 
             // We got deserialized unexpectedly, which means we'll need to find our graphHandler...
-            if(GraphHandler == null)
+            if (GraphHandler == null)
             {
                 try // to get the AssetHelper that was imported with the asset
                 {
@@ -46,10 +46,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                     catch
                     {
-                        GraphHandler = ShaderGraphAsset.CreateBlankGraphHandler();
+                        GraphHandler = IsSubGraph ? ShaderGraphAsset.CreateBlankGraphHandler() : ShaderSubGraphAsset.CreateBlankSubGraphHandler();
                     }
                 }
             }
+
             base.OnEnable();
             Name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this));
         }

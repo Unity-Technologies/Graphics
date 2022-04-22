@@ -102,7 +102,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (option == 0) // save
                     {
-                        GraphAssetUtils.SaveGraphImplementation(GraphTool);
+                        if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel {IsSubGraph: true})
+                        {
+                            GraphAssetUtils.SaveSubGraphImplementation(GraphTool);
+                        }
+                        else
+                        {
+                            GraphAssetUtils.SaveGraphImplementation(GraphTool);
+                        }
+
                         return true;
                     }
                     else if (option == 1) // cancel (or escape/close dialog)

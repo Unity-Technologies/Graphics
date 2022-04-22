@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
         public string GraphJSON;
         public string ViewModelJSON;
 
-        private static GraphHandler CreateBlankSubGraphHandler()
+        public static GraphHandler CreateBlankSubGraphHandler()
         {
             var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
             var graph = new GraphHandler(reg);
