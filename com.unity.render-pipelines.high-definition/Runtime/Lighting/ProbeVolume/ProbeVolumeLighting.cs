@@ -1047,6 +1047,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool infiniteBounces;
             public int propagationQuality;
             public int maxSimulationsPerFrameOverride;
+            public ProbeVolumeDynamicGIMixedLightMode mixedLightMode;
         }
 
         class ProbeVolumeDynamicGIPassData
@@ -1081,6 +1082,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.infiniteBounces = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGIInfiniteBounces);
                 data.propagationQuality = hdCamera.frameSettings.probeVolumeDynamicGIPropagationQuality;
                 data.maxSimulationsPerFrameOverride = hdCamera.frameSettings.probeVolumeDynamicGIMaxSimulationsPerFrame;
+                data.mixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
 
                 data.mode = ProbeVolumeDynamicGIMode.Dispatch;
                 m_WasProbeVolumeDynamicGIEnabled = true;
@@ -1126,7 +1128,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ProbeVolumeHandle volume = data.volumes[simulationRequest.probeVolumeIndex];
                         ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings,
                             in data.globalCB, probeVolumeAtlas, data.infiniteBounces,
-                            (ProbeVolumeDynamicGI.PropagationQuality)data.propagationQuality, data.ambientProbe);
+                            (ProbeVolumeDynamicGI.PropagationQuality)data.propagationQuality, data.ambientProbe,
+                            data.mixedLightMode);
                     }
                 }
                 else if (data.mode == ProbeVolumeDynamicGIMode.Clear)

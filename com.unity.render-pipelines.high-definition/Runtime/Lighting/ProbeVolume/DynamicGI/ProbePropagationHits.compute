@@ -32,6 +32,7 @@ float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
 float _IndirectScale;
 float _MaxAlbedo;
 float _BakedEmissionMultiplier;
+float _MixedLightingMultiplier;
 float _RayBias;
 float _InfiniteBounce;
 float _Sharpness;
@@ -213,6 +214,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         lighting += EvaluateDirectLightingAtHit(hit);
 
         lighting += UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
+        lighting += UnpackEmission(neighborData.mixedLighting) * _MixedLightingMultiplier;
 
         _HitRadianceCacheAxis[hitAxisIndex] = lighting;
     }

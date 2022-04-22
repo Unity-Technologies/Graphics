@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public AreaLightShape areaLightShape;
         public LightLayerEnum lightLayer;
         public bool affectDynamicGI;
+        public bool mixedDynamicGI;
         public float fadeDistance;
         public float distance;
         public float angularDiameter;

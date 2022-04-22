@@ -88,6 +88,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     hdLightData.UpdateRenderEntity();
                 }
             }
+            else
+            {
+                // Lightmapping mode changes don't trigger GUI change checks so we have to force this.
+                foreach (var hdLightData in m_AdditionalLightDatas)
+                    hdLightData.UpdateDynamicGIMixedMode();
+            }
 
             if (m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents)
                 UpdateAreaLightEmissiveMeshComponents();
