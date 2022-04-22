@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    public interface ISliderScale
+    interface ISliderScale
     {
         float ToLinear(float scaledValue);
         float ToScaled(float linearValue);
