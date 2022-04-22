@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ChangePreviewExpandedCommand : ModelCommand<GraphDataNodeModel>
+    public class ChangePreviewExpandedCommand : ModelCommand<IGraphElementModel>
     {
         bool m_IsPreviewExpanded;
-        public ChangePreviewExpandedCommand(bool isPreviewExpanded, IReadOnlyList<GraphDataNodeModel> models)
+        public ChangePreviewExpandedCommand(bool isPreviewExpanded, IReadOnlyList<IGraphElementModel> models)
             : base("Change Preview Expansion", "Change Previews Expansion", models)
         {
             m_IsPreviewExpanded = isPreviewExpanded;
@@ -27,9 +28,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             using (var graphUpdater = graphViewState.UpdateScope)
             {
-                foreach (var graphDataNodeModel in command.Models)
+                foreach (var graphElementModel in command.Models)
                 {
-                    graphDataNodeModel.IsPreviewExpanded = command.m_IsPreviewExpanded;
+                    if(graphElementModel is GraphDataNodeModel graphDataNodeModel)
+                        graphDataNodeModel.IsPreviewExpanded = command.m_IsPreviewExpanded;
                     graphUpdater.MarkChanged(command.Models, ChangeHint.Layout);
                 }
             }
