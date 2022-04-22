@@ -79,8 +79,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 Title = portName ?? "",
                 UniqueName = portId,
                 Options = options,
-                NodeModel = this //,
-                // AssetModel = AssetModel
+                NodeModel = this,
+                GraphModel = GraphModel
             };
         }
     }
