@@ -68,6 +68,13 @@ namespace UnityEditor.ShaderGraph.Generation
             return structBuilder.Build();
         }
 
+        private static StructField EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container)
+        {
+            var name = port.ID.LocalPath;
+            var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
+            var varOutBuilder = new StructField.Builder(container, name, type);
+            return varOutBuilder.Build();
+        }
 
         internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder, ref List<(string, UnityEngine.Texture)> defaultTextures)
         {
@@ -97,11 +104,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
                 {
-                    var name = port.ID.LocalPath;
-                    var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
-                    var varOutBuilder = new StructField.Builder(container, name, type);
-                    var varOut = varOutBuilder.Build();
-                    outputVariables.Add(varOut);
+                    outputVariables.Add(EvaluateBlockReferrables(port, registry, container));
                 }
             }
             //Create output type from evaluated root node outputs
