@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - All pre-built URP shaders and URP Shader Graph shaders now support the Mesh LOD cross-fade. Use the UniversalRenderPipelineAsset.lodCrossFadeDitheringType property to select the type of the cross-fade.
 
+### Fixed
+- Fixed spot light distance attenuation artefact on some platforms due to fp16 precision issue.
+
+
 ## [14.0.2] - 2021-02-04
 
 ### Added
