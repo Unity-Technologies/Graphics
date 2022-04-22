@@ -6,6 +6,12 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
+        #if UNITY_SWITCH
+        internal const int k_DepthBufferBits = 24;
+        #else
+        internal const int k_DepthBufferBits = 32;
+        #endif
+
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         UpscalePass m_UpscalePass;
@@ -118,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var depthDescriptor = cameraTargetDescriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthBufferBits = 32;
+                    depthDescriptor.depthBufferBits = k_DepthBufferBits;
                     if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
                         depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                     RenderingUtils.ReAllocateIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
