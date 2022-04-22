@@ -28,5 +28,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Default name for the graph asset.
         /// </summary>
         string DefaultAssetName { get; }
+
+        /// <summary>
+        /// The extension of the graph asset file.
+        /// </summary>
+        string GraphFileExtension { get; }
     }
 }

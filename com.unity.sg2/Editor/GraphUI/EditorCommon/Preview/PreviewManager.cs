@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!wasWindowCloseCancelled)
             {
                 // Mark dirty state as cleared afterwards to clear modification state from editor window tab
-                m_GraphModel.AssetModel.Dirty = false;
+                m_GraphModel.Asset.Dirty = false;
             }
         }
 

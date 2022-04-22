@@ -87,14 +87,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public IReadOnlyList<IGraphProcessingErrorModel> Errors => m_Errors;
 
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
+        public override void OnRemovedFromState(IState state)
         {
-            if (disposing)
-            {
-                RawResults = null;
-                RawErrors = null;
-                m_Errors.Clear();
-            }
+            base.OnRemovedFromState(state);
+
+            RawResults = null;
+            RawErrors = null;
+            m_Errors.Clear();
         }
     }
 }

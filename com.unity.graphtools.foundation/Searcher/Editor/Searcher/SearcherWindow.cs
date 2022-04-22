@@ -414,6 +414,8 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         {
             if ((m_IsMouseDownOnTitle || m_IsMouseDownOnResizer) && Event.current.type == EventType.Layout)
                 position = m_NewWindowPos;
+            if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape && hasFocus)
+                Close();
         }
 
         void SelectionCallback(SearcherItem item)
@@ -437,21 +439,11 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             {
                 FinishResize();
             }
-
-            // TODO: HACK - ListView's scroll view steals focus using the scheduler.
-            EditorApplication.update += HackDueToCloseOnLostFocusCrashing;
-        }
-
-        // See: https://fogbugz.unity3d.com/f/cases/1004504/
-        void HackDueToCloseOnLostFocusCrashing()
-        {
-            // Notify user that the searcher action was cancelled.
-            s_ItemSelectedDelegate?.Invoke(null);
-
-            Close();
-
-            // ReSharper disable once DelegateSubtraction
-            EditorApplication.update -= HackDueToCloseOnLostFocusCrashing;
+            // we need to check otherwise Close calls OnLostFocus again and the editor crashes...
+            // for some reason
+            // See: https://fogbugz.unity3d.com/f/cases/1004504/
+            if (hasFocus)
+                Close();
         }
     }
 }

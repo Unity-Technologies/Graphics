@@ -8,15 +8,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
 {
     class VariableDeclarationModel : DeclarationModel, IVariableDeclarationModel
     {
-        IGraphModel m_GraphModel;
-
         public TypeHandle DataType { get; set; }
         public ModifierFlags Modifiers { get; set; }
         public string Tooltip { get; set; }
-        public IConstant InitializationModel { get; set; }
+        public IConstant InitializationModel => null;
         public bool IsExposed { get; set; }
-
-        public override IGraphModel GraphModel => m_GraphModel;
 
         /// <inheritdoc />
         public IEnumerable<IGraphElementModel> ContainedModels
@@ -35,12 +31,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
         public bool IsUsed()
         {
             return true;
-        }
-
-        // Can't be on the property as we inherit a getter only GraphModel property.
-        internal void SetGraphModel(IGraphModel graphModel)
-        {
-            m_GraphModel = graphModel;
         }
     }
 

@@ -40,9 +40,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
         }
 
         /// <inheritdoc />
-        protected override bool CanHandleAssetType(IGraphAssetModel asset)
+        protected override bool CanHandleAssetType(IGraphAsset asset)
         {
-            return asset is RecipeGraphAssetModel;
+            return asset is RecipeGraphAsset;
         }
     }
 }

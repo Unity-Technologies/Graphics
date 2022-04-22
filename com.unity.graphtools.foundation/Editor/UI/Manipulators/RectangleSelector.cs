@@ -156,8 +156,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             k_OnMouseUpAllUIs.Clear();
 
             var mode = e.actionKey ? SelectElementsCommand.SelectionMode.Toggle : SelectElementsCommand.SelectionMode.Add;
-            var newSelectedModels = newSelection.Select(elem => elem.Model).OfType<IGraphElementModel>().ToList();
-            graphView.Dispatch(new SelectElementsCommand(mode, newSelectedModels));
+            var allSelectedModels = newSelection
+                .Select(elem => elem.Model)
+                .OfType<IGraphElementModel>()
+                .ToList();
+            bool onlyEdgesSelected = allSelectedModels.All(m => m is IEdgeModel);
+            var selectedNodes = allSelectedModels
+                .OfType<IPortNodeModel>()
+                .ToHashSet();
+            bool PortIsSelected(IPortModel p) => p != null && selectedNodes.Contains(p.NodeModel);
+
+            // don't select edges unless they link selected models or if only edges are selected
+            var modelsToSelect = onlyEdgesSelected ?
+                allSelectedModels :
+                allSelectedModels
+                .Where(m => m is not IEdgeModel e
+                            || PortIsSelected(e.FromPort) && PortIsSelected(e.ToPort))
+                .ToList();
+            graphView.Dispatch(new SelectElementsCommand(mode, modelsToSelect));
 
             m_Active = false;
             target.ReleaseMouse();

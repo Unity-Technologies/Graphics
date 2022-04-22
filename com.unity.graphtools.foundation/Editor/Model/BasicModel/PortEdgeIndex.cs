@@ -15,7 +15,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     /// </remarks>
     class PortEdgeIndex
     {
-        static IReadOnlyList<IEdgeModel> s_EmptyEdgeModelList = new List<IEdgeModel>();
+        static readonly IReadOnlyList<IEdgeModel> k_EmptyEdgeModelList = new List<IEdgeModel>();
+
+        /// <summary>
+        /// Used to send 1 edge to the list reordering method.
+        /// </summary>
+        static readonly List<IEdgeModel> k_OneEdgeList = new List<IEdgeModel>(1) { null };
 
         IGraphModel m_GraphModel;
         bool m_IsDirty;
@@ -39,13 +44,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public IReadOnlyList<IEdgeModel> GetEdgesForPort(IPortModel portModel)
         {
             if (portModel?.NodeModel == null)
-                return s_EmptyEdgeModelList;
+                return k_EmptyEdgeModelList;
 
+            return TryGetEdgesForPort(portModel, out var list) ? list : k_EmptyEdgeModelList;
+        }
+
+        /// <summary>
+        /// Gets the list of edges that are connected to a port.
+        /// </summary>
+        /// <param name="portModel">The port for which we want the list of connected edges.</param>
+        /// <param name="edgeList">The list of edges connected to the port.</param>
+        /// <returns><c>true</c> if the list was found, <c>false</c> otherwise.</returns>
+        bool TryGetEdgesForPort(IPortModel portModel, out List<IEdgeModel> edgeList)
+        {
             if (m_IsDirty)
                 Reindex();
 
             var key = (portModel.NodeModel.Guid, portModel.UniqueName, portModel.Direction);
-            return m_EdgesByPort.TryGetValue(key, out var edgeList) ? edgeList : s_EmptyEdgeModelList;
+            return m_EdgesByPort.TryGetValue(key, out edgeList);
         }
 
         /// <summary>
@@ -245,6 +261,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 {
                     m_EdgesByPort.Remove(key);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Changes the order of an edge among its siblings in the index.
+        /// </summary>
+        /// <param name="edgeModel">The edge to move.</param>
+        /// <param name="reorderType">The type of move to do.</param>
+        public void ReorderEdge(IEdgeModel edgeModel, ReorderType reorderType)
+        {
+            if (TryGetEdgesForPort(edgeModel.FromPort, out var list))
+            {
+                k_OneEdgeList[0] = edgeModel;
+                list.ReorderElements(k_OneEdgeList, reorderType);
+            }
+            else
+            {
+                throw new IndexOutOfRangeException($"{edgeModel} not part of the {nameof(PortEdgeIndex)}.");
             }
         }
     }

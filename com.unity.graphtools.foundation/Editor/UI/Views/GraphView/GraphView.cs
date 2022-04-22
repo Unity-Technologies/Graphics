@@ -80,9 +80,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         protected bool m_SelectionDraggerWasActive;
 
-        GraphViewStateComponent.GraphAssetLoadedObserver m_GraphViewGraphLoadedAssetObserver;
+        GraphViewStateComponent.GraphLoadedObserver m_GraphViewGraphLoadedObserver;
         GraphModelStateComponent.GraphAssetLoadedObserver m_GraphModelGraphLoadedAssetObserver;
-        SelectionStateComponent.GraphAssetLoadedObserver m_SelectionGraphLoadedAssetObserver;
+        SelectionStateComponent.GraphLoadedObserver m_SelectionGraphLoadedObserver;
         ModelViewUpdater m_UpdateObserver;
         EdgeOrderObserver m_EdgeOrderObserver;
         DeclarationHighlighter m_DeclarationHighlighter;
@@ -212,11 +212,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             if (GraphTool != null)
             {
-                Model = new GraphViewModel(graphViewName, GraphTool.ToolState.AssetModel, GraphTool.State);
+                IGraphModel graphModel = GraphTool.ToolState.GraphModel;
+                Model = new GraphViewModel(graphViewName, graphModel);
 
                 if (DisplayMode == GraphViewDisplayMode.Interactive)
                 {
-                    ProcessOnIdleAgent = new ProcessOnIdleAgent(GraphTool.Preferences, GraphViewModel.Guid);
+                    ProcessOnIdleAgent = new ProcessOnIdleAgent(GraphTool.Preferences);
                     GraphTool.State.AddStateComponent(ProcessOnIdleAgent.StateComponent);
 
                     GraphViewCommandsRegistrar.RegisterCommands(this, GraphTool);
@@ -373,6 +374,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
+
+        static List<ModelView> s_OutModelViews = new List<ModelView>();
+
         /// <summary>
         /// Updates the graph view pan and zoom.
         /// </summary>
@@ -392,7 +396,54 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             pan.y = GraphViewStaticBridge.RoundToPixelGrid(pan.y);
 
             ContentViewContainer.transform.position = pan;
-            ContentViewContainer.transform.scale = zoom;
+
+            Vector3 oldScale = ContentViewContainer.transform.scale;
+
+            if (oldScale != zoom)
+            {
+                ContentViewContainer.transform.scale = zoom;
+
+                if (GraphModel != null)
+                {
+                    GraphModel.GraphElementModels.GetAllViewsRecursivelyInList(this, _ => true, s_OutModelViews);
+                    foreach (var graphElement in s_OutModelViews.OfType<GraphElement>())
+                    {
+                        graphElement.SetLevelOfDetail(zoom.x);
+                    }
+
+                    s_OutModelViews.Clear();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Base speed for panning, made internal to disable panning in tests.
+        /// </summary>
+        internal static float basePanSpeed = 0.4f;
+        internal static readonly int panAreaWidth = 100;
+        public const int panInterval = 10;
+        public const float minSpeedFactor = 0.5f;
+        public const float maxSpeedFactor = 2.5f;
+        internal static float maxPanSpeed = maxSpeedFactor * basePanSpeed;
+
+        internal Vector2 GetEffectivePanSpeed(Vector2 worldMousePos)
+        {
+            var localMouse = contentContainer.WorldToLocal(worldMousePos);
+            var effectiveSpeed = Vector2.zero;
+
+            if (localMouse.x <= panAreaWidth)
+                effectiveSpeed.x = -((panAreaWidth - localMouse.x) / panAreaWidth + 0.5f) * basePanSpeed;
+            else if (localMouse.x >= contentContainer.layout.width - panAreaWidth)
+                effectiveSpeed.x = ((localMouse.x - (contentContainer.layout.width - panAreaWidth)) / panAreaWidth + 0.5f) * basePanSpeed;
+
+            if (localMouse.y <= panAreaWidth)
+                effectiveSpeed.y = -((panAreaWidth - localMouse.y) / panAreaWidth + 0.5f) * basePanSpeed;
+            else if (localMouse.y >= contentContainer.layout.height - panAreaWidth)
+                effectiveSpeed.y = ((localMouse.y - (contentContainer.layout.height - panAreaWidth)) / panAreaWidth + 0.5f) * basePanSpeed;
+
+            effectiveSpeed = Vector2.ClampMagnitude(effectiveSpeed, maxPanSpeed);
+
+            return effectiveSpeed;
         }
 
         /// <summary>
@@ -833,10 +884,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             // PF TODO use a single observer on graph loaded to update all states.
 
-            if (m_GraphViewGraphLoadedAssetObserver == null)
+            if (m_GraphViewGraphLoadedObserver == null)
             {
-                m_GraphViewGraphLoadedAssetObserver = new GraphViewStateComponent.GraphAssetLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphViewState);
-                GraphTool.ObserverManager.RegisterObserver(m_GraphViewGraphLoadedAssetObserver);
+                m_GraphViewGraphLoadedObserver = new GraphViewStateComponent.GraphLoadedObserver(GraphTool.ToolState, GraphViewModel.GraphViewState);
+                GraphTool.ObserverManager.RegisterObserver(m_GraphViewGraphLoadedObserver);
             }
 
             if (m_GraphModelGraphLoadedAssetObserver == null)
@@ -845,10 +896,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 GraphTool.ObserverManager.RegisterObserver(m_GraphModelGraphLoadedAssetObserver);
             }
 
-            if (m_SelectionGraphLoadedAssetObserver == null)
+            if (m_SelectionGraphLoadedObserver == null)
             {
-                m_SelectionGraphLoadedAssetObserver = new SelectionStateComponent.GraphAssetLoadedObserver(GraphTool.ToolState, GraphViewModel.SelectionState);
-                GraphTool.ObserverManager.RegisterObserver(m_SelectionGraphLoadedAssetObserver);
+                m_SelectionGraphLoadedObserver = new SelectionStateComponent.GraphLoadedObserver(GraphTool.ToolState, GraphViewModel.SelectionState);
+                GraphTool.ObserverManager.RegisterObserver(m_SelectionGraphLoadedObserver);
             }
 
             if (m_UpdateObserver == null)
@@ -877,10 +928,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (GraphTool?.ObserverManager == null)
                 return;
 
-            if (m_GraphViewGraphLoadedAssetObserver != null)
+            if (m_GraphViewGraphLoadedObserver != null)
             {
-                GraphTool?.ObserverManager?.UnregisterObserver(m_GraphViewGraphLoadedAssetObserver);
-                m_GraphViewGraphLoadedAssetObserver = null;
+                GraphTool?.ObserverManager?.UnregisterObserver(m_GraphViewGraphLoadedObserver);
+                m_GraphViewGraphLoadedObserver = null;
             }
 
             if (m_GraphModelGraphLoadedAssetObserver != null)
@@ -889,10 +940,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 m_GraphModelGraphLoadedAssetObserver = null;
             }
 
-            if (m_SelectionGraphLoadedAssetObserver != null)
+            if (m_SelectionGraphLoadedObserver != null)
             {
-                GraphTool?.ObserverManager?.UnregisterObserver(m_SelectionGraphLoadedAssetObserver);
-                m_SelectionGraphLoadedAssetObserver = null;
+                GraphTool?.ObserverManager?.UnregisterObserver(m_SelectionGraphLoadedObserver);
+                m_SelectionGraphLoadedObserver = null;
             }
 
             if (m_UpdateObserver != null)
@@ -1022,6 +1073,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     IgnorePickingRecursive(child);
                 }
             }
+
+            graphElement.SetLevelOfDetail(ViewTransform.scale.x);
         }
 
         public virtual void RemoveElement(GraphElement graphElement)
@@ -1049,9 +1102,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         static readonly List<ModelView> k_CalculateRectToFitAllAllUIs = new List<ModelView>();
 
-        public Rect CalculateRectToFitAll(VisualElement container)
+        public Rect CalculateRectToFitAll()
         {
-            Rect rectToFit = container.layout;
+            Rect rectToFit = ContentViewContainer.layout;
             bool reachedFirstChild = false;
 
             GraphModel?.GraphElementModels.GetAllViewsInList(this, null, k_CalculateRectToFitAllAllUIs);
@@ -1062,12 +1115,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                 if (!reachedFirstChild)
                 {
-                    rectToFit = ge.ChangeCoordinatesTo(ContentViewContainer, ge.GetRect());
+                    rectToFit = ge.parent.ChangeCoordinatesTo(ContentViewContainer, ge.layout);
                     reachedFirstChild = true;
                 }
                 else
                 {
-                    rectToFit = RectUtils.Encompass(rectToFit, ge.ChangeCoordinatesTo(ContentViewContainer, ge.GetRect()));
+                    rectToFit = RectUtils.Encompass(rectToFit, ge.parent.ChangeCoordinatesTo(ContentViewContainer, ge.layout));
                 }
             }
 
@@ -1323,7 +1376,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             // Display graph in inspector when clicking on background
             // TODO: displayed on double click ATM as this method overrides the Token.Select() which does not stop propagation
-            Selection.activeObject = GraphViewModel.GraphModelState?.AssetModel as Object;
+            Selection.activeObject = GraphViewModel.GraphModelState?.GraphModel.Asset as Object;
         }
 
         protected void OnMouseMove(MouseMoveEvent evt)
@@ -1409,14 +1462,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         public override void UpdateFromModel()
         {
+            if (m_UpdateObserver == null || GraphViewModel == null)
+                return;
+
             using (var graphViewObservation = m_UpdateObserver.ObserveState(GraphViewModel.GraphViewState))
             {
                 if (graphViewObservation.UpdateType != UpdateType.None)
                 {
                     if (!PanZoomIsOverriddenByManipulator)
-                    {
                         UpdateViewTransform(GraphViewModel.GraphViewState.Position, GraphViewModel.GraphViewState.Scale);
-                    }
                 }
             }
 
@@ -1663,13 +1717,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (processingStateObservation.UpdateType != UpdateType.None || rebuildType == UpdateType.Partial)
                 {
                     ConsoleWindowBridge.RemoveLogEntries();
-                    var graphAsset = GraphViewModel.GraphModelState.AssetModel;
+                    var graphAsset = GraphViewModel.GraphModelState.GraphModel?.Asset;
 
                     foreach (var rawError in GraphTool.GraphProcessingState.RawErrors ?? Enumerable.Empty<GraphProcessingError>())
                     {
                         if (graphAsset is Object asset)
                         {
-                            var graphAssetPath = asset ? AssetDatabase.GetAssetPath(asset) : "<unknown>";
+                            string graphAssetPath;
+                            if (asset != null && asset is ISerializedGraphAsset serializedGraphAsset)
+                            {
+                                graphAssetPath = serializedGraphAsset.FilePath;
+                            }
+                            else
+                            {
+                                graphAssetPath = "<unknown>";
+                            }
                             ConsoleWindowBridge.LogSticky(
                                 $"{graphAssetPath}: {rawError.Description}",
                                 $"{graphAssetPath}@{rawError.SourceNodeGuid}",
@@ -1856,10 +1918,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         {
                             var openedGraph = GraphTool.ToolState.CurrentGraph;
                             Selection.activeObject = null;
-                            Resources.UnloadAsset((Object)GraphTool.ToolState.AssetModel);
-                            GraphTool?.Dispatch(
-                                new LoadGraphAssetCommand(openedGraph.GetGraphAssetModelPath(),
-                                    openedGraph.AssetLocalId));
+                            Resources.UnloadAsset((Object)openedGraph.GetGraphAsset());
+                            GraphTool?.Dispatch(new LoadGraphCommand(openedGraph.GetGraphModel()));
                         }
                     });
 

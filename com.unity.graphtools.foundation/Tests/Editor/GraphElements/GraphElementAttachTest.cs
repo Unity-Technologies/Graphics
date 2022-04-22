@@ -9,12 +9,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class GraphElementAttachTests : GraphViewTester
     {
-        static readonly Rect k_NodeRect = new Rect(SelectionDragger.panAreaWidth * 2, SelectionDragger.panAreaWidth * 3, 50, 50);
+        static readonly Rect k_NodeRect = new Rect(Overdrive.GraphView.panAreaWidth * 2, Overdrive.GraphView.panAreaWidth * 3, 50, 50);
 
-        Attacher CreateAttachedElement<T>() where T : VisualElement
+        Attacher CreateAttachedElement(VisualElement target)
         {
-            T target = GraphView.SafeQ<T>();
-
             Attacher attacher = null;
             if (target != null)
             {
@@ -23,15 +21,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                     style =
                     {
                         position = Position.Absolute,
-                        bottom = 10,
-                        right = 10,
+                        width = 10,
+                        height = 10,
                         backgroundColor = Color.blue
                     }
                 };
 
                 target.parent.Add(attached);
                 attacher = new Attacher(attached, target, SpriteAlignment.LeftCenter);
-                attached.userData = attacher;
             }
 
             return attacher;
@@ -50,7 +47,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             node.style.width = k_NodeRect.width;
             node.style.height = k_NodeRect.height;
 
-            var attacher = CreateAttachedElement<Node>();
+            var attacher = CreateAttachedElement(node);
             Assert.AreNotEqual(null, attacher);
             yield return null;
 

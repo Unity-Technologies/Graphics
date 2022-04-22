@@ -42,8 +42,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public static readonly string firstChildUssClassName = "first-child";
 
         Label m_Title;
-        VisualElement m_InspectorContainer;
+        ScrollView m_InspectorContainer;
 
+        ModelInspectorGraphLoadedObserver m_LoadedGraphObserver;
         ModelViewUpdater m_UpdateObserver;
         InspectorSelectionObserver m_SelectionObserver;
 
@@ -53,40 +54,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Initializes a new instance of the <see cref="ModelInspectorView"/> class.
         /// </summary>
         /// <param name="window">The <see cref="GraphViewEditorWindow"/> associated with this view.</param>
-        public ModelInspectorView(GraphViewEditorWindow window)
-        : base(window, window.GraphTool)
+        /// <param name="parentGraphView">The <see cref="GraphView"/> linked to this inspector.</param>
+        public ModelInspectorView(EditorWindow window, GraphView parentGraphView)
+        : base(window, parentGraphView.GraphTool)
         {
-            if (window.GraphView != null)
-            {
-                Model = new ModelInspectorViewModel(window.GraphView);
+            Model = new ModelInspectorViewModel(parentGraphView);
 
-                m_UpdateObserver = new ModelViewUpdater(this, ModelInspectorViewModel.ModelInspectorState, ModelInspectorViewModel.GraphModelState);
+            GraphTool.State.OnStateComponentListModified += UpdateSelectionObserver;
 
-                GraphTool.State.OnStateComponentListModified += UpdateSelectionObserver;
+            Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetInspectedGraphModelFieldCommand>(SetInspectedGraphModelFieldCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
 
-                Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetInspectedGraphModelFieldCommand>(SetInspectedGraphModelFieldCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
+            Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetInspectedGraphElementModelFieldCommand>(SetInspectedGraphElementModelFieldCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
 
-                Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetInspectedGraphElementModelFieldCommand>(SetInspectedGraphElementModelFieldCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
+            Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, UpdateConstantValueCommand>(UpdateConstantValueCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
 
-                Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, UpdateConstantValueCommand>(UpdateConstantValueCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
+            Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ExposeVariableCommand>(ExposeVariableCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
+            Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, UpdateTooltipCommand>(UpdateTooltipCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
 
-                Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ExposeVariableCommand>(ExposeVariableCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
-                Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, UpdateTooltipCommand>(UpdateTooltipCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
-
-                Dispatcher.RegisterCommandHandler<ModelInspectorStateComponent, CollapseInspectorSectionCommand>(
-                    CollapseInspectorSectionCommand.DefaultCommandHandler, ModelInspectorViewModel.ModelInspectorState);
-            }
+            Dispatcher.RegisterCommandHandler<ModelInspectorStateComponent, CollapseInspectorSectionCommand>(
+                CollapseInspectorSectionCommand.DefaultCommandHandler, ModelInspectorViewModel.ModelInspectorState);
 
             this.AddStylesheet("ModelInspector.uss");
             AddToClassList(ussClassName);
-
-            m_Title = new Label();
-            m_Title.AddToClassList(titleUssClassName);
-            Add(m_Title);
-
-            m_InspectorContainer = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
-            m_InspectorContainer.AddToClassList(containerUssClassName);
-            Add(m_InspectorContainer);
         }
 
         void UpdateSelectionObserver(IState state, IStateComponent stateComponent)
@@ -102,7 +91,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         void BuildSelectionObserver()
         {
-            if (GraphTool != null)
+            if (m_SelectionObserver == null && GraphTool != null)
             {
                 var selectionStates = GraphTool.State.AllStateComponents.OfType<SelectionStateComponent>();
                 m_SelectionObserver = new InspectorSelectionObserver(GraphTool.ToolState, ModelInspectorViewModel.GraphModelState,
@@ -115,14 +104,29 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         protected override void RegisterObservers()
         {
-            GraphTool?.ObserverManager?.RegisterObserver(m_UpdateObserver);
+            if (m_LoadedGraphObserver == null)
+            {
+                m_LoadedGraphObserver = new ModelInspectorGraphLoadedObserver(GraphTool.ToolState, ModelInspectorViewModel.ModelInspectorState);
+                GraphTool.ObserverManager.RegisterObserver(m_LoadedGraphObserver);
+            }
+
+            if (m_UpdateObserver == null)
+            {
+                m_UpdateObserver = new ModelViewUpdater(this, ModelInspectorViewModel.ModelInspectorState, ModelInspectorViewModel.GraphModelState);
+                GraphTool.ObserverManager.RegisterObserver(m_UpdateObserver);
+            }
+
             BuildSelectionObserver();
         }
 
         /// <inheritdoc />
         protected override void UnregisterObservers()
         {
+            GraphTool?.ObserverManager?.UnregisterObserver(m_LoadedGraphObserver);
+            m_LoadedGraphObserver = null;
+
             GraphTool?.ObserverManager?.UnregisterObserver(m_UpdateObserver);
+            m_UpdateObserver = null;
 
             GraphTool?.ObserverManager?.UnregisterObserver(m_SelectionObserver);
             m_SelectionObserver = null;
@@ -130,13 +134,33 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         void RemoveAllUI()
         {
+            if (m_InspectorContainer == null)
+                return;
+
             var elements = m_InspectorContainer.Query<ModelView>().ToList();
             foreach (var element in elements)
             {
                 element.RemoveFromRootView();
             }
 
-            m_InspectorContainer.Clear();
+            m_InspectorContainer.RemoveFromHierarchy();
+            m_InspectorContainer = null;
+        }
+
+        void OnHorizontalScroll(ChangeEvent<float> e)
+        {
+            using (var updater = ModelInspectorViewModel.ModelInspectorState.UpdateScope)
+            {
+                updater.SetScrollOffset(new Vector2(e.newValue, m_InspectorContainer.verticalScroller.slider.value));
+            }
+        }
+
+        void OnVerticalScroll(ChangeEvent<float> e)
+        {
+            using (var updater = ModelInspectorViewModel.ModelInspectorState.UpdateScope)
+            {
+                updater.SetScrollOffset(new Vector2(m_InspectorContainer.horizontalScroller.slider.value, e.newValue));
+            }
         }
 
         /// <inheritdoc />
@@ -144,8 +168,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             RemoveAllUI();
 
+            if (m_Title == null)
+            {
+                m_Title = new Label();
+                m_Title.AddToClassList(titleUssClassName);
+                Add(m_Title);
+            }
+
+            // We need to recreate the m_InspectorContainer to be able to set the scroll offset to any value.
+            // If we reuse the existing m_InspectorContainer, offset will be clamped according to the last layout of the scrollview.
+            m_InspectorContainer = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+            m_InspectorContainer.AddToClassList(containerUssClassName);
+
             if (ModelInspectorViewModel == null)
+            {
+                m_Title.text = "";
                 return;
+            }
+
+            m_InspectorContainer.scrollOffset = ModelInspectorViewModel.ModelInspectorState.GetInspectorModel()?.ScrollOffset ?? Vector2.zero;
+            m_InspectorContainer.horizontalScroller.slider.RegisterCallback<ChangeEvent<float>>(OnHorizontalScroll);
+            m_InspectorContainer.verticalScroller.slider.RegisterCallback<ChangeEvent<float>>(OnVerticalScroll);
 
             var inspectorModel = ModelInspectorViewModel.ModelInspectorState.GetInspectorModel();
             if (inspectorModel != null)
@@ -198,6 +241,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             {
                 m_Title.text = "Multiple selection";
             }
+
+            Add(m_InspectorContainer);
         }
 
         public override void UpdateFromModel()
@@ -291,6 +336,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                                     k_UpdateAllUIs.Clear();
                                 }
                             }
+
+                            m_InspectorContainer.scrollOffset = inspectorModel.ScrollOffset;
                         }
                     }
                 }

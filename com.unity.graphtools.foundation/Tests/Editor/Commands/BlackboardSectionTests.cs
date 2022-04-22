@@ -21,9 +21,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             yield return null;
 
             var outputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
             var inputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
 
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("input", false, TypeHandle.Float,
                 typeof(BlackboardInputVariableDeclarationModel)));
@@ -48,9 +48,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             yield return null;
 
             var outputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
             var inputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
 
             m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(inputSection));
             yield return null;
@@ -80,9 +80,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             yield return null;
 
             var outputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
             var inputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
 
             m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(inputSection));
 
@@ -95,7 +95,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                 typeof(BlackboardInputVariableDeclarationModel), group1));
 
             yield return null;
-            var input = m_GraphAssetModel.GraphModel.VariableDeclarations.First();
+            var input = m_GraphAsset.GraphModel.VariableDeclarations.First();
 
             Assert.AreEqual(group1, input.ParentGroup);
 
@@ -121,9 +121,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             yield return null;
 
             var outputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Output]);
             var inputSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
+                m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
 
             m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(outputSection));
             yield return null;
@@ -136,7 +136,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                 typeof(BlackboardOutputVariableDeclarationModel), group1));
             yield return null;
 
-            var output = m_GraphAssetModel.GraphModel.VariableDeclarations.First();
+            var output = m_GraphAsset.GraphModel.VariableDeclarations.First();
 
             Assert.AreEqual(group1,output.ParentGroup);
 
@@ -144,7 +144,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                 typeof(BlackboardOutputVariableDeclarationModel), group1));
             yield return null;
 
-            var output2 = (BlackboardOutputVariableDeclarationModel)m_GraphAssetModel.GraphModel.VariableDeclarations.Skip(1).First();
+            var output2 = (BlackboardOutputVariableDeclarationModel)m_GraphAsset.GraphModel.VariableDeclarations.Skip(1).First();
 
             Assert.AreNotEqual(output, output2);
             Assert.AreEqual(group1, output2.ParentGroup);
@@ -221,5 +221,35 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 
             blackboardWindow.Close();
         }
+
+        [UnityTest]
+        public IEnumerator RightClickOnVariableWithinSelectedGroupWorks()
+        {
+            yield return null;
+
+            var inputSection = m_GraphAsset.GraphModel.GetSectionModel(Stencil.sections[(int)VariableType.Input]);
+
+            m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(inputSection));
+
+            yield return null;
+
+            var group = inputSection.Items.OfType<IGroupModel>().First();
+
+            m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var A", true, typeof(float).GenerateTypeHandle(), typeof(BlackboardInputVariableDeclarationModel),group));
+            m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var B", true, typeof(float).GenerateTypeHandle(), typeof(BlackboardInputVariableDeclarationModel),group));
+
+            var varA = group.Items.First();
+            m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace,group,varA));
+
+            m_BlackboardView.CreateGroupFromSelection(varA);
+
+            var secondGroup = inputSection.Items.OfType<IGroupModel>().First();
+
+            Assert.AreNotEqual(group,secondGroup);
+
+            Assert.IsTrue(secondGroup.Items.Contains(group));
+            Assert.IsTrue(secondGroup.Items.Contains(varA));
+        }
+
     }
 }

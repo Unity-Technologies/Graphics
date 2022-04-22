@@ -11,12 +11,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
 
     class BasicModelPerformanceBase
     {
-        protected TestGraphAssetModel m_GraphAssetModel;
+        protected TestGraphAsset m_GraphAsset;
 
         [SetUp]
         public virtual void SetUp()
         {
-            m_GraphAssetModel = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
+            m_GraphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
         }
     }
 }

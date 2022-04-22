@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
                 UniqueName = portId,
                 Options = options,
                 NodeModel = this,
-                AssetModel = AssetModel
+                GraphModel = GraphModel
             };
             return port;
         }

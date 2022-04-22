@@ -7,6 +7,12 @@
     overflow: hidden;
 }
 
+
+#overlay-popup .model-inspector-view {
+    width: 260px;
+    height: auto;
+}
+
 .unity-overlay .model-inspector-view {
     width: auto;
     border-left-width: 0;

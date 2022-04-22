@@ -7,8 +7,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 {
     public class ToolStateTests : BaseUIFixture
     {
-        IGraphAssetModel m_Asset1;
-        IGraphAssetModel m_Asset2;
+        IGraphAsset m_Asset1;
+        IGraphAsset m_Asset2;
         INodeModel m_NodeModel;
 
         /// <inheritdoc />
@@ -19,15 +19,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         {
             base.SetUp();
 
-            m_Asset1 = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test1");
+            m_Asset1 = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test1");
             m_NodeModel = m_Asset1.GraphModel.CreateNode<NodeModel>();
-            m_Asset2 = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test2");
+            m_Asset2 = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test2");
         }
 
         [Test]
         public void SelectionStateIsTiedToAssetAndView()
         {
-            GraphView.Dispatch(new LoadGraphAssetCommand(m_Asset1));
+            GraphView.Dispatch(new LoadGraphCommand(m_Asset1.GraphModel));
             GraphTool.Update();
             Assert.IsNotNull(GraphView.GraphViewModel.SelectionState);
             using (var selectionUpdater = GraphView.GraphViewModel.SelectionState.UpdateScope)
@@ -37,19 +37,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(m_NodeModel));
 
             // Load another asset in the same view: node is not selected anymore.
-            GraphView.Dispatch(new LoadGraphAssetCommand(m_Asset2));
+            GraphView.Dispatch(new LoadGraphCommand(m_Asset2.GraphModel));
             GraphTool.Update();
             Assert.IsNotNull(GraphView.GraphViewModel.SelectionState);
             Assert.IsFalse(GraphView.GraphViewModel.SelectionState.IsSelected(m_NodeModel));
 
             // Fetch a selection state for the same asset in another view: node is not selected in this component.
-            var assetKey = PersistedState.MakeAssetKey(m_Asset2);
-            var otherSelectionState = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Hash128.Compute("otherGraphView"), assetKey);
+            var assetKey = PersistedState.MakeGraphKey(m_Asset2.GraphModel);
+            var otherSelectionState = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Hash128.Compute("otherGraphView"), assetKey);
             Assert.IsNotNull(otherSelectionState);
             Assert.IsFalse(otherSelectionState.IsSelected(m_NodeModel));
 
             // Reload the original asset in the original view: node is still selected.
-            GraphView.Dispatch(new LoadGraphAssetCommand(m_Asset1));
+            GraphView.Dispatch(new LoadGraphCommand(m_Asset1.GraphModel));
             GraphTool.Update();
             Assert.IsNotNull(GraphView.GraphViewModel.SelectionState);
             Assert.IsTrue(GraphView.GraphViewModel.SelectionState.IsSelected(m_NodeModel));

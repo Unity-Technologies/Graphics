@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
             var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
             foreach (var existingEditorWindow in existingEditorWindows)
             {
-                if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.AssetModel, model))
+                if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.CurrentGraph.GetGraphAsset(), model))
                     return true;
             }
 

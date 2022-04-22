@@ -334,31 +334,29 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             {
                 case LinkedNodesDependency linked:
 
-                    Vector2 position;
-
                     var input = linked.ParentPort.GetView<Port>(m_GraphView);
                     var output = linked.DependentPort.GetView<Port>(m_GraphView);
 
                     if (input?.Model != null && output?.Model != null &&
                         ((IPortModel)input.Model).Orientation == ((IPortModel)output.Model).Orientation)
                     {
-                        Vector2 inputPortPos = input.parent.ChangeCoordinatesTo(parentUI, input.layout.center);
-                        Vector2 inputPos = prev.Position;
-                        Vector2 outputPortPos = output.parent.ChangeCoordinatesTo(depUI, output.layout.center);
+                        var depOffset = input.parent.ChangeCoordinatesTo(parentUI.parent, input.layout.min) - output.parent.ChangeCoordinatesTo(depUI.parent, output.layout.min);
+                        var parentOffset = parentUI.layout.min - prev.Position;
 
+                        Vector2 position;
                         if (((IPortModel)input.Model).Orientation == PortOrientation.Horizontal)
                         {
                             position = new Vector2(
                                 prev.Position.x + (linked.ParentPort.Direction == PortDirection.Output
                                     ? parentUI.layout.width + k_AlignHorizontalOffset
                                     : -k_AlignHorizontalOffset - depUI.layout.width),
-                                inputPos.y + inputPortPos.y - outputPortPos.y
+                                depUI.layout.min.y + depOffset.y - parentOffset.y
                             );
                         }
                         else
                         {
                             position = new Vector2(
-                                inputPos.x + inputPortPos.x - outputPortPos.x,
+                                depUI.layout.min.x + depOffset.x - parentOffset.x,
                                 prev.Position.y + (linked.ParentPort.Direction == PortDirection.Output
                                     ? parentUI.layout.height + k_AlignVerticalOffset
                                     : -k_AlignVerticalOffset - depUI.layout.height)

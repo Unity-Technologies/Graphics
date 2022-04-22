@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 
@@ -11,10 +12,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
         Stuff
     }
 
+    [Serializable]
     public abstract class BBDeclarationModel : VariableDeclarationModel
     {
         public abstract VariableType Type { get; }
 
+        [SerializeField]
         int m_SomeValue;
 
         public int SomeValue

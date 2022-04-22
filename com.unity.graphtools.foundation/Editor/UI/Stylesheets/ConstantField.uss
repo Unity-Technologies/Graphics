@@ -15,6 +15,8 @@
     width: 60px;
 }
 
-.ge-inline-value-editor .unity-toggle {
-    margin: 3px;
+.ge-inline-value-editor .unity-curve-field,
+.ge-inline-value-editor .unity-gradient-field {
+    min-width: 40px;
 }
+

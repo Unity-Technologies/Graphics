@@ -12,7 +12,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
     class SnapToPortTests : GraphViewSnappingTester
     {
         static readonly Vector2 k_NodeSize = new Vector2(200, 200);
-        static readonly Vector2 k_ReferenceNodePos = new Vector2(SelectionDragger.panAreaWidth, SelectionDragger.panAreaWidth);
+        static readonly Vector2 k_ReferenceNodePos = new Vector2(Overdrive.GraphView.panAreaWidth, Overdrive.GraphView.panAreaWidth);
 
         [SetUp]
         public override void SetUp()

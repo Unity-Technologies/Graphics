@@ -39,7 +39,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             return CsoTool.Create<UITestGraphTool>(WindowID);
         }
 
-        protected override bool CanHandleAssetType(IGraphAssetModel asset)
+        protected override bool CanHandleAssetType(IGraphAsset asset)
         {
             return true;
         }

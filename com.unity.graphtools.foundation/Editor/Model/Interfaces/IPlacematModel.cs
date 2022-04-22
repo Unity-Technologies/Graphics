@@ -11,5 +11,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Elements hidden in the placemat.
         /// </summary>
         IEnumerable<IGraphElementModel> HiddenElements { get; set; }
+
+        /// <summary>
+        /// Returns the Z-order of the placemat in the graph.
+        /// </summary>
+        /// <returns>The Z-order of the placemat in the graph.</returns>
+        int GetZOrder();
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -75,29 +74,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                                     }
                                 }
 
-                                if (selected && connectedEdges.Count > 1)
-                                {
-                                    foreach (var edgeModel in connectedEdges)
-                                    {
-                                        var newLabel = (portModel.GetEdgeOrder(edgeModel) + 1).ToString();
-                                        if (edgeModel.EdgeLabel != newLabel)
-                                        {
-                                            edgeModel.EdgeLabel = newLabel;
-                                            updater.MarkChanged(edgeModel, ChangeHint.Data);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    foreach (var edgeModel in connectedEdges)
-                                    {
-                                        if (!string.IsNullOrEmpty(edgeModel.EdgeLabel))
-                                        {
-                                            edgeModel.EdgeLabel = "";
-                                            updater.MarkChanged(edgeModel, ChangeHint.Data);
-                                        }
-                                    }
-                                }
+                                updater.MarkChanged(connectedEdges, ChangeHint.Style);
                             }
                         }
                     }

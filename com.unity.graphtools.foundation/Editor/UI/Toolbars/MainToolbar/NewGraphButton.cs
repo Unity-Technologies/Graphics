@@ -25,7 +25,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         protected override void OnClick()
         {
-            GraphTool?.Dispatch(new UnloadGraphAssetCommand());
+            GraphTool?.Dispatch(new UnloadGraphCommand());
         }
     }
 }

@@ -101,11 +101,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             string graphName = null;
             if (index == -1)
             {
-                graphName = GraphTool.ToolState.CurrentGraph.GetGraphAssetModel()?.FriendlyScriptName;
+                graphName = GraphTool.ToolState.GraphModel.GetFriendlyScriptName();
             }
             else if (index >= 0 && index < graphModels.Count)
             {
-                graphName = graphModels[index].GetGraphAssetModel()?.FriendlyScriptName;
+                graphName = graphModels[index].GetGraphModel().GetFriendlyScriptName();
             }
 
             return string.IsNullOrEmpty(graphName) ? "<Unknown>" : graphName;
@@ -122,9 +122,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (index < graphModels.Count)
                 graphToLoad = graphModels[index];
 
-            if (graphToLoad.GetGraphAssetModel()?.FriendlyScriptName != null)
-                GraphTool?.Dispatch(new LoadGraphAssetCommand(graphToLoad.GetGraphAssetModelPath(), graphToLoad.AssetLocalId,
-                    graphToLoad.BoundObject, LoadGraphAssetCommand.LoadStrategies.KeepHistory, index));
+            if (graphToLoad.GetGraphModel() != null)
+                GraphTool?.Dispatch(new LoadGraphCommand(graphToLoad.GetGraphModel(),
+                    graphToLoad.BoundObject, LoadGraphCommand.LoadStrategies.KeepHistory, index));
         }
     }
 }

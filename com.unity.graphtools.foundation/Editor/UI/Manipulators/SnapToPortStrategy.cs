@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -10,8 +11,35 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         class SnapToPortResult : SnapResult
         {
             public PortOrientation PortOrientation { get; set; }
+
+            public void Apply(ref Vector2 snappingOffset, ref Rect snappedRect)
+            {
+                if (PortOrientation == PortOrientation.Horizontal)
+                {
+                    snappedRect.y += Offset;
+                    snappingOffset.y = Offset;
+                }
+                else
+                {
+                    snappedRect.x += Offset;
+                    snappingOffset.x = Offset;
+                }
+            }
         }
+
+        /// <summary>
+        /// Model of the node we try to snap.
+        /// </summary>
+         IPortNodeModel m_SelectedNodeModel;
+
+        /// <summary>
+        /// List of edges connected to the node to snap.
+        /// </summary>
         List<IEdgeModel> m_ConnectedEdges = new List<IEdgeModel>();
+
+        /// <summary>
+        /// Position in the graph of every potential port to snap to.
+        /// </summary>
         Dictionary<Port, Vector2> m_ConnectedPortsPos = new Dictionary<Port, Vector2>();
 
         public override void BeginSnap(GraphElement selectedElement)
@@ -22,16 +50,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
             IsActive = true;
 
-            if (selectedElement is Node selectedNode)
+            m_SelectedNodeModel = selectedElement?.Model as IPortNodeModel;
+            if (m_SelectedNodeModel != null)
             {
                 m_GraphView = selectedElement.GraphView;
 
-                m_ConnectedEdges = GetConnectedEdges(selectedNode);
-                m_ConnectedPortsPos = GetConnectedPortPositions(m_ConnectedEdges);
+                m_ConnectedEdges.Clear(); // should be the case already
+                m_ConnectedEdges.AddRange(m_SelectedNodeModel.GetConnectedEdges());
+                m_ConnectedPortsPos = GetConnectedPortPositions(m_GraphView, m_ConnectedEdges);
             }
         }
 
-        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement, float scale, Vector2 mousePanningDelta = default)
+        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement)
         {
             if (!IsActive)
             {
@@ -44,22 +74,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 return sourceRect;
             }
 
-            Rect snappedRect = sourceRect;
-
-            if (selectedElement is Node selectedNode)
+            if (m_SelectedNodeModel != null)
             {
-                m_CurrentScale = scale;
-                SnapToPortResult chosenResult = GetClosestSnapToPortResult(selectedNode, mousePanningDelta);
-
-                if (chosenResult != null)
+                // snapping is used while dragging, so the element position doesn't necessarily match sourceRect
+                var delta = sourceRect.position - selectedElement.layout.position;
+                foreach (var port in m_SelectedNodeModel.Ports
+                             .Where(p => p.IsConnected())
+                             .Select(p => p.GetView<Port>(m_GraphView))
+                             .Where(p => p != null))
                 {
-                    var adjustedSourceRect = GetAdjustedSourceRect(chosenResult, sourceRect, mousePanningDelta);
-                    snappedRect = adjustedSourceRect;
-                    ApplySnapToPortResult(ref snappingOffset, adjustedSourceRect, ref snappedRect, chosenResult);
+                    m_ConnectedPortsPos[port] = GetPortCenterInGraphPosition(port, m_GraphView) + delta;
                 }
+                var chosenResult = GetClosestSnapToPortResult();
+
+                chosenResult?.Apply(ref snappingOffset, ref sourceRect);
             }
 
-            return snappedRect;
+            return sourceRect;
         }
 
         public override void EndSnap()
@@ -74,65 +105,51 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_ConnectedPortsPos.Clear();
         }
 
-        Dictionary<Port, Vector2> GetConnectedPortPositions(List<IEdgeModel> edges)
+        static Dictionary<Port, Vector2> GetConnectedPortPositions(GraphView graphView, List<IEdgeModel> edges)
         {
             Dictionary<Port, Vector2> connectedPortsOriginalPos = new Dictionary<Port, Vector2>();
             foreach (var edge in edges)
             {
-                Port inputPort = edge.ToPort.GetView<Port>(m_GraphView);
-                Port outputPort = edge.FromPort.GetView<Port>(m_GraphView);
-
-                if (inputPort != null)
+                Port inputPort = edge.ToPort.GetView<Port>(graphView);
+                if (inputPort != null && !connectedPortsOriginalPos.ContainsKey(inputPort))
                 {
-                    if (!connectedPortsOriginalPos.ContainsKey(inputPort))
-                    {
-                        connectedPortsOriginalPos.Add(inputPort, inputPort.GetGlobalCenter());
-                    }
+                    connectedPortsOriginalPos.Add(inputPort, GetPortCenterInGraphPosition(inputPort, graphView));
                 }
 
-                if (outputPort != null)
+                Port outputPort = edge.FromPort.GetView<Port>(graphView);
+                if (outputPort != null && !connectedPortsOriginalPos.ContainsKey(outputPort))
                 {
-                    if (!connectedPortsOriginalPos.ContainsKey(outputPort))
-                    {
-                        connectedPortsOriginalPos.Add(outputPort, outputPort.GetGlobalCenter());
-                    }
+                    connectedPortsOriginalPos.Add(outputPort, GetPortCenterInGraphPosition(outputPort, graphView));
                 }
             }
 
             return connectedPortsOriginalPos;
         }
 
-        List<IEdgeModel> GetConnectedEdges(Node selectedNode)
+        static Vector2 GetPortCenterInGraphPosition(Port port, GraphView graphView)
         {
-            var connectedEdges = new List<IEdgeModel>();
+            var gvPos = new Vector2(graphView.ViewTransform.position.x, graphView.ViewTransform.position.y);
+            var gvScale = graphView.ViewTransform.scale.x;
 
-            for (var index = 0; index < m_GraphView.GraphModel.EdgeModels.Count; index++)
-            {
-                var edge = m_GraphView.GraphModel.EdgeModels[index];
-                if (edge.FromPort.NodeModel == selectedNode.NodeModel || edge.ToPort.NodeModel == selectedNode.NodeModel)
-                {
-                    connectedEdges.Add(edge);
-                }
-            }
-
-            return connectedEdges;
+            var connector = port.GetConnector();
+            var localCenter = connector.layout.size * .5f;
+            return connector.ChangeCoordinatesTo(graphView.contentContainer, localCenter - gvPos) / gvScale;
         }
 
-        SnapToPortResult GetClosestSnapToPortResult(Node selectedNode, Vector2 mousePanningDelta)
+        SnapToPortResult GetClosestSnapToPortResult()
         {
-            var results = GetSnapToPortResults(selectedNode);
+            var results = GetSnapToPortResults();
 
             float smallestDraggedDistanceFromNode = float.MaxValue;
             SnapToPortResult closestResult = null;
-            foreach (SnapToPortResult result in results)
+            foreach (var result in results)
             {
-                // We have to consider the mouse and panning delta to estimate the distance when the node is being dragged
-                float draggedDistanceFromNode = Math.Abs(result.Offset - (result.PortOrientation == PortOrientation.Horizontal ? mousePanningDelta.y : mousePanningDelta.x));
-                bool isSnapping = IsSnappingToPort(draggedDistanceFromNode);
+                var distanceFromPortToSnap = result.Distance;
+                var isSnapping = IsSnappingToPort(distanceFromPortToSnap);
 
-                if (isSnapping && smallestDraggedDistanceFromNode > draggedDistanceFromNode)
+                if (isSnapping && smallestDraggedDistanceFromNode > distanceFromPortToSnap)
                 {
-                    smallestDraggedDistanceFromNode = draggedDistanceFromNode;
+                    smallestDraggedDistanceFromNode = distanceFromPortToSnap;
                     closestResult = result;
                 }
             }
@@ -140,83 +157,35 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return closestResult;
         }
 
-        static Rect GetAdjustedSourceRect(SnapToPortResult result, Rect sourceRect, Vector2 mousePanningDelta)
+        IEnumerable<SnapToPortResult> GetSnapToPortResults()
         {
-            Rect adjustedSourceRect = sourceRect;
-            // We only want the mouse delta position and panning info on the axis that is not snapping
-            if (result.PortOrientation == PortOrientation.Horizontal)
-            {
-                adjustedSourceRect.y += mousePanningDelta.y;
-            }
-            else
-            {
-                adjustedSourceRect.x += mousePanningDelta.x;
-            }
-
-            return adjustedSourceRect;
+            return m_ConnectedEdges.Select(GetSnapToPortResult).Where(result => result != null);
         }
 
-        IEnumerable<SnapToPortResult> GetSnapToPortResults(Node selectedNode)
+        SnapToPortResult GetSnapToPortResult(IEdgeModel edge)
         {
-            return m_ConnectedEdges.Select(edge => GetSnapToPortResult(edge, selectedNode)).Where(result => result != null);
-        }
-
-        SnapToPortResult GetSnapToPortResult(IEdgeModel edge, Node selectedNode)
-        {
-            Port sourcePort = null;
-            Port snappablePort = null;
-
-            if (edge.FromPort.NodeModel == selectedNode.NodeModel)
-            {
-                sourcePort = edge.FromPort.GetView<Port>(m_GraphView);
-                snappablePort = edge.ToPort.GetView<Port>(m_GraphView);
-            }
-            else if (edge.ToPort.NodeModel == selectedNode.NodeModel)
-            {
-                sourcePort = edge.ToPort.GetView<Port>(m_GraphView);
-                snappablePort = edge.FromPort.GetView<Port>(m_GraphView);
-            }
+            var fromPort = edge.FromPort.GetView<Port>(m_GraphView);
+            var toPort = edge.ToPort.GetView<Port>(m_GraphView);
 
             // We don't want to snap non existing ports and ports with different orientations (to be determined)
-            if (sourcePort == null || snappablePort == null ||
-                ((IPortModel)sourcePort.Model).Orientation != ((IPortModel)snappablePort.Model).Orientation)
+            if (fromPort == null || toPort == null || edge.FromPort.Orientation !=edge.ToPort.Orientation)
             {
                 return null;
             }
 
-            float offset;
-            if (((IPortModel)snappablePort.Model).Orientation == PortOrientation.Horizontal)
-            {
-                offset = m_ConnectedPortsPos[sourcePort].y - m_ConnectedPortsPos[snappablePort].y;
-            }
-            else
-            {
-                offset = m_ConnectedPortsPos[sourcePort].x - m_ConnectedPortsPos[snappablePort].x;
-            }
+            var orientation = edge.FromPort.Orientation;
+            var sourcePort = m_SelectedNodeModel == edge.FromPort.NodeModel ? fromPort : toPort;
+            var targetPort = m_SelectedNodeModel == edge.FromPort.NodeModel ? toPort : fromPort;
 
-            SnapToPortResult minResult = new SnapToPortResult
+            var portDelta = m_ConnectedPortsPos[targetPort] - m_ConnectedPortsPos[sourcePort];
+
+            return new SnapToPortResult
             {
-                PortOrientation = ((IPortModel)snappablePort.Model).Orientation,
-                Offset = offset
+                PortOrientation = orientation,
+                Offset = orientation == PortOrientation.Horizontal ? portDelta.y : portDelta.x
             };
-
-            return minResult;
         }
 
-        bool IsSnappingToPort(float draggedDistanceFromNode) => draggedDistanceFromNode <= SnapDistance * 1 / m_CurrentScale;
-
-        static void ApplySnapToPortResult(ref Vector2 snappingOffset, Rect sourceRect, ref Rect r1, SnapToPortResult result)
-        {
-            if (result.PortOrientation == PortOrientation.Horizontal)
-            {
-                r1.y = sourceRect.y - result.Offset;
-                snappingOffset.y = result.Offset;
-            }
-            else
-            {
-                r1.x = sourceRect.x - result.Offset;
-                snappingOffset.x = result.Offset;
-            }
-        }
+        bool IsSnappingToPort(float distanceFromSnapPoint) => distanceFromSnapPoint <= SnapDistance;
     }
 }

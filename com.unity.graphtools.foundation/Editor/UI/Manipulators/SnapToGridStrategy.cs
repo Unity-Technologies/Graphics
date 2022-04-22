@@ -38,7 +38,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_GridSpacing = m_GraphView.SafeQ<GridBackground>().Spacing;
         }
 
-        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement, float scale, Vector2 mousePanningDelta = default)
+        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement)
         {
             if (!IsActive)
             {
@@ -52,8 +52,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             Rect snappedRect = sourceRect;
-
-            m_CurrentScale = scale;
 
             List<SnapToGridResult> results = GetClosestGridLines(sourceRect);
 
@@ -95,7 +93,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 Offset = minOffset
             };
 
-            return minResult.Distance <= SnapDistance * 1 / m_CurrentScale ? minResult : null;
+            return minResult.Distance <= SnapDistance ? minResult : null;
         }
 
         List<SnapToGridResult> GetClosestGridLines(Rect sourceRect, PortOrientation orientation)

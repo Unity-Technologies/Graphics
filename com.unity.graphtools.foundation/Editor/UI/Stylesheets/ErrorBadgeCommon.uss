@@ -1,0 +1,69 @@
+.ge-error-badge
+{
+    --distance: 4;
+}
+
+.ge-error-badge__icon
+{
+    background-color : #FF00FF;
+    border-radius: 2px;
+    width: 17px;
+    height: 17px;
+    margin: 0;
+}
+
+.ge-error-badge__tip
+{
+    width: 7px;
+    height: 4px;
+}
+
+.ge-error-badge__text
+{
+    font-size: var(--unity-font-size-semi-small);
+    white-space: normal;
+    color : #F0F0F0;
+    background-color : rgba(0,0,0,0.75);
+    border-radius: 2px;
+    max-width : 250px;
+    min-width : 24px;
+    min-height : 14px;
+    padding: 2px 4px;
+}
+
+.ge-error-badge--hidden {
+    display: none;
+}
+
+.ge-error-badge--error .ge-error-badge__icon
+{
+    background-color : #FF6464;
+    --unity-image : url("Icons/ErrorBadge/ExclamationMark.png");
+}
+
+.ge-error-badge--error .ge-error-badge__tip
+{
+    --unity-image : url("Icons/ErrorBadge/ErrorTip.png");
+}
+
+.ge-error-badge--warning .ge-error-badge__icon
+{
+    background-color : #B49600;
+    --unity-image : url("Icons/ErrorBadge/ExclamationMark.png");
+}
+
+.ge-error-badge--warning .ge-error-badge__tip
+{
+    --unity-image : url("Icons/ErrorBadge/WarningTip.png");
+}
+
+.ge-error-badge--comment .ge-error-badge__icon
+{
+    background-color : #F0F0F0;
+    --unity-image : url("Icons/ErrorBadge/CommentMark.png");
+}
+
+.ge-error-badge--comment .ge-error-badge__tip
+{
+    --unity-image : url("Icons/ErrorBadge/CommentTip.png");
+}

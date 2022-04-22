@@ -58,11 +58,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_HighlightedDeclarations = new Dictionary<Hash128, List<IDeclarationModel>>();
         }
 
-        /// <inheritdoc />
-        protected override void Dispose(bool disposing)
-        {
-        }
-
         /// <summary>
         /// Gets the highlighted state of a declaration model.
         /// </summary>

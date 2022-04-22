@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
 {
-    class FooBarStateComponent : ViewStateComponent<FooBarStateComponent.StateUpdater>
+    class FooBarStateComponent : StateComponent<FooBarStateComponent.StateUpdater>
     {
         internal class StateUpdater : BaseUpdater<FooBarStateComponent>
         {
@@ -23,11 +22,6 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
         }
 
         /// <inheritdoc />
-        protected override void Dispose(bool disposing)
-        {
-        }
-
-        /// <inheritdoc />
         protected override void Move(IStateComponent other)
         {
             base.Move(other);
@@ -40,7 +34,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
         }
     }
 
-    class FewBawStateComponent : ViewStateComponent<FewBawStateComponent.StateUpdater>
+    class FewBawStateComponent : StateComponent<FewBawStateComponent.StateUpdater>
     {
         internal class StateUpdater : BaseUpdater<FewBawStateComponent>
         {
@@ -55,11 +49,6 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
         {
             Few = init;
             Baw = init;
-        }
-
-        /// <inheritdoc />
-        protected override void Dispose(bool disposing)
-        {
         }
 
         /// <inheritdoc />

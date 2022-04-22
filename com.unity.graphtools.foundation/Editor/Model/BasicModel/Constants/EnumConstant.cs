@@ -47,7 +47,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public override void Initialize(TypeHandle constantTypeHandle)
         {
             var resolvedType = constantTypeHandle.Resolve();
-            if (resolvedType.IsAssignableFrom(typeof(Enum)))
+            if (!resolvedType.IsEnum || resolvedType == typeof(Enum))
             {
                 throw new ArgumentException(nameof(constantTypeHandle));
             }

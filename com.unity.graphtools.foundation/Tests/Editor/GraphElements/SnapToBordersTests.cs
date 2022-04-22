@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class SnapToBordersTests : GraphViewSnappingTester
     {
-        static readonly Vector2 k_ReferenceNodePos = new Vector2(SelectionDragger.panAreaWidth, SelectionDragger.panAreaWidth);
+        static readonly Vector2 k_ReferenceNodePos = new Vector2(Overdrive.GraphView.panAreaWidth, Overdrive.GraphView.panAreaWidth);
         static readonly Vector2 k_SnappedNodeSize = new Vector2(100, 100);
         static readonly Vector2 k_ReferenceNodeSizeHorizontal = new Vector2(200, 100);
         static readonly Vector2 k_ReferenceNodeSizeVertical = new Vector2(100, 200);
@@ -27,6 +27,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GraphViewSettings.UserSettings.EnableSnapToPort = false;
             GraphViewSettings.UserSettings.EnableSnapToSpacing = false;
             GraphViewSettings.UserSettings.EnableSnapToGrid = false;
+        }
+
+        static float s_OriginalPanSpeed;
+
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            // disable panning while dragging elements to avoid slow tests panning more than expected with elements on the side of the window.
+            s_OriginalPanSpeed = Overdrive.GraphView.basePanSpeed;
+            Overdrive.GraphView.basePanSpeed = 0f;
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            Overdrive.GraphView.basePanSpeed = s_OriginalPanSpeed;
         }
 
         [UnityTest]

@@ -20,7 +20,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             var node1 = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", Vector2.zero);
             GraphModel.CreateEdge(node0.Input0, node1.Output0);
 
-            var newGraphAsset = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(CreatedGraphType, "Test_Copy");
+            var newGraphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(CreatedGraphType, "Test_Copy");
 
             Assert.That(GetNodeCount(), Is.EqualTo(2));
             Assert.That(GetEdgeCount(), Is.EqualTo(1));

@@ -238,8 +238,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = m_SecondNode.layout.xMin - m_FirstNode.layout.xMax;
-
             actions = SpaceElements(PortOrientation.Horizontal);
             while (actions.MoveNext())
             {
@@ -247,16 +245,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             float marginBetweenFirstSecondNodes = m_SecondNode.layout.xMin - m_FirstNode.layout.xMax;
-            float marginBetweenFirstThirdNodes = m_ThirdNode.layout.xMin - m_FirstNode.layout.xMax;
             float marginBetweenSecondThirdNodes = m_ThirdNode.layout.xMin - m_SecondNode.layout.xMax;
             float marginBetweenThirdFourthNodes = m_FourthNode.layout.xMin - m_ThirdNode.layout.xMax;
 
-            Assert.AreNotEqual(expectedSpacingMargin, marginBetweenFirstSecondNodes);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, marginBetweenFirstSecondNodes);
-
-            Assert.AreEqual(expectedSpacingMargin, marginBetweenFirstThirdNodes);
+            Assert.AreEqual(expectedSpacingMargin, marginBetweenFirstSecondNodes);
             Assert.AreEqual(expectedSpacingMargin, marginBetweenSecondThirdNodes);
-
             Assert.AreEqual(expectedSpacingMargin, marginBetweenThirdFourthNodes);
         }
     }

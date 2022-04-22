@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return container;
         }
 
-        public static IGraphAssetModel CreateBlankShaderGraph()
+        public static IGraphAsset CreateBlankShaderGraph()
         {
             var template = new GraphTemplate<ShaderGraphStencil>("ShaderGraph");
             var promptTitle = string.Format(k_PromptToCreateTitle, template.GraphTypeName);

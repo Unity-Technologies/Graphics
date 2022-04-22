@@ -6,10 +6,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
     class VerticalBlackboardGraphModel : BlackboardGraphModel
     {
         /// <inheritdoc />
-        public VerticalBlackboardGraphModel(IGraphAssetModel graphAssetModel)
-            : base(graphAssetModel) {}
-
-        /// <inheritdoc />
         public override string GetBlackboardTitle()
         {
             var title = base.GetBlackboardTitle();

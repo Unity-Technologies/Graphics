@@ -18,8 +18,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 
         public int InputPortCount => m_InputPortCount;
 
-        public IPortModel DataOut { get; private set; }
-
         public void SetInputPortCount(int count,
             out IEnumerable<IGraphElementModel> newModels,
             out IEnumerable<IGraphElementModel> changedModels,

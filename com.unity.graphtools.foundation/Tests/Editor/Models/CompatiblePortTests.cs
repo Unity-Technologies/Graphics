@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
 {
@@ -59,6 +60,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             }
         }
 
+        [Serializable]
+        class NodeType5 : NodeModel
+        {
+            public IPortModel NoConnectorIn0 { get; private set; }
+
+            protected override void OnDefineNode()
+            {
+                base.OnDefineNode();
+
+                NoConnectorIn0 = this.AddNoConnectorInputPort("noConnectorIn0", TypeHandle.Int);
+            }
+        }
+
         protected override bool CreateGraphOnStartup => true;
 
         [Test]
@@ -86,6 +100,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             var node2 = GraphModel.CreateNode<NodeType4>("test2", 100 * Vector2.right);
 
             Assert.IsNull(node2.GetPortFitToConnectTo(node1.DataOut0));
+        }
+
+        [Test]
+        public void DataPortDoesNotConnectToNoConnectorDataPort()
+        {
+            var node1 = GraphModel.CreateNode<NodeType1>("test1", Vector2.zero);
+            var node2 = GraphModel.CreateNode<NodeType5>("test2", 100 * Vector2.right);
+
+            Assert.IsNull(node2.GetPortFitToConnectTo(node1.DataOut0));
+        }
+
+        [Test]
+        public void ExecutionPortDoesNotConnectToNoConnectorDataPort()
+        {
+            var node1 = GraphModel.CreateNode<NodeType3>("test1", Vector2.zero);
+            var node2 = GraphModel.CreateNode<NodeType5>("test2", 100 * Vector2.right);
+
+            Assert.IsNull(node2.GetPortFitToConnectTo(node1.ExecOut0));
         }
     }
 }

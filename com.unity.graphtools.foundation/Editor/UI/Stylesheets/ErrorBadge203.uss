@@ -1,0 +1,16 @@
+.ge-error-badge
+{
+    width: 22px;
+    height: 22px;
+}
+
+.ge-error-badge__tip
+{
+    width: 7px;
+    height: 4px;
+}
+
+.ge-error-badge__icon
+{
+    padding: 1px;
+}

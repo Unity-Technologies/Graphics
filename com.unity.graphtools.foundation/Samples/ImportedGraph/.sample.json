@@ -1,0 +1,5 @@
+{
+    "displayName": "Imported Graph example",
+    "description": "An example showing how you can use GTF with graphs created from an importer.",
+    "createSeparatePackage": false
+}

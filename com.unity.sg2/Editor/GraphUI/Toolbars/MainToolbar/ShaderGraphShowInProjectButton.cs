@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.Toolbars;
 using UnityEngine;
 
@@ -19,10 +19,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnClick()
         {
             // If no currently opened graph, early out
-            if (GraphTool.ToolState.AssetModel == null)
+            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() == null)
                 return;
 
-            var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+            var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
             var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
             EditorGUIUtility.PingObject(asset);
         }

@@ -5,11 +5,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public interface ISubgraphNodeModel : IInputOutputPortsNodeModel, IHasTitle
     {
         /// <summary>
-        /// The graph asset referenced by the subgraph node.
+        /// The graph referenced by the subgraph node.
         /// </summary>
-        IGraphAssetModel SubgraphAssetModel { get; set; }
+        IGraphModel SubgraphModel { get; set; }
         /// <summary>
-        /// The guid of the graph asset referenced by the subgraph node.
+        /// The guid of the graph referenced by the subgraph node.
         /// </summary>
         string SubgraphGuid { get; }
         /// <summary>

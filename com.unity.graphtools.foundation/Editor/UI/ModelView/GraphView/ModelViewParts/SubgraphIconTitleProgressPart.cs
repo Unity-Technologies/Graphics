@@ -43,7 +43,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 m_Icon.AddToClassList(ussClassName.WithUssElement("asset-graph-icon"));
                 m_Icon.AddToClassList(m_ParentClassName.WithUssElement("asset-graph-icon"));
 
-                if (subgraphNodeModel.SubgraphAssetModel == null)
+                if (subgraphNodeModel.SubgraphModel == null)
                 {
                     var warningIcon = new Image { name = "missing-graph-icon" };
                     warningIcon.AddToClassList(ussClassName.WithUssElement("icon"));

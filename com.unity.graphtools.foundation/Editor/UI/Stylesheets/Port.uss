@@ -13,8 +13,10 @@
 
 .ge-port__connector-container {
     min-height: 24px;
+    min-width: 24px;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
 }
 
 /* Make this more specific than the data type color. Not super nice. */
@@ -47,6 +49,10 @@
 
 .ge-port--direction-output .ge-port__connector-container {
     flex-direction: row-reverse;
+}
+
+.ge-port--capacity-none .ge-port__connector {
+    visibility: hidden;
 }
 
 .ge-port__connector {

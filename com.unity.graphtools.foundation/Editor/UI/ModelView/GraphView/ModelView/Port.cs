@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive.InternalModels;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -25,6 +24,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public static readonly string notConnectedModifierUssClassName = ussClassName.WithUssModifier("not-connected");
         public static readonly string inputModifierUssClassName = ussClassName.WithUssModifier("direction-input");
         public static readonly string outputModifierUssClassName = ussClassName.WithUssModifier("direction-output");
+        public static readonly string capacityNoneModifierUssClassName = ussClassName.WithUssModifier("capacity-none");
         public static readonly string hiddenModifierUssClassName = ussClassName.WithUssModifier("hidden");
         public static readonly string dropHighlightAcceptedClass = ussClassName.WithUssModifier("drop-highlighted");
         public static readonly string dropHighlightDeniedClass = dropHighlightAcceptedClass.WithUssModifier("denied");
@@ -112,9 +112,40 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         public virtual bool CanAcceptDrop(IReadOnlyList<IGraphElementModel> droppedElements)
         {
-            return droppedElements.Count == 1
-                && PortModel.PortType == PortType.Data
-                && GetPortToConnect(droppedElements[0]) != null;
+            // Only one element can be dropped at once.
+            if (droppedElements.Count != 1)
+                return false;
+
+            // The elements that can be dropped: a variable declaration from the Blackboard and any node with a single input or output (eg.: variable and constant nodes).
+            switch (droppedElements[0])
+            {
+                case IVariableDeclarationModel variableDeclaration:
+                    return CanAcceptDroppedVariable(variableDeclaration);
+                case ISingleInputPortNodeModel singleInputNode:
+                case ISingleOutputPortNodeModel singleOutputNode:
+                    return GetPortToConnect(droppedElements[0]) != null;
+                default:
+                    return false;
+            }
+        }
+
+        bool CanAcceptDroppedVariable(IVariableDeclarationModel variableDeclaration)
+        {
+            if (PortModel.Capacity == PortCapacity.None)
+                return false;
+
+            if (!variableDeclaration.IsInputOrOutput())
+                return PortModel.Direction == PortDirection.Input && variableDeclaration.DataType == PortModel.DataTypeHandle;
+
+            var isTrigger = variableDeclaration.IsInputOrOutputTrigger();
+            if (isTrigger && PortModel.PortType != PortType.Execution || !isTrigger && PortModel.DataTypeHandle != variableDeclaration.DataType)
+                return false;
+
+            var isInput = variableDeclaration.Modifiers == ModifierFlags.Read;
+            if (isInput && PortModel.Direction != PortDirection.Input || !isInput && PortModel.Direction != PortDirection.Output)
+                return false;
+
+            return true;
         }
 
         /// <inheritdoc />
@@ -140,7 +171,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             var portToConnect = GetPortToConnect(selectable);
             Assert.IsNotNull(portToConnect);
 
-            GraphView.Dispatch(new CreateEdgeCommand(PortModel, portToConnect, null, true));
+            var toPort = portToConnect.Direction == PortDirection.Input ? portToConnect : PortModel;
+            var fromPort = portToConnect.Direction == PortDirection.Input ? PortModel : portToConnect;
+
+            GraphView.Dispatch(new CreateEdgeCommand(toPort, fromPort, true));
         }
 
         /// <inheritdoc />
@@ -154,9 +188,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         protected override void PostBuildUI()
         {
             ConnectorElement = this.SafeQ(connectorPartName) ?? this;
-
-            EdgeConnector = new EdgeConnector(GraphView, new EdgeConnectorListener());
-            EdgeConnector.SetDropOutsideDelegate(OnDropOutsideCallback);
+            EdgeConnector = new EdgeConnector(GraphView);
 
             AddToClassList(ussClassName);
             this.AddStylesheet("Port.uss");
@@ -249,7 +281,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             EnableInClassList(inputModifierUssClassName, PortModel.Direction == PortDirection.Input);
             EnableInClassList(outputModifierUssClassName, PortModel.Direction == PortDirection.Output);
-
+            EnableInClassList(capacityNoneModifierUssClassName, PortModel.Capacity == PortCapacity.None);
             EnableInClassList(verticalModifierUssClassName, PortModel.Orientation == PortOrientation.Vertical);
 
             this.PrefixEnableInClassList(portDataTypeClassNamePrefix, GetClassNameSuffixForDataType(PortModel.PortDataType));
@@ -311,24 +343,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             var portConnector = PartList.GetPart(connectorPartName) as PortConnectorPart;
             return portConnector?.Connector ?? portConnector?.Root ?? this;
-        }
-
-        protected void OnDropOutsideCallback(GraphView graphView, IEnumerable<Edge> edges, IEnumerable<IPortModel> ports, Vector2 pos)
-        {
-            if (!(GraphView.GraphModel?.Stencil is Stencil stencil))
-                return;
-
-            Vector2 localPos = GraphView.ContentViewContainer.WorldToLocal(pos);
-
-            List<IPortModel> existingPortModels = new List<IPortModel>();
-
-            foreach (var edge in edges.Zip(ports, (a, b) => new { edge = a, port = b }))
-            {
-                existingPortModels.Add(edge.port);
-            }
-
-            stencil.CreateNodesFromPort(RootView, RootView.GraphTool.Preferences, PortModel.GraphModel,
-                existingPortModels, localPos, pos);
         }
 
         IPortModel GetPortToConnect(IGraphElementModel selectable)

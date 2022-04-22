@@ -6,7 +6,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI;
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
 {
     [Serializable]
-    public class ContextSampleAsset : GraphAssetModel
+    public class ContextSampleAsset : GraphAsset
     {
         protected override Type GraphModelType => typeof(ContextSample);
 
@@ -20,17 +20,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
             if (window != null)
                 graphTool = window.GraphTool;
 
-            GraphAssetCreationHelpers<ContextSampleAsset>.CreateInProjectWindow(template, graphTool, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<ContextSampleAsset>(template, graphTool, path);
         }
 
         [OnOpenAsset(1)]
         public static bool OpenGraphAsset(int instanceId, int line)
         {
             var obj = EditorUtility.InstanceIDToObject(instanceId);
-            if (obj is ContextSampleAsset graphAssetModel)
+            if (obj is ContextSampleAsset graphAsset)
             {
-                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ContextGraphViewWindow>(graphAssetModel.GetPath());
-                window.SetCurrentSelection(window.GraphTool?.ToolState?.AssetModel?? graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ContextGraphViewWindow>(graphAsset.FilePath);
+                graphAsset = window.GraphTool?.ToolState?.CurrentGraph.GetGraphAsset() as ContextSampleAsset ?? graphAsset;
+                window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
                 return true;
             }
 

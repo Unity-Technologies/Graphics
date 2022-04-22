@@ -1,4 +1,5 @@
 using System.Linq;
+using UnityEngine;
 using UnityEngine.UIElements;
 // ReSharper disable InconsistentNaming
 
@@ -34,6 +35,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         public override VisualElement contentContainer => m_ContentContainer ?? this;
 
+        /// The <see cref="DynamicBorder"/> used to display selection, hover and highlight.
+        protected DynamicBorder Border { get; private set; }
+
         /// <inheritdoc />
         protected override void BuildPartList()
         {
@@ -54,6 +58,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             var disabledOverlay = new VisualElement { name = disabledOverlayElementName, pickingMode = PickingMode.Ignore };
             hierarchy.Add(disabledOverlay);
+
+            Border = CreateDynamicBorder();
+            Border.AddToClassList(ussClassName.WithUssElement("dynamic-border"));
+            hierarchy.Add(Border);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="DynamicBorder"/> for this node.
+        /// </summary>
+        /// <returns>A <see cref="DynamicBorder"/> for this node.</returns>
+        protected virtual DynamicBorder CreateDynamicBorder()
+        {
+            return new DynamicBorder(this);
         }
 
         /// <inheritdoc />
@@ -91,6 +108,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             tooltip = NodeModel.Tooltip;
 
             UpdateColorFromModel();
+            Border.Selected = IsSelected();
         }
 
         /// <summary>
@@ -112,12 +130,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        public virtual void EditTitle()
+        public virtual void ActivateRename()
         {
             if (!((PartList.GetPart(titleContainerPartName) as EditableTitlePart)?.TitleLabel is EditableLabel label))
                 return;
 
             label.BeginEditing();
+        }
+
+        /// <inheritdoc />
+        public override void SetElementLevelOfDetail(float zoom)
+        {
+            base.SetElementLevelOfDetail(zoom);
+
+            Border.Zoom = zoom;
         }
     }
 }

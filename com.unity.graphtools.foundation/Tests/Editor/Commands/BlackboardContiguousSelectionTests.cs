@@ -63,22 +63,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("out1",false,TypeHandle.Float,typeof(BlackboardOutputVariableDeclarationModel)));
 
-            m_Infos.out1 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.out1 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("out2",false,TypeHandle.Float,typeof(BlackboardOutputVariableDeclarationModel)));
 
-            m_Infos.out2 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.out2 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var1",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel)));
 
-            m_Infos.var1 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var1 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var2",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel)));
 
-            m_Infos.var2 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var2 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             var variableSection =
-                m_GraphAssetModel.GraphModel.GetSectionModel(
+                m_GraphAsset.GraphModel.GetSectionModel(
                     Stencil.sections[(int)VariableType.Variable]);
 
             m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(variableSection,m_Infos.var2,"group1"));
@@ -89,12 +89,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var3",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel),m_Infos.group1));
             yield return null;
 
-            m_Infos.var3 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var3 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var4",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel),m_Infos.group1));
             yield return null;
 
-            m_Infos.var4 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var4 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(m_Infos.group1,m_Infos.var4,"group2"));
             yield return null;
@@ -104,7 +104,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var5",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel),m_Infos.group2));
             yield return null;
 
-            m_Infos.var5 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var5 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(m_Infos.group1,null,"group3"));
             yield return null;
@@ -114,7 +114,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var6",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel),m_Infos.group3));
             yield return null;
 
-            m_Infos.var6 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var6 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
            m_BlackboardView.Dispatch(new BlackboardGroupCreateCommand(m_Infos.group1,m_Infos.group3,"group4"));
             yield return null;
@@ -122,12 +122,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var7",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel),m_Infos.group1));
             yield return null;
 
-            m_Infos.var7 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var7 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             m_BlackboardView.Dispatch(new CreateGraphVariableDeclarationCommand("var8",false,TypeHandle.Float,typeof(BlackboardVariableDeclarationModel),variableSection));
             yield return null;
 
-            m_Infos.var8 = m_GraphAssetModel.GraphModel.VariableDeclarations.Last();
+            m_Infos.var8 = m_GraphAsset.GraphModel.VariableDeclarations.Last();
 
             yield return null;
         }

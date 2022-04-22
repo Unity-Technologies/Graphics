@@ -7,12 +7,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.CommandSystem
 {
     public class GraphModelStateTests
     {
-        IGraphAssetModel m_Asset1;
+        IGraphAsset m_Asset1;
 
         [SetUp]
         public void SetUp()
         {
-            m_Asset1 = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test1");
+            m_Asset1 = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test1");
         }
 
         [Test]

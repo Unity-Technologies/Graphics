@@ -131,14 +131,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             using (var graphUpdater = graphModelState.UpdateScope)
             {
                 var graphModel = graphModelState.GraphModel;
-                if (graphModel.AssetModel.IsContainerGraph() && (command.ModifierFlags == ModifierFlags.Read || command.ModifierFlags == ModifierFlags.Write))
+                if (graphModel.IsContainerGraph() && (command.ModifierFlags == ModifierFlags.Read || command.ModifierFlags == ModifierFlags.Write))
                 {
                     Debug.LogWarning("Cannot create an input or an output variable declaration in a container graph.");
                     return;
                 }
 
-                // GTF-EDIT
-                // Feed in the initialization callback we've added to the command
                 if (command.VariableType != null)
                     newVariableDeclaration = graphModel.CreateGraphVariableDeclaration(command.VariableType, command.TypeHandle, command.VariableName,
                         command.ModifierFlags, command.IsExposed, command.Group, command.IndexInGroup, null, command.Guid, command.InitializationCallback);

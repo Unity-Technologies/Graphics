@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 {
@@ -23,6 +22,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         string m_Title;
 
         [SerializeField, HideInInspector]
+        string m_Tooltip;
+
+        [SerializeField, HideInInspector]
         SerializedReferenceDictionary<string, IConstant> m_InputConstantsById;
 
         [SerializeField, HideInInspector]
@@ -35,11 +37,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         [SerializeField, HideInInspector]
         bool m_Collapsed;
-
-        /// <summary>
-        /// Stencil for this nodemodel, helper getter for Graphmodel Stencil
-        /// </summary>
-        protected IStencil Stencil => GraphModel.Stencil;
 
         /// <inheritdoc />
         public virtual string IconTypeString => "node";
@@ -62,7 +59,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public virtual string DisplayTitle => Title.Nicify();
 
         /// <inheritdoc />
-        public virtual string Tooltip { get; set; }
+        public virtual string Tooltip
+        {
+            get => m_Tooltip;
+            set => m_Tooltip = value;
+        }
 
         /// <inheritdoc />
         public Vector2 Position
@@ -272,7 +273,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 UniqueName = portId,
                 Options = options,
                 NodeModel = this,
-                AssetModel = AssetModel
+                GraphModel = GraphModel
             };
         }
 
@@ -326,7 +327,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             if (m_InputConstantsById.TryGetValue(id, out var constant))
             {
                 // Destroy existing constant if not compatible
-                var embeddedConstantType = Stencil.GetConstantNodeValueType(inputPort.DataTypeHandle);
+                var embeddedConstantType = GraphModel.Stencil.GetConstantType(inputPort.DataTypeHandle);
                 Type portDefinitionType;
                 if (embeddedConstantType != null)
                 {
@@ -348,12 +349,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             if (!m_InputConstantsById.ContainsKey(id)
                 && inputPort.CreateEmbeddedValueIfNeeded
                 && inputPort.DataTypeHandle != TypeHandle.Unknown
-                && Stencil.GetConstantNodeValueType(inputPort.DataTypeHandle) != null)
+                && GraphModel.Stencil.GetConstantType(inputPort.DataTypeHandle) != null)
             {
                 var embeddedConstant = ((GraphModel)GraphModel).Stencil.CreateConstantValue(inputPort.DataTypeHandle);
                 initializationCallback?.Invoke(embeddedConstant);
-                EditorUtility.SetDirty((Object)AssetModel);
                 m_InputConstantsById[id] = embeddedConstant;
+                GraphModel.Asset.Dirty = true;
             }
         }
 
@@ -371,7 +372,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 IConstant inputConstant = m_InputConstantsById[id];
                 IConstant newConstant = inputConstant.Clone();
                 m_InputConstantsById[id] = newConstant;
-                EditorUtility.SetDirty((Object)AssetModel);
+                GraphModel.Asset.Dirty = true;
             }
         }
 
@@ -401,8 +402,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
+
+            m_PreviousInputs = null;
+            m_PreviousOutputs = null;
             m_OutputsById = new OrderedPorts();
             m_InputsById = new OrderedPorts();
+
+            // DefineNode() will be called by the GraphModel.
         }
 
         /// <inheritdoc />

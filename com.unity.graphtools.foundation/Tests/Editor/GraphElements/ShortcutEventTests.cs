@@ -73,7 +73,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             return new TestGraphView(this, GraphTool);
         }
 
-        protected override bool CanHandleAssetType(IGraphAssetModel asset)
+        protected override bool CanHandleAssetType(IGraphAsset asset)
         {
             return true;
         }
@@ -93,8 +93,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             m_Window.CloseAllOverlays();
             m_Helper = new TestEventHelpers(m_Window);
 
-            var graphAsset = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
-            m_Window.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+            var graphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
+            m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             m_Window.GraphTool.Update();
         }
 

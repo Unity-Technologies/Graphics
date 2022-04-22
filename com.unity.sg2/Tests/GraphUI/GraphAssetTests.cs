@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     [TestFixture]
     class AssetTestFixture
     {
-        static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(SelectionDragger.panAreaWidth * 8, SelectionDragger.panAreaWidth * 6));
+        static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(/*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
 
         [OneTimeSetUp]
         public void Setup()

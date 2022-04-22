@@ -23,18 +23,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             WantsTransientPrefs = true;
             base.InitState();
 
-            var assetKey = PersistedState.MakeAssetKey(ToolState.AssetModel);
+            var assetKey = PersistedState.MakeGraphKey(ToolState.GraphModel);
 
-            GraphModelState = PersistedState.GetOrCreateAssetStateComponent<GraphModelStateComponent>(default, assetKey);
+            GraphModelState = new GraphModelStateComponent();
             State.AddStateComponent(GraphModelState);
 
-            BlackboardViewState = PersistedState.GetOrCreateAssetViewStateComponent<BlackboardViewStateComponent>(default, Hash128.Compute(1), assetKey);
+            BlackboardViewState = PersistedState.GetOrCreatePersistedStateComponent<BlackboardViewStateComponent>(default, Hash128.Compute(1), assetKey);
             State.AddStateComponent(BlackboardViewState);
 
-            BlackboardSelectionState = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Hash128.Compute(1), assetKey);
+            BlackboardSelectionState = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Hash128.Compute(1), assetKey);
             State.AddStateComponent(BlackboardSelectionState);
 
-            GraphViewSelectionState = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Hash128.Compute(0), assetKey);
+            GraphViewSelectionState = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Hash128.Compute(0), assetKey);
             State.AddStateComponent(GraphViewSelectionState);
 
             // Register the graph view commands on the tool's dispatcher.
@@ -43,10 +43,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             IStateObserver observer = new GraphModelStateComponent.GraphAssetLoadedObserver(ToolState, GraphModelState);
             ObserverManager.RegisterObserver(observer);
 
-            observer = new BlackboardGraphAssetLoadedObserver(ToolState, BlackboardViewState, BlackboardSelectionState);
+            observer = new BlackboardGraphLoadedObserver(ToolState, BlackboardViewState, BlackboardSelectionState);
             ObserverManager.RegisterObserver(observer);
 
-            observer = new SelectionStateComponent.GraphAssetLoadedObserver(ToolState, GraphViewSelectionState);
+            observer = new SelectionStateComponent.GraphLoadedObserver(ToolState, GraphViewSelectionState);
             ObserverManager.RegisterObserver(observer);
         }
     }

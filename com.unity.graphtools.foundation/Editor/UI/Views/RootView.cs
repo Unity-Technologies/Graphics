@@ -100,6 +100,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             BuildUI();
             Model?.AddToState(GraphTool?.State);
             RegisterObservers();
+            UpdateFromModel();
         }
 
         /// <summary>

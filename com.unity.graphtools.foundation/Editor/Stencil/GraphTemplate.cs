@@ -12,9 +12,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// Initializes a new instance of the <see cref="GraphTemplate{TStencil}"/> class.
         /// </summary>
         /// <param name="graphTypeName">The name of the type of graph for this template.</param>
-        public GraphTemplate(string graphTypeName = "Graph")
+        /// <param name="graphFileExtension">Extension for the files used to save the graph.</param>
+        public GraphTemplate(string graphTypeName = "Graph", string graphFileExtension = "asset")
         {
             GraphTypeName = graphTypeName;
+            GraphFileExtension = graphFileExtension;
         }
 
         /// <inheritdoc />
@@ -30,5 +32,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         /// <inheritdoc />
         public virtual string DefaultAssetName => GraphTypeName;
+
+        public string GraphFileExtension { get; }
     }
 }

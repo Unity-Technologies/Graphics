@@ -9,7 +9,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     /// <summary>
     /// A model that represents a port in a node.
     /// </summary>
-    [Serializable]
     [MovedFrom(false, sourceAssembly: "Unity.GraphTools.Foundation.Overdrive.Editor")]
     public class PortModel : GraphElementModel, IReorderableEdgesPortModel, IHasTitle
     {
@@ -25,7 +24,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         Type m_PortDataTypeCache;
 
         string m_TooltipCache;
-        string m_TooltipOverride = null;
+        string m_TooltipOverride;
 
         /// <inheritdoc />
         public IPortNodeModel NodeModel { get; set; }
@@ -235,14 +234,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-            if (AssetModel == null && NodeModel != null)
-                AssetModel = NodeModel.AssetModel;
-        }
-
-        /// <inheritdoc />
         public virtual bool CreateEmbeddedValueIfNeeded => PortType == PortType.Data;
 
         /// <inheritdoc />
@@ -252,27 +243,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
-        public virtual void MoveEdgeFirst(IEdgeModel edge)
+        public void ReorderEdge(IEdgeModel edgeModel, ReorderType reorderType)
         {
-            ReorderableEdgesPortDefaultImplementations.MoveEdgeFirst(this, edge);
-        }
-
-        /// <inheritdoc />
-        public virtual void MoveEdgeUp(IEdgeModel edge)
-        {
-            ReorderableEdgesPortDefaultImplementations.MoveEdgeUp(this, edge);
-        }
-
-        /// <inheritdoc />
-        public virtual void MoveEdgeDown(IEdgeModel edge)
-        {
-            ReorderableEdgesPortDefaultImplementations.MoveEdgeDown(this, edge);
-        }
-
-        /// <inheritdoc />
-        public virtual void MoveEdgeLast(IEdgeModel edge)
-        {
-            ReorderableEdgesPortDefaultImplementations.MoveEdgeLast(this, edge);
+            (GraphModel as GraphModel)?.ReorderEdge(edgeModel, reorderType);
         }
 
         /// <inheritdoc />
