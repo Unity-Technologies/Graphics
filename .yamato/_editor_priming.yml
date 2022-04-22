@@ -11,7 +11,7 @@ editor:priming:trunk:Win:
     name: '[trunk,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -34,7 +34,7 @@ editor:priming:CUSTOM-REVISION:Win:
     name: '[CUSTOM-REVISION,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -57,7 +57,7 @@ editor:priming:test_min_editor:Win:
     name: '[Min_Editor,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -80,7 +80,7 @@ editor:priming:trunk:OSX:
     name: '[trunk,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -103,7 +103,7 @@ editor:priming:CUSTOM-REVISION:OSX:
     name: '[CUSTOM-REVISION,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -126,7 +126,7 @@ editor:priming:test_min_editor:OSX:
     name: '[Min_Editor,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -149,7 +149,7 @@ editor:priming:trunk:OSX_Apple_Silicon:
     name: '[trunk,OSX_Apple_Silicon] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -172,7 +172,7 @@ editor:priming:CUSTOM-REVISION:OSX_Apple_Silicon:
     name: '[CUSTOM-REVISION,OSX_Apple_Silicon] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -195,7 +195,7 @@ editor:priming:test_min_editor:OSX_Apple_Silicon:
     name: '[Min_Editor,OSX_Apple_Silicon] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -218,7 +218,7 @@ editor:priming:trunk:Linux:
     name: '[trunk,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -241,7 +241,7 @@ editor:priming:CUSTOM-REVISION:Linux:
     name: '[CUSTOM-REVISION,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -264,7 +264,7 @@ editor:priming:test_min_editor:Linux:
     name: '[Min_Editor,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -287,7 +287,7 @@ editor:priming:trunk:Android:
     name: '[trunk,Android] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -310,7 +310,7 @@ editor:priming:CUSTOM-REVISION:Android:
     name: '[CUSTOM-REVISION,Android] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -333,7 +333,7 @@ editor:priming:test_min_editor:Android:
     name: '[Min_Editor,Android] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -356,7 +356,7 @@ editor:priming:trunk:XRQuest:
     name: '[trunk,XRQuest] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -379,7 +379,7 @@ editor:priming:CUSTOM-REVISION:XRQuest:
     name: '[CUSTOM-REVISION,XRQuest] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -402,7 +402,7 @@ editor:priming:test_min_editor:XRQuest:
     name: '[Min_Editor,XRQuest] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -425,7 +425,7 @@ editor:priming:trunk:iPhone:
     name: '[trunk,iPhone] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -448,7 +448,7 @@ editor:priming:CUSTOM-REVISION:iPhone:
     name: '[CUSTOM-REVISION,iPhone] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -471,7 +471,7 @@ editor:priming:test_min_editor:iPhone:
     name: '[Min_Editor,iPhone] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.small
     variables:
         DISPLAY: ":0"
