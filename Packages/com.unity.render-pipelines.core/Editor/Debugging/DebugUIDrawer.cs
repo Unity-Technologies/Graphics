@@ -187,4 +187,55 @@ namespace UnityEditor.Rendering
             }
         }
     }
+
+    /// <summary>
+    /// Common class to help drawing widgets
+    /// </summary>
+    /// <typeparam name="TWidget">The widget</typeparam>
+    public abstract class DebugUIWidgetDrawer<TWidget> : DebugUIDrawer
+        where TWidget : DebugUI.Widget
+    {
+        /// <summary>
+        /// Implement this to execute processing before UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void Begin(DebugUI.Widget widget, DebugState state)
+        {
+        }
+
+        /// <summary>
+        /// Implement this to execute UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>Returns the state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            DoGUI(
+                PrepareControlRect(),
+                EditorGUIUtility.TrTextContent(widget.displayName, widget.tooltip),
+                Cast<TWidget>(widget)
+            );
+
+            return true;
+        }
+
+        /// <summary>
+        /// Does the field of the given type
+        /// </summary>
+        /// <param name="rect">The rect to draw the field</param>
+        /// <param name="label">The label for the field</param>
+        /// <param name="w">The widget</param>
+        protected abstract void DoGUI(Rect rect, GUIContent label, TWidget w);
+
+        /// <summary>
+        /// Implement this to execute processing after UI rendering.
+        /// </summary>
+        /// <param name="widget">Widget that is going to be rendered.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        public override void End(DebugUI.Widget widget, DebugState state)
+        {
+        }
+    }
 }

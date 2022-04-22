@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -43,6 +44,22 @@ namespace UnityEngine.Rendering.HighDefinition
             [Obsolete("Moved to HDDebugDisplaySettings.Instance. Will be removed soon.")]
             public IVolumeDebugSettings volumeDebugSettings = new HDVolumeDebugSettings();
         }
+
+        /// <summary>List of Full Screen Lighting RTAS Debug view names.</summary>
+        [Obsolete("Use autoenum instead @from(2022.2)")]
+        public static GUIContent[] lightingFullScreenRTASDebugViewStrings => Enum.GetNames(typeof(RTASDebugView)).Select(t => new GUIContent(t)).ToArray();
+
+        /// <summary>List of Full Screen Lighting RTAS Debug view values.</summary>
+        [Obsolete("Use autoenum instead @from(2022.2)")]
+        public static int[] lightingFullScreenRTASDebugViewValues => (int[])Enum.GetValues(typeof(RTASDebugView));
+
+        /// <summary>List of Full Screen Lighting RTAS Debug mode names.</summary>
+        [Obsolete("Use autoenum instead @from(2022.2)")]
+        public static GUIContent[] lightingFullScreenRTASDebugModeStrings => Enum.GetNames(typeof(RTASDebugMode)).Select(t => new GUIContent(t)).ToArray();
+
+        /// <summary>List of Full Screen Lighting RTAS Debug mode values.</summary>
+        [Obsolete("Use autoenum instead @from(2022.2)")]
+        public static int[] lightingFullScreenRTASDebugModeValues => (int[])Enum.GetValues(typeof(RTASDebugMode));
     }
 
     /// <summary>

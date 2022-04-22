@@ -8,6 +8,7 @@ using System.Linq;
 using UnityEditor.Callbacks;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
@@ -203,6 +204,26 @@ namespace UnityEditor.Rendering
             m_WidgetStates.Clear();
         }
 
+        public void ReloadWidgetStates()
+        {
+            if (m_WidgetStates == null)
+                return;
+
+            // Clear all the states from memory
+            foreach (var state in m_WidgetStates)
+            {
+                var widget = DebugManager.instance.GetItem(state.Key);
+                if (widget == null)
+                {
+                    var s = state.Value;
+                    Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
+                    DestroyImmediate(s);
+                }
+            }
+
+            UpdateWidgetStates();
+        }
+
         bool AreWidgetStatesValid()
         {
             foreach (var state in m_WidgetStates)
@@ -246,15 +267,13 @@ namespace UnityEditor.Rendering
                     if (widget.isInactiveInEditor)
                         return;
 
-                    var widgetType = widget.GetType();
                     string guid = widget.queryPath;
-                    s_WidgetStateMap.TryGetValue(widgetType, out Type stateType);
-
-                    // Create missing states & recreate the ones that are null
-                    if (stateType != null)
+                    if (!m_WidgetStates.TryGetValue(guid, out var state) || state == null)
                     {
-                        if (!m_WidgetStates.ContainsKey(guid) || m_WidgetStates[guid] == null)
+                        var widgetType = widget.GetType();
+                        if (s_WidgetStateMap.TryGetValue(widgetType, out Type stateType))
                         {
+                            Assert.IsNotNull(stateType);
                             var inst = (DebugState)CreateInstance(stateType);
                             inst.queryPath = guid;
                             inst.SetValue(valueField.GetValue(), valueField);
@@ -325,7 +344,8 @@ namespace UnityEditor.Rendering
             // some debug values need to be refresh/recreated as well (e.g. frame settings on HD)
             if (DebugManager.instance.refreshEditorRequested)
             {
-                DestroyWidgetStates();
+                ReloadWidgetStates();
+                m_IsDirty = true;
                 DebugManager.instance.refreshEditorRequested = false;
             }
 
@@ -517,9 +537,7 @@ namespace UnityEditor.Rendering
 
                 if (drawer.OnGUI(widget, state))
                 {
-                    var container = widget as DebugUI.IContainer;
-
-                    if (container != null)
+                    if (widget is DebugUI.IContainer container)
                         TraverseContainerGUI(container);
                 }
 
