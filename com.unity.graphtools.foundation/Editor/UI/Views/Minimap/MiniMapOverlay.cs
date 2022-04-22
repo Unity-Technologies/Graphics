@@ -7,16 +7,21 @@ using UnityEngine.UIElements;
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     [Overlay(typeof(GraphViewEditorWindow), idValue, "MiniMap",
-        defaultDockZone = DockZone.LeftColumn, defaultDockPosition = DockPosition.Bottom, defaultLayout = Layout.Panel)]
+        defaultDockZone = DockZone.LeftColumn, defaultDockPosition = DockPosition.Bottom,
+        defaultLayout = Layout.Panel/*, defaultWidth = 200, defaultHeight = 150*/)]
     [Icon( AssetHelper.AssetPath + "UI/Stylesheets/Icons/PanelsToolbar/MiniMap.png")]
-    sealed class MiniMapOverlay : ResizableOverlay
+    sealed class MiniMapOverlay : Overlay
     {
         public const string idValue = "gtf-minimap";
 
-        protected override string Stylesheet => "MiniMapOverlay.uss";
+        public MiniMapOverlay()
+        {
+            minSize = new Vector2(100, 100);
+            maxSize = Vector2.positiveInfinity;
+        }
 
         /// <inheritdoc />
-        protected override VisualElement CreateResizablePanelContent()
+        public override VisualElement CreatePanelContent()
         {
             var window = containerWindow as GraphViewEditorWindow;
             if (window != null && window.GraphView != null)

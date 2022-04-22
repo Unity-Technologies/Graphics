@@ -23,18 +23,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField]
         protected string m_EdgeLabel;
 
-        protected IPortModel m_FromPortModelCache;
+        IPortModel m_FromPortModelCache;
 
-        protected IPortModel m_ToPortModelCache;
+        IPortModel m_ToPortModelCache;
 
-
-        public void InitAssetModel(IGraphAssetModel model)
+        /// <inheritdoc />
+        public override IGraphModel GraphModel
         {
-            AssetModel = model;
-            m_FromPortReference.InitAssetModel(model);
-            m_ToPortReference.InitAssetModel(model);
+            get => base.GraphModel;
+            set
+            {
+                base.GraphModel = value;
+                m_FromPortReference.AssignGraphModel(value);
+                m_ToPortReference.AssignGraphModel(value);
+            }
         }
-
 
         /// <inheritdoc />
         public virtual IPortModel FromPort
@@ -77,8 +80,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public virtual string EdgeLabel
         {
-            get => m_EdgeLabel ?? (FromPort as IHasTitle)?.Title ?? "";
+            get => string.IsNullOrEmpty(m_EdgeLabel) ? GetEdgeOrderLabel() : m_EdgeLabel;
             set => m_EdgeLabel = value;
+        }
+
+        string GetEdgeOrderLabel()
+        {
+            var edgeOrder = (FromPort as IReorderableEdgesPortModel)?.GetEdgeOrder(this) ?? -1;
+            return edgeOrder == -1 ? "" : (edgeOrder + 1).ToString();
         }
 
         /// <summary>
@@ -125,13 +134,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{m_ToPortReference} -> {m_FromPortReference}";
+            return $"{m_FromPortReference} -> {m_ToPortReference}";
         }
 
-        internal void ResetPortCache()
+        /// <summary>
+        /// Resets the port cache of the edge.
+        /// </summary>
+        /// <remarks>After that call, the <see cref="FromPort"/>
+        /// and the <see cref="ToPort"/> will be resolved from the port reference data.</remarks>
+        public void ResetPortCache()
         {
             m_FromPortModelCache = default;
             m_ToPortModelCache = default;
+
+            m_FromPortReference.ResetCache();
+            m_ToPortReference.ResetCache();
         }
 
         /// <summary>
@@ -178,6 +195,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             }
 
             return (inputResult, outputResult);
+        }
+
+        /// <inheritdoc />
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            ResetPortCache();
         }
     }
 }

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.AssetImporters;
 #if UNITY_2022_2_OR_NEWER
 using UnityEditor.Overlays;
 using UnityEditor.Toolbars;
 #endif
 using UnityEditor.UIElements;
+using UnityEditor.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.UIR;
@@ -173,11 +175,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             }
         }
 
-        public static bool IsLayoutManual(this VisualElement ve)
-        {
-            return ve.isLayoutManual;
-        }
-
+#if !UNITY_2022_2_OR_NEWER
         // Do not use this function in new code. It is here to support old code.
         // Set element dimensions using styles, with position: absolute.
         // When removing this function, also remove IsLayoutManual above, as it will always return false.
@@ -185,6 +183,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
         {
             ve.layout = layout;
         }
+#endif
 
         public static void SetCheckedPseudoState(this VisualElement ve, bool set)
         {
@@ -237,6 +236,35 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
 
         public static void Border(MeshGenerationContext mgc, Rect rectParams, Color color, ContextType context)
         {
+            Border(mgc, rectParams, color, 1, Vector2.zero, context);
+        }
+
+        public static void Border(MeshGenerationContext mgc, Rect rectParams, Color[] colors, float borderWidth, Vector2[] radii, ContextType context)
+        {
+            var borderParams = new MeshGenerationContextUtils.BorderParams
+            {
+                rect = rectParams,
+                playmodeTintColor = context == ContextType.Editor
+                    ? UIElementsUtility.editorPlayModeTintColor
+                    : Color.white,
+                bottomColor = colors[0],
+                topColor = colors[1],
+                leftColor = colors[2],
+                rightColor = colors[3],
+                leftWidth = borderWidth,
+                rightWidth = borderWidth,
+                topWidth = borderWidth,
+                bottomWidth = borderWidth,
+                topLeftRadius = radii[0],
+                topRightRadius = radii[1],
+                bottomRightRadius = radii[2],
+                bottomLeftRadius = radii[3]
+            };
+            mgc.Border(borderParams);
+        }
+
+        public static void Border(MeshGenerationContext mgc, Rect rectParams, Color color,float borderWidth,Vector2 radius, ContextType context)
+        {
             var borderParams = new MeshGenerationContextUtils.BorderParams
             {
                 rect = rectParams,
@@ -247,10 +275,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
                 topColor = color,
                 leftColor = color,
                 rightColor = color,
-                leftWidth = 1,
-                rightWidth = 1,
-                topWidth = 1,
-                bottomWidth = 1
+                leftWidth = borderWidth,
+                rightWidth = borderWidth,
+                topWidth = borderWidth,
+                bottomWidth = borderWidth,
+                topLeftRadius = radius,
+                topRightRadius = radius,
+                bottomRightRadius = radius,
+                bottomLeftRadius = radius
             };
             mgc.Border(borderParams);
         }
@@ -277,10 +309,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             return ve.DoMeasure(desiredWidth, widthMode, desiredHeight, heightMode);
         }
 
+#if !UNITY_2022_2_OR_NEWER
         public static StyleLength GetComputedStyleWidth(this VisualElement ve)
         {
             return ve.computedStyle.width;
         }
+#endif
 
         public static void SetRenderHintsForGraphView(this VisualElement ve)
         {
@@ -402,6 +436,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Bridge
             return overlay.rootVisualElement;
         }
 #endif
+
+        public static void ImportStyleSheet(AssetImportContext ctx, StyleSheet asset, string contents)
+        {
+            var importer = new StyleSheetImporterImpl(ctx);
+            importer.Import(asset, contents);
+        }
     }
 
     public abstract class GraphViewToolWindowBridge : EditorWindow

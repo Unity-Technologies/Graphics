@@ -23,9 +23,6 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
 
         protected Hash128 WindowID { get; private set; }
 
-        /// <inheritdoc />
-        public ICommandTarget Parent => null;
-
         /// <summary>
         /// The command dispatcher.
         /// </summary>

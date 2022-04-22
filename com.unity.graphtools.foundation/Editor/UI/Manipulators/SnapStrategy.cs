@@ -24,7 +24,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         public bool Enabled { get; set; }
 
-        protected float m_CurrentScale = 1.0f;
         protected GraphView m_GraphView;
         protected float SnapDistance { get; }
         protected bool IsPaused { get; private set; }
@@ -39,7 +38,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         public abstract void BeginSnap(GraphElement selectedElement);
 
-        public abstract Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement, float scale, Vector2 mousePanningDelta = default);
+        public abstract Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement);
 
         public abstract void EndSnap();
 

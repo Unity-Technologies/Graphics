@@ -9,12 +9,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
     [SearcherItem(typeof(MathBookStencil), SearcherContext.Graph, "Result")]
     public class MathResult : MathNode, IRebuildNodeOnConnection
     {
-        static TypeHandle[] s_DefaultAllowedInputs =
+        public static TypeHandle[] DefaultAllowedInputs =
         {
             TypeHandle.Bool, TypeHandle.Float, TypeHandle.Int, TypeHandle.Vector2, TypeHandle.Vector3
         };
 
-        public override TypeHandle[] ValueInputTypes => s_DefaultAllowedInputs;
+        public override TypeHandle[] ValueInputTypes => DefaultAllowedInputs;
 
         public override string Title
         {

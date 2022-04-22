@@ -42,7 +42,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             else
                 m_Blocks.Insert(index, blockModel);
 
-            blockModel.AssetModel = AssetModel;
+            blockModel.GraphModel = GraphModel;
             blockModel.ContextNodeModel = this;
         }
 

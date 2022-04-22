@@ -326,6 +326,46 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
         }
 
         [Test]
+        public void Test_CreateNodeOnEdgeSide([Values] TestingMode mode)
+        {
+            var node1 = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", Vector2.zero);
+            var node2 = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", Vector2.zero);
+            var node3 = GraphModel.CreateNode<Type0FakeNodeModel>("Node3", Vector2.zero);
+            const string newNodeName = "newNode";
+            GraphModel.CreateEdge(node2.Input0, node1.Output0);
+            GraphModel.CreateEdge(node3.Input0, node1.Output0);
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    RefreshReference(ref node1);
+                    RefreshReference(ref node2);
+                    RefreshReference(ref node3);
+
+                    Assert.That(GetEdgeCount(), Is.EqualTo(2));
+                    Assert.That(node1.Output0.IsConnectedTo(node2.Input0));
+                    Assert.That(node1.Output0.IsConnectedTo(node3.Input0));
+
+                    return CreateNodeCommand.OnEdgeSide(
+                        new GraphNodeModelSearcherItem(new NodeSearcherItemData(typeof(int)), d => d.CreateNode(typeof(Type0FakeNodeModel), newNodeName)),
+                        node1.Output0.GetConnectedEdges().Select(e => (e, EdgeSide.From)),
+                        Vector2.down);
+                },
+                () =>
+                {
+                    var createdNode = GetAllNodes().OfType<Type0FakeNodeModel>().Single(n => n.Title == newNodeName);
+                    Assert.IsNotNull(createdNode);
+
+                    RefreshReference(ref node2);
+                    RefreshReference(ref node3);
+
+                    Assert.That(GetEdgeCount(), Is.EqualTo(2));
+                    Assert.That(createdNode.Output0.IsConnectedTo(node2.Input0));
+                    Assert.That(createdNode.Output0.IsConnectedTo(node3.Input0));
+                });
+        }
+
+        [Test]
         public void Test_CreateNodeFromOutputPort_NoConnection([Values] TestingMode testingMode)
         {
             var gedb = new GraphElementSearcherDatabase(Stencil, GraphModel);
@@ -406,8 +446,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             var item = (GraphNodeModelSearcherItem)db.Search(nameof(Type3FakeNodeModel))[0];
 
             var node0 = GraphModel.CreateNode<Type3FakeNodeModel>("Node0", Vector2.zero);
-            var input0 = node0.Input;
-            Assert.That(input0.Capacity, Is.EqualTo(PortCapacity.Single));
+            Assert.That(node0.Input.Capacity, Is.EqualTo(PortCapacity.Single));
 
             TestPrereqCommandPostreq(testingMode,
                 () =>
@@ -415,7 +454,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     RefreshReference(ref node0);
                     Assert.That(GetNodeCount(), Is.EqualTo(1));
                     Assert.That(GetEdgeCount(), Is.EqualTo(0));
-                    return CreateNodeCommand.OnPort(item, input0, Vector2.down);
+                    return CreateNodeCommand.OnPort(item, node0.Input, Vector2.down);
                 },
                 () =>
                 {
@@ -441,7 +480,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     RefreshReference(ref node0);
                     Assert.That(GetNodeCount(), Is.EqualTo(2));
                     Assert.That(GetEdgeCount(), Is.EqualTo(1));
-                    return CreateNodeCommand.OnPort(item, input0, Vector2.down);
+                    return CreateNodeCommand.OnPort(item, node0.Input, Vector2.down);
                 },
                 () =>
                 {
@@ -717,7 +756,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
         }
 
         [Test]
-        public void TestEdgeReorderCommand([Values] TestingMode mode, [Values] ReorderEdgeCommand.ReorderType reorderType)
+        public void TestEdgeReorderCommand([Values] TestingMode mode, [Values] ReorderType reorderType)
         {
             var originNode = GraphModel.CreateNode<Type0FakeNodeModel>("Origin", Vector2.zero);
             var destNode1 = GraphModel.CreateNode<Type0FakeNodeModel>("Dest1", Vector2.zero);
@@ -742,13 +781,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     RefreshReference(ref edge4);
                     RefreshReference(ref edge5);
 
-                    Assert.IsTrue(((PortModel)originNode.ExeOutput0)?.HasReorderableEdges ?? false);
-                    Assert.AreEqual(2, GraphModel.EdgeModels.IndexOfInternal(edge3));
+                    var port = originNode.ExeOutput0 as IReorderableEdgesPortModel;
+                    Assert.IsTrue(port?.HasReorderableEdges);
+                    Assert.AreEqual(2, port.GetEdgeOrder(edge3));
 
                     return new ReorderEdgeCommand(edge3, reorderType);
                 },
                 () =>
                 {
+                    RefreshReference(ref originNode);
                     RefreshReference(ref edge1);
                     RefreshReference(ref edge2);
                     RefreshReference(ref edge3);
@@ -758,28 +799,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     int expectedIdx;
                     switch (reorderType)
                     {
-                        case ReorderEdgeCommand.ReorderType.MoveFirst:
+                        case ReorderType.MoveFirst:
                             expectedIdx = 0;
                             break;
-                        case ReorderEdgeCommand.ReorderType.MoveUp:
+                        case ReorderType.MoveUp:
                             expectedIdx = 1;
                             break;
-                        case ReorderEdgeCommand.ReorderType.MoveDown:
+                        case ReorderType.MoveDown:
                             expectedIdx = 3;
                             break;
-                        case ReorderEdgeCommand.ReorderType.MoveLast:
+                        case ReorderType.MoveLast:
                             expectedIdx = 4;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException(nameof(reorderType), reorderType, "Unexpected value");
                     }
-                    Assert.AreEqual(expectedIdx, GraphModel.EdgeModels.IndexOfInternal(edge3));
+                    var port = originNode.ExeOutput0 as IReorderableEdgesPortModel;
+                    Assert.IsTrue(port?.HasReorderableEdges);
+                    Assert.AreEqual(expectedIdx, port.GetEdgeOrder(edge3));
                 }
             );
         }
 
         [Test]
-        public void TestEdgeReorderCommandWorksOnlyWithReorderableEdgePorts([Values] ReorderEdgeCommand.ReorderType reorderType)
+        public void TestEdgeReorderCommandWorksOnlyWithReorderableEdgePorts([Values] ReorderType reorderType)
         {
             var originNode = GraphModel.CreateNode<Type0FakeNodeModel>("Origin", Vector2.zero);
             var destNode1 = GraphModel.CreateNode<Type0FakeNodeModel>("Dest1", Vector2.zero);
@@ -799,6 +842,139 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 
             // Nothing has changed.
             Assert.AreEqual(immutableIdx, GraphModel.EdgeModels.IndexOfInternal(edge2));
+        }
+
+        [Test]
+        public void TestMoveEdgeCommandPreservesEdges([Values] TestingMode mode)
+        {
+            var originNode = GraphModel.CreateNode<Type0FakeNodeModel>("Origin", Vector2.zero);
+            var destNode = GraphModel.CreateNode<Type0FakeNodeModel>("Dest", Vector2.zero);
+
+            var edge1 = GraphModel.CreateEdge(destNode.Input0, originNode.Output0);
+            var edge2 = GraphModel.CreateEdge(destNode.Input1, originNode.Output0);
+            var label1 = "label1ToPreserve";
+            var label2 = "label2ToPreserve";
+            edge1.EdgeLabel = label1;
+            edge2.EdgeLabel = label2;
+            var edgeId1 = edge1.Guid;
+            var edgeId2 = edge2.Guid;
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    RefreshReference(ref destNode);
+
+                    Assert.AreEqual(2, GraphModel.EdgeModels.Count);
+                    edge1 = GraphModel.EdgeModels.Single(e => e.Guid == edgeId1);
+                    edge2 = GraphModel.EdgeModels.Single(e => e.Guid == edgeId2);
+                    Assert.AreEqual(originNode.Output0, edge1.FromPort);
+                    Assert.AreEqual(originNode.Output0, edge2.FromPort);
+                    Assert.AreEqual(destNode.Input0, edge1.ToPort);
+                    Assert.AreEqual(destNode.Input1, edge2.ToPort);
+                    Assert.AreEqual(label1, edge1.EdgeLabel);
+                    Assert.AreEqual(label2, edge2.EdgeLabel);
+                    return new MoveEdgeCommand(originNode.Output1, edge1, edge2);
+                },
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    RefreshReference(ref destNode);
+
+                    Assert.AreEqual(2, GraphModel.EdgeModels.Count);
+                    edge1 = GraphModel.EdgeModels.Single(e => e.Guid == edgeId1);
+                    edge2 = GraphModel.EdgeModels.Single(e => e.Guid == edgeId2);
+                    Assert.AreEqual(originNode.Output1, edge1.FromPort);
+                    Assert.AreEqual(originNode.Output1, edge2.FromPort);
+                    Assert.AreEqual(destNode.Input0, edge1.ToPort);
+                    Assert.AreEqual(destNode.Input1, edge2.ToPort);
+                    Assert.AreEqual(label1, edge1.EdgeLabel);
+                    Assert.AreEqual(label2, edge2.EdgeLabel);
+                });
+        }
+
+        [TestCase(TestingMode.Command, PortDirection.Input, EdgeSide.To)]
+        [TestCase(TestingMode.Command, PortDirection.Output, EdgeSide.From)]
+        [TestCase(TestingMode.UndoRedo, PortDirection.Input, EdgeSide.To)]
+        [TestCase(TestingMode.UndoRedo, PortDirection.Output, EdgeSide.From)]
+        [Test]
+        public void TestMoveEdgeCommandImplicitMovesCorrectSide(TestingMode mode, PortDirection destPortDirection, EdgeSide expectedMovedSide)
+        {
+            var originNode = GraphModel.CreateNode<Type0FakeNodeModel>("Origin", Vector2.zero);
+            var destNode = GraphModel.CreateNode<Type0FakeNodeModel>("Dest", Vector2.zero);
+
+            var edge = GraphModel.CreateEdge(destNode.Input0, originNode.Output0);
+            var movingPortName = edge.GetPort(expectedMovedSide).UniqueName;
+            var nonMovingPortName = edge.GetOtherPort(expectedMovedSide).UniqueName;
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    RefreshReference(ref destNode);
+
+                    var destPort = destPortDirection == PortDirection.Input ? destNode.Input1 : originNode.Output1;
+                    Assert.AreEqual(1, GraphModel.EdgeModels.Count);
+                    edge = GraphModel.EdgeModels[0];
+                    Assert.AreEqual(originNode.Output0, edge.FromPort);
+                    Assert.AreEqual(destNode.Input0, edge.ToPort);
+                    Assert.AreNotEqual(edge.GetPort(expectedMovedSide), destPort);
+                    return new MoveEdgeCommand(destPort, edge);
+                },
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    RefreshReference(ref destNode);
+
+                    var destPort = destPortDirection == PortDirection.Input ? destNode.Input1 : originNode.Output1;
+                    Assert.AreEqual(1, GraphModel.EdgeModels.Count);
+                    edge = GraphModel.EdgeModels[0];
+                    Assert.AreNotEqual(edge.GetPort(expectedMovedSide).UniqueName, movingPortName);
+                    Assert.AreEqual(edge.GetOtherPort(expectedMovedSide).UniqueName, nonMovingPortName);
+                    Assert.AreEqual(edge.GetPort(expectedMovedSide), destPort);
+                });
+        }
+
+        [TestCase(TestingMode.Command, EdgeSide.To)]
+        [TestCase(TestingMode.Command, EdgeSide.From)]
+        [TestCase(TestingMode.UndoRedo, EdgeSide.To)]
+        [TestCase(TestingMode.UndoRedo, EdgeSide.From)]
+        [Test]
+        public void TestMoveEdgeCommandExplicitMovesCorrectSide(TestingMode mode, EdgeSide expectedMovedSide)
+        {
+            var originNode = GraphModel.CreateNode<Type0FakeNodeModel>("Origin", Vector2.zero);
+            var destNode = GraphModel.CreateNode<Type0FakeNodeModel>("Dest", Vector2.zero);
+
+            var edge = GraphModel.CreateEdge(destNode.Input0, originNode.Output0);
+            var movingPortName = edge.GetPort(expectedMovedSide).UniqueName;
+            var nonMovingPortName = edge.GetOtherPort(expectedMovedSide).UniqueName;
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    RefreshReference(ref destNode);
+
+                    var destPort = expectedMovedSide == EdgeSide.To ? destNode.Input1 : originNode.Output1;
+                    Assert.AreEqual(1, GraphModel.EdgeModels.Count);
+                    edge = GraphModel.EdgeModels[0];
+                    Assert.AreEqual(originNode.Output0, edge.FromPort);
+                    Assert.AreEqual(destNode.Input0, edge.ToPort);
+                    Assert.AreNotEqual(edge.GetPort(expectedMovedSide), destPort);
+                    return new MoveEdgeCommand(destPort, expectedMovedSide, edge);
+                },
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    RefreshReference(ref destNode);
+
+                    var destPort = expectedMovedSide == EdgeSide.To ? destNode.Input1 : originNode.Output1;
+                    Assert.AreEqual(1, GraphModel.EdgeModels.Count);
+                    edge = GraphModel.EdgeModels[0];
+                    Assert.AreNotEqual(edge.GetPort(expectedMovedSide).UniqueName, movingPortName);
+                    Assert.AreEqual(edge.GetOtherPort(expectedMovedSide).UniqueName, nonMovingPortName);
+                    Assert.AreEqual(edge.GetPort(expectedMovedSide), destPort);
+                });
         }
     }
 }

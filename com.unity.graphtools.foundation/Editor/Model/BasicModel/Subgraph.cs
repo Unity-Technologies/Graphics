@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 {
@@ -7,11 +9,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     /// Holds information about a subgraph.
     /// </summary>
     [Serializable]
-    class Subgraph
+    class Subgraph : ISerializationCallbackReceiver
     {
-        [SerializeReference]
-        GraphAssetModel m_GraphAssetModel;
-
         [SerializeField]
         string m_AssetGUID;
 
@@ -24,6 +23,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField]
         string m_Title;
 
+        GraphModel m_GraphModel;
+
         /// <summary>
         /// The title of the subgraph.
         /// </summary>
@@ -31,9 +32,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             get
             {
-                if (m_GraphAssetModel != null)
+                if (GraphModel != null)
                 {
-                    m_Title = m_GraphAssetModel.Name;
+                    m_Title = GraphModel.Name;
                     return m_Title;
                 }
                 return "! MISSING ! " + m_Title;
@@ -46,50 +47,65 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public string AssetGuid => m_AssetGUID;
 
         /// <summary>
-        /// The graph asset model of the subgraph.
+        /// The graph model of the subgraph.
         /// </summary>
-        public IGraphAssetModel GraphAssetModel
+        public GraphModel GraphModel
         {
             get
             {
-                EnsureGraphAssetModelIsLoaded();
-                SetReferenceGraphAssetModel();
-                return m_GraphAssetModel;
+                EnsureGraphAssetIsLoaded();
+                SetReferenceGraphAsset();
+                return m_GraphModel;
             }
             set
             {
-                m_GraphAssetModel = (GraphAssetModel)value;
-                SetReferenceGraphAssetModel();
+                m_GraphModel = value;
+                SetReferenceGraphAsset();
             }
         }
 
-        void EnsureGraphAssetModelIsLoaded()
+        void EnsureGraphAssetIsLoaded()
         {
-            if (m_GraphAssetModel != null)
+            if (m_GraphModel?.Asset as Object == null)
+            {
+                m_GraphModel = null;
+            }
+
+            if (m_GraphModel != null)
                 return;
 
             if (!string.IsNullOrEmpty(m_AssetGUID) && m_AssetLocalId != 0)
             {
-                var graphAssetModelPath = AssetDatabase.GUIDToAssetPath(m_AssetGUID);
-                TryLoad(graphAssetModelPath, m_AssetLocalId, m_AssetGUID, out m_GraphAssetModel);
+                var graphAssetPath = AssetDatabase.GUIDToAssetPath(m_AssetGUID);
+                if (TryLoad(graphAssetPath, m_AssetLocalId, m_AssetGUID, out var graphAsset))
+                {
+                    m_GraphModel = graphAsset.GraphModel as GraphModel;
+                }
             }
 
-            if (m_GraphAssetModel == null && m_GraphAssetObjectInstanceID != 0)
-                m_GraphAssetModel = EditorUtility.InstanceIDToObject(m_GraphAssetObjectInstanceID) as GraphAssetModel;
+            if (m_GraphModel == null && m_GraphAssetObjectInstanceID != 0)
+            {
+                var graphAsset = EditorUtility.InstanceIDToObject(m_GraphAssetObjectInstanceID) as GraphAsset;
+                if (graphAsset != null)
+                {
+                    m_GraphModel = graphAsset.GraphModel as GraphModel;
+                }
+            }
         }
 
-        void SetReferenceGraphAssetModel()
+        void SetReferenceGraphAsset()
         {
-            if (m_GraphAssetModel == null)
-                return;
-
-            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_GraphAssetModel, out m_AssetGUID, out m_AssetLocalId);
-            m_GraphAssetObjectInstanceID = m_GraphAssetModel.GetInstanceID();
+            var asset = m_GraphModel?.Asset as Object;
+            if (asset != null)
+            {
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out m_AssetGUID, out m_AssetLocalId);
+                m_GraphAssetObjectInstanceID = asset.GetInstanceID();
+            }
         }
 
-        static bool TryLoad(string path, long localFileId, string assetGuid, out GraphAssetModel graphAssetModel)
+        static bool TryLoad(string path, long localFileId, string assetGuid, out GraphAsset graphAsset)
         {
-            graphAssetModel = null;
+            graphAsset = null;
 
             var assets = AssetDatabase.LoadAllAssetsAtPath(path);
             foreach (var asset in assets)
@@ -99,10 +115,29 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
                 // We want to load an asset with the same guid and localId
                 if (assetGuid == guid && localId == localFileId)
-                    return asset as GraphAssetModel;
+                {
+                    graphAsset = asset as GraphAsset;
+                    return graphAsset != null;
+                }
             }
 
-            return graphAssetModel != null;
+            return false;
+        }
+
+        /// <inheritdoc />
+        public void OnBeforeSerialize()
+        {
+            // Only save the object instance id for memory-based assets. This is needed for copy-paste operations.
+            if (m_AssetGUID.Any(c => c != '0'))
+            {
+                m_GraphAssetObjectInstanceID = 0;
+            }
+        }
+
+        /// <inheritdoc />
+        public void OnAfterDeserialize()
+        {
+            m_GraphModel = null;
         }
     }
 }

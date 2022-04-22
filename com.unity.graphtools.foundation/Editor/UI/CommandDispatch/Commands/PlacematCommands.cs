@@ -94,54 +94,31 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         const string k_MovePlacematBottomStringPlural = "Move Placemats Bottom";
 
         /// <summary>
-        /// The types of reordering possible for placemats.
-        /// </summary>
-        public enum PlacematOrderingAction
-        {
-            /// <summary>
-            /// Move the placement one up
-            /// </summary>
-            MoveForward,
-            /// <summary>
-            /// Move the placement one down
-            /// </summary>
-            MoveBackward,
-            /// <summary>
-            /// Move the placement all the way up
-            /// </summary>
-            MoveTop,
-            /// <summary>
-            /// Move the placement all the way down
-            /// </summary>
-            MoveBottom,
-        }
-
-        /// <summary>
         /// The type of reordering required.
         /// </summary>
-        public PlacematOrderingAction OrderingAction;
+        public ZOrderMove OrderingAction;
 
         /// <summary>
         /// Initializes a new instance of the ChangePlacematOrderCommand class.
         /// </summary>
         /// <param name="orderingAction">The type of reordering required.</param>
         /// <param name="models">The models to reorder.</param>
-        public ChangePlacematOrderCommand(PlacematOrderingAction orderingAction, IReadOnlyList<IPlacematModel> models) :
+        public ChangePlacematOrderCommand(ZOrderMove orderingAction, IReadOnlyList<IPlacematModel> models) :
             base("Change placemat order", "Change placemats order", models)
         {
             OrderingAction = orderingAction;
             switch (orderingAction)
             {
-                case PlacematOrderingAction.MoveForward:
+                case ZOrderMove.Forward:
                     UndoString = models?.Count > 1 ? k_MovePlacematForwardStringPlural : k_MovePlacematForwardStringSingular;
                     break;
-                case PlacematOrderingAction.MoveBackward:
+                case ZOrderMove.Backward:
                     UndoString = models?.Count > 1 ? k_MovePlacematBackwardStringPlural : k_MovePlacematBackwardStringSingular;
                     break;
-                case PlacematOrderingAction.MoveTop:
+                case ZOrderMove.ToFront:
                     UndoString = models?.Count > 1 ? k_MovePlacematTopStringPlural : k_MovePlacematTopStringSingular;
                     break;
-                case PlacematOrderingAction.MoveBottom:
+                case ZOrderMove.ToBack:
                     UndoString = models?.Count > 1 ? k_MovePlacematBottomStringPlural : k_MovePlacematBottomStringSingular;
                     break;
                 default:
@@ -167,22 +144,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             using (var graphUpdater = graphModelState.UpdateScope)
             {
-                switch (command.OrderingAction)
-                {
-                    case PlacematOrderingAction.MoveForward:
-                        graphModelState.GraphModel.MoveForward(command.Models);
-                        break;
-                    case PlacematOrderingAction.MoveBackward:
-                        graphModelState.GraphModel.MoveBackward(command.Models);
-                        break;
-                    case PlacematOrderingAction.MoveTop:
-                        graphModelState.GraphModel.MoveForward(command.Models, true);
-                        break;
-                    case PlacematOrderingAction.MoveBottom:
-                        graphModelState.GraphModel.MoveBackward(command.Models, true);
-                        break;
-                }
-
+                graphModelState.GraphModel.ReorderPlacemats(command.Models, command.OrderingAction);
                 graphUpdater.MarkChanged(command.Models, ChangeHint.Layout);
             }
         }

@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            if (GraphModel?.Stencil?.GetConstantNodeValueType(DataType) != null)
+            if (GraphModel?.Stencil?.GetConstantType(DataType) != null)
             {
                 InitializationModel = GraphModel.Stencil.CreateConstantValue(DataType);
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)

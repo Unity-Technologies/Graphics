@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
 {
     public class BBGraphWindow : GraphViewEditorWindow
@@ -5,7 +7,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
         [InitializeOnLoadMethod]
         static void RegisterTool()
         {
-            ShortcutHelper.RegisterDefaultShortcuts<BBGraphWindow>(BBStencil.toolName);
+            ShortcutHelper.RegisterDefaultShortcuts<BBGraphWindow>(BBStencil.graphName);
         }
 
         [MenuItem("GTF/Samples/Blackboard Sample", false)]
@@ -21,15 +23,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
             return tool;
         }
 
+        protected override BlankPage CreateBlankPage()
+        {
+            var onboardingProviders = new List<OnboardingProvider>();
+            onboardingProviders.Add(new BBSampleOnboardingProvider());
+
+            return new BlankPage(GraphTool?.Dispatcher, onboardingProviders);
+        }
+
         protected override GraphView CreateGraphView()
         {
             return new GraphView(this, GraphTool, "Blackboard Sample");
         }
 
         /// <inheritdoc />
-        protected override bool CanHandleAssetType(IGraphAssetModel asset)
+        protected override bool CanHandleAssetType(IGraphAsset asset)
         {
-            return asset is BBGraphAssetModel;
+            return asset is BBGraphAsset;
         }
     }
 }

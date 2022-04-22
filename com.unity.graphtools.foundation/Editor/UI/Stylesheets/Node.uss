@@ -87,3 +87,16 @@
     padding: 0;
     margin: 0;
 }
+
+.ge-node__dynamic-border {
+    border-radius: var(--border-radius);
+    --selection-width: 2;
+    --small-selection-width: 1;
+    --hover-width: 1;
+    --small-width-threshold: 0.5;
+    --corners-threshold: 0.33;
+    --selection-border-margin: 3;
+    --selection-color: var(--graph-color-selection);
+    --hover-only-color: var(--graph-color-hover-highlight);
+    --highlight-color: var(--node-selection-counterpart-border);
+}

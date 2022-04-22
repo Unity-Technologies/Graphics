@@ -6,9 +6,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
     class VerticalStencil : Stencil
     {
         /// <inheritdoc />
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
         {
-            return new VerticalBlackboardGraphModel(graphAssetModel);
+            return new VerticalBlackboardGraphModel { GraphModel = graphModel };
         }
 
         /// <inheritdoc />

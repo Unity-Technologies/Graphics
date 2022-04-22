@@ -11,7 +11,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
         static string[] s_IgnoredCommandTypes =
         {
             // Not undoable
-            nameof(LoadGraphAssetCommand)
+            nameof(LoadGraphCommand)
         };
 
         static IEnumerable<Type> AllCommands()

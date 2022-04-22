@@ -9,13 +9,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
 {
     public class GraphModelTests
     {
-        IGraphAssetModel m_GraphAsset;
+        IGraphAsset m_GraphAsset;
 
         [SetUp]
         public void SetUp()
         {
-            m_GraphAsset = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test");
-            m_GraphAsset.CreateGraph("Graph");
+            m_GraphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test");
+            m_GraphAsset.CreateGraph();
         }
 
         [Test]
@@ -30,9 +30,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
             var constant = graphModel.CreateConstantNode(TypeHandle.Float, "constant", new Vector2(42, 42));
             var variableDeclaration = graphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "varDecl", ModifierFlags.None, true);
             var variable = graphModel.CreateVariableNode(variableDeclaration, new Vector2(-76, 245));
-            var portal = graphModel.CreateEntryPortalFromEdge(edge);
+            var newPortalElements = new List<IGraphElementModel>();
 
-            var graphElements = new IGraphElementModel[] { node1, node2, edge, placemat, stickyNote, constant, variableDeclaration, variable, portal };
+            var portal = graphModel.CreateEntryPortalFromPort(edge.FromPort, Vector2.zero, 0, newPortalElements);
+            edge.SetPort(EdgeSide.To, portal.InputPort);
+
+            Assert.IsTrue(graphModel.TryGetModelFromGuid(edge.Guid, out _), edge + " was not found.");
+
+            var graphElements = new IGraphElementModel[] { node1, node2, placemat, stickyNote, constant, variableDeclaration, variable, portal, edge };
             foreach (var element in graphElements)
             {
                 Assert.IsTrue(graphModel.TryGetModelFromGuid(element.Guid, out var retrieved), element + " was not found");
@@ -223,7 +228,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         {
             var graphModel = m_GraphAsset.GraphModel;
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var nodeProp = assetAccess.FindProperty("m_GraphModel.m_GraphNodeModels");
             nodeProp.InsertArrayElementAtIndex(0);
@@ -240,7 +245,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
 
             var context = graphModel.CreateNode<ContextNodeModel>("context");
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var nodesProp = assetAccess.FindProperty("m_GraphModel.m_GraphNodeModels");
             int count = nodesProp.arraySize;
@@ -262,7 +267,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         {
             var graphModel = m_GraphAsset.GraphModel;
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var badgeProp = assetAccess.FindProperty("m_GraphModel.m_BadgeModels");
             badgeProp.InsertArrayElementAtIndex(0);
@@ -279,7 +284,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
             var node1 = graphModel.CreateNode<NodeThatHaveAnInputAndAnOutputWithTheSameUniqueName>();
 
             Assert.AreEqual(0,graphModel.EdgeModels.Count);
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var edgesProp = assetAccess.FindProperty("m_GraphModel.m_GraphEdgeModels");
             edgesProp.InsertArrayElementAtIndex(0);
@@ -308,7 +313,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         {
             var graphModel = m_GraphAsset.GraphModel;
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var stickyNotesProp = assetAccess.FindProperty("m_GraphModel.m_GraphStickyNoteModels");
             stickyNotesProp.InsertArrayElementAtIndex(0);
@@ -323,7 +328,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         {
             var graphModel = m_GraphAsset.GraphModel;
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var placematProp = assetAccess.FindProperty("m_GraphModel.m_GraphPlacematModels");
             placematProp.InsertArrayElementAtIndex(0);
@@ -338,7 +343,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         {
             var graphModel = m_GraphAsset.GraphModel;
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var variableProp = assetAccess.FindProperty("m_GraphModel.m_GraphVariableModels");
             variableProp.InsertArrayElementAtIndex(0);
@@ -353,7 +358,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         {
             var graphModel = m_GraphAsset.GraphModel;
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var portalProp = assetAccess.FindProperty("m_GraphModel.m_GraphPortalModels");
             portalProp.InsertArrayElementAtIndex(0);
@@ -368,7 +373,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         {
             var graphModel = m_GraphAsset.GraphModel;
 
-            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAssetModel);
+            SerializedObject assetAccess = new SerializedObject(m_GraphAsset as GraphAsset);
 
             var sectionProp = assetAccess.FindProperty("m_GraphModel.m_SectionModels");
             sectionProp.InsertArrayElementAtIndex(0);

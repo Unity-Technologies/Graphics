@@ -4,13 +4,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
 {
     public class PortModelTests
     {
-        IGraphAssetModel m_GraphAsset;
+        IGraphAsset m_GraphAsset;
 
         [SetUp]
         public void SetUp()
         {
-            m_GraphAsset = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test");
-            m_GraphAsset.CreateGraph("Graph");
+            m_GraphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test");
+            m_GraphAsset.CreateGraph();
         }
 
         [Test]

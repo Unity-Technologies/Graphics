@@ -60,11 +60,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private static void SaveImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAssetModel> SaveAction)
         {
             // If no currently opened graph, early out
-            if (GraphTool.ToolState.AssetModel == null)
+            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() == null)
                 return;
-            if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel assetModel)
+            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() is ShaderGraphAssetModel assetModel)
             {
-                var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
                 SaveAction(assetPath, assetModel);
                 // Set to false after saving to clear modification state from editor window tab
                 assetModel.Dirty = false;
@@ -78,16 +78,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static string SaveAsGraphImplementation(BaseGraphTool GraphTool)
         {
             // If no currently opened graph, early out
-            if (GraphTool.ToolState.AssetModel == null)
+            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() == null)
                 return String.Empty;
 
-            if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel assetModel)
+            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() is ShaderGraphAssetModel assetModel)
             {
                 // Get folder of current shader graph asset
-                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+                var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
                 path = path.Remove(path.LastIndexOf('/'));
 
-                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAssetModel().Name, "sg2");
+                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAsset().Name, "sg2");
                 // If User cancelled operation or provided an invalid path
                 if (destinationPath == String.Empty)
                     return String.Empty;

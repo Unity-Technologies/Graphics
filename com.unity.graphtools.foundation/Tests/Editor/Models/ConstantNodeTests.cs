@@ -22,8 +22,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             {
                 var type = expectedTypes[i];
                 var typeHandle = type.GenerateTypeHandle();
-                Type constantNodeType = GraphModel.Stencil.GetConstantNodeValueType(typeHandle);
-                var constantNode = GraphModel.CreateConstantNode(type.GenerateTypeHandle(), constantNodeType.Name, 100f * i * Vector2.right);
+                Type constantType = GraphModel.Stencil.GetConstantType(typeHandle);
+                var constantNode = GraphModel.CreateConstantNode(typeHandle, constantType.Name, 100f * i * Vector2.right);
                 Assert.IsEmpty((constantNode.OutputPort as IHasTitle)?.Title);
                 Assert.IsNotEmpty(constantNode.OutputPort.UniqueName);
             }

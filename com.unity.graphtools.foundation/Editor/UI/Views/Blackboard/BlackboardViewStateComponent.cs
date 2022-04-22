@@ -9,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// State component holding blackboard view related data.
     /// </summary>
     [Serializable]
-    public class BlackboardViewStateComponent : AssetViewStateComponent<BlackboardViewStateComponent.StateUpdater>
+    public class BlackboardViewStateComponent : PersistedStateComponent<BlackboardViewStateComponent.StateUpdater>
     {
         /// <summary>
         /// The updater for the <see cref="BlackboardViewStateComponent"/>.
@@ -61,12 +61,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             /// <summary>
-            /// Saves the state component and replaces it by the state component associated with <paramref name="assetModel"/>.
+            /// Sets the Blackboard ScrollView scroll offset.
             /// </summary>
-            /// <param name="assetModel">The asset model for which we want to load a state component.</param>
-            public void SaveAndLoadStateForAsset(IGraphAssetModel assetModel)
+            /// <param name="scrollOffset">The horizontal and vertical offsets for the ScrollView.</param>
+            public void SetScrollOffset(Vector2 scrollOffset)
             {
-                PersistedStateComponentHelpers.SaveAndLoadAssetViewStateForAsset(m_State, this, assetModel);
+                m_State.m_ScrollOffset = scrollOffset;
+                m_State.SetUpdateType(UpdateType.Partial);
+            }
+
+            /// <summary>
+            /// Saves the state component and replaces it by the state component associated with <paramref name="graphModel"/>.
+            /// </summary>
+            /// <param name="graphModel">The asset for which we want to load a state component.</param>
+            public void SaveAndLoadStateForGraph(IGraphModel graphModel)
+            {
+                PersistedStateComponentHelpers.SaveAndLoadPersistedStateForGraph(m_State, this, graphModel);
             }
         }
 
@@ -82,6 +92,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         [SerializeField]
         List<string> m_BlackboardCollapsedGroupStates;
+
+        [SerializeField]
+        Vector2 m_ScrollOffset;
+
+        /// <summary>
+        /// The scroll offset of the blackboard scroll view.
+        /// </summary>
+        public Vector2 ScrollOffset => m_ScrollOffset;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BlackboardViewStateComponent" /> class.
@@ -134,6 +152,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                 m_BlackboardCollapsedGroupStates = blackboardViewStateComponent.m_BlackboardCollapsedGroupStates;
                 blackboardViewStateComponent.m_BlackboardCollapsedGroupStates = null;
+
+                m_ScrollOffset = blackboardViewStateComponent.m_ScrollOffset;
             }
         }
     }

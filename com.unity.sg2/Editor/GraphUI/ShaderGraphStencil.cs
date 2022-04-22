@@ -35,11 +35,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             NodeUIInfo = new ();
         }
 
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) =>
-            new SGBlackboardGraphModel(graphAssetModel);
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel) =>
+            new SGBlackboardGraphModel(graphModel);
 
         // See ShaderGraphExampleTypes.GetGraphType for more details
-        public override Type GetConstantNodeValueType(TypeHandle typeHandle)
+        public override Type GetConstantType(TypeHandle typeHandle)
         {
             if (typeHandle == TypeHandle.Vector2
                 || typeHandle == TypeHandle.Vector3

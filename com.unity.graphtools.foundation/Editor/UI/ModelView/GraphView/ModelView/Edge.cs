@@ -230,19 +230,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                     var index = siblingEdges.IndexOf(edge.EdgeModel);
                     evt.menu.AppendAction("Reorder Edge/Move First",
-                        _ => ReorderEdges(ReorderEdgeCommand.ReorderType.MoveFirst),
+                        _ => ReorderEdges(ReorderType.MoveFirst),
                         siblingEdgesCount > 1 && index > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
                     evt.menu.AppendAction("Reorder Edge/Move Up",
-                        _ => ReorderEdges(ReorderEdgeCommand.ReorderType.MoveUp),
+                        _ => ReorderEdges(ReorderType.MoveUp),
                         siblingEdgesCount > 1 && index > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
                     evt.menu.AppendAction("Reorder Edge/Move Down",
-                        _ => ReorderEdges(ReorderEdgeCommand.ReorderType.MoveDown),
+                        _ => ReorderEdges(ReorderType.MoveDown),
                         siblingEdgesCount > 1 && index < siblingEdgesCount - 1 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
                     evt.menu.AppendAction("Reorder Edge/Move Last",
-                        _ => ReorderEdges(ReorderEdgeCommand.ReorderType.MoveLast),
+                        _ => ReorderEdges(ReorderType.MoveLast),
                         siblingEdgesCount > 1 && index < siblingEdgesCount - 1 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
 
-                    void ReorderEdges(ReorderEdgeCommand.ReorderType reorderType)
+                    void ReorderEdges(ReorderType reorderType)
                     {
                         GraphView.Dispatch(new ReorderEdgeCommand(edge.EdgeModel, reorderType));
                     }

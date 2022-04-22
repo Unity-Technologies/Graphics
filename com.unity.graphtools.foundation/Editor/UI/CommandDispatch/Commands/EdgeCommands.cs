@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -29,10 +27,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         public IPortModel FromPortModel;
         /// <summary>
-        /// List of edges to delete.
-        /// </summary>
-        public IReadOnlyList<IEdgeModel> EdgeModelsToDelete;
-        /// <summary>
         /// Align the node that owns the <see cref="FromPortModel"/> to the <see cref="ToPortModel"/>.
         /// </summary>
         public bool AlignFromNode;
@@ -52,19 +46,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="fromPortModel">Origin port.</param>
         /// <param name="alignFromNode">Set to true if the node that owns the <paramref name="fromPortModel"/> should be aligned on the <paramref name="toPortModel"/>.</param>
         public CreateEdgeCommand(IPortModel toPortModel, IPortModel fromPortModel, bool alignFromNode = false)
-            : this(toPortModel, fromPortModel, null, alignFromNode) { }
-
-        // TODO VladN: remove once GTF-723 is addressed and we don't need to pass EdgeToDelete anymore
-        internal CreateEdgeCommand(IPortModel toPortModel, IPortModel fromPortModel,
-            IReadOnlyList<IEdgeModel> edgeModelsToDelete,
-            bool alignFromNode = false)
             : this()
         {
             Assert.IsTrue(toPortModel == null || toPortModel.Direction == PortDirection.Input);
             Assert.IsTrue(fromPortModel == null || fromPortModel.Direction == PortDirection.Output);
             ToPortModel = toPortModel;
             FromPortModel = fromPortModel;
-            EdgeModelsToDelete = edgeModelsToDelete;
             AlignFromNode = alignFromNode;
         }
 
@@ -91,8 +78,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 var fromPortModel = command.FromPortModel;
                 var toPortModel = command.ToPortModel;
 
-                var edgesToDelete = (command.EdgeModelsToDelete ?? new List<IEdgeModel>())
-                    .Concat(GetDropEdgeModelsToDelete(command.FromPortModel))
+                var edgesToDelete = GetDropEdgeModelsToDelete(command.FromPortModel)
                     .Concat(GetDropEdgeModelsToDelete(command.ToPortModel))
                     .ToList();
 
@@ -177,6 +163,117 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     }
 
     /// <summary>
+    /// Command to move one or more edges to a new port.
+    /// </summary>
+    public class MoveEdgeCommand : ModelCommand<IEdgeModel>
+    {
+        const string k_UndoStringSingular = "Move Edge";
+        const string k_UndoStringPlural = "Move Edges";
+
+        /// <summary>
+        /// The port where to move the edge(s).
+        /// </summary>
+        public IPortModel NewPortModel;
+
+        /// <summary>
+        /// The Side of the edge to move.
+        /// </summary>
+        /// <remarks>In most case this should be inferred from <see cref="NewPortModel"/>,
+        /// unless its <see cref="PortDirection"/> is not explicitly <see cref="PortDirection.Input"/> or <see cref="PortDirection.Output"/>.</remarks>
+        public EdgeSide EdgeSideToMove;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MoveEdgeCommand" /> class.
+        /// </summary>
+        public MoveEdgeCommand()
+            : base(k_UndoStringSingular) {}
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MoveEdgeCommand" /> class.
+        /// </summary>
+        /// <param name="newPortModel">The port where to move the edge(s).</param>
+        /// <param name="edgeSide">The side of the edge(s) to move to the port.</param>
+        /// <param name="edgesToMove">The list of edges to move.</param>
+        public MoveEdgeCommand(IPortModel newPortModel, EdgeSide edgeSide, IReadOnlyList<IEdgeModel> edgesToMove)
+            : base(k_UndoStringSingular, k_UndoStringPlural, edgesToMove)
+        {
+            EdgeSideToMove = edgeSide;
+            NewPortModel = newPortModel;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MoveEdgeCommand" /> class.
+        /// </summary>
+        /// <param name="newPortModel">The port where to move the edge(s).</param>
+        /// <param name="edgeSide">The side of the edge(s) to move to the port.</param>
+        /// <param name="edgesToMove">The list of edges to move.</param>
+        public MoveEdgeCommand(IPortModel newPortModel, EdgeSide edgeSide, params IEdgeModel[] edgesToMove)
+            : this(newPortModel, edgeSide, (IReadOnlyList<IEdgeModel>)(edgesToMove))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MoveEdgeCommand" /> class.
+        /// </summary>
+        /// <param name="newPortModel">The port where to move the edge(s).</param>
+        /// <param name="edgesToMove">The list of edges to move.</param>
+        public MoveEdgeCommand(IPortModel newPortModel, IReadOnlyList<IEdgeModel> edgesToMove)
+            : this(newPortModel, EdgeSide.From, edgesToMove)
+        {
+            if (newPortModel != null)
+            {
+                Assert.IsNotNull(newPortModel);
+                var newDir = newPortModel.Direction;
+                EdgeSideToMove = newDir == PortDirection.Input ? EdgeSide.To : EdgeSide.From;
+                Assert.IsFalse(newDir == PortDirection.None,
+                    $"Can't move edges to a Port with direction {PortDirection.None}.");
+                Assert.IsFalse(newDir.HasFlag(PortDirection.Input) == newDir.HasFlag(PortDirection.Output),
+                    $"Can't infer port direction from port {newPortModel}, use the constructor for {nameof(MoveEdgeCommand)} with a specific direction.");
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MoveEdgeCommand" /> class.
+        /// </summary>
+        /// <param name="newPortModel">The port where to move the edge(s).</param>
+        /// <param name="edgesToMove">The list of edges to move.</param>
+        public MoveEdgeCommand(IPortModel newPortModel, params IEdgeModel[] edgesToMove)
+            : this(newPortModel, (IReadOnlyList<IEdgeModel>)(edgesToMove))
+        {
+        }
+
+        /// <summary>
+        /// Default command handler.
+        /// </summary>
+        /// <param name="undoState">The undo state component.</param>
+        /// <param name="graphModelState">The graph model state component.</param>
+        /// <param name="command">The command.</param>
+        public static void DefaultCommandHandler(UndoStateComponent undoState, GraphModelStateComponent graphModelState, MoveEdgeCommand command)
+        {
+            if (command.Models == null || !command.Models.Any())
+                return;
+
+            using (var undoStateUpdater = undoState.UpdateScope)
+            {
+                undoStateUpdater.SaveSingleState(graphModelState, command);
+            }
+
+            using (var graphUpdater = graphModelState.UpdateScope)
+            {
+                IPortModel oldPort = null;
+                foreach (var edge in command.Models)
+                {
+                    oldPort ??= edge.GetPort(command.EdgeSideToMove);
+                    edge.SetPort(command.EdgeSideToMove, command.NewPortModel);
+                    graphUpdater.MarkChanged(edge, ChangeHint.GraphTopology);
+                }
+                graphUpdater.MarkChanged(oldPort, ChangeHint.GraphTopology);
+                graphUpdater.MarkChanged(command.NewPortModel, ChangeHint.GraphTopology);
+            }
+        }
+    }
+
+    /// <summary>
     /// Command to delete one or more edges.
     /// </summary>
     public class DeleteEdgeCommand : ModelCommand<IEdgeModel>
@@ -251,29 +348,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public class ReorderEdgeCommand : UndoableCommand
     {
         /// <summary>
-        /// Reorder operations.
-        /// </summary>
-        public enum ReorderType
-        {
-            /// <summary>
-            /// Make the edge the first edge.
-            /// </summary>
-            MoveFirst,
-            /// <summary>
-            /// Move the edge one position towards the beginning.
-            /// </summary>
-            MoveUp,
-            /// <summary>
-            /// Move the edge one position towards the end.
-            /// </summary>
-            MoveDown,
-            /// <summary>
-            /// Make the edge the last edge.
-            /// </summary>
-            MoveLast
-        }
-
-        /// <summary>
         /// The edge to reorder.
         /// </summary>
         public readonly IEdgeModel EdgeModel;
@@ -328,42 +402,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (command.EdgeModel?.FromPort is IReorderableEdgesPortModel fromPort && fromPort.HasReorderableEdges)
             {
                 var siblingEdges = fromPort.GetConnectedEdges().ToList();
-                var siblingEdgesCount = siblingEdges.Count;
-                if (siblingEdgesCount > 1)
+                if (siblingEdges.Count < 2)
+                    return;
+
+                using (var undoStateUpdater = undoState.UpdateScope)
                 {
-                    var index = siblingEdges.IndexOf(command.EdgeModel);
-                    Action<IEdgeModel> reorderAction = null;
-                    switch (command.Type)
-                    {
-                        case ReorderType.MoveFirst when index > 0:
-                            reorderAction = fromPort.MoveEdgeFirst;
-                            break;
-                        case ReorderType.MoveUp when index > 0:
-                            reorderAction = fromPort.MoveEdgeUp;
-                            break;
-                        case ReorderType.MoveDown when index < siblingEdgesCount - 1:
-                            reorderAction = fromPort.MoveEdgeDown;
-                            break;
-                        case ReorderType.MoveLast when index < siblingEdgesCount - 1:
-                            reorderAction = fromPort.MoveEdgeLast;
-                            break;
-                    }
+                    undoStateUpdater.SaveSingleState(graphModelState, command);
+                }
 
-                    if (reorderAction != null)
-                    {
-                        using (var undoStateUpdater = undoState.UpdateScope)
-                        {
-                            undoStateUpdater.SaveSingleState(graphModelState, command);
-                        }
+                using (var graphUpdater = graphModelState.UpdateScope)
+                {
+                    fromPort.ReorderEdge(command.EdgeModel, command.Type);
 
-                        using (var graphUpdater = graphModelState.UpdateScope)
-                        {
-                            reorderAction(command.EdgeModel);
-
-                            graphUpdater.MarkChanged(siblingEdges, ChangeHint.GraphTopology);
-                            graphUpdater.MarkChanged(fromPort.NodeModel, ChangeHint.GraphTopology);
-                        }
-                    }
+                    graphUpdater.MarkChanged(siblingEdges, ChangeHint.GraphTopology);
+                    graphUpdater.MarkChanged(fromPort.NodeModel, ChangeHint.GraphTopology);
                 }
             }
         }
@@ -468,10 +520,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="undoState">The undo state component.</param>
         /// <param name="graphModelState">The graph model state component.</param>
-        /// <param name="selectionState">The selection state.</param>
+        /// <param name="selectionState">The selection state component.</param>
         /// <param name="command">The command.</param>
-        // TODO JOCE: Move to GraphView or something. We should be able to create from edge without a command handler (for tests, for example)
-        // TODO VladN: GTF-401 was created to address this
         public static void DefaultCommandHandler(UndoStateComponent undoState, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState, ConvertEdgesToPortalsCommand command)
         {
             if (command.EdgeData == null || !command.EdgeData.Any())
@@ -489,8 +539,33 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 var existingPortalEntries = new Dictionary<IPortModel, IEdgePortalEntryModel>();
                 var existingPortalExits = new Dictionary<IPortModel, List<IEdgePortalExitModel>>();
 
-                foreach (var edgeModel in command.EdgeData)
-                    ConvertEdgeToPortals(edgeModel);
+                var newModels = new List<IGraphElementModel>(command.EdgeData.Count * 5); // Estimate of the list size to avoid reallocation. There will usually be 5 elements created per edge: two portals, two new edges and a portal declaration model.
+                var modelsToDelete = new List<IGraphElementModel>();
+                var modelsToChange = new List<IGraphElementModel>();
+                var changeHintList = new List<ChangeHint>();
+
+                foreach (var changeDescription in command.EdgeData.Select(edgeModel =>
+                    graphModel.CreatePortalsFromEdge(
+                        edgeModel.edge,
+                        edgeModel.startPortPos + k_EntryPortalBaseOffset,
+                        edgeModel.endPortPos + k_ExitPortalBaseOffset,
+                        k_PortalHeight, existingPortalEntries, existingPortalExits)))
+                {
+                    newModels.AddRange(changeDescription.NewModels);
+
+                    if (changeDescription.DeletedModels != null)
+                        modelsToDelete.AddRange(changeDescription.DeletedModels);
+
+                    if (changeDescription.ChangedModels != null)
+                    {
+                        var (model, changeHints) = changeDescription.ChangedModels.FirstOrDefault();
+                        if (model != null && changeHints != null)
+                        {
+                            modelsToChange.Add(model);
+                            changeHintList.AddRange(changeHints);
+                        }
+                    }
+                }
 
                 // Adjust placement in case of multiple incoming exit portals so they don't overlap
                 foreach (var portalList in existingPortalExits.Values.Where(l => l.Count > 1))
@@ -506,78 +581,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     }
                 }
 
-                var edgesToDelete = command.EdgeData.Select(d => d.edge).ToList();
-                var deletedModels = graphModel.DeleteEdges(edgesToDelete);
-                updater.MarkDeleted(deletedModels);
-
-                void ConvertEdgeToPortals((IEdgeModel edgeModel, Vector2 startPos, Vector2 endPos) data)
-                {
-                    // Only a single portal per output port. Don't recreate if we already created one.
-                    var outputPortModel = data.edgeModel.FromPort;
-                    IEdgePortalEntryModel portalEntry = null;
-                    if (outputPortModel != null && !existingPortalEntries.TryGetValue(data.edgeModel.FromPort, out portalEntry))
-                    {
-                        portalEntry = graphModel.CreateEntryPortalFromEdge(data.edgeModel);
-                        existingPortalEntries[outputPortModel] = portalEntry;
-                        updater.MarkNew(portalEntry);
-                        createdElements.Add(portalEntry);
-
-                        if (!(outputPortModel.NodeModel is IInputOutputPortsNodeModel nodeModel))
-                            return;
-
-                        portalEntry.Position = data.startPos + k_EntryPortalBaseOffset;
-
-                        // y offset based on port order. hurgh.
-                        var idx = nodeModel.OutputsByDisplayOrder.IndexOfInternal(outputPortModel);
-                        portalEntry.Position += Vector2.down * (k_PortalHeight * idx + 16); // Fudgy.
-
-                        string portalName;
-                        if (nodeModel is IConstantNodeModel constantNodeModel)
-                            portalName = constantNodeModel.Type.FriendlyName();
-                        else
-                        {
-                            portalName = (nodeModel as IHasTitle)?.Title ?? "";
-                            var portName = (outputPortModel as IHasTitle)?.Title ?? "";
-                            if (!string.IsNullOrEmpty(portName))
-                                portalName += " - " + portName;
-                        }
-
-                        portalEntry.DeclarationModel = graphModel.CreateGraphPortalDeclaration(portalName);
-                        updater.MarkNew(portalEntry.DeclarationModel);
-
-                        var newEntryEdge = graphModel.CreateEdge(portalEntry.InputPort, outputPortModel);
-                        updater.MarkNew(newEntryEdge);
-                    }
-
-                    // We can have multiple portals on input ports however
-                    if (!existingPortalExits.TryGetValue(data.edgeModel.ToPort, out var portalExits))
-                    {
-                        portalExits = new List<IEdgePortalExitModel>();
-                        existingPortalExits[data.edgeModel.ToPort] = portalExits;
-                    }
-
-                    IEdgePortalExitModel portalExit;
-                    var inputPortModel = data.edgeModel.ToPort;
-                    portalExit = graphModel.CreateExitPortalFromEdge(data.edgeModel);
-                    portalExits.Add(portalExit);
-                    updater.MarkNew(portalExit);
-                    createdElements.Add(portalExit);
-
-                    portalExit.Position = data.endPos + k_ExitPortalBaseOffset;
-                    {
-                        if (data.edgeModel.ToPort.NodeModel is IInputOutputPortsNodeModel nodeModel)
-                        {
-                            // y offset based on port order. hurgh.
-                            var idx = nodeModel.InputsByDisplayOrder.IndexOfInternal(inputPortModel);
-                            portalExit.Position += Vector2.down * (k_PortalHeight * idx + 16); // Fudgy.
-                        }
-                    }
-
-                    portalExit.DeclarationModel = portalEntry?.DeclarationModel;
-
-                    var newExitEdge = graphModel.CreateEdge(inputPortModel, portalExit.OutputPort);
-                    updater.MarkNew(newExitEdge);
-                }
+                updater.MarkDeleted(modelsToDelete);
+                updater.MarkChanged(modelsToChange, changeHintList);
+                updater.MarkNew(newModels);
+                createdElements.AddRange(newModels.OfType<INodeModel>());
             }
 
             if (createdElements.Any())

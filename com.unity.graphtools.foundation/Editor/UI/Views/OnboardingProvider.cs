@@ -7,21 +7,19 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     /// <summary>
-    /// Base class for onboarding providers, which displays the UI when there is no active graph asset.
+    /// Base class for onboarding providers, which displays the UI when there is no active graph.
     /// </summary>
     public abstract class OnboardingProvider
     {
         protected const string k_PromptToCreateTitle = "Create {0}";
         protected const string k_ButtonText = "New {0}";
         protected const string k_PromptToCreate = "Create a new {0}";
-        protected const string k_AssetExtension = "asset";
 
         protected static VisualElement AddNewGraphButton<T>(
             IGraphTemplate template,
             string promptTitle = null,
             string buttonText = null,
-            string prompt = null,
-            string assetExtension = k_AssetExtension) where T : ScriptableObject, IGraphAssetModel
+            string prompt = null) where T : ScriptableObject, IGraphAsset
         {
             promptTitle = promptTitle ?? string.Format(k_PromptToCreateTitle, template.GraphTypeName);
             buttonText = buttonText ?? string.Format(k_ButtonText, template.GraphTypeName);
@@ -36,7 +34,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             var button = new Button { text = buttonText };
             button.clicked += () =>
             {
-                var graphAsset = GraphAssetCreationHelpers<T>.PromptToCreate(template, promptTitle, prompt, assetExtension);
+                var graphAsset = GraphAssetCreationHelpers.PromptToCreateGraphAsset(typeof(T), template, promptTitle, prompt);
                 Selection.activeObject = graphAsset as Object;
             };
             container.Add(button);
@@ -46,18 +44,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         public abstract VisualElement CreateOnboardingElements(Dispatcher commandDispatcher);
 
-        public virtual bool GetGraphAndObjectFromSelection(ToolStateComponent toolState, Object selectedObject, out IGraphAssetModel graphAssetModel, out GameObject boundObject)
+        public virtual bool GetGraphAndObjectFromSelection(ToolStateComponent toolState, Object selectedObject, out IGraphAsset graphAsset, out GameObject boundObject)
         {
-            graphAssetModel = null;
+            graphAsset = null;
             boundObject = null;
 
-            if (selectedObject is IGraphAssetModel selectedObjectAsGraph)
+            if (selectedObject is IGraphAsset selectedObjectAsGraph)
             {
                 // don't change the current object if it's the same graph
-                if (selectedObjectAsGraph == toolState.GraphModel?.AssetModel)
+                var currentOpenedGraph = toolState.CurrentGraph;
+                if (selectedObjectAsGraph == currentOpenedGraph.GetGraphAsset())
                 {
-                    var currentOpenedGraph = toolState.CurrentGraph;
-                    graphAssetModel = currentOpenedGraph.GetGraphAssetModel();
+                    graphAsset = currentOpenedGraph.GetGraphAsset();
                     boundObject = currentOpenedGraph.BoundObject;
                     return true;
                 }

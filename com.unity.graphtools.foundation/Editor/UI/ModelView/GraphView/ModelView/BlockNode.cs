@@ -55,6 +55,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         VisualElement m_EtchColor;
         BlockDragInfos m_BlockDragInfos;
 
+
+        internal VisualElement Etch => m_Etch;
+        internal VisualElement EtchBorder => m_EtchBorder;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockNode" /> class.
         /// </summary>
@@ -84,7 +88,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 m_BlockDragInfos.DraggedBlockContext.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
                 m_BlockDragInfos.DraggedBlockContext.UnregisterCallback<MouseUpEvent>(OnMouseUp);
                 m_BlockDragInfos.DraggedBlockContext.UnregisterCallback<KeyDownEvent>(OnDragKey);
-        }
+            }
 
             m_BlockDragInfos = null;
         }
@@ -160,6 +164,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_EtchColor = new VisualElement() { name = etchColorName };
             m_EtchColor.AddToClassList(etchColorUssClassName);
             m_Etch.Add(m_EtchColor);
+
+            Border.BringToFront();
         }
 
         /// <inheritdoc/>
@@ -242,6 +248,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             return true;
+        }
+
+        /// <inheritdoc/>
+        protected override DynamicBorder CreateDynamicBorder()
+        {
+            return new DynamicBlockBorder(this);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             public override Type DefaultStencilType => typeof(CopyPasteStencil);
         }
-        class CopyPasteGraphAssetModel : GraphAssetModel
+        class CopyPasteGraphAsset : GraphAsset
         {
             protected override Type GraphModelType => typeof(CopyPasteGraphModel);
         }
@@ -34,9 +34,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 return true;
             }
 
-            public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+            public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
             {
-                return new BlackboardGraphModel(graphAssetModel);
+                return new BlackboardGraphModel { GraphModel = graphModel };
             }
 
             /// <inheritdoc />
@@ -55,9 +55,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             {
                 ShortcutHelper.RegisterDefaultShortcuts<CopyPasteGraphViewWindow>(toolName);
             }
-            protected override bool CanHandleAssetType(IGraphAssetModel asset)
+            protected override bool CanHandleAssetType(IGraphAsset asset)
             {
-                return asset is CopyPasteGraphAssetModel;
+                return asset is CopyPasteGraphAsset;
             }
         }
 
@@ -78,9 +78,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 return false;
             }
 
-            public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+            public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
             {
-                return new BlackboardGraphModel(graphAssetModel);
+                return new BlackboardGraphModel { GraphModel = graphModel };
             }
 
             /// <inheritdoc />
@@ -113,7 +113,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 return new TestGraphView(this, GraphTool);
             }
 
-            protected override bool CanHandleAssetType(IGraphAssetModel asset)
+            protected override bool CanHandleAssetType(IGraphAsset asset)
             {
                 return true;
             }
@@ -161,8 +161,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             BlackboardView = new BlackboardView(Window, Window.GraphView);
             Window.rootVisualElement.Add(BlackboardView);
 
-            var graphAsset = GraphAssetCreationHelpers<CopyPasteGraphAssetModel>.CreateInMemoryGraphAsset(typeof(CopyPasteStencil), "Test");
-            Window.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+            var graphAsset = GraphAssetCreationHelpers<CopyPasteGraphAsset>.CreateInMemoryGraphAsset(typeof(CopyPasteStencil), "Test");
+            Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
 
             Vector3 frameTranslation = Vector3.zero;
             Vector3 frameScaling = Vector3.one;
@@ -215,8 +215,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SecondWindowBlackboardView = new BlackboardView(m_SecondWindow, m_SecondWindow.GraphView);
             m_SecondWindow.rootVisualElement.Add(SecondWindowBlackboardView);
 
-            var graphAsset = GraphAssetCreationHelpers<CopyPasteGraphAssetModel>.CreateInMemoryGraphAsset(typeof(CopyPasteStencil), "Other Test");
-            m_SecondWindow.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+            var graphAsset = GraphAssetCreationHelpers<CopyPasteGraphAsset>.CreateInMemoryGraphAsset(typeof(CopyPasteStencil), "Other Test");
+            m_SecondWindow.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
 
             yield return null;
 
@@ -228,8 +228,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             m_SecondWindow.titleContent = new GUIContent("Second Window");
             m_SecondWindow.position = new Rect(50, 100, 400, 400);
 
-            var graphAsset = GraphAssetCreationHelpers<CopyPasteGraphAssetModel>.CreateInMemoryGraphAsset(typeof(OtherStencil), "Other Test");
-            m_SecondWindow.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+            var graphAsset = GraphAssetCreationHelpers<CopyPasteGraphAsset>.CreateInMemoryGraphAsset(typeof(OtherStencil), "Other Test");
+            m_SecondWindow.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
 
             yield return null;
 
@@ -985,10 +985,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             yield return Start();
 
-            var subgraphAsset = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Subgraph") as GraphAssetModel;
+            var subgraphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Subgraph") as GraphAsset;
             Assert.IsNotNull(subgraphAsset);
 
-            var subgraphNodeModel = GraphModel.CreateSubgraphNode(subgraphAsset, Vector2.zero);
+            var subgraphNodeModel = GraphModel.CreateSubgraphNode(subgraphAsset.GraphModel, Vector2.zero);
             Assert.IsTrue(subgraphNodeModel.Container == GraphModel);
             Assert.IsTrue(subgraphNodeModel.IsSelectable());
 
@@ -1022,7 +1022,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.AreEqual(2,subgraphNodesInGraph.Count);
 
             foreach (var subgraphNode in subgraphNodesInGraph)
-                Assert.AreEqual(subgraphAsset, subgraphNode.SubgraphAssetModel);
+                Assert.AreEqual(subgraphAsset.GraphModel, subgraphNode.SubgraphModel);
 
             yield return MakeSecondWindow();
 
@@ -1037,7 +1037,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var subgraphNodesInSecondGraph = SecondGraphModel.NodeModels.OfType<ISubgraphNodeModel>().ToList();
 
             Assert.AreEqual(1,subgraphNodesInSecondGraph.Count);
-            Assert.AreEqual(subgraphAsset, subgraphNodesInGraph.First().SubgraphAssetModel);
+            Assert.AreEqual(subgraphAsset.GraphModel, subgraphNodesInGraph.First().SubgraphModel);
 
             m_SecondWindow.Close();
 
@@ -1126,6 +1126,97 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             Assert.AreEqual(0, SecondGraphModel.VariableDeclarations.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator SerializedDataForCopiedNodeIsOnlyNode()
+        {
+            yield return Start();
+
+            GraphModel.DeleteNodes(GraphModel.NodeModels, true);
+            var node = GraphModel.CreateNode<CopyPasteNodeModel>("My Node", Vector2.one, new SerializableGUID("42"),
+                m =>
+            {
+                m.InputCount = 1;
+                m.OutputCount = 2;
+            });
+
+            GraphView.Dispatch(new ClearSelectionCommand());
+
+            GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, node));
+            yield return null;
+
+            GraphView.Focus();
+            GraphView.SendEvent(ValidateCommandEvent.GetPooled(GraphViewStaticBridge.EventCommandNames.Copy));
+            yield return null;
+
+            GraphView.Focus();
+            GraphView.SendEvent(ExecuteCommandEvent.GetPooled(GraphViewStaticBridge.EventCommandNames.Copy));
+            yield return null;
+
+            var clipboard = GraphView.ViewSelection.Clipboard;
+
+            // To update this value, run the test and paste the clipboard content here.
+            var expected = @"application/vnd.unity.graphview.elements {
+    ""nodes"": [
+        {
+            ""rid"": 1000
+        }
+    ],
+    ""edges"": [],
+    ""variableGroupPaths"": [],
+    ""variableDeclarations"": [],
+    ""implicitVariableDeclarations"": [],
+    ""topLeftNodePosition"": {
+        ""x"": 1.0,
+        ""y"": 1.0
+    },
+    ""stickyNotes"": [],
+    ""placemats"": [],
+    ""references"": {
+        ""version"": 2,
+        ""RefIds"": [
+            {
+                ""rid"": 1000,
+                ""type"": {
+                    ""class"": ""CopyPasteTests/CopyPasteNodeModel"",
+                    ""ns"": ""UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements"",
+                    ""asm"": ""Unity.GraphTools.Foundation.Editor.Tests""
+                },
+                ""data"": {
+                    ""m_Guid"": {
+                        ""m_Value0"": 66,
+                        ""m_Value1"": 0
+                    },
+                    ""m_Color"": {
+                        ""r"": 0.0,
+                        ""g"": 0.0,
+                        ""b"": 0.0,
+                        ""a"": 0.0
+                    },
+                    ""m_HasUserColor"": false,
+                    ""m_Version"": 2,
+                    ""m_Position"": {
+                        ""x"": 1.0,
+                        ""y"": 1.0
+                    },
+                    ""m_Title"": ""My Node"",
+                    ""m_Tooltip"": """",
+                    ""m_InputConstantsById"": {
+                        ""m_KeyList"": [],
+                        ""m_ValueList"": []
+                    },
+                    ""m_State"": 0,
+                    ""m_Collapsed"": false,
+                    ""inputCount"": 1,
+                    ""outputCount"": 2
+                }
+            }
+        ]
+    }
+}";
+
+            Assert.AreEqual(expected, clipboard);
         }
     }
 }

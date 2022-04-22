@@ -30,14 +30,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
             // This avoids dirtying the port-edge index before each edge creation.
             for (var i = 0; i < count; i++)
             {
-                fromNodes[i] = m_GraphAssetModel.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
+                fromNodes[i] = m_GraphAsset.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
                 fromNodes[i].ExeInputCount = 1;
                 fromNodes[i].ExeOutputCount = 1;
                 fromNodes[i].InputCount = 2;
                 fromNodes[i].OutputCount = 2;
                 fromNodes[i].DefineNode();
 
-                toNodes[i] = m_GraphAssetModel.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
+                toNodes[i] = m_GraphAsset.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
                 toNodes[i].ExeInputCount = 1;
                 toNodes[i].ExeOutputCount = 1;
                 toNodes[i].InputCount = 2;
@@ -51,14 +51,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 var outputs = fromNodes[i].OutputsByDisplayOrder.ToList();
 
                 // Create edge between execution ports.
-                m_GraphAssetModel.GraphModel.CreateEdge(inputs[0], outputs[0]);
+                m_GraphAsset.GraphModel.CreateEdge(inputs[0], outputs[0]);
 
                 // Create edges from the first output data port to each input data port.
-                m_GraphAssetModel.GraphModel.CreateEdge(inputs[1], outputs[1]);
-                m_GraphAssetModel.GraphModel.CreateEdge(inputs[2], outputs[1]);
+                m_GraphAsset.GraphModel.CreateEdge(inputs[1], outputs[1]);
+                m_GraphAsset.GraphModel.CreateEdge(inputs[2], outputs[1]);
             }
 
-            var allPorts = m_GraphAssetModel.GraphModel.NodeModels
+            var allPorts = m_GraphAsset.GraphModel.NodeModels
                 .OfType<IONodeModel>()
                 .SelectMany(n => n.Ports)
                 .ToList();
@@ -67,7 +67,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     foreach (var portModel in allPorts)
                     {
-                        m_GraphAssetModel.GraphModel.GetEdgesForPort(portModel);
+                        m_GraphAsset.GraphModel.GetEdgesForPort(portModel);
                     }
                 }).WarmupCount(3)
                 .MeasurementCount(10)
@@ -84,7 +84,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
 
             for (var i = 0; i < count; i++)
             {
-                var node = m_GraphAssetModel.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
+                var node = m_GraphAsset.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
                 node.ExeInputCount = 1;
                 node.ExeOutputCount = 1;
                 node.InputCount = 2;
@@ -99,7 +99,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                     for (int j = 0; j < 100; j++)
                     for(var i = 0; i < count; i++)
                     {
-                        m_GraphAssetModel.GraphModel.TryGetModelFromGuid(guids[i], out var _);
+                        m_GraphAsset.GraphModel.TryGetModelFromGuid(guids[i], out var _);
                     }
                 }).WarmupCount(3)
                 .MeasurementCount(10)

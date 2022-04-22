@@ -91,9 +91,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
+            State?.RemoveStateComponent(ToolState);
             if (disposing)
             {
-                ToolState.Dispose();
                 Undo.undoRedoPerformed -= UndoRedoPerformed;
             }
             base.Dispose(disposing);
@@ -119,7 +119,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 Preferences = Preferences.CreatePreferences(Name);
             }
 
-            ToolState = PersistedState.GetOrCreateAssetViewStateComponent<ToolStateComponent>(default, WindowID, Name);
+            ToolState = PersistedState.GetOrCreatePersistedStateComponent<ToolStateComponent>(default, WindowID, Name);
             State.AddStateComponent(ToolState);
 
             GraphProcessingState = new GraphProcessingStateComponent();
@@ -131,11 +131,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             HighlighterState = new DeclarationHighlighterStateComponent();
             State.AddStateComponent(HighlighterState);
 
-            Dispatcher.RegisterCommandHandler<ToolStateComponent, GraphProcessingStateComponent, LoadGraphAssetCommand>(
-                LoadGraphAssetCommand.DefaultCommandHandler, ToolState, GraphProcessingState);
+            Dispatcher.RegisterCommandHandler<ToolStateComponent, GraphProcessingStateComponent, LoadGraphCommand>(
+                LoadGraphCommand.DefaultCommandHandler, ToolState, GraphProcessingState);
 
-            Dispatcher.RegisterCommandHandler<ToolStateComponent, GraphProcessingStateComponent, UnloadGraphAssetCommand>(
-                UnloadGraphAssetCommand.DefaultCommandHandler, ToolState, GraphProcessingState);
+            Dispatcher.RegisterCommandHandler<ToolStateComponent, GraphProcessingStateComponent, UnloadGraphCommand>(
+                UnloadGraphCommand.DefaultCommandHandler, ToolState, GraphProcessingState);
 
             Dispatcher.RegisterCommandHandler<UndoStateComponent, UndoRedoCommand>(UndoRedoCommand.DefaultCommandHandler, UndoStateComponent);
 

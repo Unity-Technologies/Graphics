@@ -45,16 +45,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         {
             var originalDBs = dbs.ToList();
             var assetPaths = AssetDatabase.FindAssets($"t:{typeof(MathBookAsset)}").Select(AssetDatabase.GUIDToAssetPath).ToList();
-            var assetGraphModels = assetPaths.Select(p => AssetDatabase.LoadAssetAtPath(p, typeof(object)) as MathBookAsset)
-                .Where(g => g != null && !g.IsContainerGraph() && g.CanBeSubgraph() && ((MathBook)g.GraphModel).SubgraphPropertiesField.ShouldShowInLibrary);
+            var graphModels = assetPaths
+                .Select(p => (AssetDatabase.LoadAssetAtPath(p, typeof(object)) as MathBookAsset)?.GraphModel)
+                .Where(g => g != null && !g.IsContainerGraph() && g.CanBeSubgraph() && ((MathBook)g).SubgraphPropertiesField.ShouldShowInLibrary);
 
             var handle = Stencil.GetSubgraphNodeTypeHandle();
 
-            var items = assetGraphModels.Select(assetGraphModel =>
-                    new GraphNodeModelSearcherItem(assetGraphModel.Name, new TypeSearcherItemData(handle),
-                        data => data.CreateSubgraphNode(assetGraphModel))
+            var items = graphModels.Select(graphModel =>
+                    new GraphNodeModelSearcherItem(graphModel.Name, new TypeSearcherItemData(handle),
+                        data => data.CreateSubgraphNode(graphModel))
                     {
-                        CategoryPath = ((MathBook)assetGraphModel.GraphModel).SubgraphPropertiesField.GetCategoryPath()
+                        CategoryPath = ((MathBook)graphModel)?.SubgraphPropertiesField.GetCategoryPath(),
+                        Help = ((MathBook)graphModel)?.SubgraphPropertiesField.Description
                     }).ToList();
 
             originalDBs.Add(new SearcherDatabase(items));

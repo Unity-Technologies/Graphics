@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.Serialization;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 {
@@ -17,9 +16,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField, HideInInspector]
         SerializableGUID m_Guid;
 
-        // [SerializeField, HideInInspector, FormerlySerializedAs("m_GraphAssetModel")]
-        protected GraphAssetModel m_AssetModel;
-
         [SerializeField, HideInInspector]
         Color m_Color;
 
@@ -29,6 +25,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField, HideInInspector]
         SerializationVersion m_Version;
 
+        GraphModel m_GraphModel;
+
         protected List<Capabilities> m_Capabilities = new List<Capabilities>();
 
         /// <summary>
@@ -37,20 +35,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public SerializationVersion Version => m_Version;
 
         /// <inheritdoc />
-        public virtual IGraphModel GraphModel => AssetModel?.GraphModel;
+        public virtual IGraphModel GraphModel
+        {
+            get => m_GraphModel;
+            set
+            {
+                if (value == null || value is GraphModel)
+                    m_GraphModel = (GraphModel)value;
+                else
+                {
+                    throw new ArgumentException($"Value should be of type {typeof(GraphModel).FullName}.", nameof(value));
+                }
+            }
+        }
 
         /// <inheritdoc />
         public virtual SerializableGUID Guid
         {
             get => m_Guid;
             set => m_Guid = value;
-        }
-
-        /// <inheritdoc />
-        public IGraphAssetModel AssetModel
-        {
-            get => m_AssetModel;
-            set => m_AssetModel = (GraphAssetModel)value;
         }
 
         /// <inheritdoc />
@@ -104,6 +107,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             // ReSharper disable once InconsistentNaming
             GTF_V_0_8_2 = 0,
 
+            // ReSharper disable once InconsistentNaming
             GTF_V_0_13_0 = 1,
 
             /// <summary>
@@ -137,6 +141,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         public virtual void OnAfterDeserialize()
         {
+            m_GraphModel = null;
         }
     }
 }

@@ -1,0 +1,48 @@
+/*{"MinVersion":"2022.2.0","MaxVersion":""}*/
+
+.ge-error-badge
+{
+    position: absolute;
+    align-items: center;
+}
+
+.ge-error-badge--left
+{
+    flex-direction: row-reverse;
+}
+
+.ge-error-badge--right
+{
+    flex-direction: row;
+}
+
+.ge-error-badge--top
+{
+    flex-direction: column-reverse;
+}
+
+.ge-error-badge--bottom
+{
+    flex-direction: column;
+}
+
+.ge-error-badge--left .ge-error-badge__tip
+{
+    rotate: 90deg;
+    margin-left: -2px; /* half the difference, rounded, between the tip height and width */
+}
+
+.ge-error-badge--right .ge-error-badge__tip
+{
+    rotate: -90deg;
+    margin-right: -2px; /* half the difference, rounded, between the tip height and width */
+}
+
+.ge-error-badge--top .ge-error-badge__tip
+{
+    rotate: 180deg;
+}
+
+.ge-error-badge--tip-hidden .ge-error-badge__tip {
+    display: none;
+}

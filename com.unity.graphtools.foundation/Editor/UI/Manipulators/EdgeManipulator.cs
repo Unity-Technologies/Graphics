@@ -145,7 +145,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 }
 
                 // Use the edge drag helper of the still connected port
-                m_ConnectedEdgeDragHelper = connectedPortUI.EdgeConnector.edgeDragHelper;
+                m_ConnectedEdgeDragHelper = connectedPortUI.EdgeConnector.EdgeDragHelper;
                 m_ConnectedEdgeDragHelper.originalEdge = m_Edge;
                 m_ConnectedEdgeDragHelper.draggedPort = connectedPort;
                 m_ConnectedEdgeDragHelper.CreateEdgeCandidate(connectedPort.GraphModel);
@@ -168,7 +168,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                             {
                                 var otherPort = m_DetachedPort == edge.ToPort ? edge.FromPort : edge.ToPort;
 
-                                var edgeDragHelper = otherPort.GetView<Port>(view)?.EdgeConnector.edgeDragHelper;
+                                var edgeDragHelper = otherPort.GetView<Port>(view)?.EdgeConnector.EdgeDragHelper;
 
                                 if (edgeDragHelper != null)
                                 {

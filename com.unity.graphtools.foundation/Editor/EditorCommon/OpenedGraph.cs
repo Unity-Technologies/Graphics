@@ -8,7 +8,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// Holds information about a graph displayed in the graph view editor window.
     /// </summary>
     [Serializable]
-    public struct OpenedGraph
+    public struct OpenedGraph : ISerializationCallbackReceiver
     {
         [SerializeField]
         string m_AssetGuid;
@@ -22,34 +22,34 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         [SerializeField]
         GameObject m_BoundObject;
 
-        IGraphAssetModel m_GraphAssetModel;
+        IGraphAsset m_GraphAsset;
 
-        internal IGraphAssetModel GetGraphAssetModelWithoutLoading() => m_GraphAssetModel;
+        internal IGraphAsset GetGraphAssetWithoutLoading() => m_GraphAsset;
 
         /// <summary>
-        /// Gets the graph asset model.
+        /// Gets the graph asset.
         /// </summary>
-        /// <returns>The graph asset model.</returns>
-        public IGraphAssetModel GetGraphAssetModel()
+        /// <returns>The graph asset.</returns>
+        public IGraphAsset GetGraphAsset()
         {
-            EnsureGraphAssetModelIsLoaded();
-            return m_GraphAssetModel;
+            EnsureGraphAssetIsLoaded();
+            return m_GraphAsset;
         }
 
         /// <summary>
-        /// Gets the path of the graph asset model file on disk.
+        /// Gets the path of the graph asset file on disk.
         /// </summary>
         /// <returns>The path of the graph asset file.</returns>
-        public string GetGraphAssetModelPath()
+        public string GetGraphAssetPath()
         {
-            EnsureGraphAssetModelIsLoaded();
-            return m_GraphAssetModel == null ? null : AssetDatabase.GetAssetPath(m_GraphAssetModel as Object);
+            EnsureGraphAssetIsLoaded();
+            return (m_GraphAsset as Object) == null ? null : (m_GraphAsset as ISerializedGraphAsset)?.FilePath;
         }
 
         /// <summary>
         /// The GUID of the graph asset.
         /// </summary>
-        public string GraphModelAssetGuid => m_AssetGuid;
+        public string GraphAssetGuid => m_AssetGuid;
 
         /// <summary>
         /// The GameObject bound to this graph.
@@ -62,62 +62,74 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public long AssetLocalId => m_AssetLocalId;
 
         /// <summary>
-        /// Checks whether this instance holds a valid graph asset model.
+        /// Checks whether this instance holds a valid graph asset.
         /// </summary>
-        /// <returns>True if the graph asset model is valid, false otherwise.</returns>
+        /// <returns>True if the graph asset is valid, false otherwise.</returns>
         public bool IsValid()
         {
-            return GetGraphAssetModel() != null;
+            return GetGraphAsset() != null;
+        }
+
+        /// <summary>
+        /// Gets the graph model stored in the asset file.
+        /// </summary>
+        /// <returns>The graph model.</returns>
+        public IGraphModel GetGraphModel()
+        {
+            EnsureGraphAssetIsLoaded();
+            return (m_GraphAsset as Object) == null ? null : m_GraphAsset.GraphModel;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenedGraph" /> class.
         /// </summary>
-        /// <param name="graphAssetModel">The graph asset model.</param>
+        /// <param name="graphModel">The graph model.</param>
         /// <param name="boundObject">The GameObject bound to the graph.</param>
-        public OpenedGraph(IGraphAssetModel graphAssetModel, GameObject boundObject)
+        public OpenedGraph(IGraphModel graphModel, GameObject boundObject)
         {
-            if (graphAssetModel == null ||
-                !AssetDatabase.TryGetGUIDAndLocalFileIdentifier(graphAssetModel as Object, out m_AssetGuid, out m_AssetLocalId))
+            var graphAsset = graphModel?.Asset;
+            if (graphAsset as Object == null ||
+                !AssetDatabase.TryGetGUIDAndLocalFileIdentifier(graphAsset as Object, out m_AssetGuid, out m_AssetLocalId))
             {
                 m_AssetGuid = "";
                 m_AssetLocalId = 0L;
             }
 
-            m_GraphAssetModel = graphAssetModel;
-            m_GraphAssetObjectInstanceID = (graphAssetModel as Object)?.GetInstanceID() ?? 0;
+            m_GraphAsset = graphAsset;
+            m_GraphAssetObjectInstanceID = (graphAsset as Object)?.GetInstanceID() ?? 0;
             m_BoundObject = boundObject;
         }
 
-        void EnsureGraphAssetModelIsLoaded()
+        void EnsureGraphAssetIsLoaded()
         {
             // GUIDToAssetPath cannot be done in ISerializationCallbackReceiver.OnAfterDeserialize so we do it here.
 
-            if (m_GraphAssetModel == null)
+            if ((m_GraphAsset as Object) == null)
             {
                 // Try to load object from its GUID. Will fail if it is a memory based asset or if the asset was deleted.
                 if (!string.IsNullOrEmpty(m_AssetGuid))
                 {
-                    var graphAssetModelPath = AssetDatabase.GUIDToAssetPath(m_AssetGuid);
-                    m_GraphAssetModel = Load(graphAssetModelPath, m_AssetLocalId);
+                    var graphAssetPath = AssetDatabase.GUIDToAssetPath(m_AssetGuid);
+                    m_GraphAsset = Load(graphAssetPath, m_AssetLocalId);
                 }
 
                 // If it failed, try to retrieve object from its instance id (memory based asset).
-                if (m_GraphAssetModel == null && m_GraphAssetObjectInstanceID != 0)
+                if (m_GraphAsset as Object == null && m_GraphAssetObjectInstanceID != 0)
                 {
-                    m_GraphAssetModel = EditorUtility.InstanceIDToObject(m_GraphAssetObjectInstanceID) as IGraphAssetModel;
+                    m_GraphAsset = EditorUtility.InstanceIDToObject(m_GraphAssetObjectInstanceID) as IGraphAsset;
                 }
 
-                if (m_GraphAssetModel == null)
+                if (m_GraphAsset as Object == null)
                 {
+                    m_GraphAsset = null; // operator== above is overloaded for Unity.Object.
                     m_AssetGuid = null;
                     m_AssetLocalId = 0;
                     m_GraphAssetObjectInstanceID = 0;
                 }
                 else
                 {
-                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_GraphAssetModel as Object, out m_AssetGuid, out m_AssetLocalId);
-                    m_GraphAssetObjectInstanceID = (m_GraphAssetModel as Object)?.GetInstanceID() ?? 0;
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_GraphAsset as Object, out m_AssetGuid, out m_AssetLocalId);
+                    m_GraphAssetObjectInstanceID = (m_GraphAsset as Object)?.GetInstanceID() ?? 0;
                 }
             }
         }
@@ -126,11 +138,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Loads a graph asset from file.
         /// </summary>
         /// <param name="path">The path of the file.</param>
-        /// <param name="localFileId">The id of the asset in the file. If 0, the first asset of type <see cref="GraphAssetModel"/> will be loaded.</param>
-        /// <returns>The loaded asset, or null if it was not found or if the asset found is not an <see cref="IGraphAssetModel"/>.</returns>
-        public static IGraphAssetModel Load(string path, long localFileId)
+        /// <param name="localFileId">The id of the asset in the file. If 0, the first asset of type <see cref="GraphAsset"/> will be loaded.</param>
+        /// <returns>The loaded asset, or null if it was not found or if the asset found is not an <see cref="IGraphAsset"/>.</returns>
+        internal static IGraphAsset Load(string path, long localFileId)
         {
-            IGraphAssetModel assetModel = null;
+            IGraphAsset asset = null;
 
             if (localFileId != 0L)
             {
@@ -142,16 +154,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                     if (localId == localFileId)
                     {
-                        return a as IGraphAssetModel;
+                        return a as IGraphAsset;
                     }
                 }
             }
             else
             {
-                assetModel = (IGraphAssetModel)AssetDatabase.LoadAssetAtPath(path, typeof(GraphAssetModel));
+                asset = (IGraphAsset)AssetDatabase.LoadAssetAtPath(path, typeof(GraphAsset));
             }
 
-            return assetModel;
+            return asset;
+        }
+
+        /// <inheritdoc />
+        public void OnBeforeSerialize()
+        {
+        }
+
+        /// <inheritdoc />
+        public void OnAfterDeserialize()
+        {
+            m_GraphAsset = null;
         }
     }
 }

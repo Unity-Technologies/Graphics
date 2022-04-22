@@ -142,6 +142,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: 20, y: 20}
         m_Title: Node 1
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList:
           - dataIn0
@@ -167,6 +168,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -220, y: 20}
         m_Title: Node 2
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList:
           - dataIn0
@@ -192,6 +194,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -250, y: 20}
         m_Title: Node 3
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList:
           - dataIn0
@@ -217,6 +220,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: 20, y: -200}
         m_Title: Constant 1
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -237,6 +241,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: 20, y: -250}
         m_Title: Constant 2
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -257,6 +262,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: 20, y: -300}
         m_Title: Constant 3
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -278,6 +284,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -500}
         m_Title: TypeName:System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -299,6 +306,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -550}
         m_Title: TypeName:System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -320,6 +328,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -600}
         m_Title: TypeName:System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -341,6 +350,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -650}
         m_Title: TypeName:System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -362,6 +372,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -700}
         m_Title: TypeName:UnityEngine.Quaternion, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -383,6 +394,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -750}
         m_Title: TypeName:System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -404,6 +416,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -800}
         m_Title: TypeName:UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -425,6 +438,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -850}
         m_Title: TypeName:UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -446,6 +460,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -900}
         m_Title: TypeName:UnityEngine.Vector4, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -467,6 +482,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -950}
         m_Title: TypeName:UnityEngine.Color, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -488,6 +504,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -1000}
         m_Title: TypeName:UnityEngine.AnimationClip, UnityEngine.AnimationModule,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -509,6 +526,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -1050}
         m_Title: TypeName:UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -530,6 +548,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -1100}
         m_Title: TypeName:UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -551,6 +570,7 @@ MonoBehaviour:
         m_Position: {x: -200, y: -1150}
         m_Title: TypeName:UnityEngine.Texture3D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -571,6 +591,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -500}
         m_Title: Variable Decl 1
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -590,6 +611,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -550}
         m_Title: Variable Decl 1
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -609,6 +631,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -600}
         m_Title: Variable Decl 2
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList:
           - MainPortName
@@ -630,6 +653,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -650}
         m_Title: Variable Decl 2
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList:
           - MainPortName
@@ -651,6 +675,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -700}
         m_Title: Variable Decl 3
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList:
           - MainPortName
@@ -672,6 +697,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -750}
         m_Title: Variable Decl 3
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList:
           - MainPortName
@@ -693,6 +719,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -800}
         m_Title: Variable Decl 4
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -712,6 +739,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -1200, y: -850}
         m_Title: Variable Decl 4
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -732,6 +760,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -900}
         m_Title: Type Name:System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -752,6 +781,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -950}
         m_Title: Type Name:System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -772,6 +802,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1000}
         m_Title: Type Name:System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -792,6 +823,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1050}
         m_Title: Type Name:System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -812,6 +844,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1100}
         m_Title: Type Name:System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -832,6 +865,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1150}
         m_Title: Type Name:System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -852,6 +886,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1200}
         m_Title: Type Name:System.Int 32, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -872,6 +907,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1250}
         m_Title: Type Name:System.Int 32, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -892,6 +928,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1300}
         m_Title: Type Name:Unity Engine.Quaternion, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -912,6 +949,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1350}
         m_Title: Type Name:Unity Engine.Quaternion, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -932,6 +970,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1400}
         m_Title: Type Name:System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -952,6 +991,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1450}
         m_Title: Type Name:System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
           Public Key Token=b 77a 5c 561934e 089
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -972,6 +1012,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1500}
         m_Title: Type Name:Unity Engine.Vector 2, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -992,6 +1033,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1550}
         m_Title: Type Name:Unity Engine.Vector 2, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1012,6 +1054,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1600}
         m_Title: Type Name:Unity Engine.Vector 3, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1032,6 +1075,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1650}
         m_Title: Type Name:Unity Engine.Vector 3, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1052,6 +1096,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1700}
         m_Title: Type Name:Unity Engine.Vector 4, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1072,6 +1117,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1750}
         m_Title: Type Name:Unity Engine.Vector 4, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1092,6 +1138,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1800}
         m_Title: Type Name:Unity Engine.Color, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1112,6 +1159,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1850}
         m_Title: Type Name:Unity Engine.Color, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1132,6 +1180,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1900}
         m_Title: Type Name:Unity Engine.Animation Clip, Unity Engine.Animation Module,
           Version=0.0.0.0, Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1152,6 +1201,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -1950}
         m_Title: Type Name:Unity Engine.Animation Clip, Unity Engine.Animation Module,
           Version=0.0.0.0, Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1172,6 +1222,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -2000}
         m_Title: Type Name:Unity Engine.Mesh, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1192,6 +1243,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -2050}
         m_Title: Type Name:Unity Engine.Mesh, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1212,6 +1264,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -2100}
         m_Title: Type Name:Unity Engine.Texture 2D, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1232,6 +1285,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -2150}
         m_Title: Type Name:Unity Engine.Texture 2D, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1252,6 +1306,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -2200}
         m_Title: Type Name:Unity Engine.Texture 3D, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1272,6 +1327,7 @@ MonoBehaviour:
         m_Position: {x: -1200, y: -2250}
         m_Title: Type Name:Unity Engine.Texture 3D, Unity Engine.Core Module, Version=0.0.0.0,
           Culture=neutral, Public Key Token=null
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1291,6 +1347,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -750, y: 300}
         m_Title: Execution Entry Portal
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1313,6 +1370,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -750, y: 350}
         m_Title: Execution Exit Portal
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1335,6 +1393,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -750, y: 400}
         m_Title: Data Entry Portal
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1357,6 +1416,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -750, y: 450}
         m_Title: Data Exit Portal
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1379,6 +1439,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -750, y: 500}
         m_Title: Friendless Data Entry Portal
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []
@@ -1401,6 +1462,7 @@ MonoBehaviour:
         m_Version: 2
         m_Position: {x: -750, y: 550}
         m_Title: Friendless Data Exit Portal
+        m_Tooltip: 
         m_InputConstantsById:
           m_KeyList: []
           m_ValueList: []

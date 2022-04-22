@@ -25,17 +25,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphViewModel"/> class.
         /// </summary>
-        public GraphViewModel(string graphViewName, IGraphAssetModel assetModel, IState state)
+        public GraphViewModel(string graphViewName, IGraphModel graphModel)
         {
             m_Guid = new SerializableGUID(graphViewName);
 
-            var assetKey = PersistedState.MakeAssetKey(assetModel);
+            var graphKey = PersistedState.MakeGraphKey(graphModel);
 
-            GraphViewState = PersistedState.GetOrCreateAssetViewStateComponent<GraphViewStateComponent>(default, Guid, assetKey);
+            GraphViewState = PersistedState.GetOrCreatePersistedStateComponent<GraphViewStateComponent>(default, Guid, graphKey);
 
-            GraphModelState = PersistedState.GetOrCreateAssetStateComponent<GraphModelStateComponent>(default, assetKey);
+            GraphModelState = new GraphModelStateComponent();
 
-            SelectionState = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Guid, assetKey);
+            SelectionState = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Guid, graphKey);
         }
 
         /// <inheritdoc />

@@ -114,10 +114,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         void OnShowInProjectButton()
         {
             // If no currently opened graph, early out
-            if (GraphTool.ToolState.AssetModel == null)
+            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() == null)
                 return;
 
-            var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+            var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
             var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
             EditorGUIUtility.PingObject(asset);
         }

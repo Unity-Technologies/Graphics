@@ -25,7 +25,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             /// <summary>
             /// The edge model on which to insert the newly created node.
             /// </summary>
-            public IEdgeModel EdgeModel;
+            public IEdgeModel EdgeToInsertOn;
 
             /// <summary>
             /// The port to which to connect the new node.
@@ -53,9 +53,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             public SerializableGUID Guid;
 
             /// <summary>
-            /// A list of edges to delete before creating the node.
+            /// The edge models on which to connect the newly created node.
             /// </summary>
-            public IReadOnlyList<IEdgeModel> EdgesToDelete;
+            public IEnumerable<(IEdgeModel model, EdgeSide side)> EdgesToConnect;
         }
 
         /// <summary>
@@ -128,16 +128,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="autoAlign">If true, the created node will be automatically aligned after being created.</param>
         /// <param name="guid">The SerializableGUID to assign to the newly created item. If none is provided, a new
         /// SerializableGUID will be generated for it.</param>
-        /// <param name="edgesToDelete">A list of edges to delete before creating the node.</param>
         /// <returns>A <see cref="CreateNodeCommand"/> that can be dispatched to create a node on a port.</returns>
         public static CreateNodeCommand OnPort(GraphNodeModelSearcherItem item,
             IPortModel portModel,
             Vector2 position = default,
             bool autoAlign = false,
-            SerializableGUID guid = default,
-            IReadOnlyList<IEdgeModel> edgesToDelete = null)
+            SerializableGUID guid = default)
         {
-            return new CreateNodeCommand().WithNodeOnPort(item, portModel, position, autoAlign, guid, edgesToDelete);
+            return new CreateNodeCommand().WithNodeOnPort(item, portModel, position, autoAlign, guid);
         }
 
         /// <summary>
@@ -146,7 +144,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="model">The declaration for the variable to create on the graph.</param>
         /// <param name="portModel">The port to connect the new node to.</param>
         /// <param name="position">The position where to create the node.</param>
-        /// /// <param name="autoAlign">If true, the created node will be automatically aligned after being created.</param>
+        /// <param name="autoAlign">If true, the created node will be automatically aligned after being created.</param>
         /// <param name="guid">The SerializableGUID to assign to the newly created item. If none is provided, a new
         /// SerializableGUID will be generated for it.</param>
         /// <returns>A <see cref="CreateNodeCommand"/> that can be dispatched to create a node on an edge.</returns>
@@ -157,6 +155,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             SerializableGUID guid = default)
         {
             return new CreateNodeCommand().WithNodeOnPort(model, portModel, position, autoAlign, guid);
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="CreateNodeCommand"/> to create a node and connect it to existing edges.
+        /// </summary>
+        /// <param name="item">The searcher item representing the node to create.</param>
+        /// <param name="edges">The edges to connect to the node.</param>
+        /// <param name="position">The position where to create the node.</param>
+        /// <param name="guid">The SerializableGUID to assign to the newly created item. If none is provided, a new
+        /// SerializableGUID will be generated for it.</param>
+        /// <returns>A <see cref="CreateNodeCommand"/> that can be dispatched to create a node on a port.</returns>
+        public static CreateNodeCommand OnEdgeSide(GraphNodeModelSearcherItem item,
+            IEnumerable<(IEdgeModel, EdgeSide)> edges,
+            Vector2 position,
+            SerializableGUID guid = default)
+        {
+            return new CreateNodeCommand().WithNodeOnEdges(item, edges, position, guid);
         }
 
         /// <summary>
@@ -173,6 +188,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             this.WithNodeOnGraph(selectedItem, position, guid);
         }
+
+        enum ConnectionsToMake
+        {
+            None,
+            ExistingPort,
+            InsertOnEdge,
+            ExistingEdges
+        };
 
         /// <summary>
         /// Default command handler for CreateNodeFromSearcherCommand.
@@ -211,27 +234,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         continue;
                     }
 
-                    if (creationData.PortModel != null && creationData.EdgeModel != null)
+                    var connectionsToMake = ConnectionsToMake.None;
+
+                    if (creationData.PortModel != null)
+                        connectionsToMake = ConnectionsToMake.ExistingPort;
+                    if (creationData.EdgesToConnect != null || creationData.EdgeToInsertOn != null)
                     {
-                        Debug.LogError(
-                            "Creation command dispatched with invalid item to create: Can't create an item on both PortModel and EdgeModel. Ignoring this item.");
-                        continue;
+                        if (connectionsToMake != ConnectionsToMake.None)
+                        {
+                            Debug.LogError(
+                                "Creation command dispatched with invalid item to create: Trying to connect new item in different ways. Ignoring this item.");
+                            continue;
+                        }
+
+                        connectionsToMake = creationData.EdgesToConnect != null
+                            ? ConnectionsToMake.ExistingEdges
+                            : ConnectionsToMake.InsertOnEdge;
                     }
 
                     var guid = creationData.Guid.Valid ? creationData.Guid : SerializableGUID.Generate();
                     var graphModel = graphModelState.GraphModel;
 
                     // Delete previous connections
-                    var existingPortToConnect = creationData.PortModel;
-                    var edgesToDelete = creationData.EdgesToDelete ?? Enumerable.Empty<IEdgeModel>();
-                    if (existingPortToConnect != null && existingPortToConnect.Capacity != PortCapacity.Multi)
+                    if (connectionsToMake == ConnectionsToMake.ExistingPort && creationData.PortModel.Capacity != PortCapacity.Multi)
                     {
-                        edgesToDelete = edgesToDelete.Concat(existingPortToConnect.GetConnectedEdges());
-                    }
-                    var edgeListToDelete = edgesToDelete.Where(e => !e.Equals(creationData.EdgeModel)).Distinct().ToList();
-                    if (edgeListToDelete.Count > 0)
-                    {
-                        var deletedModels = graphModel.DeleteEdges(edgeListToDelete);
+                        var edgesToDelete = creationData.PortModel.GetConnectedEdges();
+                        var deletedModels = graphModel.DeleteEdges(edgesToDelete.ToList());
                         graphUpdater.MarkDeleted(deletedModels);
                     }
 
@@ -254,22 +282,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         graphUpdater.MarkForRename(createdElement);
                     }
 
-                    // Connect created element to existing port
-                    if (existingPortToConnect != null)
+                    var portNodeModel = createdElement as IPortNodeModel;
+                    switch (connectionsToMake)
                     {
-                        if (createdElement is IPortNodeModel newModelToConnect)
-                        {
-                            var newPortToConnect = newModelToConnect.GetPortFitToConnectTo(existingPortToConnect);
-
+                        case ConnectionsToMake.None:
+                            break;
+                        case ConnectionsToMake.ExistingPort:
+                            var existingPortToConnect = creationData.PortModel;
+                            var newPortToConnect = portNodeModel?.GetPortFitToConnectTo(existingPortToConnect);
                             if (newPortToConnect != null)
                             {
                                 IEdgeModel newEdge;
                                 if (existingPortToConnect.Direction == PortDirection.Output)
                                 {
-                                    if ((existingPortToConnect.NodeModel is IConstantNodeModel &&
-                                            preferences.GetBool(BoolPref.AutoItemizeConstants)) ||
-                                        (existingPortToConnect.NodeModel is IVariableNodeModel &&
-                                            preferences.GetBool(BoolPref.AutoItemizeVariables)))
+                                    if (existingPortToConnect.NodeModel is IConstantNodeModel && preferences.GetBool(BoolPref.AutoItemizeConstants)
+                                        || existingPortToConnect.NodeModel is IVariableNodeModel && preferences.GetBool(BoolPref.AutoItemizeVariables))
                                     {
                                         var newNode = graphModel.CreateItemizedNode(EdgeCommandConfig.nodeOffset,
                                             ref existingPortToConnect);
@@ -283,6 +310,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                                 {
                                     newEdge = graphModel.CreateEdge(existingPortToConnect, newPortToConnect);
                                 }
+
                                 graphUpdater.MarkNew(newEdge);
                                 createdElements.Add(newEdge);
 
@@ -292,40 +320,61 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                                     graphUpdater.MarkModelToAutoAlign(newEdge);
                                 }
                             }
-                        }
-                    }
-                    // insert created element on existing edge
-                    else if (creationData.EdgeModel != null)
-                    {
-                        if (createdElement is IInputOutputPortsNodeModel newModelToConnect)
-                        {
-                            var edgeInput = creationData.EdgeModel.ToPort;
-                            var edgeOutput = creationData.EdgeModel.FromPort;
-
-                            // Delete old edge
-                            var deletedModels = graphModel.DeleteEdge(creationData.EdgeModel);
-                            graphUpdater.MarkDeleted(deletedModels);
-
-                            // Connect input port
-                            var inputPortModel =
-                                newModelToConnect.InputsByDisplayOrder.FirstOrDefault(p =>
-                                    p?.PortType == edgeOutput?.PortType);
-
-                            if (inputPortModel != null)
+                            break;
+                        case ConnectionsToMake.InsertOnEdge:
+                            if (portNodeModel is IInputOutputPortsNodeModel newModelToConnect)
                             {
-                                var newEdge = graphModel.CreateEdge(inputPortModel, edgeOutput);
-                                graphUpdater.MarkNew(newEdge);
+                                var edgeInput = creationData.EdgeToInsertOn.ToPort;
+                                var edgeOutput = creationData.EdgeToInsertOn.FromPort;
+
+                                // Delete old edge
+                                var deletedModels = graphModel.DeleteEdge(creationData.EdgeToInsertOn);
+                                graphUpdater.MarkDeleted(deletedModels);
+
+                                // Connect input port
+                                var inputPortModel =
+                                    newModelToConnect.InputsByDisplayOrder.FirstOrDefault(p =>
+                                        p?.PortType == edgeOutput?.PortType);
+
+                                if (inputPortModel != null)
+                                {
+                                    var newEdge = graphModel.CreateEdge(inputPortModel, edgeOutput);
+                                    graphUpdater.MarkNew(newEdge);
+                                }
+
+                                // Connect output port
+                                var outputPortModel = newModelToConnect.GetPortFitToConnectTo(edgeInput);
+
+                                if (outputPortModel != null)
+                                {
+                                    var newEdge = graphModel.CreateEdge(edgeInput, outputPortModel);
+                                    graphUpdater.MarkNew(newEdge);
+                                }
                             }
-
-                            // Connect output port
-                            var outputPortModel = newModelToConnect.GetPortFitToConnectTo(edgeInput);
-
-                            if (outputPortModel != null)
+                            break;
+                        case ConnectionsToMake.ExistingEdges:
+                            foreach (var edge in creationData.EdgesToConnect)
                             {
-                                var newEdge = graphModel.CreateEdge(edgeInput, outputPortModel);
-                                graphUpdater.MarkNew(newEdge);
+                                if (portNodeModel != null)
+                                {
+                                    var newPort = portNodeModel.GetPortFitToConnectTo(edge.model.GetOtherPort(edge.side));
+                                    if (edge.model is IGhostEdge _)
+                                    {
+                                        var toPort = edge.side == EdgeSide.To ? newPort : edge.model.ToPort;
+                                        var fromPort = edge.side == EdgeSide.From ? newPort : edge.model.FromPort;
+                                        var edgeModel = graphModel.CreateEdge(toPort, fromPort);
+                                        graphUpdater.MarkNew(edgeModel);
+                                    }
+                                    else
+                                    {
+                                        edge.model.SetPort(edge.side, newPort);
+                                        graphUpdater.MarkChanged(edge.model);
+                                    }
+                                }
                             }
-                        }
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
             }

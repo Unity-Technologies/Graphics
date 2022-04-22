@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
@@ -12,7 +11,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         protected override bool CreateGraphOnStartup => true;
 
         [UnityTest]
-        public IEnumerator SelectingSourceNodeShowsEdgeOrder()
+        public IEnumerator SelectingSourceNodeShowsReorderablePortEdgeLabels()
         {
             var nodeModel1 = GraphModel.CreateNode<Type0FakeNodeModel>("Node0", new Vector2(0, 0));
             var nodeModel2 = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", new Vector2(210, 0));
@@ -22,14 +21,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             MarkGraphModelStateDirty();
             yield return null;
 
-            Assert.IsTrue(string.IsNullOrEmpty(edge1.EdgeLabel));
-            Assert.IsTrue(string.IsNullOrEmpty(edge2.EdgeLabel));
+            Assert.IsFalse(ShouldShowLabel(edge1));
+            Assert.IsFalse(ShouldShowLabel(edge2));
 
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeModel1));
             yield return null;
 
-            Assert.IsFalse(string.IsNullOrEmpty(edge1.EdgeLabel));
-            Assert.IsFalse(string.IsNullOrEmpty(edge2.EdgeLabel));
+            Assert.IsTrue(ShouldShowLabel(edge1));
+            Assert.AreEqual(edge1.EdgeLabel, "1");
+            Assert.IsTrue(ShouldShowLabel(edge2));
+            Assert.AreEqual(edge2.EdgeLabel, "2");
+        }
+
+        bool ShouldShowLabel(IEdgeModel edge)
+        {
+            return EdgeBubblePart.EdgeShouldShowLabel(edge, GraphView.GraphViewModel.SelectionState);
         }
 
         [UnityTest]
@@ -43,14 +49,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             MarkGraphModelStateDirty();
             yield return null;
 
-            Assert.IsTrue(string.IsNullOrEmpty(edge1.EdgeLabel));
-            Assert.IsTrue(string.IsNullOrEmpty(edge2.EdgeLabel));
+            Assert.IsFalse(ShouldShowLabel(edge1));
+            Assert.IsFalse(ShouldShowLabel(edge2));
 
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeModel2));
             yield return null;
 
-            Assert.IsTrue(string.IsNullOrEmpty(edge1.EdgeLabel));
-            Assert.IsTrue(string.IsNullOrEmpty(edge2.EdgeLabel));
+            Assert.IsFalse(ShouldShowLabel(edge1));
+            Assert.IsFalse(ShouldShowLabel(edge2));
         }
 
         [UnityTest]
@@ -64,14 +70,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             MarkGraphModelStateDirty();
             yield return null;
 
-            Assert.IsTrue(string.IsNullOrEmpty(edge1.EdgeLabel));
-            Assert.IsTrue(string.IsNullOrEmpty(edge2.EdgeLabel));
+            Assert.IsFalse(ShouldShowLabel(edge1));
+            Assert.IsFalse(ShouldShowLabel(edge2));
 
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, edge1));
             yield return null;
 
-            Assert.IsFalse(string.IsNullOrEmpty(edge1.EdgeLabel));
-            Assert.IsFalse(string.IsNullOrEmpty(edge2.EdgeLabel));
+            Assert.IsTrue(ShouldShowLabel(edge1));
+            Assert.AreEqual(edge1.EdgeLabel, "1");
+            Assert.IsTrue(ShouldShowLabel(edge2));
+            Assert.AreEqual(edge2.EdgeLabel, "2");
         }
 
         [UnityTest]

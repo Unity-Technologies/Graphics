@@ -418,7 +418,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = GraphViewStaticBridge.RoundToPixelGrid(secondNodePos.y - firstNodePos.y);
             float expectedYmin = GraphViewStaticBridge.RoundToPixelGrid(fourthNodePos.y);
 
             actions = AlignElements(AutoAlignmentHelper.AlignmentReference.Top);
@@ -428,8 +427,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             Assert.AreEqual(expectedYmin, m_FirstNode.layout.yMin);
-            Assert.AreNotEqual(expectedYmin, m_SecondNode.layout.yMin);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, m_SecondNode.layout.y - m_FirstNode.layout.y);
+            Assert.AreEqual(expectedYmin, m_SecondNode.layout.yMin);
             Assert.AreEqual(expectedYmin, m_ThirdNode.layout.yMin);
             Assert.AreEqual(expectedYmin, m_FourthNode.layout.yMin);
         }
@@ -461,7 +459,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = GraphViewStaticBridge.RoundToPixelGrid(secondNodePos.y - firstNodePos.y);
             float expectedYmax = GraphViewStaticBridge.RoundToPixelGrid(fourthNodePos.y + m_FourthNode.layout.height);
 
             actions = AlignElements(AutoAlignmentHelper.AlignmentReference.Bottom);
@@ -470,9 +467,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Assert.AreNotEqual(expectedYmax, m_FirstNode.layout.yMax);
+            Assert.AreEqual(expectedYmax, m_FirstNode.layout.yMax);
             Assert.AreEqual(expectedYmax, m_SecondNode.layout.yMax);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, m_SecondNode.layout.y - m_FirstNode.layout.y);
             Assert.AreEqual(expectedYmax, m_ThirdNode.layout.yMax);
             Assert.AreEqual(expectedYmax, m_FourthNode.layout.yMax);
         }
@@ -510,7 +506,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = GraphViewStaticBridge.RoundToPixelGrid(secondNodePos.x - firstNodePos.x);
             float expectedXmin = GraphViewStaticBridge.RoundToPixelGrid(firstNodePos.x);
 
             actions = AlignElements(AutoAlignmentHelper.AlignmentReference.Left);
@@ -520,8 +515,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             }
 
             Assert.AreEqual(expectedXmin, m_FirstNode.layout.xMin);
-            Assert.AreNotEqual(expectedXmin, m_SecondNode.layout.xMin);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, m_SecondNode.layout.x - m_FirstNode.layout.x);
+            Assert.AreEqual(expectedXmin, m_SecondNode.layout.xMin);
             Assert.AreEqual(expectedXmin, m_ThirdNode.layout.xMin);
             Assert.AreEqual(expectedXmin, m_FourthNode.layout.xMin);
         }
@@ -559,7 +553,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = GraphViewStaticBridge.RoundToPixelGrid(secondNodePos.x - firstNodePos.x);
             float expectedXmax = GraphViewStaticBridge.RoundToPixelGrid(fourthNodePos.x + m_FourthNode.layout.width);
 
             actions = AlignElements(AutoAlignmentHelper.AlignmentReference.Right);
@@ -568,9 +561,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Assert.AreNotEqual(expectedXmax, m_FirstNode.layout.xMax);
+            Assert.AreEqual(expectedXmax, m_FirstNode.layout.xMax);
             Assert.AreEqual(expectedXmax, m_SecondNode.layout.xMax);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, m_SecondNode.layout.x - m_FirstNode.layout.x);
             Assert.AreEqual(expectedXmax, m_ThirdNode.layout.xMax);
             Assert.AreEqual(expectedXmax, m_FourthNode.layout.xMax);
         }
@@ -608,8 +600,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = m_SecondNode.layout.xMin - m_FirstNode.layout.xMax;
-            float expectedCenter = GraphViewStaticBridge.RoundToPixelGrid(((m_SecondNode.layout.center.x + m_FirstNode.layout.center.x) / 2 + m_ThirdNode.layout.center.x + m_FourthNode.layout.center.x) / 3);
+            float expectedCenter = GraphViewStaticBridge.RoundToPixelGrid(((m_SecondNode.layout.center.x + m_FirstNode.layout.center.x + m_ThirdNode.layout.center.x + m_FourthNode.layout.center.x) / 4));
 
             actions = AlignElements(AutoAlignmentHelper.AlignmentReference.HorizontalCenter);
             while (actions.MoveNext())
@@ -617,9 +608,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Assert.AreNotEqual(expectedCenter, m_FirstNode.layout.center.x);
-            Assert.AreNotEqual(expectedCenter, m_SecondNode.layout.center.x);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, m_SecondNode.layout.xMin - m_FirstNode.layout.xMax);
+            Assert.AreEqual(expectedCenter, m_FirstNode.layout.center.x);
+            Assert.AreEqual(expectedCenter, m_SecondNode.layout.center.x);
             Assert.AreEqual(expectedCenter, m_ThirdNode.layout.center.x);
             Assert.AreEqual(expectedCenter, m_FourthNode.layout.center.x);
         }
@@ -651,8 +641,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = GraphViewStaticBridge.RoundToPixelGrid(secondNodePos.y - firstNodePos.y);
-            float expectedCenter = GraphViewStaticBridge.RoundToPixelGrid(((m_SecondNode.layout.center.y + m_FirstNode.layout.center.y) / 2 + m_ThirdNode.layout.center.y + m_FourthNode.layout.center.y) / 3);
+            float expectedCenter = GraphViewStaticBridge.RoundToPixelGrid(((m_SecondNode.layout.center.y + m_FirstNode.layout.center.y + m_ThirdNode.layout.center.y + m_FourthNode.layout.center.y) / 4));
 
             actions = AlignElements(AutoAlignmentHelper.AlignmentReference.VerticalCenter);
             while (actions.MoveNext())
@@ -660,9 +649,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Assert.AreNotEqual(expectedCenter, m_FirstNode.layout.center.y);
-            Assert.AreNotEqual(expectedCenter, m_SecondNode.layout.center.y);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, m_SecondNode.layout.y - m_FirstNode.layout.y);
+            Assert.AreEqual(expectedCenter, m_FirstNode.layout.center.y);
+            Assert.AreEqual(expectedCenter, m_SecondNode.layout.center.y);
             Assert.AreEqual(expectedCenter, m_ThirdNode.layout.center.y);
             Assert.AreEqual(expectedCenter, m_FourthNode.layout.center.y);
         }
@@ -701,7 +689,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             SelectConnectedNodes();
             yield return null;
 
-            float expectedDistanceBetweenFirstSecond = m_SecondNode.layout.xMin - m_FirstNode.layout.xMax;
             float expectedXMax = m_FourthNode.layout.xMax;
 
             actions = AlignElements(AutoAlignmentHelper.AlignmentReference.Right);
@@ -710,9 +697,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            Assert.AreNotEqual(expectedXMax, m_FirstNode.layout.xMax);
+            Assert.AreEqual(expectedXMax, m_FirstNode.layout.xMax);
             Assert.AreEqual(expectedXMax, m_SecondNode.layout.xMax);
-            Assert.AreEqual(expectedDistanceBetweenFirstSecond, m_SecondNode.layout.xMin - m_FirstNode.layout.xMax);
             Assert.AreEqual(expectedXMax, m_ThirdNode.layout.xMax);
             Assert.AreEqual(expectedXMax, m_FourthNode.layout.xMax);
         }
@@ -831,288 +817,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             fifthNode = fifthNodeModel.GetView<Node>(GraphView);
             Assert.IsNotNull(fifthNode);
 
-            // Nodes 2, 3 and 4 are part of the same group: they move together
             Assert.AreEqual(expectedTop, m_SecondNode.layout.yMin);
-            Assert.AreNotEqual(expectedTop, m_ThirdNode.layout.yMin);
-            Assert.AreNotEqual(expectedTop, m_FourthNode.layout.yMin);
-            Assert.AreEqual(expectedDistanceBetweenSecondThird, m_ThirdNode.layout.yMin - m_SecondNode.layout.yMax);
-            Assert.AreEqual(expectedDistanceBetweenSecondFourth, m_FourthNode.layout.yMin - m_SecondNode.layout.yMax);
-
-            // Node 1 and node 5 move individually
-            Assert.AreEqual(expectedTop, m_FirstNode.layout.yMin);
-            Assert.AreEqual(expectedTop, fifthNode.layout.yMin);
-        }
-
-        [UnityTest]
-        public IEnumerator GetNodeDependencies()
-        {
-            // Config
-            //           +-------+                      +-------+
-            //           | Node2 o--+---------------+---o Node5 |
-            //           +-------+  |   +-------+   |   +-------+
-            // +-------+ +-------+  +---o Node4 o---+
-            // | Node1 o-o Node3 o--+   +-------+
-            // +-------+ +-------+
-
-            Vector2 firstNodePos = new Vector2(0, 400);
-            Vector2 secondNodePos = new Vector2(200, 10);
-            Vector2 thirdNodePos = new Vector2(200, 400);
-            Vector2 fourthNodePos = new Vector2(400, 200);
-            Vector2 fifthNodePos = new Vector2(600, 0);
-
-            FirstNodeModel = CreateNode("Node1", firstNodePos, 0, 0, 0, 1);
-            SecondNodeModel = CreateNode("Node2", secondNodePos, 0, 0, 0, 1);
-            ThirdNodeModel = CreateNode("Node3", thirdNodePos, 0, 0, 1, 1);
-            FourthNodeModel = CreateNode("Node4", fourthNodePos, 0, 0, 1, 1);
-            var fifthNodeModel = CreateNode("Node5", fifthNodePos, 0, 0, 1);
-
-            MarkGraphViewStateDirty();
-            yield return null;
-
-            IPortModel outputPortFirstNode = FirstNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(outputPortFirstNode);
-
-            IPortModel outputPortSecondNode = SecondNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(outputPortSecondNode);
-
-            IPortModel inputPortThirdNode = ThirdNodeModel.InputsByDisplayOrder[0];
-            IPortModel outputPortThirdNode = ThirdNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(inputPortThirdNode);
-            Assert.IsNotNull(outputPortThirdNode);
-
-            IPortModel inputPortFourthNode = FourthNodeModel.InputsByDisplayOrder[0];
-            IPortModel outputPortFourthNode = FourthNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(inputPortFourthNode);
-            Assert.IsNotNull(outputPortFourthNode);
-
-            IPortModel inputPortFifthNode = fifthNodeModel.InputsByDisplayOrder[0];
-            Assert.IsNotNull(inputPortFifthNode);
-
-            // Connect the ports together
-            var actions = ConnectPorts(outputPortFirstNode, inputPortThirdNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = ConnectPorts(outputPortSecondNode, inputPortFourthNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = ConnectPorts(outputPortThirdNode, inputPortFourthNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = ConnectPorts(outputPortSecondNode, inputPortFifthNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = ConnectPorts(outputPortFourthNode, inputPortFifthNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            Assert.AreEqual(5, GraphModel.EdgeModels.Count, "Not all edges were created.");
-
-            // Get the UI nodes
-            m_FirstNode = FirstNodeModel.GetView<Node>(GraphView);
-            m_SecondNode = SecondNodeModel.GetView<Node>(GraphView);
-            m_ThirdNode = ThirdNodeModel.GetView<Node>(GraphView);
-            m_FourthNode = FourthNodeModel.GetView<Node>(GraphView);
-            var fifthNode = fifthNodeModel.GetView<Node>(GraphView);
-            Assert.IsNotNull(m_FirstNode);
-            Assert.IsNotNull(m_SecondNode);
-            Assert.IsNotNull(m_ThirdNode);
-            Assert.IsNotNull(m_FourthNode);
-            Assert.IsNotNull(fifthNode);
-
-            SelectConnectedNodes();
-            yield return null;
-
-            // Select node 5
-            Vector2 selectionPosNode5 = GraphView.ContentViewContainer.LocalToWorld(fifthNode.layout.position) + k_SelectionOffset;
-            actions = SelectElement(selectionPosNode5);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = AlignElements(AutoAlignmentHelper.AlignmentReference.Top);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            fifthNode = fifthNodeModel.GetView<Node>(GraphView);
-            Assert.IsNotNull(fifthNode);
-
-            var nodeDependencies = m_AlignmentHelper.NodeDependencies;
-
-            // There should be two parents
-            Assert.AreEqual(2, nodeDependencies.Keys.Count);
-
-            // Node 3 should be parent to Node 1
-            Assert.True(nodeDependencies.ContainsKey(ThirdNodeModel));
-            Assert.AreEqual(1, nodeDependencies[ThirdNodeModel].Count);
-            Assert.True(nodeDependencies[ThirdNodeModel].Contains(FirstNodeModel));
-        }
-
-        [UnityTest]
-        public IEnumerator NodeIsItsOwnParent()
-        {
-            // Config   +---------+
-            //          |+-------+|                    +-------+
-            //          +o Node2 o+-+                +-o Node5 |
-            //           +-------+  |   +-------+    | +-------+
-            // +-------+ +-------+  +-+-o Node4 o-+--+
-            // | Node1 o-o Node3 o--+   +-------+
-            // +-------+ +-------+
-
-            Vector2 firstNodePos = new Vector2(0, 400);
-            Vector2 secondNodePos = new Vector2(200, 0);
-            Vector2 thirdNodePos = new Vector2(200, 400);
-            Vector2 fourthNodePos = new Vector2(400, 200);
-            Vector2 fifthNodePos = new Vector2(600, 10);
-
-            FirstNodeModel = CreateNode("Node1", firstNodePos, 0, 0, 0, 1);
-            SecondNodeModel = CreateNode("Node2", secondNodePos, 0, 0, 1, 1);
-            ThirdNodeModel = CreateNode("Node3", thirdNodePos, 0, 0, 1, 1);
-            FourthNodeModel = CreateNode("Node4", fourthNodePos, 0, 0, 1, 1);
-            var fifthNodeModel = CreateNode("Node5", fifthNodePos, 0, 0, 1);
-
-            MarkGraphViewStateDirty();
-            yield return null;
-
-            IPortModel outputPortFirstNode = FirstNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(outputPortFirstNode);
-
-            IPortModel inputPortSecondNode = SecondNodeModel.InputsByDisplayOrder[0];
-            IPortModel outputPortSecondNode = SecondNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(inputPortSecondNode);
-            Assert.IsNotNull(outputPortSecondNode);
-
-            IPortModel inputPortThirdNode = ThirdNodeModel.InputsByDisplayOrder[0];
-            IPortModel outputPortThirdNode = ThirdNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(inputPortThirdNode);
-            Assert.IsNotNull(outputPortThirdNode);
-
-            IPortModel inputPortFourthNode = FourthNodeModel.InputsByDisplayOrder[0];
-            IPortModel outputPortFourthNode = FourthNodeModel.OutputsByDisplayOrder[0];
-            Assert.IsNotNull(inputPortFourthNode);
-            Assert.IsNotNull(outputPortFourthNode);
-
-            IPortModel inputPortFifthNode = fifthNodeModel.InputsByDisplayOrder[0];
-            Assert.IsNotNull(inputPortFifthNode);
-
-            // Connect the ports together
-            var actions = ConnectPorts(outputPortFirstNode, inputPortThirdNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            // Connect to itself
-            actions = ConnectPorts(outputPortSecondNode, inputPortSecondNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = ConnectPorts(outputPortSecondNode, inputPortFourthNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = ConnectPorts(outputPortThirdNode, inputPortFourthNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            actions = ConnectPorts(outputPortFourthNode, inputPortFifthNode);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            Assert.AreEqual(5, GraphModel.EdgeModels.Count, "Not all edges were created.");
-
-            // Get the UI nodes
-            m_FirstNode = FirstNodeModel.GetView<Node>(GraphView);
-            m_SecondNode = SecondNodeModel.GetView<Node>(GraphView);
-            m_ThirdNode = ThirdNodeModel.GetView<Node>(GraphView);
-            m_FourthNode = FourthNodeModel.GetView<Node>(GraphView);
-            var fifthNode = fifthNodeModel.GetView<Node>(GraphView);
-            Assert.IsNotNull(m_FirstNode);
-            Assert.IsNotNull(m_SecondNode);
-            Assert.IsNotNull(m_ThirdNode);
-            Assert.IsNotNull(m_FourthNode);
-            Assert.IsNotNull(fifthNode);
-
-            SelectConnectedNodes();
-            yield return null;
-
-            // Select node 5
-            Vector2 selectionPosNode5 = GraphView.ContentViewContainer.LocalToWorld(fifthNode.layout.position) + k_SelectionOffset;
-            actions = SelectElement(selectionPosNode5);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            float expectedDistanceBetweenSecondThird = m_ThirdNode.layout.yMin - m_SecondNode.layout.yMax;
-            float expectedTop = GraphViewStaticBridge.RoundToPixelGrid(0f);
-
-            actions = AlignElements(AutoAlignmentHelper.AlignmentReference.Top);
-            while (actions.MoveNext())
-            {
-                yield return null;
-            }
-
-            fifthNode = fifthNodeModel.GetView<Node>(GraphView);
-            Assert.IsNotNull(fifthNode);
-
-            // Nodes 2, 3 are part of the same group: they move together
-            Assert.AreEqual(expectedTop, m_SecondNode.layout.yMin);
-            Assert.AreNotEqual(expectedTop, m_ThirdNode.layout.yMin);
-            Assert.AreEqual(expectedDistanceBetweenSecondThird, m_ThirdNode.layout.yMin - m_SecondNode.layout.yMax);
-
-            // Nodes 1, 4 and 5 move individually
-            Assert.AreEqual(expectedTop, m_FirstNode.layout.yMin);
+            Assert.AreEqual(expectedTop, m_ThirdNode.layout.yMin);
             Assert.AreEqual(expectedTop, m_FourthNode.layout.yMin);
+            Assert.AreEqual(expectedTop, m_FirstNode.layout.yMin);
             Assert.AreEqual(expectedTop, fifthNode.layout.yMin);
-
-            var nodeDependencies = m_AlignmentHelper.NodeDependencies;
-
-            // There should be 3 parents
-            Assert.AreEqual(3, nodeDependencies.Keys.Count);
-
-            // Node 2 should not be considered a parent even if it is its own parent
-            Assert.False(nodeDependencies.ContainsKey(SecondNodeModel));
-
-            // Node 3 should be parent to Node 1
-            Assert.True(nodeDependencies.ContainsKey(ThirdNodeModel));
-            Assert.AreEqual(1, nodeDependencies[ThirdNodeModel].Count);
-            Assert.True(nodeDependencies[ThirdNodeModel].Contains(FirstNodeModel));
-
-            // Node 4 should be parent to Nodes 2,3
-            Assert.True(nodeDependencies.ContainsKey(FourthNodeModel));
-            Assert.AreEqual(2, nodeDependencies[FourthNodeModel].Count);
-            Assert.True(nodeDependencies[FourthNodeModel].Contains(SecondNodeModel));
-            Assert.True(nodeDependencies[FourthNodeModel].Contains(ThirdNodeModel));
-
-            // Node 5 should be parent to Node 4
-            Assert.True(nodeDependencies.ContainsKey(fifthNodeModel));
-            Assert.AreEqual(1, nodeDependencies[fifthNodeModel].Count);
-            Assert.True(nodeDependencies[fifthNodeModel].Contains(FourthNodeModel));
         }
     }
 }

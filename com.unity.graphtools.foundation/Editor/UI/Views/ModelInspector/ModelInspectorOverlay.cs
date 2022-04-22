@@ -7,24 +7,31 @@ using UnityEngine.UIElements;
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     [Overlay(typeof(GraphViewEditorWindow), idValue, "Inspector", defaultDisplay = true,
-        defaultDockZone = DockZone.RightColumn, defaultLayout = Layout.Panel)]
+        defaultDockZone = DockZone.RightColumn, defaultLayout = Layout.Panel/*, defaultWidth = 300, defaultHeight = 400*/)]
     [Icon( AssetHelper.AssetPath + "UI/Stylesheets/Icons/PanelsToolbar/Inspector.png")]
-    sealed class ModelInspectorOverlay : ResizableOverlay
+    sealed class ModelInspectorOverlay : Overlay
     {
         public const string idValue = "gtf-inspector";
 
-        protected override string Stylesheet => "ModelInspectorOverlay.uss";
+        public ModelInspectorOverlay()
+        {
+            minSize = new Vector2(100, 100);
+            maxSize = Vector2.positiveInfinity;
+        }
 
         /// <inheritdoc />
-        protected override VisualElement CreateResizablePanelContent()
+        public override VisualElement CreatePanelContent()
         {
             var window = containerWindow as GraphViewEditorWindow;
             if (window != null)
             {
                 var content = window.CreateModelInspectorView();
-                content.AddToClassList("unity-theme-env-variables");
-                content.RegisterCallback<TooltipEvent>((e) => e.StopPropagation());
-                return content;
+                if (content != null)
+                {
+                    content.AddToClassList("unity-theme-env-variables");
+                    content.RegisterCallback<TooltipEvent>((e) => e.StopPropagation());
+                    return content;
+                }
             }
 
             var placeholder = new VisualElement();

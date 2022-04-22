@@ -219,13 +219,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
 
         const ulong k_SectionBaseGuid = 0xE;
 
-        public static CompatibilityTestGraphAssetModel CreateAsset(string name, string path)
+        public static CompatibilityTestGraphAsset CreateAsset(string name, string path)
         {
             AssetDatabase.DeleteAsset(path);
 
-            GraphAssetCreationHelpers<CompatibilityTestGraphAssetModel>.CreateGraphAsset(
+            GraphAssetCreationHelpers<CompatibilityTestGraphAsset>.CreateGraphAsset(
                 typeof(CompatibilityTestStencil), name, path);
-            var asset = AssetDatabase.LoadAssetAtPath<CompatibilityTestGraphAssetModel>(path);
+            var asset = AssetDatabase.LoadAssetAtPath<CompatibilityTestGraphAsset>(path);
 
             AddPlacemats(asset.GraphModel);
             AddStickyNotes(asset.GraphModel);

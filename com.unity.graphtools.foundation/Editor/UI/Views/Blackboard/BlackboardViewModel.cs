@@ -5,7 +5,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
-    public class BlackboardViewModel : RootViewModel, IDisposable
+    public class BlackboardViewModel : RootViewModel
     {
         /// <summary>
         /// The blackboard state component.
@@ -35,38 +35,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Initializes a new instance of the <see cref="BlackboardViewModel"/> class.
         /// </summary>
-        public BlackboardViewModel(GraphView graphView, DeclarationHighlighterStateComponent highlighterState, IState state)
+        public BlackboardViewModel(GraphView graphView, DeclarationHighlighterStateComponent highlighterState)
         {
-            m_Guid = new SerializableGUID("Blackboard");
+            m_Guid = new SerializableGUID(GetType().FullName + graphView.GraphViewModel.Guid);
 
             ParentGraphView = graphView;
             HighlighterState = highlighterState;
 
-            var assetKey = PersistedState.MakeAssetKey(GraphModelState?.GraphModel?.AssetModel);
-
-            ViewState = PersistedState.GetOrCreateAssetViewStateComponent<BlackboardViewStateComponent>(default, Guid, assetKey);
-
-            SelectionState = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Guid, assetKey);
-        }
-
-        /// <summary>
-        /// Dispose implementation.
-        /// </summary>
-        /// <param name="disposing">True if called from Dispose(); false if called from finalizer.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                ViewState?.Dispose();
-                SelectionState?.Dispose();
-            }
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            var key = PersistedState.MakeGraphKey(GraphModelState?.GraphModel);
+            ViewState = PersistedState.GetOrCreatePersistedStateComponent<BlackboardViewStateComponent>(default, Guid, key);
+            SelectionState = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Guid, key);
         }
 
         /// <inheritdoc />

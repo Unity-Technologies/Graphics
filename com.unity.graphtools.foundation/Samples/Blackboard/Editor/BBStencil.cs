@@ -7,13 +7,111 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
 {
+    public enum CustomEnumEnum
+    {
+        Value1,
+        Value2,
+        Value3
+    }
+
     public class BBStencil : Stencil
     {
         internal static readonly string[] sections = { "Input", "Output", "Variables", "Stuff" };
 
-        public static string toolName = "Blackboard Sample";
+        public static readonly string graphName = "Blackboard Editor";
 
-        public static readonly string graphName = "Blackboard";
+        static Dictionary<TypeHandle, Type> s_TypeToConstantTypeCache;
+
+        static TypeHandle Color => TypeHandleHelpers.GenerateTypeHandle(typeof(Color));
+        static TypeHandle LayerMask => TypeHandleHelpers.GenerateTypeHandle(typeof(LayerMask));
+        static TypeHandle Rect => TypeHandleHelpers.GenerateTypeHandle(typeof(Rect));
+        static TypeHandle AnimationCurve => TypeHandleHelpers.GenerateTypeHandle(typeof(AnimationCurve));
+        static TypeHandle Bounds => TypeHandleHelpers.GenerateTypeHandle(typeof(Bounds));
+        static TypeHandle Gradient => TypeHandleHelpers.GenerateTypeHandle(typeof(Gradient));
+        static TypeHandle Vector2Int => TypeHandleHelpers.GenerateTypeHandle(typeof(Vector2Int));
+        static TypeHandle Vector3Int => TypeHandleHelpers.GenerateTypeHandle(typeof(Vector3Int));
+        static TypeHandle RectInt => TypeHandleHelpers.GenerateTypeHandle(typeof(RectInt));
+        static TypeHandle BoundsInt => TypeHandleHelpers.GenerateTypeHandle(typeof(BoundsInt));
+        static TypeHandle CustomEnum => TypeHandleHelpers.GenerateTypeHandle(typeof(CustomEnumEnum));
+
+        /// <summary>
+        /// All the types that have a default editor defined in
+        /// <see cref="CustomizableModelPropertyField.CreateDefaultFieldForType"/>.
+        /// </summary>
+        public static readonly IReadOnlyList<(TypeHandle type, string name)> SupportedConstants =
+            new List<(TypeHandle type, string name)>()
+            {
+                (TypeHandle.Bool, "Boolean"),
+                (TypeHandle.Char, "Character"),
+                (TypeHandle.Double, "Double"),
+                (TypeHandle.Float, "Float"),
+                (TypeHandle.Int, "Integer"),
+                (TypeHandle.Long, "Long Integer"),
+                (TypeHandle.Object, "Object"),
+                (TypeHandle.GameObject, "GameObject"),
+                (TypeHandle.String, "String"),
+                (TypeHandle.Vector2, "Vector2"),
+                (TypeHandle.Vector3, "Vector3"),
+                (TypeHandle.Vector4, "Vector4"),
+                (Color, "Color"),
+                (LayerMask, "LayerMask"),
+                (Rect, "Rect"),
+                (AnimationCurve, "AnimationCurve"),
+                (Bounds, "Bounds"),
+                (Gradient, "Gradient"),
+                (Vector2Int, "Vector2Int"),
+                (Vector3Int, "Vector3Int"),
+                (RectInt, "RectInt"),
+                (BoundsInt, "BoundsInt"),
+                (CustomEnum, "CustomEnum"),
+            };
+
+        public override Type GetConstantType(TypeHandle typeHandle)
+        {
+            if (s_TypeToConstantTypeCache == null)
+            {
+                s_TypeToConstantTypeCache = new Dictionary<TypeHandle, Type>
+                {
+                    { TypeHandle.Bool, typeof(BooleanConstant) },
+                    { TypeHandle.Char, typeof(CharConstant) },
+                    { TypeHandle.Double, typeof(DoubleConstant) },
+                    { TypeHandle.Float, typeof(FloatConstant) },
+                    { TypeHandle.Int, typeof(IntConstant) },
+                    { TypeHandle.Long, typeof(LongConstant) },
+                    { TypeHandle.Object, typeof(ObjectConstant) },
+                    { TypeHandle.GameObject, typeof(GameObjectConstant) },
+                    { TypeHandle.String, typeof(StringConstant) },
+                    { TypeHandle.Vector2, typeof(Vector2Constant) },
+                    { TypeHandle.Vector3, typeof(Vector3Constant) },
+                    { TypeHandle.Vector4, typeof(Vector4Constant) },
+                    { Color, typeof(ColorConstant) },
+                    { LayerMask, typeof(LayerMaskConstant) },
+                    { Rect, typeof(RectConstant) },
+                    { AnimationCurve, typeof(AnimationCurveConstant) },
+                    { Bounds, typeof(BoundsConstant) },
+                    { Gradient, typeof(GradientConstant) },
+                    { Vector2Int, typeof(Vector2IntConstant) },
+                    { Vector3Int, typeof(Vector3IntConstant) },
+                    { RectInt, typeof(RectIntConstant) },
+                    { BoundsInt, typeof(BoundsIntConstant) },
+                };
+            }
+
+            if (s_TypeToConstantTypeCache.TryGetValue(typeHandle, out var result))
+                return result;
+
+            Type t = typeHandle.Resolve();
+            if (t.IsEnum || t == typeof(Enum))
+                return typeof(EnumConstant);
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public override ISearcherDatabaseProvider GetSearcherDatabaseProvider()
+        {
+            return m_SearcherDatabaseProvider ??= new BBSearcherProvider(this);
+        }
 
         public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
         {
@@ -26,9 +124,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
         }
 
         /// <inheritdoc />
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
         {
-            return new BBBlackboardGraphModel(graphAssetModel);
+            return new BBBlackboardGraphModel { GraphModel = graphModel };
         }
 
         public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
@@ -91,11 +189,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Blackboard
 
             view.Dispatch(new CreateGraphVariableDeclarationCommand(sectionName, true, TypeHandle.Float,
                 typeof(T), selectedGroup ?? section));
-        }
-
-        public override Type GetConstantNodeValueType(TypeHandle typeHandle)
-        {
-            return TypeToConstantMapper.GetConstantNodeType(typeHandle);
         }
 
         /// <inheritdoc />

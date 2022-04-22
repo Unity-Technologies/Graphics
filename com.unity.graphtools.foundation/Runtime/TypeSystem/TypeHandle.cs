@@ -41,7 +41,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
     /// </summary>
     [Serializable]
     [PublicAPI]
-    public struct TypeHandle : IEquatable<TypeHandle>, IComparable<TypeHandle>
+    public struct TypeHandle : IEquatable<TypeHandle>, IComparable<TypeHandle>, ISerializationCallbackReceiver
     {
         /// <summary>
         /// The MissingType type.
@@ -249,6 +249,17 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
         public Type Resolve()
         {
             return TypeHandleHelpers.ResolveType(this);
+        }
+
+        /// <inheritdoc />
+        public void OnBeforeSerialize()
+        {
+        }
+
+        /// <inheritdoc />
+        public void OnAfterDeserialize()
+        {
+            m_Name = null;
         }
     }
 }

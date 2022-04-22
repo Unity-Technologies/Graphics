@@ -148,20 +148,6 @@
     border-color: rgba(0,0,0,0);
 }
 
-.ge-context-node:hover .ge-context-node__context-border > .ge-selection-border {
-    border-color: var(--context-highlight-hover);
-}
-
-.ge-context-node:checked .ge-context-node__context-border > .ge-selection-border {
-    border-color: var(--context-highlight);
-}
-
-.ge-context-node:checked:hover .ge-context-node__context-border > .ge-selection-border {
-    border-color: var(--context-highlight);
-    border-width: 2px;
-    padding: 0;
-}
-
 .ge-context-node.ge-node--disabled #disabled-overlay {
     display: flex;
     background-color: rgba(0, 0, 0, 0);

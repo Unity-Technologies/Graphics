@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
         {
             var model = CreateInstance<ShaderGraphAssetModel>();
             model.name = "View";
-            model.CreateGraph("foo", typeof(ShaderGraphStencil));
+            model.CreateGraph(typeof(ShaderGraphStencil));
             return model;
         }
         public static GraphHandler CreateBlankGraphHandler()
