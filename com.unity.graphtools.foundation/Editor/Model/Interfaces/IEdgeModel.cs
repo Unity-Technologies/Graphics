@@ -1,4 +1,3 @@
-using System;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
@@ -9,6 +8,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         PlaceholderNotNeeded,
         PlaceholderPortAdded,
         PlaceholderPortFailure,
+    }
+
+    /// <summary>
+    /// Identifies a side of an edge, not taking into account its direction.
+    /// </summary>
+    public enum EdgeSide
+    {
+        /// <summary>
+        /// The first defined point of the edge.
+        /// </summary>
+        From,
+        /// <summary>
+        /// The second defined point of the edge.
+        /// </summary>
+        To
     }
 
     /// <summary>

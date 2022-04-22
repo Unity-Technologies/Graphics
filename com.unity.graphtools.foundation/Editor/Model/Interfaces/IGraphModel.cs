@@ -25,6 +25,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     }
 
     /// <summary>
+    /// Verbosity of <see cref="IGraphModel.CheckIntegrity"/>.
+    /// </summary>
+    public enum Verbosity
+    {
+        Errors,
+        Verbose
+    }
+
+    /// <summary>
     /// Extension methods for <see cref="SpawnFlags"/>.
     /// </summary>
     public static class SpawnFlagsExtensions
@@ -42,10 +51,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public interface IGraphModel : IModel, IGraphElementContainer
     {
+        /// <summary>
+        /// The asset that holds this graph.
+        /// </summary>
+        /// <remarks>GTF currently assumes that each graph has a backing asset in the AssetDatabase.</remarks>
+        IGraphAsset Asset { get; set; }
+
         IStencil Stencil { get; }
+
         Type DefaultStencilType { get; }
+
         Type StencilType { get; set; }
-        IGraphAssetModel AssetModel { get; set; }
 
         void OnEnable();
         void OnDisable();
@@ -188,8 +204,40 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>The newly created declaration model</returns>
         IDeclarationModel CreateGraphPortalDeclaration(string portalName, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default);
         IEdgePortalModel CreateOppositePortal(IEdgePortalModel edgePortalModel, Vector2 position, SpawnFlags spawnFlags = SpawnFlags.Default);
-        IEdgePortalEntryModel CreateEntryPortalFromEdge(IEdgeModel edgeModel);
-        IEdgePortalExitModel CreateExitPortalFromEdge(IEdgeModel edgeModel);
+
+        /// <summary>
+        /// Creates an exit portal matching a port.
+        /// </summary>
+        /// <param name="outputPortModel">The output port model to which the portal will be connected.</param>
+        /// <param name="position">The desired position of the entry portal.</param>
+        /// <param name="height">The desired height of the entry portal.</param>
+        /// <param name="newModels">On exit, contains the newly created models will have been appended to this list.</param>
+        /// <returns>The created entry portal.</returns>
+        IEdgePortalEntryModel CreateEntryPortalFromPort(IPortModel outputPortModel, Vector2 position, int height, List<IGraphElementModel> newModels = null);
+
+        /// <summary>
+        /// Creates an exit portal matching a port.
+        /// </summary>
+        /// <param name="inputPortModel">The input port model to which the portal will be connected.</param>
+        /// <param name="position">The desired position of the exit portal.</param>
+        /// <param name="height">The desired height of the exit portal.</param>
+        /// <param name="entryPortal">The corresponding entry portal.</param>
+        /// <param name="newModels">On exit, contains the newly created models will have been appended to this list.</param>
+        /// <returns>The created exit portal.</returns>
+        IEdgePortalExitModel CreateExitPortalToPort(IPortModel inputPortModel, Vector2 position, int height, IEdgePortalEntryModel entryPortal, List<IGraphElementModel> newModels = null);
+
+        /// <summary>
+        /// Creates a pair of portals from an edge.
+        /// </summary>
+        /// <param name="edgeModel">The edge to transform.</param>
+        /// <param name="entryPortalPosition">The desired position of the entry portal.</param>
+        /// <param name="exitPortalPosition">The desired position of the exit portal.</param>
+        /// <param name="portalHeight">The desired height of the portals.</param>
+        /// <param name="existingPortalEntries">The existing portal entries.</param>
+        /// <param name="existingPortalExits">The existing portal exits.</param>
+        /// <returns>The new, changed and/or deleted models.</returns>
+        GraphChangeDescription CreatePortalsFromEdge(IEdgeModel edgeModel, Vector2 entryPortalPosition, Vector2 exitPortalPosition, int portalHeight,
+            Dictionary<IPortModel, IEdgePortalEntryModel> existingPortalEntries, Dictionary<IPortModel, List<IEdgePortalExitModel>> existingPortalExits);
 
         /// <summary>
         /// Creates a new variable node in the graph.
@@ -218,12 +266,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Creates a new subgraph node in the graph.
         /// </summary>
-        /// <param name="referenceGraphAsset">The Graph Asset Model of the reference graph.</param>
+        /// <param name="referenceGraph">The Graph Model of the reference graph.</param>
         /// <param name="position">The position of the node to create.</param>
         /// <param name="guid">The SerializableGUID to assign to the newly created item.</param>
         /// <param name="spawnFlags">The flags specifying how the node is to be spawned.</param>
         /// <returns>The newly created subgraph node.</returns>
-        ISubgraphNodeModel CreateSubgraphNode(IGraphAssetModel referenceGraphAsset, Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default);
+        ISubgraphNodeModel CreateSubgraphNode(IGraphModel referenceGraph, Vector2 position, SerializableGUID guid = default, SpawnFlags spawnFlags = SpawnFlags.Default);
 
         /// <summary>
         /// Creates a new node in the graph.
@@ -256,6 +304,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="guid">The SerializableGUID to assign to the newly created item.</param>
         /// <returns>The newly created edge</returns>
         IEdgeModel CreateEdge(IPortModel toPort, IPortModel fromPort, SerializableGUID guid = default);
+
+        /// <summary>
+        /// Duplicates an edge and add it to the graph.
+        /// </summary>
+        /// <param name="sourceEdge">The edge to duplicate.</param>
+        /// <param name="targetInputNode">If not null, the new input node for the edge.</param>
+        /// <param name="targetOutputNode">If not null, the new output node for the edge.</param>
+        /// <returns>The new edge.</returns>
         IEdgeModel DuplicateEdge(IEdgeModel sourceEdge, INodeModel targetInputNode, INodeModel targetOutputNode);
 
         /// <summary>
@@ -293,6 +349,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         IReadOnlyCollection<IGraphElementModel> DeletePlacemats(IReadOnlyCollection<IPlacematModel> placematModels);
 
         /// <summary>
+        /// Reorders some placemats around following a <see cref="ZOrderMove"/>.
+        /// </summary>
+        /// <param name="models">The placemats to reorder.</param>
+        /// <param name="reorderType">The way to reorder placemats.</param>
+        void ReorderPlacemats(IReadOnlyList<IPlacematModel> models, ZOrderMove reorderType);
+
+        /// <summary>
         /// Registers an element so that the GraphModel can find it through its GUID.
         /// </summary>
         /// <param name="model">The model.</param>
@@ -327,6 +390,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Updates the graph model when loading the graph.
         /// </summary>
-        void OnLoadGraphAsset();
+        void OnLoadGraph();
+
+        /// <summary>
+        /// Checks whether the graph is a Container Graph or not. If it is not a Container Graph, it is an Asset Graph.
+        /// </summary>
+        /// <remarks>
+        /// A Container Graph is a graph that cannot be nested inside of another graph, and can be referenced by a game object or scene.
+        /// An Asset Graph is a graph that can have exposed inputs/outputs, making it so that it can be nested inside of another graph, and can be referenced by a game object or scene.
+        /// </remarks>
+        /// <returns>True if the graph is a container graph, false otherwise.</returns>
+        bool IsContainerGraph();
+
+        /// <summary>
+        /// Checks the conditions to specify whether the Asset Graph can be a subgraph or not.
+        /// </summary>
+        /// <remarks>
+        /// A subgraph is an Asset Graph that is nested inside of another graph asset, and can be referenced by a game object or scene.
+        /// </remarks>
+        /// <returns>True if the Asset Graph can be a subgraph, false otherwise.</returns>
+        bool CanBeSubgraph();
     }
 }

@@ -33,14 +33,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             node3 = m_Node3.GetView<Node>(GraphView);
         }
 
-        Rect RectAroundNodes(Node node1, Node node2, Node node3)
-        {
-            // Generate a rectangle to select all the elements
-            Rect rectangle = RectUtils.Encompass(RectUtils.Encompass(node1.worldBound, node2.worldBound), node3.worldBound);
-            rectangle = RectUtils.Inflate(rectangle, 1, 1, 1, 1);
-            return rectangle;
-        }
-
         [UnityTest]
         public IEnumerator ElementCanBeSelected()
         {
@@ -221,24 +213,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         }
 
         [UnityTest]
-        public IEnumerator RectangleSelectionWorks()
-        {
-            MarkGraphViewStateDirty();
-            yield return null;
-            GetUI(out var node1, out var node2, out var node3);
-
-            Rect rectangle = RectAroundNodes(node1, node2, node3);
-
-            Helpers.DragTo(rectangle.max, rectangle.min);
-
-            yield return null;
-
-            Assert.True(node1.IsSelected());
-            Assert.True(node2.IsSelected());
-            Assert.True(node3.IsSelected());
-        }
-
-        [UnityTest]
         public IEnumerator RectangleSelectionWithActionKeyWorks()
         {
             GraphView.DispatchFrameAllCommand();
@@ -254,7 +228,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.False(node3.IsSelected());
             yield return null;
 
-            Rect rectangle = RectAroundNodes(node1, node2, node3);
+            Rect rectangle = RectTestUtils.RectAroundElements(node1, node2, node3);
 
             // Reselect all.
             Helpers.DragTo(rectangle.min, rectangle.max, eventModifiers: CommandOrControl);
@@ -273,7 +247,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
             GetUI(out var node1, out var node2, out var node3);
 
-            Rect rectangle = RectAroundNodes(node1, node2, node3);
+            Rect rectangle = RectTestUtils.RectAroundElements(node1, node2, node3);
 
             float lineAcrossNodes = rectangle.y + (rectangle.yMax - rectangle.y) * 0.5f;
             Vector2 startPoint = new Vector2(rectangle.xMax, lineAcrossNodes);
@@ -294,7 +268,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
             GetUI(out var node1, out var node2, out var node3);
 
-            Rect rectangle = RectAroundNodes(node1, node2, node3);
+            Rect rectangle = RectTestUtils.RectAroundElements(node1, node2, node3);
 
             float lineAcrossNodes = rectangle.y + (rectangle.yMax - rectangle.y) * 0.5f;
             Vector2 startPoint = new Vector2(rectangle.xMax, lineAcrossNodes);

@@ -30,15 +30,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.IsNotNull(token1);
             Assert.IsNotNull(token2);
 
-            var selectionBorder1 = token1.SafeQ(null, "ge-selection-border");
-            var selectionBorder2 = token2.SafeQ(null, "ge-selection-border");
+            var border1 = token1.SafeQ<DynamicBorder>();
+            var border2 = token2.SafeQ<DynamicBorder>();
 
-            Assert.IsNotNull(selectionBorder1);
-            Assert.IsNotNull(selectionBorder2);
+            Assert.IsNotNull(border1);
+            Assert.IsNotNull(border2);
 
             // There should be no selection at this point.
-            Assert.AreEqual(Color.clear, selectionBorder1.resolvedStyle.borderBottomColor);
-            Assert.AreEqual(Color.clear, selectionBorder2.resolvedStyle.borderBottomColor);
+            Assert.AreEqual(Color.clear, border1.ComputedColor);
+            Assert.AreEqual(Color.clear, border2.ComputedColor);
 
             GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Add, model1));
             yield return null;
@@ -46,14 +46,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             token1 = model1.GetView<TGraphElement>(GraphView);
             token2 = model2.GetView<TGraphElement>(GraphView);
 
-            selectionBorder1 = token1.SafeQ(null, "ge-selection-border");
-            selectionBorder2 = token2.SafeQ(null, "ge-selection-border");
+            border1 = token1.SafeQ<DynamicBorder>();
+            border2 = token2.SafeQ<DynamicBorder>();
 
             // There should be a selection at this point.
             // The borders should not be black and should be different from one another (one selected, one highlighted).
-            Assert.AreNotEqual(Color.clear, selectionBorder1.resolvedStyle.borderBottomColor);
-            Assert.AreNotEqual(Color.clear, selectionBorder2.resolvedStyle.borderBottomColor);
-            Assert.AreNotEqual(selectionBorder1.resolvedStyle.borderBottomColor, selectionBorder2.resolvedStyle.borderBottomColor);
+            Assert.AreNotEqual(Color.clear, border1.ComputedColor);
+            Assert.AreNotEqual(Color.clear, border2.ComputedColor);
+            Assert.AreNotEqual(border1.ComputedColor, border2.ComputedColor);
         }
 
         [UnityTest]

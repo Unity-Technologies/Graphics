@@ -20,7 +20,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return new string[]
             {
 #if UNITY_2022_2_OR_NEWER
-                NewGraphButton.id, SaveAllButton.id
+                NewGraphButton.id, SaveButton.id
 #endif
             };
         }

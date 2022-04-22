@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class ShaderGraphAssetModel : GraphAssetModel
+    public class ShaderGraphAssetModel : GraphAsset
     {
         protected override Type GraphModelType => typeof(ShaderGraphModel);
 
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnEnable()
         {
             if (GraphModel != null)
-                GraphModel.AssetModel = this;
+                GraphModel.Asset = this;
 
             // We got deserialized unexpectedly, which means we'll need to find our graphHandler...
             if (GraphHandler == null)
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     try
                     {
-                        string json = File.ReadAllText(this.GetPath(), Encoding.UTF8);
+                        string json = File.ReadAllText(this.FilePath, Encoding.UTF8);
                         var asset = CreateInstance<ShaderGraphAsset>();
                         EditorJsonUtility.FromJsonOverwrite(json, asset);
                         GraphHandler = asset.ResolveGraph();

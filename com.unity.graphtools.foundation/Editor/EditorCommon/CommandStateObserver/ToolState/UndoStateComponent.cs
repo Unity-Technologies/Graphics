@@ -82,12 +82,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         }
 
         /// <inheritdoc />
-        protected override void Dispose(bool disposing)
+        public override void OnRemovedFromState(IState state)
         {
-            if (disposing)
-            {
-                m_UndoData = null;
-            }
+            base.OnRemovedFromState(state);
+            Object.Destroy(m_UndoData);
+            m_UndoData = null;
         }
 
         /// <summary>

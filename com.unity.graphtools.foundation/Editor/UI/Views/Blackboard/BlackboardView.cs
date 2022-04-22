@@ -11,13 +11,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// The blackboard view.
     /// </summary>
-    public class BlackboardView : RootView, IDragSource, IDisposable
+    public class BlackboardView : RootView, IDragSource
     {
         static List<ModelView> s_UIList = new List<ModelView>();
 
         public new static readonly string ussClassName = "blackboard-view";
 
-        BlackboardGraphAssetLoadedObserver m_LoadedAssetObserver;
+        BlackboardGraphLoadedObserver m_LoadedObserver;
         ModelViewUpdater m_UpdateObserver;
         DeclarationHighlighter m_DeclarationHighlighter;
 
@@ -37,7 +37,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public BlackboardView(EditorWindow window, GraphView parentGraphView)
             : base(window, parentGraphView.GraphTool)
         {
-            Model = new BlackboardViewModel(parentGraphView, GraphTool.HighlighterState, GraphTool.State);
+            Model = new BlackboardViewModel(parentGraphView, GraphTool.HighlighterState);
 
             this.AddStylesheet("BlackboardView.uss");
             AddToClassList(ussClassName);
@@ -50,29 +50,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             ViewSelection.AttachToView();
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                BlackboardViewModel.RemoveFromState(GraphTool?.State);
-                BlackboardViewModel?.Dispose();
-            }
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         /// <inheritdoc />
         protected override void RegisterObservers()
         {
-            if (m_LoadedAssetObserver == null)
+            if (m_LoadedObserver == null)
             {
-                m_LoadedAssetObserver = new BlackboardGraphAssetLoadedObserver(GraphTool.ToolState, BlackboardViewModel.ViewState, BlackboardViewModel.SelectionState);
-                GraphTool.ObserverManager.RegisterObserver(m_LoadedAssetObserver);
+                m_LoadedObserver = new BlackboardGraphLoadedObserver(GraphTool.ToolState, BlackboardViewModel.ViewState, BlackboardViewModel.SelectionState);
+                GraphTool.ObserverManager.RegisterObserver(m_LoadedObserver);
             }
 
             if (m_UpdateObserver == null)
@@ -91,10 +75,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         protected override void UnregisterObservers()
         {
-            if (m_LoadedAssetObserver != null)
+            if (m_LoadedObserver != null)
             {
-                GraphTool?.ObserverManager?.UnregisterObserver(m_LoadedAssetObserver);
-                m_LoadedAssetObserver = null;
+                GraphTool?.ObserverManager?.UnregisterObserver(m_LoadedObserver);
+                m_LoadedObserver = null;
             }
 
             if (m_UpdateObserver != null)
@@ -135,8 +119,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             Blackboard = ModelViewFactory.CreateUI<Blackboard>(this, m_BlackboardGraphModel);
-            Blackboard?.AddToRootView(this);
-            Add(Blackboard);
+            if (Blackboard != null)
+            {
+                Blackboard.ScrollView.scrollOffset = BlackboardViewModel.ViewState.ScrollOffset;
+                Blackboard.ScrollView.horizontalScroller.slider.RegisterCallback<ChangeEvent<float>>(OnHorizontalScroll);
+                Blackboard.ScrollView.verticalScroller.slider.RegisterCallback<ChangeEvent<float>>(OnVerticalScroll);
+                Blackboard.AddToRootView(this);
+                Add(Blackboard);
+            }
+        }
+
+        void OnHorizontalScroll(ChangeEvent<float> e)
+        {
+            using (var updater = BlackboardViewModel.ViewState.UpdateScope)
+            {
+                updater.SetScrollOffset(new Vector2(e.newValue, Blackboard.ScrollView.verticalScroller.slider.value));
+            }
+        }
+
+        void OnVerticalScroll(ChangeEvent<float> e)
+        {
+            using (var updater = BlackboardViewModel.ViewState.UpdateScope)
+            {
+                updater.SetScrollOffset(new Vector2(Blackboard.ScrollView.horizontalScroller.slider.value, e.newValue));
+            }
         }
 
         /// <inheritdoc />
@@ -160,6 +166,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 {
                     List<IGraphElementModel> deletedModels = new List<IGraphElementModel>();
 
+                    IGraphElementModel renamedModel = null;
+
                     // Update variable/groups model UI.
                     if (graphModelObservation.UpdateType == UpdateType.Partial)
                     {
@@ -174,6 +182,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                             foreach (var model in gvChangeSet.ChangedModels)
                             {
                                 model.GetAllViews(this, null, s_UIList);
+                            }
+
+                            if (gvChangeSet?.RenamedModel != null)
+                            {
+                                renamedModel = gvChangeSet?.RenamedModel;
                             }
                         }
                     }
@@ -235,6 +248,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     }
 
                     s_UIList.Clear();
+
+                    if (renamedModel != null)
+                    {
+                        renamedModel.GetAllViews(this, null, s_UIList);
+                        foreach (var ui in s_UIList)
+                        {
+                            ui.ActivateRename();
+                        }
+                    }
+
+                    s_UIList.Clear();
+
+                    if (Blackboard != null)
+                    {
+                        Blackboard.ScrollView.scrollOffset = BlackboardViewModel.ViewState.ScrollOffset;
+                    }
                 }
             }
         }
@@ -286,6 +315,33 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         RecurseGetFlattenedList(flattenedList, subContainer);
                 }
             }
+        }
+
+        internal IGroupItemModel CreateGroupFromSelection(IGroupItemModel model)
+        {
+            var selectedItems = GetSelection().OfType<IGroupItemModel>().Where(t => t.GetSection() == model.GetSection()).ToList();
+            selectedItems.Add(model);
+
+            selectedItems.Sort(GroupItemOrderComparer.Default);
+
+            int index = model.ParentGroup.Items.IndexOfInternal(selectedItems.First(t => !selectedItems.Contains(t.ParentGroup)));
+
+            while (selectedItems.Contains(model.ParentGroup)) // make sure whe don't move to a group within the selection
+            {
+                model = model.ParentGroup;
+            }
+
+            //Look up for the next non selected item after me
+            IGroupItemModel prevItem = null;
+            for (int i = index - 1; i >= 0; --i)
+            {
+                prevItem = model.ParentGroup.Items[i];
+                if (!selectedItems.Contains(prevItem))
+                    break;
+            }
+
+            Dispatch(new BlackboardGroupCreateCommand(model.ParentGroup, prevItem, null, selectedItems));
+            return model;
         }
 
         /// <summary>

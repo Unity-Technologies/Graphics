@@ -10,6 +10,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public enum PortCapacity
     {
         /// <summary>
+        /// The port cannot accept any connection.
+        /// </summary>
+        None,
+        /// <summary>
         /// The port can only accept a single connection.
         /// </summary>
         Single,

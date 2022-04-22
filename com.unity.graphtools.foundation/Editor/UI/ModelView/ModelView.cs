@@ -150,12 +150,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             Dependencies.OnCustomStyleResolved(evt);
         }
 
-        protected void OnGeometryChanged(GeometryChangedEvent evt)
+        protected virtual void OnGeometryChanged(GeometryChangedEvent evt)
         {
             Dependencies.OnGeometryChanged(evt);
         }
 
-        protected void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        protected virtual void OnDetachedFromPanel(DetachFromPanelEvent evt)
         {
             Dependencies.OnDetachedFromPanel(evt);
         }

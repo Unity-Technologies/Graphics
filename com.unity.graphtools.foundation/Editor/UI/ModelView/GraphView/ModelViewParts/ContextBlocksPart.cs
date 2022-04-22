@@ -148,11 +148,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 int index = blockModel.Key + 1;
                 ModelView newBlockNode = ModelViewFactory.CreateUI<ModelView>(m_OwnerElement.RootView, blockModel.Value);
 
-                newBlockNode.AddToRootView(m_OwnerElement.RootView);
-                if (index < Root.childCount)
-                    Root.Insert(index, newBlockNode);
-                else
-                    Root.Add(newBlockNode);
+                if (newBlockNode != null)
+                {
+                    newBlockNode.AddToRootView(m_OwnerElement.RootView);
+                    if (index < Root.childCount)
+                        Root.Insert(index, newBlockNode);
+                    else
+                        Root.Add(newBlockNode);
+                }
             }
 
             // Sort blocks through the models order the idea is to minimize change since most of the time block order will still be valid

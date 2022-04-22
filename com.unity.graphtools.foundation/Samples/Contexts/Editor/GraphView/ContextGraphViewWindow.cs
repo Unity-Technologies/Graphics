@@ -40,7 +40,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts.UI
             return new BlankPage(GraphTool?.Dispatcher, onboardingProviders);
         }
 
-        protected override bool CanHandleAssetType(IGraphAssetModel asset)
+        protected override bool CanHandleAssetType(IGraphAsset asset)
         {
             return asset is ContextSampleAsset;
         }

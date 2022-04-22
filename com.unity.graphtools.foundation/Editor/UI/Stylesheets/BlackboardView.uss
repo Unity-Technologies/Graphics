@@ -8,3 +8,8 @@
     flex: 1;
     overflow: hidden;
 }
+
+#overlay-popup .blackboard-view {
+    width: 260px;
+    height: auto;
+}

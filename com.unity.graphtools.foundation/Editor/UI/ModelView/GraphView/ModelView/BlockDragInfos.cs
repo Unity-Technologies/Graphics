@@ -78,7 +78,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                             INodeModel duplicateNodeModel = block.Clone();
 
-                            duplicateNodeModel.AssetModel = GraphView.GraphModel.AssetModel;
+                            duplicateNodeModel.GraphModel = GraphView.GraphModel;
                             duplicateNodeModel.AssignNewGuid();
                             duplicateNodeModel.OnDuplicateNode(block);
 

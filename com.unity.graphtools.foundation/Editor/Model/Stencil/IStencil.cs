@@ -43,7 +43,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="typeHandle">The handle for which to retrieve the type.</param>
         /// <returns>The type associated with <paramref name="typeHandle"/></returns>
-        Type GetConstantNodeValueType(TypeHandle typeHandle);
+        Type GetConstantType(TypeHandle typeHandle);
 
         /// <summary>
         /// Gets the type for subgraph nodes.
@@ -106,11 +106,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph);
 
         /// <summary>
-        /// Creates a <see cref="IBlackboardGraphModel"/> for the <paramref name="graphAssetModel"/>.
+        /// Creates a <see cref="IBlackboardGraphModel"/> for the <paramref name="graphModel"/>.
         /// </summary>
-        /// <param name="graphAssetModel">The graph asset to wrap in a <see cref="IBlackboardGraphModel"/>.</param>
+        /// <param name="graphModel">The graph to wrap in a <see cref="IBlackboardGraphModel"/>.</param>
         /// <returns>A new <see cref="IBlackboardGraphModel"/></returns>
-        IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel);
+        IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel);
 
         /// <summary>
         /// The list of valid section names for the graph.

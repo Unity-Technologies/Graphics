@@ -25,7 +25,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
                 var value = GetValue(kv.Key.GetValue());
 
                 // get their reference data input in subgraph
-                var referenceDataInputs = SubgraphAssetModel.GraphModel.FindReferencesInGraph<IVariableNodeModel>(kv.Value);
+                var referenceDataInputs = SubgraphModel.FindReferencesInGraph<IVariableNodeModel>(kv.Value);
 
                 // assign their initialization in subgraph
                 foreach (var referenceDataInput in referenceDataInputs)
@@ -53,7 +53,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         IVariableNodeModel GetDataOutputNodeInSubgraph(IPortModel dataOutputPort)
         {
             var variableNodeModel = DataOutputPortToVariableDeclarationDictionary[dataOutputPort];
-            return SubgraphAssetModel.GraphModel.FindReferencesInGraph<IVariableNodeModel>(variableNodeModel).FirstOrDefault();
+            return SubgraphModel.FindReferencesInGraph<IVariableNodeModel>(variableNodeModel).FirstOrDefault();
         }
 
         static object GetValue(Value value)
@@ -86,9 +86,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             var result = context.DeclareVariable(outputPort.DataTypeHandle, "");
 
             var outputVariableDeclaration = DataOutputPortToVariableDeclarationDictionary[outputPort];
-            GenerateSubGraphCode(context, SubgraphAssetModel.GraphModel, outputVariableDeclaration);
+            GenerateSubGraphCode(context, SubgraphModel, outputVariableDeclaration);
 
-            var graphName = MathBookGraphProcessor.CodifyString(SubgraphAssetModel.GraphModel.Name);
+            var graphName = MathBookGraphProcessor.CodifyString(SubgraphModel.Name);
             var portName = MathBookGraphProcessor.CodifyString(outputVariableDeclaration.GetVariableName());
             var subgraphParams = inputVariables.Select(kv => $"{kv.Key}: {kv.Value}");
             context.Statements.Add($"{result} = Evaluate_{graphName}_{portName}({string.Join(", ", subgraphParams)})");

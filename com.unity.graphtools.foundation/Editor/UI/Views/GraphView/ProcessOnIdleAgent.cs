@@ -9,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// The state component for the <see cref="ProcessOnIdleAgent"/>.
     /// </summary>
-    public class ProcessOnIdleStateComponent : ViewStateComponent<ProcessOnIdleStateComponent.StateUpdater>
+    public class ProcessOnIdleStateComponent : StateComponent<ProcessOnIdleStateComponent.StateUpdater>
     {
         /// <summary>
         /// The state updater.
@@ -46,12 +46,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Initializes a new instance of the <see cref="ProcessOnIdleAgent"/> class.
         /// </summary>
         /// <param name="preferences">The tool preferences.</param>
-        /// <param name="viewGuid">The view GUID.</param>
-        public ProcessOnIdleAgent(Preferences preferences, Hash128 viewGuid)
+        public ProcessOnIdleAgent(Preferences preferences)
         {
             m_IdleTimer = new Stopwatch();
             m_Preferences = preferences;
-            StateComponent = PersistedState.GetOrCreateViewStateComponent<ProcessOnIdleStateComponent>(default, viewGuid);
+            StateComponent = new ProcessOnIdleStateComponent();
         }
 
         void ResetTimer()

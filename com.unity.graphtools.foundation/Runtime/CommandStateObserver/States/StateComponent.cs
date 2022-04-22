@@ -20,7 +20,7 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
     /// </p>
     /// </remarks>
     [Serializable]
-    public abstract class StateComponent<TUpdater> : IUndoableStateComponent, IDisposable
+    public abstract class StateComponent<TUpdater> : IUndoableStateComponent
 #if !UNITY_2022_1_OR_NEWER
 , ISerializationCallbackReceiver
 #endif
@@ -44,12 +44,15 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
             /// <inheritdoc />
             public void Initialize(IStateComponent state)
             {
+                if (m_State != null)
+                {
 #if DEBUG
-                Assert.IsNull(m_State, $"Missing Dispose call for updater initialized at {m_StackTrace}");
-                m_StackTrace = Environment.StackTrace;
+                    Debug.LogError($"Missing Dispose call for updater initialized at {m_StackTrace}");
+                    m_StackTrace = Environment.StackTrace;
 #else
-                Assert.IsNull(m_State, "Missing Dispose call. Did you nest update scopes for the same state component?");
+                    Debug.LogError("Missing Dispose call. Did you nest update scopes for the same state component?");
 #endif
+                }
 
                 m_State = state as TStateComponent;
                 BeginStateChange();
@@ -94,10 +97,11 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
 
             void BeginStateChange()
             {
-                Assert.IsTrue(
-                    StateObserverHelper.CurrentObserver == null ||
-                    StateObserverHelper.CurrentObserver.ModifiedStateComponents.Contains(m_State),
-                    $"Observer {StateObserverHelper.CurrentObserver?.GetType()} does not specify that it modifies {m_State}. Please add the state component to its {nameof(IStateObserver.ModifiedStateComponents)}.");
+                if (StateObserverHelper.CurrentObserver != null &&
+                    !StateObserverHelper.CurrentObserver.ModifiedStateComponents.Contains(m_State))
+                {
+                    Debug.LogError($"Observer {StateObserverHelper.CurrentObserver?.GetType()} does not specify that it modifies {m_State}. Please add the state component to its {nameof(IStateObserver.ModifiedStateComponents)}.");
+                }
 
                 m_State.PushChangeset(m_State.CurrentVersion);
             }
@@ -190,25 +194,6 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
             m_Guid.Append(Random.value);
         }
 
-        ~StateComponent()
-        {
-            Dispose(false);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Dispose implementation.
-        /// </summary>
-        /// <param name="disposing">When true, this method is called from IDisposable.Dispose.
-        /// Otherwise it is called from the finalizer.</param>
-        protected abstract void Dispose(bool disposing);
-
         /// <summary>
         /// Push the current changeset and tag it with <paramref name="version"/>.
         /// </summary>
@@ -282,15 +267,16 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         }
 
         /// <inheritdoc />
-        public void OnAddedToState(IState state)
+        public virtual void OnAddedToState(IState state)
         {
             State = state;
         }
 
         /// <inheritdoc />
-        public void OnRemovedFromState(IState state)
+        public virtual void OnRemovedFromState(IState state)
         {
             State = null;
+            ChangesetManager?.PurgeOldChangesets(uint.MaxValue, CurrentVersion);
         }
 
         /// <inheritdoc  cref="IStateComponentUpdater.Move"/>

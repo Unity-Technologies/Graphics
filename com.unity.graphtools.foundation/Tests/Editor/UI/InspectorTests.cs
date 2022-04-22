@@ -245,11 +245,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                 ("Blih", TypeHandle.String),
                 ("Bloh", TypeHandle.Bool),
                 ("Bluh", TypeHandle.Int),
+                ("NoConnector", TypeHandle.Int)
             };
             foreach (var port in ports)
             {
-                nodeModel.AddInputPort(port.name, PortType.Data, port.type, options: PortModelOptions.Default);
+                if (port.name == "NoConnector")
+                    nodeModel.AddNoConnectorInputPort(port.name, port.type);
+                else
+                    nodeModel.AddInputPort(port.name, PortType.Data, port.type, options: PortModelOptions.Default);
             }
+
             MarkGraphModelStateDirty();
             yield return null;
 

@@ -6,7 +6,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
     [TestFixture]
     public class GraphModelExtensionsTests
     {
-        IGraphAssetModel m_GraphAsset;
+        IGraphAsset m_GraphAsset;
         IGraphModel m_GraphModel;
         IPlacematModel m_Model0;
         IPlacematModel m_Model1;
@@ -22,8 +22,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [SetUp]
         public void SetUp()
         {
-            m_GraphAsset = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test");
-            m_GraphAsset.CreateGraph("Graph");
+            m_GraphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateInMemoryGraphAsset(typeof(ClassStencil), "Test");
+            m_GraphAsset.CreateGraph();
             m_GraphModel = m_GraphAsset.GraphModel;
 
             var rect = new Rect(0, 0, 100, 100);
@@ -43,15 +43,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [Test]
         public void MoveTopElementForwardDoesNothing()
         {
-            m_GraphModel.MoveForward(new[] {m_Model9});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model9}, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model4, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving top element forward.");
         }
 
         [Test]
-        public void MoveTopElementTopDoesNothing()
+        public void MoveTopElementFirstDoesNothing()
         {
-            m_GraphModel.MoveForward(new[] {m_Model9}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model9}, ZOrderMove.ToFront);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model4, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving top element top.");
         }
@@ -59,17 +59,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [Test]
         public void MoveSingleElementForwardWorks()
         {
-            m_GraphModel.MoveForward(new[] {m_Model4});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model4}, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model4, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving forward middle element.");
             //                                                         \---------^  Models have switched
 
-            m_GraphModel.MoveForward(new[] {m_Model8});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model8}, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model4, m_Model6, m_Model7, m_Model9, m_Model8 }, "Unexpected placemat order after moving forward second-to-last element.");
             //                                                                                                 \---------^  Models have switched
 
-            m_GraphModel.MoveForward(new[] {m_Model0});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model0}, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model1, m_Model0, m_Model2, m_Model3, m_Model5, m_Model4, m_Model6, m_Model7, m_Model9, m_Model8 }, "Unexpected placemat order after moving forward first element.");
             //                 \---------^  Models have switched
@@ -78,17 +78,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [Test]
         public void MoveSingleElementTopWorks()
         {
-            m_GraphModel.MoveForward(new[] {m_Model4}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model4}, ZOrderMove.ToFront);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9, m_Model4 }, "Unexpected placemat order after moving middle element to top.");
             //                                                         \-------------->>>--------------------------------^  Model went to top
 
-            m_GraphModel.MoveForward(new[] {m_Model9}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model9}, ZOrderMove.ToFront);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8, m_Model4, m_Model9 }, "Unexpected placemat order after moving second-to-last element to top.");
             //                                                                                                 \---------^  Model went to top
 
-            m_GraphModel.MoveForward(new[] {m_Model0}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model0}, ZOrderMove.ToFront);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model1, m_Model2, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8, m_Model4, m_Model9, m_Model0 }, "Unexpected placemat order after moving first element to top.");
             //                 \-----------------------------------------------------------------------------------------^  Model went to top
@@ -98,7 +98,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleContiguousTopElementsForwardDoesNothing()
         {
             var groupToMove = new[] { m_Model7, m_Model8, m_Model9 };
-            m_GraphModel.MoveForward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model4, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving forward multiple contiguous top elements.");
         }
@@ -107,7 +107,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleContiguousElementsForwardWorks()
         {
             var groupToMove = new[] { m_Model5, m_Model4, m_Model6 }; // Order of the items passed in does not influence where their order in the final list.
-            m_GraphModel.MoveForward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model7, m_Model4, m_Model5, m_Model6, m_Model8, m_Model9 }, "Unexpected placemat order after moving forward multiple contiguous middle elements.");
             //                                                                  ^^        ^^        ^^   Models moved up
@@ -117,7 +117,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleContiguousElementsTopWorks()
         {
             var groupToMove = new[] { m_Model4, m_Model5, m_Model6 };
-            m_GraphModel.MoveForward(groupToMove, true);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.ToFront);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model7, m_Model8, m_Model9, m_Model4, m_Model5, m_Model6 }, "Unexpected placemat order after moving top multiple contiguous middle elements.");
             //                                                                                      ^^        ^^        ^^   Models moved top
@@ -127,19 +127,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleNonContiguousElementsForwardWorks()
         {
             var groupToMove = new[] { m_Model4, m_Model6, m_Model8 };
-            m_GraphModel.MoveForward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model4, m_Model7, m_Model6, m_Model9, m_Model8 }, "Unexpected placemat order after moving forward multiple non contiguous elements.");
             //                                                                  ^^                  ^^                  ^^   Models moved up
 
             // Moving a second time will "compact" at the top
-            m_GraphModel.MoveForward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model7, m_Model4, m_Model9, m_Model6, m_Model8 }, "Unexpected placemat order after moving forward multiple non contiguous elements a second time.");
             //                                                                            ^^                  ^^             Models moved up
 
             // Moving a third time will "compact" even more at the top
-            m_GraphModel.MoveForward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Forward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model7, m_Model9, m_Model4, m_Model6, m_Model8 }, "Unexpected placemat order after moving forward multiple non contiguous elements a third time.");
             //                                                                                      ^^                       Model moved up
@@ -149,7 +149,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleNonContiguousElementsTopWorks()
         {
             var groupToMove = new[] { m_Model4, m_Model6, m_Model8 };
-            m_GraphModel.MoveForward(groupToMove, true);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.ToFront);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model7, m_Model9, m_Model4, m_Model6, m_Model8 }, "Unexpected placemat order after moving top multiple non contiguous elements.");
             //                                                                                      ^^        ^^        ^^   Models moved top
@@ -159,7 +159,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [Test]
         public void MoveBottomElementBackwardDoesNothing()
         {
-            m_GraphModel.MoveBackward(new[] {m_Model0});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model0}, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model4, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving bottom element backward.");
         }
@@ -167,7 +167,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [Test]
         public void MoveBottomElementBottomDoesNothing()
         {
-            m_GraphModel.MoveBackward(new[] {m_Model0}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model0}, ZOrderMove.ToBack);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model4, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving bottom element bottom.");
         }
@@ -175,17 +175,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [Test]
         public void MoveSingleElementBackwardWorks()
         {
-            m_GraphModel.MoveBackward(new[] {m_Model4});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model4}, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model4, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving backward middle element.");
             //                                               ^---------/  Models have switched
 
-            m_GraphModel.MoveBackward(new[] {m_Model1});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model1}, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model1, m_Model0, m_Model2, m_Model4, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving backward second element.");
             //                 ^---------/  Models have switched
 
-            m_GraphModel.MoveBackward(new[] {m_Model9});
+            m_GraphModel.ReorderPlacemats(new[] {m_Model9}, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model1, m_Model0, m_Model2, m_Model4, m_Model3, m_Model5, m_Model6, m_Model7, m_Model9, m_Model8 }, "Unexpected placemat order after moving backward last element.");
             //                                                                                                 ^---------/  Models have switched
@@ -194,17 +194,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         [Test]
         public void MoveSingleElementBottomWorks()
         {
-            m_GraphModel.MoveBackward(new[] {m_Model4}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model4}, ZOrderMove.ToBack);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model4, m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving middle element to bottom.");
             //                 ^--------------<<<--------------------------------/  Model went to bottom
 
-            m_GraphModel.MoveBackward(new[] {m_Model0}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model0}, ZOrderMove.ToBack);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model4, m_Model1, m_Model2, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving second element to bottom.");
             //                 \---------^  Model went to bottom
 
-            m_GraphModel.MoveBackward(new[] {m_Model9}, true);
+            m_GraphModel.ReorderPlacemats(new[] {m_Model9}, ZOrderMove.ToBack);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model9, m_Model0, m_Model4, m_Model1, m_Model2, m_Model3, m_Model5, m_Model6, m_Model7, m_Model8 }, "Unexpected placemat order after moving last element to bottom.");
             //                 ^-----------------------------------------------------------------------------------------/  Model went to bottom
@@ -214,7 +214,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleContiguousBottomElementsBackwardDoesNothing()
         {
             var groupToMove = new[] { m_Model0, m_Model1, m_Model2 };
-            m_GraphModel.MoveBackward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model3, m_Model4, m_Model5, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving backward multiple contiguous bottom elements.");
         }
@@ -223,7 +223,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleContiguousElementsBackwardWorks()
         {
             var groupToMove = new[] { m_Model5, m_Model4, m_Model6 };  // Order of the items passed in does not influence where their order in the final list.
-            m_GraphModel.MoveBackward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model0, m_Model1, m_Model2, m_Model4, m_Model5, m_Model6, m_Model3, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving backward multiple contiguous middle elements.");
             //                                              ^^        ^^        ^^   Models moved down
@@ -233,7 +233,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleContiguousElementsBottomWorks()
         {
             var groupToMove = new[] { m_Model4, m_Model5, m_Model6 };
-            m_GraphModel.MoveBackward(groupToMove, true);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.ToBack);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model4, m_Model5, m_Model6, m_Model0, m_Model1, m_Model2, m_Model3, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving bottom multiple contiguous middle elements.");
             //                ^^        ^^        ^^   Models moved bottom
@@ -243,19 +243,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleNonContiguousElementsBackwardWorks()
         {
             var groupToMove = new[] { m_Model1, m_Model3, m_Model5 };
-            m_GraphModel.MoveBackward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model1, m_Model0, m_Model3, m_Model2, m_Model5, m_Model4, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving backward multiple non contiguous elements.");
             //                ^^                  ^^                  ^^   Models moved down
 
             // Moving a second time will "compact" at the bottom
-            m_GraphModel.MoveBackward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model1, m_Model3, m_Model0, m_Model5, m_Model2, m_Model4, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving backward multiple non contiguous elements a second time.");
             //                          ^^                  ^^             Models moved down
 
             // Moving a third time will "compact" even more at the bottom
-            m_GraphModel.MoveBackward(groupToMove);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.Backward);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model1, m_Model3, m_Model5, m_Model0, m_Model2, m_Model4, m_Model6, m_Model7, m_Model8, m_Model9 }, "Unexpected placemat order after moving backward multiple non contiguous elements a third time.");
             //                                    ^^                       Model moved down
@@ -265,7 +265,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests
         public void MoveMultipleNonContiguousElementsBottomWorks()
         {
             var groupToMove = new[] { m_Model4, m_Model6, m_Model8 };
-            m_GraphModel.MoveBackward(groupToMove, true);
+            m_GraphModel.ReorderPlacemats(groupToMove, ZOrderMove.ToBack);
             Assert.AreEqual(m_GraphModel.PlacematModels,
                 new[] { m_Model4, m_Model6, m_Model8, m_Model0, m_Model1, m_Model2, m_Model3, m_Model5, m_Model7, m_Model9 }, "Unexpected placemat order after moving bottom multiple non contiguous elements.");
             //                ^^        ^^        ^^   Models moved bottom

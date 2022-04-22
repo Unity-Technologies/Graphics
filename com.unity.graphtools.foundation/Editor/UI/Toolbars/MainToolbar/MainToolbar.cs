@@ -164,11 +164,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             string graphName = null;
             if (index == -1)
             {
-                graphName = toolState.CurrentGraph.GetGraphAssetModel()?.FriendlyScriptName;
+                graphName = toolState.GraphModel.GetFriendlyScriptName();
             }
             else if (index >= 0 && index < graphModels.Count)
             {
-                graphName = graphModels[index].GetGraphAssetModel()?.FriendlyScriptName;
+                graphName = graphModels[index].GetGraphModel().GetFriendlyScriptName();
             }
 
             return string.IsNullOrEmpty(graphName) ? "<Unknown>" : graphName;
@@ -191,9 +191,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="breadcrumbIndex">The index of the breadcrumb element clicked.</param>
         protected virtual void OnBreadcrumbClick(OpenedGraph graphToLoad, int breadcrumbIndex)
         {
-            if (graphToLoad.GetGraphAssetModel()?.FriendlyScriptName != null)
-                GraphTool?.Dispatch(new LoadGraphAssetCommand(graphToLoad.GetGraphAssetModelPath(), graphToLoad.AssetLocalId,
-                    graphToLoad.BoundObject, LoadGraphAssetCommand.LoadStrategies.KeepHistory, breadcrumbIndex));
+            if (graphToLoad.GetGraphModel() != null)
+                GraphTool?.Dispatch(new LoadGraphCommand(graphToLoad.GetGraphModel(),
+                    graphToLoad.BoundObject, LoadGraphCommand.LoadStrategies.KeepHistory, breadcrumbIndex));
         }
 
         void ShowGraphViewToolWindow<T>() where T : GraphViewToolWindow
@@ -271,7 +271,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 minimap.Repaint();
             }
 
-            GraphTool?.Dispatch(new UnloadGraphAssetCommand());
+            GraphTool?.Dispatch(new UnloadGraphCommand());
         }
 
         static void OnSaveAllButton()

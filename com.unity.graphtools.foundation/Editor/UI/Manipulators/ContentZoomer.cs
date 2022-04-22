@@ -11,8 +11,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public class ContentZoomer : Manipulator
     {
         public static readonly float DefaultReferenceScale = 1.0f;
-        public static readonly float DefaultMinScale = 0.25f;
-        public static readonly float DefaultMaxScale = 1.0f;
+        public static readonly float DefaultMinScale = 0.1f;
+        public static readonly float DefaultMaxScale = 4.0f;
         public static readonly float DefaultScaleStep = 0.15f;
 
         /// <summary>
@@ -139,7 +139,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 return;
 
             IPanel panel = (evt.target as VisualElement)?.panel;
-            if (panel.GetCapturingElement(PointerId.mousePointerId) != null)
+            var capturingElement = panel.GetCapturingElement(PointerId.mousePointerId);
+            if (capturingElement != null
+                && !(capturingElement is Edge)
+                && !(capturingElement is GraphView)
+                && !(capturingElement is VisualElement ve && ve.parent is Port))
                 return;
 
             Vector3 position = graphView.ViewTransform.position;
@@ -163,7 +167,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             position.x = GraphViewStaticBridge.RoundToPixelGrid(position.x);
             position.y = GraphViewStaticBridge.RoundToPixelGrid(position.y);
 
-            graphView.Dispatch(new ReframeGraphViewCommand(position, scale));
+            graphView.UpdateViewTransform(position, scale);
 
             evt.StopPropagation();
         }

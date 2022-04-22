@@ -61,7 +61,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
             {
                 var expected = CompatibilityGraphModelBuilder.CreateAsset(k_TemporaryAssetName, k_TemporaryAssetPath);
 
-                var actual = AssetDatabase.LoadAssetAtPath<GraphAssetModel>(tmpCurrentAssetName);
+                var actual = AssetDatabase.LoadAssetAtPath<GraphAsset>(tmpCurrentAssetName);
                 GraphChecks.AssertIsGraphAsExpected(expected.GraphModel, actual.GraphModel);
             }
             finally
@@ -182,7 +182,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
                 AssetDatabase.SaveAssets();
                 AssetDatabase.ForceReserializeAssets(new[] { k_TemporaryAssetPath2 });
                 AssetDatabase.ImportAsset(k_TemporaryAssetPath2, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-                var actual = AssetDatabase.LoadAssetAtPath<GraphAssetModel>(k_TemporaryAssetPath2);
+                var actual = AssetDatabase.LoadAssetAtPath<GraphAsset>(k_TemporaryAssetPath2);
 
                 Assert.AreNotSame(expected, actual);
                 GraphChecks.AssertIsGraphAsExpected(expected.GraphModel, actual.GraphModel);

@@ -1,7 +1,0 @@
-
-.unity-overlay__resizable-content-container {
-    min-width: 100px;
-    min-height: 100px;
-    width: 300px;
-    height: 400px;
-}

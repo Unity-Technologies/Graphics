@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 {
@@ -130,11 +129,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public virtual void CreateInitializationValue()
         {
-            if (GraphModel.Stencil.GetConstantNodeValueType(DataType) != null)
+            if (GraphModel.Stencil.GetConstantType(DataType) != null)
             {
                 InitializationModel = GraphModel.Stencil.CreateConstantValue(DataType);
-
-                EditorUtility.SetDirty((Object)AssetModel);
+                GraphModel.Asset.Dirty = true;
             }
         }
 
@@ -142,7 +140,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             foreach (var node in GraphModel.NodeModels.OfType<IVariableNodeModel>())
             {
-                if (node.VariableDeclarationModel == this && node.Ports.Any(t => t.IsConnected()))
+                if (ReferenceEquals(node.VariableDeclarationModel, this) && node.Ports.Any(t => t.IsConnected()))
                     return true;
             }
 

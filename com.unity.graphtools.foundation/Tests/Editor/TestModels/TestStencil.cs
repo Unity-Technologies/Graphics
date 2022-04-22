@@ -14,9 +14,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
             m_DefaultSearcherProvider = new ClassSearcherDatabaseProvider(this);
         }
 
-        public override Type GetConstantNodeValueType(TypeHandle typeHandle)
+        public override Type GetConstantType(TypeHandle typeHandle)
         {
-            return TypeToConstantMapper.GetConstantNodeType(typeHandle);
+            return TypeToConstantMapper.GetConstantType(typeHandle);
         }
 
         public override ISearcherDatabaseProvider GetSearcherDatabaseProvider()
@@ -30,9 +30,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.TestModels
             m_OnGetSearcherDatabaseProviderCallback = callback;
         }
 
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
         {
-            return new BlackboardGraphModel(graphAssetModel);
+            return new BlackboardGraphModel { GraphModel = graphModel };
         }
 
         /// <inheritdoc />

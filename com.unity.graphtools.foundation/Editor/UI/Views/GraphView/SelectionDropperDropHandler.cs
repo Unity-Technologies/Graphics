@@ -13,6 +13,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public class SelectionDropperDropHandler : IDragAndDropHandler
     {
         readonly List<IVariableDeclarationModel> m_DraggedElements = new List<IVariableDeclarationModel>();
+        ISelectionDraggerTarget m_CurrentTarget;
 
         const float k_DragDropSpacer = 25f;
 
@@ -61,6 +62,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
             }
 
+            var previousTarget = m_CurrentTarget;
+            m_CurrentTarget = (e.target as VisualElement)?.GetFirstOfType<Port>();
+            if (m_CurrentTarget != previousTarget)
+            {
+                previousTarget?.ClearDropHighlightStatus();
+                m_CurrentTarget?.SetDropHighlightStatus(m_DraggedElements);
+            }
+
             m_DraggedElements.Clear();
 
             e.StopPropagation();
@@ -81,16 +90,26 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     (
                         e1,
                         contentViewContainer.WorldToLocal(e.mousePosition) - i * k_DragDropSpacer * Vector2.down)
-                    );
+                    ).ToList();
+
+                m_CurrentTarget?.ClearDropHighlightStatus();
 
                 var command = new CreateNodeCommand();
+
+                var portTarget = (e.target as VisualElement)?.GetFirstOfType<Port>();
+                var variablesCount = variablesWithInfo.Count();
                 foreach (var (model, position) in variablesWithInfo)
                 {
-                    command.WithNodeOnGraph(model, position);
+                    if (portTarget != null && variablesCount == 1 && portTarget.CanAcceptDrop(new List<IGraphElementModel>{ model }))
+                        command.WithNodeOnPort(model, portTarget.PortModel, position, true);
+                    else
+                        command.WithNodeOnGraph(model, position);
                 }
+
                 GraphView.Dispatch(command);
             }
 
+            m_CurrentTarget = null;
             m_DraggedElements.Clear();
 
             e.StopPropagation();

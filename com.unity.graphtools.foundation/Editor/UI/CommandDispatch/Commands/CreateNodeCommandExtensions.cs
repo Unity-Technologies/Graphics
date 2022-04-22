@@ -46,7 +46,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         }
 
         /// <summary>
-        /// Adds a node from a searcher item inserted on an edge to a <see cref="CreateNodeCommand"/>.
+        /// Adds a node from a searcher item inserted in the middle of an edge to a <see cref="CreateNodeCommand"/>.
         /// </summary>
         /// <param name="command">The command to alter.</param>
         /// <param name="searcherItem">The searcher item to create a node from.</param>
@@ -59,7 +59,27 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return command.WithNode(new CreateNodeCommand.NodeData
             {
                 SearcherItem = searcherItem,
-                EdgeModel = edgeModel,
+                EdgeToInsertOn = edgeModel,
+                Position = position,
+                Guid = guid
+            });
+        }
+
+        /// <summary>
+        /// Adds a node from a searcher item inserted on an edge to a <see cref="CreateNodeCommand"/>.
+        /// </summary>
+        /// <param name="command">The command to alter.</param>
+        /// <param name="searcherItem">The searcher item to create a node from.</param>
+        /// <param name="edges">The edges on which to insert the new node.</param>
+        /// <param name="position">The position where to create the node.</param>
+        /// <param name="guid">The unique identifier for the node to create.</param>
+        /// <returns>The command with an additional node to create.</returns>
+        public static CreateNodeCommand WithNodeOnEdges(this CreateNodeCommand command, GraphNodeModelSearcherItem searcherItem, IEnumerable<(IEdgeModel, EdgeSide)> edges, Vector2 position, SerializableGUID guid = default)
+        {
+            return command.WithNode(new CreateNodeCommand.NodeData
+            {
+                SearcherItem = searcherItem,
+                EdgesToConnect = edges,
                 Position = position,
                 Guid = guid
             });
@@ -75,7 +95,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="autoAlign">If true, the node will try to align automatically with the port after creation.</param>
         /// <param name="guid">The unique identifier for the node to create.</param>
         /// <returns>The command with an additional node to create.</returns>
-        public static CreateNodeCommand WithNodeOnPort(this CreateNodeCommand command, GraphNodeModelSearcherItem searcherItem, IPortModel portModel, Vector2 position, bool autoAlign = false, SerializableGUID guid = default, IReadOnlyList<IEdgeModel> edgesToDelete = null)
+        public static CreateNodeCommand WithNodeOnPort(this CreateNodeCommand command, GraphNodeModelSearcherItem searcherItem, IPortModel portModel, Vector2 position, bool autoAlign = false, SerializableGUID guid = default)
         {
             return command.WithNode(new CreateNodeCommand.NodeData
             {
@@ -83,7 +103,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 PortModel = portModel,
                 Position = position,
                 Guid = guid,
-                EdgesToDelete = edgesToDelete
+                AutoAlign = autoAlign 
             });
         }
 
@@ -104,7 +124,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 VariableDeclaration = variableDeclaration,
                 PortModel = portModel,
                 Position = position,
-                Guid = guid
+                Guid = guid,
+                AutoAlign = autoAlign
             });
         }
 

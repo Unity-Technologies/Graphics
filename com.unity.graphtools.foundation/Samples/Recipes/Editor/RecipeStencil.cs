@@ -32,9 +32,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
         }
 
         /// <inheritdoc />
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
         {
-            return new RecipeBlackboardGraphModel(graphAssetModel);
+            return new RecipeBlackboardGraphModel { GraphModel = graphModel };
         }
 
         public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
@@ -53,9 +53,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
             return new InspectorModel(inspectedModel);
         }
 
-        public override Type GetConstantNodeValueType(TypeHandle typeHandle)
+        public override Type GetConstantType(TypeHandle typeHandle)
         {
-            return TypeToConstantMapper.GetConstantNodeType(typeHandle);
+            return TypeToConstantMapper.GetConstantType(typeHandle);
         }
 
         /// <inheritdoc />

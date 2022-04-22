@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
@@ -11,9 +10,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     [Serializable]
     public class SubgraphNodeModel : NodeModel, ISubgraphNodeModel
     {
-        [SerializeField, HideInInspector, Obsolete]
-        GraphAssetModel m_ReferenceGraphAssetModel;
-
         [SerializeReference]
         Subgraph m_Subgraph;
 
@@ -21,15 +17,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public override string Title => m_Subgraph.Title;
 
         /// <inheritdoc />
-        public IGraphAssetModel SubgraphAssetModel
+        public IGraphModel SubgraphModel
         {
-            get => m_Subgraph.GraphAssetModel;
+            get => m_Subgraph?.GraphModel;
 
             set
             {
-                m_Subgraph ??= new Subgraph();
-                m_Subgraph.GraphAssetModel = value;
-                DefineNode();
+                if (value is GraphModel graphModel)
+                {
+                    m_Subgraph ??= new Subgraph();
+                    m_Subgraph.GraphModel = graphModel;
+                    DefineNode();
+                }
+                else
+                {
+                    m_Subgraph = null;
+                }
             }
         }
 
@@ -59,6 +62,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         {
             base.OnDefineNode();
 
+            DataInputPortToVariableDeclarationDictionary.Clear();
+            DataOutputPortToVariableDeclarationDictionary.Clear();
+            ExecutionInputPortToVariableDeclarationDictionary.Clear();
+            ExecutionOutputPortToVariableDeclarationDictionary.Clear();
+
             ProcessVariables();
         }
 
@@ -68,7 +76,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
         void ProcessVariables()
         {
-            if (SubgraphAssetModel == null)
+            if (SubgraphModel == null)
                 return;
 
             foreach (var variableDeclaration in GetInputOutputVariables())
@@ -80,7 +88,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             var inputOutputVariableDeclarations = new List<IVariableDeclarationModel>();
 
             // Get the input/output variable declarations from the section models to preserve their displayed order in the Blackboard
-            foreach (var section in SubgraphAssetModel.GraphModel.SectionModels)
+            foreach (var section in SubgraphModel.SectionModels)
                 GetInputOutputVariable(section, ref inputOutputVariableDeclarations);
 
             return inputOutputVariableDeclarations;

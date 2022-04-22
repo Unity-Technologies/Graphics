@@ -68,7 +68,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
                 UniqueName = portId,
                 Options = options,
                 NodeModel = this,
-                AssetModel = AssetModel
+                GraphModel = GraphModel
             };
         }
     }

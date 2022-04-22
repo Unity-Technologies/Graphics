@@ -347,52 +347,52 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             //                              ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Forward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm1, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle up.");
             //                                   ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Forward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm1, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle up.");
             //                                        ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Forward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm4, pm1 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle up.");
             //                                             ^^^
 
             // Once at the top, it stays at the top
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Up);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Forward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm4, pm1 }.Select(p => p.PlacematModel.GetZOrder()), "Cycling up topmost placemat should be idempotent.");
             //                                             ^^^
 
             // Go back down
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Backward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm3, pm1, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle down.");
             //                                        ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Backward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm2, pm1, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle down.");
             //                                   ^^^
 
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Backward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Unexpected placemat z orders after cycle down.");
             //                              ^^^
 
             // Once at the bottom, it stays at the bottom
             //pm1.CyclePlacemat(PlacematCommandsExtension.CycleDirection.Down);
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Backward, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(orders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Cycling down bottommost placemat should be idempotent.");
             //                              ^^^
@@ -424,24 +424,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             CheckOrder(new[] { pm1, pm2, pm3, pm4 });
 
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveTop, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.ToFront, new[] {pm1Model}));
             yield return null;
             CheckOrder(new[] { pm2, pm3, pm4, pm1 });
 
             // BringPlacematToFront called twice is idempotent.
             var currentZOrders = new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder());
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveTop, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.ToFront, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(currentZOrders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Bringing to front topmost placemat should be idempotent.");
 
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.ToBack, new[] {pm1Model}));
             yield return null;
             GraphView.RebuildUI();
             CheckOrder(new[] { pm1, pm2, pm3, pm4 });
 
             // SendPlacematToBack called twice is idempotent.
             currentZOrders = new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder());
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm1Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.ToBack, new[] {pm1Model}));
             yield return null;
             Assert.AreEqual(currentZOrders, new[] { pm1, pm2, pm3, pm4 }.Select(p => p.PlacematModel.GetZOrder()), "Sending to back bottommost placemat should be idempotent.");
         }
@@ -634,37 +634,38 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             const int steps = 10;
-            Vector2 moveDelta = GraphViewStaticBridge.RoundToPixelGrid(new Vector2(2 * k_DefaultPlacematSize.x / steps, 0));
+            var placematMovement = GraphViewStaticBridge.RoundToPixelGrid(new Vector2(2 * k_DefaultPlacematSize.x, 0));
+            var expectedPlacematPos = k_DefaultPlacematPos + placematMovement;
 
             // Move!
             {
                 var worldPmPosition = GraphView.ContentViewContainer.LocalToWorld(k_DefaultPlacematRect.position);
+                var worldPmEndPos = GraphView.ContentViewContainer.LocalToWorld(expectedPlacematPos);
                 var start = worldPmPosition + k_SelectionOffset;
-                var end = start + moveDelta;
+                var viewMoveDelta = (worldPmEndPos - worldPmPosition) / steps;
                 Helpers.MouseDownEvent(start);
                 yield return null;
 
                 for (int i = 0; i < steps; i++)
                 {
                     // Make sure we get under the node
-                    Helpers.MouseDragEvent(start, end);
+                    Helpers.MouseDragEvent(start + i * viewMoveDelta, start + (i + 1) * viewMoveDelta);
                     yield return null;
-
-                    start = end;
-                    end += moveDelta;
                 }
 
-                Helpers.MouseUpEvent(end);
+                Helpers.MouseUpEvent(start + steps * viewMoveDelta);
                 yield return null;
             }
 
             // The placemat will have moved, but not the node.
-            Vector2 expectedPlacematPos = GraphViewStaticBridge.RoundToPixelGrid(k_DefaultPlacematRect.position + moveDelta * steps);
             Vector2 expectedNodePos = GraphViewStaticBridge.RoundToPixelGrid(startNodePos);
             var pm = pmModel.GetView<Placemat>(GraphView);
             var node = nodeModel.GetView<Node>(GraphView);
-            Assert.AreEqual(expectedPlacematPos, pm?.layout.position, "Placemat should have moved following manipulation.");
-            Assert.AreEqual(expectedNodePos, node?.layout.position, "Node should not have moved when placemat was moved under it.");
+            Assert.IsNotNull(pm, "Placemat UI is null.");
+            Assert.IsNotNull(node, "Node UI is null.");
+            Assert.IsTrue((k_DefaultPlacematRect.position - pm.layout.position).sqrMagnitude > 0.1f, "Placemat should have moved.");
+            Assert.AreEqual(expectedPlacematPos, pm.layout.position, "Placemat didn't move to expected location.");
+            Assert.AreEqual(expectedNodePos, node.layout.position, "Node should not have moved when placemat was moved under it.");
             yield return null;
         }
 
@@ -832,7 +833,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var pm2 = pm2Model.GetView<Placemat>(GraphView);
             var node = nodeModel.GetView<Node>(GraphView);
 
-            GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, new[] {pm2Model}));
+            GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.ToBack, new[] {pm2Model}));
             yield return null;
 
             Vector2 moveDelta = new Vector2(20, 20);

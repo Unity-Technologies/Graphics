@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Overdrive.Bridge;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -23,9 +22,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                 return false;
             }
 
-            public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+            public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
             {
-                return new BlackboardGraphModel(graphAssetModel);
+                return new BlackboardGraphModel { GraphModel = graphModel };
             }
 
             public override IInspectorModel CreateInspectorModel(IModel inspectedModel)
@@ -108,13 +107,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
 
         protected class GraphViewEditorWindow : UnityEditor.GraphToolsFoundation.Overdrive.GraphViewEditorWindow
         {
-            protected override bool CanHandleAssetType(IGraphAssetModel asset)
+            protected override bool CanHandleAssetType(IGraphAsset asset)
             {
                 return true;
             }
         }
 
-        protected IGraphAssetModel m_GraphAssetModel;
+        protected IGraphAsset m_GraphAsset;
         protected GraphViewEditorWindow m_Window;
         protected BlackboardView m_BlackboardView;
 
@@ -124,8 +123,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             m_Window = EditorWindow.GetWindow<GraphViewEditorWindow>();
             m_Window.CloseAllOverlays();
 
-            m_GraphAssetModel = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateInMemoryGraphAsset(typeof(Stencil), "Test");
-            m_Window.GraphView.Dispatch(new LoadGraphAssetCommand(m_GraphAssetModel));
+            m_GraphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateInMemoryGraphAsset(typeof(Stencil), "Test");
+            m_Window.GraphView.Dispatch(new LoadGraphCommand(m_GraphAsset.GraphModel));
 
             m_BlackboardView = new BlackboardView(m_Window, m_Window.GraphView);
             m_Window.rootVisualElement.Add(m_BlackboardView);

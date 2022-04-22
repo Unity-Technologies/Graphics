@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -12,5 +13,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// The list of inspection sections.
         /// </summary>
         IReadOnlyList<IInspectorSectionModel> Sections { get; }
+
+        Vector2 ScrollOffset { get; set; }
     }
 }

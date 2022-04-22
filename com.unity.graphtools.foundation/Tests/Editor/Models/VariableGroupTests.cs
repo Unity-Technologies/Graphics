@@ -38,9 +38,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void TestVariableGroupInsertion()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(TestGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
-            var graphModel = graphAssetModel.GraphModel;
+            var graphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
+            var graphModel = graphAsset.GraphModel;
 
             GroupModel parent = new GroupModel();
 
@@ -62,8 +62,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void TestVariableGroupCantInsertIntoItself()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(TestGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
+            var graphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
 
             GroupModel parent = new GroupModel();
 
@@ -85,8 +85,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void TestVariableGroupRecursiveInsertion()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(TestGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
+            var graphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
 
             GroupModel parent = new GroupModel();
 
@@ -112,9 +112,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void TestVariableGroupRemoval()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(TestGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
-            var graphModel = graphAssetModel.GraphModel;
+            var graphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
+            var graphModel = graphAsset.GraphModel;
 
             GroupModel parent = new GroupModel();
 

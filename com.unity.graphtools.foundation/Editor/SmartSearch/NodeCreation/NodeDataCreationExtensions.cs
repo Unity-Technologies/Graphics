@@ -97,11 +97,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// Creates a new subgraph node in the graph referenced in <paramref name="data"/>.
         /// </summary>
         /// <param name="data">Data containing some of the required information to create a node.</param>
-        /// <param name="referenceGraphAsset">The Graph Asset Model of the reference graph.</param>
+        /// <param name="referenceGraph">The Graph Model of the reference graph.</param>
         /// <returns>The newly created subgraph node.</returns>
-        public static INodeModel CreateSubgraphNode(this IGraphNodeCreationData data, GraphAssetModel referenceGraphAsset)
+        public static INodeModel CreateSubgraphNode(this IGraphNodeCreationData data, IGraphModel referenceGraph)
         {
-            return data.GraphModel.CreateSubgraphNode(referenceGraphAsset, data.Position, data.Guid, data.SpawnFlags);
+            return data.GraphModel.CreateSubgraphNode(referenceGraph, data.Position, data.Guid, data.SpawnFlags);
         }
     }
 }

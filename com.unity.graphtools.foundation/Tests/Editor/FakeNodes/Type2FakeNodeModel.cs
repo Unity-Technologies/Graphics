@@ -1,6 +1,5 @@
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Searcher;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 {

@@ -1,8 +1,6 @@
 .ge-blackboard {
     position: relative;
     flex-direction: column;
-    min-width: 100px;
-    min-height: 100px;
     width: auto;
     height: auto;
     background-color: var(--blackboard-background);
@@ -206,10 +204,10 @@
 
 .ge-blackboard-variable-property-view__row .unity-button {
     min-width: 75px;
-    max-width: 225px;
     font-size: var(--unity-font-size-semi-small);
     height: 18px;
     flex-grow: 0;
+    flex-basis: auto;
     padding-top: 0;
     margin-left: 6px;
     margin-right: 6px;

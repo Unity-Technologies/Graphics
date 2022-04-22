@@ -24,6 +24,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeReference]
         List<IInspectorSectionModel> m_SectionModels;
 
+        [SerializeField]
+        Vector2 m_ScrollOffset;
+
         /// <inheritdoc />
         public string Title
         {
@@ -47,6 +50,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 return m_Guid;
             }
             set => m_Guid = value;
+        }
+
+        public Vector2 ScrollOffset
+        {
+            get => m_ScrollOffset;
+            set => m_ScrollOffset = value;
         }
 
         /// <summary>

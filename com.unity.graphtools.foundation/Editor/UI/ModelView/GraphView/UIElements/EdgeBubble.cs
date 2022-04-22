@@ -13,61 +13,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         protected Attacher m_Attacher;
 
-        protected TextField TextField { get; }
-
-        /// <inheritdoc />
-        public override string text
-        {
-            get => base.text;
-            set
-            {
-                if (base.text == value)
-                    return;
-                base.text = value;
-            }
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EdgeBubble"/> class.
         /// </summary>
         public EdgeBubble()
         {
-            TextField = new TextField { isDelayed = true };
-
             AddToClassList(ussClassName);
-        }
-
-        protected void OnBlur(BlurEvent evt)
-        {
-            SaveAndClose();
-        }
-
-        protected void SaveAndClose()
-        {
-            text = TextField.text;
-            Close();
-        }
-
-        protected void Close()
-        {
-            TextField.value = text;
-            TextField.RemoveFromHierarchy();
-            TextField.UnregisterCallback<KeyDownEvent>(OnKeyDown);
-            TextField.UnregisterCallback<BlurEvent>(OnBlur);
-        }
-
-        protected void OnKeyDown(KeyDownEvent evt)
-        {
-            switch (evt.keyCode)
-            {
-                case KeyCode.KeypadEnter:
-                case KeyCode.Return:
-                    SaveAndClose();
-                    break;
-                case KeyCode.Escape:
-                    Close();
-                    break;
-            }
         }
 
         public void AttachTo(VisualElement edgeControlTarget, SpriteAlignment align)
@@ -93,7 +44,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         protected void OnGeometryChanged(GeometryChangedEvent evt)
         {
-            ComputeTextSize();
+            ResizeToFitText();
         }
 
         public void SetAttacherOffset(Vector2 offset)
@@ -102,7 +53,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 m_Attacher.Offset = offset;
         }
 
-        protected void ComputeTextSize()
+        void ResizeToFitText()
         {
             if (style.fontSize == 0)
                 return;

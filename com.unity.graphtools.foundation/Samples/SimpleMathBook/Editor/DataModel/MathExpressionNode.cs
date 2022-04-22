@@ -54,6 +54,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             m_Capabilities.Add(Overdrive.Capabilities.Renamable);
         }
 
+        /// <inheritdoc />
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            m_VariablesToPort.Clear();
+            m_ExpressionError = null;
+            m_RootExpression = null;
+        }
+
         public override Value Evaluate()
         {
             if (m_ExpressionError != null)
@@ -105,7 +115,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
                 UniqueName = portId,
                 Options = options,
                 NodeModel = this,
-                AssetModel = AssetModel
+                GraphModel = GraphModel
             };
         }
 

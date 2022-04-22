@@ -24,7 +24,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var node = m_GraphAssetModel.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
+                        var node = m_GraphAsset.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
                         node.ExeInputCount = 1;
                         node.ExeOutputCount = 1;
                         node.InputCount = 2;
@@ -46,7 +46,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var node = m_GraphAssetModel.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
+                        var node = m_GraphAsset.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
                         node.ExeInputCount = 1;
                         node.ExeOutputCount = 1;
                         node.InputCount = 2;
@@ -54,7 +54,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                         node.DefineNode();
                     }
 
-                    m_GraphAssetModel.GraphModel.DeleteNodes(m_GraphAssetModel.GraphModel.NodeModels.ToList(), false);
+                    m_GraphAsset.GraphModel.DeleteNodes(m_GraphAsset.GraphModel.NodeModels.ToList(), false);
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
                 .Run();
@@ -71,14 +71,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
 
             for (var i = 0; i < count; i++)
             {
-                fromNodes[i] = m_GraphAssetModel.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
+                fromNodes[i] = m_GraphAsset.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
                 fromNodes[i].ExeInputCount = 1;
                 fromNodes[i].ExeOutputCount = 1;
                 fromNodes[i].InputCount = 2;
                 fromNodes[i].OutputCount = 1;
                 fromNodes[i].DefineNode();
 
-                toNodes[i] = m_GraphAssetModel.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
+                toNodes[i] = m_GraphAsset.GraphModel.CreateNode<IONodeModel>($"Node {i}", new Vector2(100, i * 200));
                 toNodes[i].ExeInputCount = 1;
                 toNodes[i].ExeOutputCount = 1;
                 toNodes[i].InputCount = 2;
@@ -90,10 +90,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        m_GraphAssetModel.GraphModel.CreateEdge(toNodes[i].InputsByDisplayOrder.First(),
+                        m_GraphAsset.GraphModel.CreateEdge(toNodes[i].InputsByDisplayOrder.First(),
                             fromNodes[i].OutputsByDisplayOrder.First());
                     }
-                    m_GraphAssetModel.GraphModel.DeleteEdges(m_GraphAssetModel.GraphModel.EdgeModels.ToList());
+                    m_GraphAsset.GraphModel.DeleteEdges(m_GraphAsset.GraphModel.EdgeModels.ToList());
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
                 .Run();
@@ -109,7 +109,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var stickyNote = m_GraphAssetModel.GraphModel.CreateStickyNote(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
+                        var stickyNote = m_GraphAsset.GraphModel.CreateStickyNote(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
                         stickyNote.Title = $"Sticky {i}";
                         stickyNote.Contents = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris";
                     }
@@ -128,12 +128,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var stickyNote = m_GraphAssetModel.GraphModel.CreateStickyNote(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
+                        var stickyNote = m_GraphAsset.GraphModel.CreateStickyNote(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
                         stickyNote.Title = $"Sticky {i}";
                         stickyNote.Contents = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris";
                     }
 
-                    m_GraphAssetModel.GraphModel.DeleteStickyNotes(m_GraphAssetModel.GraphModel.StickyNoteModels.ToList());
+                    m_GraphAsset.GraphModel.DeleteStickyNotes(m_GraphAsset.GraphModel.StickyNoteModels.ToList());
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
                 .Run();
@@ -149,7 +149,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var placemat = m_GraphAssetModel.GraphModel.CreatePlacemat(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
+                        var placemat = m_GraphAsset.GraphModel.CreatePlacemat(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
                         placemat.Title = $"Placemat {i}";
                     }
                 }).WarmupCount(k_WarmupCount)
@@ -167,11 +167,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var placemat = m_GraphAssetModel.GraphModel.CreatePlacemat(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
+                        var placemat = m_GraphAsset.GraphModel.CreatePlacemat(new Rect(new Vector2(100, i * 400), new Vector2( 300, 300)));
                         placemat.Title = $"Placemat {i}";
                     }
 
-                    m_GraphAssetModel.GraphModel.DeletePlacemats(m_GraphAssetModel.GraphModel.PlacematModels.ToList());
+                    m_GraphAsset.GraphModel.DeletePlacemats(m_GraphAsset.GraphModel.PlacematModels.ToList());
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
                 .Run();
@@ -191,7 +191,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        m_GraphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
+                        m_GraphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
                     }
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
@@ -213,7 +213,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        m_GraphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable", ModifierFlags.Read, false);
+                        m_GraphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable", ModifierFlags.Read, false);
                     }
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
@@ -239,16 +239,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
 
             for (int i = 0; i < totalCount; i++)
             {
-                m_GraphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
+                m_GraphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
             }
 
-            var existingVariables = m_GraphAssetModel.GraphModel.VariableDeclarations.ToList();
+            var existingVariables = m_GraphAsset.GraphModel.VariableDeclarations.ToList();
 
             Measure.Method(() =>
                 {
                     for (var i = 0; i < countToDuplicate; i++)
                     {
-                        m_GraphAssetModel.GraphModel.DuplicateGraphVariableDeclaration(existingVariables[i]);
+                        m_GraphAsset.GraphModel.DuplicateGraphVariableDeclaration(existingVariables[i]);
                     }
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
@@ -274,16 +274,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
 
             for (int i = 0; i < totalCount; i++)
             {
-                m_GraphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable", ModifierFlags.Read, false);
+                m_GraphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable", ModifierFlags.Read, false);
             }
 
-            var existingVariables = m_GraphAssetModel.GraphModel.VariableDeclarations.ToList();
+            var existingVariables = m_GraphAsset.GraphModel.VariableDeclarations.ToList();
 
             Measure.Method(() =>
                 {
                     for (var i = 0; i < countToDuplicate; i++)
                     {
-                        m_GraphAssetModel.GraphModel.DuplicateGraphVariableDeclaration(existingVariables[i]);
+                        m_GraphAsset.GraphModel.DuplicateGraphVariableDeclaration(existingVariables[i]);
                     }
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
@@ -302,10 +302,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        m_GraphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
+                        m_GraphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
                     }
 
-                    m_GraphAssetModel.GraphModel.DeleteVariableDeclarations(m_GraphAssetModel.GraphModel.VariableDeclarations.ToList());
+                    m_GraphAsset.GraphModel.DeleteVariableDeclarations(m_GraphAsset.GraphModel.VariableDeclarations.ToList());
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
                 .Run();
@@ -322,14 +322,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
             var variables = new IVariableDeclarationModel[count];
             for (var i = 0; i < count; i++)
             {
-                variables[i] = m_GraphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
+                variables[i] = m_GraphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
             }
 
             Measure.Method(() =>
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        m_GraphAssetModel.GraphModel.CreateVariableNode(variables[i], new Vector2(100, i * 200));
+                        m_GraphAsset.GraphModel.CreateVariableNode(variables[i], new Vector2(100, i * 200));
                     }
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
@@ -347,17 +347,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.BasicModelTests.Perfo
             var variables = new IVariableDeclarationModel[count];
             for (var i = 0; i < count; i++)
             {
-                variables[i] = m_GraphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
+                variables[i] = m_GraphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, $"Variable {i}", ModifierFlags.Read, false);
             }
 
             Measure.Method(() =>
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        m_GraphAssetModel.GraphModel.CreateVariableNode(variables[i], new Vector2(100, i * 200));
+                        m_GraphAsset.GraphModel.CreateVariableNode(variables[i], new Vector2(100, i * 200));
                     }
 
-                    m_GraphAssetModel.GraphModel.DeleteNodes(m_GraphAssetModel.GraphModel.NodeModels.ToList(), false);
+                    m_GraphAsset.GraphModel.DeleteNodes(m_GraphAsset.GraphModel.NodeModels.ToList(), false);
                 }).WarmupCount(k_WarmupCount)
                 .MeasurementCount(k_MeasurementCount)
                 .Run();

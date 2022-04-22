@@ -1,5 +1,5 @@
 {
     "displayName": "Recipes GTF example",
-    "description": "A simple example from a graph editor made with Graph Foundation Tools",
+    "description": "A simple example of a graph editor made with Graph Foundation Tools",
     "createSeparatePackage": false
 }

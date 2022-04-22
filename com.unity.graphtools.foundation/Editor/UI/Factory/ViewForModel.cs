@@ -54,6 +54,29 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return outViewList;
         }
 
+        internal static IEnumerable<ModelView> GetAllViewsRecursivelyInList(this IEnumerable<IModel> models, IRootView view,
+            Predicate<ModelView> filter, List<ModelView> outViewList)
+        {
+            outViewList.Clear();
+            return RecurseGetAllViewsInList(models, view, filter, outViewList);
+        }
+
+        static IEnumerable<ModelView> RecurseGetAllViewsInList(this IEnumerable<IModel> models, IRootView view,
+            Predicate<ModelView> filter, List<ModelView> outViewList)
+        {
+            var modelList = models.ToList();
+            foreach (var model in modelList)
+            {
+                if (model is IGraphElementContainer container)
+                {
+                    RecurseGetAllViewsInList(container.GraphElementModels, view, filter, outViewList);
+                }
+                model.GetAllViews(view, filter, outViewList);
+            }
+
+            return outViewList;
+        }
+
         internal static void RemoveModelView(ModelView modelView)
         {
             s_ViewForModel.RemoveModelView(modelView);

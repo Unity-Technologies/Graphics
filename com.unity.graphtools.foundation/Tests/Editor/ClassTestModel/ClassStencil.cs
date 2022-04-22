@@ -29,9 +29,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             "visualscripting"
         };
 
-        public override Type GetConstantNodeValueType(TypeHandle typeHandle)
+        public override Type GetConstantType(TypeHandle typeHandle)
         {
-            return TypeToConstantMapper.GetConstantNodeType(typeHandle);
+            return TypeToConstantMapper.GetConstantType(typeHandle);
         }
 
         public override void PreProcessGraph(IGraphModel graphModel)
@@ -79,9 +79,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
         }
 
         /// <inheritdoc />
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
         {
-            return new BlackboardGraphModel(graphAssetModel);
+            return new BlackboardGraphModel { GraphModel = graphModel };
         }
 
         /// <inheritdoc />

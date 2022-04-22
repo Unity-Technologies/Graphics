@@ -10,45 +10,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     public static class PersistedStateComponentHelpers
     {
         /// <summary>
-        /// Saves the state component and move the state component associated with <paramref name="assetModel"/> in it.
+        /// Saves the state component and move the state component associated with <paramref name="graphModel"/> in it.
         /// </summary>
         /// <param name="stateComponent">The state component to save and replace.</param>
         /// <param name="updater">The state component updater used to move the newly state component in <paramref name="stateComponent"/>.</param>
-        /// <param name="assetModel">The asset model for which we want to load a state component.</param>
+        /// <param name="graphModel">The graph model for which we want to load a state component.</param>
         /// <typeparam name="TComponent">The state component type.</typeparam>
         /// <typeparam name="TUpdater">The updater type.</typeparam>
-        public static void SaveAndLoadAssetStateForAsset<TComponent, TUpdater>(TComponent stateComponent, TUpdater updater, IGraphAssetModel assetModel)
-            where TComponent : StateComponent<TUpdater>, IAssetStateComponent, new()
+        public static void SaveAndLoadPersistedStateForGraph<TComponent, TUpdater>(TComponent stateComponent, TUpdater updater, IGraphModel graphModel)
+            where TComponent : StateComponent<TUpdater>, IPersistedStateComponent, new()
             where TUpdater : class, IStateComponentUpdater, new()
         {
-            var newAssetKey = PersistedState.MakeAssetKey(assetModel);
-            PersistedState.StoreStateComponent(stateComponent, stateComponent.ComponentName, default, stateComponent.AssetKey);
+            var key = PersistedState.MakeGraphKey(graphModel);
+            PersistedState.StoreStateComponent(stateComponent, stateComponent.ComponentName, stateComponent.ViewGuid, stateComponent.GraphKey);
 
-            if (newAssetKey != stateComponent.AssetKey)
+            if (key != stateComponent.GraphKey)
             {
-                var newState = PersistedState.GetOrCreateAssetStateComponent<TComponent>(stateComponent.ComponentName, newAssetKey);
-                updater.Move(newState);
-            }
-        }
-
-        /// <summary>
-        /// Saves the state component and move the state component associated with <paramref name="assetModel"/> in it.
-        /// </summary>
-        /// <param name="stateComponent">The state component to save and replace.</param>
-        /// <param name="updater">The state component updater used to move the newly state component in <paramref name="stateComponent"/>.</param>
-        /// <param name="assetModel">The asset model for which we want to load a state component.</param>
-        /// <typeparam name="TComponent">The state component type.</typeparam>
-        /// <typeparam name="TUpdater">The updater type.</typeparam>
-        public static void SaveAndLoadAssetViewStateForAsset<TComponent, TUpdater>(TComponent stateComponent, TUpdater updater, IGraphAssetModel assetModel)
-            where TComponent : StateComponent<TUpdater>, IAssetViewStateComponent, new()
-            where TUpdater : class, IStateComponentUpdater, new()
-        {
-            var newAssetKey = PersistedState.MakeAssetKey(assetModel);
-            PersistedState.StoreStateComponent(stateComponent, stateComponent.ComponentName, stateComponent.ViewGuid, stateComponent.AssetKey);
-
-            if (newAssetKey != stateComponent.AssetKey)
-            {
-                var newState = PersistedState.GetOrCreateAssetViewStateComponent<TComponent>(stateComponent.ComponentName, stateComponent.ViewGuid, newAssetKey);
+                var newState = PersistedState.GetOrCreatePersistedStateComponent<TComponent>(stateComponent.ComponentName, stateComponent.ViewGuid, key);
                 updater.Move(newState);
             }
         }
