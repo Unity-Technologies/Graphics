@@ -10,10 +10,10 @@
 PR_URP_2020.3:
     name: PR URP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     triggers:
         expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
@@ -34,10 +34,10 @@ PR_URP_2020.3:
 Extra_URP_2020.3:
     name: Extra URP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#Extra_Universal_2020.3
          rerun: on_new_revision
@@ -46,10 +46,10 @@ Extra_URP_2020.3:
 URP_2020.3:
     name: URP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#PR_URP_2020.3
          rerun: on_new_revision
@@ -58,10 +58,10 @@ URP_2020.3:
 Nightly_URP_2020.3:
     name: Nightly URP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#URP_2020.3
          rerun: on_new_revision
@@ -76,10 +76,10 @@ Nightly_URP_2020.3:
 PR_URP_CUSTOM-REVISION:
     name: PR URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
          rerun: on_new_revision
@@ -98,10 +98,10 @@ PR_URP_CUSTOM-REVISION:
 Extra_URP_CUSTOM-REVISION:
     name: Extra URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal.yml#Extra_Universal_CUSTOM-REVISION
          rerun: on_new_revision
@@ -110,10 +110,10 @@ Extra_URP_CUSTOM-REVISION:
 URP_CUSTOM-REVISION:
     name: URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#PR_URP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -122,10 +122,10 @@ URP_CUSTOM-REVISION:
 Nightly_URP_CUSTOM-REVISION:
     name: Nightly URP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-urp.yml#URP_CUSTOM-REVISION
          rerun: on_new_revision
