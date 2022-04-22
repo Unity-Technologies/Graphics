@@ -1015,16 +1015,23 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
 
-            if (!m_SupportProbeVolume)
-                return probeVolumes;
-
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+            // In the case where ShaderConfig is setup to fully disable probe volumes, all probe volume variables are stripped, so no work is needed here.
+            // However, we can be in a state where ShaderConfig has enabled probe volumes, so the variables are defined, but framesettings disables probe volumes,
+            // so in this case we still need to push default parameters.
+            // In theory we could expose another keyword to strip out these variables when FrameSettings disables probe volumes, however we do not want to add another
+            // keyword and bloat compilation times just for this edge case.
+            // This edge case should only happen in practice when users are in the process of enabling probe volumes, but have not fully enabled them.
+            // Otherwise, they should just update ShaderConfig to disable probe volumes completely.
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
             {
-                PushProbeVolumesGlobalParamsDefault(hdCamera, immediateCmd, renderGraph);
-            }
-            else
-            {
-                PrepareVisibleProbeVolumeListBuffers(hdCamera, immediateCmd, renderGraph, ref probeVolumes);
+                if (!m_SupportProbeVolume || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+                {
+                    PushProbeVolumesGlobalParamsDefault(hdCamera, immediateCmd, renderGraph);
+                }
+                else
+                {
+                    PrepareVisibleProbeVolumeListBuffers(hdCamera, immediateCmd, renderGraph, ref probeVolumes);
+                }
             }
 
             return probeVolumes;
