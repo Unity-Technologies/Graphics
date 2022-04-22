@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint albedoDistance;
         public uint normalAxis;
         public uint emission;
+        public uint mixedLighting;
     }
 
     [Serializable]
@@ -296,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return packedOutput;
         }
 
-        private static uint PackEmission(Vector3 color)
+        internal static uint PackEmission(Vector3 color)
         {
             var maxChannel = color.x > color.y ? color.x : color.y;
             maxChannel = maxChannel > color.z ? maxChannel : color.z;
@@ -517,7 +518,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume,
             ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals,
             RenderTargetIdentifier probeVolumeAtlasSHRTHandle, bool infiniteBounces,
-            PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe)
+            PropagationQuality propagationQuality, SphericalHarmonicsL2 ambientProbe,
+            ProbeVolumeDynamicGIMixedLightMode mixedLightMode)
         {
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
             if (previousRadianceCacheInvalid || giSettings.clear.value || _clearAllActive)
@@ -529,7 +531,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (probeVolume.HitNeighborAxisLength != 0)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
-                    DispatchPropagationHits(cmd, probeVolume, in giSettings, infiniteBounces, previousRadianceCacheInvalid);
+                    DispatchPropagationHits(cmd, probeVolume, in giSettings, infiniteBounces, previousRadianceCacheInvalid, mixedLightMode);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
@@ -575,7 +577,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool infiniteBounces, bool previousRadianceCacheInvalid)
+        void DispatchPropagationHits(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool infiniteBounces,
+            bool previousRadianceCacheInvalid, ProbeVolumeDynamicGIMixedLightMode mixedLightMode)
         {
             var kernel = _PropagationHitsShader.FindKernel("AccumulateLightingDirectional");
             var shader = _PropagationHitsShader;
@@ -598,17 +601,39 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeNeighborHits", propagationPipelineData.neighborHits);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeNeighborHitCount", propagationPipelineData.neighborHits.count);
-            cmd.SetComputeFloatParam(shader, "_IndirectScale", giSettings.indirectMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_MaxAlbedo", giSettings.maxAlbedo.value);
-            cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_RayBias", giSettings.bias.value);
             cmd.SetComputeFloatParam(shader, "_LeakMitigation", giSettings.leakMitigation.value);
             cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
-            cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
-            cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+            float infBounce;
 
+#if UNITY_EDITOR
+            if (ProbeVolume.preparingMixedLights)
+            {
+                // We bake raw unscaled lighting values so we could adjust mixed lights contribution
+                // with Indirect Scale at runtime in the same way as runtime lights.
+                cmd.SetComputeFloatParam(shader, "_IndirectScale", 1f);
+                cmd.SetComputeFloatParam(shader, "_MixedLightingMultiplier", 0f);
+                cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", 0f);
+                infBounce = 0f;
+
+                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
+                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
+            }
+            else
+#endif
+            {
+                cmd.SetComputeFloatParam(shader, "_IndirectScale", mixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly ? giSettings.indirectMultiplier.value : 0f);
+                cmd.SetComputeFloatParam(shader, "_MixedLightingMultiplier", mixedLightMode != ProbeVolumeDynamicGIMixedLightMode.ForceRealtime ? giSettings.indirectMultiplier.value : 0f);
+                cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
+                infBounce = infiniteBounces ? giSettings.infiniteBounce.value : 0f;
+
+                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
+                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+            }
+            
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", propagationPipelineData.GetReadRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
@@ -617,7 +642,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: replace with real one
             cmd.SetComputeTextureParam(shader, kernel, "_HierarchicalVarianceScreenSpaceShadowsTexture", TextureXR.GetWhiteTexture());
 
-            float infBounce = infiniteBounces ? giSettings.infiniteBounce.value : 0f;
             cmd.SetComputeFloatParam(shader, "_InfiniteBounce", infBounce);
             CoreUtils.SetKeyword(shader, "COMPUTE_INFINITE_BOUNCE", infBounce > 0);
             CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
@@ -810,8 +834,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", propagationPipelineData.GetWriteRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
 
+            var dynamicAmount = giSettings.dynamicAmount.value;
+#if UNITY_EDITOR
+            // When preparing mixed lights we set Indirect Scale to 1.0 for hit pass to get raw values in there.
+            // So here we multiply output by correct Indirect Scale from settings to preview how it would look
+            // during final propagation when Indirect Scale is applied to mixed lights as well as realtime lights.
+            if (ProbeVolume.preparingMixedLights)
+                dynamicAmount *= giSettings.indirectMultiplier.value;
+#endif
+            cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", dynamicAmount);
+
             cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", giSettings.bakeAmount.value);
-            cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", giSettings.dynamicAmount.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);

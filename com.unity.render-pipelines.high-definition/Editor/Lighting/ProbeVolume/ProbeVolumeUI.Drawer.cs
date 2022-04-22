@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 using UnityEditorInternal;
+using UnityEngine.UI;
 
 // TODO(Nicholas): deduplicate with DensityVolumeUI.Drawer.cs.
 namespace UnityEditor.Rendering.HighDefinition
@@ -117,6 +118,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorUtility.ClearProgressBar();
             }
             GUILayout.EndHorizontal();
+            
+            EditorGUILayout.Space();
+            
+            ProbeVolume.preparingMixedLights = EditorGUILayout.Toggle(Styles.k_PrepareMixedLightsText, ProbeVolume.preparingMixedLights);
+            GUI.enabled = ProbeVolume.preparingMixedLights;
+
+            if (GUILayout.Button(Styles.k_BakeMixedLightsText))
+            {
+                var targets = serialized.GetTargetObjects();
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    var probeVolume = (ProbeVolume)targets[i];
+                    probeVolume.CopyDirectLightingToMixed();
+                }
+            }
         }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)

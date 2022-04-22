@@ -48,6 +48,14 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public bool onlyDynamicGI;
             [ReadOnly]
+            public bool dynamicGIUseRealtimeLights;
+            [ReadOnly]
+            public bool dynamicGIUseMixedLights;
+#if UNITY_EDITOR
+            [ReadOnly]
+            public bool dynamicGIPreparingMixedLights;
+#endif
+            [ReadOnly]
             public bool evaluateShadowStates;
             [ReadOnly]
             public bool alwaysContributeToLightingWhenAffectsDynamicGI;
@@ -187,6 +195,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If the shadow is too far away, we don't render it
                 bool isShadowInRange = lightType == HDLightType.Directional || distanceToCamera < shadowFadeDistanceVal;
+#if UNITY_EDITOR
+                isShadowInRange |= dynamicGIPreparingMixedLights;
+#endif
                 if (!isShadowInRange)
                     return flags;
 
@@ -250,8 +261,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ref HDLightRenderData lightRenderData = ref GetLightData(dataIndex);
 
-                if (onlyDynamicGI && !lightRenderData.affectDynamicGI)
-                    return;
+                if (onlyDynamicGI)
+                {
+                    if (!lightRenderData.affectDynamicGI)
+                        return;
+
+                    if (lightRenderData.mixedDynamicGI)
+                    {
+                        if (!dynamicGIUseMixedLights)
+                            return;
+                    }
+                    else
+                    {
+                        if (!dynamicGIUseRealtimeLights)
+                            return;
+                    }
+                }
 
                 if (enableRayTracing && !lightRenderData.includeForRayTracing)
                     return;
@@ -278,7 +303,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugFilterMode != DebugLightFilterMode.None && debugFilterMode.IsEnabledFor(gpuLightType, spotLightShape))
                     return;
 
-                float lightDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.fadeDistance);
+                float lightDistanceFade;
+#if UNITY_EDITOR
+                if (dynamicGIPreparingMixedLights)
+                {
+                    lightDistanceFade = 1.0f;
+                }
+                else
+#endif
+                {
+                    lightDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.fadeDistance);
+                }
                 float volumetricDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.volumetricFadeDistance);
 
                 bool contributesToLighting = ((lightRenderData.lightDimmer > 0) && (lightRenderData.affectDiffuse || lightRenderData.affectSpecular)) || ((lightRenderData.affectVolumetric ? lightRenderData.volumetricDimmer : 0.0f) > 0);
@@ -360,6 +395,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 maxAreaLightsOnScreen = lightLoopSettings.maxAreaLightsOnScreen,
                 debugFilterMode = debugDisplaySettings.GetDebugLightFilterMode(),
 
+#if UNITY_EDITOR
+                dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+#endif
+
                 //render light entities.
                 lightData = lightEntityCollection.lightData,
 
@@ -378,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortKeys = m_SortKeys,
                 shadowLightsDataIndices = m_ShadowLightsDataIndices
             };
-            OverrideProcessVisibleLightJobParameters(ref processVisibleLightJob);
+            OverrideProcessVisibleLightJobParameters(hdCamera, ref processVisibleLightJob);
 
             m_ProcessVisibleLightJobHandle = processVisibleLightJob.Schedule(m_Size, 32);
         }
@@ -391,12 +430,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProcessVisibleLightJobHandle.Complete();
         }
 
-        protected abstract void OverrideProcessVisibleLightJobParameters(ref ProcessVisibleLightJob job);
+        protected abstract void OverrideProcessVisibleLightJobParameters(HDCamera hdCamera, ref ProcessVisibleLightJob job);
     }
 
     internal partial class HDProcessedVisibleLightsRegularBuilder : HDProcessedVisibleLightsBuilder
     {
-        protected override void OverrideProcessVisibleLightJobParameters(ref ProcessVisibleLightJob job)
+        protected override void OverrideProcessVisibleLightJobParameters(HDCamera hdCamera, ref ProcessVisibleLightJob job)
         {
             job.onlyDynamicGI = false;
             job.alwaysContributeToLightingWhenAffectsDynamicGI = false;
@@ -405,12 +444,26 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     internal partial class HDProcessedVisibleLightsDynamicBuilder : HDProcessedVisibleLightsBuilder
-    {
-        protected override void OverrideProcessVisibleLightJobParameters(ref ProcessVisibleLightJob job)
+    { 
+        protected override void OverrideProcessVisibleLightJobParameters(HDCamera hdCamera, ref ProcessVisibleLightJob job)
         {
             job.onlyDynamicGI = true;
             job.alwaysContributeToLightingWhenAffectsDynamicGI = true;
             job.evaluateShadowStates = false;
+
+#if UNITY_EDITOR
+            if (ProbeVolume.preparingMixedLights)
+            {
+                job.dynamicGIUseRealtimeLights = false;
+                job.dynamicGIUseMixedLights = true;
+            }
+            else
+#endif
+            {
+                var dynamicGIMixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
+                job.dynamicGIUseRealtimeLights = dynamicGIMixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
+                job.dynamicGIUseMixedLights = dynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.ForceRealtime;
+            }
         }
     }
 }

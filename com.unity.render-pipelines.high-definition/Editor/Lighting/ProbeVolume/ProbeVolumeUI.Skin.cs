@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string k_BakingHeader = "Baking";
             internal const string k_BakeSelectedText = "Bake Selected";
             internal const string k_BakeDynamicGIOnlyText = "Bake Dynamic GI Only";
+            internal const string k_PrepareMixedLightsText = "Prepare Mixed Lights";
+            internal const string k_BakeMixedLightsText = "Bake Mixed Lights";
 
             internal static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {

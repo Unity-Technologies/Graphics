@@ -11,6 +11,7 @@ struct PackedNeighborHit
     uint albedoDistance;
     uint normalAxis;
     uint emission;
+    uint mixedLighting;
 };
 
 struct PackedNeighborMiss
