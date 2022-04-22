@@ -676,6 +676,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             registry.Register<GraphType>();
             registry.Register<GraphTypeAssignment>();
+            registry.Register<SamplerStateType>();
+            registry.Register<SamplerStateAssignment>();
             registry.Register<BaseTextureType>();
             registry.Register<BaseTextureTypeAssignment>();
             registry.Register<SimpleTextureNode>();
@@ -716,6 +718,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             registry.Register<GraphType>();
             registry.Register<GraphTypeAssignment>();
+            registry.Register<SamplerStateType>();
+            registry.Register<SamplerStateAssignment>();
             registry.Register<BaseTextureType>();
             registry.Register<BaseTextureTypeAssignment>();
             registry.Register<SimpleTextureNode>();
