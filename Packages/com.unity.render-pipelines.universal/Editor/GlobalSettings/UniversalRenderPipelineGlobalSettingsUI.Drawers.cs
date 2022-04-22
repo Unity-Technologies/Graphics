@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string k_LightLayers = "Light-Layers";
         }
 
-        #region Rendering Layer Names
+        #region Light Layer Names
 
         static readonly CED.IDrawer LightLayerNamesSection = CED.Group(
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.lightLayersLabel, contextAction: pos => OnContextClickLightLayerNames(pos, serialized))),
@@ -58,6 +58,52 @@ namespace UnityEditor.Rendering.Universal
 
         #endregion
 
+        #region Decal Layer Names
+
+        static readonly CED.IDrawer DecalLayerNamesSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.decalLayersLabel, contextAction: pos => OnContextClickDecalLayerNames(pos, serialized))),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawDecalLayerNames),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+
+        static void DrawDecalLayerNames(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName0, Styles.decalLayerName0);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName1, Styles.decalLayerName1);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName2, Styles.decalLayerName2);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName3, Styles.decalLayerName3);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName4, Styles.decalLayerName4);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName5, Styles.decalLayerName5);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName6, Styles.decalLayerName6);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName7, Styles.decalLayerName7);
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        if (serialized.serializedObject?.targetObject is UniversalRenderPipelineGlobalSettings urpGlobalSettings)
+                            urpGlobalSettings.UpdateRenderingLayerNames();
+                    }
+                }
+            }
+        }
+
+        static void OnContextClickDecalLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(CoreEditorStyles.resetButtonLabel, false, () =>
+            {
+                var globalSettings = (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
+                globalSettings.ResetRenderingLayerNames();
+            });
+            menu.DropDown(new Rect(position, Vector2.zero));
+        }
+
+        #endregion
+
         #region Misc Settings
 
         static readonly CED.IDrawer MiscSection = CED.Group(
@@ -78,6 +124,7 @@ namespace UnityEditor.Rendering.Universal
 
         public static readonly CED.IDrawer Inspector = CED.Group(
                 LightLayerNamesSection,
+                DecalLayerNamesSection,
                 MiscSection
             );
     }

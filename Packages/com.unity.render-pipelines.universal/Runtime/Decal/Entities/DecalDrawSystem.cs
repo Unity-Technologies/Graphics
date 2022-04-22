@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
         protected DecalEntityManager m_EntityManager;
         private Matrix4x4[] m_WorldToDecals;
         private Matrix4x4[] m_NormalToDecals;
+        private float[] m_DecalLayerMasks;
         private ProfilingSampler m_Sampler;
 
         public Material overrideMaterial { get; set; }
@@ -21,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_WorldToDecals = new Matrix4x4[250];
             m_NormalToDecals = new Matrix4x4[250];
+            m_DecalLayerMasks = new float[250];
 
             m_Sampler = new ProfilingSampler(sampler);
         }
@@ -80,6 +82,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
+                    decalCachedChunk.propertyBlock.SetFloat("_DecalLayerMaskFromDecal", decalDrawCallChunk.decalLayerMasks[j]);
                     cmd.DrawMesh(mesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
                 }
             }
@@ -102,7 +105,11 @@ namespace UnityEngine.Rendering.Universal
                 var normalToWorldSlice = decalDrawCallChunk.normalToDecals.Reinterpret<Matrix4x4>();
                 NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
+                var decalLayerMaskSlice = decalDrawCallChunk.decalLayerMasks.Reinterpret<float>();
+                NativeArray<float>.Copy(decalLayerMaskSlice, subCall.start, m_DecalLayerMasks, 0, subCall.count);
+
                 decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
+                decalCachedChunk.propertyBlock.SetFloatArray("_DecalLayerMaskFromDecal", m_DecalLayerMasks);
                 cmd.DrawMeshInstanced(mesh, 0, material, passIndex, m_WorldToDecals, subCall.end - subCall.start, decalCachedChunk.propertyBlock);
             }
         }
@@ -156,6 +163,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
+                    decalCachedChunk.propertyBlock.SetFloat("_DecalLayerMaskFromDecal", decalDrawCallChunk.decalLayerMasks[j]);
                     Graphics.DrawMesh(mesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);
                 }
             }
@@ -178,7 +186,11 @@ namespace UnityEngine.Rendering.Universal
                 var normalToWorldSlice = decalDrawCallChunk.normalToDecals.Reinterpret<Matrix4x4>();
                 NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
+                var decalLayerMaskSlice = decalDrawCallChunk.decalLayerMasks.Reinterpret<float>();
+                NativeArray<float>.Copy(decalLayerMaskSlice, subCall.start, m_DecalLayerMasks, 0, subCall.count);
+
                 decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
+                decalCachedChunk.propertyBlock.SetFloatArray("_DecalLayerMaskFromDecal", m_DecalLayerMasks);
                 Graphics.DrawMeshInstanced(mesh, 0, material,
                     m_WorldToDecals, subCall.count, decalCachedChunk.propertyBlock, ShadowCastingMode.On, true, 0, cameraData.camera);
             }

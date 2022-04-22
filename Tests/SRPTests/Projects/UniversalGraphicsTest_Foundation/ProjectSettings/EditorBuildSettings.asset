@@ -302,4 +302,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/248_LOD_CrossFade.unity
     guid: 3b4bfea1d564d9541bb3a139484410ef
+  - enabled: 1
+    path: Assets/Scenes/250_RenderingLayers.unity
+    guid: 87ee64df2c957224ab067a27a80ea7af
+  - enabled: 1
+    path: Assets/Scenes/265_RenderingLayers_Surfaces.unity
+    guid: 646226f38a4201047a6572d1cb8a620c
+  - enabled: 1
+    path: Assets/Scenes/270_Decal_RenderingLayers.unity
+    guid: f07beec5ff4e7744383242b8ed2eefff
   m_configObjects: {}

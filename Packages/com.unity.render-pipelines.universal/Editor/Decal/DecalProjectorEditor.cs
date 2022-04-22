@@ -55,6 +55,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_Offset;
         SerializedProperty[] m_OffsetValues;
         SerializedProperty m_FadeFactor;
+        SerializedProperty m_DecalLayerMask;
 
         int layerMask => (target as Component).gameObject.layer;
         bool layerMaskHasMultipleValues
@@ -181,6 +182,7 @@ namespace UnityEditor.Rendering.Universal
                 m_Offset.FindPropertyRelative("z"),
             };
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
+            m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
 
             ReinitSavedRatioSizePivotPosition();
         }
@@ -604,6 +606,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
                 materialChanged = EditorGUI.EndChangeCheck();
+
+                EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
 
                 foreach (var target in targets)
                 {

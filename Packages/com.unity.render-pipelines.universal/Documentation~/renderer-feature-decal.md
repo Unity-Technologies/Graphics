@@ -82,7 +82,6 @@ Selecting this technique reveals the following properties.
 | &#160;&#160;&#160;&#160;**Low**    | Unity takes one depth sample when reconstructing normals. |
 | &#160;&#160;&#160;&#160;**Medium** | Unity takes three depth samples when reconstructing normals. |
 | &#160;&#160;&#160;&#160;**High**   | Unity takes five depth samples when reconstructing normals. |
-| __Use GBuffer__ | Unity uses this option in the Deferred Rendering Path. In the Deferred Rendering Path, decals affect the base color, the emission color, and the normals. |
 
 ### Max Draw Distance
 

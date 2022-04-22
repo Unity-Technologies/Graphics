@@ -62,6 +62,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Override this method and return true that renderer would produce rendering layers texture.
+        /// </summary>
+        /// <param name="isDeferred">True if renderer is using deferred rendering mode</param>
+        /// <param name="atEvent">Requeted event at which rendering layers texture will be produced</param>
+        /// <param name="maskSize">Requested bit size of rendering layers texture</param>
+        /// <returns></returns>
+        internal virtual bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
+        {
+            atEvent = RenderingLayerUtils.Event.DepthNormalPrePass;
+            maskSize = RenderingLayerUtils.MaskSize.Bits8;
+            return false;
+        }
+
+        /// <summary>
         /// Sets the state of ScriptableRenderFeature (true: the feature is active, false: the feature is inactive).
         /// If the feature is active, it is added to the renderer it is attached to, otherwise the feature is skipped while rendering.
         /// </summary>

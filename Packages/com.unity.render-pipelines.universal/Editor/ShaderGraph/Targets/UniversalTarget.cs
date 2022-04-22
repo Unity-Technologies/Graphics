@@ -1818,6 +1818,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor WriteRenderingLayers = new KeywordDescriptor()
+        {
+            displayName = "Write Rendering Layers",
+            referenceName = "_WRITE_RENDERING_LAYERS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor RenderPassEnabled = new KeywordDescriptor()
         {
             displayName = "Render Pass Enabled",
@@ -1983,6 +1993,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordCollection ShadowCaster = new KeywordCollection
         {
             { CoreKeywordDescriptors.CastingPunctualLightShadow },
+        };
+
+        public static readonly KeywordCollection DOTSDepthNormal = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.WriteRenderingLayers },
         };
     }
     #endregion

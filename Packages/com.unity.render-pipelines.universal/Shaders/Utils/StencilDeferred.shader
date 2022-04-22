@@ -157,11 +157,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
 
-        #ifdef _LIGHT_LAYERS
         uint lightLayerMask =_LightLayerMask;
-        #else
-        uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
-        #endif
 
         #if defined(_DIRECTIONAL)
             #if defined(_DEFERRED_MAIN_LIGHT)
@@ -260,13 +256,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 shadowMask = 1.0;
         #endif
 
-        #ifdef _LIGHT_LAYERS
-        float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
-        uint meshRenderingLayers = uint(renderingLayers.r * 255.5);
-        #else
-        uint meshRenderingLayers = DEFAULT_LIGHT_LAYERS;
-        #endif
-
         half surfaceDataOcclusion = gbuffer1.a;
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
 
@@ -289,8 +278,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         Light unityLight = GetStencilLight(posWS.xyz, screen_uv, shadowMask, materialFlags);
 
+        #ifdef _LIGHT_LAYERS
+        float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
+        uint meshRenderingLayers = DecodeMeshRenderingLayer(renderingLayers.r);
         [branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
             return half4(color, alpha); // Cannot discard because stencil must be updated.
+        #endif
 
         #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
             AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);

@@ -555,6 +555,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly int ditheringTexture = Shader.PropertyToID("_DitheringTexture");
         public static readonly int ditheringTextureInvSize = Shader.PropertyToID("_DitheringTextureInvSize");
+
+        public static readonly int renderingLayerMaxInt = Shader.PropertyToID("_RenderingLayerMaxInt");
+        public static readonly int renderingLayerRcpMaxInt = Shader.PropertyToID("_RenderingLayerRcpMaxInt");
     }
 
     /// <summary>
@@ -614,6 +617,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
         public static readonly string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
         public static readonly string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
+        public static readonly string DecalLayers = "_DECAL_LAYERS";
+
+        public static readonly string WriteRenderingLayers = "_WRITE_RENDERING_LAYERS";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";

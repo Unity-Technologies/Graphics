@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public NativeArray<float4x4> decalToWorlds;
         public NativeArray<float4x4> normalToDecals;
+        public NativeArray<float> decalLayerMasks;
         public NativeArray<DecalSubDrawCall> subCalls;
         public NativeArray<int> subCallCounts;
 
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
         {
             RemoveAtSwapBack(ref decalToWorlds, entityIndex, count);
             RemoveAtSwapBack(ref normalToDecals, entityIndex, count);
+            RemoveAtSwapBack(ref decalLayerMasks, entityIndex, count);
             RemoveAtSwapBack(ref subCalls, entityIndex, count);
             count--;
         }
@@ -35,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
         {
             decalToWorlds.ResizeArray(newCapacity);
             normalToDecals.ResizeArray(newCapacity);
+            decalLayerMasks.ResizeArray(newCapacity);
             subCalls.ResizeArray(newCapacity);
             capacity = newCapacity;
         }
@@ -48,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
 
             decalToWorlds.Dispose();
             normalToDecals.Dispose();
+            decalLayerMasks.Dispose();
             subCalls.Dispose();
             count = 0;
             capacity = 0;
@@ -105,6 +109,7 @@ namespace UnityEngine.Rendering.Universal
                 sceneLayerMasks = cachedChunk.sceneLayerMasks,
                 fadeFactors = cachedChunk.fadeFactors,
                 boundingSpheres = cachedChunk.boundingSpheres,
+                decalLayerMasks = cachedChunk.decalLayerMasks,
 
                 cameraPosition = culledChunk.cameraPosition,
                 sceneCullingMask = culledChunk.sceneCullingMask,
@@ -115,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
 
                 decalToWorldsDraw = drawCallChunk.decalToWorlds,
                 normalToDecalsDraw = drawCallChunk.normalToDecals,
+                decalLayerMasksDraw = drawCallChunk.decalLayerMasks,
                 subCalls = drawCallChunk.subCalls,
                 subCallCount = drawCallChunk.subCallCounts,
             };
@@ -139,6 +145,7 @@ namespace UnityEngine.Rendering.Universal
             [ReadOnly] public NativeArray<ulong> sceneLayerMasks;
             [ReadOnly] public NativeArray<float> fadeFactors;
             [ReadOnly] public NativeArray<BoundingSphere> boundingSpheres;
+            [ReadOnly] public NativeArray<DecalLayerEnum> decalLayerMasks;
 
             public Vector3 cameraPosition;
             public ulong sceneCullingMask;
@@ -149,6 +156,7 @@ namespace UnityEngine.Rendering.Universal
 
             [WriteOnly] public NativeArray<float4x4> decalToWorldsDraw;
             [WriteOnly] public NativeArray<float4x4> normalToDecalsDraw;
+            [WriteOnly] public NativeArray<float> decalLayerMasksDraw;
             [WriteOnly] public NativeArray<DecalSubDrawCall> subCalls;
             [WriteOnly] public NativeArray<int> subCallCount;
 
@@ -193,6 +201,8 @@ namespace UnityEngine.Rendering.Universal
                     normalToDecals.c2.w = uvScaleBias.z;
                     normalToDecals.c3 = new float4(fadeFactor * 1.0f, angleFade.x, angleFade.y, uvScaleBias.w);
                     normalToDecalsDraw[instanceIndex] = normalToDecals;
+
+                    decalLayerMasksDraw[instanceIndex] = RenderingLayerUtils.ToRenderingLayers(decalLayerMasks[decalIndex]);
 
                     instanceIndex++;
 

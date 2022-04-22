@@ -294,3 +294,36 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Crash on iOS
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 8
+    XrSdk: 
+    StereoModes: 0
+    Reason: Rendering Layers not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Rendering Layers not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: 
+    StereoModes: 0
+    Reason: Rendering Layers not supported

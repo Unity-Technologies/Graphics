@@ -5,6 +5,45 @@ using UnityEngine.Profiling;
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
+    /// Extension of DrawObjectPass that also output Rendering Layers Texture as second render target.
+    /// </summary>
+    internal class DrawObjectsWithRenderingLayersPass : DrawObjectsPass
+    {
+        RTHandle[] m_ColorTargetIndentifiers;
+        RTHandle m_DepthTargetIndentifiers;
+
+        public DrawObjectsWithRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
+            base(profilerTag, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
+        {
+            m_ColorTargetIndentifiers = new RTHandle[2];
+        }
+
+        public void Setup(RTHandle colorAttachment, RTHandle renderingLayersTexture, RTHandle depthAttachment)
+        {
+            if (colorAttachment == null)
+                throw new ArgumentException("Color attachment can not be null", "colorAttachment");
+            if (renderingLayersTexture == null)
+                throw new ArgumentException("Rendering layers attachment can not be null", "renderingLayersTexture");
+            if (depthAttachment == null)
+                throw new ArgumentException("Depth attachment can not be null", "depthAttachment");
+
+            m_ColorTargetIndentifiers[0] = colorAttachment;
+            m_ColorTargetIndentifiers[1] = renderingLayersTexture;
+            m_DepthTargetIndentifiers = depthAttachment;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
+        }
+
+        protected override void OnExecute(CommandBuffer cmd)
+        {
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+        }
+    }
+
+    /// <summary>
     /// Draw  objects into the given color and depth target
     ///
     /// You can use this pass to render objects that have a material and/or shader
@@ -107,6 +146,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                OnExecute(cmd);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 // Global render pass data containing various settings.
@@ -160,5 +201,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
         }
+
+        protected virtual void OnExecute(CommandBuffer cmd) { }
     }
 }

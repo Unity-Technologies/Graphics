@@ -16,7 +16,7 @@ using UnityEditor.XR.Management;
 namespace UnityEditor.Rendering.Universal
 {
     [Flags]
-    enum ShaderFeatures
+    enum ShaderFeatures : long
     {
         None = 0,
         MainLight = (1 << 0),
@@ -50,7 +50,11 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
-        LODCrossFade = (1 << 31)
+        LODCrossFade = (1 << 31),
+        DecalLayers = (1L << 32),
+        OpaqueWriteRenderingLayers = (1L << 33),
+        GBufferWriteRenderingLayers = (1L << 34),
+        DepthNormalPassRenderingLayers = (1L << 35),
     }
 
     [Flags]
@@ -71,6 +75,8 @@ namespace UnityEditor.Rendering.Universal
     internal class ShaderPreprocessor : IPreprocessShaders
     {
         public static readonly string kPassNameGBuffer = "GBuffer";
+        public static readonly string kPassNameForwardLit = "ForwardLit";
+        public static readonly string kPassNameDepthNormals = "DepthNormals";
         public static readonly string kTerrainShaderName = "Universal Render Pipeline/Terrain/Lit";
 #if PROFILE_BUILD
         private const string k_ProcessShaderTag = "OnProcessShader";
@@ -102,6 +108,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ScreenSpaceOcclusion;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
+        LocalKeyword m_DecalLayers;
+        LocalKeyword m_WriteRenderingLayers;
         LocalKeyword m_RenderPassEnabled;
         LocalKeyword m_DebugDisplay;
         LocalKeyword m_DBufferMRT1;
@@ -175,6 +183,8 @@ namespace UnityEditor.Rendering.Universal
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
+            m_DecalLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalLayers);
+            m_WriteRenderingLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.WriteRenderingLayers);
             m_RenderPassEnabled = TryGetLocalKeyword(shader, ShaderKeywordStrings.RenderPassEnabled);
             m_DebugDisplay = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEBUG_DISPLAY);
             m_DBufferMRT1 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT1);
@@ -215,7 +225,14 @@ namespace UnityEditor.Rendering.Universal
             return (featureMask & feature) != 0;
         }
 
-        bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
+        bool IsGLDevice(ShaderCompilerData compilerData)
+        {
+            return compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20 ||
+                compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES3x ||
+                compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.OpenGLCore;
+        }
+
+        bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             // Meta pass is needed in the player for Enlighten Precomputed Realtime GI albedo and emission.
             if (snippetData.passType == PassType.Meta)
@@ -229,21 +246,27 @@ namespace UnityEditor.Rendering.Universal
                 if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) && !IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows))
                     return true;
 
-            // DBuffer
-            if (snippetData.passName == DecalShaderPassNames.DBufferMesh || snippetData.passName == DecalShaderPassNames.DBufferProjector ||
-                snippetData.passName == DecalShaderPassNames.DecalMeshForwardEmissive || snippetData.passName == DecalShaderPassNames.DecalProjectorForwardEmissive)
-                if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3))
-                    return true;
+            // Do not strip GL passes as there are only screen space forward
+            if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES3x &&
+                compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES20 &&
+                compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.OpenGLCore)
+            {
+                // DBuffer
+                if (snippetData.passName == DecalShaderPassNames.DBufferMesh || snippetData.passName == DecalShaderPassNames.DBufferProjector ||
+                    snippetData.passName == DecalShaderPassNames.DecalMeshForwardEmissive || snippetData.passName == DecalShaderPassNames.DecalProjectorForwardEmissive)
+                    if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3))
+                        return true;
 
-            // Decal Screen Space
-            if (snippetData.passName == DecalShaderPassNames.DecalScreenSpaceMesh || snippetData.passName == DecalShaderPassNames.DecalScreenSpaceProjector)
-                if (!IsFeatureEnabled(features, ShaderFeatures.DecalScreenSpace))
-                    return true;
+                // Decal Screen Space
+                if (snippetData.passName == DecalShaderPassNames.DecalScreenSpaceMesh || snippetData.passName == DecalShaderPassNames.DecalScreenSpaceProjector)
+                    if (!IsFeatureEnabled(features, ShaderFeatures.DecalScreenSpace))
+                        return true;
 
-            // Decal GBuffer
-            if (snippetData.passName == DecalShaderPassNames.DecalGBufferMesh || snippetData.passName == DecalShaderPassNames.DecalGBufferProjector)
-                if (!IsFeatureEnabled(features, ShaderFeatures.DecalGBuffer))
-                    return true;
+                // Decal GBuffer
+                if (snippetData.passName == DecalShaderPassNames.DecalGBufferMesh || snippetData.passName == DecalShaderPassNames.DecalGBufferProjector)
+                    if (!IsFeatureEnabled(features, ShaderFeatures.DecalGBuffer))
+                        return true;
+            }
 
             return false;
         }
@@ -482,6 +505,19 @@ namespace UnityEditor.Rendering.Universal
                 m_DBufferMRT3, ShaderFeatures.DBufferMRT3))
                 return true;
 
+            if (IsGLDevice(compilerData))
+            {
+                // Rendering layers are not supported on gl
+                if (compilerData.shaderKeywordSet.IsEnabled(m_DecalLayers))
+                    return true;
+            }
+            else
+            {
+                // Decal Layers
+                if (stripTool.StripMultiCompile(m_DecalLayers, ShaderFeatures.DecalLayers))
+                    return true;
+            }
+
             // TODO: Test against lightMode tag instead.
             if (snippetData.passName == kPassNameGBuffer)
             {
@@ -509,6 +545,38 @@ namespace UnityEditor.Rendering.Universal
             if (stripUnusedLODCrossFadeVariants &&
                 stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
                 return true;
+
+            string keywordNames = "";
+            foreach (var keyword in compilerData.shaderKeywordSet.GetShaderKeywords())
+            {
+                keywordNames += " " + keyword.name;
+            }
+
+            // Write Rendering Layers
+            if (IsGLDevice(compilerData))
+            {
+                // Rendering layers are not supported on gl
+                if (compilerData.shaderKeywordSet.IsEnabled(m_WriteRenderingLayers))
+                    return true;
+            }
+            else
+            {
+                if (snippetData.passName == kPassNameDepthNormals)
+                {
+                    if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.DepthNormalPassRenderingLayers))
+                        return true;
+                }
+                if (snippetData.passName == kPassNameForwardLit)
+                {
+                    if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.OpaqueWriteRenderingLayers))
+                        return true;
+                }
+                if (snippetData.passName == kPassNameGBuffer)
+                {
+                    if (stripTool.StripMultiCompile(m_WriteRenderingLayers, ShaderFeatures.GBufferWriteRenderingLayers))
+                        return true;
+                }
+            }
 
             return false;
         }
@@ -636,7 +704,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnsupportedVariants(compilerData))
                 return true;
 
-            if (StripUnusedPass(features, snippetData))
+            if (StripUnusedPass(features, snippetData, compilerData))
                 return true;
 
             if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true)
@@ -953,6 +1021,11 @@ namespace UnityEditor.Rendering.Universal
                         hasDeferredRenderer |= true;
                         accurateGbufferNormals |= universalRenderer.accurateGbufferNormals;
                         usesRenderPass |= universalRenderer.useRenderPassEnabled;
+
+                        if (pipelineAsset.supportsLightLayers)
+                        {
+                            shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
+                        }
                     }
                 }
 
@@ -998,8 +1071,11 @@ namespace UnityEditor.Rendering.Universal
                                 case DecalTechnique.GBuffer:
                                     shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
                                     shaderFeatures |= ShaderFeatures.DecalGBuffer;
+                                    //shaderFeatures |= ShaderFeatures.DecalScreenSpace; // In case deferred is not supported it will fallback to forward
                                     break;
                             }
+                            if (decal.requiresDecalLayers)
+                                shaderFeatures |= ShaderFeatures.DecalLayers;
                         }
                     }
 
@@ -1007,6 +1083,27 @@ namespace UnityEditor.Rendering.Universal
                     {
                         rendererClustered = universalRendererData.renderingMode == RenderingMode.Forward &&
                             universalRendererData.clusteredRendering;
+
+                        if (RenderingLayerUtils.RequireRenderingLayers(universalRendererData,
+                            pipelineAsset.msaaSampleCount,
+                            out var renderingLayersEvent, out var renderingLayerMaskSize))
+                        {
+                            switch (renderingLayersEvent)
+                            {
+                                case RenderingLayerUtils.Event.DepthNormalPrePass:
+                                    shaderFeatures |= ShaderFeatures.DepthNormalPassRenderingLayers;
+                                    break;
+
+                                case RenderingLayerUtils.Event.Opaque:
+                                    shaderFeatures |= universalRendererData.renderingMode == RenderingMode.Forward ?
+                                        ShaderFeatures.OpaqueWriteRenderingLayers :
+                                        ShaderFeatures.GBufferWriteRenderingLayers;
+                                    break;
+
+                                default:
+                                    throw new NotImplementedException();
+                            }
+                        }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (universalRendererData.xrSystemData != null)

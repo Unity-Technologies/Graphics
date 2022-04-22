@@ -349,6 +349,7 @@ namespace UnityEngine.Rendering.Universal
             cachedChunk.sceneLayerMasks[arrayIndex] = sceneLayerMask;
             cachedChunk.fadeFactors[arrayIndex] = fadeFactor;
             cachedChunk.scaleModes[arrayIndex] = decalProjector.scaleMode;
+            cachedChunk.decalLayerMasks[arrayIndex] = decalProjector.decalLayerMask;
 
             cachedChunk.positions[arrayIndex] = decalProjector.transform.position;
             cachedChunk.rotation[arrayIndex] = decalProjector.transform.rotation;
@@ -442,7 +443,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var combinedChunk = m_CombinedChunks[i];
 
-                    // Destroy invalid chunk
+                    // Destroy invalid chunk for cleanup
                     if (!m_CombinedChunks[i].valid)
                     {
                         combinedChunk.entityChunk.currentJobHandle.Complete();

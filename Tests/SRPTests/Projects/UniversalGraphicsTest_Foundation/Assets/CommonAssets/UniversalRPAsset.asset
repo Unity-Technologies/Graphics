@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: UniversalRPAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 9
-  k_AssetPreviousVersion: 9
+  k_AssetVersion: 10
+  k_AssetPreviousVersion: 10
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -40,15 +40,26 @@ MonoBehaviour:
   - {fileID: 11400000, guid: da4df2f1951704ee7aa560ed78d91c24, type: 2}
   - {fileID: 11400000, guid: efad480a4aa014a0fa578c4c317c3690, type: 2}
   - {fileID: 11400000, guid: 3f63a62897927184393f03bfcc44365a, type: 2}
+  - {fileID: 11400000, guid: 784ccd3af7210ab46a0f242f55a1b82a, type: 2}
+  - {fileID: 11400000, guid: 9ee930dd2506bc346b8db93eb3e10f5f, type: 2}
+  - {fileID: 11400000, guid: f16bd0dae84882645aaa66c68f2d706f, type: 2}
+  - {fileID: 11400000, guid: b755e6b35c1aa3f4c9cc1a47159392bf, type: 2}
+  - {fileID: 11400000, guid: 5e1c323b7b4bc99489951fcdf7460e99, type: 2}
+  - {fileID: 11400000, guid: da64a06b27771d947a16e517e05cc287, type: 2}
+  - {fileID: 11400000, guid: 48b049e7b7b8edd4d86de47c51832cde, type: 2}
+  - {fileID: 11400000, guid: d85b60fbedac26e4fbfb4dafe2d03469, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
-  m_StoreActionsOptimization: 0
   m_SupportsHDR: 1
+  m_HDRColorBufferPrecision: 0
   m_MSAA: 4
   m_RenderScale: 1
+  m_UpscalingFilter: 0
+  m_FsrOverrideSharpness: 0
+  m_FsrSharpness: 0.92
   m_MainLightRenderingMode: 1
   m_MainLightShadowsSupported: 1
   m_MainLightShadowmapResolution: 2048
@@ -79,6 +90,7 @@ MonoBehaviour:
   m_MixedLightingSupported: 0
   m_SupportsLightLayers: 0
   m_DebugLevel: 0
+  m_StoreActionsOptimization: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
@@ -88,6 +100,6 @@ MonoBehaviour:
   m_LocalShadowsAtlasResolution: 512
   m_MaxPixelLights: 4
   m_ShadowAtlasResolution: 2048
-  m_ShaderVariantLogLevel: 0
   m_VolumeFrameworkUpdateMode: 0
+  m_ShaderVariantLogLevel: 0
   m_ShadowCascades: 3
