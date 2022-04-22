@@ -310,12 +310,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public override void CreatePooledGraphicsResource()
         {
-            Debug.Assert(m_Pool != null, "CreatePooledGraphicsResource should only be called for regular pooled resources");
+            Debug.Assert(m_Pool != null, "TextureResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
 
             int hashCode = desc.GetHashCode();
 
             if (graphicsResource != null)
-                throw new InvalidOperationException(string.Format("Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+                throw new InvalidOperationException(string.Format("TextureResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
 
             var pool = m_Pool as TexturePool;
             if (!pool.TryGetResource(hashCode, out graphicsResource))
@@ -331,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public override void ReleasePooledGraphicsResource(int frameIndex)
         {
             if (graphicsResource == null)
-                throw new InvalidOperationException($"Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+                throw new InvalidOperationException($"TextureResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
 
             // Shared resources don't use the pool
             var pool = m_Pool as TexturePool;
