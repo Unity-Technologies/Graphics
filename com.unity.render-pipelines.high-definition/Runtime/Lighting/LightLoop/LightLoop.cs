@@ -1624,8 +1624,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams, HDCamera hdCamera)
         {
-            var shadowMaxDistance = hdCamera.volumeStack.GetComponent<HDShadowSettings>().maxShadowDistance.value;
-            m_ShadowManager.UpdateCullingParameters(ref cullingParams, shadowMaxDistance);
+#if UNITY_EDITOR
+            if (!ProbeVolume.preparingMixedLights)
+#endif
+            {
+                var shadowMaxDistance = hdCamera.volumeStack.GetComponent<HDShadowSettings>().maxShadowDistance.value;
+                m_ShadowManager.UpdateCullingParameters(ref cullingParams, shadowMaxDistance);
+            }
 
             // In HDRP we don't need per object light/probe info so we disable the native code that handles it.
             cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
@@ -2160,7 +2165,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 bool dynamicGIEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI);
-                if (dynamicGIEnabled)
+                bool dynamicGINeedsLights =
+#if UNITY_EDITOR
+                    ProbeVolume.preparingMixedLights ||
+#endif
+                    hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
+
+                if (dynamicGIEnabled && dynamicGINeedsLights)
                 {
                     PreprocessDynamicGILights(cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest);
                     PrepareDynamicGIGPULightdata(cmd, hdCamera, cullResults);

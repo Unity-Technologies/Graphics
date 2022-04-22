@@ -18,6 +18,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public int invalidScreenSpaceShadowIndex;
             public float maxShadowFadeDistance;
 
+#if UNITY_EDITOR
+            public bool dynamicGIPreparingMixedLights;
+#endif
+
             public static CreateGpuLightDataJobGlobalConfig Create(
                 HDCamera hdCamera,
                 HDShadowSettings hdShadowSettings)
@@ -27,7 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightLayersEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers),
                     specularGlobalDimmer = hdCamera.frameSettings.specularGlobalDimmer,
                     maxShadowFadeDistance = hdShadowSettings.maxShadowDistance.value,
-                    invalidScreenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow
+                    invalidScreenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow,
+
+#if UNITY_EDITOR
+                    dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+#endif
                 };
             }
         }
@@ -309,10 +317,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.affectDynamicGI = lightRenderData.affectDynamicGI ? 1 : 0;
 
                 var distanceToCamera = processedEntity.distanceToCamera;
-                var lightsShadowFadeDistance = lightRenderData.shadowFadeDistance;
+                float shadowDistanceFade;
+#if UNITY_EDITOR
+                if (globalConfig.dynamicGIPreparingMixedLights)
+                {
+                    shadowDistanceFade = 1f;
+                }
+                else
+#endif
+                {
+                    var lightsShadowFadeDistance = lightRenderData.shadowFadeDistance;
+                    shadowDistanceFade = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(globalConfig.maxShadowFadeDistance, lightsShadowFadeDistance));
+                }
                 var shadowDimmerVal = lightRenderData.shadowDimmer;
                 var volumetricShadowDimmerVal = lightRenderData.affectVolumetric ? lightRenderData.volumetricShadowDimmer : 0.0f;
-                float shadowDistanceFade = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(globalConfig.maxShadowFadeDistance, lightsShadowFadeDistance));
                 lightData.shadowDimmer = shadowDistanceFade * shadowDimmerVal;
                 lightData.volumetricShadowDimmer = shadowDistanceFade * volumetricShadowDimmerVal;
 

@@ -1207,6 +1207,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         
+        [SerializeField]
+        bool m_MixedDynamicGI = false;
+        
         /// <summary>
         /// Returns a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         /// </summary>
@@ -2127,9 +2130,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The idea is to have a lot of resolution when the camera is close to the light OR the screen area is high.
 
                 // linear normalized distance between the light and camera with max shadow distance
-                float distance01 = Mathf.Clamp01(Vector3.Distance(camera.transform.position, visibleLight.GetPosition()) / shadowSettings.maxShadowDistance.value);
-                // ease out and invert the curve, give more importance to closer distances
-                distance01 = 1.0f - Mathf.Pow(distance01, 2);
+                float distance01;
+#if UNITY_EDITOR
+                if (ProbeVolume.preparingMixedLights)
+                {
+                    distance01 = 1.0f;
+                }
+                else
+#endif
+                {
+                    distance01 = Mathf.Clamp01(Vector3.Distance(camera.transform.position, visibleLight.GetPosition()) / shadowSettings.maxShadowDistance.value);
+                    // ease out and invert the curve, give more importance to closer distances
+                    distance01 = 1.0f - Mathf.Pow(distance01, 2);
+                }
 
                 // normalized ratio between light range and distance 
                 float range01 = Mathf.Clamp01(visibleLight.range / Vector3.Distance(camera.transform.position, visibleLight.GetPosition()));
@@ -2800,8 +2813,29 @@ namespace UnityEngine.Rendering.HighDefinition
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
             // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
             m_NeedsPrefabInstanceCheck = true;
+
+            UpdateDynamicGIMixedMode();
 #endif
         }
+
+#if UNITY_EDITOR
+        internal void UpdateDynamicGIMixedMode()
+        {
+            var mixed = legacyLight.lightmapBakeType == LightmapBakeType.Mixed;
+            if (mixed != m_MixedDynamicGI)
+            {
+                m_MixedDynamicGI = mixed;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).mixedDynamicGI = mixed;
+
+                if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                {
+                    EditorUtility.SetDirty(this);
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+                }
+            }
+        }
+#endif
 
 #region Update functions to patch values in the Light component when we change properties inside HDAdditionalLightData
 
@@ -3545,6 +3579,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.areaLightShape = m_AreaLightShape;
             lightRenderData.lightLayer = m_LightlayersMask;
             lightRenderData.affectDynamicGI = m_AffectDynamicGI;
+            lightRenderData.mixedDynamicGI = m_MixedDynamicGI;
             lightRenderData.fadeDistance = m_FadeDistance;
             lightRenderData.distance = m_Distance;
             lightRenderData.angularDiameter = m_AngularDiameter;
