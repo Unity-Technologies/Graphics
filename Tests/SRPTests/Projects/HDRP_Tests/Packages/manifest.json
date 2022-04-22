@@ -8,7 +8,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../../../Packages/com.unity.render-pipelines.high-definition-config",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.test-framework": "1.1.30",
-    "com.unity.testframework.graphics": "7.8.17-exp.3",
+    "com.unity.testframework.graphics": "7.8.23-exp.1",
     "com.unity.testing.hdrp": "file:../../../Packages/com.unity.testing.hdrp",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "1.0.0",
