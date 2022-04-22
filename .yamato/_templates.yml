@@ -32,7 +32,7 @@ pack_hdrp_template_Win_2021.3:
     name: Pack HDRP Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -84,7 +84,7 @@ pack_hdrp_template_OSX_2021.3:
     name: Pack HDRP Template OSX 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -114,7 +114,7 @@ test_hdrp_template_OSX_2021.3:
 publish_hdrp_template_2021.3:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template 2021.3
     commands:
@@ -133,7 +133,7 @@ publish_hdrp_template_2021.3:
 publish_hdrp_template_2021.3_dry_run:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template 2021.3 Dry Run
     commands:
@@ -174,7 +174,7 @@ pack_hdrp_template_Win_CUSTOM-REVISION:
     name: Pack HDRP Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -226,7 +226,7 @@ pack_hdrp_template_OSX_CUSTOM-REVISION:
     name: Pack HDRP Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -256,7 +256,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
 publish_hdrp_template_CUSTOM-REVISION:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template CUSTOM-REVISION
     commands:
@@ -275,7 +275,7 @@ publish_hdrp_template_CUSTOM-REVISION:
 publish_hdrp_template_CUSTOM-REVISION_dry_run:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template CUSTOM-REVISION Dry Run
     commands:
@@ -316,7 +316,7 @@ pack_universal_template_Win_2021.3:
     name: Pack Universal Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -368,7 +368,7 @@ pack_universal_template_OSX_2021.3:
     name: Pack Universal Template OSX 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -398,7 +398,7 @@ test_universal_template_OSX_2021.3:
 publish_universal_template_2021.3:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template 2021.3
     commands:
@@ -417,7 +417,7 @@ publish_universal_template_2021.3:
 publish_universal_template_2021.3_dry_run:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template 2021.3 Dry Run
     commands:
@@ -458,7 +458,7 @@ pack_universal_template_Win_CUSTOM-REVISION:
     name: Pack Universal Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -510,7 +510,7 @@ pack_universal_template_OSX_CUSTOM-REVISION:
     name: Pack Universal Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -540,7 +540,7 @@ test_universal_template_OSX_CUSTOM-REVISION:
 publish_universal_template_CUSTOM-REVISION:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template CUSTOM-REVISION
     commands:
@@ -559,7 +559,7 @@ publish_universal_template_CUSTOM-REVISION:
 publish_universal_template_CUSTOM-REVISION_dry_run:
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template CUSTOM-REVISION Dry Run
     commands:
@@ -579,7 +579,7 @@ all_template_ci_2021.3:
     name: Pack and test all templates - 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_Win_2021.3
@@ -594,7 +594,7 @@ all_template_ci_CUSTOM-REVISION:
     name: Pack and test all templates - CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION
