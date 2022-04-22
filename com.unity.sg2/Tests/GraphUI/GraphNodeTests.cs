@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using NUnit.Framework;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -57,6 +58,57 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.IsTrue(graphDataNodeModel.IsPreviewExpanded);
             }
         }
+
+        [UnityTest]
+        public IEnumerator NodeCollapseStateSerializationTest()
+        {
+            yield return AddNodeFromSearcherAndValidate("Add");
+
+            var nodeModel = GetNodeModelFromGraphByName("Add");
+            Assert.IsNotNull(nodeModel);
+
+            if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+            {
+                var nodeGraphElement = m_GraphView.GetGraphElement(graphDataNodeModel);
+                Assert.IsNotNull(nodeGraphElement);
+
+                // Test the collapse button
+                var collapseButton = nodeGraphElement.Q("collapse");
+                Assert.IsNotNull(collapseButton);
+
+                var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_Window, collapseButton, true);
+                m_ShaderGraphWindowTestHelper.SimulateMouseClick(collapseButtonPosition);
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+
+                Assert.IsFalse(graphDataNodeModel.IsPreviewExpanded);
+            }
+
+            // Save graph and close the window
+            GraphAssetUtils.SaveGraphImplementation(m_Window.GraphTool);
+            CloseWindow();
+            yield return null;
+
+            // Reload the graph asset
+            var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
+            CreateWindow();
+            m_Window.Show();
+            m_Window.Focus();
+            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+
+            nodeModel = GetNodeModelFromGraphByName("Add");
+            Assert.IsNotNull(nodeModel);
+
+            if (nodeModel is GraphDataNodeModel graphDataNodeModelReloaded)
+                Assert.IsFalse(graphDataNodeModelReloaded.IsPreviewExpanded);
+        }
+
         /*
         /* This test needs the ability to distinguish between nodes and non-node graph elements like the Sticky Note
         /* When we have categories for the searcher items we can distinguish between them
