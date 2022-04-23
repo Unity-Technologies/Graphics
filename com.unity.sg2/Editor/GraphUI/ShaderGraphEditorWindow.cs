@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         ShaderGraphGraphTool m_GraphTool;
 
-        PreviewManager m_PreviewManager;
+        protected PreviewManager m_PreviewManager;
 
         private IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
@@ -24,8 +24,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // This flag gets set by tests to close the editor window directly without prompts to save the dirty asset
         internal bool shouldCloseWindowNoPrompt = false;
-
-        // ShaderGraphMainToolbar Toolbar => m_MainToolbar as ShaderGraphMainToolbar;
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -42,7 +40,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnEnable()
         {
-            // WithSidePanel = false;
             base.OnEnable();
 
             // Needed to ensure to that on domain reload we go through and actually reinitialize stuff as this flag remains true when reload happens

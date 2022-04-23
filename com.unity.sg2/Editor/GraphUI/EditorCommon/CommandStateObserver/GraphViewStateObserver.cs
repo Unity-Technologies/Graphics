@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     foreach (var addedModel in addedModels)
                     {
-                        if (addedModel is GraphDataNodeModel graphDataNodeModel)
+                        if (addedModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.HasPreview)
                         {
                             m_PreviewManagerInstance.OnNodeAdded(graphDataNodeModel.graphDataName, graphDataNodeModel.Guid);
                             using var graphUpdater = m_graphModelStateComponent.UpdateScope;

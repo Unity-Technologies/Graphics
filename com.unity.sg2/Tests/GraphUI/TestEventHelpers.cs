@@ -231,13 +231,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
-        public static Vector2 GetScreenPosition(EditorWindow parentWindow, VisualElement visualElement)
+        public static Vector2 GetScreenPosition(EditorWindow parentWindow, VisualElement visualElement, bool getCenterPosition = false)
         {
-            // WorldBound is the "global" xposition of this element, relative to the top-left corner of this editor window
+            // WorldBound is the "global" position of this element, relative to the top-left corner of this editor window
             var screenPosition = visualElement.worldBound.position;
+            if (getCenterPosition)
+                screenPosition += new Vector2(visualElement.layout.width * 0.5f, visualElement.layout.height * 0.5f);
+
             // EditorWindow.position is the top-left position of the window in desktop-space
             //screenPosition = (screenPosition + parentWindow.position.position);
-            // To account for 4k screens with virtual coordinates, need to be multiply by EditorGUI.pixelsPerPoint to get actual desktop pixels.
+            //// To account for 4k screens with virtual coordinates, need to be multiply by EditorGUI.pixelsPerPoint to get actual desktop pixels.
             //screenPosition *= EditorGUIUtility.pixelsPerPoint;
             return screenPosition;
         }

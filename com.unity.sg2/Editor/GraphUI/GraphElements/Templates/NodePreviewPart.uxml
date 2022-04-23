@@ -1,16 +1,12 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="previewContainer">
         <ui:Image name="preview" class="unity-image visible">
-            <!-- TODO: (Sai) Re-enable in sprint 2
             <ui:VisualElement name="collapse">
                 <ui:VisualElement name="collapse-icon" />
             </ui:VisualElement>
-            -->
         </ui:Image>
-        <!--
         <ui:VisualElement name="expand">
             <ui:VisualElement name="expand-icon" />
         </ui:VisualElement>
-        -->
     </ui:VisualElement>
 </ui:UXML>
