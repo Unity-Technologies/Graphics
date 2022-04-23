@@ -13,8 +13,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     if (decalSurfaceData.normalWS.w < 1.0)
     {
 #if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT)
-        float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
-        normalTS = normalTS * decalSurfaceData.normalWS.w + surfGrad;
+        normalTS += SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
 #else
         surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
 #endif
