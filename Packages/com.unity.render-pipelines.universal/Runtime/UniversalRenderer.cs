@@ -35,8 +35,13 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class UniversalRenderer : ScriptableRenderer
     {
+        #if UNITY_SWITCH
+        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
+        const int k_DepthBufferBits = 24;
+        #else
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
+        #endif
 
         static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
 
