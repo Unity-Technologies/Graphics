@@ -49,7 +49,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="self">The graph view.</param>
         public static void DispatchFrameAllCommand(this GraphView self)
         {
-            var rectToFit = self.CalculateRectToFitAll(self.ContentViewContainer);
+            var rectToFit = self.CalculateRectToFitAll();
             self.CalculateFrameTransform(rectToFit, self.layout, GraphView.frameBorder, out var frameTranslation, out var frameScaling);
             self.Dispatch(new ReframeGraphViewCommand(frameTranslation, frameScaling));
         }
@@ -143,7 +143,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (graphElement is Edge edge)
                     graphElement = edge.EdgeControl;
 
-                rectToFit = graphElement.ChangeCoordinatesTo(self.ContentViewContainer, graphElement.GetRect());
+                rectToFit = graphElement.parent.ChangeCoordinatesTo(self.ContentViewContainer, graphElement.layout);
             }
 
             rectToFit = graphElements.Aggregate(rectToFit, (current, currentGraphElement) =>
@@ -153,7 +153,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (currentGraphElement is Edge edge)
                     currentElement = edge.EdgeControl;
 
-                return RectUtils.Encompass(current, currentElement.ChangeCoordinatesTo(self.ContentViewContainer, currentElement.GetRect()));
+                return RectUtils.Encompass(current, currentElement.parent.ChangeCoordinatesTo(self.ContentViewContainer, currentElement.layout));
             });
 
             return rectToFit;

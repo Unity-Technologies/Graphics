@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
         public override VisualElement CreateOnboardingElements(Dispatcher dispatcher)
         {
             var template = new GraphTemplate<RecipeStencil>(RecipeStencil.graphName);
-            return AddNewGraphButton<RecipeGraphAssetModel>(template);
+            return AddNewGraphButton<RecipeGraphAsset>(template);
         }
     }
 }

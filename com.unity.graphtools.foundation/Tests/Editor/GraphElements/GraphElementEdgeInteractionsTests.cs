@@ -10,6 +10,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class GraphElementEdgeInteractionsTests : GraphViewTester
     {
+        protected override bool EnablePanning => false;
+
         IONodeModel FirstNode { get; set; }
         IONodeModel SecondNode { get; set; }
         IPortModel StartPort { get; set; }

@@ -121,7 +121,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public virtual bool MoveNodeDependenciesByDefault => false;
 
         /// <inheritdoc />
-        public virtual Type GetConstantNodeValueType(TypeHandle typeHandle)
+        public virtual Type GetConstantType(TypeHandle typeHandle)
         {
             return null;
         }
@@ -134,8 +134,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <inheritdoc />
         public virtual IConstant CreateConstantValue(TypeHandle constantTypeHandle)
         {
-            var nodeType = GetConstantNodeValueType(constantTypeHandle);
-            var instance = (IConstant)Activator.CreateInstance(nodeType);
+            var constantType = GetConstantType(constantTypeHandle);
+            var instance = (IConstant)Activator.CreateInstance(constantType);
             instance.Initialize(constantTypeHandle);
             return instance;
         }
@@ -156,15 +156,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        public virtual void CreateNodesFromPort(IRootView view, Preferences preferences, IGraphModel graphModel, IReadOnlyList<IPortModel> portModels, Vector2 localPosition, Vector2 worldPosition)
+        public void CreateNodesFromEdges(IRootView view, Preferences preferences, IGraphModel graphModel, IEnumerable<(IEdgeModel model, EdgeSide side)> edges, Vector2 localPosition, Vector2 worldPosition)
         {
-            if (portModels.Count > 1)
-                Debug.LogWarning("Unhandled node creation on multiple ports");
-
             Action<GraphNodeModelSearcherItem> createNode = item =>
             {
-                view.Dispatch(CreateNodeCommand.OnPort(item, portModels.First(), localPosition));
+                view.Dispatch(CreateNodeCommand.OnEdgeSide(item, edges, localPosition));
             };
+            var portModels = edges.Select(e => e.model.GetOtherPort(e.side)).ToList();
             switch (portModels.First().Direction)
             {
                 case PortDirection.Output:
@@ -261,7 +259,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         }
 
         /// <inheritdoc />
-        public abstract IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel);
+        public abstract IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel);
 
         /// <inheritdoc />
         public abstract IInspectorModel CreateInspectorModel(IModel inspectedModel);

@@ -32,13 +32,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
         }
 
-        internal Rect GetSnappedRect(Rect sourceRect, GraphElement selectedElement, float scale, Vector2 mousePanningDelta = default)
+        internal Rect GetSnappedRect(Rect sourceRect, GraphElement selectedElement)
         {
             Rect snappedRect = sourceRect;
 
             foreach (var snapStrategy in m_SnappingStrategies.Where(snapStrategy => snapStrategy.Enabled))
             {
-                AdjustSnappedRect(ref snappedRect, sourceRect, selectedElement, scale, snapStrategy, mousePanningDelta);
+                AdjustSnappedRect(ref snappedRect, sourceRect, selectedElement, snapStrategy);
             }
 
             return snappedRect;
@@ -73,11 +73,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_SnappingStrategies.First(s => s.GetType() == strategyType).Enabled = isEnabled;
         }
 
-        static void AdjustSnappedRect(ref Rect snappedRect, Rect sourceRect, GraphElement selectedElement, float scale, SnapStrategy snapStrategy, Vector2 mousePanningDelta = default)
+        static void AdjustSnappedRect(ref Rect snappedRect, Rect sourceRect, GraphElement selectedElement, SnapStrategy snapStrategy)
         {
             // Retrieve the snapping strategy's suggested snapped rect and its snapping offset
             Vector2 snappingOffset = new Vector2(float.MaxValue, float.MaxValue);
-            Rect suggestedSnappedRect = snapStrategy.GetSnappedRect(ref snappingOffset, sourceRect, selectedElement, scale, mousePanningDelta);
+            Rect suggestedSnappedRect = snapStrategy.GetSnappedRect(ref snappingOffset, sourceRect, selectedElement);
 
             // Set snapped rect coordinates using the suggested rect's relevant coordinates
             SetSnappedRect(ref snappedRect, suggestedSnappedRect, snappingOffset);

@@ -257,8 +257,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             var node0 = GraphModel.CreateNode<Type0FakeNodeModel>("Node0", new Vector2(-200, 0));
             var node1 = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", new Vector2(200, 0));
 
-            var assetKey = PersistedState.MakeAssetKey(GraphTool.ToolState.AssetModel);
-            var otherSelection = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Hash128.Compute(42), assetKey);
+            var assetKey = PersistedState.MakeGraphKey(GraphTool.ToolState.GraphModel);
+            var otherSelection = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Hash128.Compute(42), assetKey);
             GraphTool.State.AddStateComponent(otherSelection);
             using (var updater = otherSelection.UpdateScope)
             {
@@ -291,8 +291,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             var node0 = GraphModel.CreateNode<Type0FakeNodeModel>("Node0", new Vector2(-200, 0));
             var node1 = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", new Vector2(200, 0));
 
-            var assetKey = PersistedState.MakeAssetKey(GraphTool.ToolState.AssetModel);
-            var otherSelection = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Hash128.Compute(42), assetKey);
+            var assetKey = PersistedState.MakeGraphKey(GraphTool.ToolState.GraphModel);
+            var otherSelection = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Hash128.Compute(42), assetKey);
             GraphTool.State.AddStateComponent(otherSelection);
             using (var updater = otherSelection.UpdateScope)
             {

@@ -15,10 +15,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     [PublicAPI]
     public class GraphElementSearcherDatabase
     {
-        const string k_Constant = "Constant";
-        const string k_Sticky = "Sticky Note";
-        const string k_GraphVariables = "Graph Variables";
-        const string k_Subgraphs = "Subgraphs";
+        public const string constant = "Constant";
+        public const string sticky = "Sticky Note";
+        public const string graphVariables = "Graph Variables";
+        public const string subgraphs = "Subgraphs";
 
         // TODO: our builder methods ("AddStack",...) all use this field. Users should be able to create similar methods. making it public until we find a better solution
         public readonly List<SearcherItem> Items;
@@ -100,7 +100,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>The database with the elements.</returns>
         public GraphElementSearcherDatabase AddStickyNote()
         {
-            var node = new GraphNodeModelSearcherItem(k_Sticky,
+            var node = new GraphNodeModelSearcherItem(sticky,
                 new TagSearcherItemData(CommonSearcherTags.StickyNote),
                 data =>
                 {
@@ -138,11 +138,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             TypeHandle handle = type.GenerateTypeHandle();
 
-            Items.Add(new GraphNodeModelSearcherItem($"{type.FriendlyName().Nicify()} {k_Constant}",
+            Items.Add(new GraphNodeModelSearcherItem($"{type.FriendlyName().Nicify()} {constant}",
                 new TypeSearcherItemData(handle),
                 data => data.CreateConstantNode("", handle))
                 {
-                    CategoryPath = k_Constant,
+                    CategoryPath = constant,
                     Help = $"Constant of type {type.FriendlyName().Nicify()}"
                 }
             );
@@ -166,29 +166,39 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return this;
         }
 
+        protected virtual IEnumerable<IGraphModel> GetSubgraphs()
+        {
+            var graphAssetType = Stencil.GraphModel?.Asset?.GetType();
+
+            if (graphAssetType != null)
+            {
+                var assetPaths = AssetDatabase.FindAssets($"t:{graphAssetType}").Select(AssetDatabase.GUIDToAssetPath).ToList();
+                return assetPaths
+                    .Select(p => (AssetDatabase.LoadAssetAtPath(p, graphAssetType) as GraphAsset)?.GraphModel)
+                    .Where(g => g != null && !g.IsContainerGraph() && g.CanBeSubgraph());
+            }
+
+            return Enumerable.Empty<IGraphModel>();
+        }
+
         /// <summary>
         /// Adds a searcher item for a Asset Graph Subgraph to the database.
         /// </summary>
         /// <returns>The database with the elements.</returns>
         public GraphElementSearcherDatabase AddAssetGraphSubgraphs()
         {
-            var assetPaths = AssetDatabase.FindAssets($"t:{typeof(GraphAssetModel)}").Select(AssetDatabase.GUIDToAssetPath).ToList();
-            var assetGraphModels = assetPaths.Select(p => AssetDatabase.LoadAssetAtPath(p, typeof(object)) as GraphAssetModel)
-                .Where(g => g != null && !g.IsContainerGraph());
+            var graphModels = GetSubgraphs();
 
             var handle = Stencil.GetSubgraphNodeTypeHandle();
 
-            foreach (var assetGraphModel in assetGraphModels.Where(g => g != null && !g.IsContainerGraph() && g.CanBeSubgraph()))
+            foreach (var graphModel in graphModels)
             {
-                string name = null;
-                if (assetGraphModel != null)
-                    name = assetGraphModel.Name;
-
+                string name = graphModel.Name;
                 Items.Add(new GraphNodeModelSearcherItem(name ?? "UnknownAssetGraphModel",
                     new TypeSearcherItemData(handle),
-                    data => data.CreateSubgraphNode(assetGraphModel))
+                    data => data.CreateSubgraphNode(graphModel))
                 {
-                    CategoryPath = k_Subgraphs
+                    CategoryPath = subgraphs
                 });
             }
 

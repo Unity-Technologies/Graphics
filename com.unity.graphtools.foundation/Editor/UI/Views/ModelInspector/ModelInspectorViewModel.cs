@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -14,18 +15,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// The graph model state from the parent graph view.
         /// </summary>
-        public GraphModelStateComponent GraphModelState { get; }
+        public GraphModelStateComponent GraphModelState => ParentGraphView?.GraphViewModel.GraphModelState;
+
+        /// <summary>
+        /// The parent graph view.
+        /// </summary>
+        public GraphView ParentGraphView { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelInspectorViewModel"/> class.
         /// </summary>
         public ModelInspectorViewModel(GraphView graphView)
         {
-            GraphModelState = graphView?.GraphViewModel.GraphModelState;
-            var graphModel = GraphModelState?.GraphModel;
-            var lastSelectedNode = graphView?.GraphViewModel.SelectionState.GetSelection(graphModel).LastOrDefault(t => t is INodeModel || t is IVariableDeclarationModel);
+            m_Guid = new SerializableGUID(GetType().FullName + graphView.GraphViewModel.Guid);
 
-            ModelInspectorState = new ModelInspectorStateComponent(new[] { lastSelectedNode }, graphModel);
+            ParentGraphView = graphView;
+
+            var graphModel = GraphModelState?.GraphModel;
+            var lastSelectedNode = graphView.GraphViewModel.SelectionState.GetSelection(graphModel).LastOrDefault(t => t is INodeModel || t is IVariableDeclarationModel);
+
+            var key = PersistedState.MakeGraphKey(graphModel);
+            ModelInspectorState = PersistedState.GetOrCreatePersistedStateComponent(default, Guid, key,
+                () => new ModelInspectorStateComponent(new[] { lastSelectedNode }, graphModel));
         }
 
         /// <inheritdoc />

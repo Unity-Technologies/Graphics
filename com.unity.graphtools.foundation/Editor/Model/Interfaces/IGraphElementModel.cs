@@ -11,12 +11,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// The graph model to which the element belongs.
         /// </summary>
-        IGraphModel GraphModel { get; }
-
-        /// <summary>
-        /// The asset model to which the element belongs.
-        /// </summary>
-        IGraphAssetModel AssetModel { get; set; }
+        IGraphModel GraphModel { get; set; }
 
         /// <summary>
         /// The container for this graph element.

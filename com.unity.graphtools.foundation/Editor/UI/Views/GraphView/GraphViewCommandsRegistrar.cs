@@ -67,6 +67,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             RegisterCommandHandler<CreateVariableNodesCommand>(CreateVariableNodesCommand.DefaultCommandHandler);
 #pragma warning restore 618
 
+            RegisterCommandHandler<MoveEdgeCommand>(MoveEdgeCommand.DefaultCommandHandler);
             RegisterCommandHandler<ReorderEdgeCommand>(ReorderEdgeCommand.DefaultCommandHandler);
             RegisterCommandHandler<SplitEdgeAndInsertExistingNodeCommand>(SplitEdgeAndInsertExistingNodeCommand.DefaultCommandHandler);
             RegisterCommandHandler<ConvertEdgesToPortalsCommand>(ConvertEdgesToPortalsCommand.DefaultCommandHandler);

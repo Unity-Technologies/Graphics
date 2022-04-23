@@ -20,13 +20,13 @@ namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
         void WillPerformUndoRedo(string undoString);
 
         /// <summary>
-        /// Replaces serialized values from this component by values from <paramref name="undoData"/>.
+        /// Replaces serialized values of this component by values from <paramref name="undoData"/>.
         /// </summary>
         /// <param name="undoData">The state component from which to take the values.</param>
         void Apply(IStateComponent undoData);
 
         /// <summary>
-        /// Called after an undo/redo operation.
+        /// Called after an undo/redo operation, whether or not the state component has been modified by the operation.
         /// </summary>
         void UndoRedoPerformed();
     }

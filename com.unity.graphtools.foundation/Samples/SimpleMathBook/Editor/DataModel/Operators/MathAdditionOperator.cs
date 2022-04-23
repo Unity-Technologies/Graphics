@@ -22,6 +22,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         public override TypeHandle[] ValueInputTypes => new[]
         {TypeHandle.Float, TypeHandle.Int, TypeHandle.Vector2, TypeHandle.Vector3};
 
+        public TypeHandle OperatorType => m_OperatorType;
+
         [SerializeField]
         [HideInInspector]
         TypeHandle m_OperatorType = TypeHandle.Float;

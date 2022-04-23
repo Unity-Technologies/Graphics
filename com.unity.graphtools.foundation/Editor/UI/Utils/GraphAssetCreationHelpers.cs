@@ -10,23 +10,26 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     class DoCreateAsset : EndNameEditAction
     {
         ICommandTarget m_CommandTarget;
-        IGraphAssetModel m_AssetModel;
+        ISerializedGraphAsset m_Asset;
         IGraphTemplate m_Template;
 
-        public void SetUp(ICommandTarget target, IGraphAssetModel assetModel, IGraphTemplate template)
+        public void SetUp(ICommandTarget target, ISerializedGraphAsset asset, IGraphTemplate template)
         {
             m_CommandTarget = target;
             m_Template = template;
-            m_AssetModel = assetModel;
+            m_Asset = asset;
         }
 
         internal void CreateAndLoadAsset(string pathName)
         {
-            AssetDatabase.CreateAsset(m_AssetModel as Object, AssetDatabase.GenerateUniqueAssetPath(pathName));
-            m_AssetModel.CreateGraph(Path.GetFileNameWithoutExtension(pathName), m_Template.StencilType);
-            m_Template?.InitBasicGraph(m_AssetModel.GraphModel);
+            m_Asset.CreateGraph(m_Template.StencilType);
+            m_Template?.InitBasicGraph(m_Asset.GraphModel);
 
-            m_CommandTarget?.Dispatch(new LoadGraphAssetCommand(m_AssetModel));
+            m_Asset.CreateFile(pathName);
+            m_Asset.Save();
+            m_Asset = m_Asset.Import();
+
+            m_CommandTarget?.Dispatch(new LoadGraphCommand(m_Asset.GraphModel));
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
@@ -43,30 +46,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// Helper methods to create graph assets.
     /// </summary>
-    /// <typeparam name="TGraphAssetModelType">The type of graph asset model.</typeparam>
-    public static class GraphAssetCreationHelpers<TGraphAssetModelType>
-        where TGraphAssetModelType : ScriptableObject, IGraphAssetModel
+    public static class GraphAssetCreationHelpers
     {
-        public static TGraphAssetModelType CreateInMemoryGraphAsset(Type stencilType, string name,
-            IGraphTemplate graphTemplate = null)
+        public static void CreateInProjectWindow<TGraphAssetType>(IGraphTemplate template, ICommandTarget target, string path)
+            where TGraphAssetType : ScriptableObject, ISerializedGraphAsset
         {
-            return CreateGraphAsset(stencilType, name, null, graphTemplate);
-        }
-
-        public static TGraphAssetModelType CreateGraphAsset(Type stencilType, string name, string assetPath,
-            IGraphTemplate graphTemplate = null)
-        {
-            return (TGraphAssetModelType)GraphAssetCreationHelpers.CreateGraphAsset(typeof(TGraphAssetModelType), stencilType, name, assetPath, graphTemplate);
-        }
-
-        public static IGraphAssetModel PromptToCreate(IGraphTemplate template, string title, string prompt, string assetExtension)
-        {
-            return GraphAssetCreationHelpers.PromptToCreate(typeof(TGraphAssetModelType), template, title, prompt, assetExtension);
-        }
-
-        public static void CreateInProjectWindow(IGraphTemplate template, ICommandTarget target, string path)
-        {
-            var asset = ScriptableObject.CreateInstance<TGraphAssetModelType>();
+            var asset = ScriptableObject.CreateInstance<TGraphAssetType>();
 
             var endAction = ScriptableObject.CreateInstance<DoCreateAsset>();
             endAction.SetUp(target, asset, template);
@@ -74,64 +59,68 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 asset.GetInstanceID(),
                 endAction,
-                $"{path}/{template.DefaultAssetName}.asset",
+                $"{path}/{template.DefaultAssetName}.{template.GraphFileExtension}",
                 AssetPreview.GetMiniThumbnail(asset),
                 null);
         }
-    }
 
-    /// <summary>
-    /// Helper methods to create graph assets with /graphAssetModelType/.
-    /// </summary>
-    public static class GraphAssetCreationHelpers
-    {
         /// <summary>
         /// Creates a graph asset.
         /// </summary>
-        /// <param name="graphAssetModelType">The graph asset model type.</param>
+        /// <param name="graphAssetType">The graph asset type.</param>
         /// <param name="stencilType">The type of the stencil.</param>
         /// <param name="name">The name of the graph.</param>
         /// <param name="assetPath">The asset path of the graph.</param>
         /// <param name="graphTemplate">The template of the graph.</param>
         /// <returns>The created graph asset.</returns>
-        public static IGraphAssetModel CreateGraphAsset(Type graphAssetModelType, Type stencilType, string name, string assetPath,
+        public static IGraphAsset CreateGraphAsset(Type graphAssetType, Type stencilType, string name, string assetPath,
             IGraphTemplate graphTemplate = null)
         {
-            if (!typeof(ScriptableObject).IsAssignableFrom(graphAssetModelType) || !typeof(IGraphAssetModel).IsAssignableFrom(graphAssetModelType))
+            if (!typeof(ScriptableObject).IsAssignableFrom(graphAssetType) ||
+                !typeof(IGraphAsset).IsAssignableFrom(graphAssetType))
                 return null;
 
-            var graphAssetModel = IGraphAssetModelHelper.Create(name, assetPath, graphAssetModelType);
-            if (graphAssetModel != null)
-            {
-                graphAssetModel.CreateGraph(name, stencilType, assetPath != null);
-                graphTemplate?.InitBasicGraph(graphAssetModel.GraphModel);
+            var graphAsset = ScriptableObject.CreateInstance(graphAssetType) as IGraphAsset;
 
-                AssetDatabase.SaveAssets();
+            if (graphAsset as Object != null)
+            {
+                graphAsset.Name = name;
+
+                graphAsset.CreateGraph(stencilType);
+                graphTemplate?.InitBasicGraph(graphAsset.GraphModel);
             }
 
-            return graphAssetModel;
+            if (graphAsset is ISerializedGraphAsset serializedAsset)
+            {
+                serializedAsset.CreateFile(assetPath);
+                serializedAsset.Save();
+                graphAsset = serializedAsset.Import();
+            }
+
+            return graphAsset;
         }
 
         /// <summary>
         /// Creates a graph asset using a prompt box.
-        /// <param name="graphAssetModelType">The graph asset model type.</param>
+        /// <param name="graphAssetType">The graph asset type.</param>
         /// <param name="template">The template of the graph.</param>
         /// <param name="title">The title of the file. It will be part of the asset path.</param>
         /// <param name="prompt">The message in the prompt box.</param>
-        /// <param name="assetExtension">The asset extension.</param>
         /// <returns>The created graph asset.</returns>
         /// </summary>
-        public static IGraphAssetModel PromptToCreate(Type graphAssetModelType, IGraphTemplate template, string title, string prompt, string assetExtension)
+        public static IGraphAsset PromptToCreateGraphAsset(Type graphAssetType, IGraphTemplate template, string title, string prompt)
         {
-            if (!typeof(ScriptableObject).IsAssignableFrom(graphAssetModelType) || !typeof(IGraphAssetModel).IsAssignableFrom(graphAssetModelType))
+            if (!typeof(ScriptableObject).IsAssignableFrom(graphAssetType) ||
+                !typeof(IGraphAsset).IsAssignableFrom(graphAssetType))
                 return null;
 
-            var path = EditorUtility.SaveFilePanelInProject(title, template.DefaultAssetName, assetExtension, prompt);
+            var path = EditorUtility.SaveFilePanelInProject(title, template.DefaultAssetName, template.GraphFileExtension, prompt);
 
             if (path.Length != 0)
             {
-                string fileName = Path.GetFileNameWithoutExtension(path);
-                return CreateGraphAsset(graphAssetModelType, template.StencilType, fileName, path, template);
+                var fileName = Path.GetFileNameWithoutExtension(path);
+                var asset = CreateGraphAsset(graphAssetType, template.StencilType, fileName, path, template);
+                return asset;
             }
 
             return null;

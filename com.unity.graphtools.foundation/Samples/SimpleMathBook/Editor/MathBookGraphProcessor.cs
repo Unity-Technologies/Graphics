@@ -7,7 +7,6 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using static System.IO.Path;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 {
@@ -34,7 +33,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         void Initialize()
         {
             m_VarCount = 0;
-            Statements = new List<string>();
             ProcessingResult = new MathBookProcessingResults();
         }
 
@@ -162,7 +160,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
                 var graphToCheck = graphsToCheck.Dequeue();
                 foreach (var subGraphNode in graphToCheck.NodeModels.OfType<ISubgraphNodeModel>())
                 {
-                    var subGraph = subGraphNode.SubgraphAssetModel.GraphModel;
+                    var subGraph = subGraphNode.SubgraphModel;
                     if (uniqueGraphs.Add(subGraph))
                     {
                         graphsToCheck.Enqueue(subGraph);
@@ -171,7 +169,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 
                 if (DetectLoops(graphToCheck))
                 {
-                    ProcessingResult.AddError($"Loop detected in graph {graphToCheck.AssetModel.Name}.");
+                    ProcessingResult.AddError($"Loop detected in graph {graphToCheck.Name}.");
                 }
             }
 
@@ -239,6 +237,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             if (!doProcessing)
                 return ProcessingResult;
 
+            Statements = new List<string>();
+
             if (!(graphModel is MathBook mathBook))
             {
                 ProcessingResult.AddError("Bad graph type.");
@@ -288,8 +288,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 
             resultNodes.First().CompileToCSharp(this);
 
-            var path = AssetDatabase.GetAssetPath(graphModel.AssetModel as Object);
-            path = GetDirectoryName(path);
+            string path = null;
+            if (graphModel.Asset is ISerializedGraphAsset serializedGraphAsset)
+            {
+                path = serializedGraphAsset.FilePath;
+                path = GetDirectoryName(path);
+            }
             if (string.IsNullOrEmpty(path))
             {
                 path = "Assets/";

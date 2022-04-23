@@ -745,10 +745,5 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 }
             }
         }
-
-        public Vector2 GetEdgeCenter()
-        {
-            return From + (To - From) / 2;
-        }
     }
 }

@@ -354,7 +354,6 @@ namespace UnityEditor.ShaderFoundry
 
             fnBuilder.AddLine($"return output;");
             var entryPointFunction = fnBuilder.Build();
-            mainBlockBuilder.AddFunction(entryPointFunction);
             mainBlockBuilder.SetEntryPointFunction(entryPointFunction);
 
             return mainBlockBuilder.Build();

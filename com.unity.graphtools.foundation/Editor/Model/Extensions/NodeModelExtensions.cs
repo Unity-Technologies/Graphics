@@ -69,6 +69,28 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return self.AddInputPort(portName, PortType.Data, dataType, portId, orientation, options, initializationCallback);
         }
 
+
+        /// <summary>
+        /// Adds a new data input port with no connector on a node.
+        /// </summary>
+        /// <param name="self">The node to add the new port on.</param>
+        /// <param name="portName">The name of port to create.</param>
+        /// <param name="dataType">The type of data the port to create handles.</param>
+        /// <param name="portId">The ID of the port to create.</param>
+        /// <param name="orientation">The orientation of the port to create.</param>
+        /// <param name="options">The options for the port to create.</param>
+        /// <param name="initializationCallback">An initialization method for the associated constant (if one is needed
+        /// for the port) to be called right after the port is created.</param>
+        /// <returns>The newly created data input port with no connector.</returns>
+        public static IPortModel AddNoConnectorInputPort(this IInputOutputPortsNodeModel self, string portName, TypeHandle dataType,
+            string portId = null, PortOrientation orientation = PortOrientation.Horizontal,
+            PortModelOptions options = PortModelOptions.Default, Action<IConstant> initializationCallback = null)
+        {
+            var portModel = self.AddInputPort(portName, PortType.Data, dataType, portId, orientation, options, initializationCallback);
+            portModel.Capacity = PortCapacity.None;
+            return portModel;
+        }
+
         /// <summary>
         /// Adds a new data input port on a node.
         /// </summary>

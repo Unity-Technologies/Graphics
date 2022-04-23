@@ -31,9 +31,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
         }
 
         /// <inheritdoc />
-        protected override bool CanHandleAssetType(IGraphAssetModel asset)
+        protected override bool CanHandleAssetType(IGraphAsset asset)
         {
-            return asset is VerticalGraphAssetModel;
+            return asset is VerticalGraphAsset;
         }
 
         /// <inheritdoc />

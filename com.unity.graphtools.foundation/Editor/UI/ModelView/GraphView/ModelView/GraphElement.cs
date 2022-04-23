@@ -114,6 +114,30 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             this.SetCheckedPseudoState(IsSelected());
         }
 
+        /// <summary>
+        /// Set the visual appearance of the <see cref="GraphElement"/> and its parts depending on the current zoom.
+        /// </summary>
+        /// <param name="zoom">The current zoom.</param>
+        public void SetLevelOfDetail(float zoom)
+        {
+            SetElementLevelOfDetail(zoom);
+            for (var i = 0; i < PartList.Parts.Count; i++)
+            {
+                var component = PartList.Parts[i];
+                (component as IGraphElementPart)?.SetLevelOfDetail(zoom);
+            }
+        }
+
+
+        /// <summary>
+        /// Can be overriden to set the visual appearance of the <see cref="GraphElement"/> depending on the current zoom.
+        /// </summary>
+        /// <param name="zoom">The current zoom.</param>
+        public virtual void SetElementLevelOfDetail(float zoom)
+        {
+        }
+
+        /// <inheritdoc />
         protected override void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
             base.OnCustomStyleResolved(evt);

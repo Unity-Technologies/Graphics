@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -7,7 +6,7 @@ using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 {
     [Serializable]
-    public class MathBookAsset : GraphAssetModel
+    public class MathBookAsset : GraphAsset
     {
         protected override Type GraphModelType => typeof(MathBook);
 
@@ -21,23 +20,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             if (window != null)
                 target = window.GraphTool;
 
-            GraphAssetCreationHelpers<MathBookAsset>.CreateInProjectWindow(template, target, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<MathBookAsset>(template, target, path);
         }
 
         [OnOpenAsset(1)]
         public static bool OpenGraphAsset(int instanceId, int line)
         {
             var obj = EditorUtility.InstanceIDToObject(instanceId);
-            if (obj is MathBookAsset graphAssetModel)
+            if (obj is MathBookAsset graphAsset)
             {
-                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<SimpleGraphViewWindow>(graphAssetModel.GetPath());
-                window.SetCurrentSelection(window.GraphTool?.ToolState?.AssetModel?? graphAssetModel, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+                var window = GraphViewEditorWindow.FindOrCreateGraphWindow<SimpleGraphViewWindow>(graphAsset.FilePath);
+                graphAsset = window.GraphTool?.ToolState?.CurrentGraph.GetGraphAsset() as MathBookAsset ?? graphAsset;
+                window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
                 return true;
             }
 
             return false;
         }
-
-        public override bool CanBeSubgraph() => GraphModel.VariableDeclarations.Any(variable => variable.IsInputOrOutput());
     }
 }

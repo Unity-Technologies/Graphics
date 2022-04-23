@@ -6,6 +6,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Contexts
     public class SampleContextModelA : SampleContextModelBase
     {
         /// <inheritdoc />
-        public override string Title { get; set; } = "Sample A";
+        public override string Title
+        {
+            get => "Sample A";
+            set { }
+        }
     }
 }

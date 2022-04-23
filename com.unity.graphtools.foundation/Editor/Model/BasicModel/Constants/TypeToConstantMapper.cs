@@ -12,16 +12,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     [MovedFrom(false, sourceAssembly: "Unity.GraphTools.Foundation.Overdrive.Editor")]
     public static class TypeToConstantMapper
     {
-        static Dictionary<TypeHandle, Type> s_TypeToConstantNodeModelTypeCache;
+        static Dictionary<TypeHandle, Type> s_TypeToConstantTypeCache;
 
         /// <summary>
         /// Maps <see cref="TypeHandle"/> to a type of <see cref="IConstant"/>.
         /// </summary>
-        public static Type GetConstantNodeType(TypeHandle typeHandle)
+        public static Type GetConstantType(TypeHandle typeHandle)
         {
-            if (s_TypeToConstantNodeModelTypeCache == null)
+            if (s_TypeToConstantTypeCache == null)
             {
-                s_TypeToConstantNodeModelTypeCache = new Dictionary<TypeHandle, Type>
+                s_TypeToConstantTypeCache = new Dictionary<TypeHandle, Type>
                 {
                     { TypeHandle.Bool, typeof(BooleanConstant) },
                     { TypeHandle.Double, typeof(DoubleConstant) },
@@ -40,7 +40,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 };
             }
 
-            if (s_TypeToConstantNodeModelTypeCache.TryGetValue(typeHandle, out var result))
+            if (s_TypeToConstantTypeCache.TryGetValue(typeHandle, out var result))
                 return result;
 
             Type t = typeHandle.Resolve();

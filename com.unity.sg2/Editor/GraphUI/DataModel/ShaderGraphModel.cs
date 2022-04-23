@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public GraphHandler GraphHandler => ShaderGraphAssetModel.GraphHandler;
 
-        public ShaderGraphAssetModel ShaderGraphAssetModel => AssetModel as ShaderGraphAssetModel;
+        public ShaderGraphAssetModel ShaderGraphAssetModel => Asset as ShaderGraphAssetModel;
 
         public Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
 
@@ -42,12 +42,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Assigning this value manually as section models are setup by default to have the asset model reference serialized in, but we modified GTF to prevent that
             foreach(var sectionModel in SectionModels)
             {
-                sectionModel.AssetModel = AssetModel;
+                // sectionModel.AssetModel = AssetModel;
             }
 
             foreach (var variableDeclarationModel in VariableDeclarations)
             {
-                variableDeclarationModel.AssetModel = AssetModel;
+               // variableDeclarationModel.AssetModel = AssetModel;
             }
         }
 

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         {
             var model = CreateInstance<ShaderGraphAssetModel>();
             model.name = "View";
-            model.CreateGraph("ShaderSubgraph", typeof(ShaderGraphStencil));
+            model.CreateGraph(typeof(ShaderGraphStencil));
             return model;
         }
 

@@ -81,7 +81,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_GraphView.Add(m_LineView);
         }
 
-        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement, float scale, Vector2 mousePanningDelta = default)
+        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement)
         {
             if (!IsActive)
             {
@@ -98,7 +98,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             UpdateSpacingPositions(selectedElement, selectedElementRect);
 
             Rect snappedRect = sourceRect;
-            m_CurrentScale = scale;
 
             m_LineView.lines.Clear();
 
@@ -141,7 +140,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             float draggedDistance = Math.Abs(orientation == PortOrientation.Horizontal ? snappedRect.x - sourceRect.x : snappedRect.y - sourceRect.y);
 
-            return draggedDistance < (SnapDistance - 1) / m_CurrentScale;
+            return draggedDistance < SnapDistance - 1;
         }
 
         void ClearRectsToConsider()
@@ -387,7 +386,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 ReferenceRects = referenceRects
             };
 
-            return minResult.Distance <= SnapDistance * 1 / m_CurrentScale ? minResult : null;
+            return minResult.Distance <= SnapDistance ? minResult : null;
         }
 
         static SpacingLine GetSpacingLine(float maxCoordinate, float spacingLineSideLength, Vector2 startPos, Vector2 endPos, PortOrientation orientation)
@@ -423,7 +422,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             SnapReference endReference = orientation == PortOrientation.Vertical ? SnapReference.TopEdge : SnapReference.LeftEdge;
 
             float maxCoordinate = rects.Max(rect => orientation == PortOrientation.Vertical ? rect.xMax : rect.yMax) + SpacingLine.DefaultSpacingLineSideLength;
-            float spacingLineSideLength = SpacingLine.DefaultSpacingLineSideLength / m_CurrentScale;
+            float spacingLineSideLength = SpacingLine.DefaultSpacingLineSideLength;
 
             Vector2 firstSidePos = GetMaxPos(rects[0], startReference);
             Vector2 secondSidePos = GetMaxPos(rects[1], endReference);

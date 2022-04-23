@@ -60,6 +60,7 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
         VisualElement m_DetailsPanel;
         VisualElement m_SearcherPanel;
         Toggle m_DetailsToggle;
+        Action<SearcherItem> m_SelectionCallback;
 
         internal Label TitleLabel { get; }
         internal VisualElement TitleContainer => m_TitleContainer;
@@ -131,9 +132,6 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             var confirmButton = this.Q<Button>(k_ConfirmButtonName);
             confirmButton.clicked += m_TreeView.ConfirmMultiselect;
 
-            RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
-            RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-
             // TODO: HACK - ListView's scroll view steals focus using the scheduler.
             EditorApplication.update += HackDueToListViewScrollViewStealingFocus;
 
@@ -161,42 +159,20 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             EditorApplication.update -= HackDueToListViewScrollViewStealingFocus;
         }
 
-        void OnEnterPanel(AttachToPanelEvent e)
-        {
-            RegisterCallback<KeyDownEvent>(OnKeyDown);
-        }
-
-        void OnLeavePanel(DetachFromPanelEvent e)
-        {
-            UnregisterCallback<KeyDownEvent>(OnKeyDown);
-        }
-
         void OnKeyDown(KeyDownEvent e)
         {
             if (e.keyCode == KeyCode.Escape)
             {
-                CancelSearch();
+                m_SelectionCallback(null);
+                e.StopPropagation();
             }
-        }
-
-        void CancelSearch()
-        {
-            OnSearchTextFieldTextChanged(InputEvent.GetPooled(m_Text, string.Empty));
-            m_TreeView.CancelSearch();
-            m_AnalyticsDataCallback?.Invoke(new Searcher.AnalyticsEvent(Searcher.AnalyticsEvent.EventType.Cancelled, m_SearchTextField.value));
         }
 
         public void Setup(Searcher searcher, Action<SearcherItem> selectionCallback, Action<Searcher.AnalyticsEvent> analyticsDataCallback, Action<float> detailsVisibilityCallback)
         {
             m_Searcher = searcher;
             m_AnalyticsDataCallback = analyticsDataCallback;
-
-            void SelectionCallback(SearcherItem item)
-            {
-                var eventType = item == null ? Searcher.AnalyticsEvent.EventType.Cancelled : Searcher.AnalyticsEvent.EventType.Picked;
-                m_AnalyticsDataCallback?.Invoke(new Searcher.AnalyticsEvent(eventType, m_SearchTextField.value));
-                selectionCallback(item);
-            }
+            m_SelectionCallback = selectionCallback;
 
             if (!string.IsNullOrEmpty(searcher?.Adapter.CustomStyleSheetPath))
                 this.AddStylesheetWithSkinVariantsByPath(searcher.Adapter.CustomStyleSheetPath);
@@ -245,6 +221,13 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             // Otherwise if Refresh takes long, the searcher isn't shown at all until refresh is done
             // this happens the first time you open the searcher and your items have a lengthy "Indexing" process
             schedule.Execute(Refresh).ExecuteLater(100);
+        }
+
+        void SelectionCallback(SearcherItem item)
+        {
+            var eventType = item == null ? Searcher.AnalyticsEvent.EventType.Cancelled : Searcher.AnalyticsEvent.EventType.Picked;
+            m_AnalyticsDataCallback?.Invoke(new Searcher.AnalyticsEvent(eventType, m_SearchTextField.value));
+            m_SelectionCallback(item);
         }
 
         void ResetSplitterRatio()
@@ -382,7 +365,8 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             // First, check if we cancelled the search.
             if (keyDownEvent.keyCode == KeyCode.Escape)
             {
-                CancelSearch();
+                m_SelectionCallback(null);
+                keyDownEvent.StopPropagation();
                 return;
             }
 

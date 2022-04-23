@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     public class BaseGraphWindowTest
     {
-        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(SelectionDragger.panAreaWidth * 8, SelectionDragger.panAreaWidth * 6));
+        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(/*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
 
         protected TestEditorWindow m_Window;
         protected TestGraphView m_GraphView;
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
             newGraphAction.Action(0, m_TestAssetPath, "");
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(m_TestAssetPath);
-            m_Window.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+            m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             m_Window.GraphTool.Update();
 
             if (hideOverlayWindows)

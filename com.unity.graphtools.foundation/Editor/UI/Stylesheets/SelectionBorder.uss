@@ -1,10 +1,10 @@
 .ge-selection-border {
     flex-grow: 1;
-    border-width: 1px;
+    border-width: 2px;
     padding: 1px;
     border-color: transparent;
     border-radius: var(--selection-border-radius);
-    margin: -3px;
+    margin: -4px;
 }
 
 .ge-selection-border__content-container {
@@ -25,6 +25,18 @@
 .ge-graph-element:checked:hover > .ge-selection-border,
 .ge-blackboard-element:checked:hover > .ge-selection-border {
     border-color: var(--selection-checked-hover);
-    border-width: 2px;
+    border-width: 3px;
     padding: 0;
+}
+
+.ge-node.ge-graph-element:hover > .ge-selection-border {
+    border-color: transparent;
+}
+
+.ge-node.ge-graph-element:checked > .ge-selection-border {
+    border-color: transparent;
+}
+
+.ge-node.ge-graph-element:checked:hover > .ge-selection-border {
+    border-color: transparent;
 }

@@ -8,23 +8,23 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     /// <summary>
-    /// Holds the selected graph elements in the current view, for the current graph asset.
+    /// Holds the selected graph elements in the current view, for the current graph.
     /// </summary>
     [Serializable]
-    public sealed class SelectionStateComponent : AssetViewStateComponent<SelectionStateComponent.StateUpdater>
+    public sealed class SelectionStateComponent : PersistedStateComponent<SelectionStateComponent.StateUpdater>
     {
         /// <summary>
         /// An observer that updates the <see cref="SelectionStateComponent"/> when a graph is loaded.
         /// </summary>
-        public class GraphAssetLoadedObserver : StateObserver
+        public class GraphLoadedObserver : StateObserver
         {
             ToolStateComponent m_ToolStateComponent;
             SelectionStateComponent m_SelectionStateComponent;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="GraphAssetLoadedObserver"/> class.
+            /// Initializes a new instance of the <see cref="GraphLoadedObserver"/> class.
             /// </summary>
-            public GraphAssetLoadedObserver(ToolStateComponent toolStateComponent, SelectionStateComponent selectionStateComponent)
+            public GraphLoadedObserver(ToolStateComponent toolStateComponent, SelectionStateComponent selectionStateComponent)
                 : base(new [] { toolStateComponent},
                     new IStateComponent[] { selectionStateComponent })
             {
@@ -41,7 +41,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     {
                         using (var updater = m_SelectionStateComponent.UpdateScope)
                         {
-                            updater.SaveAndLoadStateForAsset(m_ToolStateComponent.AssetModel);
+                            updater.SaveAndLoadStateForGraph(m_ToolStateComponent.GraphModel);
                         }
                     }
                 }
@@ -121,12 +121,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             /// <summary>
-            /// Saves the state component and replaces it by the state component associated with <paramref name="assetModel"/>.
+            /// Saves the state component and replaces it by the state component associated with <paramref name="graphModel"/>.
             /// </summary>
-            /// <param name="assetModel">The asset model for which we want to load a state component.</param>
-            public void SaveAndLoadStateForAsset(IGraphAssetModel assetModel)
+            /// <param name="graphModel">The graph model for which we want to load a state component.</param>
+            public void SaveAndLoadStateForGraph(IGraphModel graphModel)
             {
-                PersistedStateComponentHelpers.SaveAndLoadAssetViewStateForAsset(m_State, this, assetModel);
+                PersistedStateComponentHelpers.SaveAndLoadPersistedStateForGraph(m_State, this, graphModel);
             }
         }
 

@@ -81,21 +81,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Populates the subgraph with variable declarations and graph elements.
         /// </summary>
-        /// <param name="graphAsset">The graph asset of the subgraph.</param>
+        /// <param name="graphModel">The subgraph.</param>
         /// <param name="sourceElementsToAdd">The selected graph elements to be recreated in the subgraph.</param>
         /// <param name="allEdges">The edge models to be recreated in the subgraph.</param>
         /// <param name="inputEdgeConnections">A dictionary of input edge connections to their corresponding subgraph node port's unique name.</param>
         /// <param name="outputEdgeConnections">A dictionary of output edge connections to their corresponding subgraph node port's unique name.</param>
-        internal static void PopulateSubgraph(IGraphAssetModel graphAsset,
+        internal static void PopulateSubgraph(IGraphModel graphModel,
             GraphElementsToAddToSubgraph sourceElementsToAdd, IEnumerable<IEdgeModel> allEdges,
             Dictionary<IEdgeModel, string> inputEdgeConnections, Dictionary<IEdgeModel, string> outputEdgeConnections)
         {
             // Add input and output variable declarations to the subgraph
-            CreateVariableDeclaration(graphAsset.GraphModel, inputEdgeConnections, true);
-            CreateVariableDeclaration(graphAsset.GraphModel, outputEdgeConnections, false);
+            CreateVariableDeclaration(graphModel, inputEdgeConnections, true);
+            CreateVariableDeclaration(graphModel, outputEdgeConnections, false);
 
             // Add the graph elements to the subgraph
-            AddGraphElementsToSubgraph(graphAsset.GraphModel, sourceElementsToAdd, allEdges, inputEdgeConnections, outputEdgeConnections);
+            AddGraphElementsToSubgraph(graphModel, sourceElementsToAdd, allEdges, inputEdgeConnections, outputEdgeConnections);
         }
 
         /// <summary>
@@ -189,9 +189,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         var declarationModel = graphModel.VariableDeclarations.FirstOrDefault(v => v.Guid.ToString() == toPortId);
                         if (declarationModel != null)
                         {
-                            var variableNodeModel = graphModel.CreateVariableNode(declarationModel, GetNewVariablePosition(existingPositions, sourceEdge.FromPort.NodeModel.Position, offset));
                             var inputPortModel = (newInput as IInputOutputPortsNodeModel)?.InputsById[sourceEdge.ToPortId];
-                            graphModel.CreateEdge(inputPortModel, variableNodeModel.OutputPort);
+                            // If the port is already connected to a variable node with the same declaration, do not create a new variable node
+                            if (inputPortModel != null && !inputPortModel.GetConnectedPorts().Any(p => p.NodeModel is IVariableNodeModel variableNode && variableNode.VariableDeclarationModel.Guid == declarationModel.Guid))
+                            {
+                                var variableNodeModel = graphModel.CreateVariableNode(declarationModel, GetNewVariablePosition(existingPositions, sourceEdge.FromPort.NodeModel.Position, offset));
+                                graphModel.CreateEdge(inputPortModel, variableNodeModel.OutputPort);
+                            }
                         }
                     }
                     else if (newInput == null)
@@ -202,10 +206,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                         var declarationModel = graphModel.VariableDeclarations.FirstOrDefault(v => v.Guid.ToString() == fromPortId);
                         if (declarationModel != null)
                         {
-                            var variableNodeModel = graphModel.CreateVariableNode(declarationModel, GetNewVariablePosition(existingPositions, sourceEdge.ToPort.NodeModel.Position, offset));
                             var outputPortModel = (newOutput as IInputOutputPortsNodeModel)?.OutputsById[sourceEdge.FromPortId];
-
-                            graphModel.CreateEdge(variableNodeModel.InputPort, outputPortModel);
+                            // If the port is already connected to a variable node with the same declaration, do not create a new variable node
+                            if (outputPortModel != null && !outputPortModel.GetConnectedPorts().Any(p => p.NodeModel is IVariableNodeModel variableNode && variableNode.VariableDeclarationModel.Guid == declarationModel.Guid))
+                            {
+                                var variableNodeModel = graphModel.CreateVariableNode(declarationModel, GetNewVariablePosition(existingPositions, sourceEdge.ToPort.NodeModel.Position, offset));
+                                graphModel.CreateEdge(variableNodeModel.InputPort, outputPortModel);
+                            }
                         }
                     }
                     else

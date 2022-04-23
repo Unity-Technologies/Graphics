@@ -124,8 +124,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
                     Assert.That(myInt.OutputPort.IsConnected, Is.False);
                     Assert.That(log1?.Input0, Is.ConnectedTo(getProperty.Output0));
                     Assert.That(log2?.Input0, Is.ConnectedTo(getProperty.Output1));
-                    return new CreateEdgeCommand(log1?.Input0, myInt.OutputPort, new List<IEdgeModel>
-                    { GraphModel.GetEdgesForPort(log1?.Input0).Single() });
+                    return new CreateEdgeCommand(log1?.Input0, myInt.OutputPort);
                 },
                 () =>
                 {

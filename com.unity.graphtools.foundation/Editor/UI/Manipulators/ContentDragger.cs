@@ -71,8 +71,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             graphView.ChangeMouseCursorTo((int)MouseCursor.Pan);
 
-            graphView.PanZoomIsOverriddenByManipulator = true;
-
             e.StopImmediatePropagation();
         }
 
@@ -85,18 +83,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (graphView == null)
                 return;
 
-            Vector2 diff = graphView.ChangeCoordinatesTo(graphView.ContentViewContainer, e.localMousePosition) - m_Start;
+            var diff = graphView.ChangeCoordinatesTo(graphView.ContentViewContainer, e.localMousePosition) - m_Start;
 
             // During the drag update only the view
-            Vector3 s = graphView.ContentViewContainer.transform.scale;
-            graphView.ViewTransform.position += Vector3.Scale(diff, s);
+            var scale = graphView.ContentViewContainer.transform.scale;
+            var position = graphView.ViewTransform.position + Vector3.Scale(diff, scale);
+            graphView.UpdateViewTransform(position, scale);
 
             graphView.ChangeMouseCursorTo((int)MouseCursor.Pan);
-
-            using (var updater = graphView.GraphViewModel.GraphViewState.UpdateScope)
-            {
-                updater.MarkContentUpdated();
-            }
 
             e.StopPropagation();
         }
@@ -110,17 +104,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (graphView == null)
                 return;
 
-            Vector3 p = graphView.ContentViewContainer.transform.position;
-            Vector3 s = graphView.ContentViewContainer.transform.scale;
-
-            graphView.Dispatch(new ReframeGraphViewCommand(p, s));
+            var position = graphView.ContentViewContainer.transform.position;
+            var scale = graphView.ContentViewContainer.transform.scale;
+            graphView.Dispatch(new ReframeGraphViewCommand(position, scale));
 
             m_Active = false;
             target.ReleaseMouse();
 
             graphView.ChangeMouseCursorTo((int)MouseCursor.Arrow);
-
-            graphView.PanZoomIsOverriddenByManipulator = false;
 
             e.StopPropagation();
         }

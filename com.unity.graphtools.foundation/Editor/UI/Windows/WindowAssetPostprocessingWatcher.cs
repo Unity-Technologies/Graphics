@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -7,42 +8,58 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            if (!deletedAssets.Any() && !importedAssets.Any())
+            if (importedAssets.Length == 0 && deletedAssets.Length == 0 && movedAssets.Length == 0)
                 return;
 
             var windows = Resources.FindObjectsOfTypeAll<GraphViewEditorWindow>();
 
-            foreach (var deletedAssetPath in deletedAssets)
+            var importedOrMoved = new HashSet<string>(importedAssets);
+            importedOrMoved.UnionWith(movedAssets);
+            importedOrMoved.ExceptWith(deletedAssets);
+
+            // Deleted graphs have already been unloaded by WindowAssetModificationWatcher, just before they were deleted.
+
+            // Reload imported or moved graphs.
+            foreach (var path in importedOrMoved)
             {
-                var deletedAssetGuid = AssetDatabase.AssetPathToGUID(deletedAssetPath);
+                var guid = AssetDatabase.AssetPathToGUID(path);
 
                 foreach (var window in windows)
                 {
-                    if (IsParentGraphOfSubgraph(window, deletedAssetGuid))
-                        ReloadGraph(window.GraphView);
+                    if (IsWindowReferencingGraphAsset(window, guid) || IsWindowDisplayingGraphAsset(window, guid))
+                    {
+                        window.GraphTool.Dispatch(new LoadGraphCommand(window.GraphView.GraphModel,
+                            loadStrategy: LoadGraphCommand.LoadStrategies.KeepHistory));
+                    }
                 }
             }
 
-            foreach (var importedAssetPath in importedAssets)
+            // Reload graphs that reference deleted assets.
+            foreach (var path in deletedAssets)
             {
-                var importedAssetGuid = AssetDatabase.AssetPathToGUID(importedAssetPath);
+                var guid = AssetDatabase.AssetPathToGUID(path);
 
                 foreach (var window in windows)
                 {
-                    if (IsParentGraphOfSubgraph(window, importedAssetGuid))
-                        ReloadGraph(window.GraphView);
+                    if (IsWindowReferencingGraphAsset(window, guid))
+                    {
+                        window.GraphTool.Dispatch(new LoadGraphCommand(window.GraphView.GraphModel,
+                            loadStrategy: LoadGraphCommand.LoadStrategies.KeepHistory));
+                    }
                 }
             }
         }
 
-        static bool IsParentGraphOfSubgraph(GraphViewEditorWindow window, string deletedSubgraphGuid)
+        // Returns true if the window is displaying the graph graphGuid.
+        internal static bool IsWindowDisplayingGraphAsset(GraphViewEditorWindow window, string graphGuid)
         {
-            return window.GraphView?.GraphModel?.NodeModels != null && window.GraphView.GraphModel.NodeModels.OfType<ISubgraphNodeModel>().Any(n => n.SubgraphGuid == deletedSubgraphGuid);
+            return window.GraphTool != null && window.GraphTool.ToolState.CurrentGraph.GraphAssetGuid == graphGuid;
         }
 
-        static void ReloadGraph(GraphView view)
+        // Returns true if the window is displaying a graph that has subgraph nodes that reference graphGuid.
+        internal static bool IsWindowReferencingGraphAsset(GraphViewEditorWindow window, string graphGuid)
         {
-            view.Dispatch(new LoadGraphAssetCommand(view.GraphModel?.AssetModel, loadStrategy: LoadGraphAssetCommand.LoadStrategies.KeepHistory));
+            return window.GraphView?.GraphModel?.NodeModels != null && window.GraphView.GraphModel.NodeModels.OfType<ISubgraphNodeModel>().Any(n => n.SubgraphGuid == graphGuid);
         }
     }
 }

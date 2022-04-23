@@ -8,20 +8,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// A component to hold the editor state of the <see cref="GraphView"/> for a graph asset.
     /// </summary>
     [Serializable]
-    public class GraphViewStateComponent : AssetViewStateComponent<GraphViewStateComponent.StateUpdater>
+    public class GraphViewStateComponent : PersistedStateComponent<GraphViewStateComponent.StateUpdater>
     {
         /// <summary>
         /// An observer that updates the <see cref="GraphViewStateComponent"/> when a graph is loaded.
         /// </summary>
-        public class GraphAssetLoadedObserver : StateObserver
+        public class GraphLoadedObserver : StateObserver
         {
             ToolStateComponent m_ToolStateComponent;
             GraphViewStateComponent m_GraphViewStateComponent;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="GraphAssetLoadedObserver"/> class.
+            /// Initializes a new instance of the <see cref="GraphLoadedObserver"/> class.
             /// </summary>
-            public GraphAssetLoadedObserver(ToolStateComponent toolStateComponent, GraphViewStateComponent graphViewStateComponent)
+            public GraphLoadedObserver(ToolStateComponent toolStateComponent, GraphViewStateComponent graphViewStateComponent)
                 : base(new [] { toolStateComponent},
                     new IStateComponent[] { graphViewStateComponent })
             {
@@ -38,7 +38,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     {
                         using (var updater = m_GraphViewStateComponent.UpdateScope)
                         {
-                            updater.SaveAndLoadStateForAsset(m_ToolStateComponent.AssetModel);
+                            updater.SaveAndLoadStateForGraph(m_ToolStateComponent.GraphModel);
                         }
                     }
                 }
@@ -51,12 +51,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public class StateUpdater : BaseUpdater<GraphViewStateComponent>
         {
             /// <summary>
-            /// Saves the current state and loads the state associated with <paramref name="assetModel"/>.
+            /// Saves the current state and loads the state associated with <paramref name="graphModel"/>.
             /// </summary>
-            /// <param name="assetModel">The graph asset for which to load the state component.</param>
-            public void SaveAndLoadStateForAsset(IGraphAssetModel assetModel)
+            /// <param name="graphModel">The graph for which to load the state component.</param>
+            public void SaveAndLoadStateForGraph(IGraphModel graphModel)
             {
-                PersistedStateComponentHelpers.SaveAndLoadAssetViewStateForAsset(m_State, this, assetModel);
+                PersistedStateComponentHelpers.SaveAndLoadPersistedStateForGraph(m_State, this, graphModel);
             }
 
             /// <summary>

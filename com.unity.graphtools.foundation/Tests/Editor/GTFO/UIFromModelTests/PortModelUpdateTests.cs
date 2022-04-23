@@ -86,7 +86,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
                     PortType = portType,
                     DataTypeHandle = dataType,
                     NodeModel = this,
-                    AssetModel = AssetModel
+                    GraphModel = GraphModel
                 };
             }
 

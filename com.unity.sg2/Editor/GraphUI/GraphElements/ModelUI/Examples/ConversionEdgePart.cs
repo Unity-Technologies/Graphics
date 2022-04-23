@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -10,6 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // Always show our bubble. By default, bubble only appears on Execution ports (port type, not data type)
-        protected override bool ShouldShow() => true;
+        // protected override bool ShouldShow() => true;
     }
 }

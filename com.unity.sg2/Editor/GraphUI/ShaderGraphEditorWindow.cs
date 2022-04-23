@@ -14,7 +14,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected PreviewManager m_PreviewManager;
 
-        protected GraphViewStateObserver m_GraphViewStateObserver;
+        private IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
+
+        GraphViewStateObserver m_GraphViewStateObserver;
 
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
@@ -65,7 +67,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
                 shaderGraphEditorWindow.Show();
                 shaderGraphEditorWindow.Focus();
-                shaderGraphEditorWindow.SetCurrentSelection(m_GraphTool.ToolState.AssetModel, OpenMode.OpenAndFocus);
+                shaderGraphEditorWindow.SetCurrentSelection(Asset, OpenMode.OpenAndFocus);
                 // Set this flag in order to let anything that would clear the dirty state know that graph is still dirty
                 shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
             }
@@ -77,7 +79,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // returns false when the user wants to cancel closing the window or application
         bool PromptSaveIfDirtyOnQuit()
         {
-            if (m_GraphTool.ToolState.AssetModel == null)
+            if (Asset == null)
                 return true;
 
             if (isAssetDirty)
@@ -117,12 +119,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return true;
         }
 
-        bool isAssetDirty => m_GraphTool.ToolState.AssetModel.Dirty;
+        bool isAssetDirty => Asset.Dirty;
 
         private string GetSaveChangesMessage()
         {
             return "Do you want to save the changes you made in the Shader Graph?\n\n" +
-                m_GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath() +
+                m_GraphTool.ToolState.CurrentGraph.GetGraphAsset() +
                 "\n\nYour changes will be lost if you don't save them.";
         }
 
@@ -131,7 +133,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool saved = false;
             bool okToClose = false;
 
-            var originalAssetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+            var originalAssetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
             int option = EditorUtility.DisplayDialogComplex(
                 "Graph removed from project",
                 "The file has been deleted or removed from the project folder.\n\n" +
@@ -161,7 +163,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         bool DoesAssetFileExist()
         {
-            var assetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAssetModelPath();
+            var assetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
             return File.Exists(assetPath);
         }
 
@@ -193,14 +195,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new BlankPage(GraphTool?.Dispatcher, onboardingProviders);
         }
 
-        protected override bool CanHandleAssetType(IGraphAssetModel asset)
+        protected override bool CanHandleAssetType(IGraphAsset asset)
         {
             return asset is ShaderGraphAssetModel;
         }
 
         protected override void Update()
         {
-            if (GraphTool.ToolState.AssetModel == null)
+            if (Asset == null)
                 return;
 
             base.Update();

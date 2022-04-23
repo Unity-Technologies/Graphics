@@ -1,5 +1,3 @@
-using System;
-
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     /// <summary>
@@ -13,25 +11,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         bool HasReorderableEdges { get; }
 
         /// <summary>
-        /// Moves an edge to the first position.
+        /// Changes the order of an edge among its siblings.
         /// </summary>
-        /// <param name="edge">The model of the edge to move.</param>
-        void MoveEdgeFirst(IEdgeModel edge);
-        /// <summary>
-        /// Moves an edge up in the order.
-        /// </summary>
-        /// <param name="edge">The model of the edge to move.</param>
-        void MoveEdgeUp(IEdgeModel edge);
-        /// <summary>
-        /// Moves an edge down in the order.
-        /// </summary>
-        /// <param name="edge">The model of the edge to move.</param>
-        void MoveEdgeDown(IEdgeModel edge);
-        /// <summary>
-        /// Moves an edge to the last position.
-        /// </summary>
-        /// <param name="edge">The model of the edge to move.</param>
-        void MoveEdgeLast(IEdgeModel edge);
+        /// <param name="edgeModel">The edge to move.</param>
+        /// <param name="reorderType">The type of move to do.</param>
+        void ReorderEdge(IEdgeModel edgeModel, ReorderType reorderType);
 
         /// <summary>
         /// Gets the order of the edge on this port.

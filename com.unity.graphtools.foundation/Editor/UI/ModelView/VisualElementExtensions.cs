@@ -11,6 +11,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public static class VisualElementExtensions
     {
+        static List<string> s_PrefixEnableInClassListToRemove = new List<string>();
+
         /// <summary>
         /// Removes all USS classes that start with <paramref name="classNamePrefix"/> and add
         /// a USS class name <paramref name="classNamePrefix"/> + <paramref name="classNameSuffix"/>.
@@ -20,33 +22,34 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="classNameSuffix">The class name suffix.</param>
         public static void PrefixEnableInClassList(this VisualElement ve, string classNamePrefix, string classNameSuffix)
         {
-            var className = classNamePrefix + classNameSuffix;
             var classAlreadyPresent = false;
-            List<string> toRemove = null;
+            s_PrefixEnableInClassListToRemove.Clear();
 
             foreach (var c in ve.GetClasses())
             {
-                if (c == className)
-                {
-                    classAlreadyPresent = true;
-                    continue;
-                }
-
                 if (c.StartsWith(classNamePrefix))
                 {
-                    toRemove ??= new List<string>();
-                    toRemove.Add(c);
+                    // Note: string.Length is a stored value.
+                    if (c.Length == classNamePrefix.Length + classNameSuffix.Length && c.EndsWith(classNameSuffix))
+                    {
+                        classAlreadyPresent = true;
+                    }
+                    else
+                    {
+                        s_PrefixEnableInClassListToRemove.Add(c);
+                    }
                 }
             }
 
-            if (toRemove != null)
-                foreach (var c in toRemove)
-                {
-                    ve.RemoveFromClassList(c);
-                }
+            foreach (var c in s_PrefixEnableInClassListToRemove)
+            {
+                ve.RemoveFromClassList(c);
+            }
 
             if (!classAlreadyPresent)
-                ve.AddToClassList(className);
+            {
+                ve.AddToClassList(classNamePrefix + classNameSuffix);
+            }
         }
 
         /// <summary>
@@ -61,16 +64,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             ve.RemoveManipulator(manipulator);
             manipulator = newManipulator;
             ve.AddManipulator(newManipulator);
-        }
-
-        /// <summary>
-        /// Get the rectangle representing the size of this VisualElement, with origin at (0,0).
-        /// </summary>
-        /// <param name="ve">The VisualElement for which we want to get the dimensions.</param>
-        /// <returns>A rectangle representing the size of this VisualElement, with origin at (0,0)</returns>
-        public static Rect GetRect(this VisualElement ve)
-        {
-            return new Rect(0.0f, 0.0f, ve.layout.width, ve.layout.height);
         }
 
         /// <summary>

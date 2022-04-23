@@ -221,6 +221,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             TestPrereqCommandPostreq(mode,
                 () =>
                 {
+                    RefreshReference(ref binary0);
                     Assert.That(GetNodeCount(), Is.EqualTo(10));
                     Assert.That(GetEdgeCount(), Is.EqualTo(8));
                     return new DisconnectNodeCommand(binary0);
@@ -234,6 +235,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             TestPrereqCommandPostreq(mode,
                 () =>
                 {
+                    RefreshReference(ref binary2);
+                    RefreshReference(ref binary3);
                     Assert.That(GetNodeCount(), Is.EqualTo(10));
                     Assert.That(GetEdgeCount(), Is.EqualTo(5));
                     return new DisconnectNodeCommand(binary2, binary3);

@@ -13,10 +13,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void CloningAVariableClonesFields()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(ClassGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
+            var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
 
-            var variableDeclaration = graphAssetModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "asd", ModifierFlags.None, true);
+            var variableDeclaration = graphAsset.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "asd", ModifierFlags.None, true);
             variableDeclaration.Tooltip = "asdasd";
             var clone = (variableDeclaration as VariableDeclarationModel).Clone();
             Assert.IsFalse(ReferenceEquals(variableDeclaration, clone));
@@ -28,9 +28,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void CanDuplicateVariableDeclarations()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(ClassGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
-            var graphModel = graphAssetModel.GraphModel;
+            var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
+            var graphModel = graphAsset.GraphModel;
 
             var variableDeclaration = graphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "asd", ModifierFlags.None, true);
             variableDeclaration.Tooltip = "asdasd";
@@ -45,9 +45,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void CanInstantiateCustomVariableDeclarations()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(ClassGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
-            var graphModel = graphAssetModel.GraphModel;
+            var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
+            var graphModel = graphAsset.GraphModel;
 
             const string tooltip = "asdasd";
             const int customValue = 42;
@@ -66,9 +66,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void CanDuplicateCustomVariableDeclarations()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(ClassGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
-            var graphModel = graphAssetModel.GraphModel;
+            var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
+            var graphModel = graphAsset.GraphModel;
 
             const string tooltip = "asdasd";
             const int customValue = 42;
@@ -91,9 +91,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void CanCreateVariableDeclarations()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(ClassGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
-            var graphModel = graphAssetModel.GraphModel;
+            var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
+            var graphModel = graphAsset.GraphModel;
 
             Assert.AreEqual(0, graphModel.VariableDeclarations.Count, "Unexpected presence of variable declarations after graph creation.");
 
@@ -111,9 +111,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void DeleteVariableDeclarationCanDeleteReferencedVariables()
         {
-            var graphAssetModel = IGraphAssetModelHelper.Create("test", "", typeof(ClassGraphAssetModel));
-            graphAssetModel.CreateGraph("test");
-            var graphModel = graphAssetModel.GraphModel;
+            var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateGraphAsset("test", "");
+            graphAsset.CreateGraph();
+            var graphModel = graphAsset.GraphModel;
 
             Assert.AreEqual(0, graphModel.NodeModels.OfType<VariableNodeModel>().Count(), "Unexpected presence of variable after graph creation.");
 

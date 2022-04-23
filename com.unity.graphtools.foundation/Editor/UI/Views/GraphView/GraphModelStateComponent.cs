@@ -10,8 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// A component to hold the editor state of the <see cref="IGraphModel"/>.
     /// </summary>
-    [Serializable]
-    public class GraphModelStateComponent : AssetStateComponent<GraphModelStateComponent.StateUpdater>
+    public class GraphModelStateComponent : StateComponent<GraphModelStateComponent.StateUpdater>
     {
         /// <summary>
         /// An observer that updates the <see cref="GraphModelStateComponent"/> when a graph is loaded.
@@ -41,7 +40,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     {
                         using (var updater = m_GraphModelStateComponent.UpdateScope)
                         {
-                            updater.SaveAndLoadStateForAsset(m_ToolStateComponent.AssetModel);
+                            updater.SaveAndLoadStateForGraph(m_ToolStateComponent.GraphModel);
                         }
                     }
                 }
@@ -56,13 +55,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             IGraphElementModel[] m_Single = new IGraphElementModel[1];
 
             /// <summary>
-            /// Saves the current state and loads the state associated with <paramref name="assetModel"/>.
+            /// Saves the current state and loads the state associated with <paramref name="graphModel"/>.
             /// </summary>
-            /// <param name="assetModel">The graph asset for which to load the state component.</param>
-            public void SaveAndLoadStateForAsset(IGraphAssetModel assetModel)
+            /// <param name="graphModel">The graph asset for which to load the state component.</param>
+            public void SaveAndLoadStateForGraph(IGraphModel graphModel)
             {
-                PersistedStateComponentHelpers.SaveAndLoadAssetStateForAsset(m_State, this, assetModel);
-                m_State.m_CurrentGraph = new OpenedGraph(assetModel, null);
+                m_State.m_CurrentGraph = new OpenedGraph(graphModel, null);
                 m_State.SetUpdateType(UpdateType.Complete);
             }
 
@@ -72,11 +70,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 {
                     m_State.SetUpdateType(UpdateType.Partial);
 
-                    var assetModel = m_State.AssetModel as Object;
-                    if (assetModel)
+                    var graphAsset = m_State.m_CurrentGraph.GetGraphAsset();
+                    if (graphAsset != null)
                     {
-                        m_State.AssetModel.Dirty = true;
-                        EditorUtility.SetDirty(assetModel);
+                        graphAsset.Dirty = true;
                     }
                 }
             }
@@ -473,15 +470,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         OpenedGraph m_CurrentGraph;
 
         /// <summary>
-        /// The graph asset model to display.
-        /// </summary>
-        public IGraphAssetModel AssetModel => m_CurrentGraph.GetGraphAssetModel();
-
-        /// <summary>
-        /// The <see cref="IGraphModel"/> contained in <see cref="AssetModel"/>.
+        /// The <see cref="IGraphModel"/>.
         /// <remarks>This method is virtual for tests.</remarks>
         /// </summary>
-        public virtual IGraphModel GraphModel => AssetModel?.GraphModel;
+        public virtual IGraphModel GraphModel => m_CurrentGraph.GetGraphModel();
 
         /// <summary>
         /// Gets a changeset that encompasses all changeset having a version larger than <paramref name="sinceVersion"/>.
@@ -509,7 +501,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             base.WillPerformUndoRedo(undoString);
 
-            var obj = m_CurrentGraph.GetGraphAssetModel() as Object;
+            var obj = m_CurrentGraph.GetGraphAsset() as Object;
             if (obj != null)
             {
                 Undo.RegisterCompleteObjectUndo(new[] { obj }, undoString);
@@ -521,7 +513,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             base.UndoRedoPerformed();
             GraphModel?.UndoRedoPerformed();
-            AssetModel?.UndoRedoPerformed();
         }
     }
 }

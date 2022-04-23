@@ -21,25 +21,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             WantsTransientPrefs = true;
             base.InitState();
 
-            var assetKey = PersistedState.MakeAssetKey(ToolState.AssetModel);
-            GraphViewState = PersistedState.GetOrCreateAssetViewStateComponent<GraphViewStateComponent>(default, Hash128.Compute(0), assetKey);
+            var assetKey = PersistedState.MakeGraphKey(ToolState.GraphModel);
+            GraphViewState = PersistedState.GetOrCreatePersistedStateComponent<GraphViewStateComponent>(default, Hash128.Compute(0), assetKey);
             State.AddStateComponent(GraphViewState);
 
-            GraphModelState = PersistedState.GetOrCreateAssetStateComponent<GraphModelStateComponent>(default, assetKey);
+            GraphModelState = new GraphModelStateComponent();
             State.AddStateComponent(GraphModelState);
 
-            GraphViewSelectionState = PersistedState.GetOrCreateAssetViewStateComponent<SelectionStateComponent>(default, Hash128.Compute(0), assetKey);
+            GraphViewSelectionState = PersistedState.GetOrCreatePersistedStateComponent<SelectionStateComponent>(default, Hash128.Compute(0), assetKey);
             State.AddStateComponent(GraphViewSelectionState);
 
             GraphViewCommandsRegistrar.RegisterCommands(Dispatcher, GraphViewState, GraphModelState, GraphViewSelectionState, this);
 
-            IStateObserver observer = new GraphViewStateComponent.GraphAssetLoadedObserver(ToolState, GraphViewState);
+            IStateObserver observer = new GraphViewStateComponent.GraphLoadedObserver(ToolState, GraphViewState);
             ObserverManager.RegisterObserver(observer);
 
             observer = new GraphModelStateComponent.GraphAssetLoadedObserver(ToolState, GraphModelState);
             ObserverManager.RegisterObserver(observer);
 
-            observer = new SelectionStateComponent.GraphAssetLoadedObserver(ToolState, GraphViewSelectionState);
+            observer = new SelectionStateComponent.GraphLoadedObserver(ToolState, GraphViewSelectionState);
             ObserverManager.RegisterObserver(observer);
         }
     }

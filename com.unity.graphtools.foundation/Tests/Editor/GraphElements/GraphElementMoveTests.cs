@@ -10,7 +10,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class GraphElementMoveTests : GraphViewTester
     {
-        static readonly Vector2 k_NodePos = new Vector2(SelectionDragger.panAreaWidth * 2, SelectionDragger.panAreaWidth * 3);
+        static readonly Vector2 k_NodePos = new Vector2(Overdrive.GraphView.panAreaWidth * 2, Overdrive.GraphView.panAreaWidth * 3);
         static readonly Rect k_MinimapRect = new Rect(100, 100, 100, 100);
         Vector2 m_SelectionOffset = new Vector2(100, 100);
 
@@ -158,7 +158,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(k_NodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
-            Vector2 panPos = new Vector2(SelectionDragger.panAreaWidth, start.y);
+            Vector2 panPos = new Vector2(Overdrive.GraphView.panAreaWidth, start.y);
 
             try
             {
@@ -184,10 +184,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = SelectionDragger.panSpeed * SelectionDragger.minSpeedFactor;
+                float panSpeedAtLocation = Overdrive.GraphView.basePanSpeed * Overdrive.GraphView.minSpeedFactor * Overdrive.GraphView.panInterval;
 
                 yield return null;
                 newPos.x -= panSpeedAtLocation;
@@ -196,7 +196,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(panSpeedAtLocation, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
                 yield return null;
@@ -235,7 +235,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(k_NodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
-            Vector2 panPos = new Vector2(Window.position.width - SelectionDragger.panAreaWidth, start.y);
+            Vector2 panPos = new Vector2(Window.position.width - Overdrive.GraphView.panAreaWidth, start.y);
 
             try
             {
@@ -262,10 +262,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = SelectionDragger.panSpeed * SelectionDragger.minSpeedFactor;
+                float panSpeedAtLocation = Overdrive.GraphView.basePanSpeed * Overdrive.GraphView.minSpeedFactor * Overdrive.GraphView.panInterval;
 
                 yield return null;
                 newPos.x += panSpeedAtLocation;
@@ -274,7 +274,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(-panSpeedAtLocation, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
                 yield return null;
@@ -316,7 +316,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             Vector2 worldPanPos =
                 GraphView.ContentViewContainer.LocalToWorld(
-                    new Vector2(SelectionDragger.panAreaWidth, SelectionDragger.panAreaWidth));
+                    new Vector2(Overdrive.GraphView.panAreaWidth, Overdrive.GraphView.panAreaWidth));
             Vector2 panPos = new Vector2(start.x, worldPanPos.y);
 
             try
@@ -343,10 +343,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = SelectionDragger.panSpeed * SelectionDragger.minSpeedFactor;
+                float panSpeedAtLocation = Overdrive.GraphView.basePanSpeed * Overdrive.GraphView.minSpeedFactor * Overdrive.GraphView.panInterval;
 
                 yield return null;
                 newPos.y -= panSpeedAtLocation;
@@ -355,7 +355,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(panSpeedAtLocation, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
                 yield return null;
@@ -394,7 +394,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             Vector2 worldNodePos = GraphView.ContentViewContainer.LocalToWorld(k_NodePos);
             Vector2 start = worldNodePos + m_SelectionOffset;
-            float worldY = GraphView.LocalToWorld(new Vector2(0, GraphView.layout.height - SelectionDragger.panAreaWidth)).y;
+            float worldY = GraphView.LocalToWorld(new Vector2(0, GraphView.layout.height - Overdrive.GraphView.panAreaWidth)).y;
             Vector2 panPos = new Vector2(start.x, worldY);
 
             try
@@ -421,10 +421,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = SelectionDragger.panSpeed * SelectionDragger.minSpeedFactor;
+                float panSpeedAtLocation = Overdrive.GraphView.basePanSpeed * Overdrive.GraphView.minSpeedFactor * Overdrive.GraphView.panInterval;
 
                 yield return null;
                 newPos.y += panSpeedAtLocation;
@@ -433,7 +433,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(-panSpeedAtLocation, GraphView.ViewTransform.position.y);
 
-                timePassed += SelectionDragger.panInterval;
+                timePassed += Overdrive.GraphView.panInterval;
                 GraphView.UpdateScheduledEvents();
 
                 yield return null;
@@ -484,51 +484,52 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 // ReSharper disable once AccessToModifiedClosure
                 GraphViewStaticBridge.SetTimeSinceStartupCallback(() => timePassed);
 
-                Helpers.MouseDragEvent(portCenter, new Vector2(EdgeDragHelper.panAreaWidth, portCenter.y));
+                Helpers.MouseDragEvent(portCenter, new Vector2(Overdrive.GraphView.panAreaWidth, portCenter.y));
                 yield return null;
 
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                var panInterval = Overdrive.GraphView.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = EdgeDragHelper.panSpeed * 0.5f;
-                float totalDisplacement = panSpeedAtLocation;
+                float panSpeedAtLocation = Overdrive.GraphView.basePanSpeed * 0.5f;
+                float totalDisplacement = panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
                 // Move outside window
-                Helpers.MouseDragEvent(new Vector2(EdgeDragHelper.panAreaWidth, portCenter.y),
-                    new Vector2(-EdgeDragHelper.panAreaWidth, portCenter.y));
+                Helpers.MouseDragEvent(new Vector2(Overdrive.GraphView.panAreaWidth, portCenter.y),
+                    new Vector2(-Overdrive.GraphView.panAreaWidth, portCenter.y));
                 yield return null;
 
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                panSpeedAtLocation = EdgeDragHelper.maxPanSpeed;
-                timePassed += EdgeDragHelper.panInterval;
+                panSpeedAtLocation = Overdrive.GraphView.maxPanSpeed;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                Helpers.MouseUpEvent(new Vector2(-EdgeDragHelper.panAreaWidth, portCenter.y));
+                Helpers.MouseUpEvent(new Vector2(-Overdrive.GraphView.panAreaWidth, portCenter.y));
                 needsMouseUp = false;
                 yield return null;
 
@@ -538,7 +539,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             finally
             {
                 if (needsMouseUp)
-                    Helpers.MouseUpEvent(new Vector2(-EdgeDragHelper.panAreaWidth, portCenter.y));
+                    Helpers.MouseUpEvent(new Vector2(-Overdrive.GraphView.panAreaWidth, portCenter.y));
             }
 
             yield return null;
@@ -568,52 +569,53 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 GraphViewStaticBridge.SetTimeSinceStartupCallback(() => timePassed);
 
                 Helpers.MouseDragEvent(portCenter,
-                    new Vector2(Window.position.width - (EdgeDragHelper.panAreaWidth), portCenter.y));
+                    new Vector2(Window.position.width - (Overdrive.GraphView.panAreaWidth), portCenter.y));
                 yield return null;
 
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                var panInterval = Overdrive.GraphView.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = -EdgeDragHelper.panSpeed * 0.5f;
-                float totalDisplacement = panSpeedAtLocation;
+                float panSpeedAtLocation = -Overdrive.GraphView.basePanSpeed * 0.5f;
+                float totalDisplacement = panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
                 // Move outside window
                 Helpers.MouseDragEvent(
-                    new Vector2(Window.position.width - EdgeDragHelper.panAreaWidth, portCenter.y),
-                    new Vector2(Window.position.width + EdgeDragHelper.panAreaWidth, portCenter.y));
+                    new Vector2(Window.position.width - Overdrive.GraphView.panAreaWidth, portCenter.y),
+                    new Vector2(Window.position.width + Overdrive.GraphView.panAreaWidth, portCenter.y));
                 yield return null;
 
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                panSpeedAtLocation = -EdgeDragHelper.maxPanSpeed;
-                timePassed += EdgeDragHelper.panInterval;
+                panSpeedAtLocation = -Overdrive.GraphView.maxPanSpeed;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                Helpers.MouseUpEvent(new Vector2(Window.position.width + EdgeDragHelper.panAreaWidth, portCenter.y));
+                Helpers.MouseUpEvent(new Vector2(Window.position.width + Overdrive.GraphView.panAreaWidth, portCenter.y));
                 needsMouseUp = false;
                 yield return null;
 
@@ -623,7 +625,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             finally
             {
                 if (needsMouseUp)
-                    Helpers.MouseUpEvent(new Vector2(Window.position.width + EdgeDragHelper.panAreaWidth, portCenter.y));
+                    Helpers.MouseUpEvent(new Vector2(Window.position.width + Overdrive.GraphView.panAreaWidth, portCenter.y));
             }
 
             yield return null;
@@ -652,49 +654,50 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 // ReSharper disable once AccessToModifiedClosure
                 GraphViewStaticBridge.SetTimeSinceStartupCallback(() => timePassed);
 
-                Vector2 originalWorldNodePos = GraphView.ContentViewContainer.LocalToWorld(new Vector2(portCenter.x, EdgeDragHelper.panAreaWidth));
+                Vector2 originalWorldNodePos = GraphView.ContentViewContainer.LocalToWorld(new Vector2(portCenter.x, Overdrive.GraphView.panAreaWidth));
                 Helpers.MouseDragEvent(portCenter, originalWorldNodePos);
                 yield return null;
 
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                var panInterval = Overdrive.GraphView.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = EdgeDragHelper.panSpeed * 0.5f;
-                float totalDisplacement = panSpeedAtLocation;
+                float panSpeedAtLocation = Overdrive.GraphView.basePanSpeed * 0.5f;
+                float totalDisplacement = panSpeedAtLocation * panInterval;
 
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
                 // Move outside window
-                Vector2 newWorldNodePos = new Vector2(portCenter.x, -EdgeDragHelper.panAreaWidth);
+                Vector2 newWorldNodePos = new Vector2(portCenter.x, -Overdrive.GraphView.panAreaWidth);
                 Helpers.MouseDragEvent(originalWorldNodePos, newWorldNodePos);
                 yield return null;
 
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                panSpeedAtLocation = EdgeDragHelper.maxPanSpeed;
-                totalDisplacement += panSpeedAtLocation;
+                panSpeedAtLocation = Overdrive.GraphView.maxPanSpeed;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
@@ -708,7 +711,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             finally
             {
                 if (needsMouseUp)
-                    Helpers.MouseUpEvent(new Vector2(portCenter.x, -EdgeDragHelper.panAreaWidth));
+                    Helpers.MouseUpEvent(new Vector2(portCenter.x, -Overdrive.GraphView.panAreaWidth));
             }
 
             yield return null;
@@ -738,7 +741,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 // ReSharper disable once AccessToModifiedClosure
                 GraphViewStaticBridge.SetTimeSinceStartupCallback(() => timePassed);
 
-                worldY = GraphView.LocalToWorld(new Vector2(0, GraphView.layout.height - EdgeDragHelper.panAreaWidth)).y;
+                worldY = GraphView.LocalToWorld(new Vector2(0, GraphView.layout.height - Overdrive.GraphView.panAreaWidth)).y;
                 Helpers.MouseDragEvent(portCenter,
                     new Vector2(portCenter.x, worldY));
                 yield return null;
@@ -746,47 +749,48 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(0, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                var panInterval = Overdrive.GraphView.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                float panSpeedAtLocation = -EdgeDragHelper.panSpeed * 0.5f;
-                float totalDisplacement = panSpeedAtLocation;
+                float panSpeedAtLocation = -Overdrive.GraphView.basePanSpeed * 0.5f;
+                float totalDisplacement = panSpeedAtLocation * panInterval;
 
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
                 // Move outside window
                 Helpers.MouseDragEvent(
                     new Vector2(portCenter.x, worldY),
-                    new Vector2(portCenter.x, worldY + 2 * EdgeDragHelper.panAreaWidth));
+                    new Vector2(portCenter.x, worldY + 2 * Overdrive.GraphView.panAreaWidth));
                 yield return null;
 
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                panSpeedAtLocation = -EdgeDragHelper.maxPanSpeed;
-                totalDisplacement += panSpeedAtLocation;
+                panSpeedAtLocation = -Overdrive.GraphView.maxPanSpeed;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
-                timePassed += EdgeDragHelper.panInterval;
+                timePassed += panInterval;
                 GraphView.UpdateScheduledEvents();
 
-                totalDisplacement += panSpeedAtLocation;
+                totalDisplacement += panSpeedAtLocation * panInterval;
                 Assert.AreEqual(0, GraphView.ViewTransform.position.x);
                 Assert.AreEqual(totalDisplacement, GraphView.ViewTransform.position.y);
 
-                Helpers.MouseUpEvent(new Vector2(portCenter.x, worldY + 2 * EdgeDragHelper.panAreaWidth));
+                Helpers.MouseUpEvent(new Vector2(portCenter.x, worldY + 2 * Overdrive.GraphView.panAreaWidth));
                 needsMouseUp = false;
                 yield return null;
 
@@ -796,7 +800,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             finally
             {
                 if (needsMouseUp)
-                    Helpers.MouseUpEvent(new Vector2(portCenter.x, worldY + 2 * EdgeDragHelper.panAreaWidth));
+                    Helpers.MouseUpEvent(new Vector2(portCenter.x, worldY + 2 * Overdrive.GraphView.panAreaWidth));
             }
 
             yield return null;
@@ -808,117 +812,117 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             MarkGraphViewStateDirty();
             yield return null;
 
-            float minSpeed = SelectionDragger.minSpeedFactor * SelectionDragger.panSpeed;
-            float midwaySpeed = (SelectionDragger.maxSpeedFactor + SelectionDragger.minSpeedFactor) / 2 * SelectionDragger.panSpeed;
-            float maxSpeed = SelectionDragger.maxSpeedFactor * SelectionDragger.panSpeed;
+            float minSpeed = Overdrive.GraphView.minSpeedFactor * Overdrive.GraphView.basePanSpeed;
+            float midwaySpeed = (Overdrive.GraphView.maxSpeedFactor + Overdrive.GraphView.minSpeedFactor) / 2 * Overdrive.GraphView.basePanSpeed;
+            float maxSpeed = Overdrive.GraphView.maxSpeedFactor * Overdrive.GraphView.basePanSpeed;
 
-            float maxDiagonalDistance = (float)Math.Sqrt((SelectionDragger.maxSpeedFactor * SelectionDragger.panSpeed) * (SelectionDragger.maxSpeedFactor * SelectionDragger.panSpeed) / 2);
+            float maxDiagonalDistance = (float)Math.Sqrt((Overdrive.GraphView.maxSpeedFactor * Overdrive.GraphView.basePanSpeed) * (Overdrive.GraphView.maxSpeedFactor * Overdrive.GraphView.basePanSpeed) / 2);
 
             // safeDistance is a distance at which the component it is applied to (x or y) will have no effect on auto panning.
-            float safeDistance = SelectionDragger.panAreaWidth * 2;
+            float safeDistance = Overdrive.GraphView.panAreaWidth * 2;
 
             float worldY = GraphView.ChangeCoordinatesTo(GraphView.contentContainer, new Vector2(0, GraphView.layout.height)).y;
 
-            Vector2[][] testData =
+            (Vector2 mousePos, Vector2 expectedSpeed)[] testData =
             {
                 // LEFT
-                new[] // Test 0: Inside, in X to the left
-                {
-                    new Vector2(SelectionDragger.panAreaWidth, safeDistance),
+                // Test 0: Inside, in X to the left
+                (
+                    new Vector2(Overdrive.GraphView.panAreaWidth, safeDistance),
                     new Vector2(-minSpeed, 0)
-                },
-                new[] // Test 1: At the border, in X to the left
-                {
+                ),
+                // Test 1: At the border, in X to the left
+                (
                     new Vector2(0, safeDistance),
                     new Vector2(-midwaySpeed, 0)
-                },
-                new[] // Test 2: Outside, in X to the left
-                {
-                    new Vector2(-SelectionDragger.panAreaWidth, safeDistance),
+                ),
+                // Test 2: Outside, in X to the left
+                (
+                    new Vector2(-Overdrive.GraphView.panAreaWidth, safeDistance),
                     new Vector2(-maxSpeed, 0)
-                },
+                ),
 
                 // RIGHT
-                new[] // Test 3: Inside, in X to the right
-                {
-                    new Vector2(Window.position.width - SelectionDragger.panAreaWidth, safeDistance),
+                // Test 3: Inside, in X to the right
+                (
+                    new Vector2(Window.position.width - Overdrive.GraphView.panAreaWidth, safeDistance),
                     new Vector2(minSpeed, 0)
-                },
-                new[] // Test 4: At the border, in X to the right
-                {
+                ),
+                // Test 4: At the border, in X to the right
+                (
                     new Vector2(Window.position.width, safeDistance),
                     new Vector2(midwaySpeed, 0)
-                },
-                new[] // Test 5: Outside, in X to the right
-                {
-                    new Vector2(Window.position.width + SelectionDragger.panAreaWidth, safeDistance),
+                ),
+                // Test 5: Outside, in X to the right
+                (
+                    new Vector2(Window.position.width + Overdrive.GraphView.panAreaWidth, safeDistance),
                     new Vector2(maxSpeed, 0)
-                },
+                ),
 
                 // TOP
-                new[] // Test 6: Inside, in Y to the top
-                {
-                    new Vector2(safeDistance, SelectionDragger.panAreaWidth),
+                // Test 6: Inside, in Y to the top
+                (
+                    new Vector2(safeDistance, Overdrive.GraphView.panAreaWidth),
                     new Vector2(0, -minSpeed)
-                },
-                new[] // Test 7: At the border, in Y to the top
-                {
+                ),
+                // Test 7: At the border, in Y to the top
+                (
                     new Vector2(safeDistance, 0),
                     new Vector2(0, -midwaySpeed)
-                },
-                new[] // Test 8: Outside, in Y to the top
-                {
-                    new Vector2(safeDistance, -SelectionDragger.panAreaWidth),
+                ),
+                // Test 8: Outside, in Y to the top
+                (
+                    new Vector2(safeDistance, -Overdrive.GraphView.panAreaWidth),
                     new Vector2(0, -maxSpeed)
-                },
+                ),
 
                 // BOTTOM
-                new[] // Test 9: Inside, in Y to the bottom
-                {
-                    new Vector2(safeDistance, worldY - SelectionDragger.panAreaWidth),
+                // Test 9: Inside, in Y to the bottom
+                (
+                    new Vector2(safeDistance, worldY - Overdrive.GraphView.panAreaWidth),
                     new Vector2(0, minSpeed)
-                },
-                new[] // Test 10: At the border, in X to the bottom
-                {
+                ),
+                // Test 10: At the border, in X to the bottom
+                (
                     new Vector2(safeDistance, worldY),
                     new Vector2(0, midwaySpeed)
-                },
-                new[] // Test 11: Outside, in X to the bottom
-                {
-                    new Vector2(safeDistance, worldY + SelectionDragger.panAreaWidth),
+                ),
+                // Test 11: Outside, in X to the bottom
+                (
+                    new Vector2(safeDistance, worldY + Overdrive.GraphView.panAreaWidth),
                     new Vector2(0, maxSpeed)
-                },
+                ),
 
                 // CORNERS
-                new[] // Test 12: Extreme top left corner
-                {
-                    new Vector2(-SelectionDragger.panAreaWidth * 5, -SelectionDragger.panAreaWidth * 5),
+                // Test 12: Extreme top left corner
+                (
+                    new Vector2(-Overdrive.GraphView.panAreaWidth * 5, -Overdrive.GraphView.panAreaWidth * 5),
                     new Vector2(-maxDiagonalDistance, -maxDiagonalDistance)
-                },
-                new[] // Test 12: Extreme top right corner
-                {
-                    new Vector2(-SelectionDragger.panAreaWidth * 5, worldY + SelectionDragger.panAreaWidth * 5),
+                ),
+                // Test 12: Extreme top right corner
+                (
+                    new Vector2(-Overdrive.GraphView.panAreaWidth * 5, worldY + Overdrive.GraphView.panAreaWidth * 5),
                     new Vector2(-maxDiagonalDistance, maxDiagonalDistance)
-                },
-                new[] // Test 12: Extreme bottom right corner
-                {
-                    new Vector2(Window.position.width + SelectionDragger.panAreaWidth * 5, worldY + SelectionDragger.panAreaWidth * 5),
+                ),
+                // Test 12: Extreme bottom right corner
+                (
+                    new Vector2(Window.position.width + Overdrive.GraphView.panAreaWidth * 5, worldY + Overdrive.GraphView.panAreaWidth * 5),
                     new Vector2(maxDiagonalDistance, maxDiagonalDistance)
-                },
-                new[] // Test 12: Extreme bottom left corner
-                {
-                    new Vector2(Window.position.width + SelectionDragger.panAreaWidth * 5, -SelectionDragger.panAreaWidth * 5),
+                ),
+                // Test 12: Extreme bottom left corner
+                (
+                    new Vector2(Window.position.width + Overdrive.GraphView.panAreaWidth * 5, -Overdrive.GraphView.panAreaWidth * 5),
                     new Vector2(maxDiagonalDistance, -maxDiagonalDistance)
-                },
+                )
             };
 
             Vector2 res = Vector2.zero;
 
             int i = 0;
-            foreach (Vector2[] data in testData)
+            foreach (var data in testData)
             {
-                res = GraphView.TestSelectionDragger.GetEffectivePanSpeed(data[0]);
-                Assert.AreEqual(data[1], res, $"Test {i} failed because ({data[1].x:R},{data[1].y:R} != ({res.x:R}, {res.y:R})");
+                res = GraphView.GetEffectivePanSpeed(GraphView.contentContainer.LocalToWorld(data.mousePos));
+                Assert.AreEqual(data.expectedSpeed, res, $"Test {i} failed because ({data.expectedSpeed.x:R},{data.expectedSpeed.y:R} != ({res.x:R}, {res.y:R})");
                 i++;
             }
 

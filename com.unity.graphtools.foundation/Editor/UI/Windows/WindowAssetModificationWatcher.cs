@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
@@ -8,48 +7,26 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     {
         static bool AssetAtPathIsGraphAsset(string path)
         {
-            return typeof(IGraphAssetModel).IsAssignableFrom(AssetDatabase.GetMainAssetTypeAtPath(path));
+            return AssetDatabase.LoadAssetAtPath<GraphAsset>(path) != null;
         }
 
         static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions options)
         {
+            // Avoid calling FindObjectsOfTypeAll if the deleted asset is not a graph asset.
             if (AssetAtPathIsGraphAsset(assetPath))
             {
                 var guid = AssetDatabase.AssetPathToGUID(assetPath);
                 var windows = Resources.FindObjectsOfTypeAll<GraphViewEditorWindow>();
                 foreach (var window in windows)
                 {
-                    if (window.GraphTool != null &&
-                        window.GraphTool.ToolState.CurrentGraph.GraphModelAssetGuid == guid)
+                    if (WindowAssetPostprocessingWatcher.IsWindowDisplayingGraphAsset(window, guid))
                     {
-                        window.GraphTool.Dispatch(new UnloadGraphAssetCommand());
+                        // Unload graph *before* it is deleted.
+                        window.GraphTool.Dispatch(new UnloadGraphCommand());
                     }
                 }
             }
             return AssetDeleteResult.DidNotDelete;
-        }
-
-        static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
-        {
-            if (AssetAtPathIsGraphAsset(sourcePath))
-            {
-                var guid = AssetDatabase.AssetPathToGUID(sourcePath);
-                var windows = Resources.FindObjectsOfTypeAll<GraphViewEditorWindow>();
-                foreach (var window in windows)
-                {
-                    if (window.GraphTool != null &&
-                        window.GraphTool.ToolState.CurrentGraph.GraphModelAssetGuid == guid ||
-                        window.GraphTool.ToolState.SubGraphStack.Any(og => og.GraphModelAssetGuid == guid))
-                    {
-                        using (var toolStateUpdater = window.GraphTool.ToolState.UpdateScope)
-                        {
-                            toolStateUpdater.AssetChangedOnDisk();
-                        }
-                    }
-                }
-            }
-
-            return AssetMoveResult.DidNotMove;
         }
     }
 }

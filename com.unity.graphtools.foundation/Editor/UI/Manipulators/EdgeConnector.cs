@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive.InternalModels;
 using UnityEngine;
@@ -12,31 +11,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public class EdgeConnector : MouseManipulator
     {
-        readonly EdgeConnectorListener m_EdgeConnectorListener;
-        readonly EdgeDragHelper m_EdgeDragHelper;
-        bool m_Active;
-        Vector2 m_MouseDownPosition;
+        /// <summary>
+        /// The edge helper for this connector.
+        /// Internally settable for tests.
+        /// </summary>
+        public EdgeDragHelper EdgeDragHelper { get; internal set; }
 
         internal const float connectionDistanceThreshold = 10f;
 
-        public EdgeConnector(GraphView graphView, EdgeConnectorListener listener, Func<IGraphModel, GhostEdgeModel> ghostEdgeViewModelCreator = null)
+        bool m_Active;
+        Vector2 m_MouseDownPosition;
+
+        public EdgeConnector(GraphView graphView, Func<IGraphModel, GhostEdgeModel> ghostEdgeViewModelCreator = null)
         {
-            m_EdgeConnectorListener = listener;
-            m_EdgeDragHelper = new EdgeDragHelper(graphView, listener, ghostEdgeViewModelCreator);
+            EdgeDragHelper = new EdgeDragHelper(graphView, ghostEdgeViewModelCreator);
             m_Active = false;
             activators.Add(new ManipulatorActivationFilter { button = MouseButton.LeftMouse });
-        }
-
-        public virtual EdgeDragHelper edgeDragHelper => m_EdgeDragHelper;
-
-        public void SetDropOutsideDelegate(Action<GraphView, IEnumerable<Edge>, IEnumerable<IPortModel>, Vector2> action)
-        {
-            m_EdgeConnectorListener.SetDropOutsideDelegate(action);
-        }
-
-        public void SetDropDelegate(Action<GraphView, Edge> action)
-        {
-            m_EdgeConnectorListener.SetDropDelegate(action);
         }
 
         /// <inheritdoc />
@@ -72,17 +62,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             var port = target.GetFirstAncestorOfType<Port>();
-            if (port == null)
+            if (port == null || port.PortModel.Capacity == PortCapacity.None)
             {
                 return;
             }
 
             m_MouseDownPosition = e.localMousePosition;
 
-            m_EdgeDragHelper.CreateEdgeCandidate(port.PortModel.GraphModel);
-            m_EdgeDragHelper.draggedPort = port.PortModel;
+            EdgeDragHelper.CreateEdgeCandidate(port.PortModel.GraphModel);
+            EdgeDragHelper.draggedPort = port.PortModel;
 
-            if (m_EdgeDragHelper.HandleMouseDown(e))
+            if (EdgeDragHelper.HandleMouseDown(e))
             {
                 m_Active = true;
                 target.CaptureMouse();
@@ -90,21 +80,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
             else
             {
-                m_EdgeDragHelper.Reset();
+                EdgeDragHelper.Reset();
             }
         }
 
         void OnCaptureOut(MouseCaptureOutEvent e)
         {
             m_Active = false;
-            if (m_EdgeDragHelper.edgeCandidateModel != null)
+            if (EdgeDragHelper.edgeCandidateModel != null)
                 Abort();
         }
 
         protected virtual void OnMouseMove(MouseMoveEvent e)
         {
             if (!m_Active) return;
-            m_EdgeDragHelper.HandleMouseMove(e);
+            EdgeDragHelper.HandleMouseMove(e);
             e.StopPropagation();
         }
 
@@ -116,7 +106,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             try
             {
                 if (CanPerformConnection(e.localMousePosition))
-                    m_EdgeDragHelper.HandleMouseUp(e, true, Enumerable.Empty<Edge>(), Enumerable.Empty<IPortModel>());
+                    EdgeDragHelper.HandleMouseUp(e, true, Enumerable.Empty<Edge>(), Enumerable.Empty<IPortModel>());
                 else
                     Abort();
             }
@@ -142,7 +132,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         void Abort()
         {
-            m_EdgeDragHelper.Reset();
+            EdgeDragHelper.Reset();
         }
 
         bool CanPerformConnection(Vector2 mousePosition)

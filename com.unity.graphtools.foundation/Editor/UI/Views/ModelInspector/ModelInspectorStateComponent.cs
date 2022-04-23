@@ -10,7 +10,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// <summary>
     /// State component for the <see cref="ModelInspectorView"/>.
     /// </summary>
-    public class ModelInspectorStateComponent : StateComponent<ModelInspectorStateComponent.StateUpdater>
+    [Serializable]
+    public class ModelInspectorStateComponent : PersistedStateComponent<ModelInspectorStateComponent.StateUpdater>
     {
         /// <summary>
         /// Updater for the component.
@@ -39,21 +40,36 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 m_State.CurrentChangeset.ChangedModels.Add(sectionModel);
                 m_State.SetUpdateType(UpdateType.Partial);
             }
+
+            /// <summary>
+            /// Sets the inspector ScrollView scroll offset.
+            /// </summary>
+            /// <param name="scrollOffset">The horizontal and vertical offsets for the ScrollView.</param>
+            public void SetScrollOffset(Vector2 scrollOffset)
+            {
+                m_State.GetInspectorModel().ScrollOffset = scrollOffset;
+                m_State.SetUpdateType(UpdateType.Partial);
+            }
+
+            /// <summary>
+            /// Saves the state component and replaces it by the state component associated with <paramref name="graphModel"/>.
+            /// </summary>
+            /// <param name="graphModel">The graph for which we want to load a state component.</param>
+            public void SaveAndLoadStateForGraph(IGraphModel graphModel)
+            {
+                PersistedStateComponentHelpers.SaveAndLoadPersistedStateForGraph(m_State, this, graphModel);
+            }
         }
 
-        ChangesetManager<SimpleChangeset<IInspectorSectionModel>> m_ChangesetManager = new ChangesetManager<SimpleChangeset<IInspectorSectionModel>>();
+        ChangesetManager<SimpleChangeset<IInspectorSectionModel>> m_ChangesetManager;
 
         /// <inheritdoc />
         protected override IChangesetManager ChangesetManager => m_ChangesetManager;
 
-        /// <inheritdoc />
-        protected override void Dispose(bool disposing)
-        {
-        }
-
         SimpleChangeset<IInspectorSectionModel> CurrentChangeset => m_ChangesetManager.CurrentChangeset;
 
-        Dictionary<SerializableGUID, IInspectorModel> m_InspectorModels = new Dictionary<SerializableGUID, IInspectorModel>();
+        [SerializeField]
+        SerializedReferenceDictionary<SerializableGUID, IInspectorModel> m_InspectorModels;
 
         IGraphModel m_GraphModel;
 
@@ -64,12 +80,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         public IReadOnlyList<IModel> InspectedModels => m_InspectedModels;
 
+        public ModelInspectorStateComponent()
+        {
+            m_InspectorModels = new SerializedReferenceDictionary<SerializableGUID, IInspectorModel>();
+            m_ChangesetManager = new ChangesetManager<SimpleChangeset<IInspectorSectionModel>>();
+            m_InspectedModels = new List<IModel>(); // Needed because of serialization.
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelInspectorStateComponent"/> class.
         /// </summary>
         /// <param name="models">The models being inspected.</param>
         /// <param name="graphModel">The graph model to which the inspected model belongs.</param>
         public ModelInspectorStateComponent(IEnumerable<IModel> models, IGraphModel graphModel)
+            : this()
         {
             SetInspectedModel(models, graphModel);
         }
@@ -111,6 +135,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public SimpleChangeset<IInspectorSectionModel> GetAggregatedChangeset(uint sinceVersion)
         {
             return m_ChangesetManager.GetAggregatedChangeset(sinceVersion, CurrentVersion);
+        }
+
+        /// <inheritdoc />
+        protected override void Move(IStateComponent other)
+        {
+            base.Move(other);
+
+            if (other is ModelInspectorStateComponent modelInspectorStateComponent)
+            {
+                m_InspectorModels = modelInspectorStateComponent.m_InspectorModels;
+                modelInspectorStateComponent.m_InspectorModels = null;
+
+                m_GraphModel = null;
+                m_InspectedModels =  new List<IModel>();
+            }
         }
     }
 }

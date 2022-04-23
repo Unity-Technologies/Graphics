@@ -3,13 +3,12 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine;
 
 namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
 {
     [Serializable]
-    class CacheStateComponent : StateComponent<CacheStateComponent.StateUpdater>
+    class CacheStateComponent : PersistedStateComponent<CacheStateComponent.StateUpdater>
     {
         [SerializeField]
         int m_Value = 42;
@@ -26,11 +25,6 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive.Tests.CommandSystem
         {
             get => m_Value;
             private set => m_Value = value;
-        }
-
-        /// <inheritdoc />
-        protected override void Dispose(bool disposing)
-        {
         }
     }
 

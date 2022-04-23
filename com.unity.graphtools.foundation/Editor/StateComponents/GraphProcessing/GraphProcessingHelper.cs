@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -43,7 +44,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             var changes = changeset == null ? null : new GraphChangeDescription(changeset.NewModels, changeset.ChangedModelsAndHints, changeset.DeletedModels);
 
             if (options == RequestGraphProcessingOptions.SaveGraph)
-                AssetDatabase.SaveAssets();
+                (graphModel.Asset as ISerializedGraphAsset)?.Save();
 
             return stencil.GetGraphProcessorContainer().ProcessGraph(graphModel, changes);
         }

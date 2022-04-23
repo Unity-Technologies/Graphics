@@ -128,7 +128,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             ZoomFactorTextChanged?.Invoke(zoomFactorText);
         }
 
-        void CalculateRects(VisualElement container)
+        void CalculateRects()
         {
             if (GraphView == null)
             {
@@ -136,7 +136,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 return;
             }
 
-            m_ContentRect = GraphView.CalculateRectToFitAll(container);
+            var container = GraphView.ContentViewContainer;
+            m_ContentRect = GraphView.CalculateRectToFitAll();
             m_ContentRectLocal = m_ContentRect;
 
             // Retrieve viewport rectangle as if zoom and pan were inactive
@@ -144,7 +145,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             Vector4 containerInvTranslation = containerInvTransform.GetColumn(3);
             var containerInvScale = new Vector2(containerInvTransform.m00, containerInvTransform.m11);
 
-            m_ViewportRect = GraphView.GetRect();
+            var graphViewLayout = GraphView.layout;
+            m_ViewportRect =  new Rect(0.0f, 0.0f, graphViewLayout.width, graphViewLayout.height);
 
             // Bring back viewport coordinates to (0,0), scale 1:1
             m_ViewportRect.x += containerInvTranslation.x;
@@ -201,7 +203,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         Rect CalculateElementRect(ModelView elem)
         {
-            Rect rect = elem.ChangeCoordinatesTo(GraphView.ContentViewContainer, elem.GetRect());
+            Rect rect = elem.parent.ChangeCoordinatesTo(GraphView.ContentViewContainer, elem.layout);
             rect.x = m_ContentRect.x + ((rect.x - m_ContentRectLocal.x) * m_ContentRect.width / m_ContentRectLocal.width);
             rect.y = m_ContentRect.y + ((rect.y - m_ContentRectLocal.y) * m_ContentRect.height / m_ContentRectLocal.height);
             rect.width *= m_ContentRect.width / m_ContentRectLocal.width;
@@ -269,14 +271,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             Color currentColor = Handles.color;
-            VisualElement container = GraphView.ContentViewContainer;
 
             // Retrieve all container relative information
             Matrix4x4 containerTransform = GraphView.ViewTransform.matrix;
             var containerScale = new Vector2(containerTransform.m00, containerTransform.m11);
 
             // Refresh MiniMap rects
-            CalculateRects(container);
+            CalculateRects();
 
             DrawElements();
 
@@ -362,7 +363,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             // Refresh MiniMap rects
-            CalculateRects(GraphView.ContentViewContainer);
+            CalculateRects();
 
             var mousePosition = e.localMousePosition;
 

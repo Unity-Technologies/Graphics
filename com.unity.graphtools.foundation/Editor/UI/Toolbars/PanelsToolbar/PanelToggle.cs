@@ -1,7 +1,5 @@
 #if UNITY_2022_2_OR_NEWER
 using System;
-using System.Linq;
-using UnityEditor.GraphToolsFoundation.Overdrive.Bridge;
 using UnityEditor.Overlays;
 using UnityEditor.Toolbars;
 using UnityEngine.UIElements;
