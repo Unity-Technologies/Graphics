@@ -209,14 +209,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-            // Check acceleration structure dirtiness
-            ulong accelSize = m_CurrentRAS.GetSize();
-            if (accelSize != camData.accelSize)
-            {
-                camData.accelSize = accelSize;
-                return ResetPathTracing(camID, camData);
-            }
-
             // Check materials dirtiness
             if (m_MaterialsDirty)
             {
@@ -244,6 +236,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
+                return ResetPathTracing(camID, camData);
+            }
+
+            // Check acceleration structure dirtiness
+            var rtas = RequestAccelerationStructure();
+            ulong accelSize = (rtas != null) ? rtas.GetSize() : 0;
+            if (accelSize != camData.accelSize)
+            {
+                camData.accelSize = accelSize;
                 return ResetPathTracing(camID, camData);
             }
 
