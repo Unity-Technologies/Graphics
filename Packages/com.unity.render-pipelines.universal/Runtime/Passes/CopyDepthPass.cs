@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
+            descriptor.depthBufferBits = UniversalRenderer.k_DepthStencilBufferBits;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);

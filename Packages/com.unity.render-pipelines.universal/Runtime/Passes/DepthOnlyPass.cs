@@ -20,9 +20,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         FilteringSettings m_FilteringSettings;
 
-        // Constants
-        private const int k_DepthBufferBits = 32;
-
         /// <summary>
         /// Create the DepthOnlyPass
         /// </summary>
@@ -43,7 +40,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-            baseDescriptor.depthBufferBits = k_DepthBufferBits;
+            baseDescriptor.depthBufferBits = UniversalRenderer.k_DepthStencilBufferBits;
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
