@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static int FrameID = -1;
 
-        public static int CurrentFrameID
+        internal static int CurrentFrameID
         {
             get => FrameID;
             set => FrameID = value;
@@ -52,12 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static int LastSentFrameID { get; set; }
 
-        private static GetColorBufferEvent getColorBufferAction = null;
+        private static GetReceivedDistributedColorBufferEvent getReceivedDistributedColorBuffer = null;
 
-        public static GetColorBufferEvent GetColorBuffer
+        internal static GetReceivedDistributedColorBufferEvent GetReceivedDistributedColorBuffer
         {
-            get => getColorBufferAction;
-            set => getColorBufferAction = value;
+            get => getReceivedDistributedColorBuffer;
+            set => getReceivedDistributedColorBuffer = value;
         }
 
         class ReceiveData
@@ -185,8 +185,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(context.cmd, new ProfilingSampler($"Load Data {i}")))
                             {
                                 Datagram datagram = null;
-                                if(GetColorBuffer != null)
-                                    datagram = GetColorBuffer(i);
+                                if(GetReceivedDistributedColorBuffer != null)
+                                    datagram = GetReceivedDistributedColorBuffer(i);
 
                                 if (datagram == null)
                                     continue;
@@ -458,5 +458,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
     }
-    public delegate Datagram GetColorBufferEvent(int userID);
+    public delegate Datagram GetReceivedDistributedColorBufferEvent(int userID);
 }

@@ -234,8 +234,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                        new ProfilingSampler($"Load Data {i} to Video Packet")))
                             {
                                 Datagram datagram = null;
-                                if(GetColorBuffer != null)
-                                    datagram = GetColorBuffer(i);
+                                if(GetReceivedDistributedColorBuffer != null)
+                                    datagram = GetReceivedDistributedColorBuffer(i);
+
                                 if (datagram == null)
                                     continue;
 
