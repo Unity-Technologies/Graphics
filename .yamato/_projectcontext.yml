@@ -422,7 +422,7 @@ publish_all_project_tag:
     name: Publish all packages [project context][manual][tag]
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947481
+        image: package-ci/ubuntu:v3.0.0-952506
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#publish_core_project

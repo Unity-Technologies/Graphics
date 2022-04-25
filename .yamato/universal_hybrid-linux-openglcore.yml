@@ -11,7 +11,7 @@ Universal_Hybrid_Linux_OpenGLCore_playmode_mono_Linear_2020.3:
     name: Universal_Hybrid on Linux_OpenGLCore_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: package-ci/ubuntu:v3.0.0-954086
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -48,7 +48,7 @@ Universal_Hybrid_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: package-ci/ubuntu:v3.0.0-954086
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
