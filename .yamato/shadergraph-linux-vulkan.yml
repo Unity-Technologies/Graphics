@@ -11,7 +11,7 @@ ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_2020.3:
     name: ShaderGraph on Linux_Vulkan_Standalone_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -38,7 +38,7 @@ Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_2020.3:
     name: Build ShaderGraph on Linux_Vulkan_mono_Linear_Standalone_build_Player on version 2020.3
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947481
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -78,7 +78,7 @@ ShaderGraph_Linux_Vulkan_playmode_mono_Linear_2020.3:
     name: ShaderGraph on Linux_Vulkan_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -115,7 +115,7 @@ ShaderGraph_Linux_Vulkan_editmode_mono_Linear_2020.3:
     name: ShaderGraph on Linux_Vulkan_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947481
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -152,7 +152,7 @@ ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -179,7 +179,7 @@ Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947481
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -219,7 +219,7 @@ ShaderGraph_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -256,7 +256,7 @@ ShaderGraph_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947481
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

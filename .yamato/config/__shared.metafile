@@ -329,15 +329,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947481
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947481
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
@@ -459,15 +459,15 @@ platforms:
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
-    image: package-ci/ubuntu:v3.4.0-1081363
+    image: package-ci/ubuntu:v2.0.0-947481
     flavor: b1.large
   package_ci_ubuntu_xlarge:
     type: Unity::VM
-    image: package-ci/ubuntu:v3.4.0-1081363
+    image: package-ci/ubuntu:v2.0.0-947481
     flavor: b1.xlarge
   package_ci_ubuntu_small:
     type: Unity::VM
-    image: package-ci/ubuntu:v3.4.0-1081363
+    image: package-ci/ubuntu:v2.0.0-947481
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM

@@ -11,7 +11,7 @@ editor-pinning-update:
     name: Update pinned editor versions
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.4.0-1081363
+        image: package-ci/ubuntu:v2.0.0-947481
         flavor: b1.small
     variables:
         CI: true
