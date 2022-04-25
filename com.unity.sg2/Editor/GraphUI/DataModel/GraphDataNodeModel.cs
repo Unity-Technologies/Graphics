@@ -180,7 +180,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             NodeUIDescriptor nodeUIDescriptor = new();
-            if(Stencil is ShaderGraphStencil shaderGraphStencil)
+            if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
                 nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey);
 
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;

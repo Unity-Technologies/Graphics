@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         private IGraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
-        GraphViewStateObserver m_GraphViewStateObserver;
+        protected GraphViewStateObserver m_GraphViewStateObserver;
 
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
