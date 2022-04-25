@@ -32,10 +32,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         //Member lights counts
-        public int sortedLightCounts => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.ProcessedLights];
-        public int sortedDirectionalLightCounts => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.DirectionalLights];
+        public int sortedLightCounts => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.ProcessedLights] : 0;
+        public int sortedDirectionalLightCounts => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.DirectionalLights] : 0;
         public int sortedNonDirectionalLightCounts => sortedLightCounts - sortedDirectionalLightCounts;
-        public int bakedShadowsCount => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.BakedShadows];
+        public int bakedShadowsCount => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.BakedShadows] : 0;
 
         //Indexed by VisibleLights
         public NativeArray<LightBakingOutput> visibleLightBakingOutput => m_VisibleLightBakingOutput;
