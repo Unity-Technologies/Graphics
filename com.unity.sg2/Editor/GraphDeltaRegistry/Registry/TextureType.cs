@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
             bool hasSampler = isConnected || isInitialized;
 
-            // hasSampler = true; // can enable to force usage of sampler for testing.
+            hasSampler = true; // can enable to force usage of sampler for testing.
 
             builder.AddInput(shaderType, kTexture);
             builder.AddInput(container._float2, kUV);
