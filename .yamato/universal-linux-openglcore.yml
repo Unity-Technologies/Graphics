@@ -11,7 +11,7 @@ Universal_Linux_OpenGLCore_playmode_mono_Linear_2020.3:
     name: Universal on Linux_OpenGLCore_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.0.0-954086
+        image: package-ci/ubuntu:v3.0.2-1078097
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -48,7 +48,7 @@ Universal_Linux_OpenGLCore_editmode_mono_Linear_2020.3:
     name: Universal on Linux_OpenGLCore_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.0.0-952506
+        image: package-ci/ubuntu:v3.2.0-1065031
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -85,7 +85,7 @@ Universal_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: Universal on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.0.0-954086
+        image: package-ci/ubuntu:v3.0.2-1078097
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -122,7 +122,7 @@ Universal_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: Universal on Linux_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.0.0-952506
+        image: package-ci/ubuntu:v3.2.0-1065031
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
