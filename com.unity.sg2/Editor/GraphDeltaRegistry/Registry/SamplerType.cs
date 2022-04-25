@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public enum Filter { Point, Linear, Trilinear }
         public enum Wrap { Clamp, Repeat, Mirror, MirrorOnce } // optionally can be per component- can be added later.
-        public enum Aniso { None = 0, Ansio2 = 2, Ansio8 = 8, Ansio16 = 16, Ansio32 = 32 } // optional
+        public enum Aniso { None = 0, Ansio2 = 2, Ansio8 = 8, Ansio16 = 16 } // optional
 
         #region GetSet
         public static void SetDepthComparison(FieldHandler field, bool enable)
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public string GetInitializerList(FieldHandler field, Registry registry)
         {
-            return $"UnityBuildSamplerStateStruct({ToSamplerString(field)})";
+            return $"In.{ToSamplerString(field)}";
         }
 
 
@@ -121,11 +121,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var attributeBuilder = new ShaderAttribute.Builder(container, SamplerStateAttribute.AttributeName);
 
             attributeBuilder.Param(SamplerStateAttribute.FilterModeParamName, GetFilter(field).ToString());
-            attributeBuilder.Param(SamplerStateAttribute.AnisotropicLevelParamName, ((int)GetAniso(field)).ToString());
-            attributeBuilder.Param(SamplerStateAttribute.DepthCompareParamName, GetDepthComparison(field).ToString());
             attributeBuilder.Param(SamplerStateAttribute.WrapModeParamName, GetWrap(field).ToString());
 
+            if (GetAniso(field) != Aniso.None)
+                attributeBuilder.Param(SamplerStateAttribute.AnisotropicLevelParamName, ((int)GetAniso(field)).ToString());
+
+            if (GetDepthComparison(field))
+                attributeBuilder.Param(SamplerStateAttribute.DepthCompareParamName, GetDepthComparison(field).ToString());
+
             fieldbuilder.AddAttribute(attributeBuilder.Build());
+
+            var propAttr = new ShaderAttribute.Builder(container, CommonShaderAttributes.Property);
+            fieldbuilder.AddAttribute(propAttr.Build());
+
             return fieldbuilder.Build();
         }
     }

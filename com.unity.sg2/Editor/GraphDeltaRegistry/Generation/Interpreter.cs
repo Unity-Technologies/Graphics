@@ -368,7 +368,7 @@ namespace UnityEditor.ShaderGraph.Generation
                             if (port.GetTypeField().GetRegistryKey().Name == SamplerStateType.kRegistryKey.Name)
                             {
                                 var fieldHandler = port.GetTypeField();
-                                var field = BaseTextureType.UniformPromotion(port.GetTypeField(), container, registry);
+                                var field = SamplerStateType.UniformPromotion(port.GetTypeField(), container, registry);
                                 inputVariables.Add(field);
                             }
                         }

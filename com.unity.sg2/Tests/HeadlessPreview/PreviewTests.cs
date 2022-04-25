@@ -694,6 +694,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             var material = previewMgr.RequestNodePreviewMaterial("SampleTex");
 
+            previewMgr.RequestNodePreviewShaderCodeStrings("SampleTex", out _, out _, out string blockCode, out _);
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(material));
 
             // check that the material property is found on the shader.
