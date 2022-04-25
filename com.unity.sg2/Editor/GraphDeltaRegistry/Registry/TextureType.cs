@@ -27,16 +27,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
-            var builder = new ShaderFunction.Builder(container, GetRegistryKey().Name);
-            var shaderType = registry.GetShaderType(node.GetPort(kTexture).GetTypeField(), container);
-
             // Need to ignore the sampler if there is no user data on it or if it isn't connected, textures have one they are loaded w/already.
             var samplerPort = node.GetPort(kSampler);
             bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
             bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
             bool hasSampler = isConnected || isInitialized;
 
-            hasSampler = true; // can enable to force usage of sampler for testing.
+            var builder = new ShaderFunction.Builder(container, GetRegistryKey().Name + (hasSampler ? "_Smplr" : ""));
+            var shaderType = registry.GetShaderType(node.GetPort(kTexture).GetTypeField(), container);
+
+
+
+            // hasSampler = true; // can enable to force usage of sampler for testing.
 
             builder.AddInput(shaderType, kTexture);
             builder.AddInput(container._float2, kUV);

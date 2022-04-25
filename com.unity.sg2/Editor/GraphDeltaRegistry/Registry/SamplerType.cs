@@ -8,6 +8,31 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
+    internal class SamplerStateExampleNode : INodeDefinitionBuilder
+    {
+        void INodeDefinitionBuilder.BuildNode(NodeHandler node, Registry registry)
+        {
+            var input = node.AddPort<SamplerStateType>("In", true, registry);
+            input.GetTypeField().AddSubField("IsStatic", true); // TODO: should be handled by ui hints or metadata or something.
+            node.AddPort<SamplerStateType>("Out", false, registry);
+        }
+
+        RegistryFlags IRegistryEntry.GetRegistryFlags() => RegistryFlags.Func;
+
+        RegistryKey IRegistryEntry.GetRegistryKey() => new RegistryKey { Name = "SamplerStateExampleNode", Version = 1 };
+
+        ShaderFunction INodeDefinitionBuilder.GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        {
+            // This example just naively inlines a sampler state type so we can test if connections are working correctly.
+            // (since textures nodes shouldn't generate sampler states if they are not connected, they should just use the one that comes w/the texture).
+            var builder = new ShaderFunction.Builder(container, "SamplerStateExampleNode");
+            builder.AddInput(container._UnitySamplerState, "In");
+            builder.AddOutput(container._UnitySamplerState, "Out");
+            builder.AddLine("Out = In;");
+            return builder.Build();
+        }
+    }
+
     internal class SamplerStateType : ITypeDefinitionBuilder
     {
         public static RegistryKey kRegistryKey => new RegistryKey { Name = "SamplerStateType", Version = 1 };
@@ -115,7 +140,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal static StructField UniformPromotion(FieldHandler field, ShaderContainer container, Registry registry)
         {
             var name = ToSamplerString(field);
-
 
             var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
             var attributeBuilder = new ShaderAttribute.Builder(container, SamplerStateAttribute.AttributeName);
