@@ -234,7 +234,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                        new ProfilingSampler($"Load Data {i} to Video Packet")))
                             {
                                 Datagram datagram = null;
-                                datagram = SocketServer.Instance.ReceiveReadyFrame(i);
+                                if(GetReceivedDistributedColorBuffer != null)
+                                    datagram = GetReceivedDistributedColorBuffer(i);
+
                                 if (datagram == null)
                                     continue;
 
@@ -243,8 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 VideoDecoders[i].SetPacketData(datagram.data);
                                 VideoDecoders[i].FrameID = CurrentFrameID;
                                 VideoDecoders[i].SignalCodecThread();
-                                SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame,
-                                    in datagram);
                             }
 
                             // Decoding process starts right after signalling the thread, no need for another pass here

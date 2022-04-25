@@ -44,13 +44,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static int FrameID = -1;
 
-        public static int CurrentFrameID
+        internal static int CurrentFrameID
         {
             get => FrameID;
             set => FrameID = value;
         }
 
         public static int LastSentFrameID { get; set; }
+
+        private static GetReceivedDistributedColorBufferEvent getReceivedDistributedColorBuffer = null;
+
+        internal static GetReceivedDistributedColorBufferEvent GetReceivedDistributedColorBuffer
+        {
+            get => getReceivedDistributedColorBuffer;
+            set => getReceivedDistributedColorBuffer = value;
+        }
 
         class ReceiveData
         {
@@ -177,15 +185,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(context.cmd, new ProfilingSampler($"Load Data {i}")))
                             {
                                 Datagram datagram = null;
-                                datagram = SocketServer.Instance.ReceiveReadyFrame(i);
+                                if(GetReceivedDistributedColorBuffer != null)
+                                    datagram = GetReceivedDistributedColorBuffer(i);
+
                                 if (datagram == null)
                                     continue;
 
                                 RttTestUtilities.ReceiveFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
                                     0, 0, datagram.length);
-                                SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame,
-                                    in datagram);
                             }
 
                             // Use compute shader to move the data to YUV textures
@@ -450,4 +458,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
     }
+    public delegate Datagram GetReceivedDistributedColorBufferEvent(int userID);
 }
