@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Profiling;
-using UnityEditor.Graphs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -65,6 +64,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_OutputContextNode ??= this.CreateNode<OutputContextNodeModel>();
         }
+
+        public bool IsSubGraph => ShaderGraphAssetModel.IsSubGraph;
+        public override bool CanBeSubgraph() => IsSubGraph;
 
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.

@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (option == 0) // save
                     {
-                        if (GraphTool.ToolState.AssetModel is ShaderGraphAssetModel {IsSubGraph: true})
+                        if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() is ShaderGraphAssetModel {IsSubGraph: true})
                         {
                             GraphAssetUtils.SaveSubGraphImplementation(GraphTool);
                         }

@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected string m_TestAssetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}";
 
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
             CreateWindow();
 
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         [TearDown]
-        public void TearDown()
+        public virtual void TearDown()
         {
             CloseWindow();
             AssetDatabase.DeleteAsset(m_TestAssetPath);

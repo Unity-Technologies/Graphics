@@ -54,7 +54,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
             Name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this));
         }
-
-        public override bool CanBeSubgraph() => IsSubGraph;
     }
 }
