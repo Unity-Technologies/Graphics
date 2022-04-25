@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 m_GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
             }
 
-            GraphAssetUtils.SaveGraphImplementation(m_Window.GraphTool);
+            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
             CloseWindow();
             yield return null;
 

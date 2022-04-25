@@ -96,10 +96,49 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return string.Empty;
         }
 
-        public static void SaveGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderGraphAsset.HandleSave);
-        public static void SaveSubGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderSubGraphAsset.HandleSave);
+        static void SaveGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderGraphAsset.HandleSave);
+        static void SaveSubGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderSubGraphAsset.HandleSave);
 
-        public static string SaveAsGraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.GraphExtension);
-        public static string SaveAsSubgraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.SubGraphExtension);
+        static string SaveAsGraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.GraphExtension);
+        static string SaveAsSubGraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.SubGraphExtension);
+
+        /// <summary>
+        /// Saves the graph *or* subgraph that is currently open in the given GraphTool.
+        /// Does nothing if there is no open graph.
+        /// </summary>
+        /// <param name="graphTool">Graph tool with an open Shader Graph asset.</param>
+        public static void SaveOpenGraphAsset(BaseGraphTool graphTool)
+        {
+            if (graphTool.ToolState.CurrentGraph.GetGraphAsset() is not ShaderGraphAssetModel graphAsset)
+            {
+                return;
+            }
+
+            if (graphAsset.IsSubGraph)
+            {
+                SaveSubGraphImplementation(graphTool);
+            }
+            else
+            {
+                SaveGraphImplementation(graphTool);
+            }
+        }
+
+        /// <summary>
+        /// Saves a new file from the graph *or* subgraph that is currently open in the given GraphTool.
+        /// Does nothing and returns an empty string if there is no open graph.
+        /// </summary>
+        /// <param name="graphTool">Graph tool with an open Shader Graph asset.</param>
+        public static string SaveOpenGraphAssetAs(BaseGraphTool graphTool)
+        {
+            if (graphTool.ToolState.CurrentGraph.GetGraphAsset() is not ShaderGraphAssetModel graphAsset)
+            {
+                return string.Empty;
+            }
+
+            return graphAsset.IsSubGraph
+                ? SaveAsSubGraphImplementation(graphTool)
+                : SaveAsGraphImplementation(graphTool);
+        }
     }
 }
