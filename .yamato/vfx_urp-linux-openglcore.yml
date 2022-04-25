@@ -11,7 +11,7 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_2020.3:
     name: VFX_URP on Linux_OpenGLCore_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -48,7 +48,7 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

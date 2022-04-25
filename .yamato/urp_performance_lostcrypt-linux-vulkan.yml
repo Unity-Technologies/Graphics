@@ -11,7 +11,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -42,7 +42,7 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
     name: Build URP_Performance_LostCrypt on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version 2020.3
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -113,7 +113,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_2
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_editor_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -180,7 +180,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_20
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_build_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -247,7 +247,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -278,7 +278,7 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
     name: Build URP_Performance_LostCrypt on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.xlarge
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -349,7 +349,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_C
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -416,7 +416,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CU
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v3.4.0-1081363
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
