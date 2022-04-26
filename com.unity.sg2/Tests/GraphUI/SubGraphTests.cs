@@ -8,7 +8,7 @@ using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    public class SubGraphWindowTest : BaseGraphWindowTest
+    public class SubGraphTests : BaseGraphWindowTest
     {
         [SetUp]
         public override void SetUp()
@@ -39,6 +39,25 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public IEnumerator TestCanAddNodeToSubGraph()
         {
             return AddNodeFromSearcherAndValidate("Add");
+        }
+
+        [UnityTest]
+        public IEnumerator TestSaveSubGraph()
+        {
+            yield return AddNodeFromSearcherAndValidate("Add");
+
+            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
+            CloseWindow();
+            yield return null;
+
+            var graphAsset = ShaderSubGraphAsset.HandleLoad(m_TestAssetPath);
+            CreateWindow();
+            m_Window.Show();
+            m_Window.Focus();
+            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            yield return null;
+
+            Assert.IsTrue(FindNodeOnGraphByName("Add"));
         }
 
         [UnityTest]
