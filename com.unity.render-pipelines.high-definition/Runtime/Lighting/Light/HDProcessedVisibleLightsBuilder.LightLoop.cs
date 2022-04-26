@@ -73,6 +73,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(defaultEntity);
                     }
+                    // custom-begin:
+#if UNITY_EDITOR
+                    else if (UnityEditor.SceneVisibilityManager.instance.IsHidden(light.gameObject))
+                    {
+                        dataIndex = HDLightRenderDatabase.InvalidDataIndex;
+                    }
+#endif
+                    // custom-end
 
                     m_VisibleLightEntityDataIndices[i] = dataIndex;
                     m_VisibleLightBakingOutput[i] = light.bakingOutput;
@@ -142,13 +150,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!aovRequest.IsLightEnabled(go))
                     m_VisibleLightEntityDataIndices[i] = HDLightRenderDatabase.InvalidDataIndex;
-
-                // custom-begin:
-#if UNITY_EDITOR
-                if (UnityEditor.SceneVisibilityManager.instance.IsHidden(go))
-                    m_VisibleLightEntityDataIndices[i] = HDLightRenderDatabase.InvalidDataIndex;
-#endif
-                // custom-end
             }
         }
 
