@@ -1530,30 +1530,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: store DecalCullResult
                 };
 
+                if (face != CubemapFace.Unknown)
+                {
+                    request.target = new RenderRequest.Target
+                    {
+                        id = visibleProbe.realtimeTextureRTH,
+                        face = face
+                    };
+                }
+                else
+                {
+                    request.target = new RenderRequest.Target
+                    {
+                        id = visibleProbe.realtimeTextureRTH,
+                        targetDepth = visibleProbe.realtimeDepthTextureRTH,
+                        face = CubemapFace.Unknown
+                    };
+                }
+
                 // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
                 // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
                 // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
-                if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
-                {
-                    if (face != CubemapFace.Unknown)
-                    {
-                        request.target = new RenderRequest.Target
-                        {
-                            id = visibleProbe.realtimeTextureRTH,
-                            face = face
-                        };
-                    }
-                    else
-                    {
-                        request.target = new RenderRequest.Target
-                        {
-                            id = visibleProbe.realtimeTextureRTH,
-                            targetDepth = visibleProbe.realtimeDepthTextureRTH,
-                            face = CubemapFace.Unknown
-                        };
-                    }
-                }
-                else
+                if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
                 {
                     skippedRenderSteps |= ProbeRenderStepsExt.FromCubeFace(face);
                 }
