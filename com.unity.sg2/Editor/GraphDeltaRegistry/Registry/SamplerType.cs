@@ -46,20 +46,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kCompare = "Compare";
         #endregion
 
-        private static string ToSamplerString(FieldHandler field)
+        private static string GetUniqueSamplerName(FieldHandler field)
         {
-            // https://docs.unity3d.com/Manual/SL-SamplerStates.html
-
-            string result = $"SamplerState_{GetFilter(field)}_{GetWrap(field)}";
-
-            if (GetDepthComparison(field))
-                result += "_Compare";
-
-            var aniso = GetAniso(field);
-            if (aniso != Aniso.None)
-                result += $"_{aniso}";
-
-            return result;
+            return field.ID.FullPath.Replace(".", "_");
         }
 
         public enum Filter { Point, Linear, Trilinear }
@@ -133,13 +122,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public string GetInitializerList(FieldHandler field, Registry registry)
         {
-            return $"In.{ToSamplerString(field)}";
+            return $"In.{GetUniqueSamplerName(field)}";
         }
 
 
         internal static StructField UniformPromotion(FieldHandler field, ShaderContainer container, Registry registry)
         {
-            var name = ToSamplerString(field);
+            var name = GetUniqueSamplerName(field);
 
             var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
             var attributeBuilder = new ShaderAttribute.Builder(container, SamplerStateAttribute.AttributeName);
@@ -161,34 +150,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return fieldbuilder.Build();
         }
     }
-
-
-    //            Oh, I should note that sampler states require an additional attribute, e.g.:
-    //[SamplerState(filterMode = Linear, wrapMode = "Clamp,RepeatU", depthCompare = true, anisotropicLevel = 4)]
-    //            You can see the values in and maybe re - use the SamplerStateAttribute class. The values are defaulted to:
-    //filterMode = Linear
-    //wrapMode = Repeat
-    //depthCompare = false
-    //anisotropicLevel = 0
-    //internal List<ShaderAttribute> BuildAttributes(ShaderContainer container)
-    //{
-    //    var attributes = new List<ShaderAttribute>();
-    //    var attributeBuilder = new ShaderAttribute.Builder(container, SamplerStateAttribute.AttributeName);
-    //    if (FilterMode is SamplerStateAttribute.FilterModeEnum filterMode)
-    //        attributeBuilder.Param(SamplerStateAttribute.FilterModeParamName, filterMode.ToString());
-    //    var wrapModeString = SamplerStateAttribute.BuildWrapModeParameterValue(WrapModes);
-    //    if (!string.IsNullOrEmpty(wrapModeString))
-    //        attributeBuilder.Param(SamplerStateAttribute.WrapModeParamName, wrapModeString);
-    //    if (DepthCompare is bool depthCompare)
-    //        attributeBuilder.Param(SamplerStateAttribute.DepthCompareParamName, depthCompare.ToString());
-    //    if (AnisotropicLevel is int anisotropicLevel)
-    //        attributeBuilder.Param(SamplerStateAttribute.AnisotropicLevelParamName, anisotropicLevel.ToString());
-    //    attributes.Add(attributeBuilder.Build());
-    //    return attributes;
-    //}
-
-
-
 
     internal class SamplerStateAssignment : ICastDefinitionBuilder
     {

@@ -61,6 +61,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
+            else if (key.Name == SamplerStateType.kRegistryKey.Name)
+                return SamplerStateTypeHandle;
+
             return TypeHandle.Unknown;
         }
 
