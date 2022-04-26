@@ -112,7 +112,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
             // Trigger initial update cycle.
             GraphView.Dispatch(new CreatePlacematCommand(new Rect(0, 0, 200, 200)));
-            GraphTool.Update();
         }
 
         [TearDown]
@@ -134,6 +133,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         [UnityTest, TestCaseSource(nameof(GetSomeCommands))]
         public IEnumerator TestRebuildType(UndoableCommand command, UpdateType rebuildType)
         {
+            // Make sure initial update is done.
+            yield return null;
+
             m_GraphViewStateObserver.UpdateType = UpdateType.None;
             GraphView.Dispatch(command);
             yield return null;
@@ -147,6 +149,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         [UnityTest]
         public IEnumerator TestRebuildIsDoneOnce()
         {
+            // Make sure initial update is done.
+            yield return null;
+
             m_GraphViewStateObserver.UpdateType = UpdateType.None;
             Type0FakeNodeModel model;
             using (var updater = GraphView.GraphViewModel.GraphModelState.UpdateScope)

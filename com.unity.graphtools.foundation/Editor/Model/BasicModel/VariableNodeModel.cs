@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <summary>
         /// The human readable name of the data type of the variable declaration model.
         /// </summary>
-        public virtual string DataTypeString => VariableDeclarationModel?.DataType.GetMetadata(Stencil).FriendlyName ?? string.Empty;
+        public virtual string DataTypeString => VariableDeclarationModel?.DataType.GetMetadata(GraphModel.Stencil).FriendlyName ?? string.Empty;
 
         /// <summary>
         /// The string used to describe this variable.

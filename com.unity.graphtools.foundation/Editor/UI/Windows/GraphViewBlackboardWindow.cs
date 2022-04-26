@@ -52,7 +52,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (m_BlackboardView != null)
             {
                 m_BlackboardView.RemoveFromHierarchy();
-                m_BlackboardView.Dispose();
                 m_BlackboardView = null;
             }
         }
@@ -63,7 +62,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (m_BlackboardView != null && m_BlackboardView.BlackboardViewModel.ParentGraphView != SelectedGraphView)
             {
                 m_BlackboardView.RemoveFromHierarchy();
-                m_BlackboardView.Dispose();
                 m_BlackboardView = null;
             }
 

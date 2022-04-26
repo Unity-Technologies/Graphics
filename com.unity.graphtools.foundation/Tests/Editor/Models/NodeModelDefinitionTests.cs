@@ -23,8 +23,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void CallingDefineTwiceCreatesPortsOnce()
         {
-            var asset = ScriptableObject.CreateInstance<ClassGraphAssetModel>();
-            asset.CreateGraph("asd");
+            var asset = ScriptableObject.CreateInstance<ClassGraphAsset>();
+            asset.CreateGraph();
             var g = asset.GraphModel;
 
             m_Node = g.CreateNode<TestNodeModel>("test", Vector2.zero);
@@ -37,8 +37,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test]
         public void CallingDefineTwiceCreatesOneEmbeddedConstant()
         {
-            var asset = ScriptableObject.CreateInstance<ClassGraphAssetModel>();
-            asset.CreateGraph("asd");
+            var asset = ScriptableObject.CreateInstance<ClassGraphAsset>();
+            asset.CreateGraph();
             var g = asset.GraphModel;
 
             m_Node = g.CreateNode<TestNodeModel>("test", Vector2.zero);
@@ -107,8 +107,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models
         [Test, TestCaseSource(nameof(GetPortModelDefaultValueTestCases))]
         public void PortModelsCanHaveDefaultValues(object expectedValue, Func<TestNodeModelWithCustomPorts, Func<IPortModel>> createPort, Func<IConstant, object> getValue)
         {
-            var asset = ScriptableObject.CreateInstance<ClassGraphAssetModel>();
-            asset.CreateGraph("asd");
+            var asset = ScriptableObject.CreateInstance<ClassGraphAsset>();
+            asset.CreateGraph();
             var g = asset.GraphModel;
 
             m_Node = g.CreateNode<TestNodeModelWithCustomPorts>("test", Vector2.zero, initializationCallback: ports => ports.CreatePortFunc = createPort(ports));

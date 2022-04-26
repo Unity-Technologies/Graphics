@@ -14,9 +14,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.InternalModels
     public class GhostEdgeModel : GraphElementModel, IGhostEdge
     {
         /// <inheritdoc />
-        public override IGraphModel GraphModel { get; }
-
-        /// <inheritdoc />
         public IPortModel FromPort { get; set; }
 
         /// <inheritdoc />
@@ -39,16 +36,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.InternalModels
 
         /// <inheritdoc />
         public Vector2 EndPoint { get; set; } = Vector2.zero;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GhostEdgeModel"/> class.
-        /// </summary>
-        /// <param name="graphModel">The graph that owns this edge.</param>
-        public GhostEdgeModel(IGraphModel graphModel)
-        {
-            GraphModel = graphModel;
-            m_AssetModel = graphModel?.AssetModel as GraphAssetModel;
-        }
 
         /// <inheritdoc />
         public void SetPorts(IPortModel toPortModel, IPortModel fromPortModel)

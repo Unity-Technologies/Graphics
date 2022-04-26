@@ -41,9 +41,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         void OnOpenSubgraph()
         {
-            if (Model is ISubgraphNodeModel subgraphNodeModel && subgraphNodeModel.SubgraphAssetModel != null)
+            if (Model is ISubgraphNodeModel subgraphNodeModel && subgraphNodeModel.SubgraphModel != null)
             {
-                GraphView.Dispatch(new LoadGraphAssetCommand(subgraphNodeModel.SubgraphAssetModel, null, LoadGraphAssetCommand.LoadStrategies.PushOnStack));
+                GraphView.Dispatch(new LoadGraphCommand(subgraphNodeModel.SubgraphModel, null, LoadGraphCommand.LoadStrategies.PushOnStack));
                 GraphView.Window.UpdateWindowsWithSameCurrentGraph(false);
             }
         }

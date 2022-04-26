@@ -81,10 +81,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (item is GraphNodeModelSearcherItem dataProvider)
                 {
                     callback(dataProvider);
-                    return true;
                 }
 
-                return false;
+                return true;
             }
 
             var searcher = new Searcher.Searcher(dbs, adapter, filter, usage);

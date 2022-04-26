@@ -10,12 +10,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class DragTokenTests : BaseUIFixture
     {
-        static readonly Vector2 k_TokenPos = new Vector2(SelectionDragger.panAreaWidth * 0.3f, 0);
-        static readonly Vector2 k_NodePos = new Vector2(SelectionDragger.panAreaWidth * 0.8f, 0);
+        static readonly Vector2 k_TokenPos = new Vector2(GraphView.panAreaWidth * 0.3f, 0);
+        static readonly Vector2 k_NodePos = new Vector2(GraphView.panAreaWidth * 0.8f, 0);
 
         TestEventHelpers m_Helpers;
-        TestNodeModel NodeModel { get; set; }
-        IConstantNodeModel TokenModel { get; set; }
+        SerializableGUID NodeModelGUID { get; set; }
+        SerializableGUID TokenModelGUID { get; set; }
 
         protected override bool CreateGraphOnStartup => true;
 
@@ -24,8 +24,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             base.SetUp();
 
-            NodeModel = GraphModel.CreateNode<TestNodeModel>("OtherNode", k_NodePos);
-            TokenModel = GraphModel.CreateConstantNode(TypeHandle.Float, "Constant", k_TokenPos);
+            NodeModelGUID = GraphModel.CreateNode<TestNodeModel>("OtherNode", k_NodePos).Guid;
+            TokenModelGUID = GraphModel.CreateConstantNode(TypeHandle.Float, "Constant", k_TokenPos).Guid;
             MarkGraphModelStateDirty();
             m_Helpers = new TestEventHelpers(Window);
         }
@@ -34,9 +34,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         public IEnumerator DraggingTokenToPortConnectsAndIsStillMoveable([Values] TestingMode testingMode)
         {
             yield return null;
-            var token = TokenModel.GetView<Node>(GraphView);
+
+            GraphModel.TryGetModelFromGuid(NodeModelGUID, out TestNodeModel nodeModel);
+            GraphModel.TryGetModelFromGuid(TokenModelGUID, out var tokenModel);
+
+            var token = tokenModel.GetView<Node>(GraphView);
             Assert.NotNull(token);
-            var port = NodeModel.InputsByDisplayOrder.Single().GetView<Port>(GraphView);
+            var port = nodeModel.InputsByDisplayOrder.Single().GetView<Port>(GraphView);
             Assert.NotNull(port);
 
             Vector2 worldTokenPos = token.worldBound.min + new Vector2(5, 5);
@@ -45,8 +49,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return TestPrereqCommandPostreq(testingMode,
                 () =>
                 {
-                    Assert.True(TokenModel.HasCapability(Capabilities.Movable));
-                    port = NodeModel.InputsByDisplayOrder.Single().GetView<Port>(GraphView);
+                    GraphModel.TryGetModelFromGuid(NodeModelGUID, out TestNodeModel nodeModel);
+                    GraphModel.TryGetModelFromGuid(TokenModelGUID, out var tokenModel);
+
+                    Assert.True(tokenModel.HasCapability(Capabilities.Movable));
+                    port = nodeModel.InputsByDisplayOrder.Single().GetView<Port>(GraphView);
                     Assert.NotNull(port);
                     Assert.False(port.PortModel.IsConnected());
                 },
@@ -73,11 +80,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 },
                 () =>
                 {
-                    var nodeModel = GraphModel.NodeModels.OfType<TestNodeModel>().Single();
                     var portModel = nodeModel.InputsByDisplayOrder.Single();
                     Assert.NotNull(portModel);
                     Assert.True(portModel.IsConnected());
-                    Assert.True(TokenModel.HasCapability(Capabilities.Movable));
+                    Assert.True(tokenModel.HasCapability(Capabilities.Movable));
                 });
         }
     }

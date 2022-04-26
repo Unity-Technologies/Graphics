@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -13,7 +14,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         protected List<Capabilities> m_Capabilities = new List<Capabilities>();
 
         /// <inheritdoc/>
-        public IGraphModel GraphModel => ParentModel.GraphModel;
+        public IGraphModel GraphModel
+        {
+            get => ParentModel.GraphModel;
+            set => throw new InvalidOperationException($"Cannot set the {nameof(GraphModel)} on a {nameof(GraphProcessingErrorModel)}");
+        }
 
         /// <inheritdoc/>
         public SerializableGUID Guid
@@ -26,9 +31,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
             set => m_Guid = value;
         }
-
-        /// <inheritdoc/>
-        public IGraphAssetModel AssetModel { get; set; }
 
         /// <summary>
         /// The container this node is stored into.

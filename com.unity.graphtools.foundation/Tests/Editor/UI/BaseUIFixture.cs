@@ -5,7 +5,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEditor.GraphToolsFoundation.Overdrive.Bridge;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -34,21 +33,32 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 
         protected virtual bool WithSidePanel => false;
 
+        protected virtual bool WithOverlays => false;
+
+        protected virtual bool EnablePanning => true;
+
+        // store PanSpeed to restore it after tests
+        static float s_OriginalPanSpeed;
+
         [SetUp]
         public virtual void SetUp()
         {
             var windowType = GetWindowType();
             Window = EditorWindow.GetWindowWithRect(windowType, k_WindowRect) as UITestWindow;
             Assert.IsNotNull(Window);
-            Window.CloseAllOverlays();
+
+            if (!WithOverlays)
+            {
+                Window.CloseAllOverlays();
+            }
 
             GraphView = Window.GraphView;
             Helpers = new TestEventHelpers(Window);
 
             if (CreateGraphOnStartup)
             {
-                var graphAsset = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(CreatedGraphType, "Test");
-                GraphView.Dispatch(new LoadGraphAssetCommand(graphAsset));
+                var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(CreatedGraphType, "Test");
+                GraphView.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
                 // Complete the graph loading.
                 GraphTool.Update();
             }
@@ -56,6 +66,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
             Vector3 frameTranslation = Vector3.zero;
             Vector3 frameScaling = Vector3.one;
             GraphView.Dispatch(new ReframeGraphViewCommand(frameTranslation, frameScaling));
+
+            s_OriginalPanSpeed = GraphView.basePanSpeed;
+            if (!EnablePanning)
+            {
+                GraphView.basePanSpeed = 0f;
+            }
         }
 
         [TearDown]
@@ -69,6 +85,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                 GraphModel?.QuickCleanup();
                 Window.Close();
             }
+            GraphView.basePanSpeed = s_OriginalPanSpeed;
         }
 
         protected IList<GraphElement> GetGraphElements()

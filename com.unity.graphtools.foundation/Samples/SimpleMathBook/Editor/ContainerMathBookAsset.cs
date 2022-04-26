@@ -8,8 +8,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
     [Serializable]
     public class ContainerMathBookAsset : MathBookAsset
     {
-        public override bool IsContainerGraph() => true;
-
         [MenuItem("Assets/Create/GTF Samples/Math Book/Container Math Book")]
         public new static void CreateGraph(MenuCommand menuCommand)
         {
@@ -20,7 +18,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             if (window != null)
                 target = window.GraphTool;
 
-            GraphAssetCreationHelpers<ContainerMathBookAsset>.CreateInProjectWindow(template, target, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<ContainerMathBookAsset>(template, target, path);
         }
     }
 }

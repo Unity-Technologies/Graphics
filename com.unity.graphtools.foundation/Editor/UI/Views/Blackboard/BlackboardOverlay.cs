@@ -7,28 +7,33 @@ using UnityEngine.UIElements;
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     [Overlay(typeof(GraphViewEditorWindow), idValue, "Blackboard", defaultDisplay = true,
-        defaultDockZone = DockZone.LeftColumn, defaultLayout = Layout.Panel)]
+        defaultDockZone = DockZone.LeftColumn, defaultLayout = Layout.Panel/*, defaultWidth = 300, defaultHeight = 400*/)]
     [Icon( AssetHelper.AssetPath + "UI/Stylesheets/Icons/PanelsToolbar/Blackboard.png")]
-    sealed class BlackboardOverlay : ResizableOverlay
+    sealed class BlackboardOverlay : Overlay
     {
         public const string idValue = "gtf-blackboard";
 
         BlackboardView m_BlackboardView;
 
-        protected override string Stylesheet => "BlackboardOverlay.uss";
+        public BlackboardOverlay()
+        {
+            minSize = new Vector2(100, 100);
+            maxSize = Vector2.positiveInfinity;
+        }
 
         /// <inheritdoc />
-        protected override VisualElement CreateResizablePanelContent()
+        public override VisualElement CreatePanelContent()
         {
-            m_BlackboardView?.Dispose();
-
             var window = containerWindow as GraphViewEditorWindow;
-            if (window != null && window.GraphView != null)
+            if (window != null)
             {
                 m_BlackboardView = window.CreateBlackboardView();
-                m_BlackboardView.AddToClassList("unity-theme-env-variables");
-                m_BlackboardView.RegisterCallback<TooltipEvent>((e) => e.StopPropagation());
-                return m_BlackboardView;
+                if (m_BlackboardView != null)
+                {
+                    m_BlackboardView.AddToClassList("unity-theme-env-variables");
+                    m_BlackboardView.RegisterCallback<TooltipEvent>((e) => e.StopPropagation());
+                    return m_BlackboardView;
+                }
             }
 
             var placeholder = new VisualElement();

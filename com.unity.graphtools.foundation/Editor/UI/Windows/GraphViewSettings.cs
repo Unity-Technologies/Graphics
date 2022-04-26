@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive

@@ -1,4 +1,3 @@
-using UnityEditor.GraphToolsFoundation.Overdrive.Bridge;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,15 +15,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public static readonly string textUssClassName = ussClassName.WithUssElement("text");
         public static readonly string hasErrorUssClassName = "ge-has-error-badge";
 
-        static readonly string defaultStylePath = "ErrorBadge.uss";
+        public static readonly string hiddenModifierUssClassName = ussClassName.WithUssModifier("hidden");
+        public static readonly string arrowHiddenModifierUssClassName = ussClassName.WithUssModifier("tip-hidden");
 
+        public static readonly string sideTopModifierUssClassName = ussClassName.WithUssModifier("top");
+        public static readonly string sideRightModifierUssClassName = ussClassName.WithUssModifier("right");
+        public static readonly string sideBottomModifierUssClassName = ussClassName.WithUssModifier("bottom");
+        public static readonly string sideLeftModifierUssClassName = ussClassName.WithUssModifier("left");
+
+        static readonly string defaultCommonStylePath = "ErrorBadgeCommon.uss";
+#if UNITY_2022_2_OR_NEWER
+        static readonly string defaultStylePath = "ErrorBadge222.vuss";
+#else
+        static readonly string defaultStylePath = "ErrorBadge203.uss";
+#endif
         protected Image m_TipElement;
         protected Image m_IconElement;
         protected Label m_TextElement;
-
-        protected Attacher m_TextAttacher;
-
-        protected int m_CurrentTipAngle;
 
         protected string m_BadgeType;
 
@@ -59,9 +66,29 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             m_TextElement = new Label { name = "text" };
             m_TextElement.AddToClassList(textUssClassName);
-            //we need to add the style sheet to the Text element as well since it will be parented elsewhere
-            m_TextElement.AddStylesheet(defaultStylePath);
-            m_TextElement.RegisterCallback<GeometryChangedEvent, ErrorBadge>((_, obj) => obj.ComputeTextSize(), this);
+            m_TextElement.EnableInClassList(hiddenModifierUssClassName, true);
+            Add(m_TextElement);
+
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+            RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+            RegisterCallback<MouseEnterEvent>(OnMouseEnter);
+        }
+
+        /// <inheritdoc />
+        protected override void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            HideText();
+            base.OnDetachedFromPanel(evt);
+        }
+
+        /// <inheritdoc />
+        protected override void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            if (Attacher != null)
+                PerformTipLayout();
+
+            base.OnGeometryChanged(evt);
         }
 
         /// <inheritdoc />
@@ -70,7 +97,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             base.PostBuildUI();
 
             AddToClassList(ussClassName);
+            this.AddStylesheet(defaultCommonStylePath);
             this.AddStylesheet(defaultStylePath);
+
+            //we need to add the style sheet to the Text element as well since it will be parented elsewhere
+            m_TextElement.AddStylesheet(defaultCommonStylePath);
+            m_TextElement.AddStylesheet(defaultStylePath);
         }
 
         /// <inheritdoc />
@@ -103,113 +135,59 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             base.Detach();
         }
 
-        void ComputeTextSize()
-        {
-            if (m_TextElement != null)
-            {
-                float maxWidth = m_TextElement.resolvedStyle.maxWidth == StyleKeyword.None ? float.NaN : m_TextElement.resolvedStyle.maxWidth.value;
-                Vector2 newSize = m_TextElement.DoMeasure(maxWidth, MeasureMode.AtMost,
-                    0, MeasureMode.Undefined);
-
-                m_TextElement.style.width = newSize.x +
-                    m_TextElement.resolvedStyle.marginLeft +
-                    m_TextElement.resolvedStyle.marginRight +
-                    m_TextElement.resolvedStyle.borderLeftWidth +
-                    m_TextElement.resolvedStyle.borderRightWidth +
-                    m_TextElement.resolvedStyle.paddingLeft +
-                    m_TextElement.resolvedStyle.paddingRight;
-
-                float height = newSize.y +
-                    m_TextElement.resolvedStyle.marginTop +
-                    m_TextElement.resolvedStyle.marginBottom +
-                    m_TextElement.resolvedStyle.borderTopWidth +
-                    m_TextElement.resolvedStyle.borderBottomWidth +
-                    m_TextElement.resolvedStyle.paddingTop +
-                    m_TextElement.resolvedStyle.paddingBottom;
-
-                m_TextElement.style.height = height;
-
-                if (m_TextAttacher != null)
-                {
-                    m_TextAttacher.Offset = new Vector2(0, height);
-                }
-
-                PerformTipLayout();
-            }
-        }
-
         protected void ShowText()
         {
-            if (m_TextElement != null && m_TextElement.hierarchy.parent == null)
-            {
-                VisualElement textParent = this;
-
-                if (GraphView != null)
-                {
-                    textParent = GraphView;
-                }
-
-                textParent.Add(m_TextElement);
-
-                if (textParent != this)
-                {
-                    if (m_TextAttacher == null)
-                    {
-                        m_TextAttacher = new Attacher(m_TextElement, m_IconElement, SpriteAlignment.TopRight);
-                    }
-                    else
-                    {
-                        m_TextAttacher.Reattach();
-                    }
-                }
-                m_TextAttacher.Distance = 0;
-                m_TextElement.ResetPositionProperties();
-
-                ComputeTextSize();
-            }
+            if (m_TextElement?.hierarchy.parent != null && m_TextElement.ClassListContains(hiddenModifierUssClassName))
+                m_TextElement?.EnableInClassList(hiddenModifierUssClassName, false);
         }
 
         protected void HideText()
         {
-            if (m_TextElement?.hierarchy.parent != null)
-            {
-                m_TextAttacher?.Detach();
-                m_TextElement.RemoveFromHierarchy();
-            }
+            if (m_TextElement?.hierarchy.parent != null && !m_TextElement.ClassListContains(hiddenModifierUssClassName))
+                m_TextElement.EnableInClassList(hiddenModifierUssClassName, true);
         }
 
-        /// <inheritdoc />
-#if UNITY_2022_1_OR_NEWER
-        [EventInterest(typeof(GeometryChangedEvent), typeof(DetachFromPanelEvent),
-            typeof(MouseEnterEvent), typeof(MouseLeaveEvent))]
-#endif
-        protected override void ExecuteDefaultAction(EventBase evt)
+        void OnMouseEnter(MouseEnterEvent evt)
         {
-            if (evt.eventTypeId == GeometryChangedEvent.TypeId())
-            {
-                if (Attacher != null)
-                    PerformTipLayout();
-            }
-            else if (evt.eventTypeId == DetachFromPanelEvent.TypeId())
-            {
-                HideText();
-            }
-            else if (evt.eventTypeId == MouseEnterEvent.TypeId())
-            {
-                //we make sure we sit on top of whatever siblings we have
-                BringToFront();
-                ShowText();
-            }
-            else if (evt.eventTypeId == MouseLeaveEvent.TypeId())
-            {
-                HideText();
-            }
+            //we make sure we sit on top of whatever siblings we have
+            BringToFront();
+            ShowText();
+        }
 
-            base.ExecuteDefaultAction(evt);
+        void OnMouseLeave(MouseLeaveEvent evt)
+        {
+            HideText();
         }
 
         void PerformTipLayout()
         {
+#if UNITY_2022_2_OR_NEWER
+            RemoveFromClassList(arrowHiddenModifierUssClassName);
+
+            RemoveFromClassList(sideTopModifierUssClassName);
+            RemoveFromClassList(sideRightModifierUssClassName);
+            RemoveFromClassList(sideBottomModifierUssClassName);
+            RemoveFromClassList(sideLeftModifierUssClassName);
+
+            switch (Alignment)
+            {
+                case SpriteAlignment.TopCenter:
+                    AddToClassList(sideTopModifierUssClassName);
+                    break;
+                case SpriteAlignment.LeftCenter:
+                    AddToClassList(sideLeftModifierUssClassName);
+                    break;
+                case SpriteAlignment.RightCenter:
+                    AddToClassList(sideRightModifierUssClassName);
+                    break;
+                case SpriteAlignment.BottomCenter:
+                    AddToClassList(sideBottomModifierUssClassName);
+                    break;
+                default:
+                    AddToClassList(arrowHiddenModifierUssClassName);
+                    break;
+            }
+#else
             float contentWidth = resolvedStyle.width;
 
             float arrowWidth = 0;
@@ -304,6 +282,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     m_TextElement.style.top = iconRect.y;
                 }
             }
+#endif
         }
     }
 }

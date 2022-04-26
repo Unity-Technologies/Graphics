@@ -14,8 +14,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             // Replace the save all button by our own.
             var elements = base.GetElementIds().ToList();
 #if UNITY_2022_2_OR_NEWER
-            var saveAllIndex = elements.IndexOf(SaveAllButton.id);
-            elements[saveAllIndex] = MathBookSaveAllButton.id;
+            var saveAllIndex = elements.IndexOf(SaveButton.id);
+            elements[saveAllIndex] = MathBookSaveButton.id;
 #endif
             return elements;
         }

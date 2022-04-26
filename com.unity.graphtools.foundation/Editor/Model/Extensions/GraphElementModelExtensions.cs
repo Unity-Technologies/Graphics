@@ -167,23 +167,5 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             return self.HasCapability(Capabilities.NeedsContainer);
         }
-
-        /// <summary>
-        /// Returns the ZOrder of the model in the graph
-        /// </summary>
-        /// <param name="self">The model for which to find the Z order.</param>
-        /// <typeparam name="T">The type of the model.</typeparam>
-        /// <returns>The index of the model in its list, if found. -1 otherwise.</returns>
-        public static int GetZOrder<T>(this T self) where T : class, IGraphElementModel
-        {
-            var list = (List<T>)self.GraphModel.GetListOf<T>();
-            for (var i = 0; i < list.Count; i++)
-            {
-                if (list[i] == self)
-                    return i;
-            }
-
-            return -1;
-        }
     }
 }

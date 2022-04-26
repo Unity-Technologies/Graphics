@@ -72,9 +72,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
                     checkPostReqs();
                     break;
                 case TestingMode.UndoRedo:
-                    var assetModel = GraphTool.ToolState.AssetModel;
+                    var asset = GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
-                    MockSaveAssetModel(assetModel);
+                    MockSaveGraphAsset(asset);
 
                     Undo.IncrementCurrentGroup();
 
@@ -90,42 +90,42 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 
                     Undo.PerformUndo();
 
-                    CheckUndo(checkReqs, provideCommand, assetModel);
+                    CheckUndo(checkReqs, provideCommand, asset);
 
-                    MockSaveAssetModel(assetModel);
+                    MockSaveGraphAsset(asset);
 
                     Undo.PerformRedo();
-                    CheckRedo(checkPostReqs, assetModel);
+                    CheckRedo(checkPostReqs, asset);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        static void CheckRedo(Action checkPostReqs, IGraphAssetModel assetModel)
+        static void CheckRedo(Action checkPostReqs, IGraphAsset asset)
         {
             BaseFixtureHelpers.AssertPreviousTest(checkPostReqs);
 
-            if (assetModel != null)
-                Assert.IsTrue(assetModel.Dirty);
+            if (asset != null)
+                Assert.IsTrue(asset.Dirty);
         }
 
-        static void MockSaveAssetModel(IGraphAssetModel assetModel)
+        static void MockSaveGraphAsset(IGraphAsset asset)
         {
-            if (assetModel == null)
+            if (asset == null)
                 return;
 
-            assetModel.Dirty = false;
-            Assert.IsFalse(assetModel.Dirty);
+            asset.Dirty = false;
+            Assert.IsFalse(asset.Dirty);
         }
 
-        void CheckUndo<T>(Action checkReqs, Func<T> provideCommand, IGraphAssetModel assetModel) where T : UndoableCommand
+        void CheckUndo<T>(Action checkReqs, Func<T> provideCommand, IGraphAsset asset) where T : UndoableCommand
         {
             BaseFixtureHelpers.AssertPreviousTest(checkReqs);
             BaseFixtureHelpers.AssertPreviousTest(() => provideCommand());
 
-            if (assetModel != null)
-                Assert.IsTrue(assetModel.Dirty);
+            if (asset != null)
+                Assert.IsTrue(asset.Dirty);
         }
 
         protected void TestPrereqCommandPostreq<T>(TestingMode mode, Func<T> checkReqsAndProvideCommand, Action checkPostReqs) where T : UndoableCommand
@@ -144,8 +144,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
 
             if (CreateGraphOnStartup)
             {
-                var graphAsset = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateInMemoryGraphAsset(CreatedGraphType, "Test");
-                GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+                var graphAsset = GraphAssetCreationHelpers<ClassGraphAsset>.CreateInMemoryGraphAsset(CreatedGraphType, "Test");
+                GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
                 GraphTool.Update();
                 AssumeIntegrity();
             }
@@ -158,11 +158,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests
             GraphTool.Dispose();
             GraphTool = null;
             Profiler.enabled = false;
+
+            AssetDatabase.DeleteAsset(k_GraphPath);
         }
 
         void UnloadGraph()
         {
-            GraphTool.Dispatch(new UnloadGraphAssetCommand());
+            GraphTool.Dispatch(new UnloadGraphCommand());
         }
 
         protected void AssertIntegrity()

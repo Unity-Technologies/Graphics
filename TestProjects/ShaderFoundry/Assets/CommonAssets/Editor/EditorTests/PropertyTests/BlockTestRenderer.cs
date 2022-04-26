@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -18,24 +20,33 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return container;
         }
 
-        // Builds a simple shader using a single block to add to the surface customization point.
-        internal static string BuildSimpleSurfaceBlockShader(ShaderContainer container, string shaderName, Block block)
+        // Builds a simple shader with multiple blocks added to the surface customization point.
+        internal static string BuildSimpleSurfaceShader(ShaderContainer container, string shaderName, IEnumerable<Block> blocks)
         {
             var builder = new ShaderFoundry.ShaderBuilder();
             SimpleBlockShaderBuilder.BuildCallback callback = (ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst) =>
             {
                 vertexCPInst = CustomizationPointInstance.Invalid;
 
-                var colorBlockInstance = SimpleBlockShaderBuilder.BuildSimpleBlockInstance(container, block);
-
                 // The order of these block is what determines how the inputs/outputs are resolved
                 var cpDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
-                cpDescBuilder.BlockInstances.Add(colorBlockInstance);
+
+                foreach (var block in blocks)
+                {
+                    var blockInstance = SimpleBlockShaderBuilder.BuildSimpleBlockInstance(container, block);
+                    cpDescBuilder.BlockInstances.Add(blockInstance);
+                }
 
                 surfaceCPInst = cpDescBuilder.Build();
             };
             SimpleBlockShaderBuilder.Build(container, shaderName, callback, builder);
             return builder.ToString();
+        }
+
+        // Builds a simple shader using a single block to add to the surface customization point.
+        internal static string BuildSimpleSurfaceBlockShader(ShaderContainer container, string shaderName, Block block)
+        {
+            return BuildSimpleSurfaceShader(container, shaderName, Enumerable.Repeat(block, 1));
         }
 
         internal Shader BuildSimpleSurfaceBlockShaderObject(ShaderContainer container, string shaderName, Block block)

@@ -26,6 +26,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <summary>
         /// Initializes the constant after creation.
         /// </summary>
+        /// <param name="constantTypeHandle">The type of value held by this constant.</param>
         void Initialize(TypeHandle constantTypeHandle);
 
         /// <summary>

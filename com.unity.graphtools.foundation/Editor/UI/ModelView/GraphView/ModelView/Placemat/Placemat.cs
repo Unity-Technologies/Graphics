@@ -620,16 +620,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             var selectedPlacemats = GraphView.GetSelection().OfType<IPlacematModel>().ToList();
 
             evt.menu.AppendAction("Reorder Placemats/Bring to Front",
-                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveTop, selectedPlacemats)),
+                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.ToFront, selectedPlacemats)),
                 canBeReordered && !placematIsTop ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             evt.menu.AppendAction("Reorder Placemats/Bring Forward",
-                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveForward, selectedPlacemats)),
+                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Forward, selectedPlacemats)),
                 canBeReordered && !placematIsTop ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             evt.menu.AppendAction("Reorder Placemats/Send Backward",
-                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBackward, selectedPlacemats)),
+                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.Backward, selectedPlacemats)),
                 canBeReordered && !placematIsBottom ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             evt.menu.AppendAction("Reorder Placemats/Send to Back",
-                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ChangePlacematOrderCommand.PlacematOrderingAction.MoveBottom, selectedPlacemats)),
+                _ => GraphView.Dispatch(new ChangePlacematOrderCommand(ZOrderMove.ToBack, selectedPlacemats)),
                 canBeReordered && !placematIsBottom ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
         }
 

@@ -14,14 +14,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public static readonly string portalModifierUssClassName = ussClassName.WithUssModifier("portal");
         public static readonly string portalEntryModifierUssClassName = ussClassName.WithUssModifier("portal-entry");
         public static readonly string portalExitModifierUssClassName = ussClassName.WithUssModifier("portal-exit");
-        public static readonly string highlightedModifierUssClassName = ussClassName.WithUssModifier("highlighted");
 
         public static readonly string titleIconContainerPartName = "title-icon-container";
         public static readonly string constantEditorPartName = "constant-editor";
         public static readonly string inputPortContainerPartName = "inputs";
         public static readonly string outputPortContainerPartName = "outputs";
 
-        internal bool IsHighlighted() => ClassListContains(highlightedModifierUssClassName);
+        internal bool IsHighlighted() => Border.Highlighted;
 
         /// <inheritdoc />
         protected override void BuildPartList()
@@ -75,7 +74,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                     highlight = false;
                 }
 
-                EnableInClassList(highlightedModifierUssClassName, highlight);
+                Border.Highlighted = highlight;
             }
         }
 

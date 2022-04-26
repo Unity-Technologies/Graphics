@@ -66,7 +66,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
                     Helpers.MouseDragEvent(pos, target);
                     yield return null;
 
-                    scheduler.TimeSinceStartup += SelectionDragger.panInterval;
+                    scheduler.TimeSinceStartup += GraphView.panInterval;
                     scheduler.UpdateScheduledEvents();
 
                     Helpers.MouseUpEvent(target);

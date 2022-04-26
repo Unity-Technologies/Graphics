@@ -12,7 +12,7 @@ namespace UnityEngine.GraphToolsFoundation.Overdrive
             foreach (var variableNodeModel in graphModel.NodeModels.OfType<IVariableNodeModel>().Where(v =>
                     !((Stencil)graphModel.Stencil).CanAllowVariableInGraph(v.VariableDeclarationModel, graphModel)))
             {
-                res.AddError("This variable node is not allowed on the graph.", variableNodeModel);
+                res.AddError("Only one instance of a data output is allowed in the graph.", variableNodeModel);
             }
 
             return res;

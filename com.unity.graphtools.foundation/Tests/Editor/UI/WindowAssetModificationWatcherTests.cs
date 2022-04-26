@@ -12,7 +12,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
 {
     class WindowAssetModificationWatcherTests : BaseUIFixture
     {
-        IGraphAssetModel m_Asset1;
+        IGraphAsset m_Asset1;
 
         /// <inheritdoc />
         protected override bool CreateGraphOnStartup => false;
@@ -22,8 +22,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         {
             base.SetUp();
 
-            m_Asset1 = GraphAssetCreationHelpers<ClassGraphAssetModel>.CreateGraphAsset(CreatedGraphType, "Test1", "Assets/test1.asset");
-            GraphTool.Dispatch(new LoadGraphAssetCommand(m_Asset1));
+            m_Asset1 = GraphAssetCreationHelpers<ClassGraphAsset>.CreateGraphAsset(CreatedGraphType, "Test1", "Assets/test1.asset");
+            GraphTool.Dispatch(new LoadGraphCommand(m_Asset1.GraphModel));
             GraphTool.Update();
         }
 
@@ -42,13 +42,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         {
             var state = Window.GraphTool.ToolState;
 
-            Assert.IsNotNull(state.CurrentGraph.GetGraphAssetModel());
+            Assert.IsNotNull(state.CurrentGraph.GetGraphAsset());
 
             var path = AssetDatabase.GetAssetPath(m_Asset1 as Object);
             Assert.IsNotNull(path);
             AssetDatabase.DeleteAsset(path);
 
-            Assert.AreEqual("", state.CurrentGraph.GraphModelAssetGuid);
+            Assert.AreEqual("", state.CurrentGraph.GraphAssetGuid);
         }
 
         void DisplayToolbarBreadcrumbs()
@@ -75,7 +75,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.UI
         {
             var state = Window.GraphTool.ToolState;
 
-            Assert.IsNotNull(state.CurrentGraph.GetGraphAssetModel());
+            Assert.IsNotNull(state.CurrentGraph.GetGraphAsset());
             DisplayToolbarBreadcrumbs();
 
             yield return null;

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
@@ -377,24 +376,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             {
                 evt.menu.AppendAction("Create Group From Selection", _ =>
                 {
-                    var selectedItems = BlackboardView.GetSelection().OfType<IGroupItemModel>().Where(t => t.GetSection() == model.GetSection()).ToList();
-                    selectedItems.Add(model);
-
-                    selectedItems.Sort(GroupItemOrderComparer.Default);
-
-                    int index = model.ParentGroup.Items.IndexOfInternal(selectedItems.First(t => !selectedItems.Contains(t.ParentGroup)));
-
-                    //Look up for the next non selected item after me
-                    IGroupItemModel prevItem = null;
-                    for (int i = index - 1; i >= 0; --i)
-                    {
-                        prevItem = model.ParentGroup.Items[i];
-                        if (!selectedItems.Contains(prevItem))
-                            break;
-                    }
-
-
-                    RootView.Dispatch(new BlackboardGroupCreateCommand(model.ParentGroup, prevItem, null, selectedItems));
+                    model = BlackboardView.CreateGroupFromSelection(model);
                 });
             }
         }

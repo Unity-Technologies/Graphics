@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -14,7 +14,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     {
         const string k_PromptToCreateTitle = "Create {0}";
         const string k_PromptToCreate = "Create a new {0}";
-        const string k_AssetExtension = "asset";
 
         /// <summary>
         /// The GraphView in charge of aligning the nodes.
@@ -81,7 +80,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <param name="template">The template of the subgraph.</param>
         /// <param name="graphView">The current graph view.</param>
         /// <param name="assetPath">The path of the asset.</param>
-        internal CreateSubgraphCommand(Type assetType, List<IGraphElementModel> elementsToCreate, IGraphTemplate template, GraphView graphView, string assetPath)
+        public CreateSubgraphCommand(Type assetType, List<IGraphElementModel> elementsToCreate, IGraphTemplate template, GraphView graphView, string assetPath)
             : this(assetType, elementsToCreate, template, graphView)
         {
             AssetType = assetType;
@@ -128,23 +127,22 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 }
 
                 // Create the subgraph
-                IGraphAssetModel graphAsset;
+                IGraphAsset graphAsset;
                 if (command.AssetPath == null)
                 {
                     var promptTitle = string.Format(k_PromptToCreateTitle, command.Template.GraphTypeName);
                     var prompt = string.Format(k_PromptToCreate, command.Template.GraphTypeName);
-                    graphAsset = GraphAssetCreationHelpers.PromptToCreate(command.AssetType, command.Template, promptTitle, prompt, k_AssetExtension);
+                    graphAsset = GraphAssetCreationHelpers.PromptToCreateGraphAsset(command.AssetType, command.Template, promptTitle, prompt);
                 }
                 else
                 {
-                    // Used for tests
                     graphAsset = GraphAssetCreationHelpers.CreateGraphAsset(command.AssetType, command.Template.StencilType, command.Template.GraphTypeName, command.AssetPath, command.Template);
                 }
 
-                if (graphAsset == null)
+                if (graphAsset as Object == null)
                     return;
 
-                SubgraphCreationHelpers.PopulateSubgraph(graphAsset, elementsToAddToSubgraph, allEdgeModels, inputEdgeConnections, outputEdgeConnections);
+                SubgraphCreationHelpers.PopulateSubgraph(graphAsset.GraphModel, elementsToAddToSubgraph, allEdgeModels, inputEdgeConnections, outputEdgeConnections);
 
                 // Delete the graph elements that will be created in the local subgraph
                 var deletedModels = new List<IGraphElementModel>();
@@ -159,7 +157,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                 // Create the subgraph node
                 var position = SubgraphNode.ComputeSubgraphNodePosition(command.ElementsToAddToSubgraph, command.GraphView);
-                subgraphNodeModel = graphModel.CreateSubgraphNode(graphAsset, position, command.Guid);
+                subgraphNodeModel = graphModel.CreateSubgraphNode(graphAsset.GraphModel, position, command.Guid);
                 graphUpdater.MarkNew(subgraphNodeModel);
 
                 // Create new edges linking the subgraph node to other nodes

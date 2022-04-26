@@ -41,7 +41,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <inheritdoc />
         public virtual void Initialize(TypeHandle constantTypeHandle)
         {
-            Debug.Assert(constantTypeHandle.Resolve().IsAssignableFrom(GetTypeHandle().Resolve()));
+            // We ignore constantTypeHandle. Our type is solely determined by T.
             ObjectValue = DefaultValue;
         }
 

@@ -1,0 +1,14 @@
+{
+  "name": "com.unity.sg2",
+  "description": "Shader Graph reimagined under GTF.",
+  "version": "0.1.0",
+  "unity": "2022.1",
+  "displayName": "Shader Graph 2",
+  "dependencies": {
+    "com.unity.shadergraph": "14.0.2"
+  },
+  "samples": [
+    {
+    }
+  ]
+}

@@ -1,11 +1,14 @@
 .minimap-view {
     position: relative;
     flex-direction: column;
-    width: auto;
-    height: auto;
     background-color: var(--overlay-background-color);
     font-size: var(--unity-font-size);
     flex: 1;
+}
+
+#overlay-popup .minimap-view {
+    width: 200px;
+    height: 200px;
 }
 
 .ge-minimap {

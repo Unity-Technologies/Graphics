@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
@@ -194,9 +195,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         }
 
         /// <inheritdoc />
+        public int GetZOrder()
+        {
+            return GraphModel.PlacematModels.IndexOfInternal(this);
+        }
+
+        /// <inheritdoc />
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
+
+            m_CachedHiddenElementModels = null;
+
             if (Version <= SerializationVersion.GTF_V_0_8_2)
             {
                 if (DefaultColor != InternalSerializedColor)

@@ -242,7 +242,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                 foreach (var variableModel in command.VariableNodeModels ?? Enumerable.Empty<IVariableNodeModel>())
                 {
-                    if (graphModel.Stencil.GetConstantNodeValueType(variableModel.GetDataType()) == null)
+                    if (graphModel.Stencil.GetConstantType(variableModel.GetDataType()) == null)
                         continue;
                     var constantModel = graphModel.CreateConstantNode(variableModel.GetDataType(), variableModel.Title, variableModel.Position);
                     constantModel.ObjectValue = variableModel.VariableDeclarationModel?.InitializationModel?.ObjectValue;

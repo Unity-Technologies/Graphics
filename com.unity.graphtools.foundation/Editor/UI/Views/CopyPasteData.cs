@@ -398,10 +398,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 RecurseAddMapping(elementMapping, originalModel, pastedNode);
             }
 
-            foreach (var edge in copyPasteData.edges.Where(edge => graphModel.GetEdgesForPort(edge.FromPort).Any() && graphModel.GetEdgesForPort(edge.ToPort).Any()))
+            // Avoid using sourceEdge.FromPort and sourceEdge.ToPort since the edge does not have sufficient context
+            // to resolve the IPortModel from the PortReference (the edge is not in a GraphModel).
+            foreach (var edge in copyPasteData.edges)
             {
-                elementMapping.TryGetValue(edge.ToPort.NodeModel.Guid.ToString(), out var newInput);
-                elementMapping.TryGetValue(edge.FromPort.NodeModel.Guid.ToString(), out var newOutput);
+                elementMapping.TryGetValue(edge.ToNodeGuid.ToString(), out var newInput);
+                elementMapping.TryGetValue(edge.FromNodeGuid.ToString(), out var newOutput);
 
                 var copiedEdge = graphModel.DuplicateEdge(edge, newInput as INodeModel, newOutput as INodeModel);
                 if (copiedEdge != null)

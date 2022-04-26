@@ -10,13 +10,18 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class GraphViewTester
     {
-        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(SelectionDragger.panAreaWidth * 8, SelectionDragger.panAreaWidth * 6));
+        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(Overdrive.GraphView.panAreaWidth * 8, Overdrive.GraphView.panAreaWidth * 6));
 
         bool m_SnapToPortEnabled;
         bool m_SnapToBorderEnabled;
         bool m_SnapToGridEnabled;
         bool m_SnapToSpacingEnabled;
         float m_SpacingMarginValue;
+
+        protected virtual bool EnablePanning => true;
+
+        // store PanSpeed to restore it after tests
+        static float s_OriginalPanSpeed;
 
         protected TestGraphViewWindow Window { get; set; }
         protected TestGraphView GraphView { get; private set; }
@@ -64,14 +69,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 
             Helpers = new TestEventHelpers(Window);
 
-            var graphAsset = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
-            Window.GraphTool.Dispatch(new LoadGraphAssetCommand(graphAsset));
+            var graphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateInMemoryGraphAsset(typeof(TestStencil), "Test");
+            Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             Window.GraphTool.Update();
 
             Vector3 frameTranslation = Vector3.zero;
             Vector3 frameScaling = Vector3.one;
             Window.GraphView.Dispatch(new ReframeGraphViewCommand(frameTranslation, frameScaling));
             Window.GraphTool.Update();
+
+            s_OriginalPanSpeed = Overdrive.GraphView.basePanSpeed;
+            if (!EnablePanning)
+            {
+                Overdrive.GraphView.basePanSpeed = 0f;
+            }
         }
 
         [TearDown]
@@ -89,6 +100,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GraphViewSettings.UserSettings.EnableSnapToGrid = m_SnapToGridEnabled;
             GraphViewSettings.UserSettings.EnableSnapToSpacing = m_SnapToSpacingEnabled;
             GraphViewSettings.UserSettings.SpacingMarginValue = m_SpacingMarginValue;
+
+            Overdrive.GraphView.basePanSpeed = s_OriginalPanSpeed;
         }
 
         void Clear()
@@ -198,9 +211,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             return sticky;
         }
 
-        protected ISubgraphNodeModel CreateSubgraphNode(IGraphAssetModel referenceGraphAsset, Vector2 position = default)
+        protected ISubgraphNodeModel CreateSubgraphNode(IGraphAsset referenceGraphAsset, Vector2 position = default)
         {
-            var subgraphNode = GraphModel.CreateSubgraphNode((GraphAssetModel)referenceGraphAsset, position);
+            var subgraphNode = GraphModel.CreateSubgraphNode(referenceGraphAsset.GraphModel, position);
             return subgraphNode;
         }
 

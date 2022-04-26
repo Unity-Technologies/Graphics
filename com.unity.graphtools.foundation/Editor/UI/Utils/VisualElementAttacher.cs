@@ -159,8 +159,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         void AlignOnTarget()
         {
             Rect currentRect = new Rect(Element.resolvedStyle.left, Element.resolvedStyle.top, Element.resolvedStyle.width, Element.resolvedStyle.height);
-            Rect targetRect = Target.GetRect();
-            targetRect = Target.ChangeCoordinatesTo(Element.hierarchy.parent, targetRect);
+            Rect targetRect = Target.layout;
+            targetRect = Target.parent.ChangeCoordinatesTo(Element.hierarchy.parent, targetRect);
 
             float centerY = 0;
             //align Vertically
@@ -206,6 +206,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             currentRect.center = new Vector2(centerX, centerY) + Offset;
 
+#if UNITY_2022_2_OR_NEWER
+            Element.style.position = new StyleEnum<Position>(Position.Absolute);
+            Element.style.left = currentRect.xMin;
+            Element.style.top = currentRect.yMin;
+#else
             //we don't want the layout to be overwritten before styling has been applied
             if (currentRect.width > 0)
             {
@@ -216,6 +221,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 Element.style.left = currentRect.xMin;
                 Element.style.top = currentRect.yMin;
             }
+#endif
         }
     }
 }

@@ -9,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
         public override VisualElement CreateOnboardingElements(Dispatcher dispatcher)
         {
             var template = new GraphTemplate<VerticalStencil>(VerticalStencil.graphName);
-            return AddNewGraphButton<VerticalGraphAssetModel>(template);
+            return AddNewGraphButton<VerticalGraphAsset>(template);
         }
     }
 }

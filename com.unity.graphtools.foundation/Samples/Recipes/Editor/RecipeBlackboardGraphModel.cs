@@ -5,10 +5,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Recipes
 {
     public class RecipeBlackboardGraphModel : BlackboardGraphModel
     {
-        /// <inheritdoc />
-        public RecipeBlackboardGraphModel(IGraphAssetModel graphAssetModel)
-            : base(graphAssetModel) {}
-
         public override string GetBlackboardTitle()
         {
             var title = base.GetBlackboardTitle();

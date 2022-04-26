@@ -1,0 +1,72 @@
+#ge-node-preview-part
+{
+    flex-direction: row;
+    flex-grow: 1;
+    overflow: hidden;
+    height: auto;
+}
+
+#previewContainer {
+    justify-content: center;
+    flex-direction: row;
+    flex-grow: 1;
+    border-color: #1a1a1a;
+    border-width: 2px;
+}
+
+#preview {
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 5px;
+    height: 100px;
+    width: 125px;
+    -unity-font-style: bold;
+    border-bottom-color: #1a1a1a;
+    border-bottom-width: 1px;
+}
+
+#collapse {
+    align-self: center;
+    width: 18px;
+    height: 18px;
+    background-color: black;
+    opacity: 0.6;
+}
+
+ #collapse-icon  {
+     background-image : url("Icons/PreviewCollapse.png");
+     width: 16px;
+     height: 16px;
+}
+
+#collapse-icon:hover {
+    background-color: #2B2B2B;
+    border-color: aqua;
+    border-width: 1px;
+}
+
+#expand {
+    align-self: center;
+    flex-direction: row;
+    flex-grow: 1;
+    max-height: 18px;
+    max-width: 18px;
+    background-color: rgba(63, 63, 63, 0.8);
+
+}
+
+#expand-icon:hover {
+    background-color: #2B2B2B;
+    border-color: aqua;
+    border-width: 1px;
+}
+
+#expand-icon {
+    align-content: center;
+    background-image : url("Icons/PreviewExpand.png");
+    width: 16px;
+    height: 16px;
+    background-color: black;
+    opacity: 0.6;
+}
+

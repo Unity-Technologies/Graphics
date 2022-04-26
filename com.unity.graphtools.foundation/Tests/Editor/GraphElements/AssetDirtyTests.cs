@@ -11,7 +11,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
 {
     class AssetDirtyTests : GraphViewTester
     {
-        static readonly Vector2 k_NodePos = new Vector2(SelectionDragger.panAreaWidth * 2, SelectionDragger.panAreaWidth * 3);
+        static readonly Vector2 k_NodePos = new Vector2(Overdrive.GraphView.panAreaWidth * 2, Overdrive.GraphView.panAreaWidth * 3);
         static readonly Rect k_MinimapRect = new Rect(100, 100, 100, 100);
         Vector2 m_SelectionOffset = new Vector2(100, 100);
 
@@ -19,7 +19,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {}
         INodeModel NodeModel { get; set; }
 
-        IGraphAssetModel AssetModel { get; set; }
+        IGraphAsset Asset { get; set; }
 
         const string k_FilePath = "Assets/AssetDirtyTests_TestFile.asset";
         [SetUp]
@@ -30,9 +30,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GraphViewSettings.UserSettings.EnableSnapToBorders = false;
             GraphViewSettings.UserSettings.EnableSnapToPort = false;
 
-            AssetModel = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateGraphAsset(typeof(TestStencil), "TestFile", k_FilePath);
+            Asset = GraphAssetCreationHelpers<TestGraphAsset>.CreateGraphAsset(typeof(TestStencil), "TestFile", k_FilePath);
 
-            Window.GraphTool.Dispatch(new LoadGraphAssetCommand(AssetModel));
+            Window.GraphTool.Dispatch(new LoadGraphCommand(Asset.GraphModel));
             Window.GraphTool.Update();
 
             NodeModel = CreateNode("Movable element", k_NodePos, 0, 1);
@@ -61,7 +61,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             //Check that the asset is not dirty for the moment
-            Assert.IsFalse(AssetModel.Dirty);
+            Assert.IsFalse(Asset.Dirty);
 
             var node = NodeModel.GetView<Node>(GraphView);
             Assert.IsNotNull(node);
@@ -82,11 +82,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             yield return null;
 
             //Check that the asset is dirty
-            Assert.IsTrue(AssetModel.Dirty);
+            Assert.IsTrue(Asset.Dirty);
 
             AssetDatabase.SaveAssets();
             //Check that the asset is not dirty after save
-            Assert.IsFalse(AssetModel.Dirty);
+            Assert.IsFalse(Asset.Dirty);
         }
     }
 }

@@ -13,33 +13,33 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
 {
     class AssetGraphTests : GraphViewTester
     {
-        IGraphAssetModel m_ReferenceAssetGraph;
-        IGraphAssetModel m_CurrentGraphAssetModel;
+        IGraphAsset m_ReferenceAssetGraph;
+        IGraphAsset m_CurrentGraphAsset;
 
         const string k_ReferenceGraphName = "Reference Asset Graph";
         const string k_CurrentGraphName = "Current Graph";
 
-        static IGraphAssetModel CreateGraph<T>(string graphName, bool isContainerGraph = false) where T : GraphAssetModel
+        static IGraphAsset CreateGraph<T>(string graphName) where T : GraphAsset
         {
             var template = new GraphTemplate<ClassStencil>(graphName);
             var type = typeof(ClassStencil);
             var path = $"Assets/{graphName}.asset";
 
             // ReSharper disable once RedundantCast : needed in 2020.3
-            return GraphAssetCreationHelpers<T>.CreateGraphAsset(type, graphName, path, template) as IGraphAssetModel;
+            return GraphAssetCreationHelpers<T>.CreateGraphAsset(type, graphName, path, template) as IGraphAsset;
         }
 
-        static SearcherDatabase GetSearcherDatabaseWithAssetGraphs(IGraphAssetModel graphAssetModel)
+        static SearcherDatabase GetSearcherDatabaseWithAssetGraphs(IGraphAsset graphAsset)
         {
-            return new GraphElementSearcherDatabase((ClassStencil)graphAssetModel.GraphModel.Stencil, graphAssetModel.GraphModel)
+            return new GraphElementSearcherDatabase((ClassStencil)graphAsset.GraphModel.Stencil, graphAsset.GraphModel)
                 .AddAssetGraphSubgraphs()
                 .Build();
         }
 
         void CreateNodesAndValidateGraphModel(GraphNodeModelSearcherItem item, Action<List<INodeModel>> assertNodesCreation)
         {
-            var initialNodes = m_CurrentGraphAssetModel.GraphModel.NodeModels.ToList();
-            item.CreateElement.Invoke(new GraphNodeCreationData(m_CurrentGraphAssetModel.GraphModel, Vector2.zero));
+            var initialNodes = m_CurrentGraphAsset.GraphModel.NodeModels.ToList();
+            item.CreateElement.Invoke(new GraphNodeCreationData(m_CurrentGraphAsset.GraphModel, Vector2.zero));
             assertNodesCreation.Invoke(initialNodes);
         }
 
@@ -54,15 +54,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
         {
             base.SetUp();
 
-            m_ReferenceAssetGraph = CreateGraph<AssetGraphAssetModel>(k_ReferenceGraphName);
-            m_CurrentGraphAssetModel = CreateGraph<AssetGraphAssetModel>(k_CurrentGraphName);
+            m_ReferenceAssetGraph = CreateGraph<AssetGraphAsset>(k_ReferenceGraphName);
+            m_CurrentGraphAsset = CreateGraph<AssetGraphAsset>(k_CurrentGraphName);
         }
 
         [TearDown]
         public override void TearDown()
         {
             base.TearDown();
-            var assetPaths = AssetDatabase.FindAssets($"t:{typeof(AssetGraphAssetModel)} t:{typeof(ContainerGraphAssetModel)}").Select(AssetDatabase.GUIDToAssetPath);
+            var assetPaths = AssetDatabase.FindAssets($"t:{typeof(AssetGraphAsset)} t:{typeof(ContainerGraphAsset)}").Select(AssetDatabase.GUIDToAssetPath);
 
             foreach (var assetPath in assetPaths)
                 AssetDatabase.DeleteAsset(assetPath);
@@ -71,24 +71,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
         [Test]
         public void ShouldFindAssetGraphThatCanBeSubgraphInSearcher()
         {
-            // AssetGraphAssetModel's condition to be a subgraph is that the graph model's name is "I can be a Subgraph" or that there is at least one input/output variable declaration"
+            // AssetGraphAsset's condition to be a subgraph is that the graph model's name is "I can be a Subgraph" or that there is at least one input/output variable declaration"
 
             // First condition : Graph model name
-            CreateGraph<AssetGraphAssetModel>("I can be a Subgraph");
-            CreateGraph<AssetGraphAssetModel>("Bob");
+            CreateGraph<AssetGraphAsset>("I can be a Subgraph");
+            CreateGraph<AssetGraphAsset>("Bob");
 
             // Second condition: I/O variables
-            var graph1 = CreateGraph<AssetGraphAssetModel>("Graph1");
+            var graph1 = CreateGraph<AssetGraphAsset>("Graph1");
 
             graph1.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Input Data", ModifierFlags.Read, true);
             graph1.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Output Data", ModifierFlags.Write, true);
 
-            var graph2 = CreateGraph<AssetGraphAssetModel>("Graph2");
+            var graph2 = CreateGraph<AssetGraphAsset>("Graph2");
 
             graph2.GraphModel.CreateGraphVariableDeclaration(TypeHandle.ExecutionFlow, "Input Trigger", ModifierFlags.Read, true);
             graph2.GraphModel.CreateGraphVariableDeclaration(TypeHandle.ExecutionFlow, "Output Trigger", ModifierFlags.Write, true);
 
-            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAssetModel);
+            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAsset);
             var results = searcherDatabase.Search("I can be a Subgraph");
             Assert.AreEqual(1, results.Count);
 
@@ -119,13 +119,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
         [Test]
         public void ShouldNotFindContainerGraphInSearcher()
         {
-            var containerGraphModel = CreateGraph<ContainerGraphAssetModel>("Container Graph", true);
+            var containerGraphModel = CreateGraph<ContainerGraphAsset>("Container Graph");
 
             // Add I/O variables to container graph model
             containerGraphModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Input Data", ModifierFlags.Read, true);
             containerGraphModel.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Output Data", ModifierFlags.Write, true);
 
-            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAssetModel);
+            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAsset);
 
             var results = searcherDatabase.Search("Container Graph");
 
@@ -139,7 +139,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
             m_ReferenceAssetGraph.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Input Data", ModifierFlags.Read, true);
             m_ReferenceAssetGraph.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Output Data", ModifierFlags.Write, true);
 
-            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAssetModel);
+            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAsset);
 
             var results = searcherDatabase.Search(k_ReferenceGraphName);
 
@@ -147,9 +147,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
 
             CreateNodesAndValidateGraphModel(item, initialNodes =>
             {
-                var node = m_CurrentGraphAssetModel.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+                var node = m_CurrentGraphAsset.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
                 Assert.IsNotNull(node);
-                Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAssetModel.GraphModel.NodeModels.Count);
+                Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAsset.GraphModel.NodeModels.Count);
                 Assert.AreEqual(k_ReferenceGraphName.Nicify(), node.DisplayTitle);
                 Assert.AreEqual(m_ReferenceAssetGraph.GraphModel.VariableDeclarations.Count(v => v.IsInputOrOutput()), node.DataInputPortToVariableDeclarationDictionary.Count + node.DataOutputPortToVariableDeclarationDictionary.Count + node.ExecutionInputPortToVariableDeclarationDictionary.Count + node.ExecutionOutputPortToVariableDeclarationDictionary.Count);
 
@@ -166,20 +166,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
             m_ReferenceAssetGraph.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Output Data", ModifierFlags.Write, true);
 
             // Create the subgraph node
-            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAssetModel);
+            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAsset);
             var results = searcherDatabase.Search(k_ReferenceGraphName);
             var item = (GraphNodeModelSearcherItem)results[0];
 
             CreateNodesAndValidateGraphModel(item, initialNodes =>
             {
-                var node = m_CurrentGraphAssetModel.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+                var node = m_CurrentGraphAsset.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
                 Assert.IsNotNull(node);
-                Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAssetModel.GraphModel.NodeModels.Count);
+                Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAsset.GraphModel.NodeModels.Count);
                 Assert.AreEqual(k_ReferenceGraphName.Nicify(), node.DisplayTitle);
                 Assert.AreEqual(m_ReferenceAssetGraph.GraphModel.VariableDeclarations.Count(v => v.IsInputOrOutput()), node.DataInputPortToVariableDeclarationDictionary.Count + node.DataOutputPortToVariableDeclarationDictionary.Count + node.ExecutionInputPortToVariableDeclarationDictionary.Count + node.ExecutionOutputPortToVariableDeclarationDictionary.Count);
             });
 
-            var subgraphNode = m_CurrentGraphAssetModel.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+            var subgraphNode = m_CurrentGraphAsset.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
             Assert.IsNotNull(subgraphNode);
 
             CheckVariableAndPort(m_ReferenceAssetGraph.GraphModel.VariableDeclarations[0], subgraphNode.InputsByDisplayOrder[0]);
@@ -190,7 +190,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
             m_ReferenceAssetGraph.GraphModel.VariableDeclarations[1].Title = "B";
 
             // Load the main graph
-            GraphView.Dispatch(new LoadGraphAssetCommand(m_CurrentGraphAssetModel));
+            GraphView.Dispatch(new LoadGraphCommand(m_CurrentGraphAsset.GraphModel));
 
             CheckVariableAndPort(m_ReferenceAssetGraph.GraphModel.VariableDeclarations[0], subgraphNode.InputsByDisplayOrder[0]);
             CheckVariableAndPort(m_ReferenceAssetGraph.GraphModel.VariableDeclarations[1], subgraphNode.OutputsByDisplayOrder[0]);
@@ -206,20 +206,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
             m_ReferenceAssetGraph.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "Output Data 2", ModifierFlags.Write, true);
 
             // Create the subgraph node
-            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAssetModel);
+            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAsset);
             var results = searcherDatabase.Search(k_ReferenceGraphName);
             var item = (GraphNodeModelSearcherItem)results[0];
 
             CreateNodesAndValidateGraphModel(item, initialNodes =>
             {
-                var node = m_CurrentGraphAssetModel.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+                var node = m_CurrentGraphAsset.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
                 Assert.IsNotNull(node);
-                Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAssetModel.GraphModel.NodeModels.Count);
+                Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAsset.GraphModel.NodeModels.Count);
                 Assert.AreEqual(k_ReferenceGraphName.Nicify(), node.DisplayTitle);
                 Assert.AreEqual(m_ReferenceAssetGraph.GraphModel.VariableDeclarations.Count(v => v.IsInputOrOutput()), node.DataInputPortToVariableDeclarationDictionary.Count + node.DataOutputPortToVariableDeclarationDictionary.Count + node.ExecutionInputPortToVariableDeclarationDictionary.Count + node.ExecutionOutputPortToVariableDeclarationDictionary.Count);
             });
 
-            var subgraphNode = m_CurrentGraphAssetModel.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+            var subgraphNode = m_CurrentGraphAsset.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
             Assert.IsNotNull(subgraphNode);
 
             var inputPort1 = subgraphNode.InputsByDisplayOrder[0];
@@ -232,11 +232,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
             Assert.IsNotNull(outputPort1);
             Assert.IsNotNull(outputPort2);
 
-            var otherNode1 = m_CurrentGraphAssetModel.GraphModel.CreateNode<Type0FakeNodeModel>("OtherNode1", new Vector2(0, 0));
-            var otherNode2 = m_CurrentGraphAssetModel.GraphModel.CreateNode<Type0FakeNodeModel>("OtherNode2", new Vector2(0, 0));
+            var otherNode1 = m_CurrentGraphAsset.GraphModel.CreateNode<Type0FakeNodeModel>("OtherNode1", new Vector2(0, 0));
+            var otherNode2 = m_CurrentGraphAsset.GraphModel.CreateNode<Type0FakeNodeModel>("OtherNode2", new Vector2(0, 0));
 
-            m_CurrentGraphAssetModel.GraphModel.CreateEdge(inputPort1, otherNode1.Output0);
-            m_CurrentGraphAssetModel.GraphModel.CreateEdge(otherNode2.Input0, outputPort1);
+            m_CurrentGraphAsset.GraphModel.CreateEdge(inputPort1, otherNode1.Output0);
+            m_CurrentGraphAsset.GraphModel.CreateEdge(otherNode2.Input0, outputPort1);
 
             // The corresponding ports' names on the subgraph node should be identical
             CheckVariableAndPort(m_ReferenceAssetGraph.GraphModel.VariableDeclarations[0], inputPort1);
@@ -257,7 +257,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
             });
 
             // Load the main graph
-            GraphView.Dispatch(new LoadGraphAssetCommand(m_CurrentGraphAssetModel));
+            GraphView.Dispatch(new LoadGraphCommand(m_CurrentGraphAsset.GraphModel));
 
             MarkGraphViewStateDirty();
             yield return null;
@@ -276,7 +276,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
         {
             // Add data I/O variables to the asset subgraph to make it discoverable in the searcher
             m_ReferenceAssetGraph.GraphModel.CreateGraphVariableDeclaration(TypeHandle.Float, "A", ModifierFlags.Read, true);
-            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAssetModel);
+            var searcherDatabase = GetSearcherDatabaseWithAssetGraphs(m_CurrentGraphAsset);
             var results = searcherDatabase.Search(k_ReferenceGraphName);
             var item = (GraphNodeModelSearcherItem)results[0];
 
@@ -285,43 +285,43 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
             {
                 CreateNodesAndValidateGraphModel(item, initialNodes =>
                 {
-                    var node = m_CurrentGraphAssetModel.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+                    var node = m_CurrentGraphAsset.GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
                     Assert.IsNotNull(node);
-                    Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAssetModel.GraphModel.NodeModels.Count);
+                    Assert.AreEqual(initialNodes.Count + 1, m_CurrentGraphAsset.GraphModel.NodeModels.Count);
                     Assert.AreEqual(k_ReferenceGraphName.Nicify(), node.DisplayTitle);
                     Assert.AreEqual(m_ReferenceAssetGraph.GraphModel.VariableDeclarations.Count(v => v.IsInputOrOutput()), node.DataInputPortToVariableDeclarationDictionary.Count + node.DataOutputPortToVariableDeclarationDictionary.Count + node.ExecutionInputPortToVariableDeclarationDictionary.Count + node.ExecutionOutputPortToVariableDeclarationDictionary.Count);
                 });
             }
 
-            var subgraphNodes = m_CurrentGraphAssetModel.GraphModel.NodeModels.OfType<SubgraphNodeModel>().ToList();
+            var subgraphNodes = m_CurrentGraphAsset.GraphModel.NodeModels.OfType<SubgraphNodeModel>().ToList();
             foreach (var subgraphNode in subgraphNodes)
             {
                 Assert.NotNull(subgraphNode);
-                Assert.NotNull(subgraphNode.SubgraphAssetModel);
-                Assert.AreEqual(subgraphNode.SubgraphAssetModel, m_ReferenceAssetGraph);
+                Assert.NotNull(subgraphNode.SubgraphModel);
+                Assert.AreEqual(subgraphNode.SubgraphModel, m_ReferenceAssetGraph.GraphModel);
             }
 
-            // Delete the subgraph asset model
-            Undo.DestroyObjectImmediate(m_ReferenceAssetGraph as GraphAssetModel);
+            // Delete the subgraph asset
+            Undo.DestroyObjectImmediate(m_ReferenceAssetGraph as GraphAsset);
 
             foreach (var subgraphNode in subgraphNodes)
-                Assert.Null(subgraphNode.SubgraphAssetModel);
+                Assert.Null(subgraphNode.SubgraphModel);
 
             // Load the main graph
-            GraphView.Dispatch(new LoadGraphAssetCommand(m_CurrentGraphAssetModel));
+            GraphView.Dispatch(new LoadGraphCommand(m_CurrentGraphAsset.GraphModel));
 
             foreach (var subgraphNode in subgraphNodes)
             {
-                Assert.Null(subgraphNode.SubgraphAssetModel);
+                Assert.Null(subgraphNode.SubgraphModel);
                 Assert.AreNotEqual(subgraphNode.Title, k_ReferenceGraphName);
             }
 
-            // Restore the deleted subgraph asset model
+            // Restore the deleted subgraph asset
             Undo.PerformUndo();
 
             foreach (var subgraphNode in subgraphNodes)
             {
-                Assert.NotNull(subgraphNode.SubgraphAssetModel);
+                Assert.NotNull(subgraphNode.SubgraphModel);
                 Assert.AreEqual(subgraphNode.Title, k_ReferenceGraphName);
             }
         }
@@ -329,8 +329,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
         [Test]
         public void ShouldNotCreateSubgraphNodeWithContainerGraph()
         {
-            var containerGraph = CreateGraph<ContainerGraphAssetModel>("Container Graph", true);
-            Assert.True(containerGraph.IsContainerGraph());
+            var containerGraph = CreateGraph<ContainerGraphAsset>("Container Graph");
+            Assert.True(containerGraph.GraphModel.IsContainerGraph());
 
             var subgraphNode = CreateSubgraphNode(containerGraph);
             Assert.IsNull(subgraphNode);
@@ -339,23 +339,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements.Subgrap
         [Test]
         public void OpenCloseSubgraphOnUndoWorks()
         {
-            var mainGraph = CreateGraph<AssetGraphAssetModel>("Main graph");
-            var subgraph = CreateGraph<AssetGraphAssetModel>("Subgraph");
+            var mainGraph = CreateGraph<AssetGraphAsset>("Main graph");
+            var subgraph = CreateGraph<AssetGraphAsset>("Subgraph");
 
-            GraphView.Dispatch(new LoadGraphAssetCommand(subgraph, loadStrategy: LoadGraphAssetCommand.LoadStrategies.PushOnStack));
+            GraphView.Dispatch(new LoadGraphCommand(subgraph.GraphModel, loadStrategy: LoadGraphCommand.LoadStrategies.PushOnStack));
             Window.GraphTool.Update();
-            Assert.AreEqual(Window.GraphTool.ToolState.AssetModel, subgraph);
+            Assert.AreEqual(subgraph, Window.GraphTool.ToolState.CurrentGraph.GetGraphAsset());
 
             var stickyNote = GraphModel.CreateStickyNote(Rect.zero);
             GraphView.Dispatch(new MoveElementsCommand(new Vector2(1,1), stickyNote));
 
-            GraphView.Dispatch(new LoadGraphAssetCommand(mainGraph));
+            GraphView.Dispatch(new LoadGraphCommand(mainGraph.GraphModel));
             Window.GraphTool.Update();
 
-            Assert.AreEqual(mainGraph, GraphModel.AssetModel);
+            Assert.AreEqual(mainGraph.GraphModel, GraphModel);
 
             Undo.PerformUndo();
-            Assert.AreEqual(subgraph, GraphModel.AssetModel);
+            Assert.AreEqual(subgraph.GraphModel, GraphModel);
         }
     }
 }

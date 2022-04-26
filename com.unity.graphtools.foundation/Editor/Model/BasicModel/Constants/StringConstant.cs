@@ -6,5 +6,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     /// Constant model for strings.
     /// </summary>
     [MovedFrom(false, sourceAssembly: "Unity.GraphTools.Foundation.Overdrive.Editor")]
-    public class StringConstant : Constant<string> {}
+    public class StringConstant : Constant<string>
+    {
+        public override object DefaultValue => "";
+    }
 }

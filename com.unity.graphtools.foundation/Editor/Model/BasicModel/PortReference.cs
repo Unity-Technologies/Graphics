@@ -12,13 +12,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
     /// </summary>
     [Serializable]
     [MovedFrom(false, sourceAssembly: "Unity.GraphTools.Foundation.Overdrive.Editor")]
-    struct PortReference
+    struct PortReference : ISerializationCallbackReceiver
     {
         [SerializeField, FormerlySerializedAs("NodeModelGuid")]
         SerializableGUID m_NodeModelGuid;
-
-        // [SerializeField, FormerlySerializedAs("GraphAssetModel")]
-        IGraphAssetModel m_GraphAssetModel;
 
         [SerializeField, FormerlySerializedAs("UniqueId")]
         string m_UniqueId;
@@ -26,7 +23,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         [SerializeField]
         string m_Title;
 
-        public void InitAssetModel(IGraphAssetModel model) => m_GraphAssetModel = model;
+        IGraphModel m_GraphModel;
 
         INodeModel m_NodeModel;
 
@@ -64,7 +61,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             {
                 if (m_NodeModel == null)
                 {
-                    if (m_GraphAssetModel != null && m_GraphAssetModel.GraphModel.TryGetModelFromGuid(m_NodeModelGuid, out var node))
+                    if (m_GraphModel != null && m_GraphModel.TryGetModelFromGuid(m_NodeModelGuid, out var node))
                     {
                         m_NodeModel = node as INodeModel;
                     }
@@ -75,7 +72,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
 
             private set
             {
-                m_GraphAssetModel = (GraphAssetModel)value.AssetModel;
                 m_NodeModelGuid = value.Guid;
                 m_NodeModel = null;
             }
@@ -88,9 +84,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         public void Assign(IPortModel portModel)
         {
             Assert.IsNotNull(portModel);
+            m_GraphModel = portModel.NodeModel.GraphModel;
             NodeModel = portModel.NodeModel;
             m_UniqueId = portModel.UniqueName;
             m_Title = (portModel as IHasTitle)?.Title;
+        }
+
+        /// <summary>
+        /// Sets the graph model used to resolve the port reference.
+        /// </summary>
+        /// <remarks>The intended use of this method is to initialize the <see cref="m_GraphModel"/> after deserialization.</remarks>
+        /// <param name="graphModel">The graph model in which this port reference lives.</param>
+        public void AssignGraphModel(IGraphModel graphModel)
+        {
+            m_GraphModel = graphModel;
         }
 
         public IPortModel GetPortModel(PortDirection direction, ref IPortModel previousValue)
@@ -136,11 +143,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
         /// <returns>A string representation of this instance.</returns>
         public override string ToString()
         {
-            if (m_GraphAssetModel != null)
-            {
-                return $"{m_GraphAssetModel.GetPath()}:{m_NodeModelGuid}@{UniqueId}";
-            }
-            return String.Empty;
+            return $"{m_GraphModel.Guid.ToString()}:{m_NodeModelGuid}@{UniqueId}";
         }
 
         /// <summary>
@@ -154,6 +157,25 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
                 return false;
             n.AddPlaceHolderPort(direction, UniqueId, portName: Title);
             return true;
+        }
+
+        /// <summary>
+        /// Resets internal cache.
+        /// </summary>
+        public void ResetCache()
+        {
+            m_NodeModel = null;
+        }
+
+        /// <inheritdoc />
+        public void OnBeforeSerialize()
+        {
+        }
+
+        /// <inheritdoc />
+        public void OnAfterDeserialize()
+        {
+            m_GraphModel = null;
         }
     }
 }

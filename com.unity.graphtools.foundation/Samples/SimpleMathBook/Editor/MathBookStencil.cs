@@ -16,7 +16,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
 
         internal static readonly string[] sections = { "Variables", "Exposed I/Os"};
 
-        public override IEnumerable<string> SectionNames => GraphModel.AssetModel.IsContainerGraph() ? sections.Where(section => section != sections[1]) : sections;
+        public override IEnumerable<string> SectionNames => GraphModel.IsContainerGraph() ? sections.Where(section => section != sections[1]) : sections;
 
         internal static readonly string SampleAssetPath =
             "Packages/com.unity.graphtools.foundation/Samples/SimpleMathBook/Editor";
@@ -30,9 +30,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         }
 
         /// <inheritdoc />
-        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel)
+        public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel)
         {
-            return new MathBookBlackboardGraphModel(graphAssetModel);
+            return new MathBookBlackboardGraphModel { GraphModel = graphModel };
         }
 
         /// <inheritdoc />
@@ -41,9 +41,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
             return new InspectorModel(inspectedModel);
         }
 
-        public override Type GetConstantNodeValueType(TypeHandle typeHandle)
+        public override Type GetConstantType(TypeHandle typeHandle)
         {
-            return TypeToConstantMapper.GetConstantNodeType(typeHandle);
+            return TypeToConstantMapper.GetConstantType(typeHandle);
         }
 
         public override TypeHandle GetSubgraphNodeTypeHandle()

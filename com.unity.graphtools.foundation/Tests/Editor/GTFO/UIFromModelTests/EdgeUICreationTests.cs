@@ -21,7 +21,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GTFO.UIFromModelTests
         public void GhostEdgeHasExpectedClass()
         {
             GraphView graphView = new GraphView(null, null, "");
-            var model = new GhostEdgeModel(null);
+            var model = new GhostEdgeModel();
             var edge = new Edge();
             edge.SetupBuildAndUpdate(model, graphView);
 

@@ -23,6 +23,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             TestPrereqCommandPostreq(mode,
                 () =>
                 {
+                    RefreshReference(ref node1);
+                    RefreshReference(ref node2);
+
                     Assert.That(GetNodeCount(), Is.EqualTo(2));
                     Assert.That(GetEdgeCount(), Is.EqualTo(1));
                     Assert.That(GraphModel.NodeModels.All(n => n is Type0FakeNodeModel));
@@ -33,6 +36,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                 },
                 () =>
                 {
+                    RefreshReference(ref node1);
+                    RefreshReference(ref node2);
+
                     Assert.That(GetNodeCount(), Is.EqualTo(4));
                     Assert.That(GetEdgeCount(), Is.EqualTo(2));
                     Assert.That(GraphModel.NodeModels.OfType<Type0FakeNodeModel>().Count(), Is.EqualTo(2));
@@ -46,6 +52,45 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                     Assert.That(GraphTool.GraphViewSelectionState.GetSelection(GraphModel).Count, Is.EqualTo(2));
                     Assert.True(GraphTool.GraphViewSelectionState.IsSelected(GetNode(2)));
                     Assert.True(GraphTool.GraphViewSelectionState.IsSelected(GetNode(3)));
+                }
+            );
+        }
+
+        [Test]
+        public void CreatePortalsShouldKeepEdgesOrder([Values] TestingMode mode)
+        {
+            var originNode = GraphModel.CreateNode<Type0FakeNodeModel>("Origin", Vector2.zero);
+            var destNode1 = GraphModel.CreateNode<Type0FakeNodeModel>("Dest1", Vector2.zero);
+            var destNode2 = GraphModel.CreateNode<Type0FakeNodeModel>("Dest2", Vector2.zero);
+            var destNode3 = GraphModel.CreateNode<Type0FakeNodeModel>("Dest3", Vector2.zero);
+            var destNode4 = GraphModel.CreateNode<Type0FakeNodeModel>("Dest4", Vector2.zero);
+            var destNode5 = GraphModel.CreateNode<Type0FakeNodeModel>("Dest5", Vector2.zero);
+
+            GraphModel.CreateEdge(destNode1.ExeInput0, originNode.ExeOutput0);
+            GraphModel.CreateEdge(destNode2.ExeInput0, originNode.ExeOutput0);
+            GraphModel.CreateEdge(destNode3.ExeInput0, originNode.ExeOutput0);
+            GraphModel.CreateEdge(destNode4.ExeInput0, originNode.ExeOutput0);
+            GraphModel.CreateEdge(destNode5.ExeInput0, originNode.ExeOutput0);
+
+            TestPrereqCommandPostreq(mode,
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    var port = originNode.ExeOutput0 as IReorderableEdgesPortModel;
+                    Assert.NotNull(port);
+                    Assert.IsTrue(port.HasReorderableEdges);
+                    Assert.AreEqual(2, port.GetEdgeOrder(GetEdge(2)));
+
+                    var allPortalData = new List<(IEdgeModel, Vector2, Vector2)> { (GetEdge(2), Vector2.left, Vector2.right) };
+                    return new ConvertEdgesToPortalsCommand(allPortalData);
+                },
+                () =>
+                {
+                    RefreshReference(ref originNode);
+                    var port = originNode.ExeOutput0 as IReorderableEdgesPortModel;
+                    Assert.NotNull(port);
+                    Assert.IsTrue(port.HasReorderableEdges);
+                    Assert.AreEqual(2, port.GetEdgeOrder(GetEdge(2)));
                 }
             );
         }
@@ -123,12 +168,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             {
                 var dataEdge = GraphModel.CreateEdge(node2.Input0, node1.Output0);
 
-                var dataEntry = GraphModel.CreateEntryPortalFromEdge(dataEdge);
-                // TODO VladN: Declaration model creation should probably be part of the API. Currently it's only done in the Command Handler
-                // Fix those tests when this is fix (GTF-401 was created)
-                dataEntry.DeclarationModel = GraphModel.CreateGraphPortalDeclaration("data->data");
-                GraphModel.CreateEdge(dataEntry.InputPort, node1.Output0);
-                GraphModel.DeleteEdges(Enumerable.Repeat(dataEdge, 1).ToArray());
+                var dataEntry = GraphModel.CreateEntryPortalFromPort(dataEdge.FromPort, Vector2.zero, 0, null);
+                dataEdge.SetPort(EdgeSide.To, dataEntry.InputPort);
+
+                Assert.IsNotNull(dataEntry);
 
                 var dataExit = GraphModel.CreateOppositePortal(dataEntry) as DataEdgePortalExitModel;
                 Assert.IsNotNull(dataExit);
@@ -139,10 +182,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             {
                 var execEdge = GraphModel.CreateEdge(node2.ExeInput0, node1.ExeOutput0);
 
-                var execEntry = GraphModel.CreateEntryPortalFromEdge(execEdge);
-                execEntry.DeclarationModel = GraphModel.CreateGraphPortalDeclaration("exec->exec");
-                GraphModel.CreateEdge(execEntry.InputPort, node1.ExeOutput0);
-                GraphModel.DeleteEdges(new[] {execEdge});
+                var execEntry = GraphModel.CreateEntryPortalFromPort(execEdge.FromPort, Vector2.zero, 0, null);
+                execEdge.SetPort(EdgeSide.To, execEntry.InputPort);
+
+                Assert.IsNotNull(execEntry);
 
                 var execExit = GraphModel.CreateOppositePortal(execEntry) as ExecutionEdgePortalExitModel;
                 Assert.IsNotNull(execExit);
@@ -241,6 +284,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
             TestPrereqCommandPostreq(mode,
                 () =>
                 {
+                    RefreshReference(ref node1);
+                    RefreshReference(ref node2);
+
                     Assert.That(GetNodeCount(), Is.EqualTo(2));
                     Assert.That(GetEdgeCount(), Is.EqualTo(1));
                     Assert.That(GraphModel.NodeModels.All(n => n is Type0FakeNodeModel));
@@ -251,6 +297,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.Commands
                 },
                 () =>
                 {
+                    RefreshReference(ref node1);
+                    RefreshReference(ref node2);
+
                     Assert.That(GetNodeCount(), Is.EqualTo(4));
                     Assert.That(GetEdgeCount(), Is.EqualTo(2));
                     Assert.That(GraphModel.NodeModels.OfType<Type0FakeNodeModel>().Count(), Is.EqualTo(2));

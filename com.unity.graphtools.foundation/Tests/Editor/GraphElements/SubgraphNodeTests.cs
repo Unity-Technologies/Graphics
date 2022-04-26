@@ -47,7 +47,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.That(GetSectionItem(2).Guid, Is.EqualTo(m_Variable2.Guid));
             Assert.That(GetSectionItem(3).Guid, Is.EqualTo(m_Variable3.Guid));
 
-            GraphModel.CreateSubgraphNode(GraphModel.AssetModel, Vector2.zero);
+            GraphModel.CreateSubgraphNode(GraphModel, Vector2.zero);
             m_SubgraphNodeModel = GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
             Assert.IsNotNull(m_SubgraphNodeModel);
 
@@ -170,8 +170,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         IPlacematModel PlacematModel { get; set; }
         IStickyNoteModel StickyNoteModel { get; set; }
 
-        IGraphAssetModel m_ReferenceAssetGraphModel;
-        IGraphAssetModel m_CurrentGraphAssetModel;
+        IGraphAsset m_ReferenceGraphAsset;
+        IGraphAsset m_CurrentGraphAsset;
 
         const string k_CurrentGraphName = "Current Graph";
 
@@ -222,7 +222,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         void CreateSubgraph(List<IGraphElementModel> sourceElements)
         {
             var template = new GraphTemplate<ClassStencil>("subgraph");
-            GraphView.Dispatch(new CreateSubgraphCommand(typeof(ClassGraphAssetModel), sourceElements, template, GraphView, ""));
+            GraphView.Dispatch(new CreateSubgraphCommand(typeof(ClassGraphAsset), sourceElements, template, GraphView, ""));
         }
 
         [SetUp]
@@ -234,8 +234,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             GraphView.RegisterCommandHandler<CreateSubgraphCommand>(CreateSubgraphCommand.DefaultCommandHandler);
 
             var template = new GraphTemplate<ClassStencil>(k_CurrentGraphName);
-            m_CurrentGraphAssetModel = GraphAssetCreationHelpers<TestGraphAssetModel>.CreateGraphAsset(typeof(ClassStencil), k_CurrentGraphName, $"Assets/{k_CurrentGraphName}.asset", template);
-            GraphView.Dispatch(new LoadGraphAssetCommand(m_CurrentGraphAssetModel));
+            m_CurrentGraphAsset = GraphAssetCreationHelpers<TestGraphAsset>.CreateGraphAsset(typeof(ClassStencil), k_CurrentGraphName, $"Assets/{k_CurrentGraphName}.asset", template);
+            GraphView.Dispatch(new LoadGraphCommand(m_CurrentGraphAsset.GraphModel));
         }
 
         [TearDown]
@@ -243,7 +243,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         {
             base.TearDown();
 
-            var assetPaths = AssetDatabase.FindAssets($"t:{typeof(ClassGraphAssetModel)}").Select(AssetDatabase.GUIDToAssetPath);
+            var assetPaths = AssetDatabase.FindAssets($"t:{typeof(TestGraphAsset)}").Select(AssetDatabase.GUIDToAssetPath);
 
             foreach (var assetPath in assetPaths)
                 AssetDatabase.DeleteAsset(assetPath);
@@ -269,7 +269,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.AreEqual(1, selection.Count);
             Assert.AreEqual(subgraphNode, selection.First());
 
-            var subgraphGraphModel = subgraphNode.SubgraphAssetModel.GraphModel;
+            var subgraphGraphModel = subgraphNode.SubgraphModel;
 
             var sourceNodes = sourceElements.OfType<NodeModel>().ToList();
             var nodesInSubgraph = subgraphGraphModel.NodeModels.OfType<Type0FakeNodeModel>().ToList();
@@ -338,11 +338,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var subgraphNodeModel = GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
             Assert.IsNotNull(subgraphNodeModel);
 
-            var subgraphIOCount = subgraphNodeModel.SubgraphAssetModel.GraphModel.VariableDeclarations.Count(v => v.IsInputOrOutput());
+            var subgraphIOCount = subgraphNodeModel.SubgraphModel.VariableDeclarations.Count(v => v.IsInputOrOutput());
             Assert.AreEqual(subgraphIOCount, subgraphNodeModel.Ports.Count());
 
             foreach (var port in subgraphNodeModel.Ports)
-                Assert.IsTrue(subgraphNodeModel.SubgraphAssetModel.GraphModel.VariableDeclarations.Any(v => v.Title == (port as IHasTitle)?.Title));
+                Assert.IsTrue(subgraphNodeModel.SubgraphModel.VariableDeclarations.Any(v => v.Title == (port as IHasTitle)?.Title));
         }
 
         [UnityTest]
@@ -411,10 +411,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var subgraphNodeModel = GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
             Assert.NotNull(subgraphNodeModel);
 
-            var subgraph = subgraphNodeModel.SubgraphAssetModel;
+            var subgraph = subgraphNodeModel.SubgraphModel;
             Assert.NotNull(subgraph);
 
-            var inputs = subgraph.GraphModel.NodeModels.OfType<IVariableNodeModel>().ToList();
+            var inputs = subgraph.NodeModels.OfType<IVariableNodeModel>().ToList();
             Assert.AreEqual(2, inputs.Count);
 
             var firstInputNode = inputs[0];
@@ -428,14 +428,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
         [UnityTest]
         public IEnumerator NewOutputsShouldHaveDifferentPositions()
         {
-            //               +------+
-            //          +----o      |
-            // +----+   |    |   2  |
-            // | 1  o---+----o      |
-            // +----+        +------+
+            //                +----+
+            // +------+   +---o 2  |
+            // |  1   o---+   +----+
+            // |      o---+   +----+
+            // +------+   +---o 3  |
+            //                +----+
 
-            FirstNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", new Vector2(0, 50));
-            SecondNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", new Vector2(200, 50));
+            FirstNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", new Vector2(0, 100));
+            SecondNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", new Vector2(250, 50));
+            var thirdNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node3", new Vector2(250, 250));
+            Assert.NotNull(FirstNodeModel);
+            Assert.NotNull(SecondNodeModel);
+            Assert.NotNull(thirdNodeModel);
             MarkGraphViewStateDirty();
             yield return null;
 
@@ -445,7 +450,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
                 yield return null;
             }
 
-            actions = ConnectPorts(FirstNodeModel.Output0, SecondNodeModel.Input1);
+            actions = ConnectPorts(FirstNodeModel.Output1, thirdNodeModel.Input0);
             while (actions.MoveNext())
             {
                 yield return null;
@@ -456,10 +461,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             var subgraphNodeModel = GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
             Assert.NotNull(subgraphNodeModel);
 
-            var subgraph = subgraphNodeModel.SubgraphAssetModel;
+            var subgraph = subgraphNodeModel.SubgraphModel;
             Assert.NotNull(subgraph);
 
-            var outputs = subgraph.GraphModel.NodeModels.OfType<IVariableNodeModel>().ToList();
+            var outputs = subgraph.NodeModels.OfType<IVariableNodeModel>().ToList();
             Assert.AreEqual(2, outputs.Count);
 
             var firstOutputNode = outputs[0];
@@ -468,6 +473,91 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Tests.GraphElements
             Assert.NotNull(secondOutputNode);
 
             Assert.AreNotEqual(firstOutputNode.Position, secondOutputNode.Position);
+        }
+        [UnityTest]
+        public IEnumerator ShouldCreateOnlyOneInput()
+        {
+            // +----+
+            // | 1  o---+    +----+
+            // +----+   +----o 3  |
+            // +----+   |    +----+
+            // | 2  o---+
+            // +----+
+
+            FirstNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", new Vector2(0, 50));
+            SecondNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", new Vector2(0, 250));
+            var thirdNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node3", new Vector2(250, 100));
+            Assert.NotNull(FirstNodeModel);
+            Assert.NotNull(SecondNodeModel);
+            Assert.NotNull(thirdNodeModel);
+            MarkGraphViewStateDirty();
+            yield return null;
+
+            var actions = ConnectPorts(FirstNodeModel.ExeOutput0, thirdNodeModel.ExeInput0);
+            while (actions.MoveNext())
+            {
+                yield return null;
+            }
+
+            actions = ConnectPorts(SecondNodeModel.ExeOutput0, thirdNodeModel.ExeInput0);
+            while (actions.MoveNext())
+            {
+                yield return null;
+            }
+
+            CreateSubgraph(new List<IGraphElementModel>{ thirdNodeModel });
+
+            var subgraphNodeModel = GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+            Assert.NotNull(subgraphNodeModel);
+
+            var subgraph = subgraphNodeModel.SubgraphModel;
+            Assert.NotNull(subgraph);
+
+            var inputs = subgraph.NodeModels.OfType<IVariableNodeModel>().ToList();
+            Assert.AreEqual(1, inputs.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator ShouldCreateOnlyOneOutput()
+        {
+            //                +----+
+            // +------+   +---o 2  |
+            // |  1   o---+   +----+
+            // |      |   |   +----+
+            // +------+   +---o 3  |
+            //                +----+
+
+            FirstNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node1", new Vector2(0, 100));
+            SecondNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node2", new Vector2(250, 50));
+            var thirdNodeModel = GraphModel.CreateNode<Type0FakeNodeModel>("Node3", new Vector2(250, 250));
+            Assert.NotNull(FirstNodeModel);
+            Assert.NotNull(SecondNodeModel);
+            Assert.NotNull(thirdNodeModel);
+            MarkGraphViewStateDirty();
+            yield return null;
+
+            var actions = ConnectPorts(FirstNodeModel.Output0, SecondNodeModel.Input0);
+            while (actions.MoveNext())
+            {
+                yield return null;
+            }
+
+            actions = ConnectPorts(FirstNodeModel.Output0, thirdNodeModel.Input0);
+            while (actions.MoveNext())
+            {
+                yield return null;
+            }
+
+            CreateSubgraph(new List<IGraphElementModel>{ FirstNodeModel });
+
+            var subgraphNodeModel = GraphModel.NodeModels.OfType<SubgraphNodeModel>().FirstOrDefault();
+            Assert.NotNull(subgraphNodeModel);
+
+            var subgraph = subgraphNodeModel.SubgraphModel;
+            Assert.NotNull(subgraph);
+
+            var outputs = subgraph.NodeModels.OfType<IVariableNodeModel>().ToList();
+            Assert.AreEqual(1, outputs.Count);
         }
     }
 }

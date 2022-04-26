@@ -35,7 +35,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (m_Toggle != null)
             {
                 m_Toggle.SetValueWithoutNotify(value.ShouldShowInLibrary);
-                DisplayElement(m_WarningBox, m_Toggle.value && !m_GraphModel.AssetModel.CanBeSubgraph());
+                DisplayElement(m_WarningBox, m_Toggle.value && !m_GraphModel.CanBeSubgraph());
 
                 if (m_WarningBox != null)
                     m_WarningBox.text = m_WarningMessage?? "The conditions for this graph to be usable as a subgraph are not met.";
@@ -62,7 +62,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             {
                 m_GraphModel = graphModel;
 
-                if (m_GraphModel.AssetModel.IsContainerGraph())
+                if (m_GraphModel.IsContainerGraph())
                     return null;
 
                 m_Container = new VisualElement { tooltip = tooltip };
@@ -147,7 +147,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 Description = m_DescriptionTextField.value
             };
 
-            DisplayElement(m_WarningBox, e.newValue && !m_GraphModel.AssetModel.CanBeSubgraph());
+            DisplayElement(m_WarningBox, e.newValue && !m_GraphModel.CanBeSubgraph());
             DisplayElement(m_ToggleContainer, e.newValue);
 
             using (var ee = ChangeEvent<SubgraphPropertiesField>.GetPooled(oldPropertiesField, newPropertiesField))

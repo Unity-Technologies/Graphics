@@ -1,4 +1,3 @@
-using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 

@@ -9,7 +9,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// The state component of the <see cref="BaseGraphTool"/>.
     /// </summary>
     [Serializable]
-    public class ToolStateComponent : AssetViewStateComponent<ToolStateComponent.StateUpdater>
+    public class ToolStateComponent : PersistedStateComponent<ToolStateComponent.StateUpdater>
     {
         /// <summary>
         /// The updater for the <see cref="ToolStateComponent"/>.
@@ -17,16 +17,16 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public class StateUpdater : BaseUpdater<ToolStateComponent>
         {
             /// <summary>
-            /// Loads a graph asset.
+            /// Loads a graph.
             /// </summary>
-            /// <param name="assetModel">The graph asset to load.</param>
-            /// <param name="boundObject">The GameObject to which the asset is bound, if any.</param>
-            public void LoadGraphAsset(IGraphAssetModel assetModel, GameObject boundObject)
+            /// <param name="graph">The graph to load.</param>
+            /// <param name="boundObject">The GameObject to which the graph is bound, if any.</param>
+            public void LoadGraph(IGraphModel graph, GameObject boundObject)
             {
-                if (!string.IsNullOrEmpty(m_State.m_CurrentGraph.GetGraphAssetModelPath()))
+                if (!string.IsNullOrEmpty(m_State.m_CurrentGraph.GetGraphAssetPath()))
                     m_State.m_LastOpenedGraph = m_State.m_CurrentGraph;
 
-                m_State.m_CurrentGraph = new OpenedGraph(assetModel, boundObject);
+                m_State.m_CurrentGraph = new OpenedGraph(graph, boundObject);
                 m_State.m_LastOpenedGraph = m_State.m_CurrentGraph;
                 m_State.m_BlackboardGraphModel = null;
                 m_State.SetUpdateType(UpdateType.Complete);
@@ -61,9 +61,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             /// <summary>
-            /// Tells the state component that the graph asset was modified externally.
+            /// Tells the state component that the graph was modified externally.
             /// </summary>
-            public void AssetChangedOnDisk()
+            public void GraphChangedExternally()
             {
                 m_State.SetUpdateType(UpdateType.Complete);
             }
@@ -79,30 +79,24 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         List<OpenedGraph> m_SubGraphStack;
 
         IBlackboardGraphModel m_BlackboardGraphModel;
+        uint m_GraphModelLastVersion;
 
         /// <summary>
-        /// The currently opened <see cref="IGraphAssetModel"/>.
+        /// The currently opened <see cref="IGraphModel"/>.
         /// </summary>
-        public IGraphAssetModel AssetModel => CurrentGraph.GetGraphAssetModel();
+        public IGraphModel GraphModel => CurrentGraph.GetGraphModel();
 
         /// <summary>
-        /// The <see cref="IGraphModel"/> contained in <see cref="AssetModel"/>.
-        /// <remarks>This method is virtual for tests.</remarks>
-        /// </summary>
-        public virtual IGraphModel GraphModel => CurrentGraph.GetGraphAssetModel()?.GraphModel;
-
-        /// <summary>
-        /// The <see cref="IBlackboardGraphModel"/> for the <see cref="AssetModel"/>.
+        /// The <see cref="IBlackboardGraphModel"/> for the <see cref="GraphModel"/>.
         /// </summary>
         public IBlackboardGraphModel BlackboardGraphModel
         {
             get
             {
-                // m_BlackboardGraphModel will be null after unserialize (open, undo) and LoadGraphAsset.
+                // m_BlackboardGraphModel will be null after unserialize (open, undo) and LoadGraph.
                 if (m_BlackboardGraphModel == null)
                 {
-                    var assetModel = m_CurrentGraph.GetGraphAssetModel();
-                    m_BlackboardGraphModel = assetModel?.GraphModel?.Stencil?.CreateBlackboardGraphModel(assetModel);
+                    m_BlackboardGraphModel = GraphModel?.Stencil?.CreateBlackboardGraphModel(GraphModel);
                 }
                 return m_BlackboardGraphModel;
             }
@@ -170,6 +164,15 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (!m_SubGraphStack[i].IsValid())
                 {
                     m_SubGraphStack.RemoveAt(i);
+                }
+            }
+
+            if (m_CurrentGraph.IsValid() && m_CurrentGraph.GetGraphAsset().Version != m_GraphModelLastVersion)
+            {
+                m_GraphModelLastVersion = GraphModel.Asset.Version;
+                using (var updater = UpdateScope)
+                {
+                    updater.GraphChangedExternally();
                 }
             }
         }

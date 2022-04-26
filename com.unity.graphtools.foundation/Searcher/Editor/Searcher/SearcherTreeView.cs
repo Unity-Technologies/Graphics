@@ -70,9 +70,13 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             unbindItem = UnBind;
             makeItem = MakeItem;
 
-            RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
 
-#if UNITY_2020_1_OR_NEWER
+#if UNITY_2022_2_OR_NEWER
+            itemsChosen += _ => OnItemChosen();
+            selectionChanged += _ => OnSelectionChanged();
+#elif UNITY_2020_1_OR_NEWER
             onItemsChosen += obj => OnItemSelected((obj.FirstOrDefault() as ISearcherItemView)?.SearcherItem);
             onSelectionChange += OnSelectionChanged;
 #else
@@ -81,11 +85,14 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
 #endif
         }
 
-        void OnSelectionChanged(IEnumerable<object> selection)
+        void OnAttachToPanel(AttachToPanelEvent evt)
         {
-            OnModelViewSelectionChange?.Invoke(selection
-                .OfType<ISearcherTreeItemView>()
-                .ToList());
+            RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
+        }
+
+        void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            UnregisterCallback<KeyDownEvent>(OnKeyDownEvent);
         }
 
         public void Setup(Searcher searcher, Action<SearcherItem> selectionCallback)
@@ -161,24 +168,15 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
                 OnModelViewSelectionChange?.Invoke(m_VisibleItems.Take(1).ToList());
         }
 
-        public void CancelSearch()
-        {
-            OnItemSelected(null);
-        }
-
         void OnKeyDownEvent(KeyDownEvent evt)
         {
             var categoryView = selectedItem as ISearcherCategoryView;
-            var itemView = selectedItem as ISearcherItemView;
 
             switch (evt.keyCode)
             {
-                case KeyCode.Escape:
-                    OnItemSelected(null);
-                    break;
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
-                    OnItemSelected(itemView?.SearcherItem);
+                    OnItemChosen();
                     break;
                 case KeyCode.LeftArrow:
                     if (categoryView != null)
@@ -363,18 +361,49 @@ namespace UnityEditor.GraphToolsFoundation.Searcher
             }
         }
 
-        void OnItemSelected(SearcherItem item)
+        /// <summary>
+        /// Clicks on favorite actually can't intercept the click on the list view.
+        /// So we keep track off every click on favorites to prevent triggering selection when clicking favorites.
+        /// </summary>
+        bool SelectionIsInvalidOrAFavoriteClick()
         {
-            if (item != null
-                && (m_LastFavoriteClicked != item || EditorApplication.timeSinceStartup - m_LastFavoriteClickTime > 1.0))
+            var selectedSearcherItem = (selectedItem as ISearcherItemView)?.SearcherItem;
+            if (EditorApplication.timeSinceStartup - m_LastFavoriteClickTime > .8)
+                return false;
+
+            return selectedSearcherItem == null || m_LastFavoriteClicked == selectedSearcherItem;
+        }
+
+        void OnSelectionChanged()
+        {
+            if (SelectionIsInvalidOrAFavoriteClick())
+                return;
+
+            if (!selectedItems.Any())
+                m_SelectionCallback(null);
+            else
+                OnModelViewSelectionChange?.Invoke(selectedItems
+                    .OfType<ISearcherTreeItemView>()
+                    .ToList());
+        }
+
+        void OnItemChosen()
+        {
+            if (SelectionIsInvalidOrAFavoriteClick())
+                return;
+
+            var selectedSearcherItem = (selectedItem as ISearcherItemView)?.SearcherItem;
+            if (selectedSearcherItem == null)
+                m_SelectionCallback(null);
+            else if (m_LastFavoriteClicked != selectedSearcherItem || EditorApplication.timeSinceStartup - m_LastFavoriteClickTime > 1.0)
             {
                 if (!m_Searcher.Adapter.MultiSelectEnabled)
                 {
-                    m_SelectionCallback(item);
+                    m_SelectionCallback(selectedSearcherItem);
                 }
                 else
                 {
-                    ToggleItemForMultiSelect(item, !m_MultiSelectSelection.Contains(item));
+                    ToggleItemForMultiSelect(selectedSearcherItem, !m_MultiSelectSelection.Contains(selectedSearcherItem));
                 }
             }
         }

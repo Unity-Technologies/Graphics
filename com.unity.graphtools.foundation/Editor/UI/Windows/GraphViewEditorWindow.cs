@@ -13,6 +13,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.Profiling;
 using UnityEngine.UIElements;
 using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -38,8 +39,8 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (assetPath != null)
             {
                 window = Resources.FindObjectsOfTypeAll(typeof(TWindow)).OfType<TWindow>().FirstOrDefault(w =>
-                        w.GraphView?.GraphModel?.AssetModel?.GetPath() == assetPath ||
-                        w.GraphTool.ToolState.SubGraphStack.FirstOrDefault().GetGraphAssetModelPath() == assetPath);
+                        w.GraphTool.ToolState.CurrentGraph.GetGraphAssetPath() == assetPath ||
+                        w.GraphTool.ToolState.SubGraphStack.FirstOrDefault().GetGraphAssetPath() == assetPath);
             }
 
             if (window == null)
@@ -161,7 +162,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>A new BlackboardView.</returns>
         public virtual BlackboardView CreateBlackboardView()
         {
-            return new BlackboardView(this, GraphView);
+            return GraphView != null ? new BlackboardView(this, GraphView) : null;
         }
 
         /// <summary>
@@ -179,7 +180,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// <returns>A new ModelInspectorView.</returns>
         public virtual ModelInspectorView CreateModelInspectorView()
         {
-            return new ModelInspectorView(this);
+            return GraphView != null ? new ModelInspectorView(this, GraphView) : null;
         }
 
         protected virtual void Reset()
@@ -189,7 +190,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             using var toolStateUpdater = GraphTool.ToolState.UpdateScope;
             toolStateUpdater.ClearHistory();
-            toolStateUpdater.LoadGraphAsset(null, null);
+            toolStateUpdater.LoadGraph(null, null);
             m_WindowID = SerializableGUID.Generate();
         }
 
@@ -264,22 +265,19 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             rootVisualElement.schedule.Execute(() =>
             {
-                var lastGraphFilePath = GraphTool.ToolState.LastOpenedGraph.GetGraphAssetModelPath();
-                var lastGraphId = GraphTool.ToolState.LastOpenedGraph.AssetLocalId;
-                if (!string.IsNullOrEmpty(lastGraphFilePath))
+                try
                 {
-                    try
+                    var graphModel = GraphTool?.ToolState.LastOpenedGraph.GetGraphModel();
+                    if (graphModel != null)
                     {
-                        GraphTool?.Dispatch(new LoadGraphAssetCommand(
-                            lastGraphFilePath,
-                            lastGraphId,
+                        GraphTool?.Dispatch(new LoadGraphCommand(graphModel,
                             GraphTool.ToolState.LastOpenedGraph.BoundObject,
-                            LoadGraphAssetCommand.LoadStrategies.KeepHistory));
+                            LoadGraphCommand.LoadStrategies.KeepHistory));
                     }
-                    catch (Exception e)
-                    {
-                        Debug.LogError(e);
-                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
                 }
             }).ExecuteLater(0);
 
@@ -302,7 +300,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             if (rootVisualElement.panel != null)
                 OnEnterPanel(null);
 
-            titleContent = new GUIContent(GraphTool.Name, GraphTool.Icon);
+            UpdateWindowTitle();
 
             m_LockTracker.lockStateChanged.AddListener(OnLockStateChanged);
 
@@ -386,7 +384,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         internal void UpdateWindowsWithSameCurrentGraph(bool currentWindowIsClosing)
         {
-            var currentGraph = GraphTool?.ToolState?.AssetModel;
+            var currentGraph = GraphTool?.ToolState?.GraphModel;
             if (currentGraph == null)
                 return;
 
@@ -398,7 +396,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             foreach (var window in windows.Where(w => w.GetInstanceID() != s_LastFocusedEditor))
             {
-                var otherGraph = window.GraphTool?.ToolState?.AssetModel;
+                var otherGraph = window.GraphTool?.ToolState?.GraphModel;
                 if (otherGraph != null && currentGraph == otherGraph)
                 {
                     // Unfocused windows with the same graph are disabled
@@ -603,20 +601,20 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             foreach (var onboardingProvider in m_BlankPage?.OnboardingProviders ?? Enumerable.Empty<OnboardingProvider>())
             {
-                if (onboardingProvider.GetGraphAndObjectFromSelection(GraphTool.ToolState, Selection.activeObject, out var graphAssetModel, out var boundObject))
+                if (onboardingProvider.GetGraphAndObjectFromSelection(GraphTool.ToolState, Selection.activeObject, out var graphAsset, out var boundObject))
                 {
-                    SetCurrentSelection(graphAssetModel, OpenMode.Open, boundObject);
+                    SetCurrentSelection(graphAsset, OpenMode.Open, boundObject);
                     return;
                 }
             }
 
-            if (GraphTool?.ToolState?.AssetModel == null && Selection.activeObject is IGraphAssetModel graph && CanHandleAssetType(graph))
+            if (GraphTool?.ToolState?.GraphModel == null && Selection.activeObject is IGraphAsset graph && CanHandleAssetType(graph))
             {
                 SetCurrentSelection(graph, OpenMode.Open);
             }
         }
 
-        public void SetCurrentSelection(IGraphAssetModel graphAssetModel, OpenMode mode, GameObject boundObject = null)
+        public void SetCurrentSelection(IGraphAsset graphAsset, OpenMode mode, GameObject boundObject = null)
         {
             var windows = (GraphViewEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(GraphViewEditorWindow));
 
@@ -626,24 +624,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
             var currentOpenedGraph = GraphTool?.ToolState.CurrentGraph ?? default;
             // don't load if same graph and same bound object
-            if (GraphTool?.ToolState.AssetModel != null &&
-                graphAssetModel == currentOpenedGraph.GetGraphAssetModel() &&
+            if (GraphTool?.ToolState.GraphModel != null &&
+                graphAsset == currentOpenedGraph.GetGraphAsset() &&
                 currentOpenedGraph.BoundObject == boundObject)
                 return;
 
-            var graphAssetFilePath = graphAssetModel.GetPath();
-            var fileId = graphAssetModel.GetFileId();
-            // If there is not graph asset, unload the current one.
-            if (string.IsNullOrWhiteSpace(graphAssetFilePath) || fileId == 0)
+            // If there is no graph asset, unload the current one.
+            if (graphAsset.GraphModel == null)
             {
                 return;
             }
 
             // Load this graph asset.
-            GraphTool?.Dispatch(new LoadGraphAssetCommand(graphAssetFilePath, fileId, boundObject));
+            GraphTool?.Dispatch(new LoadGraphCommand(graphAsset.GraphModel, boundObject));
 
-            if (GraphView?.GraphModel?.AssetModel != null)
-                UpdateWindowTitle();
+            UpdateWindowTitle();
 
             if (mode != OpenMode.OpenAndFocus)
                 return;
@@ -651,7 +646,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             // Check if an existing window already has this asset, if yes give it the focus.
             foreach (var window in windows)
             {
-                if (window.GraphTool.ToolState.AssetModel == graphAssetModel)
+                if (window.GraphTool.ToolState.GraphModel == graphAsset.GraphModel)
                 {
                     window.Focus();
                     return;
@@ -664,26 +659,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         /// <param name="asset">The asset we want to know if hte window handles</param>
         /// <returns>True if the window can handle the givne <paramref name="asset"/>. False otherwise.</returns>
-        protected abstract bool CanHandleAssetType(IGraphAssetModel asset);
+        protected abstract bool CanHandleAssetType(IGraphAsset asset);
 
         static void SetupLogStickyCallback()
         {
             ConsoleWindowBridge.SetEntryDoubleClickedDelegate((file, _) =>
             {
-                // FIXME: will not work with files that contains multiple GraphAssetModel.
-
                 var pathAndGuid = file.Split('@');
 
-                bool assetOpened = false;
-                var asset = AssetDatabase.LoadAssetAtPath<GraphAssetModel>(pathAndGuid[0]);
-                if (asset != null)
-                    assetOpened = AssetDatabase.OpenAsset(asset);
+                var window = Resources.FindObjectsOfTypeAll(typeof(GraphViewEditorWindow)).OfType<GraphViewEditorWindow>().FirstOrDefault(w =>
+                    w.GraphTool.ToolState.CurrentGraph.GetGraphAssetPath() == pathAndGuid[0] ||
+                    w.GraphTool.ToolState.SubGraphStack.FirstOrDefault().GetGraphAssetPath() == pathAndGuid[0]);
 
-                if (assetOpened)
+                if (window != null)
                 {
+                    window.Focus();
                     var guid = new SerializableGUID(pathAndGuid[1]);
-                    var window = focusedWindow as GraphViewEditorWindow;
-                    if (window != null && window.GraphView.GraphModel.TryGetModelFromGuid(guid, out var nodeModel))
+                    if (window.GraphView.GraphModel.TryGetModelFromGuid(guid, out var nodeModel))
                     {
                         var graphElement = nodeModel.GetView<GraphElement>(window.GraphView);
                         if (graphElement != null)
@@ -698,18 +690,23 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         // Internal for tests
         internal void UpdateWindowTitle()
         {
-            var initialAsset = GraphTool.ToolState?.SubGraphStack?.FirstOrDefault().GetGraphAssetModelWithoutLoading();
-            var currentAsset = GraphTool.ToolState?.CurrentGraph.GetGraphAssetModelWithoutLoading();
+            var initialAsset = GraphTool?.ToolState?.SubGraphStack?.FirstOrDefault().GetGraphAssetWithoutLoading();
+            var currentAsset = GraphTool?.ToolState?.CurrentGraph.GetGraphAssetWithoutLoading();
 
-            var formattedTitle = FormatWindowTitle(initialAsset?.Name, currentAsset?.Name, initialAsset?.Dirty ?? false, currentAsset?.Dirty ?? false, out var toolTip);
-            titleContent = new GUIContent(formattedTitle, GraphTool.Icon, toolTip);
+            var initialAssetName = (initialAsset as Object == null) ? "" : initialAsset.Name;
+            var currentAssetName = (currentAsset as Object == null) ? "" : currentAsset.Name;
+            var initialAssetDirty = (initialAsset as Object == null) ? false : initialAsset.Dirty;
+            var currentAssetDirty = (currentAsset as Object == null) ? false : currentAsset.Dirty;
+
+            var formattedTitle = FormatWindowTitle(initialAssetName, currentAssetName, initialAssetDirty, currentAssetDirty, out var toolTip);
+            titleContent = new GUIContent(formattedTitle, GraphTool?.Icon, toolTip);
         }
 
         string FormatWindowTitle(string initialAssetName, string currentAssetName, bool initialAssetIsDirty, bool currentAssetIsDirty, out string completeTitle)
         {
             if (string.IsNullOrEmpty(initialAssetName) && string.IsNullOrEmpty(currentAssetName))
             {
-                completeTitle = GraphTool.Name;
+                completeTitle = GraphTool?.Name ?? "";
                 return completeTitle;
             }
 

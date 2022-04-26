@@ -57,7 +57,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             m_SnappableRects = GetNotSelectedElementRectsInView(selectedElement);
         }
 
-        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement, float scale, Vector2 mousePanningDelta = default)
+        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement)
         {
             if (!IsActive)
             {
@@ -72,7 +72,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             Rect snappedRect = sourceRect;
-            m_CurrentScale = scale;
 
             List<SnapToBordersResult> results = GetClosestSnapElements(sourceRect);
 
@@ -168,7 +167,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 Offset = minOffset
             };
 
-            return minResult.Distance <= SnapDistance * 1 / m_CurrentScale ? minResult : null;
+            return minResult.Distance <= SnapDistance ? minResult : null;
         }
 
         SnapToBordersResult GetClosestSnapElement(Rect sourceRect, SnapReference sourceRef, SnapReference startReference, SnapReference endReference)
