@@ -7,6 +7,7 @@
 }
 
 #previewContainer {
+    justify-content: center;
     flex-direction: row;
     flex-grow: 1;
     border-color: #1a1a1a;
@@ -33,7 +34,6 @@
 }
 
  #collapse-icon  {
-     align-self: center;
      background-image : url("Icons/PreviewCollapse.png");
      width: 16px;
      height: 16px;
@@ -46,13 +46,13 @@
 }
 
 #expand {
-    background-color: rgba(63, 63, 63, 0.8);
     align-self: center;
-    flex-grow: 1;
-    height: 16px;
-    margin: 1px;
     flex-direction: row;
-    justify-content:center;
+    flex-grow: 1;
+    max-height: 18px;
+    max-width: 18px;
+    background-color: rgba(63, 63, 63, 0.8);
+
 }
 
 #expand-icon:hover {

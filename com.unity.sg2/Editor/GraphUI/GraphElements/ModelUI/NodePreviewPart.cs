@@ -39,18 +39,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_PreviewImage.image = defaultTexture;
             }
 
-            // TODO: (Sai) Re-enable in sprint 2
-            //m_CollapseButton = m_Root.Q<VisualElement>("collapse");
-            //m_CollapseButton?.RegisterCallback<MouseDownEvent>(OnCollapseButtonClicked);
-            //
-            //m_ExpandButton = m_Root.Q<VisualElement>("expand");
-            //m_ExpandButton?.RegisterCallback<MouseDownEvent>(OnExpandButtonClicked);
+            m_CollapseButton = m_Root.Q<VisualElement>("collapse");
+            m_CollapseButton?.RegisterCallback<MouseDownEvent>(OnCollapseButtonClicked);
+
+            m_ExpandButton = m_Root.Q<VisualElement>("expand");
+            m_ExpandButton?.RegisterCallback<MouseDownEvent>(OnExpandButtonClicked);
 
             m_PreviewContainer = m_Root.Q<VisualElement>("previewContainer");
 
-            // TODO: (Sai) Re-enable in sprint 2
             // TODO: Handle preview collapse/expand state serialization
-            // HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewExpanded);
 
             parent.Add(Root);
         }
@@ -61,8 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!m_GraphDataNodeModel.existsInGraphData)
                 return;
 
-            // TODO: (Sai) Re-enable in sprint 2
-            //HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewExpanded);
 
             // TODO: When shader compilation is complete and we have updated texture, need to notify NodePreviewPart so image tint can be changed
             HandlePreviewShaderCurrentlyCompiling(m_GraphDataNodeModel.PreviewShaderIsCompiling);
@@ -72,12 +69,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            // m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
         }
 
         void OnExpandButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            // m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
         }
 
         void HandlePreviewExpansionStateChanged(bool previewExpanded)
