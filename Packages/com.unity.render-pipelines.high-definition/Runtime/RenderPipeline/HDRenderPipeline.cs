@@ -613,7 +613,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ,
                 autoDefaultReflectionProbeBaking = false
                 ,
+                #pragma warning disable 618
                 enlightenLightmapper = false
+                #pragma warning restore 618
                 ,
                 rendersUIOverlay = true
             };
