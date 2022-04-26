@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
     }
 
-    internal class BaseTextureType : ITypeDefinitionBuilder
+    public class BaseTextureType : ITypeDefinitionBuilder
     {
         public static RegistryKey kRegistryKey => new RegistryKey { Name = "TextureType", Version = 1 };
         public RegistryKey GetRegistryKey() => kRegistryKey;
@@ -87,7 +87,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         #region LocalNames
         public const string KAsset = "Asset";
+        public const string kTextureType = "TextureType";
         #endregion
+
+        public enum TextureType { Texture2D, Texture3D, CubeMap, Texture2DArray }
 
         public static string GetUniqueUniformName(FieldHandler data)
             => data.ID.FullPath.Replace('.', '_') + "_Tex";
@@ -106,22 +109,28 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             data.GetSubField<Internal.SerializableTexture>(KAsset).SetData(stex);
         }
 
+        public static void SetTextureType(FieldHandler data, TextureType type)
+            => data.GetSubField<TextureType>(kTextureType).SetData(type);
+
+        public static TextureType GetTextureType(FieldHandler data)
+            => data.GetSubField<TextureType>(kTextureType).GetData();
 
         public void BuildType(FieldHandler field, Registry registry)
         {
             var stex = new Internal.SerializableTexture();
             stex.texture = null;
             field.AddSubField(KAsset, stex);
+            field.AddSubField(kTextureType, TextureType.Texture2D);
         }
 
-        public ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
+        ShaderType ITypeDefinitionBuilder.GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
         {
-            switch (GetTextureAsset(field))
+            switch (GetTextureType(field))
             {
-                case Texture3D: return container._UnityTexture3D;
-                case Texture2DArray: return container._UnityTexture2DArray;
-                case Cubemap: return container._UnityTextureCube;
-                case Texture2D:
+                case TextureType.Texture3D: return container._UnityTexture3D;
+                case TextureType.Texture2DArray: return container._UnityTexture2DArray;
+                case TextureType.CubeMap: return container._UnityTextureCube;
+                case TextureType.Texture2D:
                 default: return container._UnityTexture2D;
             }
         }
@@ -152,7 +161,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (BaseTextureType.kRegistryKey, BaseTextureType.kRegistryKey);
         public bool CanConvert(FieldHandler src, FieldHandler dst)
         {
-            return BaseTextureType.GetTextureAsset(src).GetType() == BaseTextureType.GetTextureAsset(dst).GetType();
+            return BaseTextureType.GetTextureType(src) == BaseTextureType.GetTextureType(dst);
         }
 
         public ShaderFunction GetShaderCast(FieldHandler src, FieldHandler dst, ShaderContainer container, Registry registry)
