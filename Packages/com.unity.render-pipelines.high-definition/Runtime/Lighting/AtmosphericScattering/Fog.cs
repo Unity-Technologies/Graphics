@@ -55,8 +55,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Common Fog Parameters (Exponential/Volumetric)
         /// <summary>Stores the fog albedo. This defines the color of the fog.</summary>
         public ColorParameter albedo = new ColorParameter(Color.white);
-        /// <summary>Multiplier for ambient probe contribution.</summary>
-        [DisplayInfo(name = "Ambient Light Probe Dimmer")]
+        /// <summary>Multiplier for global illumination (APV or ambient probe).</summary>
+        [DisplayInfo(name = "GI Dimmer")]
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer. The lower the distance is, the higher the fog quality is.</summary>
         public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);

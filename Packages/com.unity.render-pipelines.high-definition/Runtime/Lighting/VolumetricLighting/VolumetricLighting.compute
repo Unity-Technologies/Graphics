@@ -102,6 +102,9 @@ groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIG
 // Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 real3 EvaluateVolumetricAmbientProbe(real3 normalWS)
 {
+#if SAMPLE_PROBE_VOLUMES // If we sample APV, ambient is baked in into APV and fallback into ambient is included in the APV sample.
+    return 0;
+#else
     real4 SHCoefficients[7];
     SHCoefficients[0] = _VolumetricAmbientProbeBuffer[0];
     SHCoefficients[1] = _VolumetricAmbientProbeBuffer[1];
@@ -112,6 +115,7 @@ real3 EvaluateVolumetricAmbientProbe(real3 normalWS)
     SHCoefficients[6] = _VolumetricAmbientProbeBuffer[6];
 
     return SampleSH9(SHCoefficients, normalWS);
+#endif
 }
 
 // Jittered ray with screen-space derivatives.
@@ -510,7 +514,7 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
         weight = 0;
     }
 
-    return apvDiffuseGI * weight;
+    return apvDiffuseGI * weight * _FogGIDimmer;
 #else
     return 0;
 #endif

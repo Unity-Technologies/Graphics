@@ -204,6 +204,8 @@ namespace UnityEngine.Rendering
             parameters.occlusionWeightContribution = 0.0f;
             parameters.minValidNormalWeight = 0.0f;
             parameters.frameIndexForNoise = 0;
+            parameters.reflNormalizationLowerClamp = 0.1f;
+            parameters.reflNormalizationUpperClamp = 1.0f;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

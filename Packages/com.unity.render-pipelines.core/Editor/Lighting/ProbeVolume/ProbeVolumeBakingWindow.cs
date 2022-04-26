@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering
         bool m_Initialized;
         float infoLabelX;
 
+        bool hasPendingScenarioUpdate = false;
+
         List<SceneData> m_ScenesInProject = new List<SceneData>();
 
         internal enum Expandable
@@ -103,7 +105,7 @@ namespace UnityEngine.Rendering
 
         ProbeVolumeSceneData sceneData => ProbeReferenceVolume.instance.sceneData;
 
-        [MenuItem("Window/Rendering/Probe Volume Settings (Experimental)")]
+        [MenuItem("Window/Rendering/Probe Volume Settings (Experimental)", priority = 2)]
         static void OpenWindow()
         {
             // Get existing open window or if none, make a new one:
@@ -399,6 +401,13 @@ namespace UnityEngine.Rendering
 
         internal void UpdateScenariosStatuses()
         {
+            if (!m_Initialized)
+            {
+                hasPendingScenarioUpdate = true;
+                return;
+            }
+            hasPendingScenarioUpdate = false;
+
             var bakingSet = GetCurrentBakingSet();
             if (bakingSet.sceneGUIDs.Count == 0)
                 return;
@@ -430,6 +439,13 @@ namespace UnityEngine.Rendering
 
         internal void UpdateScenariosStatuses(string mostRecentState)
         {
+            if (!m_Initialized)
+            {
+                hasPendingScenarioUpdate = true;
+                return;
+            }
+            hasPendingScenarioUpdate = false;
+
             var initialStatus = AllSetScenesAreLoaded() ? ScenariosStatus.Valid : ScenariosStatus.NotLoaded;
 
             var bakingSet = GetCurrentBakingSet();
@@ -607,6 +623,11 @@ namespace UnityEngine.Rendering
 
         bool AllSetScenesAreLoaded()
         {
+            if (!m_Initialized)
+            {
+                return false;
+            }
+
             var set = GetCurrentBakingSet();
             var dataList = ProbeReferenceVolume.instance.perSceneDataList;
 
@@ -648,6 +669,9 @@ namespace UnityEngine.Rendering
 
             // The window can load before the APV system
             Initialize();
+
+            if (hasPendingScenarioUpdate)
+                UpdateScenariosStatuses();
 
             EditorGUI.BeginChangeCheck();
 

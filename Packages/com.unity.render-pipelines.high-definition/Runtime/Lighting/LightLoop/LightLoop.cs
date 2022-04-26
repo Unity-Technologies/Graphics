@@ -937,7 +937,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool apvIsEnabled = IsAPVEnabled();
             ProbeReferenceVolume.instance.SetEnableStateFromSRP(apvIsEnabled);
             // We need to verify and flush any pending asset loading for probe volume.
-            if (apvIsEnabled)
+            if (apvIsEnabled && ProbeReferenceVolume.instance.isInitialized)
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 {

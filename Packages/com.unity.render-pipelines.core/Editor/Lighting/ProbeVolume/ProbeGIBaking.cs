@@ -87,6 +87,15 @@ namespace UnityEngine.Rendering
     [InitializeOnLoad]
     partial class ProbeGIBaking
     {
+        enum BakingStage
+        {
+            NotStarted,
+            Started,
+            PlacementDone,
+            OnBakeCompletedStarted,
+            OnBakeCompletedFinished
+        }
+
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
         static ProbeReferenceVolumeProfile m_BakingProfile = null;
@@ -99,7 +108,7 @@ namespace UnityEngine.Rendering
         static Vector3Int minCellPosition = Vector3Int.one * int.MaxValue;
         static Vector3Int maxCellPosition = Vector3Int.one * int.MinValue;
 
-        static bool onAdditionalProbesBakeCompletedCalled = false;
+        static BakingStage currentBakingState = BakingStage.NotStarted;
 
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
@@ -280,7 +289,7 @@ namespace UnityEngine.Rendering
 
         static void OnBakeStarted()
         {
-            if (!ProbeReferenceVolume.instance.isInitialized) return;
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return;
 
             EnsurePerSceneDataInOpenScenes();
 
@@ -295,6 +304,8 @@ namespace UnityEngine.Rendering
             FindWorldBounds(out bool hasFoundInvalidSetup);
             if (hasFoundInvalidSetup) return;
 
+            currentBakingState = BakingStage.Started;
+
             SetBakingContext(sceneDataList);
 
             // Get min/max
@@ -304,6 +315,8 @@ namespace UnityEngine.Rendering
                 data.Initialize();
 
             RunPlacement();
+
+            currentBakingState = BakingStage.PlacementDone;
         }
 
         static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters)
@@ -542,6 +555,15 @@ namespace UnityEngine.Rendering
         {
             using var pm = new ProfilerMarker("OnAdditionalProbesBakeCompleted").Auto();
 
+            if (currentBakingState != BakingStage.PlacementDone)
+            {
+                // This can happen if a baking job is canceled and a phantom call to OnAdditionalProbesBakeCompleted cannot be dequeued.
+                // TODO: Investigate with the lighting team if we have a cleaner way.
+                return;
+            }
+
+            currentBakingState = BakingStage.OnBakeCompletedStarted;
+
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             s_ForceInvalidatedProbesAndTouchupVols.Clear();
             s_CustomDilationThresh.Clear();
@@ -578,8 +600,6 @@ namespace UnityEngine.Rendering
 
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
-
-            onAdditionalProbesBakeCompletedCalled = true;
 
             var dilationSettings = m_BakingSettings.dilationSettings;
             var virtualOffsets = m_BakingBatch.virtualOffsets;
@@ -839,12 +859,16 @@ namespace UnityEngine.Rendering
             // Mark old bakes as out of date if needed
             if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
             {
-                var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow));
+                // We don't want to force focus on the window if it did already have it.
+                var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow), utility: false, title: null, focus: false);
                 window.UpdateScenariosStatuses(ProbeReferenceVolume.instance.lightingScenario);
             }
 
             // We are done with baking so we reset whether we need to bake only the active or not.
             isBakingOnlyActiveScene = false;
+
+            currentBakingState = BakingStage.OnBakeCompletedFinished;
+
         }
 
         static void OnLightingDataCleared()
@@ -1426,11 +1450,12 @@ namespace UnityEngine.Rendering
 
         public static void OnBakeCompletedCleanup()
         {
-            if (!onAdditionalProbesBakeCompletedCalled)
+            if (currentBakingState != BakingStage.OnBakeCompletedFinished && currentBakingState != BakingStage.OnBakeCompletedStarted)
             {
                 // Dequeue the call if something has failed.
                 UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
+                if (m_BakingBatch != null)
+                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
                 if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
                     CleanupOccluders();
             }
@@ -1438,7 +1463,6 @@ namespace UnityEngine.Rendering
 
         public static void RunPlacement()
         {
-            onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
             AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;

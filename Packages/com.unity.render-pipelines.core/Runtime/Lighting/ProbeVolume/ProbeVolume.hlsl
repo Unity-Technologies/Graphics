@@ -19,6 +19,8 @@
 #define _MinLoadedCell _Weight_MinLoadedCell.yzw
 #define _MaxLoadedCell _MaxLoadedCell_FrameIndex.xyz
 #define _NoiseFrameIndex _MaxLoadedCell_FrameIndex.w
+#define _MinReflProbeNormalizationFactor _NormalizationClamp_Padding12.x
+#define _MaxReflProbeNormalizationFactor _NormalizationClamp_Padding12.y
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -686,8 +688,10 @@ float EvaluateReflectionProbeSH(float3 sampleDir, float4 reflProbeSHL0L1, float4
 float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
 {
     float refProbeNormalization = EvaluateReflectionProbeSH(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
+
     float localNormalization = Luminance(lightingInReflDir);
-    return lerp(1.f, SafeDiv(localNormalization, refProbeNormalization), _Weight);
+    return lerp(1.f, clamp(SafeDiv(localNormalization, refProbeNormalization), _MinReflProbeNormalizationFactor, _MaxReflProbeNormalizationFactor), _Weight);
+
 }
 
 #endif // __PROBEVOLUME_HLSL__

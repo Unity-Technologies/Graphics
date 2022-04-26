@@ -464,8 +464,14 @@ namespace UnityEngine.Rendering
             // Compute the span of the valid part
             var size = (cellMaxIndex - cellMinIndex);
 
-            // Loop through all touched indices
+            // Analytically compute min and max because doing it in the inner loop with Math.Min/Max is costly (not inlined)
             int chunkStart = cellInfo.firstChunkIndex * kIndexChunkSize;
+            int newMin = chunkStart + brickMin.z * (size.x * size.y) + brickMin.x * size.y + brickMin.y;
+            int newMax = chunkStart + Math.Max(0, (brickMax.z - 1)) * (size.x * size.y) + Math.Max(0, (brickMax.x - 1)) * size.y + Math.Max(0, (brickMax.y - 1));
+            m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
+            m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, newMax);
+
+            // Loop through all touched indices
             for (int x = brickMin.x; x < brickMax.x; ++x)
             {
                 for (int z = brickMin.z; z < brickMax.z; ++z)
@@ -475,9 +481,6 @@ namespace UnityEngine.Rendering
                         int localFlatIdx = z * (size.x * size.y) + x * size.y + y;
                         int actualIdx = chunkStart + localFlatIdx;
                         m_PhysicalIndexBufferData[actualIdx] = value;
-
-                        m_UpdateMinIndex = Math.Min(actualIdx, m_UpdateMinIndex);
-                        m_UpdateMaxIndex = Math.Max(actualIdx, m_UpdateMaxIndex);
                     }
                 }
             }

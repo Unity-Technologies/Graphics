@@ -353,6 +353,14 @@ namespace UnityEngine.Rendering
         /// The frame index to be used to animate the sampling noise if requested.
         /// </summary>
         public int frameIndexForNoise;
+        /// <summary>
+        /// Lower clamp value for reflection probe normalization.
+        /// </summary>
+        public float reflNormalizationLowerClamp;
+        /// <summary>
+        /// Upper clamp value for reflection probe normalization.
+        /// </summary>
+        public float reflNormalizationUpperClamp;
 
     }
 
@@ -1153,11 +1161,14 @@ namespace UnityEngine.Rendering
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
-            if (m_PendingAssetsToBeUnloaded.ContainsKey(key))
+            if (m_ActiveAssets.ContainsKey(key) || m_PendingAssetsToBeLoaded.ContainsKey(key))
             {
-                m_PendingAssetsToBeUnloaded.Remove(key);
+                if (m_PendingAssetsToBeUnloaded.ContainsKey(key))
+                {
+                    m_PendingAssetsToBeUnloaded.Remove(key);
+                }
+                m_PendingAssetsToBeUnloaded.Add(asset.GetSerializedFullPath(), asset);
             }
-            m_PendingAssetsToBeUnloaded.Add(asset.GetSerializedFullPath(), asset);
         }
 
         internal void RemovePendingAsset(ProbeVolumeAsset asset)
@@ -1682,6 +1693,9 @@ namespace UnityEngine.Rendering
             shaderVars._Weight_MinLoadedCell = new Vector4(parameters.weight, minLoadedCellPos.x, minLoadedCellPos.y, minLoadedCellPos.z);
             shaderVars._MaxLoadedCell_FrameIndex = new Vector4(maxLoadedCellPos.x, maxLoadedCellPos.y, maxLoadedCellPos.z, parameters.frameIndexForNoise);
             shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
+
+            // TODO: Expose this somewhere UX visible? To discuss.
+            shaderVars._NormalizationClamp_Padding12 = new Vector4(parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp, 0, 0);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
