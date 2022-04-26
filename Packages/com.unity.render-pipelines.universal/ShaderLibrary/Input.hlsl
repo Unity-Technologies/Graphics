@@ -82,6 +82,10 @@ SAMPLER(sampler_GlossyEnvironmentCubeMap);
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
 
+// x = Mip Bias
+// y = 2.0 ^ [Mip Bias]
+float2 _GlobalMipBias;
+
 float4 _MainLightPosition;
 half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
