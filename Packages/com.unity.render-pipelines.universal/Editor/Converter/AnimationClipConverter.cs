@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal
     internal sealed class AnimationClipConverter : RenderPipelineConverter
     {
         public override string name => "Animation Clip Converter";
-        public override string info => "Need to update all Animation Clips. This will run after Materials has been converted.";
+        public override string info => "This converter updates all animation clips so that they reference the correct Materials.";
         public override string category { get; }
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
