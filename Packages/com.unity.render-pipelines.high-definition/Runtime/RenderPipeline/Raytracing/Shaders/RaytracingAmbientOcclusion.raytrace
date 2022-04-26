@@ -115,11 +115,3 @@ void RayGenAmbientOcclusion()
     _AmbientOcclusionTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = finalColor;
     _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = velocity;
 }
-
-// Fallback default any hit shader for this raytrace shader
-[shader("anyhit")]
-void AnyHitMain(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-    rayIntersection.color = float3(0.0, 0.0, 0.0);
-    AcceptHitAndEndSearch();
-}

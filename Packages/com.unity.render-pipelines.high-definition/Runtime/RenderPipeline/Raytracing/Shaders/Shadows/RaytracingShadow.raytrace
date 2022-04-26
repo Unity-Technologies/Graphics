@@ -272,14 +272,6 @@ void RayGenAreaShadows()
     _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = float2(U, misInput.brdfProb);
 }
 
-// Fallback default any hit shader for this raytrace shader
-[shader("anyhit")]
-void AnyHitMain(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-    rayIntersection.color = float3(0.0, 0.0, 0.0);
-    rayIntersection.t = RayTCurrent();
-    AcceptHitAndEndSearch();
-}
 
 // Texture that holds the raytracing data
 TEXTURE2D_X(_RaytracingDirectionBuffer);

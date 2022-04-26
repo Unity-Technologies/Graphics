@@ -242,10 +242,3 @@ void RayGenAOV()
     _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetNormal(pathIntersection), 1.0);
     _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.motionVector.x, pathIntersection.motionVector.y, 0.0, 1.0);
 }
-
-// This should never be called, return magenta just in case
-[shader("closesthit")]
-void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-    pathIntersection.value = float3(1.0, 0.0, 0.5);
-}

@@ -130,10 +130,3 @@ void RayGenRenderer()
 	_RaytracingPrimaryDebug[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
     _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
 }
-
-[shader("closesthit")]
-void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{   
-	// When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
-	rayIntersection.color = float3(1.0, 0.0, 0.5);
-}
