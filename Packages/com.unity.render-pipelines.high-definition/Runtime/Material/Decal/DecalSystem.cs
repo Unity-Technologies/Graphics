@@ -860,7 +860,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private float m_Blend = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
-            private Vector4 m_ScalingBAndRemappingM; // mask map blue, metal remap
+            private Vector4 m_ScalingBAndRemappingM; // unused, mask map blue, metal remap min, metal remap max
             private Vector3 m_BlendParams;
 
             private bool m_IsHDRenderPipelineDecal;
