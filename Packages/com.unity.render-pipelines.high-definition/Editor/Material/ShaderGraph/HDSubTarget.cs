@@ -145,7 +145,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
-                passDescriptor.passTemplatePath = templatePath;
+                if (passDescriptor.passTemplatePath == "" || passDescriptor.passTemplatePath == null)
+                    passDescriptor.passTemplatePath = templatePath;
                 passDescriptor.sharedTemplateDirectories = sharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
 
                 // Add the subShader to enable fields that depends on it

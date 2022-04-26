@@ -1168,6 +1168,50 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
+        #region Raytracing Debug
+
+        public static PassDescriptor GenerateRaytracingDebug()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "DebugDXR",
+                referenceName = "SHADERPASS_RAYTRACING_DEBUG",
+                lightMode = "DebugDXR",
+                useInPreview = false,
+                requiredFields = CoreRequiredFields.Basic,
+
+                // Collections
+                structs = CoreStructCollections.BasicRaytracing,
+                pragmas = CorePragmas.BasicRaytracing,
+                defines = null,
+                keywords = null,
+                includes = GenerateIncludes(),
+
+                // The DebugDXR pass is special and have its own template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/RaytraceDebug.template"
+        };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { };
+
+                includes.Add(CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kMaterial, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingDebug, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+        }
+
+        #endregion
+
         #region Path Tracing
 
         public static PassDescriptor GeneratePathTracing(bool supportLighting)
