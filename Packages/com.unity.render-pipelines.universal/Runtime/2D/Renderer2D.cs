@@ -135,15 +135,16 @@ namespace UnityEngine.Rendering.Universal
             }
             else    // Overlay camera
             {
+                cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
+                var baseRenderer = (Renderer2D)baseCameraData.scriptableRenderer;
+
                 // These render textures are created by the base camera, but it's the responsibility of the last overlay camera's ScriptableRenderer
                 // to release the textures in its FinishRendering().
                 m_CreateColorTexture = true;
                 m_CreateDepthTexture = true;
 
-                m_ColorTextureHandle?.Release();
-                m_DepthTextureHandle?.Release();
-                m_ColorTextureHandle = RTHandles.Alloc("_CameraColorTexture", name: "_CameraColorTexture");
-                m_DepthTextureHandle = RTHandles.Alloc("_CameraDepthAttachment", name: "_CameraDepthAttachment");
+                m_ColorTextureHandle = baseRenderer.m_ColorTextureHandle;
+                m_DepthTextureHandle = baseRenderer.m_DepthTextureHandle;
 
                 colorTargetHandle = m_ColorTextureHandle;
                 depthTargetHandle = m_DepthTextureHandle;
