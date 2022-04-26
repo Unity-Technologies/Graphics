@@ -10,10 +10,10 @@
 PR_HDRP_2020.3:
     name: PR HDRP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     triggers:
         expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*", "TestProjects/HDRP_RuntimeTests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
@@ -46,10 +46,10 @@ PR_HDRP_2020.3:
 Extra_HDRP_2020.3:
     name: Extra HDRP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_2020.3
          rerun: on_new_revision
@@ -66,10 +66,10 @@ Extra_HDRP_2020.3:
 HDRP_2020.3:
     name: HDRP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_2020.3
          rerun: on_new_revision
@@ -78,10 +78,10 @@ HDRP_2020.3:
 Nightly_HDRP_2020.3:
     name: Nightly HDRP on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_2020.3
          rerun: on_new_revision
@@ -92,10 +92,10 @@ Nightly_HDRP_2020.3:
 PR_HDRP_CUSTOM-REVISION:
     name: PR HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -126,10 +126,10 @@ PR_HDRP_CUSTOM-REVISION:
 Extra_HDRP_CUSTOM-REVISION:
     name: Extra HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -146,10 +146,10 @@ Extra_HDRP_CUSTOM-REVISION:
 HDRP_CUSTOM-REVISION:
     name: HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -158,10 +158,10 @@ HDRP_CUSTOM-REVISION:
 Nightly_HDRP_CUSTOM-REVISION:
     name: Nightly HDRP on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision

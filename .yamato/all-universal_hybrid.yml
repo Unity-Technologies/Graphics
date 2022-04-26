@@ -10,10 +10,10 @@
 PR_Universal_Hybrid_2020.3:
     name: PR Universal_Hybrid on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_2020.3
          rerun: on_new_revision
@@ -22,18 +22,18 @@ PR_Universal_Hybrid_2020.3:
 Extra_Universal_Hybrid_2020.3:
     name: Extra Universal_Hybrid on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Universal_Hybrid_2020.3:
     name: Universal_Hybrid on 2020.3
     variables:
-        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_2020.3
          rerun: on_new_revision
@@ -42,10 +42,10 @@ Universal_Hybrid_2020.3:
 PR_Universal_Hybrid_CUSTOM-REVISION:
     name: PR Universal_Hybrid on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -54,18 +54,18 @@ PR_Universal_Hybrid_CUSTOM-REVISION:
 Extra_Universal_Hybrid_CUSTOM-REVISION:
     name: Extra Universal_Hybrid on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies: []
 Universal_Hybrid_CUSTOM-REVISION:
     name: Universal_Hybrid on CUSTOM-REVISION
     variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+        UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
