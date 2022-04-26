@@ -121,7 +121,7 @@ NOTE: In versions prior to 10.0, Shader Graph didn't correct HDR colors for the 
 
 ## Texture 2D
 
-Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector. If the Property Inspector displays **Main Texture**, this is the `Main Texture` for the shader. To select or deselect this node as the `Main Texture`, right-click on it in the graph or Blackboard and select **Set as Main Texture** or **Clear Main Texture**. Corresponds to the [`MainTexture`](https://docs.unity3d.com/2021.2/Documentation/Manual/SL-Properties.html) ShaderLab Properties attribute.
+Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector. If the Property Inspector displays **Main Texture**, this is the `Main Texture` for the shader. To select or deselect this node as the `Main Texture`, right-click on it in the graph or Blackboard and select **Set as Main Texture** or **Clear Main Texture**. Corresponds to the [`MainTexture`](https://docs.unity3d.com/Manual/SL-Properties.html) ShaderLab Properties attribute.
 
 | Data Type    | Modes |
 |:-------------|:------|
