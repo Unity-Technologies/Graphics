@@ -1,0 +1,35 @@
+project:
+  name: URP
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    triggers:
+      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    dependencies:
+      - .yamato/all-universal.yml#PR_Universal_<TRACK>
+      - .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_<TRACK>
+      - .yamato/all-universal_stereo.yml#PR_Universal_Stereo_<TRACK>
+      - .yamato/all-urpupdate.yml#PR_URPUpdate_<TRACK>
+      - .yamato/all-shadergraph.yml#PR_ShaderGraph_<TRACK>
+      - .yamato/all-vfx_urp.yml#PR_VFX_URP_<TRACK>
+      - .yamato/_abv.yml#General_Checks_<TRACK>
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-universal.yml#Extra_Universal_<TRACK>
+      - .yamato/all-universal_hybrid.yml#Extra_Universal_Hybrid_<TRACK>
+#      - .yamato/all-universal_stereo.yml#Extra_Universal_Stereo_<TRACK>
+#      - .yamato/all-urpupdate.yml#Extra_URPUpdate_<TRACK>
+#      - .yamato/all-shadergraph.yml#Extra_ShaderGraph_Stereo_<TRACK>
+#      - .yamato/all-vfx_urp.yml#Extra_VFX_URP_<TRACK>
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
+  - name: Nightly <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#<PROJECT_NAME>_<TRACK>
+      - .yamato/all-universal_hybrid.yml#Universal_Hybrid_<TRACK>
+      - .yamato/all-universal_stereo.yml#Universal_Stereo_<TRACK>
+      - .yamato/all-urpupdate.yml#URPUpdate_<TRACK>
+#     - .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_<TRACK>
+      - .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_<TRACK>

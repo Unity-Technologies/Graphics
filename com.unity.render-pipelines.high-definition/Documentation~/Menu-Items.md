@@ -33,8 +33,13 @@ This group of menu items is useful when you upgrade your Unity Project from usin
 
 ### Other items
 
-| **Item**                                | **Description**                                              |
-| --------------------------------------- | ------------------------------------------------------------ |
-| **Render Selected Camera to Log EXR**   | Exports the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. This is useful when [authoring lookup textures](Authoring-LUTs.md). |
-| **Export Sky to Image**                 | Exports the current sky as a static HDRI.                    |
-| **Check Scene Content for Ray Tracing** | Checks every GameObject in the current scene and throws warnings if:A Mesh Filter references a null Mesh.A Mesh Renderer references a null Material.A Submesh within a single Renderer reference both a transparent and opaque Material. |
+This section includes all the menu items directly under the **Edit > Rendering** menu fold-out.
+
+| **Item**                                                     | **Description**                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Render Selected HDRP Camera to Log EXR**                   | Exports the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. This is useful when [authoring lookup textures](Authoring-LUTs.md). |
+| **Export HDRP Sky to Image**                                 | Exports the current sky as a static HDRI.                    |
+| **Check Scene Content for HDRP Ray Tracing**                 | Checks every GameObject in the current scene and throws warnings if:<br/>&#8226; A Mesh Filter references a null Mesh.<br/>&#8226; A Mesh Renderer references a null Material.<br/>&#8226; A sub-mesh within a single Renderer reference both a transparent and opaque Material.<br/>&#8226; A Mesh has more than 32 sub-meshes.<br/>&#8226; A Mesh contains both double-sided and single-sided sub-meshes.<br/>&#8226; An LODGroup has a missing Renderer in one of its children. |
+| **Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes** | Fixes an issue that occurs if you enter Play Mode with Reflection Probes that Unity baked prior to 2019.3. This is useful when upgrading your HDRP project from Unity 2019.2 to 2019.3. |
+| **Generate Shader Includes**                                 | Generates HLSL code based on C# structs to synchronize data and constants between shaders and C#. For more information on this feature, see [Synchronizing shader code and C#](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest?subfolder=/manual/generating-shader-includes.html). |
+

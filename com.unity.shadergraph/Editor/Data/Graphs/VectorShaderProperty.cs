@@ -10,6 +10,16 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
+        internal virtual int vectorDimension => 4;
+
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            if (decl == HLSLDeclaration.HybridPerInstance)
+                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()}{vectorDimension})";
+            else
+                return referenceName;
+        }
 
         internal override string GetPropertyBlockString()
         {

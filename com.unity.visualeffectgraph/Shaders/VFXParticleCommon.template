@@ -75,7 +75,10 @@ if (index >= asuint(nbMax) - deadCount)
 #if USE_GEOMETRY_SHADER
 	return; // cull
 #else
+{
+	o.pos.x = VFX_NAN;
 	return o; // cull
+}
 #endif
 
 Attributes attributes = (Attributes)0;
@@ -88,7 +91,10 @@ ${VFXLoadAttributes}
 ${VFXLoadAttributes:{alive}}
 #if !HAS_STRIPS
 if (!attributes.alive)
+{
+	o.pos.x = VFX_NAN;
 	return o;
+}
 #endif
 	
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
@@ -197,6 +203,8 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}

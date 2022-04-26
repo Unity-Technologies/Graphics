@@ -139,7 +139,7 @@ namespace UnityEditor.VFX.UI
         void DisconnectController()
         {
             if (controller.model && controller.graph)
-                controller.graph.SetCompilationMode(VFXCompilationMode.Runtime);
+                controller.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
 
 
             m_Controller.UnregisterHandler(this);
@@ -1435,14 +1435,24 @@ namespace UnityEditor.VFX.UI
 
         void OnSave()
         {
-            OnCompile();
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph,graphToSave);
 
             foreach(var graph in graphToSave)
             {
-                graph.GetResource().WriteAsset();
-                graph.OnSaved();
+                if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
+                {
+                    graph.UpdateSubAssets();
+                    try
+                    {
+                        VFXGraph.compilingInEditMode = !m_IsRuntimeMode;
+                        graph.GetResource().WriteAsset();
+                    }
+                    finally
+                    {
+                        VFXGraph.compilingInEditMode = false;
+                    }
+                }
             }
         }
 

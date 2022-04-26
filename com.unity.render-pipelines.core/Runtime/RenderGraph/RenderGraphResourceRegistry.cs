@@ -326,6 +326,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return (m_Resources[(int)RenderGraphResourceType.Texture][handle] as TextureResource).desc;
         }
 
+        internal void ForceTextureClear(in ResourceHandle handle, Color clearColor)
+        {
+            GetTextureResource(handle).desc.clearBuffer = true;
+            GetTextureResource(handle).desc.clearColor = clearColor;
+        }
+
         internal RendererListHandle CreateRendererList(in RendererListDesc desc)
         {
             ValidateRendererListDesc(desc);

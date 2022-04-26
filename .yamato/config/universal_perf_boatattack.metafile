@@ -7,8 +7,12 @@ project:
 
 reuse_blocks:
   unity_config:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
+        - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+          retries: 3
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]:
+        - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+          retries: 3
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
@@ -25,24 +29,25 @@ reuse_blocks:
     - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
     - [Linux_Vulkan]: sudo apt update
     - [Linux_Vulkan]: sudo apt install -y unity-config
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-    - [all]: cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
+    - [all]: unity-config settings project-path TestProjects/BoatAttack
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+    - [all]: unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+    - [all]: unity-config project add dependency com.unity.addressables@1.16.7
+    - [all]: unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+    - [all]: unity-config project add dependency com.unity.test-framework@1.1.30
+    - [all]: unity-config project add dependency com.unity.test-framework.performance@2.4.0
+    - [all]: unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+    - [all]: unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+    - [all]: unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+    - [all]: unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+    - [all]: unity-config project add testable com.unity.cli-project-setup
+    - [all]: unity-config project add testable com.unity.test.performance.runtimesettings
+    - [all]: unity-config project add testable com.unity.test.metadata-manager
+    - [all]: unity-config project add testable com.unity.testing.graphics-performance
+    - [all]: unity-config project add testable com.unity.render-pipelines.core
+    - [all]: unity-config project add testable unity.graphictests.performance.universal
+    - [all]: unity-config project set project-update false
   perf_utr_flags:
     - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
     - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
@@ -60,26 +65,37 @@ reuse_blocks:
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
+    allow_cache: False
     commands:
       - [OSX_Metal]: <reuse_blocks.unity_config>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersLow
+          - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersLow
           - [OSX_Metal]: --testfilter=Low
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - [Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
+          - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
@@ -93,12 +109,21 @@ test_platforms:
 
     commands_build:
       - <reuse_blocks.unity_config>
-      - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+      - [iPhone_Metal]:
+        - command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          retries: 3
+      - [iPhone_Metal]:
+        - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+          retries: 3
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+          - [all]: --player-save-path=playersLow
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
@@ -106,7 +131,12 @@ test_platforms:
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+          - [all]: --player-save-path=playersMedium
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
@@ -125,18 +155,31 @@ test_platforms:
 
   - type: playmode
     name: performance_playmode_editor
+    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
@@ -150,19 +193,34 @@ test_platforms:
           - [all]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
+    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Low
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=BoatAttack
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
@@ -176,8 +234,7 @@ test_platforms:
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=High
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -223,11 +280,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
   - name: iPhone
     apis:
@@ -239,14 +296,13 @@ platforms:
     color_spaces:
       - Linear
     agents_project:
-      # default: package_ci_mac
       default:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM::osx
@@ -259,54 +315,52 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        #- performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-nightly:
-  dependencies:
-    - project: URP_Performance_BoatAttack
-      pr: true
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - performance_playmode_runtime
+            - performance_playmode_editor
+            - performance_build_editmode
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - performance_playmode_runtime
+            #- performance_playmode_editor
+            - performance_build_editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - performance_playmode_runtime
+            - performance_playmode_editor
+            - performance_build_editmode
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+            - performance_playmode_runtime
+            - performance_build_editmode
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+            - performance_playmode_runtime
+            - performance_build_editmode
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+            - performance_playmode_runtime
+            - performance_build_editmode

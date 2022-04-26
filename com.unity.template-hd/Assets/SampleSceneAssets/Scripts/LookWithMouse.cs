@@ -8,6 +8,8 @@ using UnityEngine;
 
 public class LookWithMouse : MonoBehaviour
 {
+    const float k_MouseSensitivityMultiplier = 0.01f;
+
     public float mouseSensitivity = 100f;
 
     public Transform playerBody;
@@ -39,11 +41,11 @@ public class LookWithMouse : MonoBehaviour
             mouseY += value.y;
         }
 
-        mouseX *= mouseSensitivity * Time.deltaTime;
-        mouseY *= mouseSensitivity * Time.deltaTime;
+        mouseX *= mouseSensitivity * k_MouseSensitivityMultiplier;
+        mouseY *= mouseSensitivity * k_MouseSensitivityMultiplier;
 #else
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * k_MouseSensitivityMultiplier;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * k_MouseSensitivityMultiplier;
 #endif
 
         xRotation -= mouseY;

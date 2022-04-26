@@ -73,7 +73,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawSortingInputsGUI()
         {
+            EditorGUI.BeginChangeCheck();
             materialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+            if (EditorGUI.EndChangeCheck())
+                drawOrder.floatValue = Math.Max(-HDRenderQueue.meshDecalPriorityRange, Math.Min((int)drawOrder.floatValue, HDRenderQueue.meshDecalPriorityRange));
+
             materialEditor.ShaderProperty(decalMeshBiasType, Styles.meshDecalBiasType);
             if ((int)decalMeshBiasType.floatValue == (int)DecalMeshDepthBiasType.DepthBias)
             {

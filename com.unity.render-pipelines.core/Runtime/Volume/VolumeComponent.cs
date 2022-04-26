@@ -220,6 +220,19 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns true if any of the volume properites has been overridden.
+        /// </summary>
+        /// <returns>True if any of the volume properites has been overridden.</returns>
+        public bool AnyPropertiesIsOverridden()
+        {
+            for (int i = 0; i < parameters.Count; ++i)
+            {
+                if (parameters[i].overrideState) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Unity calls this method before the object is destroyed.
         /// </summary>
         protected virtual void OnDestroy() => Release();

@@ -158,9 +158,16 @@ namespace UnityEditor.VFX
                 var vfxResource = VisualEffectResource.GetResourceAtPath(path);
                 if (vfxResource != null)
                 {
-                    var graph = vfxResource.GetOrCreateGraph();
-                    graph.OnSaved();
-                    vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                    vfxResource.GetOrCreateGraph().UpdateSubAssets();
+                    try
+                    {
+                        VFXGraph.compilingInEditMode = vfxResource.GetOrCreateGraph().GetCompilationMode() == VFXCompilationMode.Edition;
+                        vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                    }
+                    finally
+                    {
+                        VFXGraph.compilingInEditMode = false;
+                    }
                 }
             }
             Profiler.EndSample();
@@ -247,6 +254,8 @@ namespace UnityEditor.VFX
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
+        [NonSerialized]
+        internal static bool compilingInEditMode = false;
 
         public override void OnEnable()
         {
@@ -347,18 +356,6 @@ namespace UnityEditor.VFX
             finally
             {
                 Profiler.EndSample();
-            }
-        }
-
-        public void OnSaved()
-        {
-            try
-            {
-                m_saved = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogErrorFormat("Save failed : {0}", e);
             }
         }
 
@@ -471,8 +468,6 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            m_saved = false;
-
             if (cause == VFXModel.InvalidationCause.kStructureChanged
                 || cause == VFXModel.InvalidationCause.kSettingChanged
                 || cause == VFXModel.InvalidationCause.kConnectionChanged)
@@ -539,6 +534,11 @@ namespace UnityEditor.VFX
                 SetExpressionGraphDirty();
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
             }
+        }
+
+        public VFXCompilationMode GetCompilationMode()
+        {
+            return m_CompilationMode;
         }
 
         public void SetForceShaderValidation(bool forceShaderValidation)
@@ -778,6 +778,9 @@ namespace UnityEditor.VFX
         }
         public void CompileForImport()
         {
+            if (VFXGraph.compilingInEditMode)
+                m_CompilationMode = VFXCompilationMode.Edition;
+
             if (!GetResource().isSubgraph)
             {
                 // Don't pursue the compile if one of the dependency is not yet loaded
@@ -881,11 +884,6 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         public Action<VFXGraph> onRuntimeDataChanged;
-
-        [SerializeField]
-        protected bool m_saved = false;
-
-        public bool saved { get { return m_saved; } }
 
         [SerializeField]
         private List<VisualEffectObject> m_SubgraphDependencies = new List<VisualEffectObject>();

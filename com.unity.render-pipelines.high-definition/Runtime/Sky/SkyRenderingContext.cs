@@ -40,6 +40,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public void Reset()
+        {
+            ambientProbeIsReady = false;
+        }
+
         public void Cleanup()
         {
             RTHandles.Release(skyboxCubemapRT);

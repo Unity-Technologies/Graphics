@@ -143,14 +143,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CheckDirtiness(HDCamera hdCamera)
         {
-            if (m_SubFrameManager.isRecording)
-            {
-                return;
-            }
-
             // Grab the cached data for the current camera
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
+
+            if (m_SubFrameManager.isRecording)
+            {
+                // If we are recording, we still want to know whether sky rendering is enabled or not
+                camData.skyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
+                m_SubFrameManager.SetCameraData(camID, camData);
+                return;
+            }
 
             // Check camera resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
@@ -381,6 +384,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // So we need to import a regular RTHandle. This is not good because it means the texture will always be allocate even if not used...
             // Refactor that when we formalize how to handle persistent textures better (with automatic lifetime and such).
             var radianceTexture = renderGraph.ImportTexture(m_RadianceTexture);
+
+            // Check if the camera has a valid history buffer and if not reset the accumulation.
+            // This can happen if a script disables and re-enables the camera (case 1337843).
+            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
+            {
+                m_SubFrameManager.Reset(hdCamera.camera.GetInstanceID());
+            }
 
             if (!m_SubFrameManager.isRecording)
             {

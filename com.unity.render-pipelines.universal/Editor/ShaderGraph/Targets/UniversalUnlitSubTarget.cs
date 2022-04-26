@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
+            SubShaderDescriptor[] subShaders = { SubShaders.UnlitDOTS, SubShaders.Unlit };
             for(int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
@@ -132,6 +132,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { UnlitPasses.Unlit },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
+                    { CorePasses.DepthNormalOnly },
                 },
             };
 
@@ -142,10 +143,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     var unlit = UnlitPasses.Unlit;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
+                    var depthNormalsOnly = CorePasses.DepthNormalOnly;
 
                     unlit.pragmas = CorePragmas.DOTSForward;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
+                    depthNormalsOnly.pragmas = CorePragmas.DOTSInstanced;
 
                     return new SubShaderDescriptor()
                     {
@@ -157,6 +160,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                             { unlit },
                             { shadowCaster },
                             { depthOnly },
+                            { depthNormalsOnly },
                         },
                     };
                 }

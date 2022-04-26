@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check if the texture provided is at least half of the size of source.
             if (destination.rt.width < source.rt.width / 2 || destination.rt.height < source.rt.height / 2)
                 Debug.LogError("Destination for DownSample is too small, it needs to be at least half as big as source.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"DownSample is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, downSampleSampler))
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't copy the buffer. Source has to be different from the destination.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"Copy is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, copySampler))
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, horizontalBlurSampler))
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -387,6 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case CustomPass.RenderQueueType.AllTransparent: return HDRenderQueue.k_RenderQueue_AllTransparent;
                 case CustomPass.RenderQueueType.AllTransparentWithLowRes: return HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
                 case CustomPass.RenderQueueType.AfterPostProcessTransparent: return HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent;
+                case CustomPass.RenderQueueType.Overlay: return HDRenderQueue.k_RenderQueue_Overlay;
                 case CustomPass.RenderQueueType.All:
                 default:
                     return HDRenderQueue.k_RenderQueue_All;
@@ -582,7 +583,7 @@ namespace UnityEngine.Rendering.HighDefinition
             block.SetVector(HDShaderIDs._ViewPortSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
             block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / destScaleBias.x, 1.0f / destScaleBias.y, destScaleBias.z, destScaleBias.w));
         }
-        
+
         static void SetSourceSize(MaterialPropertyBlock block, RTHandle source)
         {
             Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);

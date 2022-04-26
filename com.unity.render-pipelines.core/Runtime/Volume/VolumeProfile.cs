@@ -314,5 +314,15 @@ namespace UnityEngine.Rendering
                 return hash;
             }
         }
+
+        /// <summary>
+        /// Removes any components that were destroyed externally from the iternal list of components
+        /// </summary>
+        internal void Sanitize()
+        {
+            for (int i = components.Count - 1; i >= 0; i--)
+                if (components[i] == null)
+                    components.RemoveAt(i);
+        }
     }
 }

@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering
 
         class ShaderFieldInfo : ICloneable
         {
-            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, int arraySize)
+            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, int arraySize, string preprocessor)
             {
                 this.type = type;
                 this.name = originalName = name;
@@ -89,12 +89,13 @@ namespace UnityEditor.Rendering
                 this.cols = cols;
                 this.arraySize = arraySize;
                 this.comment = "";
+                this.preprocessor = preprocessor;
                 swizzleOffset = 0;
                 packed = false;
                 accessor = new Accessor(type, name, rows, cols);
             }
 
-            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, int arraySize, string comment)
+            public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, int arraySize, string comment, string preprocessor)
             {
                 this.type = type;
                 this.name = originalName = name;
@@ -102,6 +103,7 @@ namespace UnityEditor.Rendering
                 this.cols = cols;
                 this.arraySize = arraySize;
                 this.comment = comment;
+                this.preprocessor = preprocessor;
                 swizzleOffset = 0;
                 packed = false;
                 accessor = new Accessor(type, name, rows, cols);
@@ -120,10 +122,22 @@ namespace UnityEditor.Rendering
 
             public override string ToString()
             {
-                string text = DeclString() + ";";
+                string text = "";
+
+                if (preprocessor.Length > 0)
+                {
+                    text += "#if " + preprocessor + "\n" + "    ";
+                }
+
+                text += DeclString() + ";";
                 if (comment.Length > 0)
                 {
                     text += " // " + comment;
+                }
+
+                if (preprocessor.Length > 0)
+                {
+                    text += "\n    #endif";
                 }
                 return text;
             }
@@ -135,7 +149,7 @@ namespace UnityEditor.Rendering
 
             public object Clone()
             {
-                ShaderFieldInfo info = new ShaderFieldInfo(type, name, rows, cols, arraySize, comment);
+                ShaderFieldInfo info = new ShaderFieldInfo(type, name, rows, cols, arraySize, comment, preprocessor);
                 info.swizzleOffset = swizzleOffset;
                 info.packed = packed;
                 info.accessor = accessor;
@@ -146,6 +160,7 @@ namespace UnityEditor.Rendering
             public string name;
             public readonly string originalName;
             public readonly string comment;
+            public readonly string preprocessor;
             public int rows;
             public int cols;
             public int arraySize;
@@ -156,7 +171,7 @@ namespace UnityEditor.Rendering
 
         class DebugFieldInfo
         {
-            public DebugFieldInfo(string defineName, string fieldName, Type fieldType, bool isDirection, bool isSRGB, bool checkIsNormalized, string displayName = "")
+            public DebugFieldInfo(string defineName, string fieldName, Type fieldType, bool isDirection, bool isSRGB, bool checkIsNormalized, string displayName = "", string preprocessor = "")
             {
                 this.defineName = defineName;
                 this.fieldName = fieldName;
@@ -165,6 +180,7 @@ namespace UnityEditor.Rendering
                 this.isSRGB = isSRGB;
                 this.displayName = displayName;
                 this.checkIsNormalized = checkIsNormalized;
+                this.preprocessor = preprocessor;
             }
 
             public string defineName;
@@ -174,6 +190,7 @@ namespace UnityEditor.Rendering
             public bool isDirection;
             public bool isSRGB;
             public bool checkIsNormalized;
+            public string preprocessor;
         }
 
         class PackedFieldInfo
@@ -210,17 +227,17 @@ namespace UnityEditor.Rendering
             }
         }
 
-        void EmitPrimitiveType(PrimitiveType type, int elements, int arraySize, string name, string comment, List<ShaderFieldInfo> fields)
+        void EmitPrimitiveType(PrimitiveType type, int elements, int arraySize, string name, string comment, string preprocessor, List<ShaderFieldInfo> fields)
         {
-            fields.Add(new ShaderFieldInfo(type, name, elements, 1, arraySize, comment));
+            fields.Add(new ShaderFieldInfo(type, name, elements, 1, arraySize, comment, preprocessor));
         }
 
-        void EmitMatrixType(PrimitiveType type, int rows, int cols, int arraySize, string name, string comment, List<ShaderFieldInfo> fields)
+        void EmitMatrixType(PrimitiveType type, int rows, int cols, int arraySize, string name, string comment, string preprocessor, List<ShaderFieldInfo> fields)
         {
-            fields.Add(new ShaderFieldInfo(type, name, rows, cols, arraySize, comment));
+            fields.Add(new ShaderFieldInfo(type, name, rows, cols, arraySize, comment, preprocessor));
         }
 
-        bool ExtractComplex(FieldInfo field, List<ShaderFieldInfo> shaderFields)
+        bool ExtractComplex(FieldInfo field, string preprocessor, List<ShaderFieldInfo> shaderFields)
         {
             var floatFields = new List<FieldInfo>();
             var intFields = new List<FieldInfo>();
@@ -276,7 +293,7 @@ namespace UnityEditor.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.Float, floatFields.Count, 0, field.Name, comment, shaderFields);
+                EmitPrimitiveType(PrimitiveType.Float, floatFields.Count, 0, field.Name, comment, preprocessor, shaderFields);
             }
             else if (intFields.Count > 0)
             {
@@ -285,7 +302,7 @@ namespace UnityEditor.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.Int, intFields.Count, 0, field.Name, "", shaderFields);
+                EmitPrimitiveType(PrimitiveType.Int, intFields.Count, 0, field.Name, "", preprocessor, shaderFields);
             }
             else if (uintFields.Count > 0)
             {
@@ -294,7 +311,7 @@ namespace UnityEditor.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.UInt, uintFields.Count, 0, field.Name, "", shaderFields);
+                EmitPrimitiveType(PrimitiveType.UInt, uintFields.Count, 0, field.Name, "", preprocessor, shaderFields);
             }
             else if (boolFields.Count > 0)
             {
@@ -303,7 +320,7 @@ namespace UnityEditor.Rendering
                     Error(mismatchErrorMsg);
                     return false;
                 }
-                EmitPrimitiveType(PrimitiveType.Bool, boolFields.Count, 0, field.Name, "", shaderFields);
+                EmitPrimitiveType(PrimitiveType.Bool, boolFields.Count, 0, field.Name, "", preprocessor, shaderFields);
             }
             else
             {
@@ -567,6 +584,11 @@ namespace UnityEditor.Rendering
 
             foreach (var debugField in m_DebugFields)
             {
+                if (debugField.preprocessor.Length > 0)
+                {
+                    shaderText += "#if " + debugField.preprocessor + "\n";
+                }
+
                 shaderText += "        case " + debugField.defineName + ":\n";
                 if (debugField.fieldType == typeof(float))
                 {
@@ -625,6 +647,15 @@ namespace UnityEditor.Rendering
                 }
 
                 shaderText += "            break;\n";
+
+                if (debugField.preprocessor.Length > 0)
+                {
+                    shaderText += "#else\n";
+                    shaderText += "        case " + debugField.defineName + ":\n";
+                    shaderText += "            result = 0;\n";
+                    shaderText += "            break;\n";
+                    shaderText += "#endif\n";
+                }
             }
 
             shaderText += "    }\n";
@@ -1098,6 +1129,7 @@ namespace UnityEditor.Rendering
                     bool isDirection = false;
                     bool sRGBDisplay = false;
                     bool checkIsNormalized = false;
+                    string preprocessor = "";
 
                     // Check if the display name have been override by the users
                     if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
@@ -1114,6 +1146,7 @@ namespace UnityEditor.Rendering
                         isDirection = propertyAttr[0].isDirection;
                         sRGBDisplay = propertyAttr[0].sRGBDisplay;
                         checkIsNormalized = propertyAttr[0].checkIsNormalized;
+                        preprocessor = propertyAttr[0].preprocessor;
                     }
 
 
@@ -1129,7 +1162,7 @@ namespace UnityEditor.Rendering
                             string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
                             m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
 
-                            m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, fieldType, isDirection, sRGBDisplay, checkIsNormalized));
+                            m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, fieldType, isDirection, sRGBDisplay, checkIsNormalized, preprocessor: preprocessor));
                         }
                     }
                 }
@@ -1140,6 +1173,7 @@ namespace UnityEditor.Rendering
                     bool isDirection = false;
                     bool sRGBDisplay = false;
                     bool checkIsNormalized = false;
+                    string preprocessor = "";
 
                     if (Attribute.IsDefined(field, typeof(PackingAttribute)))
                     {
@@ -1147,6 +1181,7 @@ namespace UnityEditor.Rendering
                         isDirection = packingAttributes[0].isDirection;
                         sRGBDisplay = packingAttributes[0].sRGBDisplay;
                         checkIsNormalized = packingAttributes[0].checkIsNormalized;
+                        preprocessor = packingAttributes[0].preprocessor;
 
                         // Generate debug names
                         string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
@@ -1177,7 +1212,7 @@ namespace UnityEditor.Rendering
                                     typeForDebug = fieldType;
                                 }
 
-                                m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, typeForDebug, isDirection, sRGBDisplay, checkIsNormalized, packAttr.displayNames[0]));
+                                m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, typeForDebug, isDirection, sRGBDisplay, checkIsNormalized, packAttr.displayNames[0], preprocessor: preprocessor));
                             }
 
                             m_PackedFieldsInfos.Add(new PackedFieldInfo(packAttr, fieldType, field.Name));
@@ -1185,51 +1220,57 @@ namespace UnityEditor.Rendering
                     }
                 }
 
-                PrimitiveType floatPrecision = PrimitiveType.Float;
-                if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
+                // To control variable scope
                 {
-                    var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
-                    if (propertyAttr[0].precision == FieldPrecision.Half)
-                        floatPrecision = PrimitiveType.Half;
-                    else if (propertyAttr[0].precision == FieldPrecision.Real)
-                        floatPrecision = PrimitiveType.Real;
-                }
+                    PrimitiveType floatPrecision = PrimitiveType.Float;
+                    string preprocessor = "";
+                    if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
+                    {
+                        var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
+                        if (propertyAttr[0].precision == FieldPrecision.Half)
+                            floatPrecision = PrimitiveType.Half;
+                        else if (propertyAttr[0].precision == FieldPrecision.Real)
+                            floatPrecision = PrimitiveType.Real;
 
-                if (fieldType.IsPrimitive)
-                {
-                    if (fieldType == typeof(float))
-                        EmitPrimitiveType(floatPrecision, 1, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(int))
-                        EmitPrimitiveType(PrimitiveType.Int, 1, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(uint))
-                        EmitPrimitiveType(PrimitiveType.UInt, 1, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(bool))
-                        EmitPrimitiveType(PrimitiveType.Bool, 1, arraySize, field.Name, "", m_ShaderFields);
+                        preprocessor = propertyAttr[0].preprocessor;
+                    }
+
+                    if (fieldType.IsPrimitive)
+                    {
+                        if (fieldType == typeof(float))
+                            EmitPrimitiveType(floatPrecision, 1, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(int))
+                            EmitPrimitiveType(PrimitiveType.Int, 1, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(uint))
+                            EmitPrimitiveType(PrimitiveType.UInt, 1, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(bool))
+                            EmitPrimitiveType(PrimitiveType.Bool, 1, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else
+                        {
+                            Error("unsupported field type '" + fieldType + "'");
+                            return false;
+                        }
+                    }
                     else
                     {
-                        Error("unsupported field type '" + fieldType + "'");
-                        return false;
-                    }
-                }
-                else
-                {
-                    // handle special types, otherwise try parsing the struct
-                    if (fieldType == typeof(Vector2))
-                        EmitPrimitiveType(floatPrecision, 2, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(Vector3))
-                        EmitPrimitiveType(floatPrecision, 3, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(Vector4))
-                        EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(Vector2Int))
-                        EmitPrimitiveType(PrimitiveType.Int, 2, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(ShaderGenUInt4))
-                        EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", m_ShaderFields);
-                    else if (fieldType == typeof(Matrix4x4))
-                        EmitMatrixType(floatPrecision, 4, 4, arraySize, field.Name, "", m_ShaderFields);
-                    else if (!ExtractComplex(field, m_ShaderFields))
-                    {
-                        // Error reporting done in ExtractComplex()
-                        return false;
+                        // handle special types, otherwise try parsing the struct
+                        if (fieldType == typeof(Vector2))
+                            EmitPrimitiveType(floatPrecision, 2, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(Vector3))
+                            EmitPrimitiveType(floatPrecision, 3, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(Vector4))
+                            EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(Vector2Int))
+                            EmitPrimitiveType(PrimitiveType.Int, 2, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(ShaderGenUInt4))
+                            EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(Matrix4x4))
+                            EmitMatrixType(floatPrecision, 4, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (!ExtractComplex(field, preprocessor, m_ShaderFields))
+                        {
+                            // Error reporting done in ExtractComplex()
+                            return false;
+                        }
                     }
                 }
             }

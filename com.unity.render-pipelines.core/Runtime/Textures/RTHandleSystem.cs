@@ -217,23 +217,33 @@ namespace UnityEngine.Rendering
                 lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
             }
 
+            var scales = CalculateRatioAgainstMaxSize(m_RTHandleProperties.currentViewportSize);
             if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() && m_HardwareDynamicResRequested)
             {
-                Vector2Int maxSize = new Vector2Int(GetMaxWidth(), GetMaxHeight());
                 // Making the final scale in 'drs' space, since the final scale must account for rounding pixel values.
-                var scaledFinalViewport = DynamicResolutionHandler.instance.ApplyScalesOnSize(DynamicResolutionHandler.instance.finalViewport);
-                var scaledMaxSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(maxSize);
-                float xScale = (float)scaledFinalViewport.x / (float)scaledMaxSize.x;
-                float yScale = (float)scaledFinalViewport.y / (float)scaledMaxSize.y;
-                m_RTHandleProperties.rtHandleScale = new Vector4(xScale, yScale, m_RTHandleProperties.rtHandleScale.x, m_RTHandleProperties.rtHandleScale.y);
+                m_RTHandleProperties.rtHandleScale = new Vector4(scales.x, scales.y, m_RTHandleProperties.rtHandleScale.x, m_RTHandleProperties.rtHandleScale.y);
             }
             else
             {
-                Vector2 maxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
-                Vector2 scaleCurrent = m_RTHandleProperties.currentViewportSize / maxSize;
                 Vector2 scalePrevious = m_RTHandleProperties.previousViewportSize / lastFrameMaxSize;
-                m_RTHandleProperties.rtHandleScale = new Vector4(scaleCurrent.x, scaleCurrent.y, scalePrevious.x, scalePrevious.y);
+                m_RTHandleProperties.rtHandleScale = new Vector4(scales.x, scales.y, scalePrevious.x, scalePrevious.y);
             }
+        }
+
+        internal Vector2 CalculateRatioAgainstMaxSize(in Vector2Int viewportSize)
+        {
+            Vector2 maxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
+
+            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() && m_HardwareDynamicResRequested && viewportSize != DynamicResolutionHandler.instance.finalViewport)
+            {
+                //for hardware resolution, the final goal is to figure out a scale from finalViewport into maxViewport.
+                //This is however wrong! because the actualViewport might not fit the finalViewport perfectly, due to rounding.
+                //A correct way is to instead downscale the maxViewport, and keep the final scale in terms of downsampled buffers.
+                Vector2 currentScale = (Vector2)viewportSize / (Vector2)DynamicResolutionHandler.instance.finalViewport;
+                maxSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(new Vector2Int(GetMaxWidth(), GetMaxHeight()), currentScale);
+            }
+
+            return new Vector2((float)viewportSize.x / maxSize.x, (float)viewportSize.y / maxSize.y);
         }
 
         /// <summary>

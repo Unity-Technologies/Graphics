@@ -63,7 +63,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
     o.VFX_VARYING_UV.x = texCoord;
 #endif
 
-	o.VFX_VARYING_UV.y = float((id & 2) >> 1);
+	o.VFX_VARYING_UV.y = (id & 2) * 0.5f;
 	const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
 	
 #if VFX_STRIPS_SWAP_UV
@@ -72,7 +72,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 		
 #else
 	o.VFX_VARYING_UV.x = float(id & 1);
-	o.VFX_VARYING_UV.y = float((id & 2) >> 1);
+	o.VFX_VARYING_UV.y = (id & 2) * 0.5f;
 	const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
 #endif
 	

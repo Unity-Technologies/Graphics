@@ -794,7 +794,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
                             {
-                                ComputeBloomMipSizesAndScales(camera);
                                 AllocateBloomMipTextures();
                                 DoBloom(PrepareBloomParameters(camera), cmd, source, m_BloomMipsDown, m_BloomMipsUp);
                                 RecycleUnusedBloomMips();
@@ -872,6 +871,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            camera.didResetPostProcessingHistoryInLastFrame = camera.resetPostProcessingHistory;
+
             camera.resetPostProcessingHistory = false;
         }
 
@@ -934,6 +935,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
 
             // Setup the rest of the effects
+            ComputeBloomMipSizesAndScales(hdCamera);
             PrepareLensDistortionParameters(ref parameters, featureFlags);
             PrepareChromaticAberrationParameters(ref parameters, featureFlags);
             PrepareVignetteParameters(ref parameters, featureFlags);
@@ -1297,8 +1299,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RTHandle GetPreviousExposureTexture(HDCamera camera)
         {
+            // If the history was reset in the previous frame, then the history buffers were actually rendered with a neutral EV100 exposure multiplier
+            var rt = (camera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(camera)) ?
+                m_EmptyExposureTexture : camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
+
             // See GetExposureTexture
-            var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
             return rt ?? m_EmptyExposureTexture;
         }
 
@@ -1577,7 +1582,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugImageHistogramCS = m_Resources.shaders.debugImageHistogramCS;
             parameters.debugImageHistogramKernel = parameters.debugImageHistogramCS.FindKernel("KHistogramGen");
 
-            ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins * 4, sizeof(uint));
+            ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins, 4 * sizeof(uint));
             m_DebugImageHistogramBuffer.SetData(m_EmptyDebugImageHistogram);    // Clear the histogram
 
             parameters.imageHistogram = m_DebugImageHistogramBuffer;
@@ -2595,9 +2600,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
                     if (dofParameters.camera.camera.gateFit == Camera.GateFitMode.Horizontal )
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.camera.pixelWidth;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.actualWidth;
                     else
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.camera.pixelHeight;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.actualHeight;
 
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
@@ -2745,8 +2750,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 tileSize = 16;
             }
 
-            int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / tileSize);
-            int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / tileSize);
+            int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / (float)tileSize);
+            int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / (float)tileSize);
             parameters.tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
             float screenMagnitude = (new Vector2(camera.actualWidth, camera.actualHeight).magnitude);
@@ -3277,6 +3282,15 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.bloomDirtTileOffset = dirtTileOffset;
             parameters.bloomThreshold = GetBloomThresholdParams();
             parameters.bloomBicubicParams = new Vector4(m_BloomMipsInfo[0].x, m_BloomMipsInfo[0].y, 1.0f / m_BloomMipsInfo[0].x, 1.0f / m_BloomMipsInfo[0].y);
+
+            // We undo the scale here, because bloom uses these parameters for its bicubic filtering offset.
+            // The bicubic filtering function is SampleTexture2DBicubic, and it requires the underlying texture's
+            // unscaled pixel sizes to compute the offsets of the samples.
+            // For more info please see the implementation of SampleTexture2DBicubic
+            parameters.bloomBicubicParams.x /= RTHandles.rtHandleProperties.rtHandleScale.x;
+            parameters.bloomBicubicParams.y /= RTHandles.rtHandleProperties.rtHandleScale.y;
+            parameters.bloomBicubicParams.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
+            parameters.bloomBicubicParams.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
         }
 
         void AllocateBloomMipTextures()

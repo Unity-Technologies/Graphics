@@ -1353,6 +1353,22 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 lightData.shadowMaskSelector[lightComponent.bakingOutput.occlusionMaskChannel] = 1.0f;
                 lightData.nonLightMappedOnly = lightComponent.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                // Get shadow info from the volume stack.
+                var shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
+                float maxDistanceSq = shadowSettings.maxShadowDistance.value * shadowSettings.maxShadowDistance.value;
+                float outBorderDistance = shadowSettings.cascadeShadowBorders[shadowSettings.cascadeShadowSplitCount.value - 1];
+                if (outBorderDistance < 1e-4f)
+                {
+                    lightData.cascadesBorderFadeScaleBias = new Vector2(1e6f, -maxDistanceSq * 1e6f);
+                }
+                else
+                {
+                    outBorderDistance = 1.0f - outBorderDistance;
+                    outBorderDistance *= outBorderDistance;
+                    float distanceFadeNear = outBorderDistance * maxDistanceSq;
+                    lightData.cascadesBorderFadeScaleBias.x = 1.0f / (maxDistanceSq - distanceFadeNear);
+                    lightData.cascadesBorderFadeScaleBias.y = -distanceFadeNear / (maxDistanceSq - distanceFadeNear);
+                }
             }
             else
             {
@@ -1384,6 +1400,12 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.angularDiameter = additionalLightData.angularDiameter * Mathf.Deg2Rad;
             lightData.flareSize       = Mathf.Max(additionalLightData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
             lightData.flareFalloff    = additionalLightData.flareFalloff;
+
+            // On some vendors trigonometry has very bad precision, so we precompute what we can on CPU to avoid precision issues (case 1369376).
+            float radInner = 0.5f * lightData.angularDiameter;
+            lightData.flareCosInner = Mathf.Cos(radInner);
+            lightData.flareCosOuter = Mathf.Cos(radInner + lightData.flareSize);
+
             lightData.flareTint       = (Vector3)(Vector4)additionalLightData.flareTint;
             lightData.surfaceTint     = (Vector3)(Vector4)additionalLightData.surfaceTint;
 
@@ -3360,6 +3382,9 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
                 var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
+                // Note: we need to take into account the TAA jitter when indexing the light list
+                proj = (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing) ? hdCamera.GetJitteredProjectionMatrix(proj) : proj;
+
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
 
                 for (int i = 0; i < 16; ++i)
@@ -3774,7 +3799,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Evaluate the contact shadow index of this light
-            contactShadowMask = 1 << m_ContactShadowIndex++;
+            contactShadowMask = 1 << m_ContactShadowIndex;
+            m_ContactShadowIndex++; // Update the index for next light that will need to cast contact shadows.
 
             // If this light has ray traced contact shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdAdditionalLightData.rayTraceContactShadow)
@@ -4265,7 +4291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             parameters.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
 
-                        CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
+                        CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, shaderPassId: 0);
                     }
                 }
             }

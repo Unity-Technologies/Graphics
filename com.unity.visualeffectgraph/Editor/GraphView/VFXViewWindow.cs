@@ -265,7 +265,7 @@ namespace  UnityEditor.VFX.UI
                     {
                         filename = controller.name;
 
-                        if (!graph.saved)
+                        if (EditorUtility.IsDirty(graph))
                         {
                             filename += "*";
                         }
@@ -278,6 +278,7 @@ namespace  UnityEditor.VFX.UI
                             {
                                 VFXGraph.compileReporter = reporter;
                                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                                graph.SetExpressionGraphDirty(false); // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
                                 VFXGraph.compileReporter = null;
                             }
                             VFXGraph.explicitCompile = false;

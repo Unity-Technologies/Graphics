@@ -504,14 +504,10 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
     float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
 
-    // Wind uses vertex alpha as an intensity parameter.
-    // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
-    // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
-    float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    blendMasks *= saturate(maskVertexColor);
+    blendMasks *= saturate(vertexColor);
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
-    blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
+    blendMasks = saturate(blendMasks + vertexColor * 2.0 - 1.0);
 #endif
 
     return blendMasks;

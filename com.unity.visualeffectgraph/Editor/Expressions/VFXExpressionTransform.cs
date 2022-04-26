@@ -255,7 +255,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}[3].xyz", parents[0]);
+            return string.Format("{0}._14_24_34", parents[0]);
         }
     }
 
