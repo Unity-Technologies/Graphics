@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     "Burn",
 @"
 {
-    Out =  1.0 - (1.0 - Blend)/Base;
+    Out =  1.0 - (1.0 - Blend)/(Base + 0.000000000001);
     if (UseOpacity) Out = lerp(Base, Out, Opacity);
 }",
                     new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     "Dodge",
 @"
 {
-    Out = Base / (1.0 - Blend);
+    Out = Base / (1.0 - clamp(Blend, 0.000001, 0.999999));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);
 }",
                     new ParameterDescriptor("Base", TYPE.Vector, GraphType.Usage.In),
@@ -305,6 +305,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     "VividLight",
 @"
 {
+    Base = clamp(Base, 0.000001, 0.999999);
     zeroOrOne = step(0.5, Base);
     Out = (Blend / (2.0 * (1.0 - Base))) * zeroOrOne + (1 - zeroOrOne) * (1.0 - (1.0 - Blend) / (2.0 * Base));
     if (UseOpacity) Out = lerp(Base, Out, Opacity);

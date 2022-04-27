@@ -28,8 +28,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
                     new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
@@ -55,8 +55,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
                     new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
@@ -89,8 +89,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
+                    new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
                     new ParameterDescriptor("normalSample", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),

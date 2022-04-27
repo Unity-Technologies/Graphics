@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = UV;
 }",
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("Center", TYPE.Vec2, Usage.In),
+                    new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
                     new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
                     new ParameterDescriptor("s", TYPE.Float, Usage.Local),
                     new ParameterDescriptor("c", TYPE.Float, Usage.Local),

@@ -79,19 +79,19 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[7] {
                 new ParameterUIDescriptor(
                     name: "M0",
-                    tooltip: "first row"
+                    tooltip: "first row or column"
                 ),
                 new ParameterUIDescriptor(
                     name: "M1",
-                    tooltip: "second row"
+                    tooltip: "second row row or column"
                 ),
                 new ParameterUIDescriptor(
                     name: "M2",
-                    tooltip: "third row"
+                    tooltip: "third row row or column"
                 ),
                 new ParameterUIDescriptor(
                     name: "M3",
-                    tooltip: "forth row"
+                    tooltip: "forth row row or column"
                 ),
                 new ParameterUIDescriptor(
                     name: "4x4",
