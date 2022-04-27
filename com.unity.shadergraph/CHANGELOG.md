@@ -27,6 +27,7 @@ The version number for this package has increased due to a version update of a r
   - Fixed the behavior of checkerboard node with raytracing
   - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
   - Fixed a validation error in ShaderGraph when using the SimpleNoise node both inside and outside a subgraph [1383046] (https://issuetracker.unity3d.com/issues/validation-error-is-usually-thrown-when-simple-noise-node-is-both-in-a-shadergraph-and-in-a-sub-graph)
+  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
 
 ## [12.1.3] - 2021-11-17
 
