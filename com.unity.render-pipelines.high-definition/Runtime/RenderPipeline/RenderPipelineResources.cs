@@ -331,6 +331,23 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
 
+#if USE_GPU_DRIVEN_PIPELINE
+            [Reload("Runtime/RenderPipeline/Camera/HZBOcclusionCulling.compute")]
+            public ComputeShader cullingCS;
+            [Reload("Runtime/RenderPipeline/Camera/InitArgBuffer.compute")]
+            public ComputeShader initArgsBufferCS;
+            [Reload("Runtime/RenderPipeline/Camera/GenerateMaterialRange.compute")]
+            public ComputeShader generateMaterialRange;
+            [Reload("Runtime/RenderPipeline/Camera/AnalyzeStreaming.compute")]
+            public ComputeShader analyzeCS;
+            [Reload("Runtime/RenderPipeline/Camera/CopyVisibleBuffer.compute")]
+            public ComputeShader copyBufferCS;
+            [Reload("Runtime/RenderPipeline/Camera/VisibilityBuffer.shader")]
+            public Shader visibilityShader;
+            [Reload("Runtime/RenderPipeline/Camera/MaterialDepth.shader")]
+            public Shader materialDepthShader;
+#endif
+
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()

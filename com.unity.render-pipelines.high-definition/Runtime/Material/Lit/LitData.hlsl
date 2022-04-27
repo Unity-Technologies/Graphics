@@ -139,6 +139,12 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 // in function with FragInputs input as parameters
 // layerTexCoord must have been initialize to 0 outside of this function
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+                        float2 texcoordDDX0, float2 texcoordDDY0, 
+                        float2 texcoordDDX1, float2 texcoordDDY1, 
+                        float2 texcoordDDX2, float2 texcoordDDY2, 
+                        float2 texcoordDDX3, float2 texcoordDDY3, 
+#endif
                       float3 positionRWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
     layerTexCoord.vertexNormalWS = vertexNormalWS;
@@ -156,6 +162,14 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0, _LinkDetailsWithBase,
                             positionRWS, _TexWorldScale,
                             mappingType, layerTexCoord);
+    
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    float2 ddxddy = _UVMappingMask.x * float2(texcoordDDX0.x, texcoordDDY0.x) +
+                    _UVMappingMask.y * float2(texcoordDDX1.x, texcoordDDY1.y) +
+                    _UVMappingMask.z * float2(texcoordDDX2.x, texcoordDDY2.y) +
+                    _UVMappingMask.w * float2(texcoordDDX3.x, texcoordDDY3.y);
+    layerTexCoord.base.ddxddy = ddxddy;
+#endif
 }
 
 // This is call only in this file
@@ -167,6 +181,12 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #endif
 
     GetLayerTexCoord(   input.texCoord0.xy, input.texCoord1.xy, input.texCoord2.xy, input.texCoord3.xy,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+                        input.texcoordDDX0, input.texcoordDDY0, 
+                        input.texcoordDDX1, input.texcoordDDY1, 
+                        input.texcoordDDX2, input.texcoordDDY2, 
+                        input.texcoordDDX3, input.texcoordDDY3, 
+#endif
                         input.positionRWS, input.tangentToWorld[2].xyz, layerTexCoord);
 }
 

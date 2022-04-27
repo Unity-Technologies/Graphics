@@ -23,12 +23,17 @@ bool IsUninitializedGI(float3 bakedGI)
 #endif
 
 // Return camera relative probe volume world to object transformation
-float4x4 GetProbeVolumeWorldToObject()
+float4x4 GetProbeVolumeWorldToObject(uint pageOffset)
 {
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    //return ApplyCameraTranslationToInverseMatrix(unity_GPUDriven_ProbeVolumeWorldToObject(pageOffset));
+    return unity_GPUDriven_ProbeVolumeWorldToObject(pageOffset);
+#else
     return ApplyCameraTranslationToInverseMatrix(unity_ProbeVolumeWorldToObject);
+#endif
 }
 
-void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
+void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, uint instancePageOffset, float2 ddxddy, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
 #ifdef UNITY_LIGHTMAP_FULL_HDR
     bool useRGBMLightmap = false;
@@ -61,14 +66,19 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #endif
 
 #ifdef LIGHTMAP_ON
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    float4 lightmapST = unity_GPUDriven_LightmapST(instancePageOffset);
+#else
+    float4 lightmapST = unity_LightmapST;
+#endif
 #ifdef DIRLIGHTMAP_COMBINED
     SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
             TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
-            LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
+            LIGHTMAP_SAMPLE_EXTRA_ARGS, lightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, ddxddy, bakeDiffuseLighting, backBakeDiffuseLighting);
 #else
-    float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+    float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, lightmapST, useRGBMLightmap, decodeInstructions, ddxddy);  
     bakeDiffuseLighting += illuminance;
-    backBakeDiffuseLighting += illuminance;
+        backBakeDiffuseLighting += illuminance;
 #endif
 #endif
 
@@ -76,21 +86,41 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #ifdef DIRLIGHTMAP_COMBINED
     SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
         TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
-        uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
+        uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, decodeInstructions, ddxddy, bakeDiffuseLighting, backBakeDiffuseLighting);
 #else
-    float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
+    float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions, ddxddy);
     bakeDiffuseLighting += illuminance;
     backBakeDiffuseLighting += illuminance;
 #endif
 #endif
 }
 
-void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
+void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backNormalWS, uint instancePageOffset, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
-    if (unity_ProbeVolumeParams.x == 0.0)
+    float4 probeVolumeParams;
+    float4 probeVolumeMin;
+    float4 probeVolumeSizeInv;
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    probeVolumeParams = unity_GPUDriven_ProbeVolumeParams(instancePageOffset);
+#else
+    probeVolumeParams = unity_ProbeVolumeParams;
+    probeVolumeSizeInv = unity_ProbeVolumeSizeInv;
+    probeVolumeMin = unity_ProbeVolumeMin;
+#endif
+    
+    if (probeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
         real4 SHCoefficients[7];
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        SHCoefficients[0] = unity_GPUDriven_SHAr(instancePageOffset);
+        SHCoefficients[1] = unity_GPUDriven_SHAg(instancePageOffset);
+        SHCoefficients[2] = unity_GPUDriven_SHAb(instancePageOffset);
+        SHCoefficients[3] = unity_GPUDriven_SHBr(instancePageOffset);
+        SHCoefficients[4] = unity_GPUDriven_SHBg(instancePageOffset);
+        SHCoefficients[5] = unity_GPUDriven_SHBb(instancePageOffset);
+        SHCoefficients[6] = unity_GPUDriven_SHC(instancePageOffset);
+#else
         SHCoefficients[0] = unity_SHAr;
         SHCoefficients[1] = unity_SHAg;
         SHCoefficients[2] = unity_SHAb;
@@ -98,14 +128,20 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
         SHCoefficients[4] = unity_SHBg;
         SHCoefficients[5] = unity_SHBb;
         SHCoefficients[6] = unity_SHC;
-
+#endif
         bakeDiffuseLighting += SampleSH9(SHCoefficients, normalWS);
         backBakeDiffuseLighting += SampleSH9(SHCoefficients, backNormalWS);
     }
     else
     {
-        SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
-            unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        probeVolumeSizeInv = unity_GPUDriven_ProbeVolumeSizeInv(instancePageOffset);
+        probeVolumeMin = unity_GPUDriven_ProbeVolumeMin(instancePageOffset);
+#endif
+        SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS,
+            GetProbeVolumeWorldToObject(instancePageOffset),
+            probeVolumeParams.y, probeVolumeParams.z, probeVolumeMin.xyz, probeVolumeSizeInv.xyz,
+            bakeDiffuseLighting, backBakeDiffuseLighting);
     }
 }
 
@@ -117,8 +153,13 @@ void SampleBakedGI(
     uint renderingLayers,
     float2 uvStaticLightmap,
     float2 uvDynamicLightmap,
+//#if UNITY_GPU_DRIVEN_PIPELINE
+    uint instancePageOffset,
+    float2 ddxddy,
+//#endif
     out float3 bakeDiffuseLighting,
-    out float3 backBakeDiffuseLighting)
+    out float3 backBakeDiffuseLighting
+)
 {
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
@@ -141,7 +182,10 @@ void SampleBakedGI(
 #define SAMPLE_PROBEVOLUME_BUILTIN (!SAMPLE_LIGHTMAP && !SAMPLE_PROBEVOLUME)
 
 #if SAMPLE_LIGHTMAP
-    EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
+    EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap,
+        instancePageOffset, ddxddy,
+        bakeDiffuseLighting, backBakeDiffuseLighting
+);
 #endif
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
@@ -189,7 +233,7 @@ void SampleBakedGI(
 #endif
 
 #if SAMPLE_PROBEVOLUME_BUILTIN
-    EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+    EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, instancePageOffset, bakeDiffuseLighting, backBakeDiffuseLighting);
 #endif
 #endif
 
@@ -231,23 +275,56 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     const float3 backNormalWSUnused = 0.0;
     float3 bakeDiffuseLighting;
     float3 backBakeDiffuseLightingUnused;
-    SampleBakedGI(posInputs, normalWS, backNormalWSUnused, renderingLayers, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
+
+    SampleBakedGI(posInputs, normalWS, backNormalWSUnused, renderingLayers, uvStaticLightmap, uvDynamicLightmap, 
+//#if UNITY_GPU_DRIVEN_PIPELINE
+        0, float2(0.0f, 0.0f),
+//#endif
+        bakeDiffuseLighting, backBakeDiffuseLightingUnused
+);
 
     return bakeDiffuseLighting;
 }
 
 
-float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS not use for now
+float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap, uint instancePageOffset, float2 ddxddy) // normalWS not use for now
 {
 #if defined(LIGHTMAP_ON)
-    float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
-    float4 rawOcclusionMask = SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    float4 lightmapST = unity_GPUDriven_LightmapST(instancePageOffset);
 #else
+    float4 lightmapST = unity_LightmapST;
+#endif
+    float2 uv = uvStaticLightmap * lightmapST.xy + lightmapST.zw;
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    float lod = CalcLod(SHADOWMASK_NAME, ddxddy);
+    float4 rawOcclusionMask = SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS, lod); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
+#else
+    float4 rawOcclusionMask = SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS); // Can't reuse sampler
+#endif
+#else
+    float4 probeVolumeParams;
+    float4 probeVolumeMin;
+    float4 probeVolumeSizeInv;
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    probeVolumeParams = unity_GPUDriven_ProbeVolumeParams(instancePageOffset);
+    probeVolumeMin = unity_GPUDriven_ProbeVolumeSizeInv(instancePageOffset);
+    probeVolumeSizeInv = unity_GPUDriven_ProbeVolumeMin(instancePageOffset);
+#else
+    probeVolumeParams = unity_ProbeVolumeParams;
+    probeVolumeMin = unity_ProbeVolumeMin;
+    probeVolumeSizeInv = unity_ProbeVolumeSizeInv;
+#endif
+    
     float4 rawOcclusionMask;
-    if (unity_ProbeVolumeParams.x == 1.0)
+    if (probeVolumeParams.x == 1.0)
     {
-        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
-            unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, 
+            GetProbeVolumeWorldToObject(instancePageOffset),
+            probeVolumeParams.y, 
+            probeVolumeParams.z, 
+            probeVolumeMin.xyz,
+            probeVolumeSizeInv.xyz);
     }
     else
     {

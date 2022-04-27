@@ -1,0 +1,140 @@
+//--------------------------------------------------------------------------------------
+// Includes
+//--------------------------------------------------------------------------------------
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "GPUDrivenCommon.hlsl"
+
+
+//--------------------------------------------------------------------------------------
+// Pragmas
+//--------------------------------------------------------------------------------------
+#pragma kernel CSMain_CopyVisibleBuffer
+#pragma kernel CSMain_MemsetVisibleBuffer
+#pragma kernel CSMain_AppendVisibleBuffer
+#pragma kernel CSMain_MemsetStreamingBuffer
+#pragma enable_d3d11_debug_symbols
+//--------------------------------------------------------------------------------------
+// Constants
+//--------------------------------------------------------------------------------------
+#define THREAD_GROUP_SIZE_X 32
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 1
+
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------
+// Structured Buffers
+//--------------------------------------------------------------------------------------
+StructuredBuffer<ClusterIDs> _VisibleClusterIDBuffer;
+StructuredBuffer<InstanceVisible> _VisibleInstanceIDBuffer;
+
+RWBuffer<uint> _BufferSize;
+RWStructuredBuffer<ClusterIDs> _VisibleClusterIDBufferPrevious;
+RWStructuredBuffer<InstanceVisible> _VisibleInstanceIDBufferPrevious;
+uniform uint _ResetValue;
+
+RWStructuredBuffer<ClusterIDs> _MemsetIDBuffer;
+RWStructuredBuffer<ClusterIDs> _MemsetIDBuffer2;
+RWStructuredBuffer<ClusterIDs> _MemsetIDBuffer3;
+RWStructuredBuffer<InstanceVisible> _MemsetInstanceIDBuffer;
+
+RWStructuredBuffer<ClusterIDs> _AppendIDBuffer;
+StructuredBuffer<ClusterIDs> _MergedIDBuffer;
+
+//RWStructuredBuffer<StreamingInfo> _StreamingClusterBuffer;
+RWByteAddressBuffer _StreamingClusterBuffer;
+//--------------------------------------------------------------------------------------
+// Kernels & Functions
+//--------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------
+// Kernels
+//--------------------------------------------------------------------------------------
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain_CopyVisibleBuffer(in uint3 _dispatchThreadID : SV_DispatchThreadID)
+{
+    _VisibleClusterIDBufferPrevious[_dispatchThreadID.x] = (ClusterIDs)0;
+    if (_dispatchThreadID.x < _BufferSize[kBufferSize_VisibleCluster])
+    //if (_dispatchThreadID.x < 1000)
+    {
+        _VisibleClusterIDBufferPrevious[_dispatchThreadID.x] = _VisibleClusterIDBuffer[_dispatchThreadID.x];
+    }
+
+    _VisibleInstanceIDBufferPrevious[_dispatchThreadID.x] = (InstanceVisible) 0;
+    if (_dispatchThreadID.x < _BufferSize[kBufferSize_VisibleInstance])
+    //if (_dispatchThreadID.x < 1000)
+    {
+        _VisibleInstanceIDBufferPrevious[_dispatchThreadID.x] = _VisibleInstanceIDBuffer[_dispatchThreadID.x];
+    }
+
+    if (_dispatchThreadID.x == 0)
+    {
+        _BufferSize[kBufferSize_CachedVisibleCluster] = _BufferSize[kBufferSize_VisibleCluster];
+        _BufferSize[kBufferSize_CachedVisibleInstance] = _BufferSize[kBufferSize_VisibleInstance];
+    }
+}
+
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain_MemsetVisibleBuffer(in uint3 _dispatchThreadID : SV_DispatchThreadID)
+{
+    uint num, stride;
+    _MemsetIDBuffer.GetDimensions(num, stride);
+    if (_dispatchThreadID.x < num)
+    {
+        _MemsetIDBuffer[_dispatchThreadID.x] = (ClusterIDs) _ResetValue;
+    }
+    _MemsetIDBuffer2.GetDimensions(num, stride);
+    if (_dispatchThreadID.x < num)
+    {
+        _MemsetIDBuffer2[_dispatchThreadID.x] = (ClusterIDs) _ResetValue;
+    }
+    _MemsetIDBuffer3.GetDimensions(num, stride);
+    if (_dispatchThreadID.x < num)
+    {
+        _MemsetIDBuffer3[_dispatchThreadID.x] = (ClusterIDs) _ResetValue;
+    }
+    _MemsetInstanceIDBuffer.GetDimensions(num, stride);
+    if (_dispatchThreadID.x < num)
+    {
+        _MemsetInstanceIDBuffer[_dispatchThreadID.x] = (InstanceVisible) _ResetValue;
+    }
+    _BufferSize[kBufferSize_ClusterCW] = 0;
+}
+
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain_AppendVisibleBuffer(in uint3 _dispatchThreadID : SV_DispatchThreadID)
+{
+    if (_dispatchThreadID.x < _BufferSize[kBufferSize_ClusterCCW])
+    {
+        _AppendIDBuffer[_BufferSize[kBufferSize_ClusterCW] + _dispatchThreadID.x] = _MergedIDBuffer[_dispatchThreadID.x];
+    }
+}
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain_MemsetStreamingBuffer(in uint3 _dispatchThreadID : SV_DispatchThreadID)
+{
+    //uint num, stride;
+    //_StreamingClusterBuffer.GetDimensions(num, stride);
+    //if (_dispatchThreadID.x < num)
+    //{
+    //    _StreamingClusterBuffer[_dispatchThreadID.x] = (ClusterIDs) _ResetValue;
+    //}
+    
+    uint num;
+    _StreamingClusterBuffer.GetDimensions(num);
+    uint DstIndex = _dispatchThreadID.x * 4;
+    if (_dispatchThreadID.x * 4 + 3 < num / 4)
+    {
+        _StreamingClusterBuffer.Store4(DstIndex * 4, (uint4) _ResetValue);
+    }
+}

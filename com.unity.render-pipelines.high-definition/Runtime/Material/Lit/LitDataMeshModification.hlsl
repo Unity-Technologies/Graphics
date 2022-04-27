@@ -4,7 +4,14 @@ float3 GetVertexDisplacement(float3 positionRWS, float3 normalWS, float2 texCoor
     // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
-    GetLayerTexCoord(texCoord0, texCoord1, texCoord2, texCoord3, positionRWS, normalWS, layerTexCoord);
+    GetLayerTexCoord(texCoord0, texCoord1, texCoord2, texCoord3, 
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+                        float2(0.0f, 0.0f), float2(0.0f, 0.0f), 
+                        float2(0.0f, 0.0f), float2(0.0f, 0.0f), 
+                        float2(0.0f, 0.0f), float2(0.0f, 0.0f), 
+                        float2(0.0f, 0.0f), float2(0.0f, 0.0f), 
+#endif
+                        positionRWS, normalWS, layerTexCoord);
 
     // TODO: do this algorithm for lod fetching as lod not available in vertex/domain shader
     // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/

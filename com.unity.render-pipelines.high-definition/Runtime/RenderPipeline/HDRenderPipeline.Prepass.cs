@@ -21,6 +21,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Avoid GCAlloc by capturing functor...
         TextureDesc m_DepthPyramidDesc;
+#if UNITY_GPU_DRIVEN_PIPELINE
+        HDUtils.PackedMipChainInfo m_hzbMipChainInfo;
+        TextureDesc m_hzbDese;
+        Vector2Int ComputeHZBMipChainSize(Vector2Int screenSize)
+        {
+            m_hzbMipChainInfo.ComputePackedMipChainInfo(screenSize);
+            return m_hzbMipChainInfo.textureSize;
+        }
+#endif
 
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
@@ -37,7 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthPyramidDesc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
                 { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" };
-
+#if UNITY_GPU_DRIVEN_PIPELINE
+            m_hzbDese = new TextureDesc(ComputeHZBMipChainSize, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "HZBMipChain" };
+#endif
         }
 
         void CleanupPrepass()
@@ -133,6 +145,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(decalDesc);
         }
 
+#if UNITY_GPU_DRIVEN_PIPELINE
+        TextureHandle CreateDecalDepthBuffer(RenderGraph renderGraph, bool msaa)
+        {
+            TextureDesc decalDesc = new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.None, depthBufferBits = DepthBits.Depth32, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, enableMSAA = msaa, enableRandomWrite = false, name = msaa ? "DecalDepthBufferMSAA" : "DecalDepthBuffer" };
+            return renderGraph.CreateTexture(decalDesc);
+        }
+#endif
+
         TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool msaa, bool clear)
         {
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
@@ -198,6 +219,10 @@ namespace UnityEngine.Rendering.HighDefinition
             result.stencilBuffer = result.depthBuffer;
             result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
+#if UNITY_GPU_DRIVEN_PIPELINE
+            AssignInfoIntoContext(renderGraph, hdCamera);
+#endif
+
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
 
             using (new XRSinglePassScope(renderGraph, hdCamera))
@@ -246,7 +271,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
 
                 RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
-
+#if UNITY_GPU_DRIVEN_PIPELINE
+                CopyDepthStencilForGPUDriven(renderGraph, hdCamera, ref result);
+#endif
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
                 // After Depth and Normals/roughness including decals
@@ -270,6 +297,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                 GenerateDepthPyramid(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
+
+#if UNITY_GPU_DRIVEN_PIPELINE
+                if (hdCamera.camera.cameraType == CameraType.Game)
+                {
+                    m_hzbMipChainInfo = m_DepthBufferMipChainInfo;
+                    CopyDepthPyramid(renderGraph, hdCamera, ref result);
+                }
+#endif
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
@@ -561,6 +596,128 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+#if UNITY_GPU_DRIVEN_PIPELINE
+            if (hdCamera.camera.cameraType == CameraType.Game)
+            {
+                using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBufferEmit", out var passData, ProfilingSampler.Get(HDProfileId.GBufferEmit)))
+                {
+                    FrameSettings frameSettings = hdCamera.frameSettings;
+
+                    passData.frameSettings = frameSettings;
+                    SetupGBufferTargets(renderGraph, hdCamera, passData, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
+                    passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
+
+                    //passData.needProbeVolumeLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass;
+                    //if (passData.needProbeVolumeLightLists)
+                    //{
+                    //    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                    //        passData.probeVolumeBigTile = builder.ReadComputeBuffer(probeVolumeLightList.bigTileLightList);
+                    //    passData.probeVolumePerVoxelLightList = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelLightLists);
+                    //    passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);
+                    //}
+
+                    passData.rendererList = builder.UseRendererList(
+                        renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferEmitName, m_CurrentRendererConfigurationBakedLighting, useGPUDrivenPipeline: true)));
+
+                    builder.SetRenderFunc(
+                        (GBufferPassData data, RenderGraphContext context) =>
+                    {
+                        //RTHandle depthBufferHandle = null;
+                        //if (context.renderContext.GetMaterialDepth() != null)
+                        //{
+                        RenderTexture materialDepth = context.renderContext.GetMaterialDepth();
+                        RTHandle depthBufferHandle = RTHandles.Alloc(materialDepth);
+                        //}
+
+                        //builder.UseDepthBuffer(depthBufferHandle, DepthAccess.ReadWrite);
+                        List<RenderTargetIdentifier> list = new List<RenderTargetIdentifier>();
+                        foreach (var rt in passData.gbufferRT)
+                        {
+                            RTHandle handle = rt;
+                            if (handle != null)
+                                list.Add(handle);
+                        }
+                        CoreUtils.SetRenderTarget(context.cmd, list.ToArray(), depthBufferHandle);
+                        //BindProbeVolumeGlobalData(data.frameSettings, data, context);
+                        BindDBufferGlobalData(data.dBuffer, context);
+                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+                    });
+                }
+
+                using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
+                {
+                    FrameSettings frameSettings = hdCamera.frameSettings;
+
+                    passData.frameSettings = frameSettings;
+                    SetupGBufferTargets(renderGraph, hdCamera, passData, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
+                    //passData.depthBuffer
+                    passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
+
+                    passData.needProbeVolumeLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass;
+                    if (passData.needProbeVolumeLightLists)
+                    {
+                        if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                            passData.probeVolumeBigTile = builder.ReadComputeBuffer(probeVolumeLightList.bigTileLightList);
+                        passData.probeVolumePerVoxelLightList = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelLightLists);
+                        passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);
+                    }
+                    passData.rendererList = builder.UseRendererList(
+                        renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting, useGPUDrivenPipeline: false)));
+
+                    builder.SetRenderFunc(
+                        (GBufferPassData data, RenderGraphContext context) =>
+                        {
+                            var visiblityDepth = context.renderContext.GetVisibilityDepth();
+                            RTHandle depthBufferHandle = RTHandles.Alloc(visiblityDepth);
+
+                            //builder.UseDepthBuffer(depthBufferHandle, DepthAccess.ReadWrite);
+                            List<RenderTargetIdentifier> list = new List<RenderTargetIdentifier>();
+                            foreach (var rt in passData.gbufferRT)
+                            {
+                                RTHandle handle = rt;
+                                if (handle != null)
+                                    list.Add(handle);
+                            }
+                            //CoreUtils.SetRenderTarget(context.cmd, list.ToArray(), depthBufferHandle);
+
+                            BindProbeVolumeGlobalData(data.frameSettings, data, context);
+                            BindDBufferGlobalData(data.dBuffer, context);
+                            DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+                        });
+                }
+            }
+            else
+            {
+                using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
+                {
+                    FrameSettings frameSettings = hdCamera.frameSettings;
+
+                    passData.frameSettings = frameSettings;
+                    SetupGBufferTargets(renderGraph, hdCamera, passData, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
+                    passData.rendererList = builder.UseRendererList(
+                        renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting)));
+
+                    passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
+
+                    passData.needProbeVolumeLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass;
+                    if (passData.needProbeVolumeLightLists)
+                    {
+                        if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                            passData.probeVolumeBigTile = builder.ReadComputeBuffer(probeVolumeLightList.bigTileLightList);
+                        passData.probeVolumePerVoxelLightList = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelLightLists);
+                        passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);
+                    }
+
+                    builder.SetRenderFunc(
+                    (GBufferPassData data, RenderGraphContext context) =>
+                    {
+                        BindProbeVolumeGlobalData(data.frameSettings, data, context);
+                        BindDBufferGlobalData(data.dBuffer, context);
+                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+                    });
+                }
+            }
+#else
             using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
             {
                 FrameSettings frameSettings = hdCamera.frameSettings;
@@ -589,6 +746,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                 });
             }
+#endif
         }
 
         class ResolvePrepassData
@@ -756,6 +914,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
             public TextureHandle            decalBuffer;
+            public TextureHandle            decalDepth;
         }
 
         struct DBufferOutput
@@ -832,8 +991,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!canReadBoundDepthBuffer)
             {
+#if UNITY_GPU_DRIVEN_PIPELINE
+                if (hdCamera.camera.cameraType == CameraType.Game)
+                {
+                    MergePredepthForGPUDriven(renderGraph, hdCamera, output.resolvedDepthBuffer);
+                }
+                {
+                    // We need to copy depth buffer texture if we want to bind it at this stage
+                    CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
+                }
+                //else
+
+#else
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
+#endif
             }
 
             // If we have an incomplete depth buffer use for decal we will need to do another copy
@@ -849,7 +1021,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
                 passData.depthTexture = canReadBoundDepthBuffer ? builder.ReadTexture(output.resolvedDepthBuffer) : builder.ReadTexture(output.depthPyramidTexture);
-
+                passData.decalDepth = builder.WriteTexture(output.resolvedDepthBuffer);
                 builder.SetRenderFunc(
                 (RenderDBufferPassData data, RenderGraphContext context) =>
                 {
@@ -869,10 +1041,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                     rt,
                                     data.depthStencilBuffer,
                                     data.depthTexture,
+                                    data.decalDepth,
                                     data.meshDecalsRendererList,
                                     data.decalBuffer,
                                     context.renderContext,
-                                    context.cmd);
+                                    context.cmd,
+                                    hdCamera);
                 });
             }
         }
@@ -994,6 +1168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<GenerateDepthPyramidPassData>("Generate Depth Buffer MIP Chain", out var passData, ProfilingSampler.Get(HDProfileId.DepthPyramid)))
             {
+                GetDepthBufferMipChainInfo().ComputePackedMipChainInfo(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight));
                 passData.depthTexture = builder.WriteTexture(output.depthPyramidTexture);
                 passData.mipInfo = GetDepthBufferMipChainInfo();
                 passData.mipGenerator = m_MipGenerator;
@@ -1013,6 +1188,184 @@ namespace UnityEngine.Rendering.HighDefinition
             // Re-enable this when/if depth texture becomes an actual texture with mip again.
             //PushFullScreenDebugTextureMip(renderGraph, output.depthPyramidTexture, GetDepthBufferMipChainInfo().mipLevelCount, renderGraph.rtHandleProperties.rtHandleScale, FullScreenDebugMode.DepthPyramid);
         }
+
+#if USE_GPU_DRIVEN_PIPELINE
+        class CopyDepthPyramidPassData
+        {
+            public int width, height;
+            public TextureHandle depth;
+            public TextureHandle depthPyramid;
+            public GPUCopy GPUCopy;
+            public HDRenderPipeline pipeline;
+            //public HDUtils.PackedMipChainInfo info;
+        }
+        void CopyDepthPyramid(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        {
+            using (var builder = renderGraph.AddRenderPass<CopyDepthPyramidPassData>("Copy the depth pyramid", out var passData, new ProfilingSampler("Copy the depth pyramid for GPU Driven Pipeline")))
+            {
+                passData.depth = builder.ReadTexture(output.depthPyramidTexture);
+                passData.depthPyramid = builder.WriteTexture(renderGraph.CreateTexture(m_hzbDese));
+                passData.width = m_hzbMipChainInfo.textureSize.x;
+                passData.height = m_hzbMipChainInfo.textureSize.y;
+                passData.GPUCopy = m_GPUCopy;
+                passData.pipeline = this;
+                //passData.info = m_hzbMipChainInfo;
+
+                output.depthPyramidTexture = passData.depthPyramid;
+
+                builder.SetRenderFunc(
+                    (CopyDepthPyramidPassData data, RenderGraphContext context) =>
+                {
+                    passData.GPUCopy.SampleCopyChannel_xyzw2x(context.cmd,
+                        data.depth,
+                        data.depthPyramid,
+                        new RectInt(0, 0, data.width, data.height));
+
+                    HDUtils.PackedMipChainInfo info = data.pipeline.m_hzbMipChainInfo;
+                    if (info.m_OffsetBufferWillNeedUpdateForHZBOC)
+                    {
+                        // for now, only support one camera
+                        data.pipeline.m_hzbMipChainInfo.m_OffsetBufferWillNeedUpdateForHZBOC = false;
+                        Vector4[] mipmapInfo = new Vector4[info.mipLevelCount];
+                        for (int j = 0; j != info.mipLevelCount; ++j)
+                        {
+                            mipmapInfo[j].Set(info.mipLevelOffsets[j].x,
+                                info.mipLevelOffsets[j].y,
+                                info.mipLevelSizes[j].x,
+                                info.mipLevelSizes[j].y);
+                        }
+
+                        context.renderContext.AssignDepthTexture(hdCamera.camera, passData.depthPyramid, mipmapInfo);
+                    }
+                });
+            }  
+        }
+
+
+        class AssignInfoData
+        {
+            public RenderPipelineResources resources;
+        }
+        void AssignInfoIntoContext(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<AssignInfoData>("Assign info into render context", out var passData, new ProfilingSampler("Assign info into render context for GPU Driven Pipeline")))
+            {
+                passData.resources = defaultResources;
+
+                builder.SetRenderFunc(
+                    (AssignInfoData data, RenderGraphContext context) =>
+                    {
+                        ComputeShader csCulling = passData.resources?.shaders.cullingCS;
+                        csCulling.name = "HZBOcclusionCulling";
+                        ComputeShader csInitArgsBuffer = passData.resources?.shaders.initArgsBufferCS;
+                        csInitArgsBuffer.name = "InitArgsBuffer";
+                        ComputeShader csGenerateMaterialRange = passData.resources?.shaders.generateMaterialRange;
+                        csGenerateMaterialRange.name = "GenerateMaterialRange";
+                        ComputeShader analyzeCS = passData.resources?.shaders.analyzeCS;
+                        analyzeCS.name = "AnalyzeVisibleCluster";
+                        ComputeShader copyBufferCS = passData.resources?.shaders.copyBufferCS;
+                        analyzeCS.name = "CopyBuffer";
+                        Shader visibilityShader = passData.resources?.shaders.visibilityShader;
+                        Shader materialDepthShader = passData.resources?.shaders.materialDepthShader;
+
+                        context.renderContext.AssignComputeShaders(csCulling,
+                            csInitArgsBuffer,
+                            csGenerateMaterialRange,
+                            visibilityShader,
+                            materialDepthShader,
+                            analyzeCS,
+                            copyBufferCS);
+                        //#endif
+                        if (hdCamera.camera.cameraType == CameraType.Game)
+                        {
+                            csCulling.SetVector(HDShaderIDs._ZBufferParams, hdCamera.zBufferParams);
+                            context.renderContext.SetRenderTargetSize(RTHandles.maxWidth, RTHandles.maxHeight);
+                        }
+                    });
+            }
+        }
+
+        class CopyDepthStencilData
+        {
+            public TextureHandle depth;
+            public MaterialPropertyBlock propertyBlock;
+            public Material copy;
+        };
+        void CopyDepthStencilForGPUDriven(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        {
+            if (hdCamera.camera.cameraType == CameraType.Game)
+            {
+                using (var builder = renderGraph.AddRenderPass<CopyDepthStencilData>("Copy the depth pyramid", out var passData, new ProfilingSampler("Copy the depth")))
+                {
+                    passData.depth = builder.WriteTexture(output.resolvedDepthBuffer);
+                    passData.propertyBlock = m_CopyDepthPropertyBlock;
+                    passData.copy = m_CopyDepth;
+                    builder.SetRenderFunc(
+                        (CopyDepthStencilData data, RenderGraphContext context) =>
+                    {
+                        var visiblityDepth = context.renderContext.GetVisibilityDepth();
+                        if (visiblityDepth != null)
+                        {
+                            RTHandle depth = RTHandles.Alloc(visiblityDepth);
+                            // Copy and merge the visibilityDepth and depth pre-pass,
+                            // used as DBuffer rendering depth to early-Z test
+                            data.propertyBlock.SetTexture(HDShaderIDs._InputDepth, depth);
+                            //data.propertyBlock.SetTexture("_InputDepthTexture2", m_SharedRTManager.GetDepthStencilBuffer());
+                            data.propertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                            data.propertyBlock.SetInt("_FlipY", 0);
+                            context.cmd.SetRenderTarget(data.depth, 0, CubemapFace.Unknown, -1);
+                            context.cmd.SetViewport(hdCamera.finalViewport);
+                            data.copy.SetInt("_StencilWriteMaskGBuffer", 0x0E);
+                            data.copy.SetInt("_StencilRefGBuffer", 0x0A);
+
+                            CoreUtils.DrawFullScreen(context.cmd, data.copy, data.propertyBlock);
+                        }
+                    });
+                      
+                }
+            }
+        }
+
+        class MergePredepthData
+        {
+            public TextureHandle depth;
+            public MaterialPropertyBlock propertyBlock;
+            public Material copy;
+        };
+        void MergePredepthForGPUDriven(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depth)
+        {
+            if (hdCamera.camera.cameraType == CameraType.Game)
+            {
+                using (var builder = renderGraph.AddRenderPass<MergePredepthData>("Merge the depth pyramid", out var passData, new ProfilingSampler("Copy the depth")))
+                {
+                    passData.depth = builder.UseDepthBuffer(depth, DepthAccess.ReadWrite);
+                    //passData.depth = builder.WriteTexture(output.depthPyramidTexture);
+                    passData.propertyBlock = m_CopyDepthPropertyBlock;
+                    passData.copy = m_CopyDepth;
+                    builder.SetRenderFunc(
+                        (MergePredepthData data, RenderGraphContext context) =>
+                        {
+                            var visiblityDepth = context.renderContext.GetVisibilityDepth();
+                            if (visiblityDepth != null)
+                            {
+                                RTHandle depth = RTHandles.Alloc(visiblityDepth);
+                                // Copy and merge the visibilityDepth and depth pre-pass,
+                                // used as DBuffer rendering depth to early-Z test
+                                data.propertyBlock.SetTexture(HDShaderIDs._InputDepth, depth);
+                                //data.propertyBlock.SetTexture("_InputDepthTexture2", passData.depth);
+                                data.propertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                                data.propertyBlock.SetInt("_FlipY", 0);
+                                //context.cmd.SetRenderTarget(data.depth, 0, CubemapFace.Unknown, -1);
+                                context.cmd.SetViewport(hdCamera.finalViewport);
+
+                                CoreUtils.DrawFullScreen(context.cmd, data.copy, data.propertyBlock);
+                            }
+                        });
+
+                }
+            }
+        }
+#endif
 
         class CameraMotionVectorsPassData
         {

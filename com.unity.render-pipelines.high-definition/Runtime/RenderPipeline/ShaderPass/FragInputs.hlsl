@@ -16,6 +16,15 @@ struct FragInputs
     float4 texCoord1;
     float4 texCoord2;
     float4 texCoord3;
+    float2 texcoordDDX0;
+    float2 texcoordDDY0;
+    float2 texcoordDDX1;
+    float2 texcoordDDY1;
+    float2 texcoordDDX2;
+    float2 texcoordDDY2;
+    float2 texcoordDDX3;
+    float2 texcoordDDY3;
+    
     float4 color; // vertex color
 
     // TODO: confirm with Morten following statement

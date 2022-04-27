@@ -9,9 +9,13 @@ CBUFFER_END
 
 RW_TEXTURE2D_X(float1, _Result1);
 TEXTURE2D_X(_Source4);
+TEXTURE2D_X(_Source1);
 
 #pragma kernel KSampleCopy4_1_x_8   KERNEL_NAME41=KSampleCopy4_1_x_8  KERNEL_SIZE=8
 #pragma kernel KSampleCopy4_1_x_1   KERNEL_NAME41=KSampleCopy4_1_x_1  KERNEL_SIZE=1
+#pragma kernel KSampleMergeDepth   KERNEL_NAME_MERGE_DEPTH=KSampleMergeDepth  KERNEL_SIZE=8
+#pragma enable_d3d11_debug_symbols
+
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void KERNEL_NAME41(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -19,4 +23,20 @@ void KERNEL_NAME41(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     uint2 positionSS = _RectOffset + dispatchThreadId.xy;
     _Result1[COORD_TEXTURE2D_X(positionSS)] = LOAD_TEXTURE2D_X(_Source4, positionSS).x;
+}
+
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void KERNEL_NAME_MERGE_DEPTH(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 positionSS = dispatchThreadId.xy;
+    float depth1 = LOAD_TEXTURE2D_X(_Source4, positionSS).x;
+    float depth2 = LOAD_TEXTURE2D_X(_Source1, positionSS).x;
+#if UNITY_REVERSED_Z
+    float depth = max(depth1, depth2);
+#else
+    float depth = min(depth1, depth2);
+#endif
+    _Result1[COORD_TEXTURE2D_X(positionSS)] = depth;
 }

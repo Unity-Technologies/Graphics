@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         PushGlobalParameters,
         CopyDepthBuffer,
+        CopyVisibilityDepth,
+        CopyStencil,
         CopyDepthInTargetTexture,
         CoarseStencilGeneration,
         HTileForSSS,
@@ -27,6 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
+        GBufferEmit,
         GBufferDebug,
         DBufferRender,
         DBufferPrepareDrawData,

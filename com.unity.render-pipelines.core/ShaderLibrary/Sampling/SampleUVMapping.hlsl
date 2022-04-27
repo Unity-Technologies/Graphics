@@ -14,7 +14,7 @@ struct UVMapping
 {
     int mappingType;
     float2 uv;  // Current uv or planar uv
-
+    float2 ddxddy;
     // Triplanar specific
     float2 uvZY;
     float2 uvXZ;

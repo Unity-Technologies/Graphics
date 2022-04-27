@@ -1,0 +1,97 @@
+//--------------------------------------------------------------------------------------
+// Includes
+//--------------------------------------------------------------------------------------
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "GPUDrivenCommon.hlsl"
+
+//--------------------------------------------------------------------------------------
+// Pragmas
+//--------------------------------------------------------------------------------------
+#pragma kernel CSMain
+#pragma enable_d3d11_debug_symbols
+//--------------------------------------------------------------------------------------
+// Constants
+//--------------------------------------------------------------------------------------
+#define THREAD_GROUP_SIZE_X 16
+#define THREAD_GROUP_SIZE_Y 16
+#define THREAD_GROUP_SIZE_Z 1
+
+#define TILE_SIZE 64
+#define TILE_STEP THREAD_GROUP_SIZE_X
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------
+// Structured Buffers
+//--------------------------------------------------------------------------------------
+
+Texture2D<uint4> _VisibilityBuffer;
+//RWTexture2D<uint2> _MaterialRangeBuffer;
+RWStructuredBuffer<MaterialRange> _MaterialRangeBuffer;
+groupshared uint2 _TileMinMax;
+uniform uint2 _FetchClamp;
+uniform uint2 _MaterialRangeSize;
+//--------------------------------------------------------------------------------------
+// Kernels & Functions
+//--------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------
+// Kernels
+//--------------------------------------------------------------------------------------
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain (
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID          : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID    : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    uint2 pixelUV = _groupThreadID.xy + _groupID.xy * TILE_SIZE;
+    if (all(_groupThreadID.xy == 0u))
+    {
+        _TileMinMax.x = -1;
+        _TileMinMax.y = 0;
+    }
+    
+    GroupMemoryBarrierWithGroupSync();
+    
+    for (uint yBlock = 0; yBlock < TILE_SIZE; yBlock += TILE_STEP)
+    {
+        for (uint xBlock = 0; xBlock < TILE_SIZE; xBlock += TILE_STEP)
+        {
+            uint2 blockUV = pixelUV + uint2(xBlock, yBlock);
+            blockUV = min(blockUV, _FetchClamp);
+            uint4 visibilityPixel = _VisibilityBuffer[blockUV];
+            
+            uint clusterID = GetClusterID(visibilityPixel.r);
+            if (clusterID != -1)
+            {
+                uint materialID = GetMaterialID(clusterID);
+                materialID = materialID & (0x00003FFF);
+                InterlockedMin(_TileMinMax.x, materialID);
+                InterlockedMax(_TileMinMax.y, materialID);
+            }
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (all(_groupThreadID.xy == 0u))
+    {
+        //_MaterialRangeBuffer[_groupID.xy] = uint4(_TileMinMax, 0, 0);
+        
+        //Arranged in rows
+        uint index = _groupID.y * _MaterialRangeSize.x + _groupID.x;
+        MaterialRange result;
+        result.min = _TileMinMax.x;
+        result.max = _TileMinMax.y;
+        _MaterialRangeBuffer[index] = result;
+    }
+}

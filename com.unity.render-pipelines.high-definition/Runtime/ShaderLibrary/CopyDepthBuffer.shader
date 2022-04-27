@@ -18,11 +18,19 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
         {
             Name "Copy Depth"
 
-            Cull   Off
-            ZTest  Always
+            Cull   Back
+            ZTest  LEqual
             ZWrite On
             Blend  Off
             ColorMask 0
+
+			Stencil
+			{
+				WriteMask[_StencilWriteMaskGBuffer]
+				Ref[_StencilRefGBuffer]
+				Comp Always
+				Pass Replace
+			}
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -30,12 +38,14 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             #pragma fragment Frag
             #pragma vertex Vert
-            //#pragma enable_d3d11_debug_symbols
+            #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             TEXTURE2D_X_FLOAT(_InputDepthTexture);
+			TEXTURE2D_X_FLOAT(_InputDepthTexture2);
+			//Texture2D<float> _InputDepthTexture;
 
             struct Attributes
             {
@@ -71,8 +81,16 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
             float Frag(Varyings input) : SV_Depth
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                uint2 coord = uint2(input.texcoord.xy * _ScreenSize.xy);
-                return LOAD_TEXTURE2D_X(_InputDepthTexture, coord).x;
+                //uint2 coord = uint2(input.texcoord.xy * _ScreenSize.xy);
+				uint2 coord = input.positionCS.xy;
+				float depth1 = LOAD_TEXTURE2D_X(_InputDepthTexture, coord).x;
+				float depth2 = LOAD_TEXTURE2D_X(_InputDepthTexture2, coord).x;
+#if UNITY_REVERSED_Z
+				float depth = max(depth1, depth2);
+#else
+				float depth = min(depth1, depth2);
+#endif
+                return depth;
             }
 
             ENDHLSL

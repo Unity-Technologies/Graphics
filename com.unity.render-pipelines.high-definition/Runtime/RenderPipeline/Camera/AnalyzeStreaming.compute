@@ -1,0 +1,215 @@
+//--------------------------------------------------------------------------------------
+// Includes
+//--------------------------------------------------------------------------------------
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "GPUDrivenCommon.hlsl"
+
+
+//--------------------------------------------------------------------------------------
+// Pragmas
+//--------------------------------------------------------------------------------------
+#pragma kernel CSMain_AnalyzeInstance
+#pragma enable_d3d11_debug_symbols
+//--------------------------------------------------------------------------------------
+// Constants
+//--------------------------------------------------------------------------------------
+#define THREAD_GROUP_SIZE_X 32
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 1
+
+#define STREAMING_CLUSTER_SIZE (4 * 4)
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------
+// Structured Buffers
+//--------------------------------------------------------------------------------------
+StructuredBuffer<ClusterIDs> _VisibleClusterIDBuffer;
+StructuredBuffer<InstanceVisible> _VisibleInstanceIDBuffer;
+
+Buffer<uint> _BufferSize;
+StructuredBuffer<ClusterIDs> _VisibleClusterIDBufferPrevious;
+StructuredBuffer<InstanceVisible> _VisibleInstanceIDBufferPrevious;
+
+//AppendStructuredBuffer<StreamingInfo> _StreamingClusterBuffer;
+RWByteAddressBuffer _StreamingClusterBuffer;
+StructuredBuffer<LODProxy> _LODProxyBuffer;
+//--------------------------------------------------------------------------------------
+// Kernels & Functions
+//--------------------------------------------------------------------------------------
+bool IsInstanceEqual(InstanceVisible instance1, InstanceVisible instance2)
+{
+    if (instance1.meshHash == instance2.meshHash
+        && instance1.rendererHash == instance2.rendererHash)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool IsEqual(ClusterIDs cluster1, ClusterIDs cluster2)
+{
+    if (cluster1.meshHash == cluster2.meshHash 
+        && cluster1.rendererHash == cluster2.rendererHash
+        && cluster1.clusterID == cluster2.clusterID)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool FindInstance(InstanceVisible instance, StructuredBuffer<InstanceVisible> buffer, uint bufferSize)
+{
+    for (uint i = 0; i != bufferSize; ++i)
+    {
+        InstanceVisible previousInstance = buffer[i];
+        if (IsInstanceEqual(instance, previousInstance))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool FindCluster(ClusterIDs cluster1, StructuredBuffer<ClusterIDs> buffer, uint bufferSize)
+{
+    for (uint i = 0; i != bufferSize; ++i)
+    {
+        ClusterIDs cluster2 = buffer[i];
+        if (IsEqual(cluster1, cluster2))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool IsInstanceExsit(InstanceVisible instance, StructuredBuffer<InstanceVisible> buffer, uint bufferSize)
+{
+    return FindInstance(instance, buffer, bufferSize);
+}
+
+bool IsClusterExsit(ClusterIDs cluster, StructuredBuffer<ClusterIDs> buffer, uint bufferSize)
+{
+    return FindCluster(cluster, buffer, bufferSize);
+}
+
+
+void PushStreamingInfo(StreamingInfo info)
+{
+    uint count = 0;
+    _StreamingClusterBuffer.InterlockedAdd(0, 1, count);
+    uint address = 4 + STREAMING_CLUSTER_SIZE * count;
+    _StreamingClusterBuffer.Store4(address, (uint4) info);
+}
+
+void EncodeAddInstance(InstanceVisible instance)
+{
+    StreamingInfo info;
+    info.meshHash = instance.meshHash;
+    info.rendererHash = instance.rendererHash;
+    info.clusterID = ~0u;
+    info.status = 0;
+    info.status |= 1;
+    info.status |= instance.lodProxyIndex << 2;
+    
+    PushStreamingInfo(info);
+}
+
+void EncodeRemoveInstance(InstanceVisible instance)
+{
+    StreamingInfo info;
+    info.meshHash = instance.meshHash;
+    info.rendererHash = instance.rendererHash;
+    info.clusterID = ~0u;
+    info.status = 0;
+    info.status |= 1 << 1;
+    info.status |= instance.lodProxyIndex << 2;
+    
+    PushStreamingInfo(info);
+}
+
+void EncodeAddCluster(ClusterIDs cluster)
+{
+    StreamingInfo info;
+    info.meshHash = cluster.meshHash;
+    info.rendererHash = cluster.rendererHash;
+    info.clusterID = cluster.clusterID;
+    info.status = 0;
+    info.status |= 1;
+    
+    PushStreamingInfo(info);
+}
+
+void EncodeRemoveCluster(ClusterIDs cluster)
+{
+    StreamingInfo info;
+    info.meshHash = cluster.meshHash;
+    info.rendererHash = cluster.rendererHash;
+    info.clusterID = cluster.clusterID;
+    info.status = 0;
+    info.status |= 1 << 1;
+    
+    PushStreamingInfo(info);
+}
+//--------------------------------------------------------------------------------------
+// Kernels
+//--------------------------------------------------------------------------------------
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain_AnalyzeInstance(
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint _groupIndex : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    uint threadID = _dispatchThreadID.x;
+    if (threadID < _BufferSize[kBufferSize_VisibleInstance])
+    //if (threadID < 1000)
+    {
+        InstanceVisible instance = _VisibleInstanceIDBuffer[threadID];
+        if (!IsInstanceExsit(instance, _VisibleInstanceIDBufferPrevious, _BufferSize[kBufferSize_CachedVisibleInstance]))
+        {
+            EncodeAddInstance(instance);
+        }
+    }
+
+    if (threadID < _BufferSize[kBufferSize_CachedVisibleInstance])
+    //if (threadID < 1000)
+    {
+        InstanceVisible previousInstance = _VisibleInstanceIDBufferPrevious[threadID];
+        if (!IsInstanceExsit(previousInstance, _VisibleInstanceIDBuffer, _BufferSize[kBufferSize_VisibleInstance]))
+        {
+            EncodeRemoveInstance(previousInstance);
+        }
+    }
+    
+    if (threadID < _BufferSize[kBufferSize_VisibleCluster] + _BufferSize[kBufferSize_ClusterCCW])
+    //if (threadID < 1000)
+    {
+        ClusterIDs cluster = _VisibleClusterIDBuffer[threadID];
+        if (!IsClusterExsit(cluster, _VisibleClusterIDBufferPrevious, _BufferSize[kBufferSize_CachedVisibleCluster]))
+        {
+            EncodeAddCluster(cluster);
+        }
+    }
+    
+    if (threadID < _BufferSize[kBufferSize_CachedVisibleCluster])
+    //if (threadID < 1000)
+    {
+        ClusterIDs cluster = _VisibleClusterIDBufferPrevious[threadID];
+        if (!IsClusterExsit(cluster, _VisibleClusterIDBuffer, _BufferSize[kBufferSize_VisibleCluster] + _BufferSize[kBufferSize_ClusterCCW]))
+        {
+            EncodeRemoveCluster(cluster);
+        }
+    }
+}

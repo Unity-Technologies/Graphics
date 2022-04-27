@@ -1,0 +1,721 @@
+//--------------------------------------------------------------------------------------
+// Includes
+//--------------------------------------------------------------------------------------
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+
+#include "GPUDrivenCommon.hlsl"
+
+#define Enable_Debug 0
+#define Enable_Bit 0
+
+#define LOD_CHECK_RESULT_NOLOD (1)
+#define LOD_CHECK_RESULT_CURRENT_LODMASK (2)
+#define LOD_CHECK_RESULT_PREVIOUS_LODMASK (3)
+#define LOD_CHECK_RESULT_CULLED (0)
+
+#define FLT_MAX 3.402823466e+38
+#define FLT_MIN 1.175494351e-38
+
+#if Enable_Debug
+struct DebugData
+{
+	float4 mipmapDepth;
+	float4 mipmapOffsetSizeDepth;
+	float4 minMaxXYInCameraSpace;
+	
+	float4 mipmapShadowmap;
+	float4 mipmapOffsetSizeShadowmap;
+	float4 minMaxXYInLightSpace;
+};
+#endif
+
+struct ShadowVolume
+{
+	// the AABB is in the light space NDC
+	float3 boundsCenter;
+	uint cascadeIndex;
+	float3 boundsExtents;  
+	float depth;
+	//float nearestDepth;
+};
+
+//--------------------------------------------------------------------------------------
+// Pragmas
+//--------------------------------------------------------------------------------------
+#pragma kernel InstanceCull
+#pragma kernel ClusterCull
+#pragma kernel LODCalculation
+#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile _ CHECK_CULLING_SCENE_MASK
+//--------------------------------------------------------------------------------------
+// Constants
+//--------------------------------------------------------------------------------------
+#define THREAD_GROUP_SIZE_X 32
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 1
+
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+CBUFFER_START(cb)
+    float4x4 _UNITY_MATRIX_VP1;
+	float4x4 _UNITY_MATRIX_VP2;
+	float4x4 _UNITY_MATRIX_VP3;
+	float4x4 _UNITY_MATRIX_VP4;
+	float4x4 _UNITY_MATRIX_LIGHT_TO_CAMERA1;
+	float4x4 _UNITY_MATRIX_LIGHT_TO_CAMERA2;
+	float4x4 _UNITY_MATRIX_LIGHT_TO_CAMERA3;
+	float4x4 _UNITY_MATRIX_LIGHT_TO_CAMERA4;
+
+    float4 _ZBufferParam;
+	float4 _CullingPlanes[6];
+	float3 _CamPosition;
+	float2 _ViewportSize;	
+    uint _LayerMask;
+    uint2 _CullingSceneMask;
+    uint _InstanceCount;
+	
+	uint _UseHighPrecision;
+CBUFFER_END
+
+#if Enable_Debug
+uniform uint _debugShadow;
+#endif
+
+TEXTURE2D_X_FLOAT(_DepthPyramid);
+//--------------------------------------------------------------------------------------
+// Structured Buffers
+//--------------------------------------------------------------------------------------
+
+StructuredBuffer<float4> _ClusterShpereBuffer;
+StructuredBuffer<uint4> _DepthMipmapOffset;
+AppendStructuredBuffer<InstanceVisible> _AppendInstanceIDBuffer;
+AppendStructuredBuffer<ClusterIDs> _AppendClusterIDBuffer;
+AppendStructuredBuffer<ClusterIDs> _AppendClusterIDBuffer_CCW;
+uniform uint _CurrentBufferIndex;
+
+uniform uint _LODProxyCount;
+RWStructuredBuffer<LODProxy> _LODProxyBuffer;
+RWBuffer<uint> _LODIndexMaskBuffer;
+
+
+#if Enable_Debug
+RWStructuredBuffer<DebugData> _debugBuffer; 
+#endif
+
+//--------------------------------------------------------------------------------------
+// Kernels & Functions
+//--------------------------------------------------------------------------------------
+#if UNITY_REVERSED_Z    // DX
+# define MIN_DEPTH(l, r) max(l, r)
+# define MAX_DEPTH(l, r) min(l, r)
+#else                   // opengl
+# define MIN_DEPTH(l, r) min(l, r)
+# define MAX_DEPTH(l, r) max(l, r)
+#endif
+
+inline uint IsViewerOutsideObjBounds(float3 pos, float3 minPos, float3 maxPos)
+{
+    float boundsSize = distance(maxPos, minPos);
+    return ((distance(pos, maxPos) > boundsSize)
+            + (distance(pos, minPos) > boundsSize));
+}
+
+
+inline float GatherFarestDepth4PointInDepthBuffer(float2 minXY, float2 maxXY, uint mip, int id)
+{
+	//float2 scale = _ViewportSize / _DepthMipmapOffset[0].zw;
+    float2 scale = float2(1, 1);
+	float2 mipmapTextureSize = float2(_DepthMipmapOffset[mip].zw);
+	uint2 offset = _DepthMipmapOffset[mip].xy;
+	int2 corner0 = floor(float2(minXY.x, minXY.y) * mipmapTextureSize * scale) + offset;
+	int2 corner1 = floor(float2(minXY.x, maxXY.y) * mipmapTextureSize * scale) + offset;
+	int2 corner2 = floor(float2(maxXY.x, minXY.y) * mipmapTextureSize * scale) + offset;
+	int2 corner3 = floor(float2(maxXY.x, maxXY.y) * mipmapTextureSize * scale) + offset;
+
+	float4 depth;
+    depth.x = Linear01Depth(_DepthPyramid[COORD_TEXTURE2D_X(corner0)].r, _ZBufferParam);
+    depth.y = Linear01Depth(_DepthPyramid[COORD_TEXTURE2D_X(corner1)].r, _ZBufferParam);
+    depth.z = Linear01Depth(_DepthPyramid[COORD_TEXTURE2D_X(corner2)].r, _ZBufferParam);
+    depth.w = Linear01Depth(_DepthPyramid[COORD_TEXTURE2D_X(corner3)].r, _ZBufferParam);
+    float farestDepth = MIN_DEPTH(MIN_DEPTH(depth.x, depth.y), MIN_DEPTH(depth.z, depth.w));
+    float closestDepth = MAX_DEPTH(MAX_DEPTH(depth.x, depth.y), MAX_DEPTH(depth.z, depth.w));
+
+#if Enable_Debug
+    //_debugBuffer[id].mipmapDepth.x = mip;
+    //_debugBuffer[id].mipmapDepth.y = farestDepth;
+    //_debugBuffer[id].mipmapDepth.z = farestDepth;
+	//_debugBuffer[id].minMaxXYInCameraSpace.xy = float2(farestDepth, nearestDepth);
+#endif
+    return farestDepth;
+}
+
+
+inline float GatherFarestDepthInDepthBuffer(float2 minXY, float2 maxXY, int mip) 
+{
+	//float2 scale = _ViewportSize / _DepthMipmapOffset[0].zw;
+    float2 scale = float2(1, 1);
+	float2 mipmapTextureSize = float2(_DepthMipmapOffset[mip].zw); 
+	float2 offset = _DepthMipmapOffset[mip].xy;
+	int2 cornerMin = floor(minXY * mipmapTextureSize * scale + offset);
+    int2 cornerMax = ceil(maxXY * mipmapTextureSize * scale + offset);
+    //int2 cornerMax = floor(maxXY * mipmapTextureSize * scale + offset);
+
+#if UNITY_REVERSED_Z
+	float farestDepth = -1.0f;
+    float closestDepth = 10.0f;
+#else
+    float farestDepth = 1.0f;
+    float closestDepth = -10.0f;
+#endif
+    
+	for(int x = cornerMin.x; x <= cornerMax.x; ++x)
+	{
+		for(int y = cornerMin.y; y <= cornerMax.y; ++y)
+		{
+			int2 xy = int2(x, y);
+			float depth = _DepthPyramid[COORD_TEXTURE2D_X(xy)].r;
+            depth = Linear01Depth(depth, _ZBufferParam);
+            farestDepth = MIN_DEPTH(farestDepth, depth);
+            closestDepth = MAX_DEPTH(closestDepth, depth);
+        }  
+	}
+    return farestDepth;
+}
+
+//The depth is linear, the range is [0, 1]
+inline uint isCascadeVisibleFromDepth(float clipMinZ, float depth)
+{
+    return (clipMinZ) < depth + 0.000001 ? 1 : 0; // last is an epsilon
+}
+
+
+// Hi-Z Culling
+inline uint isVisibleInDepthBuffer(float3 clipMin, float3 clipMax, int id)
+{
+    // Change it to 0 - 1 range 
+    float2 minXY = float2(clipMin.x, clipMin.y) * 0.5f + 0.5f;
+    float2 maxXY = float2(clipMax.x, clipMax.y) * 0.5f + 0.5f;
+    minXY = clamp(minXY, 0, 1);
+	maxXY = clamp(maxXY, 0, 1);
+	
+    // Calculate hi-Z buffer mip
+	int2 size = (maxXY - minXY) *  _ViewportSize.xy * 0.5f;
+	int mip = ceil(log2(max(size.x, size.y)));
+	//int maxMip = ceil(log2(_ViewportSize.x));
+	//if (_isShadowCaster)
+	//	mip = clamp(mip, 0, 7);
+	//else 
+	//	mip = clamp(mip, 0, 10);
+
+    float farestDepth = -1;
+    farestDepth = GatherFarestDepth4PointInDepthBuffer(minXY, maxXY, mip, id);
+    if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 1))
+        farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 1);
+    if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 2))
+        farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 2);
+    if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 3))
+        farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 3);
+    //if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 4))
+    //    farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 4);
+    
+#if Enable_Debug
+    if (_debugShadow == _isShadowCaster)
+	//if (_debugShadow <= 0 && _isShadowCaster <= 0)
+    {
+		//mip = 0;
+        _debugBuffer[id].mipmapDepth.x = mip;
+        _debugBuffer[id].mipmapDepth.y = clipMin.z;
+		//_debugBuffer[id].mipmapDepth.xy = float2(clipMinX, clipMinY);
+        _debugBuffer[id].mipmapDepth.z = farestDepth;
+		//_debugBuffer[id].mipmapDepth.zw = float2(clipMaxX, clipMaxY);
+        _debugBuffer[id].minMaxXYInCameraSpace.xy = minXY;
+        _debugBuffer[id].minMaxXYInCameraSpace.zw = maxXY;
+		//_debugBuffer[id].minMaxXYInCameraSpace.xy = clipMin.xy;
+		//_debugBuffer[id].minMaxXYInCameraSpace.zw = clipMax.xy;
+
+		//_debugBuffer[id].minMaxXYInCameraSpace = float4(clipMin.x, clipMax.x, clipMin.y, clipMax.y);
+        _debugBuffer[id].mipmapOffsetSizeDepth.xy = _DepthMipmapOffset[mip].xy;
+        _debugBuffer[id].mipmapOffsetSizeDepth.zw = _DepthMipmapOffset[mip].zw;
+    }
+    //else
+    //{
+    //    _debugBuffer[id].mipmapDepth.x = mip;
+    //    _debugBuffer[id].mipmapDepth.y = clipMin.z;
+    //    _debugBuffer[id].mipmapDepth.z = farestDepth;
+    //    _debugBuffer[id].mipmapOffsetSizeDepth.xy = _DepthMipmapOffset[mip].xy;
+    //    _debugBuffer[id].mipmapOffsetSizeDepth.zw = _DepthMipmapOffset[mip].zw;
+    //    _debugBuffer[id].minMaxXYInCameraSpace.xy = minXY;
+    //    _debugBuffer[id].minMaxXYInCameraSpace.zw = maxXY;
+    //}
+#endif	
+    //return HiZdepth > 0? isCascadeVisibleFromDepth(clipMinZ, HiZdepth): 0; 
+    return isCascadeVisibleFromDepth(clipMin.z, farestDepth);
+}
+
+
+inline uint FrustumCulling(float4 clipPos)
+{
+    return (clipPos.z > clipPos.w 
+            || clipPos.x < -clipPos.w 
+            || clipPos.x > clipPos.w 
+            || clipPos.y < -clipPos.w 
+            || clipPos.y > clipPos.w) 
+            ? 0 : 1;
+}
+
+uint FrustumCullingEx(float3 center, float3 extent)
+{
+    for (int i = 0; i != 6; ++i)
+    {
+        float3 normal = _CullingPlanes[i].xyz;
+        float distance = dot(normal, center) + _CullingPlanes[i].w;
+        float radius = dot(extent, float3(abs(normal.x), abs(normal.y), abs(normal.z)));
+        if (distance + radius < 0)
+            return 0;
+    }
+    return 1;
+}
+
+inline uint DetailCullingInDepth(float3 clipMin, float3 clipMax)
+{
+	float2 minXY = float2(clipMin.x, clipMin.y) * 0.5f + 0.5f;
+    float2 maxXY = float2(clipMax.x, clipMax.y) * 0.5f + 0.5f;
+    minXY = clamp(minXY, 0, 1);
+	maxXY = clamp(maxXY, 0, 1);
+	
+	int2 cornerMin = round(minXY * _ViewportSize); 
+	int2 cornerMax = round(maxXY * _ViewportSize);
+	return cornerMin.x == cornerMax.x || cornerMin.y == cornerMax.y? 0: 1;
+}
+
+inline uint CalculateMinMaxWithLinearZ(float4 corner[8], float4x4 matrixVP, out float3 outClipMin, out float3 outClipMax)
+{
+	float4 clipPos = mul(matrixVP, corner[0]);
+    //uint isInFrustum = FrustumCulling(clipPos);
+    clipPos.xy = clipPos.xy / clipPos.w;
+    clipPos.z = clipPos.w * _ZBufferParam.w;
+    
+    float clipMinX = clipPos.x;
+    float clipMaxX = clipPos.x;
+    float clipMinY = clipPos.y;
+    float clipMaxY = clipPos.y;
+    float clipMinZ = clipPos.z;
+	float clipMaxZ = clipPos.z;
+	
+    [unroll]
+    for (int i = 1; i < 8; i++)
+    { 
+		clipPos = mul(matrixVP, corner[i]);
+        // For Frustum
+        //isInFrustum = saturate(isInFrustum + FrustumCulling(clipPos));
+        // For HiZ
+        clipPos.xy = clipPos.xy / clipPos.w;
+        clipPos.z = clipPos.w * _ZBufferParam.w;
+        
+        clipMinX = min(clipPos.x, clipMinX);
+        clipMaxX = max(clipPos.x, clipMaxX);
+        clipMinY = min(clipPos.y, clipMinY);
+        clipMaxY = max(clipPos.y, clipMaxY);
+        clipMinZ = min(clipPos.z, clipMinZ);
+		clipMaxZ = max(clipPos.z, clipMaxZ);
+    }
+	
+	outClipMin.x = clipMinX;
+	outClipMin.y = clipMinY;
+	outClipMin.z = clipMinZ;
+	outClipMax.x = clipMaxX;
+	outClipMax.y = clipMaxY;
+    outClipMax.z = clipMaxZ;
+	return 1;
+}
+
+
+inline uint CalculateMinMax(float4 corner[8], float4x4 matrixVP, out float3 outClipMin, out float3 outClipMax, uint id)
+{
+    float4 clipPos = mul(matrixVP, corner[0]);
+    //uint isInFrustum = FrustumCulling(clipPos);
+    clipPos.xyz = clipPos.xyz / clipPos.w;
+    
+    float clipMinX = clipPos.x;
+    float clipMaxX = clipPos.x;
+    float clipMinY = clipPos.y;
+    float clipMaxY = clipPos.y;
+    float clipMinZ = clipPos.z;
+    float clipMaxZ = clipPos.z;
+	
+    [unroll]
+    for (int i = 1; i < 8; i++)
+    {
+        clipPos = mul(matrixVP, corner[i]);
+        // For Frustum
+        //isInFrustum = saturate(isInFrustum + FrustumCulling(clipPos));
+        // For HiZ
+        clipPos.xyz = clipPos.xyz / clipPos.w;
+        
+        clipMinX = min(clipPos.x, clipMinX);
+        clipMaxX = max(clipPos.x, clipMaxX);
+        clipMinY = min(clipPos.y, clipMinY);
+        clipMaxY = max(clipPos.y, clipMaxY);
+        clipMinZ = min(clipPos.z, clipMinZ);
+        clipMaxZ = max(clipPos.z, clipMaxZ);
+    }
+	
+    outClipMin.x = clipMinX;
+    outClipMin.y = clipMinY;
+    outClipMin.z = clipMinZ;
+    outClipMax.x = clipMaxX;
+    outClipMax.y = clipMaxY;
+    outClipMax.z = clipMaxZ;
+    return 1;
+}
+
+inline uint IsVisibleInDepthBuffer(ShadowVolume shadowVolume, int id)
+{
+	float4x4 matrixLight2CameraClip[4];
+	matrixLight2CameraClip[0] = _UNITY_MATRIX_LIGHT_TO_CAMERA1;
+	matrixLight2CameraClip[1] = _UNITY_MATRIX_LIGHT_TO_CAMERA2;
+	matrixLight2CameraClip[2] = _UNITY_MATRIX_LIGHT_TO_CAMERA3;
+	matrixLight2CameraClip[3] = _UNITY_MATRIX_LIGHT_TO_CAMERA4;
+	
+	float3 minShadowBoxPos = shadowVolume.boundsCenter - shadowVolume.boundsExtents;
+	float3 maxShadowBoxPos = shadowVolume.boundsCenter + shadowVolume.boundsExtents;
+	float4 shadowBoxCorners[8];
+	shadowBoxCorners[0] = float4(minShadowBoxPos.x, minShadowBoxPos.y, minShadowBoxPos.z, 1.0);
+	shadowBoxCorners[1] = float4(minShadowBoxPos.x, minShadowBoxPos.y, maxShadowBoxPos.z, 1.0);
+	shadowBoxCorners[2] = float4(minShadowBoxPos.x, maxShadowBoxPos.y, minShadowBoxPos.z, 1.0);
+	shadowBoxCorners[3] = float4(minShadowBoxPos.x, maxShadowBoxPos.y, maxShadowBoxPos.z, 1.0);
+	shadowBoxCorners[4] = float4(maxShadowBoxPos.x, minShadowBoxPos.y, minShadowBoxPos.z, 1.0);
+	shadowBoxCorners[5] = float4(maxShadowBoxPos.x, minShadowBoxPos.y, maxShadowBoxPos.z, 1.0);
+	shadowBoxCorners[6] = float4(maxShadowBoxPos.x, maxShadowBoxPos.y, minShadowBoxPos.z, 1.0);
+	shadowBoxCorners[7] = float4(maxShadowBoxPos.x, maxShadowBoxPos.y, maxShadowBoxPos.z, 1.0); 
+	
+	float3 clipMin, clipMax;
+	uint isInFrustum = CalculateMinMaxWithLinearZ(shadowBoxCorners, matrixLight2CameraClip[shadowVolume.cascadeIndex], clipMin, clipMax);
+	//uint isViewerOutsideObj = _IsDirectional == 0? IsViewerOutsideObjBounds(_ViewerPosition, minShadowBoxPos, maxShadowBoxPos): 1;
+	uint isCascadeVisible = isInFrustum;	
+	//isCascadeVisible *= (isCascadeVisible > 0)? DetailCullingInDepth(clipMin, clipMax): 1;
+
+    
+	//isCascadeVisible *= (isCascadeVisible > 0)? isCascadeVisibleInDepthBuffer(clipMinCameraSpace, clipMaxCameraSpace, id): 0;
+	if (isCascadeVisible > 0)
+        isCascadeVisible *= isVisibleInDepthBuffer(clipMin, clipMax, id);
+	//isCascadeVisible *= (isCascadeVisible > 0)? isCascadeVisibleInDepthBuffer(clipMin, clipMax, id): 0;
+	
+	//_debugBuffer[id].minMaxXYInLightSpace.xyz = boundsExtents;
+	//_debugBuffer[id].minMaxXYInCameraSpace.zw = clipMaxCameraSpace.xy;
+	//_debugBuffer[id].minMaxXYInCameraSpace.xy  = clipMin.xy;
+	//_debugBuffer[id].minMaxXYInCameraSpace.zw  = clipMax.xy;
+    //_debugBuffer[id].mipmapDepth.xyz = clipMin;
+	return isCascadeVisible;
+}
+
+inline uint FastCheckInstanceVisible(uint layer, uint mask, uint2 cullingSceneMask)
+{
+    uint layerMask = 1 << layer;
+    if ((layerMask & _LayerMask) == 0)
+    {
+        return 0;
+    }
+    
+    //if ((mask & 1) == 0 || (mask & 1 << 1) == 0)
+    if ((mask & 1 << 1) == 0)
+    {
+        return 0;
+    }
+    
+    // check it is shadowed only
+    if ((mask & 1 << 3) != 0)
+        return 0;
+    
+#if CHECK_CULLING_SCENE_MASK
+    if ((_CullingSceneMask.x & cullingSceneMask.x) == 0
+        && (_CullingSceneMask.y & cullingSceneMask.y) == 0)
+    {
+        return 0;
+    }
+#endif
+    
+    return 1;
+}
+
+void CalculateBoundings(float4 sphere, out float3 center, out float3 extents)
+{
+    center = sphere.xyz;
+    extents = float3(sphere.w, sphere.w, sphere.w);
+}
+
+
+// 
+uint CheckLOD(uint lodProxyIndex, uint mask)
+{
+    uint lodMask = (mask >> 8) & 0xFF;
+    if (lodMask == 0 || lodProxyIndex == 0)
+        return LOD_CHECK_RESULT_NOLOD;
+    
+    uint indexMask = _LODIndexMaskBuffer[lodProxyIndex - 1];
+    if ((indexMask & 0xFF) == lodMask)
+        return LOD_CHECK_RESULT_CURRENT_LODMASK;
+    else if (((indexMask >> 16) & 0xFF) == lodMask)
+        return LOD_CHECK_RESULT_PREVIOUS_LODMASK;
+    else
+        return LOD_CHECK_RESULT_CULLED;
+}
+
+
+uint LODCalculate(float3 center, float3 extents, float height)
+{
+    float size = max(extents.x, max(extents.y, extents.z));
+    float lodDistance = size / height;
+    float dis = distance(center, _CamPosition);
+    if (dis < lodDistance)
+        return 1;
+    else
+        return 0;
+}
+
+
+void CalculateWorldBoundingBox(InstanceHeader instance, out float3 center, out float3 extents)
+{
+    center = mul(instance.worldMatrix, float4(0, 0, 0, 1)).xyz;
+    
+    float3 minPos = instance.boundsExtents;
+    float3 maxPos = instance.boundsExtents;
+    float4 boxCorners[8];
+    boxCorners[0] = float4(minPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[1] = float4(minPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[2] = float4(minPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[3] = float4(minPos.x, maxPos.y, maxPos.z, 1.0);
+    boxCorners[4] = float4(maxPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
+    
+    minPos = float3(FLT_MAX, FLT_MAX, FLT_MAX);
+    maxPos = float3(FLT_MIN, FLT_MIN, FLT_MIN);
+    [unroll]
+    for (int i = 0; i != 8; ++i)
+    {
+        boxCorners[i] = mul(instance.worldMatrix, boxCorners[i]);
+        minPos.x = min(boxCorners[i].x, minPos.x);
+        minPos.y = min(boxCorners[i].y, minPos.y);
+        minPos.z = min(boxCorners[i].z, minPos.z);
+        
+        maxPos.x = max(boxCorners[i].x, maxPos.x);
+        maxPos.x = max(boxCorners[i].y, maxPos.y);
+        maxPos.x = max(boxCorners[i].z, maxPos.z);
+    }
+    
+    extents = maxPos - minPos;
+}
+
+
+uint IsCCW(uint mask)
+{
+    if ((mask >> 2) & 1)
+    {
+        return 1;
+    }
+    return 0;
+}
+//--------------------------------------------------------------------------------------
+// Kernels
+//--------------------------------------------------------------------------------------
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+void InstanceCull (
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID          : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID    : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    // Calculate the instance index, only correct if the THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z
+	// and dipathed group num Y and Z are all 1. 
+    uint tID = _dispatchThreadID.x;
+    if (tID >= _InstanceCount)
+        return;
+    // Get the instance data
+    InstanceHeader instance = _InstanceHeaderBuffer[tID];
+    uint2 cullingSceneMask = uint2(~0u, ~0u);
+#if CHECK_CULLING_SCENE_MASK
+    cullingSceneMask = (uint2)instance.cullingSceneMask;
+#endif
+    uint isVisible = FastCheckInstanceVisible(instance.layer, instance.mask, cullingSceneMask);
+    //float3 boundsCenter = instance.worldMatrix._m03_m13_m23;
+    float3 boundsCenter = instance.boundsCenter;
+    isVisible *= FrustumCullingEx(boundsCenter, instance.boundsExtents);
+    uint lodStatus = CheckLOD(instance.lodProxyIndex, instance.mask);
+    isVisible *= lodStatus;
+	
+    // Check if the instance is visible
+    float3 minPos = boundsCenter - instance.boundsExtents;
+    float3 maxPos = boundsCenter + instance.boundsExtents + 0.01f;
+    float4 boxCorners[8];
+    boxCorners[0] = float4(minPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[1] = float4(minPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[2] = float4(minPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[3] = float4(minPos.x, maxPos.y, maxPos.z, 1.0);
+    boxCorners[4] = float4(maxPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
+		
+    float3 clipMin, clipMax;
+    CalculateMinMaxWithLinearZ(boxCorners, _UNITY_MATRIX_VP1, clipMin, clipMax);
+	if (IsViewerOutsideObjBounds(_CamPosition, minPos, maxPos))
+	{
+        isVisible *= isVisibleInDepthBuffer(clipMin, clipMax, tID);
+    }
+    //isVisible = 1;
+    if (isVisible > 0)
+    {
+        InstanceVisible visibleInfo = (InstanceVisible)0;
+        visibleInfo.instanceID = tID;
+        visibleInfo.meshHash = instance.meshHash;
+        visibleInfo.rendererHash = instance.rendererHash;
+        //visibleInfo.lodProxyIndex = instance.mask >> 8 & 0xFF;
+        visibleInfo.lodProxyIndex = instance.lodProxyIndex << 4;
+        visibleInfo.lodProxyIndex |= lodStatus;
+        _AppendInstanceIDBuffer.Append(visibleInfo);
+        
+        // check it used GPU Driven
+        if ((instance.mask & 1 << 4) == 0)
+            return;
+        
+        if (instance.geometryIndex == ~0u)
+            return;
+        GeometryInfo geometry = _GeometryBuffer[instance.geometryIndex];
+        if (geometry.clusterBegin == ~0u)
+            return;
+        
+        if (lodStatus == LOD_CHECK_RESULT_CURRENT_LODMASK)
+        {
+            uint indexMask = _LODIndexMaskBuffer[instance.lodProxyIndex - 1];
+            
+            uint offset = geometry.clusterBegin;
+            ClusterPageHeader header = _ClusterPageHeaderBuffer[offset];
+  
+            if (((indexMask >> 16) & 0xFF) != 0 && header.offset != ~0u)
+            {
+                _LODIndexMaskBuffer[instance.lodProxyIndex - 1] &= 0x0000FFFF;
+            }
+        }
+        
+        for (uint i = 0; i != geometry.clusterCount; ++i)
+        {
+            uint offset = geometry.clusterBegin;
+            uint clusterIndex = i;
+            clusterIndex += offset;
+            ClusterIDs id = (ClusterIDs)0;
+            id.clusterID = clusterIndex;
+            id.instanceID = tID;
+            id.meshHash = instance.meshHash;
+            id.rendererHash = instance.rendererHash;
+            id.geometryID = instance.geometryIndex;
+            _AppendClusterIDBuffer.Append(id);
+        }
+    }
+}
+
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+void ClusterCull(
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint _groupIndex : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    // Calculate the instance index, only correct if the THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z
+	// and dipathed group num Y and Z are all 1. 
+    uint tID = _dispatchThreadID.x;
+    
+    uint isVisible = 0;
+    ClusterIDs id = _ClusterIDBuffer[tID];
+    if (id.instanceID == ~0u || id.clusterID == ~0u || id.meshHash == 0)
+        return;
+    
+    float4 sphere = _ClusterShpereBuffer[id.clusterID];
+    InstanceHeader instance = _InstanceHeaderBuffer[id.instanceID];
+    
+    float3 center, extents;
+    center = mul(instance.worldMatrix, float4(sphere.xyz, 1.0f)).xyz;
+    float4x4 worldMatrixNoTranslate = instance.worldMatrix;
+    worldMatrixNoTranslate._m03_m13_m23_m33 = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    float3 radius3 = mul(instance.worldMatrix, float4(sphere.w, 0.0f, 0.0f, 0.0f)).xyz;
+    float radius = length(radius3);
+    //radius = sphere.w * instance.scale;
+    CalculateBoundings(float4(center, radius), center, extents);
+    isVisible = FrustumCullingEx(center, extents);
+    //isVisible = 1;
+    // Check if the instance is visible
+    float3 minPos = center - extents;
+    float3 maxPos = center + extents;
+    
+    float4 boxCorners[8];
+    boxCorners[0] = float4(minPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[1] = float4(minPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[2] = float4(minPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[3] = float4(minPos.x, maxPos.y, maxPos.z, 1.0);
+    boxCorners[4] = float4(maxPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
+
+    float3 clipMin, clipMax;
+    CalculateMinMaxWithLinearZ(boxCorners, _UNITY_MATRIX_VP1, clipMin, clipMax);
+    isVisible *= isVisibleInDepthBuffer(clipMin, clipMax, tID);
+    
+    if (isVisible > 0)
+    {
+        if (IsCCW(instance.mask))
+            _AppendClusterIDBuffer_CCW.Append(id);
+        else
+            _AppendClusterIDBuffer.Append(id);
+    }
+}
+
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void LODCalculation(in uint3 _dispatchThreadID : SV_DispatchThreadID)
+{
+    if (_LODProxyCount <= _dispatchThreadID.x)
+        return;
+        
+    LODProxy lod = _LODProxyBuffer[_dispatchThreadID.x];
+    uint indexMask = _LODIndexMaskBuffer[_dispatchThreadID.x];
+    uint notCull = 0;
+    uint curIndexMask = (indexMask) & 0xFFFF;
+    [unroll]
+    for (int i = 0; i != LOD_COUNT_MAX; ++i)
+    {
+        uint instanceID = lod.instanceID[i];
+        if (instanceID == ~0u)
+            continue;
+        
+        InstanceHeader instance = _InstanceHeaderBuffer[instanceID];
+        float3 boundsCenter = instance.boundsCenter;
+        if (LODCalculate(boundsCenter, instance.boundsExtents, lod.screenRelativeHeight[i]))
+        {
+            if (curIndexMask != (1 << i))
+            {
+                _LODIndexMaskBuffer[_dispatchThreadID.x] = 1 << i;
+                _LODIndexMaskBuffer[_dispatchThreadID.x] |= (curIndexMask << 16);
+            }
+            notCull = 1;
+            break;
+        }
+    }
+    
+    if (notCull == 0)
+    {
+        _LODIndexMaskBuffer[_dispatchThreadID.x] = 0;
+        _LODIndexMaskBuffer[_dispatchThreadID.x] |= curIndexMask << 16;
+        _LODIndexMaskBuffer[_dispatchThreadID.x] |= 0xFFFF;
+    }
+}

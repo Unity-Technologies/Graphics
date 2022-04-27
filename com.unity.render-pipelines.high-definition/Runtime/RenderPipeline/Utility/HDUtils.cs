@@ -625,12 +625,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int[] mipLevelOffsets;
 
             private bool m_OffsetBufferWillNeedUpdate;
+            public bool m_OffsetBufferWillNeedUpdateForHZBOC;
 
             public void Allocate()
             {
                 mipLevelOffsets = new Vector2Int[15];
                 mipLevelSizes = new Vector2Int[15];
                 m_OffsetBufferWillNeedUpdate = true;
+                m_OffsetBufferWillNeedUpdateForHZBOC = false;
             }
 
             // We pack all MIP levels into the top MIP level to avoid the Pow2 MIP chain restriction.
@@ -689,6 +691,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 mipLevelCount = mipLevel + 1;
                 m_OffsetBufferWillNeedUpdate = true;
+
+                m_OffsetBufferWillNeedUpdateForHZBOC = true;
             }
 
             public ComputeBuffer GetOffsetBufferData(ComputeBuffer mipLevelOffsetsBuffer)
@@ -701,6 +705,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 return mipLevelOffsetsBuffer;
+            }
+
+            public bool OffsetBufferNeedUpdate()
+            {
+                return m_OffsetBufferWillNeedUpdate;
             }
         }
 

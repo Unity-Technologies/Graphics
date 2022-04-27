@@ -1342,6 +1342,51 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
     return saturate((alpha - alphaClipTreshold) / max(fwidth(alpha), 0.0001) + 0.5);
 }
 
+
+float4 GetTileVertexPosition(uint vertexID, 
+    uint instanceID, 
+    uint2 tileSize, 
+    float2 screenSize,
+    float z = UNITY_NEAR_CLIP_VALUE)
+{
+    float4 clipPos = GetQuadVertexPosition(vertexID);
+    float2 tile = float2(64.0f / float(screenSize.x), 64.0f / float(screenSize.y));
+    clipPos.x *= tile.x;
+    clipPos.y *= tile.y;
+    clipPos.x += (instanceID % tileSize.x) * tile.x;
+    clipPos.y += (instanceID / tileSize.x) * tile.y;
+    clipPos.xy = clipPos.xy * 2.0f - 1.0f;
+    return clipPos;
+}
+
+
+float2 GetTileTexCoord(uint vertexID, 
+    uint instanceID, 
+    uint2 tileSize,
+    float2 screenSize)
+{
+    float2 uv = GetQuadTexCoord(vertexID);
+    float2 tile = float2(64.0f / float(screenSize.x), 64.0f / float(screenSize.y));
+    uv.x *= tile.x;
+    uv.y *= tile.y;
+    uv.x += (instanceID % tileSize.x) * tile.x;
+    uv.y += (instanceID / tileSize.x) * tile.y;
+    return uv;
+}
+
+
+float CalcLod(Texture2D tex, float2 ddxddy)
+{
+    uint mipLevel, width, height, mipCount;
+    mipLevel = width = height = mipCount = 0;
+    tex.GetDimensions(mipLevel, width, height, mipCount);
+    float px = width * ddxddy.x;
+    float py = height * ddxddy.y;
+    float lod = 0.5 * log2(max(dot(px, px), dot(py, py)));
+    return lod;
+}
+
+
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 

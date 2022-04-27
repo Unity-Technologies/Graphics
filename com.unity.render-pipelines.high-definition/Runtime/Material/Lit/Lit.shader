@@ -303,6 +303,8 @@ Shader "HDRP/Lit"
     #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
     #define _WRITE_TRANSPARENT_MOTION_VECTOR
     #endif
+
+	//#define UNITY_GPU_DRIVEN_PIPELINE
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
@@ -394,7 +396,6 @@ Shader "HDRP/Lit"
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -416,7 +417,8 @@ Shader "HDRP/Lit"
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
-            ZTest [_ZTestGBuffer]
+            ZTest[_ZTestGBuffer]
+			//ZTest Equal
 
             Stencil
             {
@@ -428,6 +430,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+			#pragma enable_d3d11_debug_symbols
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -467,6 +470,81 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
+
+		// Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
+		Pass
+		{
+			Name "GBufferEmit"
+			Tags { "LightMode" = "GBufferEmit" } // This will be only for opaque object based on the RenderQueue index
+
+			Cull Front
+			
+			ZTest Equal
+			ZWrite Off
+
+			//ZTest[_ZTestGBuffer]
+			//ZWrite On
+
+			Stencil
+			{
+				WriteMask[_StencilWriteMaskGBuffer]
+				Ref[_StencilRefGBuffer]
+				Comp Always
+				Pass Replace
+			}
+
+			HLSLPROGRAM
+
+			#pragma enable_d3d11_debug_symbols
+			#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+			//enable GPU instancing support
+			#pragma multi_compile_instancing
+			#pragma instancing_options procedural:setup
+			#pragma instancing_options renderinglayer
+			//#pragma multi_compile _ DOTS_INSTANCING_ON
+			// enable dithering LOD crossfade
+			#pragma multi_compile _ LOD_FADE_CROSSFADE
+
+			#pragma multi_compile _ DEBUG_DISPLAY
+			#pragma multi_compile _ LIGHTMAP_ON
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile _ DYNAMICLIGHTMAP_ON
+			#pragma multi_compile _ SHADOWS_SHADOWMASK
+			// Setup DECALS_OFF so the shader stripper can remove variants
+			#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+			#pragma multi_compile _ LIGHT_LAYERS
+
+		#ifndef DEBUG_DISPLAY
+			// When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
+			// Don't do it with debug display mode as it is possible there is no depth prepass in this case
+			#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+		#endif
+
+			#define SHADERPASS SHADERPASS_GBUFFER_EMIT
+			#define UNITY_GPU_DRIVEN_PIPELINE
+
+			#ifdef DEBUG_DISPLAY
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+			#endif
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Camera/GPUDrivenCommon.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBufferEmit.hlsl"
+
+#if defined(PROCEDURAL_INSTANCING_ON)
+			void setup()
+			{
+			}
+#endif
+			#pragma vertex Vert
+			#pragma fragment Frag
+
+			ENDHLSL
+		}
 
         // Extracts information for lightmapping, GI (emission, albedo, ...)
         // This pass it not used during regular rendering.
@@ -561,6 +639,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+			#pragma enable_d3d11_debug_symbols
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
