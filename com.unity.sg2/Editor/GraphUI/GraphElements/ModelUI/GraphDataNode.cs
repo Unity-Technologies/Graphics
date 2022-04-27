@@ -118,17 +118,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             evt.menu.AppendSeparator();
 
-            // TODO: (Sai) Re-enable in Sprint 2
-            // Currently commented out as we don't require preview expansion/collapse
-            //evt.menu.AppendAction("Preview/Expand", action =>
-            //{
-            //    GraphView.Dispatch(new ChangePreviewExpandedCommand(true, new [] {m_GraphDataNodeModel}));
-            //});
-            //
-            //evt.menu.AppendAction("Preview/Collapse", action =>
-            //{
-            //    GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
-            //});
+            // Disable the expand/collapse option if the preview is already expanded/collapsed respectively
+            evt.menu.AppendAction("Preview/Expand", action =>
+            {
+                GraphView.Dispatch(new ChangePreviewExpandedCommand(true, GraphView.GetSelection() ));
+            },
+                m_GraphDataNodeModel.IsPreviewExpanded ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal);
+
+            evt.menu.AppendAction("Preview/Collapse", action =>
+            {
+                GraphView.Dispatch(new ChangePreviewExpandedCommand(false, GraphView.GetSelection() ));
+            },
+                m_GraphDataNodeModel.IsPreviewExpanded ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
 
             evt.menu.AppendAction("Copy Shader", action =>
             {

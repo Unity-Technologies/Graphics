@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -134,7 +135,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             NodePreviewMode = PreviewRenderMode.Inherit;
         }
 
-        public bool IsPreviewVisible
+        public bool IsPreviewExpanded
         {
             get => m_IsPreviewExpanded;
             set => m_IsPreviewExpanded = value;
@@ -172,19 +173,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            //if (existsInGraphData)
-            //{
-            //    if(!graphHandler.ReconcretizeNode(graphDataName, registry))
-            //        Debug.LogErrorFormat("Failed to reconcretize Node \"{0}", graphDataName);
-            //}
-
             if (!TryGetNodeReader(out var nodeReader))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
                 return;
             }
 
-            bool nodeHasPreview = false;
+            NodeUIDescriptor nodeUIDescriptor = new();
+            if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
+                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey);
+
+            bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
             m_PortMappings.Clear();
 
             // TODO: Convert this to a NodePortsPart maybe?
@@ -232,11 +231,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
 
                 m_PortMappings.Add(portReader, newPortModel);
-
-                // Mark node as containing a preview if any of the ports on it are flagged as a preview port
-                var previewField = portReader.GetField<bool>("_isPreview");
-                if (previewField != null && previewField.GetData())
-                    nodeHasPreview = true;
             }
 
             NodeRequiresTime = ShaderGraphModel.DoesNodeRequireTime(this);

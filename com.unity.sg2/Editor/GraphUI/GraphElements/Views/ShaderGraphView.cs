@@ -7,12 +7,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphView : GraphView
     {
-    //    public MathBookGraphView(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName,
-    //GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
-    //: base(window, graphTool, graphViewName, displayMode)
-
-
-
         public ShaderGraphView(
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,

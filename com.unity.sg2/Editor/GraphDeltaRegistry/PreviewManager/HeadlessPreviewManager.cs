@@ -57,9 +57,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // Used to control whether the preview should render in 2D/3D/Inherit from upstream nodes
             public PreviewRenderMode currentRenderMode;
 
-            // Used to control whether the preview should update or not
-            public bool isPreviewEnabled;
-
             // Do we need to cache the render texture?
             public RenderTexture renderTexture;
 
@@ -419,21 +416,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 shaderCode = previewData.shaderString;
                 return;
             }
-        }
-
-
-        /// <summary>
-        /// Used to set whether a node preview is currently enabled or disabled for update.
-        /// </summary>
-        public void SetNodePreviewEnabled(string nodeName, bool shouldPreviewUpdate)
-        {
-            if (m_CachedPreviewData.ContainsKey(nodeName))
-            {
-                var previewData = m_CachedPreviewData[nodeName];
-                previewData.isPreviewEnabled = shouldPreviewUpdate;
-            }
-
-            Debug.Log("HeadlessPreviewManager: Node not recognized!");
         }
 
         /// <summary>

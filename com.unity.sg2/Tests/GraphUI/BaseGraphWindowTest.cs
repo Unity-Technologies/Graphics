@@ -14,26 +14,41 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     {
         protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(/*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
 
-        protected ShaderGraphEditorWindow m_Window;
-        protected ShaderGraphView m_GraphView;
+        protected TestEditorWindow m_Window;
+        protected TestGraphView m_GraphView;
 
         // Used to send events to the highest shader graph editor window
         protected TestEventHelpers m_ShaderGraphWindowTestHelper;
 
         protected string m_TestAssetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}";
 
+        protected virtual bool hideOverlayWindows => true;
+
+        // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO
+        const string k_BlackboardOverlayId = "gtf-blackboard";
+        const string k_InspectorOverlayId = "gtf-inspector";
+
         [SetUp]
         public virtual void SetUp()
         {
             CreateWindow();
 
-            m_GraphView = m_Window.GraphView as ShaderGraphView;
+            m_GraphView = m_Window.GraphView as TestGraphView;
 
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
             newGraphAction.Action(0, m_TestAssetPath, "");
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(m_TestAssetPath);
             m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             m_Window.GraphTool.Update();
+
+            if (hideOverlayWindows)
+            {
+                m_Window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay);
+                blackboardOverlay.displayed = false;
+
+                m_Window.TryGetOverlay(k_InspectorOverlayId, out var inspectorOverlay);
+                inspectorOverlay.displayed = false;
+            }
 
             m_Window.Focus();
         }
@@ -47,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         public void CreateWindow()
         {
-            m_Window = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
+            m_Window = EditorWindow.CreateWindow<TestEditorWindow>(typeof(SceneView), typeof(TestEditorWindow));
             m_Window.shouldCloseWindowNoPrompt = true;
 
             m_ShaderGraphWindowTestHelper = new TestEventHelpers(m_Window);
@@ -115,6 +130,20 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
 
             return false;
+        }
+
+        public INodeModel GetNodeModelFromGraphByName(string nodeName)
+        {
+            var nodeModels = m_Window.GraphView.GraphModel.NodeModels;
+            foreach (var nodeModel in nodeModels)
+            {
+                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName)
+                {
+                    return concreteNodeModel;
+                }
+            }
+
+            return null;
         }
     }
 }
