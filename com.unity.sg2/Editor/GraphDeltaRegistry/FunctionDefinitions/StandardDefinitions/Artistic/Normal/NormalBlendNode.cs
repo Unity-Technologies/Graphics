@@ -22,8 +22,8 @@ namespace UnityEditor.ShaderGraph.Defs
 	Out = SafeNormalize(Out);
 }
 ",
-                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In),
-                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In),
+                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
@@ -36,8 +36,8 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = (t / t.z) * dot(t, u) - u;
 }
 ",
-                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In),
-                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In),
+                    new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
+                    new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("t", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("u", TYPE.Vec3, GraphType.Usage.Local, new float[] { -1.0f, -1.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)

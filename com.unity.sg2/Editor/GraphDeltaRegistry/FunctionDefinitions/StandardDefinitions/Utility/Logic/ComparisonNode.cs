@@ -72,12 +72,12 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             selectableFunctions: new()
             {
-                { "Equal", "Equal" },
-                { "NotEqual", "NotEqual" },
-                { "Less", "Less" },
-                { "LessOrEqual", "Less Or Equal" },
-                { "Greater", "Greater" },
-                { "GreaterOrEqual", "Greater Or Equal" },
+                { "Equal", "== Equal" },
+                { "NotEqual", "!= NotEqual" },
+                { "Less", "< Less" },
+                { "LessOrEqual", "<= Less Or Equal" },
+                { "Greater", "> Greater" },
+                { "GreaterOrEqual", ">= Greater Or Equal" },
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
