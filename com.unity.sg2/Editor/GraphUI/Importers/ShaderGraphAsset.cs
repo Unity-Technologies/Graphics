@@ -24,20 +24,18 @@ namespace UnityEditor.ShaderGraph
         {
             var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
             var graph = GraphHandler.FromSerializedFormat(GraphJSON, reg);
-
-            //graph.ReconcretizeAll(reg);
-            //foreach (var edge in edges)
-            //    graph.TryConnect(edge.srcNode, edge.srcPort, edge.dstNode, edge.dstPort, reg);
             graph.ReconcretizeAll();
             return graph;
         }
-        private static ShaderGraphAssetModel CreateBlankAssetGraph()
+        static ShaderGraphAssetModel CreateBlankAssetGraph()
         {
             var model = CreateInstance<ShaderGraphAssetModel>();
             model.name = "View";
             model.CreateGraph(typeof(ShaderGraphStencil));
+
             return model;
         }
+
         public static GraphHandler CreateBlankGraphHandler()
         {
             var defaultRegistry = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
@@ -48,7 +46,6 @@ namespace UnityEditor.ShaderGraph
             graph.AddContextNode(propertyKey, defaultRegistry);
             return graph;
         }
-
 
         public static void HandleSave(string path, ShaderGraphAssetModel model)
         {

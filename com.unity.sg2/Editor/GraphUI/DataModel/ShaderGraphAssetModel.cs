@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
+
+using Target = UnityEditor.ShaderGraph.Target;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -13,6 +17,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ShaderGraphModel ShaderGraphModel => GraphModel as ShaderGraphModel;
         public GraphDelta.GraphHandler GraphHandler { get; set; }
+
+        List<Target> m_GraphTargets = new();
+
+        internal List<Target> ActiveTargets => m_GraphTargets;
 
         public void Init(GraphDelta.GraphHandler graph = null)
         {
