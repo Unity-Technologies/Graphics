@@ -3,11 +3,10 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class HyperbolicTangentNode : IStandardNode
+    internal class ReciprocalNode : IStandardNode
     {
-        public static string Name = "HyperbolicTangent";
-        public static int Version = 1;
-
+        static string Name = "Reciprocal";
+        static int Version = 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
@@ -15,15 +14,15 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "Default",
-                    "Out = tanh(In);",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                    "Out = 1.0/In;",
+                    new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new(
                     1,
                     "Fast",
-                    "Out = ((In - ((In * In * In) / 3)) + ((2 * In * In * In * In * In) / 15)) - ((17 / 315) * (In * In * In * In * In * In * In));",
-                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                    "Out = rcp(In);",
+                    new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 )
             }
@@ -32,10 +31,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Hyperbolic Tangent",
-            tooltip: "returns the hyperbolic tangent of the input",
-            categories: new string[2] { "Math", "Trigonometry" },
-            synonyms: new string[1] { "tanh" },
+            tooltip: "returns one divided by the input",
+            categories: new string[2] { "Math", "Advanced" },
+            synonyms: new string[2] { "rcp", "divide" },
             selectableFunctions: new()
             {
                 { "Default", "Default" },
@@ -44,11 +42,11 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
-                    tooltip: "input value"
+                    tooltip: "the input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "the hyperbolic tangent of the input"
+                    tooltip: "one divided by the input"
                 )
             }
         );
