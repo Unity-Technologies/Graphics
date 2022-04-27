@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
 
             // Save graph and close the window
-            GraphAssetUtils.SaveGraphImplementation(m_Window.GraphTool);
+            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
             CloseWindow();
             yield return null;
 

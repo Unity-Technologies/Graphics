@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             CreateWindow();
 
-            m_GraphView = m_Window.GraphView as ShaderGraphView;
+            m_GraphView = m_Window.GraphView as TestGraphView;
 
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateSubGraphAssetAction>();
             newGraphAction.Action(0, m_TestAssetPath, "");
