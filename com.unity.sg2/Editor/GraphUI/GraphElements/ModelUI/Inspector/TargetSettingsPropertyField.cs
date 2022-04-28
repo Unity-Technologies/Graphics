@@ -6,9 +6,9 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class TargetSettingsView : BaseModelPropertyField
+    class TargetSettingsPropertyField : BaseModelPropertyField
     {
-        public TargetSettingsView(ICommandTarget commandTarget, Target targetObject, Dictionary<Target, bool> targetFoldouts, Action onTargetSettingsChanged, Action<string> registerActionToUndo)
+        public TargetSettingsPropertyField(ICommandTarget commandTarget, Target targetObject, Dictionary<Target, bool> targetFoldouts, Action onTargetSettingsChanged, Action<string> registerActionToUndo)
             : base(commandTarget)
         {
             // Ensure enabled state is being tracked and get value

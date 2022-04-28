@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         List<Target> m_GraphTargets;
 
-        ReorderableListView<Target> m_TargetListView;
+        ReorderableListPropertyField<Target> m_TargetListPropertyField;
 
         Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
@@ -41,8 +41,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (targetObject != null)
             {
                 m_GraphTargets.Add(targetObject as Target);
-                m_TargetListView.listView.itemsSource = m_GraphTargets;
-                m_TargetListView.listView.Rebuild();
+                m_TargetListPropertyField.listView.itemsSource = m_GraphTargets;
+                m_TargetListPropertyField.listView.Rebuild();
 
                 BuildFields();
             }
@@ -65,8 +65,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_GraphTargets.RemoveAt(i);
             }
 
-            m_TargetListView.listView.itemsSource = m_GraphTargets;
-            m_TargetListView.listView.Rebuild();
+            m_TargetListPropertyField.listView.itemsSource = m_GraphTargets;
+            m_TargetListPropertyField.listView.Rebuild();
         }
 
         void OnTargetRemoved()
@@ -90,12 +90,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // TODO : Add "Active Targets" label above the list here
 
-            m_TargetListView = new ReorderableListView<Target>(m_OwnerElement.RootView, m_GraphTargets, GetTargets, GetTargetDisplayName, TargetAddedCallback, OnTargetSelectionChanged, OnTargetRemoved, true);
-            propertyFieldList.Add(m_TargetListView);
+            m_TargetListPropertyField = new ReorderableListPropertyField<Target>(m_OwnerElement.RootView, m_GraphTargets, GetTargets, GetTargetDisplayName, TargetAddedCallback, OnTargetSelectionChanged, OnTargetRemoved, true);
+            propertyFieldList.Add(m_TargetListPropertyField);
 
             foreach (var activeTarget in m_GraphTargets)
             {
-                var targetSettingsView = new TargetSettingsView(m_OwnerElement.RootView, activeTarget, m_TargetFoldouts, OnTargetSettingsChanged, RegisterActionToUndo);
+                var targetSettingsView = new TargetSettingsPropertyField(m_OwnerElement.RootView, activeTarget, m_TargetFoldouts, OnTargetSettingsChanged, RegisterActionToUndo);
                 propertyFieldList.Add(targetSettingsView);
             }
 

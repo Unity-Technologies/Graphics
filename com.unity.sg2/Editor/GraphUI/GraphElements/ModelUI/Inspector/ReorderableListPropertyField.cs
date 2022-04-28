@@ -8,24 +8,46 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class ReorderableListView<T> : BaseModelPropertyField
+    class ReorderableListPropertyField<T> : BaseModelPropertyField
     {
+        /// <summary>
+        /// ListView this PropertyField wraps around
+        /// </summary>
         public ListView listView => m_ListView;
+
         ListView m_ListView = new();
 
+        /// <summary>
+        /// Callback to populate the dropdown menu options when the '+' footer button to add an item is clicked
+        /// </summary>
         Func<IList<T>> m_GetAddItemOptions;
 
+        /// <summary>
+        /// Callback to invoke when the list needs to display a string label for a list item
+        /// </summary>
         Func<object, string> m_GetItemDisplayName;
 
+        /// <summary>
+        /// Callback to invoke when an item is selected from the dropdown menu, to add to the list
+        /// </summary>
         GenericMenu.MenuFunction2 m_OnAddItemClicked;
 
+        /// <summary>
+        /// Callback to invoke when an item is removed from the list using the '-' footer button
+        /// </summary>
         Action m_OnItemRemoved;
 
+        /// <summary>
+        /// Whether the list should allow duplicates
+        /// </summary>
         bool m_MakeOptionsUnique;
 
+        /// <summary>
+        /// Reference to the actual list itself
+        /// </summary>
         IList<T> m_ListItems;
 
-        public ReorderableListView(
+        public ReorderableListPropertyField(
             ICommandTarget commandTarget,
             IList<T> listItems,
             Func<IList<T>> getAddItemOptions,
@@ -36,6 +58,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool makeOptionsUnique)
             : base(commandTarget)
         {
+            /* Setup the ListView */
+
             // The "makeItem" function will be called as needed
             // when the ListView needs more items to render
             Func<VisualElement> makeItem = () => new Label();
@@ -52,19 +76,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_ListView.makeItem = makeItem;
             m_ListView.bindItem = bindItem;
             m_ListView.itemsSource = listItems.ToList();
-            m_ListView.selectionType = SelectionType.Multiple;
-
-            // Callback invoked when the user changes the selection inside the ListView
-            m_ListView.selectionChanged += onSelectionChanged;
-
-            m_ListView.itemsAdded += OnItemsAdded;
-            m_ListView.itemsRemoved += OnItemsRemoved;
+            m_ListView.selectionType = SelectionType.Single;
             m_ListView.reorderable = true;
             m_ListView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             m_ListView.showAddRemoveFooter = true;
             m_ListView.reorderMode = ListViewReorderMode.Animated;
 
+            m_ListView.selectionChanged += onSelectionChanged;
+            m_ListView.itemsAdded += OnItemsAdded;
+            m_ListView.itemsRemoved += OnItemsRemoved;
+
             Add(m_ListView);
+
+            /* Store references to callbacks and other info. needed later */
 
             m_GetAddItemOptions = getAddItemOptions;
             m_GetItemDisplayName = getItemDisplayName;
@@ -78,7 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnItemsAdded(IEnumerable<int> obj)
         {
-            // Now create the menu, add items and show it
+            // Create the dropdown menu, add items and show it
             GenericMenu menu = new GenericMenu();
 
             var addItemOptions = m_GetAddItemOptions();
