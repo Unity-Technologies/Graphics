@@ -50,25 +50,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // variableDeclarationModel.AssetModel = AssetModel;
             }
 
-            // TODO: Need a way to determine which context nodes are shown on the graph
+            var contextNames = GraphHandler
+                .GetNodes()
+                .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
+                .Select(nodeHandler => nodeHandler.ID.LocalPath)
+                .ToList();
 
-            try
+            foreach (var localPath in contextNames)
             {
-                if (GraphHandler.GetNode("DefaultContextDescriptor") == null) return;
+                GraphHandler.ReconcretizeNode(localPath);
+
+                if (!NodeModels.Any(nodeModel =>
+                        nodeModel is GraphDataContextNodeModel contextNodeModel &&
+                        contextNodeModel.graphDataName == localPath))
+                {
+                    this.CreateNode<GraphDataContextNodeModel>(
+                        nodeName: localPath,
+                        initializationCallback: nodeModel =>
+                        {
+                            nodeModel.graphDataName = localPath;
+                        }
+                    );
+                }
             }
-            catch (NullReferenceException) { return; }
-
-            // TODO: Shouldn't be necessary
-            GraphHandler.ReconcretizeNode("DefaultContextDescriptor");
-
-            if (!NodeModels.Any(n => n is OutputContextNodeModel {Title: "TempContext"}))
-                this.CreateNode<OutputContextNodeModel>(
-                    nodeName: "TempContext",
-                    initializationCallback: nodeModel =>
-                    {
-                        nodeModel.graphDataName = Registry.ResolveKey<ShaderGraphContext>().Name;
-                    }
-                );
         }
 
         /// <summary>
