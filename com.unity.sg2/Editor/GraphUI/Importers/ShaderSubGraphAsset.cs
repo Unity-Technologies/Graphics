@@ -43,7 +43,6 @@ namespace UnityEditor.ShaderGraph
 
         public static void HandleSave(string path, ShaderGraphAssetModel model)
         {
-            Debug.Log("Save subgraph");
             var asset = CreateInstance<ShaderSubGraphAsset>();
             asset.GraphJSON = model.GraphHandler.ToSerializedFormat();
             asset.ViewModelJSON = EditorJsonUtility.ToJson(model);
