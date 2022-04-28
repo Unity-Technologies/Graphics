@@ -34,8 +34,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return typeof(SectionModel);
         }
 
-        NodeModel m_OutputContextNode;
-
         public override void OnEnable()
         {
             base.OnEnable();
@@ -50,19 +48,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                // variableDeclarationModel.AssetModel = AssetModel;
             }
-
-            if (!ShaderGraphAssetModel.IsSubGraph) return;
-
-            foreach (var nodeModel in NodeModels)
-            {
-                if (nodeModel is OutputContextNodeModel outputContextNodeModel)
-                {
-                    m_OutputContextNode = outputContextNodeModel;
-                    break;
-                }
-            }
-
-            m_OutputContextNode ??= this.CreateNode<OutputContextNodeModel>();
         }
 
         public bool IsSubGraph => ShaderGraphAssetModel.IsSubGraph;

@@ -59,12 +59,5 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             Assert.IsTrue(FindNodeOnGraphByName("Add"));
         }
-
-        [UnityTest]
-        public IEnumerator TestSubGraphContainsOutputContext()
-        {
-            Assert.IsTrue(false); // TODO
-            yield return null;
-        }
     }
 }
