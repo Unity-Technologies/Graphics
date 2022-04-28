@@ -12,12 +12,14 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         ICommandTarget m_CommandTarget;
         ISerializedGraphAsset m_Asset;
         IGraphTemplate m_Template;
+        Action m_Callback;
 
-        public void SetUp(ICommandTarget target, ISerializedGraphAsset asset, IGraphTemplate template)
+        public void SetUp(ICommandTarget target, ISerializedGraphAsset asset, IGraphTemplate template, Action callback = null)
         {
             m_CommandTarget = target;
             m_Template = template;
             m_Asset = asset;
+            m_Callback = callback;
         }
 
         internal void CreateAndLoadAsset(string pathName)
@@ -35,6 +37,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             CreateAndLoadAsset(pathName);
+            m_Callback?.Invoke();
         }
 
         public override void Cancelled(int instanceId, string pathName, string resourceFile)
@@ -48,13 +51,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
     /// </summary>
     public static class GraphAssetCreationHelpers
     {
-        public static void CreateInProjectWindow<TGraphAssetType>(IGraphTemplate template, ICommandTarget target, string path)
+        public static void CreateInProjectWindow<TGraphAssetType>(IGraphTemplate template, ICommandTarget target, string path, Action endActionCallback = null)
             where TGraphAssetType : ScriptableObject, ISerializedGraphAsset
         {
             var asset = ScriptableObject.CreateInstance<TGraphAssetType>();
 
             var endAction = ScriptableObject.CreateInstance<DoCreateAsset>();
-            endAction.SetUp(target, asset, template);
+            endAction.SetUp(target, asset, template, endActionCallback);
 
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 asset.GetInstanceID(),

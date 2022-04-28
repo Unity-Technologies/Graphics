@@ -60,8 +60,6 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         {
             Model = new ModelInspectorViewModel(parentGraphView);
 
-            GraphTool.State.OnStateComponentListModified += UpdateSelectionObserver;
-
             Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetInspectedGraphModelFieldCommand>(SetInspectedGraphModelFieldCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
 
             Dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SetInspectedGraphElementModelFieldCommand>(SetInspectedGraphElementModelFieldCommand.DefaultCommandHandler, GraphTool.UndoStateComponent, ModelInspectorViewModel.GraphModelState);
@@ -117,19 +115,29 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             }
 
             BuildSelectionObserver();
+
+            GraphTool.State.OnStateComponentListModified += UpdateSelectionObserver;
         }
 
         /// <inheritdoc />
         protected override void UnregisterObservers()
         {
-            GraphTool?.ObserverManager?.UnregisterObserver(m_LoadedGraphObserver);
-            m_LoadedGraphObserver = null;
+            if (GraphTool != null)
+            {
+                GraphTool.ObserverManager?.UnregisterObserver(m_LoadedGraphObserver);
+                m_LoadedGraphObserver = null;
 
-            GraphTool?.ObserverManager?.UnregisterObserver(m_UpdateObserver);
-            m_UpdateObserver = null;
+                GraphTool.ObserverManager?.UnregisterObserver(m_UpdateObserver);
+                m_UpdateObserver = null;
 
-            GraphTool?.ObserverManager?.UnregisterObserver(m_SelectionObserver);
-            m_SelectionObserver = null;
+                GraphTool.ObserverManager?.UnregisterObserver(m_SelectionObserver);
+                m_SelectionObserver = null;
+
+                if (GraphTool.State != null)
+                {
+                    GraphTool.State.OnStateComponentListModified -= UpdateSelectionObserver;
+                }
+            }
         }
 
         void RemoveAllUI()

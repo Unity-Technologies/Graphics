@@ -11,16 +11,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.MathBook
         protected override Type GraphModelType => typeof(MathBook);
 
         [MenuItem("Assets/Create/GTF Samples/Math Book/Math Book")]
-        public static void CreateGraph(MenuCommand menuCommand)
+        public static void CreateGraph()
         {
             const string path = "Assets";
             var template = new GraphTemplate<MathBookStencil>(MathBookStencil.GraphName);
-            ICommandTarget target = null;
-            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<SimpleGraphViewWindow>();
-            if (window != null)
-                target = window.GraphTool;
 
-            GraphAssetCreationHelpers.CreateInProjectWindow<MathBookAsset>(template, target, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<MathBookAsset>(template, null, path,
+                () => GraphViewEditorWindow.FindOrCreateGraphWindow<SimpleGraphViewWindow>());
         }
 
         [OnOpenAsset(1)]

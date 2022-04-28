@@ -52,11 +52,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         public int IndexInGroup;
 
-        // GTF-EDIT
-        /// <summary>
-        /// The callback to be invoked post-creation of the variable declaration model
-        /// </summary>
-        public Action<IVariableDeclarationModel, IConstant> InitializationCallback = null;
+       // GTF-EDIT
+       /// <summary>
+       /// The callback to be invoked post-creation of the variable declaration model
+       /// </summary>
+       public Action<IVariableDeclarationModel, IConstant> InitializationCallback = null;
 
         /// <summary>
         /// Initializes a new CreateGraphVariableDeclarationCommand.
@@ -80,7 +80,7 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// SerializableGUID will be generated for it.</param>
         public CreateGraphVariableDeclarationCommand(string name, bool isExposed, TypeHandle typeHandle,
                                                      IGroupModel group = null, int indexInGroup = int.MaxValue,
-                                                     ModifierFlags modifierFlags = ModifierFlags.None, SerializableGUID guid = default) : this()
+                                                     ModifierFlags modifierFlags = ModifierFlags.None, SerializableGUID guid = default) : this()                                                     
         {
             VariableName = name;
             IsExposed = isExposed;
@@ -140,9 +140,11 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
                 if (command.VariableType != null)
                     newVariableDeclaration = graphModel.CreateGraphVariableDeclaration(command.VariableType, command.TypeHandle, command.VariableName,
                         command.ModifierFlags, command.IsExposed, command.Group, command.IndexInGroup, null, command.Guid, command.InitializationCallback);
+
                 else
                     newVariableDeclaration = graphModel.CreateGraphVariableDeclaration(command.TypeHandle, command.VariableName,
                         command.ModifierFlags, command.IsExposed, command.Group, command.IndexInGroup, null, command.Guid, command.InitializationCallback);
+
 
                 graphUpdater.MarkNew(newVariableDeclaration);
                 graphUpdater.MarkForRename(newVariableDeclaration);

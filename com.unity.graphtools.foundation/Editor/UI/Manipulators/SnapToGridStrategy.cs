@@ -7,8 +7,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     class SnapToGridStrategy : SnapStrategy
     {
-        class SnapToGridResult : SnapResult
+        class SnapToGridResult
         {
+            public float Offset { get; set; }
+            public float Distance => Math.Abs(Offset);
             public SnapReference SnappableReference { get; set; }
         }
 
@@ -25,51 +27,26 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
         public override void BeginSnap(GraphElement selectedElement)
         {
-            if (IsActive)
-            {
-                Debug.LogError("SnapService.BeginSnap: Snap to grid already active. Call EndSnap() first.");
-            }
-            IsActive = true;
+            base.BeginSnap(selectedElement);
 
             m_BorderWidth = GetBorderWidth(selectedElement); // Needed to snap element on its content container's border
 
-            m_GraphView = selectedElement.GraphView;
-
-            m_GridSpacing = m_GraphView.SafeQ<GridBackground>().Spacing;
+            m_GridSpacing = selectedElement.GraphView.SafeQ<GridBackground>().Spacing;
         }
 
-        public override Rect GetSnappedRect(ref Vector2 snappingOffset, Rect sourceRect, GraphElement selectedElement)
+        protected override Vector2 ComputeSnappedPosition(out SnapDirection snapDirection, Rect sourceRect, GraphElement selectedElement)
         {
-            if (!IsActive)
-            {
-                Debug.LogError("SnapService.GetSnappedRect: Snap to grid not active. Call BeginSnap() first.");
-            }
-
-            if (IsPaused)
-            {
-                // Snapping was paused, we do not return a snapped rect
-                return sourceRect;
-            }
-
-            Rect snappedRect = sourceRect;
+            var snappedPosition = sourceRect.position;
 
             List<SnapToGridResult> results = GetClosestGridLines(sourceRect);
 
+            snapDirection = SnapDirection.SnapNone;
             foreach (SnapToGridResult result in results)
             {
-                ApplySnapToGridResult(ref snappingOffset, sourceRect, ref snappedRect, result);
+                ApplySnapToGridResult(ref snapDirection, sourceRect.position, ref snappedPosition, result);
             }
 
-            return snappedRect;
-        }
-
-        public override void EndSnap()
-        {
-            if (!IsActive)
-            {
-                Debug.LogError("SnapService.EndSnap: Snap to grid already inactive. Call BeginSnap() first.");
-            }
-            IsActive = false;
+            return snappedPosition;
         }
 
         SnapToGridResult GetClosestGridLine(Rect sourceRect, SnapReference sourceRef, SnapReference startReference, SnapReference endReference)
@@ -128,17 +105,17 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
             return results.Union(GetClosestGridLines(sourceRect, PortOrientation.Vertical)).ToList();
         }
 
-        static void ApplySnapToGridResult(ref Vector2 snappingOffset, Rect sourceRect, ref Rect r1, SnapToGridResult result)
+        static void ApplySnapToGridResult(ref SnapDirection snapDirection, Vector2 sourcePosition, ref Vector2 r1, SnapToGridResult result)
         {
             if (result.SnappableReference <= SnapReference.RightEdge)
             {
-                r1.x = sourceRect.x - result.Offset;
-                snappingOffset.x = snappingOffset.x < float.MaxValue ? snappingOffset.x + result.Offset : result.Offset;
+                r1.x = sourcePosition.x - result.Offset;
+                snapDirection |= SnapDirection.SnapX;
             }
             else
             {
-                r1.y = sourceRect.y - result.Offset;
-                snappingOffset.y = snappingOffset.y < float.MaxValue ? snappingOffset.y + result.Offset : result.Offset;
+                r1.y = sourcePosition.y - result.Offset;
+                snapDirection |= SnapDirection.SnapY;
             }
         }
 

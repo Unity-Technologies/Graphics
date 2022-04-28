@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
     [Overlay(typeof(GraphViewEditorWindow), idValue, "Inspector", defaultDisplay = true,
-        defaultDockZone = DockZone.RightColumn, defaultLayout = Layout.Panel/*, defaultWidth = 300, defaultHeight = 400*/)]
+        defaultDockZone = DockZone.RightColumn, defaultLayout = Layout.Panel)]
     [Icon( AssetHelper.AssetPath + "UI/Stylesheets/Icons/PanelsToolbar/Inspector.png")]
     sealed class ModelInspectorOverlay : Overlay
     {

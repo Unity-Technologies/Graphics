@@ -8,17 +8,13 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.Samples.Vertical
     class VerticalGraphAsset : GraphAsset
     {
         [MenuItem("Assets/Create/GTF Samples/VerticalFlow")]
-        public static void CreateGraph(MenuCommand menuCommand)
+        public static void CreateGraph()
         {
             const string path = "Assets";
             var template = new GraphTemplate<VerticalStencil>(VerticalStencil.graphName);
-            ICommandTarget target = null;
 
-            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<VerticalGraphWindow>();
-            if (window != null)
-                target = window.GraphTool;
-
-            GraphAssetCreationHelpers.CreateInProjectWindow<VerticalGraphAsset>(template, target, path);
+            GraphAssetCreationHelpers.CreateInProjectWindow<VerticalGraphAsset>(template, null, path,
+                () => GraphViewEditorWindow.FindOrCreateGraphWindow<VerticalGraphWindow>());
         }
 
         [OnOpenAsset(1)]

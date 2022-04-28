@@ -103,10 +103,10 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         /// </summary>
         public ITransform ViewTransform => ContentViewContainer.transform;
 
-        protected SelectionDragger SelectionDragger
+        public SelectionDragger SelectionDragger
         {
             get => m_SelectionDragger;
-            set => this.ReplaceManipulator(ref m_SelectionDragger, value);
+            protected set => this.ReplaceManipulator(ref m_SelectionDragger, value);
         }
 
         protected ContentDragger ContentDragger
