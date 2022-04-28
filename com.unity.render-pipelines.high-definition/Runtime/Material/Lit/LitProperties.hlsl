@@ -4,6 +4,9 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
+TEXTURE2D(_DistortionVectorMap);
+SAMPLER(sampler_DistortionVectorMap);
+
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
 
