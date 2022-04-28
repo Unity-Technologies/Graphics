@@ -65,14 +65,14 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.mathematics": {
-      "version": "1.2.5",
+      "version": "1.2.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.2",
+      "version": "3.0.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -132,7 +132,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.searcher": {
-      "version": "4.9.1",
+      "version": "4.9.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -144,6 +144,14 @@
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
+    },
+    "com.unity.sg2": {
+      "version": "file:../../com.unity.sg2",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.shadergraph": "14.0.2"
+      }
     },
     "com.unity.shadergraph": {
       "version": "file:../../com.unity.shadergraph",
