@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Supports colored shadows in shaders.</summary>
         ColoredShadow = 1,
         /// <summary>Uses [camera-relative rendering](../manual/Camera-Relative-Rendering.md) to enhance precision.</summary>
-        CameraRelativeRendering = 0,
+        CameraRelativeRendering = 1,
         /// <summary>Uses pre-exposition to enhance color precision.</summary>
         PreExposition = 1,
         /// <summary>Precomputes atmospheric attenuation for the directional light on the CPU. This makes it independent from the fragment's position, which increases performance but reduces accuracy.</summary>

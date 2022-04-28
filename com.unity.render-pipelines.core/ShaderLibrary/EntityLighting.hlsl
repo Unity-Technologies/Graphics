@@ -284,18 +284,26 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
 #define TEXTURE2D_LIGHTMAP_PARAM TEXTURE2D_ARRAY_PARAM
 #define TEXTURE2D_LIGHTMAP_ARGS TEXTURE2D_ARRAY_ARGS
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+#define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D_ARRAY_LOD
+#else
 #define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D_ARRAY
+#endif
 #define LIGHTMAP_EXTRA_ARGS float2 uv, float slice
 #define LIGHTMAP_EXTRA_ARGS_USE uv, slice
 #else
 #define TEXTURE2D_LIGHTMAP_PARAM TEXTURE2D_PARAM
 #define TEXTURE2D_LIGHTMAP_ARGS TEXTURE2D_ARGS
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+#define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D_LOD
+#else
 #define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D
+#endif
 #define LIGHTMAP_EXTRA_ARGS float2 uv
 #define LIGHTMAP_EXTRA_ARGS_USE uv
 #endif
 
-real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS, float4 transform, bool encodedLightmap, real4 decodeInstructions)
+real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS, float4 transform, bool encodedLightmap, real4 decodeInstructions, float2 ddxddy)
 {
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
@@ -303,18 +311,28 @@ real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler
     // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
     if (encodedLightmap)
     {
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        float lod = CalcLod(lightmapTex, ddxddy);
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, lod).rgba;
+#else
         real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgba;
+#endif
         illuminance = DecodeLightmap(encodedIlluminance, decodeInstructions);
     }
     else
     {
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        float lod = CalcLod(lightmapTex, ddxddy);
+        illuminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, lod).rgb;
+#else
         illuminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgb;
+#endif
     }
     return illuminance;
 }
 
 void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_PARAM(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS, float4 transform,
-    float3 normalWS, float3 backNormalWS, bool encodedLightmap, real4 decodeInstructions, inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
+    float3 normalWS, float3 backNormalWS, bool encodedLightmap, real4 decodeInstructions, float2 ddxddy, inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
 {
      // In directional mode Enlighten bakes dominant light direction
     // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
@@ -325,18 +343,31 @@ void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSam
 
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
-
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        float lod = CalcLod(lightmapTex, ddxddy);
+    real4 direction = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapDirTex, lightmapDirSampler, LIGHTMAP_EXTRA_ARGS_USE, lod);
+#else
     real4 direction = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapDirTex, lightmapDirSampler, LIGHTMAP_EXTRA_ARGS_USE);
+#endif
     // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
     real3 illuminance = real3(0.0, 0.0, 0.0);
     if (encodedLightmap)
     {
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        float lod = CalcLod(lightmapTex, ddxddy);
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, lod).rgba;
+#else
         real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgba;
-        illuminance = DecodeLightmap(encodedIlluminance, decodeInstructions);
+#endif
     }
     else
     {
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+        float lod = CalcLod(lightmapTex, ddxddy);
+        illuminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE, lod).rgb;
+#else
         illuminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgb;
+#endif
     }
 
     real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
@@ -348,13 +379,13 @@ void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSam
 
 // Just a shortcut that call function above
 real3 SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_PARAM(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS, float4 transform,
-    float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
+    float3 normalWS, bool encodedLightmap, real4 decodeInstructions, float2 ddxddy)
 {
     float3 backNormalWSUnused = 0.0;
     real3 bakeDiffuseLighting = 0.0;
     real3 backBakeDiffuseLightingUnused = 0.0;
     SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_ARGS(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS_USE, transform,
-                                normalWS, backNormalWSUnused, encodedLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
+                                normalWS, backNormalWSUnused, encodedLightmap, decodeInstructions, ddxddy, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
 
     return bakeDiffuseLighting;
 }
