@@ -36,8 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // Cannot get a shader function from a context node, that needs to be processed by the graph.
             // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.
             // It's also pointless unless a similar strategy is taken for Reference nodes- who also need a fair amount of graph processing to function.
-            // throw new NotImplementedException();
-            return ShaderFunction.Invalid; // TODO: figure out what to do here
+            return ShaderFunction.Invalid;
         }
     }
 }
