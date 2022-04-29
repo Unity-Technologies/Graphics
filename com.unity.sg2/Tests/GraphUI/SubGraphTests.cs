@@ -10,18 +10,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     public class SubGraphTests : BaseGraphWindowTest
     {
+        protected override string testAssetPath =>  $"Assets\\{ShaderGraphStencil.DefaultSubGraphAssetName}.{ShaderGraphStencil.SubGraphExtension}";
+
         [SetUp]
         public override void SetUp()
         {
-            m_TestAssetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.SubGraphExtension}";
-
             CreateWindow();
 
             m_GraphView = m_Window.GraphView as TestGraphView;
 
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateSubGraphAssetAction>();
-            newGraphAction.Action(0, m_TestAssetPath, "");
-            var graphAsset = ShaderSubGraphAsset.HandleLoad(m_TestAssetPath);
+            newGraphAction.Action(0, testAssetPath, "");
+            var graphAsset = ShaderSubGraphAsset.HandleLoad(testAssetPath);
             m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             m_Window.GraphTool.Update();
 
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             CloseWindow();
             yield return null;
 
-            var graphAsset = ShaderSubGraphAsset.HandleLoad(m_TestAssetPath);
+            var graphAsset = ShaderSubGraphAsset.HandleLoad(testAssetPath);
             CreateWindow();
             m_Window.Show();
             m_Window.Focus();

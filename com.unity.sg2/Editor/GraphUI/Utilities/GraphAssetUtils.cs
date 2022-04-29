@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,
-                $"{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}",
+                $"{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}",
                 null,
                 null);
         }
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,
-                $"{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.SubGraphExtension}",
+                $"{ShaderGraphStencil.DefaultSubGraphAssetName}.{ShaderGraphStencil.SubGraphExtension}",
                 null,
                 null);
         }
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        private static string SaveAsImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAssetModel> SaveAction, string extension)
+        private static string SaveAsImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAssetModel> SaveAction, string dialogTitle, string extension)
         {
             // If no currently opened graph, early out
             if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() == null)
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var path = GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
                 path = path.Remove(path.LastIndexOf('/'));
 
-                var destinationPath = EditorUtility.SaveFilePanel("Save Shader Graph Asset at: ", path, GraphTool.ToolState.CurrentGraph.GetGraphAsset().Name, extension);
+                var destinationPath = EditorUtility.SaveFilePanel(dialogTitle, path, GraphTool.ToolState.CurrentGraph.GetGraphAsset().Name, extension);
                 // If User cancelled operation or provided an invalid path
                 if (string.IsNullOrEmpty(destinationPath))
                     return string.Empty;
@@ -96,11 +96,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return string.Empty;
         }
 
-        static void SaveGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderGraphAsset.HandleSave);
-        static void SaveSubGraphImplementation(BaseGraphTool GraphTool) => SaveImplementation(GraphTool, ShaderSubGraphAsset.HandleSave);
+        static void SaveGraphImplementation(BaseGraphTool GraphTool) =>
+            SaveImplementation(GraphTool,
+                ShaderGraphAsset.HandleSave);
+        static void SaveSubGraphImplementation(BaseGraphTool GraphTool) =>
+            SaveImplementation(GraphTool,
+                ShaderSubGraphAsset.HandleSave);
 
-        static string SaveAsGraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.GraphExtension);
-        static string SaveAsSubGraphImplementation(BaseGraphTool GraphTool) => SaveAsImplementation(GraphTool, ShaderGraphAsset.HandleSave, ShaderGraphStencil.SubGraphExtension);
+        static string SaveAsGraphImplementation(BaseGraphTool GraphTool) =>
+            SaveAsImplementation(GraphTool,
+                ShaderGraphAsset.HandleSave,
+                "Save Shader Graph Asset at: ",
+                ShaderGraphStencil.GraphExtension);
+        static string SaveAsSubGraphImplementation(BaseGraphTool GraphTool) =>
+            SaveAsImplementation(GraphTool,
+                ShaderGraphAsset.HandleSave,
+                "Save Shader SubGraph Asset at:",
+                ShaderGraphStencil.SubGraphExtension);
 
         /// <summary>
         /// Saves the graph *or* subgraph that is currently open in the given GraphTool.

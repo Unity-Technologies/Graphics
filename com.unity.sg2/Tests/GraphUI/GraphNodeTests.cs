@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return null;
 
             // Reload the graph asset
-            var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
+            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
             CreateWindow();
             m_Window.Show();
             m_Window.Focus();

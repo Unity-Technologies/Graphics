@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             CloseWindow();
             yield return null;
 
-            var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
+            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
             CreateWindow();
             m_Window.Show();
             m_Window.Focus();
