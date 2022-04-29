@@ -63,13 +63,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         nodeModel is GraphDataContextNodeModel contextNodeModel &&
                         contextNodeModel.graphDataName == localPath))
                 {
-                    this.CreateNode<GraphDataContextNodeModel>(
-                        nodeName: localPath,
-                        initializationCallback: nodeModel =>
-                        {
-                            nodeModel.graphDataName = localPath;
-                        }
-                    );
+                    this.CreateGraphDataContextNode(localPath);
                 }
             }
         }
