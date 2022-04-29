@@ -87,12 +87,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
 
             // Save graph and close the window
-            GraphAssetUtils.SaveGraphImplementation(m_Window.GraphTool);
+            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
             CloseWindow();
             yield return null;
 
             // Reload the graph asset
-            var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
+            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
             CreateWindow();
             m_Window.Show();
             m_Window.Focus();
