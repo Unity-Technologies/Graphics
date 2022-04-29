@@ -8,11 +8,6 @@
     flex: 1;
 }
 
-#overlay-content
-{
-    flex-grow: 1;
-}
-
 .ge-blackboard .unity-scroll-view
 {
     flex-grow: 1;

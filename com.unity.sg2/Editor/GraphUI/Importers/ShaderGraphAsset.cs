@@ -5,6 +5,7 @@ using UnityEditor.AssetImporters;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 
@@ -15,6 +16,7 @@ namespace UnityEditor.ShaderGraph
     {
         public string GraphJSON;
         public string ViewModelJSON;
+        public string TargetSettingsJSON;
 
         [Serializable]
         public struct Edge { public string srcNode, srcPort, dstNode, dstPort; }
@@ -52,6 +54,8 @@ namespace UnityEditor.ShaderGraph
             var asset = CreateInstance<ShaderGraphAsset>();
             asset.GraphJSON = model.GraphHandler.ToSerializedFormat();
             asset.ViewModelJSON = EditorJsonUtility.ToJson(model);
+            asset.TargetSettingsJSON = MultiJson.Serialize(model.targetSettingsObject);
+
             var json = EditorJsonUtility.ToJson(asset, true);
             File.WriteAllText(path, json);
             AssetDatabase.ImportAsset(path);

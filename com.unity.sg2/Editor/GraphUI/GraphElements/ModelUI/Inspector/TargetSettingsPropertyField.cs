@@ -8,7 +8,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class TargetSettingsPropertyField : BaseModelPropertyField
     {
-        public TargetSettingsPropertyField(ICommandTarget commandTarget, Target targetObject, Dictionary<Target, bool> targetFoldouts, Action onTargetSettingsChanged, Action<string> registerActionToUndo)
+        public TargetSettingsPropertyField(
+            ICommandTarget commandTarget,
+            Target targetObject,
+            Dictionary<Target, bool> targetFoldouts,
+            Action onRedrawTargetSettings,
+            Action onTargetSettingsChanged,
+            Action<string> registerActionToUndo)
             : base(commandTarget)
         {
             // Ensure enabled state is being tracked and get value
@@ -26,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // Update foldout value and rebuild
                 targetFoldouts[targetObject] = evt.newValue;
                 foldout.value = evt.newValue;
-                onTargetSettingsChanged();
+                onRedrawTargetSettings();
             });
 
             if (foldout.value)
@@ -39,6 +45,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 context.globalIndentLevel--;
                 foldout.Add(context);
             }
+
+
         }
 
         public override bool UpdateDisplayedValue()

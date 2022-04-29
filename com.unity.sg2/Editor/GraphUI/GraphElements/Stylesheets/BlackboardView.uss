@@ -12,4 +12,5 @@
 #overlay-popup .blackboard-view {
     width: 260px;
     height: auto;
+    align-content: center;
 }

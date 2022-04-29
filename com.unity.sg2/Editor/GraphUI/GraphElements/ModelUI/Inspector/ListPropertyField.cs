@@ -8,7 +8,15 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class ReorderableListPropertyField<T> : BaseModelPropertyField
+    class SGListViewController : ListViewController
+    {
+        public override void AddItems(int itemCount)
+        {
+            RaiseItemsAdded(new List<int>());
+        }
+    }
+
+    class ListPropertyField<T> : BaseModelPropertyField
     {
         /// <summary>
         /// ListView this PropertyField wraps around
@@ -20,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Callback to populate the dropdown menu options when the '+' footer button to add an item is clicked
         /// </summary>
-        Func<IList<T>> m_GetAddItemOptions;
+        Func<IList<string>> m_GetAddItemOptions;
 
         /// <summary>
         /// Callback to invoke when the list needs to display a string label for a list item
@@ -47,18 +55,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// </summary>
         IList<T> m_ListItems;
 
-        public ReorderableListPropertyField(
+        public ListPropertyField(
             ICommandTarget commandTarget,
             IList<T> listItems,
-            Func<IList<T>> getAddItemOptions,
+            Func<IList<string>> getAddItemOptions,
             Func<object, string> getItemDisplayName,
             GenericMenu.MenuFunction2 onAddItemClicked,
             Action<IEnumerable<object>> onSelectionChanged,
             Action onItemRemoved,
-            bool makeOptionsUnique)
+            bool makeOptionsUnique,
+            bool makeListReorderable)
             : base(commandTarget)
         {
             /* Setup the ListView */
+
+            m_ListView.SetViewController(new SGListViewController());
 
             // The "makeItem" function will be called as needed
             // when the ListView needs more items to render
@@ -77,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_ListView.bindItem = bindItem;
             m_ListView.itemsSource = listItems.ToList();
             m_ListView.selectionType = SelectionType.Single;
-            m_ListView.reorderable = true;
+            m_ListView.reorderable = makeListReorderable;
             m_ListView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             m_ListView.showAddRemoveFooter = true;
             m_ListView.reorderMode = ListViewReorderMode.Animated;

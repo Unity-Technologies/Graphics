@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     class TargetSettingsInspector : FieldsInspector
     {
-        List<Target> m_GraphTargets;
+        List<JsonData<Target>> m_GraphTargets;
 
-        ReorderableListPropertyField<Target> m_TargetListPropertyField;
+        ListPropertyField<JsonData<Target>> m_TargetListPropertyField;
 
-        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
+        Dictionary<Target, bool> m_TargetFoldouts = new();
 
-        public TargetSettingsInspector(List<Target> activeTargets, string name, IModel model, IModelView ownerElement, string parentClassName)
+        public TargetSettingsInspector(List<JsonData<Target>> activeTargets, string name, IModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
             m_GraphTargets = activeTargets;
@@ -36,32 +37,69 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return targetList;
         }
 
+        static IList<string> GetTargetDisplayNames()
+        {
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            var targetDisplayNames = new List<string>();
+            foreach (var type in targetTypes)
+            {
+                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
+                    continue;
+
+                var target = (Target)Activator.CreateInstance(type);
+                if (!target.isHidden)
+                    targetDisplayNames.Add(target.displayName);
+            }
+
+            return targetDisplayNames;
+        }
+
         void TargetAddedCallback(object targetObject)
         {
-            if (targetObject != null)
+            var targetName = targetObject as String;
+            foreach (var target in GetTargets())
             {
-                m_GraphTargets.Add(targetObject as Target);
+                if (target.displayName == targetName)
+                {
+                    m_GraphTargets.Add(target);
+                    m_OwnerElement.RootView.Dispatch(new ChangeActiveTargetsCommand());
+                    m_TargetListPropertyField.listView.itemsSource = m_GraphTargets;
+                    m_TargetListPropertyField.listView.Rebuild();
+
+                    BuildFields();
+                }
+            }
+
+            /*if (targetObject is Target target)
+            {
+                m_GraphTargets.Add(target);
+                m_OwnerElement.RootView.Dispatch(new ChangeActiveTargetsCommand());
                 m_TargetListPropertyField.listView.itemsSource = m_GraphTargets;
                 m_TargetListPropertyField.listView.Rebuild();
 
                 BuildFields();
-            }
+            }*/
         }
 
         static string GetTargetDisplayName(object targetObject)
         {
             if (targetObject is Target target)
                 return target.displayName;
+            if (targetObject is JsonData<Target> jsonData)
+                return jsonData.value.displayName;
 
-            return "Failed to get Target Display Name.";
+            return targetObject as String;
         }
 
         void OnTargetSelectionChanged(IEnumerable<object> selectedObjects)
         {
+            // The UI-Toolkit ListView directly adds a null element to the list, when the '+' button is hit
+            // Even if we click away from the dropdown menu, that null item will still exist in the list
+            // So we scan for any null items and make sure to remove them and rebuild the list view
             for (var i = 0; i < m_GraphTargets.Count; ++i)
             {
                 var target = m_GraphTargets[i];
-                if (target == null)
+                if (target.value == null)
                     m_GraphTargets.RemoveAt(i);
             }
 
@@ -71,12 +109,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnTargetRemoved()
         {
+            m_OwnerElement.RootView.Dispatch(new ChangeActiveTargetsCommand());
+
             BuildFields();
         }
 
         void OnTargetSettingsChanged()
         {
-            Debug.Log("TargetSettingsInspector: Target Settings Change is unimplemented");
+            m_OwnerElement.RootView.Dispatch(new ChangeTargetSettingsCommand());
+
+            BuildFields();
         }
 
         void RegisterActionToUndo(string actionName)
@@ -88,14 +130,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var propertyFieldList = new List<BaseModelPropertyField>();
 
-            // TODO : Add "Active Targets" label above the list here
+            var labelField = new LabelPropertyField("Active Targets", m_OwnerElement.RootView);
+            propertyFieldList.Add(labelField);
 
-            m_TargetListPropertyField = new ReorderableListPropertyField<Target>(m_OwnerElement.RootView, m_GraphTargets, GetTargets, GetTargetDisplayName, TargetAddedCallback, OnTargetSelectionChanged, OnTargetRemoved, true);
+            m_TargetListPropertyField =
+                new ListPropertyField<JsonData<Target>>(
+                m_OwnerElement.RootView,
+                m_GraphTargets,
+                GetTargetDisplayNames,
+                GetTargetDisplayName,
+                TargetAddedCallback,
+                OnTargetSelectionChanged,
+                OnTargetRemoved,
+                true,
+                true) { name = "sg-active-targets-list" };
+            m_TargetListPropertyField.AddStylesheet("TargetSettingsList.uss");
+
             propertyFieldList.Add(m_TargetListPropertyField);
 
             foreach (var activeTarget in m_GraphTargets)
             {
-                var targetSettingsView = new TargetSettingsPropertyField(m_OwnerElement.RootView, activeTarget, m_TargetFoldouts, OnTargetSettingsChanged, RegisterActionToUndo);
+                var targetSettingsView =
+                    new TargetSettingsPropertyField(
+                    m_OwnerElement.RootView,
+                    activeTarget.value,
+                    m_TargetFoldouts,
+                    BuildFields,
+                    OnTargetSettingsChanged,
+                    RegisterActionToUndo) { name = "sg-target-settings-field" };
+                targetSettingsView.AddStylesheet("TargetSettingsField.uss");
                 propertyFieldList.Add(targetSettingsView);
             }
 
