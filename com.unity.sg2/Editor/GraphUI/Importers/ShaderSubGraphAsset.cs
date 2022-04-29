@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
         public string GraphJSON;
         public string ViewModelJSON;
 
-        private static GraphHandler CreateBlankSubGraphHandler()
+        public static GraphHandler CreateBlankSubGraphHandler()
         {
             var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
             var graph = new GraphHandler(reg);
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph
         {
             GraphHandler graph = CreateBlankSubGraphHandler();
             var model = CreateBlankAssetGraph();
-            model.Init(graph);
+            model.Init(graph, isSubGraph: true);
 
             HandleSave(path, model);
         }
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
         {
             AssetDatabase.ImportAsset(path);
             var assetModel = AssetDatabase.LoadAssetAtPath(path, typeof(ShaderGraphAssetModel)) as ShaderGraphAssetModel;
-            assetModel.Init(); // trust that we'll find the GraphHandler through our OnEnable...
+            assetModel.Init(isSubGraph: true); // trust that we'll find the GraphHandler through our OnEnable...
             return assetModel;
         }
 
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
 
             // explicit reinitialize with the graphHandler here, but otherwise OnEnable should pull from the asset.
             var graph = asset.ResolveGraph();
-            model.Init(graph);
+            model.Init(graph, isSubGraph: true);
 
             // build shader and setup supplementary assets
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");

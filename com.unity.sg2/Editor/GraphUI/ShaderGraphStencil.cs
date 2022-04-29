@@ -12,9 +12,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
     public class ShaderGraphStencil : Stencil
     {
         public const string Name = "ShaderGraph";
-        public const string DefaultAssetName = "NewShaderGraph";
+
+        public const string DefaultGraphAssetName = "NewShaderGraph";
         public const string GraphExtension = "sg2";
+
+        public const string DefaultSubGraphAssetName = "NewShaderSubGraph";
         public const string SubGraphExtension = "sg2subgraph";
+
         private Registry RegistryInstance = null;
         private readonly NodeUIInfo NodeUIInfo = null;
 

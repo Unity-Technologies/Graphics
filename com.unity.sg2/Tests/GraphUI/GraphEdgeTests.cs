@@ -30,11 +30,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 m_GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
             }
 
-            GraphAssetUtils.SaveGraphImplementation(m_Window.GraphTool);
+            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
             CloseWindow();
             yield return null;
 
-            var graphAsset = ShaderGraphAsset.HandleLoad(m_TestAssetPath);
+            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
             CreateWindow();
             m_Window.Show();
             m_Window.Focus();
