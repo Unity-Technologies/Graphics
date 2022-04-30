@@ -534,7 +534,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // When using APV we need to know if we have lightmaps or not.
     // we chose to encode this information into the specularOcclusion
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-    float encodedSpecularOcclusion = PackFloatInt8bit(surfaceData.specularOcclusion, builtinData.isLightmap, 128);
+    float encodedSpecularOcclusion = PackFloatInt8bit(surfaceData.specularOcclusion, builtinData.isLightmap, 2);
 #else
     float encodedSpecularOcclusion = surfaceData.specularOcclusion;
 #endif
@@ -927,7 +927,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
 
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-    UnpackFloatInt8bit(bsdfData.specularOcclusion, 128, bsdfData.specularOcclusion, builtinData.isLightmap);
+    UnpackFloatInt8bit(bsdfData.specularOcclusion, 2, bsdfData.specularOcclusion, builtinData.isLightmap);
 #endif
 
     // BuiltinData

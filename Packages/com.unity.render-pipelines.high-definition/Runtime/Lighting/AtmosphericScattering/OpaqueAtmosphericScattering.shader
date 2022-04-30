@@ -97,7 +97,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
 
-            float4 FragMSAAPBRFog(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
+        float4 FragMSAAPBRFog(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
@@ -141,8 +141,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ENDHLSL
         }
 
-            // 2: NOMSAA PBR FOG
-            Pass
+        // 2: NOMSAA PBR FOG
+        Pass
         {
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
@@ -154,8 +154,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ENDHLSL
         }
 
-            // 3: MSAA PBR FOG
-            Pass
+        // 3: MSAA PBR FOG
+        Pass
         {
             Cull Off    ZWrite Off
             Blend Off   // Manual blending

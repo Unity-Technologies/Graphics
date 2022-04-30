@@ -366,6 +366,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
 
                         GUI.enabled = true;
+
+                        var staticLightingSky = SkyManager.GetStaticLightingSky();
+                        if (staticLightingSky != null && staticLightingSky.profile != null)
+                        {
+                            var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "no Sky" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name.ToString();
+                            var cloudType = staticLightingSky.staticLightingCloudsUniqueID == 0 ? "no Clouds" : SkyManager.cloudTypesDict[staticLightingSky.staticLightingCloudsUniqueID].Name.ToString();
+                            EditorGUILayout.HelpBox($"Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSky.profile.name}.", MessageType.Info);
+                        }
                         break;
                     }
                     case ProbeSettings.Mode.Realtime:

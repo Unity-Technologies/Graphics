@@ -158,125 +158,109 @@ namespace UnityEditor
                     Color cachedColor = GUI.backgroundColor;
                     GUI.backgroundColor = LightAnchorStyles.BackgroundIconColor();
                     var inspectorWidth = EditorGUIUtility.currentViewWidth - LightAnchorStyles.inspectorWidthPadding;
-                    var presetButtonWidth = GUILayout.Width(inspectorWidth / LightAnchorStyles.presetButtonCount);
-                    var presetButtonHeight = GUILayout.Height(inspectorWidth / LightAnchorStyles.presetButtonCount);
-                    using (new EditorGUILayout.HorizontalScope())
+                    int thumbnailSize = 64;
+                    float elementPerLine = inspectorWidth / thumbnailSize;
+                    var presetButtonWidth = GUILayout.Width(thumbnailSize);
+                    var presetButtonHeight = GUILayout.Height(thumbnailSize);
                     {
+                        int elementIdx = 1;
+                        EditorGUILayout.BeginHorizontal();
                         bool rectFound = false;
+                        void SingleThumbnail(GUIContent style, GUILayoutOption width, GUILayoutOption height,
+                            float yawValue, float pitchValue,
+                            float elemPerLine, bool doLayout,
+                            ref Rect rectangle, ref int elemIdx, ref bool rectangleFound,
+                            ref float yaw,
+                            ref float pitch,
+                            ref bool isYawChanged,
+                            ref bool isPitchChanged
+                            )
+                        {
+                            if (GUILayout.Button(style, width, height))
+                            {
+                                yaw = yawValue;
+                                pitch = pitchValue;
+                                isYawChanged = true;
+                                isPitchChanged = true;
+                            }
+                            if (Mathf.Abs(yaw - yawValue) < eps && Mathf.Abs(pitch - pitchValue) < eps)
+                            {
+                                rectangle = GUILayoutUtility.GetLastRect();
+                                rectangleFound = true;
+                            }
+                            ++elemIdx;
+                            if ((float)elemIdx > elemPerLine)
+                            {
+                                elemIdx = 1;
+                                if (doLayout)
+                                {
+                                    GUILayout.FlexibleSpace();
+                                    EditorGUILayout.EndHorizontal();
+                                    EditorGUILayout.BeginHorizontal();
+                                }
+                            }
+                        }
                         Rect rect = new Rect();
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = 135;
-                            m_Pitch = 0;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw - 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureKickLeft, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = 100;
-                            m_Pitch = 10;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw - 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureBounceLeft, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = 30;
-                            m_Pitch = -30;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw - 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureFillLeft, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = 35;
-                            m_Pitch = 35;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw - 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureHair, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = 0;
-                            m_Pitch = 110;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw - 0.0f) < eps && Mathf.Abs(m_Pitch - 110.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureFillRight, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = -35;
-                            m_Pitch = 35;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw + 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureBounceRight, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = -30;
-                            m_Pitch = -30;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw + 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureKickRight, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = -100;
-                            m_Pitch = 10;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw + 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
-                        if (GUILayout.Button(LightAnchorStyles.presetTextureRimRight, presetButtonWidth, presetButtonHeight))
-                        {
-                            m_Yaw = -135;
-                            m_Pitch = 0;
-                            yawChanged = true;
-                            pitchChanged = true;
-                        }
-                        if (Mathf.Abs(m_Yaw + 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
-                        {
-                            rect = GUILayoutUtility.GetLastRect();
-                            rectFound = true;
-                        }
+                        SingleThumbnail(LightAnchorStyles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight,
+                            135.0f, 0.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureKickLeft, presetButtonWidth, presetButtonHeight,
+                            100.0f, 10.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureBounceLeft, presetButtonWidth, presetButtonHeight,
+                            30.0f, -30.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureFillLeft, presetButtonWidth, presetButtonHeight,
+                            35.0f, 35.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureHair, presetButtonWidth, presetButtonHeight,
+                            0.0f, 100.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureFillRight, presetButtonWidth, presetButtonHeight,
+                            -35.0f, 35.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureBounceRight, presetButtonWidth, presetButtonHeight,
+                            -30.0f, -30.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureKickRight, presetButtonWidth, presetButtonHeight,
+                            -100.0f, 10.0f,
+                            elementPerLine, true,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        SingleThumbnail(LightAnchorStyles.presetTextureRimRight, presetButtonWidth, presetButtonHeight,
+                            -135.0f, 0.0f,
+                            elementPerLine, false,
+                            ref rect, ref elementIdx, ref rectFound,
+                            ref m_Yaw, ref m_Pitch, ref yawChanged, ref pitchChanged
+                            );
+                        GUILayout.FlexibleSpace();
+                        EditorGUILayout.EndHorizontal();
                         if (rectFound)
                         {
                             Handles.DrawSolidRectangleWithOutline(rect, LightAnchorStyles.totalTransparentColor, LightAnchorStyles.hoverColor);
                         }
-                        GUILayout.FlexibleSpace();
                     }
                     GUI.backgroundColor = cachedColor;
                 }

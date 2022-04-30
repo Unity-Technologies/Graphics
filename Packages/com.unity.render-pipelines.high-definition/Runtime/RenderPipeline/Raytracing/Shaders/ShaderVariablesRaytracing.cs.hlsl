@@ -25,7 +25,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     float _RayTracingLodBias;
     int _RayTracingRayMissFallbackHierarchy;
     int _RayTracingLastBounceFallbackHierarchy;
-    int _Padding0;
+    int _RayTracingClampingFlag;
     int _Padding1;
 CBUFFER_END
 

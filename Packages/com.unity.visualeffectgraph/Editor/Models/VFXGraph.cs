@@ -363,7 +363,8 @@ namespace UnityEditor.VFX
         // 6: Remove automatic strip orientation from quad strip context
         // 7: Add CameraBuffer type
         // 8: Bounds computation introduces a BoundsSettingMode for VFXDataParticles
-        public static readonly int CurrentVersion = 8;
+        // 9: Update HDRP decal angle fade encoding
+        public static readonly int CurrentVersion = 9;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 

@@ -466,12 +466,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? data.drawDistance
                     : instance.DrawDistance;
                 m_CachedDrawDistances[index].y = data.fadeScale;
-                // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)
-                // we do 1.0 - (dot() * 0.5 + 0.5) => 0.5 * (1 - dot())
-                // we actually square that to get smoother result => x = (0.5 - 0.5 * dot())^2
-                // Do a remap in the shader. 1.0 - saturate((x - start) / (end - start))
-                // After simplification => saturate(a + b * dot() * (dot() - 2.0))
-                // a = 1.0 - (0.25 - start) / (end - start), y = - 0.25 / (end - start)
+                // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 = 0 degree and 1 = 180 degree)
+                // Approximate acos with polynom: (-0.69 * x^2 - 0.87) * x + HALF_PI;
+                // Remap result to angle fade range => 1 - saturate((acos/PI - start)/(end - start))
+                // Merging both equations above give:
+                // saturate((a * x^2 + b) * x + c)
+                // a = 0.69 / (PI * (end - start))
+                // b = 0.87 / (PI * (end - start))
+                // c = 1 + (start - 0.5) / (end - start) = (end - 0.5) / (end - start)
+                // Note that b = 1.25 * a
+                // Final result: saturate((x * x + 1.25) * x * a + c) -> madd mul madd
+                // WARNING: this code is duplicate in VFXDecalHDRPOutput.cs and in URP
                 if (data.startAngleFade == 180.0f) // angle fade is disabled
                 {
                     m_CachedAngleFade[index].x = 0.0f;
@@ -481,9 +486,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float angleStart = data.startAngleFade / 180.0f;
                     float angleEnd = data.endAngleFade / 180.0f;
-                    var range = Mathf.Max(0.0001f, angleEnd - angleStart);
-                    m_CachedAngleFade[index].x = 1.0f - (0.25f - angleStart) / range;
-                    m_CachedAngleFade[index].y = -0.25f / range;
+                    float range = Mathf.Max(0.0001f, angleEnd - angleStart);
+                    m_CachedAngleFade[index].x = 0.222222222f / range;
+                    m_CachedAngleFade[index].y = (angleEnd - 0.5f) / range;
                 }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
