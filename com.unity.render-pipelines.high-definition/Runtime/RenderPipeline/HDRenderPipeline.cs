@@ -175,6 +175,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugColorPicker;
         Material m_DebugExposure;
         Material m_ErrorMaterial;
+#if UNITY_GPU_DRIVEN_PIPELINE
+        Material m_DebugVisibilityMaterial;
+        Material m_DebugMaterialIDMaterial;
+#endif
 
         Material m_Blit;
         Material m_BlitTexArray;
@@ -1078,7 +1082,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
             m_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitColorAndDepthPS);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
-
+#if UNITY_GPU_DRIVEN_PIPELINE
+            m_DebugVisibilityMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugVisibilityShader);
+            m_DebugMaterialIDMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugMaterialIDShader);
+#endif
             // With texture array enabled, we still need the normal blit version for other systems like atlas
             if (TextureXR.useTexArray)
             {
@@ -1181,7 +1188,10 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_UpsampleTransparency);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
-
+#if UNITY_GPU_DRIVEN_PIPELINE
+            CoreUtils.Destroy(m_DebugVisibilityMaterial);
+            CoreUtils.Destroy(m_DebugMaterialIDMaterial);
+#endif
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
@@ -1570,7 +1580,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         // Only for internal use, outside of SRP people can call Camera.Render()
-#if UNITY_2021_1_OR_NEWER   
+#if UNITY_2021_1_OR_NEWER
         internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
 #else
         internal void InternalRender(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -5571,6 +5581,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Exposure
             public bool     exposureDebugEnabled;
             public Material debugExposureMaterial;
+
+            public Material debugVisibilityMaterial;
+            public Material debugMaterialID;
         }
 
         DebugParameters PrepareDebugParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
@@ -5598,6 +5611,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.exposureDebugEnabled = NeedExposureDebugMode(parameters.debugDisplaySettings);
             parameters.debugExposureMaterial = m_DebugExposure;
+
+            parameters.debugVisibilityMaterial = m_DebugVisibilityMaterial;
+            parameters.debugMaterialID = m_DebugMaterialIDMaterial;
 
             float overlayRatio = m_CurrentDebugDisplaySettings.data.debugOverlayRatio;
             int overlaySize = (int)(Math.Min(hdCamera.actualHeight, hdCamera.actualWidth) * overlayRatio);

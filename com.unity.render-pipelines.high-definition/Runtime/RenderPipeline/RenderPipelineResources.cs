@@ -37,6 +37,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugViewVirtualTexturingBlit;
             [Reload("Runtime/Debug/MaterialError.Shader")]
             public Shader materialError;
+            [Reload("Runtime/Debug/DebugVisibility.Shader")]
+            public Shader debugVisibilityShader;
+            [Reload("Runtime/Debug/DebugMaterialID.Shader")]
+            public Shader debugMaterialIDShader;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]

@@ -123,7 +123,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
         ScreenSpaceReflectionsPrev,
         /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
-        ScreenSpaceReflectionsAccum
+        ScreenSpaceReflectionsAccum,
+
+        //GPU Driven Pipeline
+        MinGPUDrivenPipelineFullScreenDebug,
+        ClusterID,
+        TrangleID,
+        MaterialID,
+        MaterialRange,
+        MaxGPUDrivenPipelineFullScreenDebug
     }
 
     /// <summary>
@@ -137,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static string k_PanelVolume = "Volume";
         static string k_PanelRendering = "Rendering";
         static string k_PanelDecals = "Decals";
+        static string k_PanelGPUDrivenPipeline = "GPUDrivenPipeline";
 
         DebugUI.Widget[] m_DebugDisplayStatsItems;
         DebugUI.Widget[] m_DebugMaterialItems;
@@ -144,6 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DebugUI.Widget[] m_DebugVolumeItems;
         DebugUI.Widget[] m_DebugRenderingItems;
         DebugUI.Widget[] m_DebugDecalsAffectingTransparentItems;
+        DebugUI.Widget[] m_DebugGPUDrivenPipelineItems;
 
         static GUIContent[] s_LightingFullScreenDebugStrings = null;
         static int[] s_LightingFullScreenDebugValues = null;
@@ -155,6 +165,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_MsaaSamplesDebugValues = null;
         static GUIContent[] s_TileAndClusterDebugStrings = null;
         static int[] s_TileAndClusterDebugValues = null;
+        static GUIContent[] s_GDRPBufferDebugStrings = null;
+        static int[] s_GDRPBufferDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = null;
@@ -225,6 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
             /// <summary>Current decals debug settings.</summary>
             public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
+            public GPUDrivenPipelineDebugSettings gdrpDebugSettings = new GPUDrivenPipelineDebugSettings();
             /// <summary>Current transparency debug settings.</summary>
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Current volume debug settings.</summary>
@@ -273,6 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int volumeCameraEnumIndex;
             internal int probeVolumeDebugModeEnumIndex;
             internal int probeVolumeAtlasSliceModeEnumIndex;
+            internal int bufferGDRPEnumIndex;
 
             // When settings mutually exclusives enum values, we need to reset the other ones.
             internal void ResetExclusiveEnumIndices()
@@ -286,6 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 gBufferEnumIndex = 0;
                 lightingFulscreenDebugModeEnumIndex = 0;
                 renderingFulscreenDebugModeEnumIndex = 0;
+                bufferGDRPEnumIndex = 0;
             }
         }
         DebugData m_Data;
@@ -311,6 +326,7 @@ namespace UnityEngine.Rendering.HighDefinition
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_RenderingFullScreenDebugStrings, ref s_RenderingFullScreenDebugValues, FullScreenDebugMode.MinRenderingFullScreenDebug, FullScreenDebugMode.MaxRenderingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_MaterialFullScreenDebugStrings, ref s_MaterialFullScreenDebugValues, FullScreenDebugMode.MinMaterialFullScreenDebug, FullScreenDebugMode.MaxMaterialFullScreenDebug);
+            FillFullScreenDebugEnum(ref s_GDRPBufferDebugStrings, ref s_GDRPBufferDebugValues, FullScreenDebugMode.MinGPUDrivenPipelineFullScreenDebug, FullScreenDebugMode.MaxGPUDrivenPipelineFullScreenDebug);
 
             var device = SystemInfo.graphicsDeviceType;
             if (device == GraphicsDeviceType.Metal)
@@ -1050,6 +1066,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
             RegisterVolumeDebug();
+        }
+
+        void RefreshGPUDrivenPipelineDebug<T>(DebugUI.Field<T> field, T value)
+        {
+            UnregisterDebugItems(k_PanelGPUDrivenPipeline, m_DebugGPUDrivenPipelineItems);
+            RegisterGPUDrivenPipelineDebug();
         }
 
         void RegisterLightingDebug()
@@ -1799,6 +1821,33 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugDecalsAffectingTransparentItems);
         }
 
+        void RegisterGPUDrivenPipelineDebug()
+        {
+            var widgetList = new List<DebugUI.Widget>();
+
+            var itemGPUDrivenPipeline = new DebugUI.Container()
+            {
+                displayName = "GPU Driven Pipeline Debugger",
+                children =
+                {
+                        new DebugUI.EnumField { displayName = "Buffer Visualization", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), onValueChanged = RefreshGPUDrivenPipelineDebug, enumNames = s_GDRPBufferDebugStrings, enumValues = s_GDRPBufferDebugValues, getIndex = () => data.bufferGDRPEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.bufferGDRPEnumIndex = value; } },
+                        new DebugUI.FloatField
+                        {
+                            displayName = "Max Factor",
+                            getter = () => data.gdrpDebugSettings.maxRange,
+                            setter = (v) => data.gdrpDebugSettings.maxRange = v,
+                            min = () => 100.0f,
+                            max = () => 10000.0f,
+                        },
+                }
+            };
+            widgetList.Add(itemGPUDrivenPipeline);
+
+            m_DebugGPUDrivenPipelineItems = widgetList.ToArray();
+            var panel = DebugManager.instance.GetPanel(k_PanelGPUDrivenPipeline, true);
+            panel.children.Add(m_DebugGPUDrivenPipelineItems);
+        }
+
         internal void RegisterDebug()
         {
             RegisterDecalsDebug();
@@ -1807,6 +1856,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterLightingDebug();
             RegisterVolumeDebug();
             RegisterRenderingDebug();
+            RegisterGPUDrivenPipelineDebug();
             DebugManager.instance.RegisterData(this);
         }
 
@@ -1823,6 +1873,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            UnregisterDebugItems(k_PanelGPUDrivenPipeline, m_DebugGPUDrivenPipelineItems);
             DebugManager.instance.UnregisterData(this);
         }
 

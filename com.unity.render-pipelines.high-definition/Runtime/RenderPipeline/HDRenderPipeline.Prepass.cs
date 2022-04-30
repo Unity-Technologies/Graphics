@@ -683,6 +683,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             BindProbeVolumeGlobalData(data.frameSettings, data, context);
                             BindDBufferGlobalData(data.dBuffer, context);
                             DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+
+                            //PushFullScreenDebugTexture(renderGraph, , FullScreenDebugMode.MaterialDepth);
                         });
                 }
             }
