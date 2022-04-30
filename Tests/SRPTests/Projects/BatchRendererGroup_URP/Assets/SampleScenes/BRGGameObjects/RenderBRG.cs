@@ -344,7 +344,8 @@ public unsafe class RenderBRG : MonoBehaviour
         }
 
 #if ENABLE_PICKING
-        bool isPickingCulling = cullingContext.viewType == BatchCullingViewType.Picking;
+        bool needInstanceIDs = cullingContext.viewType == BatchCullingViewType.Picking ||
+                               cullingContext.viewType == BatchCullingViewType.SelectionOutline;
 #endif
 
         var splitCounts = new NativeArray<int>(cullingContext.cullingSplits.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -363,7 +364,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
 #if ENABLE_PICKING
-        drawCommands.drawCommandPickingInstanceIDs = isPickingCulling ? Malloc<int>(m_drawBatches.Length) : null;
+        drawCommands.drawCommandPickingInstanceIDs = needInstanceIDs ? Malloc<int>(m_drawBatches.Length) : null;
 #endif
 
         // Zero init: Culling job sets the values!
@@ -430,6 +431,19 @@ public unsafe class RenderBRG : MonoBehaviour
 #if ENABLE_PICKING
         m_PickingMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/BRGPicking");
         m_BatchRendererGroup.SetPickingMaterial(m_PickingMaterial);
+        m_BatchRendererGroup.SetEnabledViewTypes(new BatchCullingViewType[]
+        {
+            BatchCullingViewType.Camera,
+            BatchCullingViewType.Light,
+            BatchCullingViewType.Picking,
+            BatchCullingViewType.SelectionOutline
+        });
+#else
+        m_BatchRendererGroup.SetEnabledViewTypes(new BatchCullingViewType[]
+        {
+            BatchCullingViewType.Camera,
+            BatchCullingViewType.Light,
+        });
 #endif
 
 #if ENABLE_ERROR_LOADING_MATERIALS
@@ -444,7 +458,7 @@ public unsafe class RenderBRG : MonoBehaviour
 #endif
 
         // Create a batch...
-        var renderers = FindObjectsOfType<MeshRenderer>();
+        var renderers = GetComponentsInChildren<MeshRenderer>();
         Debug.Log("Converting " + renderers.Length + " renderers...");
 
         m_renderers = new NativeArray<DrawRenderer>(renderers.Length, Allocator.Persistent);

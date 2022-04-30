@@ -550,6 +550,7 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP(uint2,    unity_EntityId)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 #define unity_LODFade               LoadDOTSInstancedData_LODFade()
@@ -575,6 +576,14 @@ static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
 static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
 static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
+
+// Set up by BRG picking/selection code
+int unity_SubmeshIndex;
+#define unity_SelectionID UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex, _SelectionID)
+
+#else
+
+#define unity_SelectionID _SelectionID
 
 #endif
 

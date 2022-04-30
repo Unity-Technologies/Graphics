@@ -325,6 +325,41 @@ float4 LoadDOTSInstancedData_LODFade()
     return crossfade;
 }
 
+float4 LoadDOTSInstancedData_SelectionValue(uint metadata, uint submeshIndex, float4 globalSelectionID)
+{
+    // If there is a DOTS instanced per-instance ID, get that.
+    if (IsDOTSInstancedProperty(metadata))
+    {
+        // Add 1 to the EntityID, so the EntityID 0 gets a value that is not equal to the clear value.
+        uint selectionID = LoadDOTSInstancedData_uint2(metadata).x;
+        uint idValue = selectionID + 1;
+
+        // 26 bits for the entity index.
+        // 5 bits for the submesh index.
+        // 1 bit which must be set when outputting an EntityID/SubmeshIndex bitpack to let Unity know that it is not a regular selection ID.
+        // When the high-bit is set, Unity will internally interpret the data as a 26-5-1 encoded bitmask and extract the EntityIndex/SubmeshIndex accordingly.
+
+        // Encode entity index with 26 bits. idValue & ((1 << 26) - 1) == idValue % (1 << 26)
+        uint idValueBits = idValue & ((1 << 26) - 1);
+
+        // Encode submesh index with 5 bits. submeshIndex & ((1 << 5) - 1) == submeshIndex % (1 << 5)
+        uint submeshBits = submeshIndex & ((1 << 5) - 1);
+        // Shift to high-bits. The 26 first bits are used by the entity index.
+        submeshBits <<= 26;
+
+        uint pickingID = (1 << 31) | submeshBits | idValueBits;
+
+        // Pack a 32-bit integer into four 8-bit color channels such that the integer can be exactly reconstructed afterwards.
+        return float4(uint4(pickingID >> 0, pickingID >> 8, pickingID >> 16, pickingID >> 24) & 0xFF) / 255.0f;
+    }
+    else
+    {
+        return globalSelectionID;
+    }
+}
+#define UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(name, submesh, selectionID) \
+    LoadDOTSInstancedData_SelectionValue(UNITY_DOTS_INSTANCED_METADATA_NAME(uint2, name), submesh, selectionID)
+
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR
 
