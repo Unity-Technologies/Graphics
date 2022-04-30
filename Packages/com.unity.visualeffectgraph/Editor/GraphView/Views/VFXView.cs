@@ -2159,6 +2159,8 @@ namespace UnityEditor.VFX.UI
                 var assetToSelect = controller != null && controller.model != null
                     ? controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset
                     : null;
+                if (assetToSelect == null)
+                    return;
                 var assetToSelectPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(assetToSelect)).Replace('\\', '/');
 
                 // This is to select the current VFX asset in the inspector.
