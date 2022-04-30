@@ -440,7 +440,7 @@ namespace UnityEditor.VFX
 
         public virtual VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            return (VFXCoordinateSpace)int.MaxValue;
+            return VFXCoordinateSpace.None;
         }
 
         //[SerializeField]

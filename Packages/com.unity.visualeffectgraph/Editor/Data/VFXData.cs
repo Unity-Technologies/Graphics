@@ -14,6 +14,7 @@ namespace UnityEditor.VFX
     {
         Local = 0,
         World = 1,
+        None = int.MaxValue
     }
 
     // TODO Move this

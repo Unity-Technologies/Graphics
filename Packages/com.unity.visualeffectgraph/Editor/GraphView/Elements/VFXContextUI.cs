@@ -306,7 +306,10 @@ namespace UnityEditor.VFX.UI
         bool m_CanHaveBlocks = false;
         void OnSpace()
         {
-            controller.model.space = (VFXCoordinateSpace)(((int)controller.model.space + 1) % (CoordinateSpaceInfo.SpaceCount));
+            if (controller.model.space == VFXCoordinateSpace.World)
+                controller.model.space = VFXCoordinateSpace.Local;
+            else
+                controller.model.space = VFXCoordinateSpace.World;
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks)

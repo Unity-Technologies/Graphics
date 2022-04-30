@@ -90,22 +90,18 @@ namespace UnityEditor.VFX
         public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
             /* Most common case : space is the maximal output space from input slot */
-            var space = (VFXCoordinateSpace)int.MaxValue;
+            var space = VFXCoordinateSpace.None;
             foreach (var inputSlot in inputSlots)
             {
                 if (inputSlot.spaceable)
                 {
                     var currentSpace = inputSlot.space;
-                    if (space == (VFXCoordinateSpace)int.MaxValue
-                        || space < currentSpace)
+                    if (space == VFXCoordinateSpace.None || (currentSpace != VFXCoordinateSpace.None && space < currentSpace))
                     {
                         space = currentSpace;
                     }
                 }
             }
-            if (space == (VFXCoordinateSpace)int.MaxValue)
-                space = outputSlot.space;
-
             return space;
         }
 

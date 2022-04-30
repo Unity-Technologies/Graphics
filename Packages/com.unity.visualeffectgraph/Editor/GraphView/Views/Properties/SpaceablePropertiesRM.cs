@@ -3,17 +3,38 @@ using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.VFX.UIElements;
 using VFXVector3Field = UnityEditor.VFX.UI.VFXVector3Field;
+using System;
 
 namespace UnityEditor.VFX.UI
 {
     class SpaceablePropertyRM<T> : PropertyRM<T>
     {
+        static readonly bool s_UseDropDownMenu = true;
+        static readonly bool s_UseHovering = true;
+
+        void OnMouseHover(EventBase evt)
+        {
+            if (m_Button == null || !m_Button.enabledSelf)
+                return;
+
+            if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                m_Button.AddToClassList("hovered");
+            else
+                m_Button.RemoveFromClassList("hovered");
+        }
+
         public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Button = new VisualElement() { name = "spacebutton" };
             m_Button.AddManipulator(new Clickable(OnButtonClick));
             Add(m_Button);
             AddToClassList("spaceablepropertyrm");
+
+            if (s_UseHovering)
+            {
+                RegisterCallback<MouseEnterEvent>(OnMouseHover);
+                RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            }
         }
 
         public override float GetPreferredControlWidth()
@@ -39,14 +60,40 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void ChangeSpace(object val)
+        {
+            space = (VFXCoordinateSpace)val;
+        }
+
         void OnButtonClick()
         {
-            space = (VFXCoordinateSpace)((int)(space + 1) % CoordinateSpaceInfo.SpaceCount);
+            var values = (VFXCoordinateSpace[])Enum.GetValues(space.GetType());
+
+            if (s_UseDropDownMenu)
+            {
+                var menu = new GenericMenu();
+                foreach (var spaceOption in values)
+                {
+                    menu.AddItem(
+                        new GUIContent(ObjectNames.NicifyVariableName(spaceOption.ToString())),
+                        spaceOption == space,
+                        ChangeSpace,
+                        spaceOption);
+                }
+                menu.DropDown(m_Button.worldBound);
+            }
+            else
+            {
+                var spaceCount = values.Length;
+                var index = Array.IndexOf(values, space);
+                var nextIndex = (index + 1) % spaceCount;
+                space = values[nextIndex];
+            }
         }
 
         public override void UpdateGUI(bool force)
         {
-            foreach (string name in System.Enum.GetNames(typeof(VFXCoordinateSpace)))
+            foreach (string name in Enum.GetNames(typeof(VFXCoordinateSpace)))
             {
                 if (space.ToString() != name)
                     m_Button.RemoveFromClassList("space" + name);

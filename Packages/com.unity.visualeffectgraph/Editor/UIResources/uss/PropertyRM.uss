@@ -84,9 +84,29 @@
     background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacelocal.png");
 }
 
+.spaceLocal.hovered
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacelocal_hovered.png");
+}
+
 .spaceWorld
 {
     background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spaceworld.png");
+}
+
+.spaceWorld.hovered
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spaceworld_hovered.png");
+}
+
+.spaceNone
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacenone.png");
+}
+
+.spaceNone.hovered
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacenone_hovered.png");
 }
 
 .propertyrm .unity-base-text-field *

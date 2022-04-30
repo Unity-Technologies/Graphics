@@ -5,19 +5,30 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.VFX;
 
-interface IGizmoable
+namespace UnityEditor.VFX.UI
 {
-    string name { get; }
-}
-interface IGizmoController
-{
-    void DrawGizmos(VisualEffect component);
-    Bounds GetGizmoBounds(VisualEffect component);
+    [Flags]
+    enum GizmoError
+    {
+        None = 0,
+        HasLinkIndeterminate = 1 << 0,
+        NeedComponent = 1 << 1,
+        NeedExplicitSpace = 1 << 2,
+        NotAvailable = 1 << 3
+    }
 
-    bool gizmoNeedsComponent { get; }
-    bool gizmoIndeterminate { get; }
+    interface IGizmoable
+    {
+        string name { get; }
+    }
 
-    ReadOnlyCollection<IGizmoable> gizmoables { get; }
+    interface IGizmoController
+    {
+        void DrawGizmos(VisualEffect component);
+        Bounds GetGizmoBounds(VisualEffect component);
+        GizmoError GetGizmoError(VisualEffect component);
 
-    IGizmoable currentGizmoable { get; set; }
+        ReadOnlyCollection<IGizmoable> gizmoables { get; }
+        IGizmoable currentGizmoable { get; set; }
+    }
 }

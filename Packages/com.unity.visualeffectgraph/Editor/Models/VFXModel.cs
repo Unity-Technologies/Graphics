@@ -422,27 +422,19 @@ namespace UnityEditor.VFX
             }).Select(field => new VFXSetting(field, this));
         }
 
-        static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, VFXCoordinateSpace space)
+        static protected VFXExpression ConvertSpace(VFXExpression input, VFXCoordinateSpace srcSpace, SpaceableType dstSpaceType, VFXCoordinateSpace dstSpace)
         {
-            if (targetSlot.spaceable)
+            if (dstSpace == VFXCoordinateSpace.None || srcSpace == VFXCoordinateSpace.None)
             {
-                if (targetSlot.space != space)
-                {
-                    var spaceType = targetSlot.GetSpaceTransformationType();
-                    input = ConvertSpace(input, spaceType, space);
-                }
+                return input;
             }
-            return input;
-        }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
-        {
             VFXExpression matrix = null;
-            if (space == VFXCoordinateSpace.Local)
+            if (dstSpace == VFXCoordinateSpace.Local)
             {
                 matrix = VFXBuiltInExpression.WorldToLocal;
             }
-            else if (space == VFXCoordinateSpace.World)
+            else if (dstSpace == VFXCoordinateSpace.World)
             {
                 matrix = VFXBuiltInExpression.LocalToWorld;
             }
@@ -451,19 +443,19 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Cannot Convert to unknown space");
             }
 
-            if (spaceType == SpaceableType.Position)
+            if (dstSpaceType == SpaceableType.Position)
             {
                 input = new VFXExpressionTransformPosition(matrix, input);
             }
-            else if (spaceType == SpaceableType.Direction)
+            else if (dstSpaceType == SpaceableType.Direction)
             {
                 input = new VFXExpressionTransformDirection(matrix, input);
             }
-            else if (spaceType == SpaceableType.Matrix)
+            else if (dstSpaceType == SpaceableType.Matrix)
             {
                 input = new VFXExpressionTransformMatrix(matrix, input);
             }
-            else if (spaceType == SpaceableType.Vector)
+            else if (dstSpaceType == SpaceableType.Vector)
             {
                 input = new VFXExpressionTransformVector(matrix, input);
             }
