@@ -425,7 +425,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 <tbody>
 <tr>
 <td><strong>Fullscreen Debug Mode</strong></td>
-<td colspan="2">Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Contact-Shadows.html">Contact Shadows</a>, the depth pyramid, and indirect diffuse lighting.</td>
+<td colspan="2">Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Contact-Shadows.html">Contact Shadows</a>, the depth pyramid, and indirect diffuse lighting.<br>You can also use some of those Lighting Fullscreen Debug Modes to debug <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Ray-Tracing-Debug.html">Ray-Traced effects</a>.</td>
 </tr>
 <tr>
 <td rowspan="4"><strong>Tile/Cluster Debug</strong></td>

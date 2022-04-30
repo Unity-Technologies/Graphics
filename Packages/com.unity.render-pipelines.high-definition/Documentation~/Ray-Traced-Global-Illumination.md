@@ -12,6 +12,8 @@ Ray-Traced Global Illumination is a ray tracing feature in the High Definition R
 
 For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
+To troubleshoot this effect, HDRP provides a Global Illumination [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Using Ray-Traced Global Illumination
 
 This feature replaces the [Screen Space Global Illumination](Override-Screen-Space-GI.md) Volume override, so the initial setup is similar. To setup ray traced global illumination on your Volume:
