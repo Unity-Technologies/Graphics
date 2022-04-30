@@ -566,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void SetRenderingFeatures()
         {
             // Set sub-shader pipeline tag
-            Shader.globalRenderPipeline = "HDRenderPipeline";
+            Shader.globalRenderPipeline = k_ShaderTagName;
 
             // HD use specific GraphicsSettings
             m_PreviousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;

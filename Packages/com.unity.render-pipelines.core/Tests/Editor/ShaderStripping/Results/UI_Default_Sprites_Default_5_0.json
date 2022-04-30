@@ -1,0 +1,90 @@
+{
+    "totalVariantsIn": 200,
+    "totalVariantsOut": 0,
+    "shaders": [
+        {
+            "inputVariants": 100,
+            "outputVariants": 0,
+            "name": "UI/Default",
+            "pipelines": [
+                {
+                    "pipeline": "",
+                    "variants": [
+                        {
+                            "inputVariants": 0,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 0.0
+                        },
+                        {
+                            "inputVariants": 10,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 1.0
+                        },
+                        {
+                            "inputVariants": 20,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 2.0
+                        },
+                        {
+                            "inputVariants": 30,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 3.0
+                        },
+                        {
+                            "inputVariants": 40,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 4.0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "inputVariants": 100,
+            "outputVariants": 0,
+            "name": "Sprites/Default",
+            "pipelines": [
+                {
+                    "pipeline": "",
+                    "variants": [
+                        {
+                            "inputVariants": 0,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 0.0
+                        },
+                        {
+                            "inputVariants": 10,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 1.0
+                        },
+                        {
+                            "inputVariants": 20,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 2.0
+                        },
+                        {
+                            "inputVariants": 30,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 3.0
+                        },
+                        {
+                            "inputVariants": 40,
+                            "outputVariants": 0,
+                            "variantName": "Pass 0 (Normal) (SubShader: 0) (ShaderType: 0)",
+                            "stripTimeMs": 4.0
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
