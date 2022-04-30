@@ -643,7 +643,7 @@ namespace UnityEngine.Rendering.Universal
             // Assign camera targets (color and depth)
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
 
-            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
