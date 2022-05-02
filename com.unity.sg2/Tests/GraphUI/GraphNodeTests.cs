@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
@@ -107,6 +108,44 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             if (nodeModel is GraphDataNodeModel graphDataNodeModelReloaded)
                 Assert.IsFalse(graphDataNodeModelReloaded.IsPreviewExpanded);
+        }
+
+        [UnityTest]
+        public IEnumerator TestContextNodesCannotBeDeleted()
+        {
+            var beforeContext = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().FirstOrDefault();
+            Assert.IsNotNull(beforeContext, "Graph must contain at least one context node for test");
+
+            // Select element programmatically because it might be behind another one
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, beforeContext));
+            yield return null;
+
+            m_ShaderGraphWindowTestHelper.SimulateKeyPress(KeyCode.Delete);
+            yield return null;
+
+            var afterContext = GetNodeModelFromGraphByName(beforeContext.Title);
+            Assert.AreEqual(beforeContext, afterContext, "Context node should be unaffected by delete operation");
+        }
+
+        [UnityTest]
+        public IEnumerator TestContextNodesCannotBeCopied()
+        {
+            var beforeContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            var beforeContextCount = beforeContexts.Count;
+            Assert.IsTrue(beforeContextCount > 0, "Graph must contain at least one context node for test");
+
+            // Select element programmatically because it might be behind another one
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, beforeContexts[0]));
+            yield return null;
+
+            m_ShaderGraphWindowTestHelper.SimulateKeyPress("C", modifiers: EventModifiers.Control);
+            yield return null;
+
+            m_ShaderGraphWindowTestHelper.SimulateKeyPress("V", modifiers: EventModifiers.Control);
+            yield return null;
+
+            var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            Assert.IsTrue(afterContexts.Count == beforeContexts.Count, "Context node should not be duplicated by copy/paste");
         }
 
         /*

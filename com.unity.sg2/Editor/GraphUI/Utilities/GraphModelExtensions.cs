@@ -42,6 +42,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
             );
         }
 
+        public static GraphDataContextNodeModel CreateGraphDataContextNode(
+            this ShaderGraphModel shaderGraphModel,
+            string existingContextName,
+            Vector2 position = default,
+            SerializableGUID guid = default,
+            SpawnFlags spawnFlags = SpawnFlags.Default
+        )
+        {
+            return shaderGraphModel.CreateNode<GraphDataContextNodeModel>(
+                existingContextName,
+                position,
+                guid,
+                nodeModel =>
+                {
+                    nodeModel.graphDataName = existingContextName;
+                },
+                spawnFlags
+            );
+        }
+
         public static GraphDataNodeModel CreateGraphDataNode(this GraphNodeCreationData graphNodeCreationData,
             RegistryKey registryKey, string displayName)
         {
