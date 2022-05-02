@@ -58,26 +58,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var view = elementBuilder.View as ModelInspectorView;
             ui.Setup(model, view, elementBuilder.Context);
 
-            var graphAsset = model.Asset as ShaderGraphAssetModel;
-
-            if (graphAsset == null)
-                return ui;
-
-            if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
+            if (model.Asset is ShaderGraphAssetModel graphAsset && !graphAsset.IsSubGraph)
             {
-                switch (inspectorSectionContext.Section.SectionType)
+                if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
                 {
-                    case SectionType.Settings:
+                    switch (inspectorSectionContext.Section.SectionType)
                     {
-                      var targetSettingsField = new TargetSettingsInspector(graphAsset.ActiveTargets, ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
-                      ui.PartList.AppendPart(targetSettingsField);
-                      break;
+                        case SectionType.Settings:
+                        {
+                            var targetSettingsField = new TargetSettingsInspector(graphAsset.ActiveTargets, ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                            ui.PartList.AppendPart(targetSettingsField);
+                            break;
+                        }
                     }
                 }
-            }
 
-            ui.BuildUI();
-            ui.UpdateFromModel();
+                ui.BuildUI();
+                ui.UpdateFromModel();
+            }
 
             return ui;
         }
