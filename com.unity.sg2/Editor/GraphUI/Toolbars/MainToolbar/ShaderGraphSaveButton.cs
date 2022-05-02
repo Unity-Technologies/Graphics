@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <inheritdoc />
         protected override void OnClick()
         {
-            GraphAssetUtils.SaveGraphImplementation(GraphTool);
+            GraphAssetUtils.SaveOpenGraphAsset(GraphTool);
         }
     }
 }

@@ -47,6 +47,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnInspectorGUI()
         {
             EditorGUILayout.HelpBox("WIP", MessageType.Info);
+            ApplyRevertGUI();
         }
 
     }

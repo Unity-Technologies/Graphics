@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.Serialization;
@@ -36,9 +35,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         #endregion
 
-        public void Init(GraphDelta.GraphHandler graph = null)
+        public bool IsSubGraph { get; private set; }
+
+        public void Init(GraphDelta.GraphHandler graph = null, bool isSubGraph = false)
         {
             GraphHandler = graph;
+            IsSubGraph = isSubGraph;
             OnEnable();
         }
 
@@ -48,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GraphModel.Asset = this;
 
             // We got deserialized unexpectedly, which means we'll need to find our graphHandler...
-            if(GraphHandler == null)
+            if (GraphHandler == null)
             {
                 try // to get the AssetHelper that was imported with the asset
                 {
@@ -67,7 +69,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                     catch
                     {
-                        GraphHandler = ShaderGraphAsset.CreateBlankGraphHandler();
+                        GraphHandler = IsSubGraph ? ShaderGraphAsset.CreateBlankGraphHandler() : ShaderSubGraphAsset.CreateBlankSubGraphHandler();
                     }
                 }
             }
