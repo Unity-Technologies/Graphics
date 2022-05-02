@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "4Samples", "4 Samples" },
                 { "8Samples", "8 Samples" }
              },
-            parameters: new ParameterUIDescriptor[4] {
+            parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
                     name: "Texture",
                     tooltip: "the height map texture asset to sample"
@@ -166,6 +166,14 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Sampler",
                     tooltip: "the texture sampler to use for sampling the texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Offset",
+                    tooltip: "amount to offset samples in texels"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Strength",
+                    tooltip: "strength multiplier"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
