@@ -1,0 +1,10 @@
+{
+    "MonoBehaviour": {
+        "m_Enabled": true,
+        "m_EditorHideFlags": 0,
+        "m_Name": "",
+        "m_EditorClassIdentifier": "",
+        "GraphJSON": "{\n    \"m_serializedData\": [\n        {\n            \"layerName\": \"User\",\n            \"layerData\": []\n        }\n    ],\n    \"m_metadata\": {\n        \"serializedBlocks\": []\n    },\n    \"edges\": []\n}",
+        "ViewModelJSON": "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"\",\"m_GraphModel\":{\"rid\":1000},\"references\":{\"version\":2,\"RefIds\":[{\"rid\":1000,\"type\":{\"class\":\"ShaderGraphModel\",\"ns\":\"UnityEditor.ShaderGraph.GraphUI\",\"asm\":\"Unity.ShaderGraph.GraphUI\"},\"data\":{\"m_Guid\":{\"m_Value0\":11962417992766501529,\"m_Value1\":14448378724532511083},\"m_GraphNodeModels\":[],\"m_EdgeModels\":[],\"m_BadgeModels\":[],\"m_GraphEdgeModels\":[],\"m_PolymorphicEdgeModels\":[],\"m_StickyNoteModels\":[],\"m_GraphStickyNoteModels\":[],\"m_PlacematModels\":[],\"m_GraphPlacematModels\":[],\"m_GraphVariableModels\":[],\"m_GraphPortalModels\":[],\"m_SectionModels\":[{\"rid\":1001},{\"rid\":1002}],\"m_StencilTypeName\":\"UnityEditor.ShaderGraph.GraphUI.ShaderGraphStencil, Unity.ShaderGraph.GraphUI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\"}},{\"rid\":1001,\"type\":{\"class\":\"SectionModel\",\"ns\":\"UnityEditor.GraphToolsFoundation.Overdrive.BasicModel\",\"asm\":\"Unity.GraphTools.Foundation.Overdrive.Model\"},\"data\":{\"m_Guid\":{\"m_Value0\":18288599798788828551,\"m_Value1\":11389232456102400394},\"m_Color\":{\"r\":0.0,\"g\":0.0,\"b\":0.0,\"a\":0.0},\"m_HasUserColor\":false,\"m_Version\":2,\"m_Items\":[],\"<Title>k__BackingField\":\"Properties\"}},{\"rid\":1002,\"type\":{\"class\":\"SectionModel\",\"ns\":\"UnityEditor.GraphToolsFoundation.Overdrive.BasicModel\",\"asm\":\"Unity.GraphTools.Foundation.Overdrive.Model\"},\"data\":{\"m_Guid\":{\"m_Value0\":18399797494977957058,\"m_Value1\":1151187008415449562},\"m_Color\":{\"r\":0.0,\"g\":0.0,\"b\":0.0,\"a\":0.0},\"m_HasUserColor\":false,\"m_Version\":2,\"m_Items\":[],\"<Title>k__BackingField\":\"Keywords\"}}]}}}"
+    }
+}
