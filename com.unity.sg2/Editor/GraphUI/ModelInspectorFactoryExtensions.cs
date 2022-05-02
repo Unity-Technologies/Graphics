@@ -60,6 +60,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var graphAsset = model.Asset as ShaderGraphAssetModel;
 
+            if (graphAsset == null)
+                return ui;
+
             if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
             {
                 switch (inspectorSectionContext.Section.SectionType)
