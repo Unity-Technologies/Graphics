@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.universal",
   "displayName": "Universal Render Pipeline",
-  "version": "13.2.2",
+  "version": "14.0.0",
   "type": "template",
   "unity": "2022.1",
   "host": "hub",
@@ -11,7 +11,7 @@
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.collab-proxy": "1.7.1",
     "com.unity.feature.development": "1.0.1",
-    "com.unity.render-pipelines.universal": "13.1.0",
+    "com.unity.render-pipelines.universal": "14.0.2",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.6.2",
     "com.unity.ugui": "1.0.0",
