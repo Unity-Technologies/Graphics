@@ -12,12 +12,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class PreviewManager
     {
-        bool m_isInitialized = false;
+        bool m_IsInitialized;
 
         public bool IsInitialized
         {
-            get => m_isInitialized;
-            set => m_isInitialized = value;
+            get => m_IsInitialized;
+            set => m_IsInitialized = value;
         }
 
         HeadlessPreviewManager m_PreviewHandlerInstance;
@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (graphModel == null)
                 return;
 
-            m_isInitialized = true;
+            m_IsInitialized = true;
             m_GraphModel = graphModel;
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
