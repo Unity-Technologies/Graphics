@@ -9,8 +9,6 @@
 
 pre_pack_hdrp_template_Win_trunk:
     name: Pre-Pack HDRP Template Win trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -32,8 +30,6 @@ pre_pack_hdrp_template_Win_trunk:
               -  "Editor.log"
 pack_hdrp_template_Win_trunk:
     name: Pack HDRP Template Win trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -48,8 +44,6 @@ pack_hdrp_template_Win_trunk:
               -  "upm-ci~/templates/**/*"
 test_hdrp_template_Win_trunk:
     name: Test HDRP Template Win trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -68,8 +62,6 @@ test_hdrp_template_Win_trunk:
               -  "**/test-results/**"
 pre_pack_hdrp_template_OSX_trunk:
     name: Pre-Pack HDRP Template OSX trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -90,8 +82,6 @@ pre_pack_hdrp_template_OSX_trunk:
               -  "Editor.log"
 pack_hdrp_template_OSX_trunk:
     name: Pack HDRP Template OSX trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -106,8 +96,6 @@ pack_hdrp_template_OSX_trunk:
               -  "upm-ci~/templates/**/*"
 test_hdrp_template_OSX_trunk:
     name: Test HDRP Template OSX trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -129,8 +117,6 @@ publish_hdrp_template_trunk:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template trunk
-    variables:
-      UTR_VERSION: 1.5.0
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd
@@ -150,8 +136,6 @@ publish_hdrp_template_trunk_dry_run:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template trunk Dry Run
-    variables:
-      UTR_VERSION: 1.5.0
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd --dry-run
@@ -167,8 +151,6 @@ publish_hdrp_template_trunk_dry_run:
               -  "upm-ci~/templates/**/*"
 pre_pack_hdrp_template_Win_CUSTOM-REVISION:
     name: Pre-Pack HDRP Template Win CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -190,8 +172,6 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
               -  "Editor.log"
 pack_hdrp_template_Win_CUSTOM-REVISION:
     name: Pack HDRP Template Win CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -206,8 +186,6 @@ pack_hdrp_template_Win_CUSTOM-REVISION:
               -  "upm-ci~/templates/**/*"
 test_hdrp_template_Win_CUSTOM-REVISION:
     name: Test HDRP Template Win CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -226,8 +204,6 @@ test_hdrp_template_Win_CUSTOM-REVISION:
               -  "**/test-results/**"
 pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
     name: Pre-Pack HDRP Template OSX CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -248,8 +224,6 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
               -  "Editor.log"
 pack_hdrp_template_OSX_CUSTOM-REVISION:
     name: Pack HDRP Template OSX CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -264,8 +238,6 @@ pack_hdrp_template_OSX_CUSTOM-REVISION:
               -  "upm-ci~/templates/**/*"
 test_hdrp_template_OSX_CUSTOM-REVISION:
     name: Test HDRP Template OSX CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -287,8 +259,6 @@ publish_hdrp_template_CUSTOM-REVISION:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd
@@ -308,8 +278,6 @@ publish_hdrp_template_CUSTOM-REVISION_dry_run:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template CUSTOM-REVISION Dry Run
-    variables:
-      UTR_VERSION: 1.5.0
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd --dry-run
@@ -325,8 +293,6 @@ publish_hdrp_template_CUSTOM-REVISION_dry_run:
               -  "upm-ci~/templates/**/*"
 pre_pack_universal_template_Win_trunk:
     name: Pre-Pack Universal Template Win trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -348,8 +314,6 @@ pre_pack_universal_template_Win_trunk:
               -  "Editor.log"
 pack_universal_template_Win_trunk:
     name: Pack Universal Template Win trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -364,8 +328,6 @@ pack_universal_template_Win_trunk:
               -  "upm-ci~/templates/**/*"
 test_universal_template_Win_trunk:
     name: Test Universal Template Win trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -384,8 +346,6 @@ test_universal_template_Win_trunk:
               -  "**/test-results/**"
 pre_pack_universal_template_OSX_trunk:
     name: Pre-Pack Universal Template OSX trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -406,8 +366,6 @@ pre_pack_universal_template_OSX_trunk:
               -  "Editor.log"
 pack_universal_template_OSX_trunk:
     name: Pack Universal Template OSX trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -422,8 +380,6 @@ pack_universal_template_OSX_trunk:
               -  "upm-ci~/templates/**/*"
 test_universal_template_OSX_trunk:
     name: Test Universal Template OSX trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -445,8 +401,6 @@ publish_universal_template_trunk:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template trunk
-    variables:
-      UTR_VERSION: 1.5.0
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal
@@ -466,8 +420,6 @@ publish_universal_template_trunk_dry_run:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template trunk Dry Run
-    variables:
-      UTR_VERSION: 1.5.0
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal --dry-run
@@ -483,8 +435,6 @@ publish_universal_template_trunk_dry_run:
               -  "upm-ci~/templates/**/*"
 pre_pack_universal_template_Win_CUSTOM-REVISION:
     name: Pre-Pack Universal Template Win CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -506,8 +456,6 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
               -  "Editor.log"
 pack_universal_template_Win_CUSTOM-REVISION:
     name: Pack Universal Template Win CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -522,8 +470,6 @@ pack_universal_template_Win_CUSTOM-REVISION:
               -  "upm-ci~/templates/**/*"
 test_universal_template_Win_CUSTOM-REVISION:
     name: Test Universal Template Win CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -542,8 +488,6 @@ test_universal_template_Win_CUSTOM-REVISION:
               -  "**/test-results/**"
 pre_pack_universal_template_OSX_CUSTOM-REVISION:
     name: Pre-Pack Universal Template OSX CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -564,8 +508,6 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
               -  "Editor.log"
 pack_universal_template_OSX_CUSTOM-REVISION:
     name: Pack Universal Template OSX CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -580,8 +522,6 @@ pack_universal_template_OSX_CUSTOM-REVISION:
               -  "upm-ci~/templates/**/*"
 test_universal_template_OSX_CUSTOM-REVISION:
     name: Test Universal Template OSX CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -637,8 +577,6 @@ publish_universal_template_CUSTOM-REVISION_dry_run:
               -  "upm-ci~/templates/**/*"
 all_template_ci_trunk:
     name: Pack and test all templates - trunk
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
@@ -654,8 +592,6 @@ all_template_ci_trunk:
       -  upm-ci package izon -d
 all_template_ci_CUSTOM-REVISION:
     name: Pack and test all templates - CUSTOM-REVISION
-    variables:
-      UTR_VERSION: 1.5.0
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
