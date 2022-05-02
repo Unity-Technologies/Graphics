@@ -352,6 +352,7 @@ namespace UnityEditor.ShaderGraph.Generation
                             // get the inlined port value as an initializer from the definition-- since there was no connection).
                             argument = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(port.GetTypeField(), registry);
 
+                            // TODO: Property/Uniform promotion should be generalized and also should ensure that all promoted fields/uniforms are unique.
                             if (port.GetTypeField().GetRegistryKey().Name == BaseTextureType.kRegistryKey.Name)
                             {
                                 var fieldHandler = port.GetTypeField();
@@ -362,6 +363,13 @@ namespace UnityEditor.ShaderGraph.Generation
                                 var name = BaseTextureType.GetUniqueUniformName(fieldHandler);
                                 if (tex != null && !defaultTextures.Contains((name, tex)))
                                     defaultTextures.Add((name, tex));
+                            }
+
+                            if (port.GetTypeField().GetRegistryKey().Name == SamplerStateType.kRegistryKey.Name)
+                            {
+                                var fieldHandler = port.GetTypeField();
+                                var field = SamplerStateType.UniformPromotion(port.GetTypeField(), container, registry);
+                                inputVariables.Add(field);
                             }
                         }
                     }

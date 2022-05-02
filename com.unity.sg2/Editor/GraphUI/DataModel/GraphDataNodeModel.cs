@@ -203,6 +203,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 void initCallback(IConstant e)
                 {
                     var constant = e as BaseShaderGraphConstant;
+                    if (e == null)
+                        return;
                     var shaderGraphModel = ((ShaderGraphModel)GraphModel);
                     var handler = shaderGraphModel.GraphHandler;
                     try

@@ -71,6 +71,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 return typeof(TextureTypeConstant);
             }
+            if (typeHandle == ShaderGraphExampleTypes.SamplerStateTypeHandle)
+                return typeof(SamplerStateTypeConstant);
 
             // There is no inline editor for this port type, so there is no need for CLDS access.
             return typeof(AnyConstant);
