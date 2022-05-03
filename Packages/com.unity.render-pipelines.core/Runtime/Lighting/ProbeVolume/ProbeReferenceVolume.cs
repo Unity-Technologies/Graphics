@@ -228,10 +228,20 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public Shader probeDebugShader;
 
+        /// <summary>
+        /// Scene data
+        /// </summary>
         public ProbeVolumeSceneData sceneData;
+
+        /// <summary>
+        /// Sh bands
+        /// </summary>
         public ProbeVolumeSHBands shBands;
     }
 
+    /// <summary>
+    /// Shading parameters for Probe Volumes
+    /// </summary>
     public struct ProbeVolumeShadingParameters
     {
         /// <summary>
@@ -584,6 +594,9 @@ namespace UnityEngine.Experimental.Rendering
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
 
+        /// <summary>
+        /// The sh bands
+        /// </summary>
         public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
 
         internal bool clearAssetsOnVolumeClear = false;
@@ -649,6 +662,7 @@ namespace UnityEngine.Experimental.Rendering
         /// It is important to keep in mind that this is not used by the system for anything else but book-keeping,
         /// the SRP is still responsible to disable anything Probe volume related on SRP side.
         /// </summary>
+        /// <param name="srpEnablesPV">The value</param>
         public void SetEnableStateFromSRP(bool srpEnablesPV)
         {
             m_EnabledBySRP = srpEnablesPV;
@@ -689,7 +703,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Get approximate video memory impact, in bytes, of the system.
         /// </summary>
-        /// <returns>An approximation of the video memory impact, in bytes, of the system<returns>
+        /// <returns>An approximation of the video memory impact, in bytes, of the system</returns>
         public int GetVideoMemoryCost()
         {
             if (!m_ProbeReferenceVolumeInit)

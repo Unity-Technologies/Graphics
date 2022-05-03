@@ -250,6 +250,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Used to indicate that a pass depends on an external renderer list (that is not directly used in this pass).
         /// </summary>
         /// <param name="input">The renderer list handle this pass depends on.</param>
+        /// <returns><see cref="RendererListHandle"/></returns>
         public RendererListHandle DependsOn(in RendererListHandle input)
         {
             m_RenderPass.UseRendererList(input);

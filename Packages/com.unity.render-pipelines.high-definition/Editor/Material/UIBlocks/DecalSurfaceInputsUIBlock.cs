@@ -40,11 +40,9 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseColorMapAlpha,
             MaskMapBlue
         }
-        string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
 
-        string[] blendSourceNamesNoMap = new string[] { "BaseColorMapAlpha", "Mask Opacity" };
+        string[] blendSourceNames = new string[2];
 
-        string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
         MaterialProperty baseColorMap = new MaterialProperty();
         const string kBaseColorMap = "_BaseColorMap";
@@ -208,6 +206,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool allMaskMap = materials.All(m => m.GetTexture(kMaskMap));
 
+            blendSourceNames[0] = affectAlbedo ? "Base Color Map Alpha" : "Opacity";
+            blendSourceNames[1] = allMaskMap ? "Mask Map Blue Channel" : "Mask Opacity";
+
             if (affectAlbedo)
                 materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
             else
@@ -227,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (materials.All(m => m.GetTexture(kNormalMap)))
                 {
                     EditorGUI.indentLevel++;
-                    materialEditor.PopupShaderProperty(normalBlendSrc, Styles.normalOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+                    materialEditor.PopupShaderProperty(normalBlendSrc, Styles.normalOpacityChannelText, blendSourceNames);
                     EditorGUI.indentLevel--;
                 }
             }
@@ -262,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
                 }
 
-                materialEditor.PopupShaderProperty(maskBlendSrc, Styles.maskOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+                materialEditor.PopupShaderProperty(maskBlendSrc, Styles.maskOpacityChannelText, blendSourceNames);
 
                 EditorGUI.indentLevel--;
             }

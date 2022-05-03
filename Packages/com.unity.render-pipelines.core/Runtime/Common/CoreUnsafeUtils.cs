@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering
         /// Radix Sort
         /// Radix sort or bucket sort, stable and non in place.
         /// </summary>
-        /// <param name="arr">Array to sort.</param>
+        /// <param name="array">Array to sort.</param>
         /// <param name="sortSize">Size of the array to sort. If greater than array capacity, it will get clamped.</param>
         /// <param name="supportArray">Array of uints that is used for support data. The algorithm will automatically allocate it if necessary.</param>
         /// <param name="radixBits">Number of bits to use for each bucket. Can only be 8, 4 or 2.</param>

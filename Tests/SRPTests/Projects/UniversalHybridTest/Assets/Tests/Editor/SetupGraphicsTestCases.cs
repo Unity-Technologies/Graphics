@@ -87,7 +87,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     //Cannot automate this because Yamato complains "InvalidOperationException: Building is not allowed while Unity is compiling."
     [MenuItem("GraphicsTest/SyncSceneListToAllConfig")]
     private static void SyncSceneList(bool applyToAll = true)
-    {      
+    {
         EditorBuildSettingsScene[] buildSettingScenes = EditorBuildSettings.scenes;
         List<SceneList.SceneInfo> scenelist = new List<SceneList.SceneInfo>();
         for(int i=0;i<buildSettingScenes.Length;i++)
@@ -99,7 +99,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         if(applyToAll)
         {
             var assets = AssetDatabase.FindAssets("t:BuildConfiguration", new[] {"Assets/Tests/Editor"});
-            foreach (var guid in assets) 
+            foreach (var guid in assets)
             {
                 var c = AssetDatabase.LoadAssetAtPath<BuildConfiguration>(AssetDatabase.GUIDToAssetPath(guid));
                 var sceneListComponent = c.GetComponent<SceneList>();
@@ -117,7 +117,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             sceneListComponent.SceneInfos = scenelist;
             config.SetComponent<SceneList>(sceneListComponent);
             Log("*************** SetupGraphicsTestCases - Synced "+buildSettingScenes.Length+ " scenes to scenelist");
-        }       
+        }
     }
 
     [MenuItem("GraphicsTest/Debug/CreateFolder")]

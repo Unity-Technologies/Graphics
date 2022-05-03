@@ -133,7 +133,13 @@ namespace UnityEngine.Rendering
             /// </summary>
             public struct NameAndTooltip
             {
+                /// <summary>
+                /// The name
+                /// </summary>
                 public string name;
+                /// <summary>
+                /// The tooltip
+                /// </summary>
                 public string tooltip;
             }
 

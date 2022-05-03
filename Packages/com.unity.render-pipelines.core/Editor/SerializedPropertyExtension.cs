@@ -21,6 +21,10 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty.
         /// This handle case where index do not correspond to enum value.
+        /// </summary>
+        /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
+        /// <param name="property">The <see cref="SerializedProperty"/></param>
+        /// <returns>The <see cref="Enum"/> value</returns>
         /// <example>
         /// <code>
         /// enum MyEnum
@@ -39,13 +43,12 @@ namespace UnityEditor.Rendering
         ///     public override void OnInspectorGUI()
         ///     {
         ///         Debug.Log($"By enumValueIndex: {(MyEnum)serializedObject.FindProperty("theEnum").enumValueIndex}");         //write the value (MyEnum)(0)
-        ///         Debug.Log($"By GetEnumValue: {(MyEnum)serializedObject.FindProperty("theEnum").GetEnumValue<MyEnum>()}");   //write the value MyEnum.A
+        ///         Debug.Log($"By GetEnumValue: {(MyEnum)serializedObject.FindProperty("theEnum").GetEnumValue&lt;MyEnum&gt;()}"); //write the value MyEnum.A
         ///     }
         /// }
         /// #endif
         /// </code>
         /// </example>
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetEnumValue<T>(this SerializedProperty property)
             where T : Enum
@@ -54,6 +57,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Helper to get an enum name from a SerializedProperty
         /// </summary>
+        /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
+        /// <param name="property">The <see cref="SerializedProperty"/></param>
+        /// <returns>The string containing the name of the enum</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetEnumName<T>(this SerializedProperty property)
             where T : Enum
@@ -64,6 +70,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Helper to set an enum value to a SerializedProperty
         /// </summary>
+        /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
+        /// <param name="property">The <see cref="SerializedProperty"/></param>
+        /// <param name="value">The value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetEnumValue<T>(this SerializedProperty property, T value)
             where T : Enum

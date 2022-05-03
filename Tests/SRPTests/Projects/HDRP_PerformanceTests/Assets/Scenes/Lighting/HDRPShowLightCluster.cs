@@ -34,7 +34,7 @@ public class HDRPShowLightCluster : MonoBehaviour
     [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
     static void DrawGizmoForMyScript(HDRPShowLightCluster comp, GizmoType gizmoType)
     {
-	    var cam = comp.cam;
+        var cam = comp.cam;
         DrawFrustum(cam);
     }
 #endif
@@ -115,7 +115,7 @@ public class HDRPShowLightCluster : MonoBehaviour
             Debug.DrawLine( nearCorners[i], farCorners[i], heightColor, 0, true ); //sides of the created projection matrix
         }
     }
- 
+
     static Vector3 Plane3Intersect ( Plane p1, Plane p2, Plane p3 ) { //get the intersection point of 3 planes
         return ( ( -p1.distance * Vector3.Cross( p2.normal, p3.normal ) ) +
                 ( -p2.distance * Vector3.Cross( p3.normal, p1.normal ) ) +

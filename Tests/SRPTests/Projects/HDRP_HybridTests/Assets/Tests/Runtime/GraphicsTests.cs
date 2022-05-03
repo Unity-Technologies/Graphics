@@ -1,4 +1,4 @@
-//This script is copied from UniversalRP TestProject 
+//This script is copied from UniversalRP TestProject
 // https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/TestProjects/UniversalGraphicsTest/Assets/Test/Runtime/UniversalGraphicsTests.cs
 
 using System.Collections;
@@ -27,7 +27,7 @@ public class GraphicsTests
         //Get Test settings
         //ignore instead of failing, because some scenes might not be used for GraphicsTest
         var settings = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
-        if (settings == null) 
+        if (settings == null)
         {
            // CleanUp();
             Assert.Ignore("Ignoring this test for GraphicsTest because couldn't find GraphicsTestSettingsCustom");
@@ -65,7 +65,7 @@ public class GraphicsTests
         #if UNITY_EDITOR
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
         #endif
-        
+
         CleanUp();
 
         XRGraphicsAutomatedTests.running = false;

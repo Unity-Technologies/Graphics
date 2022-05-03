@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private int m_RendererMSAASamples = 1;
 
         // Constants
-        private const int k_DepthBufferBits = 32;
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
 
         /// <summary>
@@ -53,7 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RendererMSAASamples = baseDescriptor.msaaSamples;
 
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-            baseDescriptor.depthBufferBits = k_DepthBufferBits;
+            baseDescriptor.depthBufferBits = UniversalRenderer.k_DepthStencilBufferBits;
 
             // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
             baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA

@@ -6,6 +6,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 
+/// <summary>
+/// Render graph viewer window
+/// </summary>
 public class RenderGraphViewer : EditorWindow
 {
     static class Style

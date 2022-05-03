@@ -1,4 +1,4 @@
-﻿//This is for fixing yamato standalone test. Attach this component to MainCamera if standalone test is fine when you run locally but fails on yamato (sub-scene objects are not rendering / not stable)
+//This is for fixing yamato standalone test. Attach this component to MainCamera if standalone test is fine when you run locally but fails on yamato (sub-scene objects are not rendering / not stable)
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,7 +29,7 @@ public class GraphicsTestFix : MonoBehaviour
         }
         count++;
     }
-    
+
     private void MyRenderFrame(ScriptableRenderContext context,Camera[] cameras)
     {
         //Make a capture when reached correct frame
@@ -75,6 +75,3 @@ public class GraphicsTestFix : MonoBehaviour
 
     #endif
 }
-
-
-
