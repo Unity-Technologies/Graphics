@@ -128,6 +128,25 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         [UnityTest]
+        public IEnumerator TestContextNodesCannotBeDeletedFromMixedSelection()
+        {
+            var beforeContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            var beforeContextCount = beforeContexts.Count;
+            Assert.IsTrue(beforeContextCount > 0, "Graph must contain at least one context node for test");
+
+            // Arbitrary node so that something other than a context exists in our graph.
+            yield return AddNodeFromSearcherAndValidate("Add");
+
+            m_GraphView.Dispatch(new DeleteElementsCommand(m_GraphView.GraphModel.NodeModels));
+            Assert.IsFalse(FindNodeOnGraphByName("Add"), "Non-context node should be deleted from selection");
+
+            var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
+            Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context nodes should not be deleted from selection");
+            yield return null;
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator TestContextNodesCannotBeCopied()
         {
             var beforeContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
@@ -145,7 +164,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return null;
 
             var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
-            Assert.IsTrue(afterContexts.Count == beforeContexts.Count, "Context node should not be duplicated by copy/paste");
+            Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context node should not be duplicated by copy/paste");
         }
 
         /*
