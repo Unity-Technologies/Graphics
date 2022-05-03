@@ -8,14 +8,13 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         public static string Name = "SampleTexture2DLOD";
         public static int Version = 1;
-        //TODO: this node has two drop-downs, need to figure out how to do it
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
             new FunctionDescriptor[] {
                 new (
                     1,
-                    "Tangent",
+                    "Standard",
                     @"
                     {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
@@ -24,9 +23,6 @@ namespace UnityEditor.ShaderGraph.Defs
                        // RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
                         RGBA = float4(1,1,1,1);
                     #endif
-                    #if (Type == 2)
-                        //RGBA.rgb = UnpackNormal(RGBA);
-                    #endif
                         RGB = RGBA.rgb;
                         R = RGBA.r;
                         G = RGBA.g;
@@ -42,12 +38,11 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static, new float[]{ 1f })//1 -> default, 2 -> normal 
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
                 ),
                 new (
                     1,
-                    "Object",
+                    "NormalObject",
                     @"
                     {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
@@ -56,9 +51,7 @@ namespace UnityEditor.ShaderGraph.Defs
                         //RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
                         RGBA = float4(1,1,1,1);
                     #endif
-                    #if (Type == 2)
                         //RGBA.rgb = UnpackNormalRGB(RGBA);
-                    #endif
                         RGB = RGBA.rgb;
                         R = RGBA.r;
                         G = RGBA.g;
@@ -74,8 +67,36 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static, new float[]{ 1f })//1 -> default, 2 -> normal 
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                ),
+                new (
+                    1,
+                    "NormalTangent",
+                    @"
+                    {
+                    #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+                        RGBA = float4(1,1,1,1);
+                    #else
+                        //RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
+                        RGBA = float4(1,1,1,1);
+                    #endif
+                        //RGBA.rgb = UnpackNormal(RGBA);
+                        RGB = RGBA.rgb;
+                        R = RGBA.r;
+                        G = RGBA.g;
+                        B = RGBA.b;
+                        A = RGBA.a;
+                    }",
+                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
+                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
+                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
                 )
             }
 
@@ -90,9 +111,10 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Sample Texture 2D LOD",
             selectableFunctions: new ()
             {
-                { "Tangent", "Tangent" },
-                { "Object", "Object" }
-            },
+                { "Standard", "Standard" },
+                { "NormalTangent", "Normal Tangent" },
+                { "NormalObject", "Normal Object" }
+        },
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
                     name: "Texture",
