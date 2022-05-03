@@ -144,9 +144,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //-----------------------------------------------------------
 
         /* ---- Uses a directly specified keyCode, meant to be used for more obscure keyboard keys */
-        public void SimulateKeyPress(KeyCode inputKey, bool sendTwice = true, bool sendKeyUp = true)
+        public void SimulateKeyPress(KeyCode inputKey, bool sendTwice = true, bool sendKeyUp = true, EventModifiers modifiers = EventModifiers.None)
         {
-            SendKeyDownEvent(inputKey, EventModifiers.None, sendTwice);
+            SendKeyDownEvent(inputKey, modifiers, sendTwice);
             if(sendKeyUp)
                 SendKeyUpEvent(inputKey);
         }
@@ -191,9 +191,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         /* ----  */
 
         /* ---- Uses a specified string input, figures out what keyCode to use, meant to be used for more typical alpha-numeric input */
-        public void SimulateKeyPress(string inputKey)
+        public void SimulateKeyPress(string inputKey, EventModifiers modifiers = EventModifiers.None)
         {
-            SendKeyDownEvent(inputKey);
+            SendKeyDownEvent(inputKey, modifiers);
             SendKeyUpEvent(inputKey);
         }
 

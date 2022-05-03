@@ -50,6 +50,28 @@ namespace UnityEditor.ShaderGraph.GraphUI
         static string TemplatePath = AssetPath + "GraphElements/Templates/";
         internal static bool UseNewStylesheets { get; set; }
 
+        public static VisualElement GetFirstAncestorWithClass(this VisualElement element, string className)
+        {
+            if (element == null)
+                return null;
+
+            if (element.ClassListContains(className))
+                return element;
+
+            return element.parent.GetFirstAncestorWithClass(className);
+        }
+
+        public static VisualElement GetFirstAncestorWithName(this VisualElement element, string ancestorName)
+        {
+            if (element == null)
+                return null;
+
+            if (element.name == ancestorName)
+                return element;
+
+            return element.parent.GetFirstAncestorWithName(ancestorName);
+        }
+
         internal static void AddStylesheet(this VisualElement ve, string stylesheetName)
         {
             StyleSheet stylesheet = null;

@@ -1,6 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEngine;
 
@@ -14,28 +12,41 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public const string kTexture = "Input";
         public const string kUV = "UV";
+        public const string kSampler = "SamplerStateOverride";
         public const string kOutput = "Output";
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
             node.AddPort<BaseTextureType>(kTexture, true, registry);
             var uv = node.AddPort<GraphType>(kUV, true, registry).GetTypeField();
+            node.AddPort<SamplerStateType>(kSampler, true, registry);
             var color = node.AddPort<GraphType>(kOutput, false, registry).GetTypeField();
-
             GraphTypeHelpers.InitGraphType(uv, GraphType.Length.Two);
             GraphTypeHelpers.InitGraphType(color);
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
         {
-            var builder = new ShaderFunction.Builder(container, GetRegistryKey().Name);
+            // Need to ignore the sampler if there is no user data on it or if it isn't connected, textures have one they are loaded w/already.
+            var samplerPort = node.GetPort(kSampler);
+            bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
+            bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
+            bool hasSampler = isConnected || isInitialized;
+
+            var builder = new ShaderFunction.Builder(container, GetRegistryKey().Name + (hasSampler ? "_Smplr" : ""));
             var shaderType = registry.GetShaderType(node.GetPort(kTexture).GetTypeField(), container);
+
+
+
+            // hasSampler = true; // can enable to force usage of sampler for testing.
 
             builder.AddInput(shaderType, kTexture);
             builder.AddInput(container._float2, kUV);
+            if (hasSampler) // TODO: Should be possible (somewhere) to inform the interpreter that the variable generated for this port will not be used.
+                builder.AddInput(container._UnitySamplerState, kSampler);
             builder.AddOutput(container._float4, kOutput);
 
-            string body = $"{kOutput} = SAMPLE_TEXTURE2D({kTexture}.tex, {kTexture}.samplerstate, {kTexture}.GetTransformedUV({kUV}));";
+            string body = $"{kOutput} = SAMPLE_TEXTURE2D({kTexture}.tex, {(hasSampler ? kSampler : kTexture)}.samplerstate, {kTexture}.GetTransformedUV({kUV}));";
             builder.AddLine(body);
             return builder.Build();
         }
