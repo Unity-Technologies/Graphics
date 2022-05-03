@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the UV coordinates to rotate"
+                    tooltip: "the UVs to rotate"
                 ),
                 new ParameterUIDescriptor(
                     name: "Center",
@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "rotated UV coordinates"
+                    tooltip: "rotated UVs"
                 )
             }
         );
