@@ -38,6 +38,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GetWindow<ShaderGraphEditorWindow>(sceneView);
         }
 
+        void InitializeOverlayWindows()
+        {
+            TryGetOverlay("gtf-inspector", out var gtfInspector);
+            overlayCanvas.Remove(gtfInspector);
+
+            TryGetOverlay("gtf-blackboard", out var gtfBlackboard);
+            overlayCanvas.Remove(gtfBlackboard);
+        }
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -50,6 +59,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
             rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
             rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
+
+            InitializeOverlayWindows();
         }
 
         protected override void OnDisable()
@@ -101,7 +112,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (option == 0) // save
                     {
-                        GraphAssetUtils.SaveGraphImplementation(GraphTool);
+                        GraphAssetUtils.SaveOpenGraphAsset(GraphTool);
                         return true;
                     }
                     else if (option == 1) // cancel (or escape/close dialog)
@@ -143,7 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (option == 0)
             {
-                var savedPath = GraphAssetUtils.SaveAsGraphImplementation(GraphTool);
+                var savedPath = GraphAssetUtils.SaveOpenGraphAssetAs(GraphTool);
                 if (savedPath != null)
                 {
                     saved = true;
@@ -215,50 +226,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
             m_PreviewManager.Update();
         }
-
-        // ----------
-        // Commented out because compatible with a previous GTF
-        // ----------
-
-        // InspectorController m_InspectorController;
-        // ModelInspectorView m_InspectorView => m_InspectorController?.View;
-        // BlackboardController m_BlackboardController;
-        // Blackboard m_BlackboardView => m_BlackboardController?.View;
-        // PreviewController m_PreviewController;
-        // Preview m_Preview => m_PreviewController?.View;
-        // static GraphWindowTickCommand s_CachedGraphWindowTickCommand = new ();
-
-        //public VisualElement GetGraphSubWindow<T>()
-        //{
-        //    if (typeof(T) == typeof(Blackboard))
-        //        return m_BlackboardView;
-        //    if (typeof(T) == typeof(ModelInspectorView))
-        //        return m_InspectorView;
-        //    if (typeof(T) == typeof(Preview))
-        //        return m_Preview;
-        //    return null;
-        //}
-
-        //void InitializeSubWindows()
-        //{
-        //    m_InspectorController = new InspectorController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
-        //    m_BlackboardController = new BlackboardController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
-        //    m_PreviewController = new PreviewController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
-        //}
-
-        ////protected void OnBecameVisible()
-        ////{
-        ////    if (GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
-        ////    {
-        ////        var shaderGraphState = this.CommandDispatcher.State as ShaderGraphState;
-        ////        shaderGraphState?.GraphPreviewState.SetGraphModel(shaderGraphModel);
-        ////    }
-        ////}
-
-        //protected override GraphToolState CreateInitialState()
-        //{
-        //    var prefs = Preferences.CreatePreferences(EditorToolName);
-        //    return new ShaderGraphState(GUID, prefs);
-        //}
     }
 }

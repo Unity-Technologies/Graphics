@@ -1,0 +1,9 @@
+#sg-inspector-label {
+    -unity-font-style: bold;
+    padding: 4px;
+    font-size: 13px;
+    background-color: #2A2A2A;
+    border-radius: 3px;
+    border-color: black;
+    border-width: 1px;
+}

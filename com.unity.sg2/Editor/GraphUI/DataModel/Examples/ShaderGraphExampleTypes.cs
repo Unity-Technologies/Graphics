@@ -61,6 +61,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
+            else if (key.Name == SamplerStateType.kRegistryKey.Name)
+                return SamplerStateTypeHandle;
+
             return TypeHandle.Unknown;
         }
 
@@ -72,6 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle Texture2DArrayTypeHandle = typeof(Texture2DArray).GenerateTypeHandle();
         public static readonly TypeHandle CubemapTypeHandle = typeof(Cubemap).GenerateTypeHandle();
         public static readonly TypeHandle GradientTypeHandle = typeof(Gradient).GenerateTypeHandle();
+        public static readonly TypeHandle SamplerStateTypeHandle = typeof(SamplerStateData).GenerateTypeHandle();
         public static readonly TypeHandle Matrix2 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 2");
         public static readonly TypeHandle Matrix3 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 3");
         public static readonly TypeHandle Matrix4 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 4");

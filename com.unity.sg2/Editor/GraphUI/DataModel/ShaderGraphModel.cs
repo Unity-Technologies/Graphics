@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Profiling;
-using UnityEditor.Graphs;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -40,16 +39,37 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
 
             // Assigning this value manually as section models are setup by default to have the asset model reference serialized in, but we modified GTF to prevent that
-            foreach(var sectionModel in SectionModels)
+            foreach (var sectionModel in SectionModels)
             {
                 // sectionModel.AssetModel = AssetModel;
             }
 
             foreach (var variableDeclarationModel in VariableDeclarations)
             {
-               // variableDeclarationModel.AssetModel = AssetModel;
+                // variableDeclarationModel.AssetModel = AssetModel;
+            }
+
+            var contextNames = GraphHandler
+                .GetNodes()
+                .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
+                .Select(nodeHandler => nodeHandler.ID.LocalPath)
+                .ToList();
+
+            foreach (var localPath in contextNames)
+            {
+                GraphHandler.ReconcretizeNode(localPath);
+
+                if (!NodeModels.Any(nodeModel =>
+                        nodeModel is GraphDataContextNodeModel contextNodeModel &&
+                        contextNodeModel.graphDataName == localPath))
+                {
+                    this.CreateGraphDataContextNode(localPath);
+                }
             }
         }
+
+        public bool IsSubGraph => ShaderGraphAssetModel.IsSubGraph;
+        public override bool CanBeSubgraph() => IsSubGraph;
 
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.
@@ -127,8 +147,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if ((fromPort, toPort) is (GraphDataPortModel fromDataPort, GraphDataPortModel toDataPort))
             {
                 return fromDataPort.owner.existsInGraphData &&
-                       toDataPort.owner.existsInGraphData &&
-                       TestConnection(fromDataPort, toDataPort);
+                    toDataPort.owner.existsInGraphData &&
+                    TestConnection(fromDataPort, toDataPort);
             }
 
             // Don't support connecting GraphDelta-backed ports to UI-only ones.
@@ -150,7 +170,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var nodesOnGraph = NodeModels;
             foreach (var nodeModel in nodesOnGraph)
             {
-                if(nodeModel is GraphDataNodeModel graphDataNodeModel && DoesNodeRequireTime(graphDataNodeModel))
+                if (nodeModel is GraphDataNodeModel graphDataNodeModel && DoesNodeRequireTime(graphDataNodeModel))
                     timeDependentNodes.Add(graphDataNodeModel);
             }
 
@@ -169,11 +189,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             };
 
         // Temp structures that are kept around statically to avoid GC churn (not thread safe)
-        static Stack<GraphDataNodeModel> m_TempNodeWave = new ();
-        static HashSet<GraphDataNodeModel> m_TempAddedToNodeWave = new ();
+        static Stack<GraphDataNodeModel> m_TempNodeWave = new();
+        static HashSet<GraphDataNodeModel> m_TempAddedToNodeWave = new();
+
         // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
         // sources and result can be the same HashSet
         private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
+
         static void PropagateNodes(HashSet<GraphDataNodeModel> sources, PropagationDirection dir, HashSet<GraphDataNodeModel> result)
         {
             using (PropagateNodesMarker.Auto())
@@ -260,7 +282,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             } */
         }
 
-
         public IEnumerable<GraphDataNodeModel> GetNodesInHierarchyFromSources(IEnumerable<GraphDataNodeModel> nodeSources, PropagationDirection propagationDirection)
         {
             var nodesInHierarchy = new HashSet<GraphDataNodeModel>();
@@ -271,7 +292,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
         {
             bool nodeRequiresTime = false;
-            if(graphDataNodeModel.TryGetNodeReader(out var _))
+            if (graphDataNodeModel.TryGetNodeReader(out var _))
             {
                 // TODO: Some way of making nodes be marked as requiring time or not
                 // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,
@@ -280,6 +301,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 //if(fieldReader != null)
                 //    fieldReader.TryGetValue(out nodeRequiresTime);
             }
+
             return nodeRequiresTime;
         }
 
@@ -289,10 +311,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var nodeBuilder = shaderGraphModel.RegistryInstance.GetNodeBuilder(elementRegistryKey);
                 var registryFlags = nodeBuilder.GetRegistryFlags();
+
                 // commented out that bit cause it throws an exception for some elements at the moment
                 return registryFlags.HasFlag(RegistryFlags.Func) /*|| registry.GetDefaultTopology(elementRegistryKey) == null*/;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 AssertHelpers.Fail("Failed due to exception:" + exception);
                 return false;
