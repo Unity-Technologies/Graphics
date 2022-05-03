@@ -16,7 +16,8 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ShaderGraph.GraphDeltaRegistry",
         "Unity.ShaderGraph.Generation",
-        "ContextLayeredDataStorage"
+        "ContextLayeredDataStorage",
+        "Unity.ShaderGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,0 +1,6 @@
+#sg-active-targets-list {
+    background-color: #2A2A2A;
+    border-radius: 4px;
+    border-color: black;
+    border-width: 1px;
+}
