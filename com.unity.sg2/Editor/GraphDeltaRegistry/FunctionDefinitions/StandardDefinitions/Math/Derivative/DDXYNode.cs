@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the sum of both partial derivatives of the input",
+            tooltip: "Calculates the sum of both partial derivatives of the input.",
             categories: new string[2] { "Math", "Derivative" },
             synonyms: new string[2] { "derivative", "slope" },
             parameters: new ParameterUIDescriptor[2] {

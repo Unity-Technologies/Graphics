@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns true if all components of the input In are non-zero",
+            tooltip: "Checks if all components of the input *In* are non-zero values",
             categories: new string[2] { "Utility", "Logic" },
             synonyms: new string[0],
             hasPreview: false,

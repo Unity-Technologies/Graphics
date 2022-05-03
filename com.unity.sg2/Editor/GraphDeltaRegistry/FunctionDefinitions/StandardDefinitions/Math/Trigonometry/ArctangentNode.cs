@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the arctangent of each component of the input",
+            tooltip: "Calculates the arctangent of each component of the input.",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[1] { "atan" },
             selectableFunctions: new()

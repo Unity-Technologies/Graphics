@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Contrast",
-            tooltip: "returns the arcsine of each component of the input",
+            tooltip: "Calculates the arcsine of each component of the input.",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[1] { "asine" },
             selectableFunctions: new()
