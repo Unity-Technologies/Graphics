@@ -367,7 +367,7 @@ namespace UnityEditor.VFX
             var parameterBuffer = new VFXShaderWriter();
             parameterBuffer.WriteCBuffer(contextData.uniformMapper, "parameters");
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             parameterBuffer.WriteLine();
             parameterBuffer.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
             parameterBuffer.WriteLine();
@@ -550,7 +550,7 @@ namespace UnityEditor.VFX
             var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
@@ -716,6 +716,11 @@ namespace UnityEditor.VFX
                 var storeAttributes = GenerateStoreAttribute(pattern, context, (uint)linkedEventOut.Count);
                 ReplaceMultiline(stringBuilder, str, storeAttributes.builder);
             }
+
+            //< Detect needed pragma require
+            var useCubeArray = contextData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
+            var pragmaRequire = useCubeArray ? new StringBuilder("#pragma require cubearray") : new StringBuilder();
+            ReplaceMultiline(stringBuilder, "${VFXPragmaRequire}", pragmaRequire);
 
             foreach (var addionalReplacement in context.additionalReplacements)
             {

@@ -1,11 +1,22 @@
 #pragma kernel BitonicSort128 BITONIC_SORT=BitonicSort128 ELEMENTS_COUNT=128 ITERATIONS_COUNT=1 FINAL_PASS=1
+
 #pragma kernel BitonicSort1024 BITONIC_SORT=BitonicSort1024 ELEMENTS_COUNT=1024 ITERATIONS_COUNT=2 FINAL_PASS=1
+#pragma kernel BitonicSort1024_128 BITONIC_SORT=BitonicSort1024_128 ELEMENTS_COUNT=1024 ITERATIONS_COUNT=4 FINAL_PASS=1
+
+#pragma kernel BitonicSort2048 BITONIC_SORT=BitonicSort2048 ELEMENTS_COUNT=2048 ITERATIONS_COUNT=2 FINAL_PASS=1
+#pragma kernel BitonicSort2048_128 BITONIC_SORT=BitonicSort2048_128 ELEMENTS_COUNT=2048 ITERATIONS_COUNT=8 FINAL_PASS=1
+
 #pragma kernel BitonicSort4096 BITONIC_SORT=BitonicSort4096 ELEMENTS_COUNT=4096 ITERATIONS_COUNT=2 FINAL_PASS=1
+#pragma kernel BitonicSort4096_128 BITONIC_SORT=BitonicSort4096_128 ELEMENTS_COUNT=4096 ITERATIONS_COUNT=16 FINAL_PASS=1
+
 #pragma kernel BitonicPrePass BITONIC_SORT=BitonicPrePass ELEMENTS_COUNT=4096 ITERATIONS_COUNT=2 FINAL_PASS=0
+#pragma kernel BitonicPrePass4096_128 BITONIC_SORT=BitonicPrePass4096_128 ELEMENTS_COUNT=4096 ITERATIONS_COUNT=16 FINAL_PASS=0
+#pragma kernel BitonicPrePass2048_128 BITONIC_SORT=BitonicPrePass2048_128 ELEMENTS_COUNT=2048 ITERATIONS_COUNT=8 FINAL_PASS=0
+
 #pragma kernel MergePass MERGE_PASS=MergePass FINAL_PASS=0
 #pragma kernel MergeFinalPass MERGE_PASS=MergeFinalPass FINAL_PASS=1
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
 
 #pragma multi_compile __ VFX_SORT_USE_ELEMENT_COUNT_BUFFER
 
@@ -38,7 +49,7 @@
 
 #define HALF_SCRATCH_SIZE ELEMENTS_COUNT
 
-#define LDS_VALUES_OFFSET HALF_SCRATCH_SIZE
+#define LDS_VALUES_OFFSET 1
 #define SCRATCH_SIZE (HALF_SCRATCH_SIZE << 1)
 
 #define ITERATION_INDEX(id,it) ((it) * BITONIC_THREADS_COUNT + (id))
@@ -71,8 +82,7 @@ ByteAddressBuffer deadElementCount;
 #endif
 
 // Layout of the scratch memory is as follows:
-// First all keys
-// Then all values
+// {Key,Value},{Key,Value}, ...
 groupshared float scratch[SCRATCH_SIZE];
 
 CBUFFER_START(SortConstants)
@@ -93,24 +103,24 @@ uint GetElementCount()
 #pragma warning(disable : 4000)
 bool CompareKVP(KVP kvp0, KVP kvp1)
 {
-    #if DECREASING_ORDER
+#if DECREASING_ORDER
     if (kvp0.key == kvp1.key)
         return kvp0.value < kvp1.value; // value always in ascending order
     return kvp0.key > kvp1.key;
-    #else
+#else
     if (kvp0.key == kvp1.key)
         return kvp0.value < kvp1.value;
     return kvp0.key < kvp1.key;
-    #endif
+#endif
 }
 #pragma warning(pop)
 
 uint GetLDSIndex(uint index)
 {
-    return index;
+    return 2 * index;
 }
 
-void LoadFromMemory(uint ldsIndex,uint memIndex)
+void LoadFromMemory(uint ldsIndex, uint memIndex)
 {
     KVP kvp = { REJECTED_VALUE, 0xFFFFFFFF };
     if (memIndex < GetElementCount())
@@ -138,7 +148,7 @@ void StoreToMemory(uint memIndex, uint ldsIndex)
 }
 
 // Bitonic sort on small chunks of kvp of size ELEMENTS_COUNT - execute in O(log²(ELEMENTS_COUNT))
-[numthreads(BITONIC_THREADS_COUNT,1,1)]
+[numthreads(BITONIC_THREADS_COUNT, 1, 1)]
 void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 {
     // Skip useless groups
@@ -162,7 +172,7 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
             [unroll]
             for (uint i = 0; i < ITERATIONS_COUNT; ++i)
             {
-                uint index = ITERATION_INDEX(id,i);
+                uint index = ITERATION_INDEX(id, i);
                 uint lsb = index & (subStep - 1);
                 uint index0 = (2 * index) - lsb;
                 uint index1 = index0 + subStep;
@@ -170,12 +180,14 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
                 if (subStep == step)
                     index1 += step - (2 * lsb) - 1;
 #endif
+                uint ldsIndex0 = GetLDSIndex(index0);
+                uint ldsIndex1 = GetLDSIndex(index1);
 
-                float key0 = scratch[index0];
-                float key1 = scratch[index1];
+                float key0 = scratch[ldsIndex0];
+                float value0 = scratch[ldsIndex0 + LDS_VALUES_OFFSET];
 
-                float value0 = scratch[index0 + LDS_VALUES_OFFSET];
-                float value1 = scratch[index1 + LDS_VALUES_OFFSET];
+                float key1 = scratch[ldsIndex1];
+                float value1 = scratch[ldsIndex1 + LDS_VALUES_OFFSET];
 
 
                 KVP kvp0 = { key0, asuint(value0) };
@@ -188,13 +200,13 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 #endif
                 if (CompareKVP(kvp1, kvp0) != reverse)
                 {
-                    // swap keys
-                    scratch[index0] = key1;
-                    scratch[index1] = key0;
+                    // swap first
+                    scratch[ldsIndex0] = key1;
+                    scratch[ldsIndex0 + LDS_VALUES_OFFSET] = value1;
 
-                    // swap values
-                    scratch[index0 + LDS_VALUES_OFFSET] = value1;
-                    scratch[index1 + LDS_VALUES_OFFSET] = value0;
+                    // swap second
+                    scratch[ldsIndex1] = key0;
+                    scratch[ldsIndex1 + LDS_VALUES_OFFSET] = value0;
                 }
             }
 
@@ -216,23 +228,12 @@ uint subArraySize;
 uint dispatchWidth;
 CBUFFER_END
 
-float GetKeyWithCheck(uint index)
-{
-    float result = inputSequence[index].key;
-
-    if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
-        result = REJECTED_VALUE;
-
-    return result;
-}
-
 KVP GetKVPWithCheck(uint index)
 {
-    KVP result = inputSequence[index];
-
-    if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
-        result.key = REJECTED_VALUE;
-
+    KVP result = (KVP)0;
+    result.key = REJECTED_VALUE;
+    if (index < GetElementCount()) // TODO Handle elementCount more efficiently
+        result = inputSequence[index];
     return result;
 }
 
@@ -240,7 +241,7 @@ KVP GetKVPWithCheck(uint index)
 #define NB_THREADS_PER_GROUP_MERGE_PASS 64
 [numthreads(NB_THREADS_PER_GROUP_MERGE_PASS, 1, 1)]
 void MERGE_PASS(uint3 groupId           : SV_GroupID,
-                uint3 groupThreadId     : SV_GroupThreadID)
+                uint3 groupThreadId : SV_GroupThreadID)
 {
     uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP_MERGE_PASS + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP_MERGE_PASS;
 
@@ -262,10 +263,12 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     }
 
     const int arrayIndex = id - arrayStart;
-    const int lastIndex = subArraySize - 1;
+    const int lastIndex0 = subArraySize - 1;
+    const int lastIndex1 = min(subArraySize - 1, GetElementCount() - (arrayStart + subArraySize + 1));
+
 
     // determine initial frame of the window
-    int2 window = uint2(max(0, arrayIndex - (int)subArraySize), min(arrayIndex, lastIndex));
+    int2 window = uint2(max(0, arrayIndex - lastIndex1 - 1), min(arrayIndex, lastIndex0));
 
     int index0, index1;
     KVP kvp0, kvp1;
@@ -280,21 +283,21 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     do
     {
         int windowIndex = (window.x + window.y + 1) >> 1;
-        int i0 = min(lastIndex, windowIndex);
-        int i1 = min(lastIndex, arrayIndex - windowIndex);
+        int i0 = min(lastIndex0, windowIndex);
+        int i1 = min(lastIndex1, arrayIndex - windowIndex);
 
         index0 = i0 + arrayStart;
         index1 = i1 + arrayStart + subArraySize;
 
         kvp0 = inputSequence[index0];
-        kvp1 = GetKVPWithCheck(index1);
+        kvp1 = inputSequence[index1];
 
         if (i0 + i1 == arrayIndex)
         {
             if (i0 > 0 && CompareKVP(kvp1, inputSequence[max(0, index0 - 1)]))
                 window.y = windowIndex - 1; // move window left
-            else if (i1 > 0 && CompareKVP(kvp0, GetKVPWithCheck(max(0, index1 - 1))))
-                window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
+            else if (i1 > 0 && CompareKVP(kvp0, inputSequence[max(0, index1 - 1)]))
+                window.x = windowIndex + (windowIndex == lastIndex0 ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
             else
                 done = true;
         }
@@ -307,7 +310,7 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
 #if DEBUG_NO_INFINITE_LOOP
         if (++nbIter > 2048)
         {
-            key0 = key1 = 0.5f;
+            kvp0.key = kvp1.key = 0.5f;
             break;
         }
 #endif

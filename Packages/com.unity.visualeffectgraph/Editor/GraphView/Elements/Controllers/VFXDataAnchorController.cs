@@ -213,11 +213,11 @@ namespace UnityEditor.VFX.UI
             return controller.CanLink(this, cache);
         }
 
-        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output, bool revertTypeConstraint = false)
         {
             var slotOutput = output != null ? output.model : null;
             var slotInput = model;
-            sourceNode.WillCreateLink(ref slotInput, ref slotOutput);
+            sourceNode.WillCreateLink(ref slotInput, ref slotOutput, revertTypeConstraint);
 
             if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
@@ -642,7 +642,7 @@ namespace UnityEditor.VFX.UI
             get { return base.sourceNode as VFXCascadedOperatorController; }
         }
 
-        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output, bool revertTypeConstraint = false)
         {
             var slotOutput = output != null ? output.model : null;
 
@@ -754,17 +754,19 @@ namespace UnityEditor.VFX.UI
                     m_ValueBuilder.Add(o =>
                     {
                         var newValue = o[o.Count - 1];
-                        var target = o[o.Count - 2];
-
-                        if (newValue != null && field.FieldType != newValue.GetType())
+                        if (newValue != null)
                         {
-                            object convertedValue;
-                            if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out convertedValue))
-                                throw new InvalidOperationException(string.Format("VFXDataAnchorGizmo is failing to convert from {0} to {1}", newValue.GetType(), field.FieldType));
-                            newValue = convertedValue;
-                        }
+                            var target = o[o.Count - 2];
 
-                        field.SetValue(target, newValue);
+                            if (field.FieldType != newValue.GetType())
+                            {
+                                if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out var convertedValue))
+                                    throw new InvalidOperationException($"VFXDataAnchorGizmo is failing to convert from {newValue.GetType()} to {field.FieldType}");
+                                newValue = convertedValue;
+                            }
+
+                            field.SetValue(target, newValue);
+                        }
                     });
                     m_ValueBuilder.Add(o => o.RemoveAt(o.Count - 1));
                 }

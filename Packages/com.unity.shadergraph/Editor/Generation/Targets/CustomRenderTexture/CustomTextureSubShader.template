@@ -119,7 +119,7 @@ Pass
 	// Graph Pixel
 	$splice(GraphPixel)
 
-	float4 frag(v2f_customrendertexture IN) : COLOR
+	float4 frag(v2f_customrendertexture IN) : SV_Target
 	{
 		SurfaceDescriptionInputs surfaceInput = ConvertV2FToSurfaceInputs(IN);
 		SurfaceDescription surface = SurfaceDescriptionFunction(surfaceInput);

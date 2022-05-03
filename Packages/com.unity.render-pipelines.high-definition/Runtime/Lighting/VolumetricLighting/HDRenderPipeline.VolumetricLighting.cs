@@ -704,6 +704,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._VBufferViewportSize = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
             cb._VBufferSliceCount = sliceCount;
+            cb._FogGIDimmer = fog.globalLightProbeDimmer.value;
             cb._VBufferRcpSliceCount = 1.0f / sliceCount;
             cb._VBufferLightingViewportScale = currParams.ComputeViewportScale(s_CurrentVolumetricBufferSize);
             cb._VBufferLightingViewportLimit = currParams.ComputeViewportLimit(s_CurrentVolumetricBufferSize);

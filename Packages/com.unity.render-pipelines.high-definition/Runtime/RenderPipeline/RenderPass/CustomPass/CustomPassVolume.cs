@@ -3,6 +3,11 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Linq;
 using System;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using System.Reflection;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -120,8 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Register(this);
 
 #if UNITY_EDITOR
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
-            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateCustomPassVolumeVisibility;
+            SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
+            SceneVisibilityManager.visibilityChanged += UpdateCustomPassVolumeVisibility;
 #endif
         }
 
@@ -130,17 +135,18 @@ namespace UnityEngine.Rendering.HighDefinition
             UnRegister(this);
             CleanupPasses();
 #if UNITY_EDITOR
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
+            SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
 #endif
         }
 
 #if UNITY_EDITOR
         void UpdateCustomPassVolumeVisibility()
         {
-            visible = !UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject);
+            visible = !SceneVisibilityManager.instance.IsHidden(gameObject);
         }
 
 #endif
+
 
         bool IsVisible(HDCamera hdCamera)
         {
@@ -148,6 +154,25 @@ namespace UnityEngine.Rendering.HighDefinition
             // Scene visibility
             if (hdCamera.camera.cameraType == CameraType.SceneView && !visible)
                 return false;
+
+            // Prefab context mode visibility
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null)
+            {
+                // Check if the current volume is inside the currently edited prefab
+                bool isVolumeInPrefab = gameObject.scene == stage.scene;
+
+                if (!isVolumeInPrefab && stage.mode == PrefabStage.Mode.InIsolation)
+                    return false;
+
+                if (!isVolumeInPrefab)
+                {
+                    // Prefab context is hidden and the current volume is outside of the prefab so we don't render the effects
+                    if (CoreUtils.IsSceneViewPrefabStageContextHidden())
+                        return false;
+                }
+            }
+
 #endif
 
             if (useTargetCamera)

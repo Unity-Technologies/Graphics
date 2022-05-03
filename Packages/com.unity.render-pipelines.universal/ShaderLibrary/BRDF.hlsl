@@ -108,7 +108,6 @@ inline void InitializeBRDFData(inout SurfaceData surfaceData, out BRDFData brdfD
 half3 ConvertF0ForClearCoat15(half3 f0)
 {
     return ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(f0);
-    //return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
 }
 
 inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)

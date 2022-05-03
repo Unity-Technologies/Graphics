@@ -1,6 +1,10 @@
 #ifndef UNITY_SPHERICAL_HARMONICS_INCLUDED
 #define UNITY_SPHERICAL_HARMONICS_INCLUDED
 
+#ifdef UNITY_COLORSPACE_GAMMA
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#endif
+
 // SH Basis coefs
 #define kSHBasis0  0.28209479177387814347f // {0, 0} : 1/2 * sqrt(1/Pi)
 #define kSHBasis1  0.48860251190291992159f // {1, 0} : 1/2 * sqrt(3/Pi)

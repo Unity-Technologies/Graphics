@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -64,7 +65,45 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField(Styles.generalData.text, EditorStyles.boldLabel);
             {
-                EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    bool showCopy = m_LensFlareData.objectReferenceValue != null;
+                    int buttonWidth = showCopy ? 45 : 60;
+
+                    EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
+                    if (GUILayout.Button(Styles.newButton, showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton, GUILayout.Width(buttonWidth)))
+                    {
+                        // By default, try to put assets in a folder next to the currently active
+                        // scene file. If the user isn't a scene, put them in root instead.
+                        var actualTarget = target as LensFlareComponentSRP;
+                        var targetName = actualTarget.name + " Lens Flare (SRP)";
+                        var scene = actualTarget.gameObject.scene;
+                        var asset = LensFlareEditorUtils.CreateLensFlareDataSRPAsset(scene, targetName);
+                        m_LensFlareData.objectReferenceValue = asset;
+                    }
+                    if (showCopy && GUILayout.Button(Styles.cloneButton, EditorStyles.miniButtonRight, GUILayout.Width(buttonWidth)))
+                    {
+                        // Duplicate the currently assigned profile and save it as a new profile
+                        var origin = m_LensFlareData.objectReferenceValue;
+                        var path = AssetDatabase.GetAssetPath(m_LensFlareData.objectReferenceValue);
+
+                        path = CoreEditorUtils.IsAssetInReadOnlyPackage(path)
+
+                            // We may be in a read only package, in that case we need to clone the volume profile in an
+                            // editable area, such as the root of the project.
+                            ? AssetDatabase.GenerateUniqueAssetPath(Path.Combine("Assets", Path.GetFileName(path)))
+
+                            // Otherwise, duplicate next to original asset.
+                            : AssetDatabase.GenerateUniqueAssetPath(path);
+
+                        var asset = Instantiate(origin);
+                        AssetDatabase.CreateAsset(asset, path);
+                        AssetDatabase.SaveAssets();
+                        AssetDatabase.Refresh();
+
+                        m_LensFlareData.objectReferenceValue = asset;
+                    }
+                }
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
                 EditorGUILayout.PropertyField(m_Scale, Styles.scale);
                 if (!lightIsDirLight)
@@ -106,6 +145,8 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent occlusionData = EditorGUIUtility.TrTextContent("Occlusion");
 
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Specifies the SRP Lens Flare Data asset this component uses.");
+            static public readonly GUIContent newButton = EditorGUIUtility.TrTextContent("New", "Create a new SRP Lens Flare Data asset.");
+            static public readonly GUIContent cloneButton = EditorGUIUtility.TrTextContent("Clone", "Create a new SRP Lens Flare Data asset and copy the content of the currently assigned data.");
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the lens flare.");
             static public readonly GUIContent scale = EditorGUIUtility.TrTextContent("Scale", "Sets the scale of the lens flare.");
             static public readonly GUIContent maxAttenuationDistance = EditorGUIUtility.TrTextContent("Attenuation Distance", "Sets the distance, in meters, between the start and the end of the Distance Attenuation Curve.");

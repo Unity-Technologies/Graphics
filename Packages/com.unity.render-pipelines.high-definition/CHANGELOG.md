@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
 - Added an optional CPU simulation for the water system.
 - Added new Unity material ball matching the new Unity logo.
+- Adding injection points options for DLSS (After Depth of Field and After Post) which should mitigate some of the performance cost in post process.
 
 ### Changed
 - Moved custom Sensor Lidar path tracing code to the SensorSDK package.

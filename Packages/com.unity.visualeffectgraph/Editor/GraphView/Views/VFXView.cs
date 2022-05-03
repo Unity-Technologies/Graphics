@@ -8,7 +8,6 @@ using System.Reflection;
 
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.Graphing.Util;
 using UnityEditor.Toolbars;
 using UnityEditor.VersionControl;
 
@@ -1204,6 +1203,12 @@ namespace UnityEditor.VFX.UI
             }
 
             UpdateVCSState();
+            // When we get the focus by clicking on a selected node we should update the editor selection
+            // Otherwise (when we clicked in the void) don't discard the current selection (keep the selected GO for instance)
+            if (selection.Any(x => x.HitTest(m_pastCenter)))
+            {
+                UpdateGlobalSelection();
+            }
 
             m_LockedElement.PlaceInFront(contentViewContainer);
         }
@@ -2132,14 +2137,54 @@ namespace UnityEditor.VFX.UI
         public override void ClearSelection()
         {
             base.ClearSelection();
-            Selection.objects = controller != null && controller.model != null
-                ? new[] { controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset }
-                : null;
+
+            // Wait for next frame to see if anything has been selected.
+            // If not, it means we clicked in the void and then we can select the VFX asser
+            EditorApplication.delayCall += SelectAssetInInspector;
         }
 
-        public void ClearSelectionOnly()
+        private void SelectAssetInInspector()
         {
-            base.ClearSelection();
+            var inspector = EditorWindow.HasOpenInstances<InspectorWindow>() ? EditorWindow.GetWindow<InspectorWindow>(null, false) : null;
+
+            if (inspector == null)
+            {
+                return;
+            }
+
+            var inspectorObject = inspector.GetInspectedObject();
+
+            if (inspectorObject is VFXObject && selection.Count == 0)
+            {
+                var assetToSelect = controller != null && controller.model != null
+                    ? controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset
+                    : null;
+                var assetToSelectPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(assetToSelect)).Replace('\\', '/');
+
+                // This is to select the current VFX asset in the inspector.
+                // But, we temporary lock the project window during the selection so that the project browser don't change directory
+                var projectBrowser = EditorWindow.HasOpenInstances<ProjectBrowser>() ? EditorWindow.GetWindow<ProjectBrowser>(null, false) : null;
+                if (projectBrowser != null && !projectBrowser.isLocked && assetToSelectPath != projectBrowser.GetActiveFolderPath())
+                {
+                    projectBrowser.isLocked = true;
+                    EditorApplication.delayCall += () => UnlockProjectBrowser(inspector, projectBrowser, 4);
+                }
+
+                Selection.activeObject = assetToSelect;
+            }
+        }
+
+        private void UnlockProjectBrowser(InspectorWindow inspector, ProjectBrowser projectBrowser, int maximumRetries)
+        {
+            if (inspector.GetInspectedObject() == Selection.activeObject)
+            {
+                projectBrowser.isLocked = false;
+                projectBrowser.Repaint();
+            }
+            else if (maximumRetries-- > 1)
+            {
+                EditorApplication.delayCall += () => UnlockProjectBrowser(inspector, projectBrowser, maximumRetries);
+            }
         }
 
         VFXBlackboard m_Blackboard;
@@ -2512,7 +2557,8 @@ namespace UnityEditor.VFX.UI
 
             foreach (var outputPort in newNodeController.outputPorts)
             {
-                if (controller.CreateLink(edge.input, outputPort))
+                // Revert type constraint so that the edge input type is preserved
+                if (controller.CreateLink(edge.input, outputPort, revertTypeConstraint: true))
                     break;
             }
             foreach (var inputPort in newNodeController.inputPorts)

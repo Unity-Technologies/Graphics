@@ -18,7 +18,7 @@ using UnityEngine.Rendering.VirtualTexturing;
 #endif
 
 // Resove the ambiguity in the RendererList name (pick the in-engine version)
-using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererList = UnityEngine.Rendering.RendererList;
 using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 
@@ -246,8 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool m_IsDepthBufferCopyValid;
 
-        private CameraCache<(Transform viewer, HDProbe probe, CubemapFace face)> m_ProbeCameraCache = new
-            CameraCache<(Transform viewer, HDProbe probe, CubemapFace face)>();
+        private ProbeCameraCache<(Transform viewer, HDProbe probe, CubemapFace face)> m_ProbeCameraCache = new
+            ProbeCameraCache<(Transform viewer, HDProbe probe, CubemapFace face)>();
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
@@ -613,7 +613,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ,
                 autoDefaultReflectionProbeBaking = false
                 ,
+                #pragma warning disable 618
                 enlightenLightmapper = false
+                #pragma warning restore 618
                 ,
                 rendersUIOverlay = true
             };
@@ -736,20 +738,20 @@ namespace UnityEngine.Rendering.HighDefinition
         void DisposeProbeCameraPool()
         {
 #if UNITY_EDITOR
-                // Special case here: when the HDRP asset is modified in the Editor,
-                //   it is disposed during an `OnValidate` call.
-                //   But during `OnValidate` call, game object must not be destroyed.
-                //   So, only when this method was called during an `OnValidate` call, the destruction of the
-                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtils.Destroy`
-                var isInOnValidate = false;
-                isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
-                if (isInOnValidate)
-                {
-                    var pool = m_ProbeCameraCache;
-                    UnityEditor.EditorApplication.delayCall += () => pool.Dispose();
-                    m_ProbeCameraCache = null;
-                }
-                else
+            // Special case here: when the HDRP asset is modified in the Editor,
+            //   it is disposed during an `OnValidate` call.
+            //   But during `OnValidate` call, game object must not be destroyed.
+            //   So, only when this method was called during an `OnValidate` call, the destruction of the
+            //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtils.Destroy`
+            var isInOnValidate = false;
+            isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
+            if (isInOnValidate)
+            {
+                var pool = m_ProbeCameraCache;
+                UnityEditor.EditorApplication.delayCall += () => pool.Dispose();
+                m_ProbeCameraCache = null;
+            }
+            else
 #endif
             {
                 m_ProbeCameraCache.Dispose();
@@ -1528,30 +1530,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: store DecalCullResult
                 };
 
+                if (face != CubemapFace.Unknown)
+                {
+                    request.target = new RenderRequest.Target
+                    {
+                        id = visibleProbe.realtimeTextureRTH,
+                        face = face
+                    };
+                }
+                else
+                {
+                    request.target = new RenderRequest.Target
+                    {
+                        id = visibleProbe.realtimeTextureRTH,
+                        targetDepth = visibleProbe.realtimeDepthTextureRTH,
+                        face = CubemapFace.Unknown
+                    };
+                }
+
                 // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
                 // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
                 // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
-                if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
-                {
-                    if (face != CubemapFace.Unknown)
-                    {
-                        request.target = new RenderRequest.Target
-                        {
-                            id = visibleProbe.realtimeTextureRTH,
-                            face = face
-                        };
-                    }
-                    else
-                    {
-                        request.target = new RenderRequest.Target
-                        {
-                            id = visibleProbe.realtimeTextureRTH,
-                            targetDepth = visibleProbe.realtimeDepthTextureRTH,
-                            face = CubemapFace.Unknown
-                        };
-                    }
-                }
-                else
+                if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
                 {
                     skippedRenderSteps |= ProbeRenderStepsExt.FromCubeFace(face);
                 }
@@ -1781,7 +1781,7 @@ namespace UnityEngine.Rendering.HighDefinition
             BeginFrameRendering(renderContext, cameras);
 #endif
 
-            // Check if we can speed up FrameSettings process by skiping history
+            // Check if we can speed up FrameSettings process by skipping history
             // or go in detail if debug is activated. Done once for all renderer.
             m_FrameSettingsHistoryEnabled = FrameSettingsHistory.enabled;
 
@@ -1801,6 +1801,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (newCount != m_FrameCount)
             {
                 m_FrameCount = newCount;
+                m_ProbeCameraCache.ReleaseCamerasUnusedFor(2, Time.frameCount);
                 HDCamera.CleanUnused();
 
             }
@@ -2432,7 +2433,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref HDCullingResults cullingResults
         )
         {
-            if (camera.cameraType == CameraType.Reflection)
+            if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
             {
 #if UNITY_2020_2_OR_NEWER
                 ScriptableRenderContext.EmitGeometryForCamera(camera);
@@ -2660,6 +2661,9 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderWireFrame)))
             {
                 CoreUtils.SetRenderTarget(cmd, backbuffer, ClearFlag.Color, GetColorBufferClearColor(hdCamera));
+
+                // Pass that renders the water surfaces as a wireframe (if water is enabled)
+                RenderWaterAsWireFrame(cmd, hdCamera);
 
                 var rendererListOpaque = renderContext.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames));
                 DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);

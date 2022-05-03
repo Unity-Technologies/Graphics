@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_LeakReductionMode;
         SerializedDataParameter m_MinValidDotProdValue;
         SerializedDataParameter m_AnimateNoise;
+        SerializedDataParameter m_OcclusionOnlyNormalization;
 
         public override void OnEnable()
         {
@@ -25,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LeakReductionMode = Unpack(o.Find(x => x.leakReductionMode));
             m_MinValidDotProdValue = Unpack(o.Find(x => x.minValidDotProductValue));
             m_AnimateNoise = Unpack(o.Find(x => x.animateSamplingNoise));
+            m_OcclusionOnlyNormalization = Unpack(o.Find(x => x.occlusionOnlyReflectionNormalization));
 
             base.OnEnable();
         }
@@ -39,6 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_LeakReductionMode);
             if (m_LeakReductionMode.value.intValue != 0)
                 PropertyField(m_MinValidDotProdValue);
+
+            PropertyField(m_OcclusionOnlyNormalization);
+
         }
     }
 }

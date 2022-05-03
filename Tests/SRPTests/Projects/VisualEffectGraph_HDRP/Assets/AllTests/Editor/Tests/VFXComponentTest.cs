@@ -116,6 +116,8 @@ namespace UnityEditor.VFX.Test
             Time.captureFramerate = 10;
             UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
             UnityEngine.VFX.VFXManager.maxDeltaTime = 0.1f;
+
+            ShaderUtil.allowAsyncCompilation = false;
         }
 
         [OneTimeTearDown]
@@ -142,6 +144,8 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_A);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_B);
             VFXTestCommon.DeleteAllTemporaryGraph();
+
+            ShaderUtil.allowAsyncCompilation = true;
         }
 
         VFXGraph CreateGraph_And_System()
@@ -170,22 +174,81 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
-        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(string name)
+        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(IEnumerable<string> names)
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var graphicsBufferDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("graphicsbuffer")).FirstOrDefault();
             Assert.IsNotNull(graphicsBufferDesc);
+            foreach (var targetGraphicsBuffer in names)
+            {
+                var parameter = graphicsBufferDesc.CreateInstance();
+                parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
+                parameter.SetSettingValue("m_Exposed", true);
+                graph.AddChild(parameter);
+            }
 
-            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
-
-            var parameter = graphicsBufferDesc.CreateInstance();
-            parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
-            parameter.SetSettingValue("m_Exposed", true);
-            graph.AddChild(parameter);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-
             return graph;
+        }
+
+        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(string name)
+        {
+            return CreateTemporaryGraph_With_GraphicsBuffer(new []{ name });
+        }
+
+        //Case 1406873, Vector4 & Color are bound to the same HLSL type
+        [UnityTest]
+        public IEnumerator CreateGraph_With_GraphicsBuffer_Using_SampleFloat4_And_Color()
+        {
+            var graphicsBuffers = new(string name, Type type)[] {("Buffer_A", typeof(Color)), ("Buffer_B", typeof(Vector4))};
+            var graph = CreateTemporaryGraph_With_GraphicsBuffer(graphicsBuffers.Select(o => o.name));
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.LinkFrom(contextInitialize);
+            graph.AddChild(output);
+
+            foreach (var graphicsBuffer in graphicsBuffers)
+            {
+                var sampleBuffer = ScriptableObject.CreateInstance<UnityEditor.VFX.Operator.SampleBuffer>();
+                sampleBuffer.SetOperandType(graphicsBuffer.type);
+                graph.AddChild(sampleBuffer);
+
+                var param = graph.children.OfType<VFXParameter>().FirstOrDefault(o => o.exposedName == graphicsBuffer.name);
+                Assert.IsNotNull(param);
+                Assert.IsTrue(sampleBuffer.inputSlots[0].Link(param.outputSlots[0]));
+
+                var block = VFXLibrary.GetBlocks().FirstOrDefault(o =>
+                     o.model is UnityEditor.VFX.Block.SetAttribute setAttr
+                     && setAttr.attribute.Contains("color"));
+                Assert.IsNotNull(block);
+
+                var addAttribute = block.CreateInstance();
+                addAttribute.SetSettingValue("Composition", UnityEditor.VFX.Block.AttributeCompositionMode.Add);
+                contextInitialize.AddChild(addAttribute);
+                Assert.IsTrue(sampleBuffer.outputSlots[0].Link(addAttribute.inputSlots[0]));
+            }
+
+            var assetPath = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.ImportAsset(assetPath);
+
+            for (uint i = 0; i < 8; i++)
+                yield return null;
+
+            //Check compilation error
+            var allSubAsset = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            var computeInitialize = allSubAsset.OfType<ComputeShader>().FirstOrDefault(o => o.name.Contains("Initialize"));
+            Assert.IsNotNull(computeInitialize);
+            Assert.AreNotEqual(computeInitialize.FindKernel("CSMain"), -1);
+
+            yield return null;
         }
 
         // Deactivated test by now as GetGraphicsBuffer is not public
@@ -1321,7 +1384,7 @@ namespace UnityEditor.VFX.Test
             if (!type.IsValueType)
                 return true;
             if (Nullable.GetUnderlyingType(type) != null)
-                return true; 
+                return true;
             return false;
         }
 

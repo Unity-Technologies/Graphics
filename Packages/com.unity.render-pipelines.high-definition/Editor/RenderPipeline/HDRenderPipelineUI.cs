@@ -548,6 +548,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
 
+                    int injectionPointVal = EditorGUILayout.IntPopup(Styles.DLSSInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue, Styles.DLSSInjectionPointNames, Styles.DLSSInjectionPointValues);
+                    serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue = injectionPointVal;
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
 
                     using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue))
@@ -632,7 +634,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.BeginChangeCheck();
                     maxPercentage = EditorGUILayout.DelayedFloatField(HDRenderPipelineUI.Styles.maxPercentage, maxPercentage);
                     if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, 0.0f, 100.0f);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, minPercentage, 100.0f);
 
                     EditorGUI.showMixedValue = false;
                 }

@@ -115,6 +115,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, m_DeferredLights.UseRenderingLayers);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -144,11 +146,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
-
-                // If any sub-system needs camera normal texture, make it available.
-                // Input attachments will only be used when this is not needed so safe to skip in that case
-                if (!m_DeferredLights.UseRenderPass)
-                    cmd.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex]);
             }
         }
     }

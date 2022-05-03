@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- All pre-built URP shaders and URP Shader Graph shaders now support the Mesh LOD cross-fade. Use the UniversalRenderPipelineAsset.lodCrossFadeDitheringType property to select the type of the cross-fade.
+
+### Fixed
+- Fixed spot light distance attenuation artefact on some platforms due to fp16 precision issue.
+
+
 ## [14.0.2] - 2021-02-04
 
 ### Added
@@ -26,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue in where a user could stack cameras with different renderers and not get a warning in the editor (this is not supported).
 - Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
 - Fixed ScreenSpaceShadows target which was not bound during draw. [case 1388353](https://issuetracker.unity3d.com/product/unity/issues/guid/1388353/)
+- Use D24_UNorm_S8_UInt depth buffer format on some platforms to improve performance.
 
 ## [14.0.1] - 2021-12-07
 

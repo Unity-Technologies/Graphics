@@ -305,6 +305,17 @@ namespace UnityEditor.VFX
 
         public void WriteBufferTypeDeclaration(IEnumerable<Type> types)
         {
+            types = types.Select(type =>
+            {
+                if (IsBufferBuiltinType(type))
+                {
+                    //Resolve type which are conflicting behind the same VFXValueType (Vector4 & Color for instance)
+                    var valueType = VFXExpression.GetVFXValueTypeFromType(type);
+                    type = VFXExpression.TypeToType(valueType);
+                }
+                return type;
+            }).Distinct();
+
             var alreadyGeneratedStructure = new HashSet<Type>();
             foreach (var type in types)
                 WriteBufferTypeDeclaration(type, alreadyGeneratedStructure);

@@ -7,7 +7,7 @@ The High Definition Render Pipeline (HDRP) allows you to use up to 15 custom [Di
 To add a **Diffusion Profile Override** to a Volume:
 
 1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector
-2. In the Inspector, navigate to **Add Override** and click on **Diffusion Profile Override**.
+2. In the Inspector, go to **Add Override** and select **Diffusion Profile Override**.
 
 [!include[](snippets/volume-override-api.md)]
 
@@ -20,14 +20,16 @@ To add a **Diffusion Profile Override** to a Volume:
 | **Property**                               | **Description**                                              |
 | ------------------------------------------ | ------------------------------------------------------------ |
 | **Diffusion Profile List**                 | Assign a Diffusion Profile to each field to create a list of Diffusion Profiles that Materials in this Volume can use. Click the plus icon to add another field. To remove a Diffusion Profile from the list, select it in the list and click the minus icon. |
-| **Fill Profile List With Scene Materials** | Click this button to remove every Diffusion Profile in the **Diffusion Profile List** and then re-populate the list with Diffusion Profiles that Materials within the bounds of this local Volume use. Note that this doesn't work with Materials that use a ShaderGraph Shader.<br/>This property is only available when you select **Local** from the **Mode** drop-down in the Volume component. Add a Collider to this GameObject to set the bounds of the Volume. |
+| **Fill Profile List With Scene Materials** | Select this to remove every Diffusion Profile in the **Diffusion Profile List** and then re-populate the list with Diffusion Profiles that Materials within the bounds of this local Volume use. <br/>**Note**: This doesn't work with Materials that use a Shader Graph Shader.<br/><br/>This property is only available when you select **Local** from the **Mode** drop-down in the Volume component. Add a Collider to this GameObject to set the bounds of the Volume. |
 
 ## Details
 
-If a Material references a Diffusion Profile that isn't in the list of available Diffusion Profiles, that Material uses the default Diffusion Profile, which has a green tint.
+If a Material references a Diffusion Profile that's not in the list of available Diffusion Profiles, that Material uses the default Diffusion Profile, which has a green tint.
 
 
-If the Volume with the Diffusion Profile Override is local, the **Fill Profiles With Scene Materials** button appears. Click this button to fetch the Diffusion Profiles from Materials inside the Volume's bounds and fill the **Diffusion Profile List** with them. Note that this doesn't work with Materials that use a ShaderGraph Shader.
+If the Volume with the Diffusion Profile Override is local, the **Fill Profiles With Scene Materials** button appears. Select to fetch the Diffusion Profiles from Materials inside the Volume's bounds and fill the **Diffusion Profile List** with them.
+
+**Note**: This doesn't work with Materials that use a Shader Graph Shader.
 
 If multiple Volumes overlap and affect the Camera simultaneously, HDRP interpolates between multiple values for the same Volume override property to handle overlapping values. However, interpolating a final value for the **Diffusion Profile List** isn't possible. Instead, HDRP selects the **Diffusion Profile List** from the Volume with the highest **Priority**.
 

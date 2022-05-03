@@ -41,6 +41,6 @@ namespace UnityEngine.Rendering
         public Vector4 _LeakReductionParams;
         public Vector4 _Weight_MinLoadedCell;
         public Vector4 _MaxLoadedCell_FrameIndex;
-
+        public Vector4 _NormalizationClamp_Padding12;
     }
 }

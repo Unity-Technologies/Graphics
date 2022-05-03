@@ -32,6 +32,11 @@
             "define": "HYBRID_0_6_0_OR_NEWER"
         },
         {
+            "name": "com.unity.entities.graphics",
+            "expression": "0.6.0-preview.0",
+            "define": "HYBRID_0_6_0_OR_NEWER"
+        },
+        {
             "name": "com.unity.modules.nvidia",
             "expression": "1.0.0",
             "define": "ENABLE_NVIDIA_MODULE"

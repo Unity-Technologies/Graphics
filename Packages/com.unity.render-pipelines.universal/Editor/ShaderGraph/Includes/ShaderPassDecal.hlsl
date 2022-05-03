@@ -36,6 +36,10 @@
 #define DECAL_LOAD_NORMAL
 #endif
 
+#ifdef _DECAL_LAYERS
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareRenderingLayerTexture.hlsl"
+#endif
+
 #if defined(DECAL_LOAD_NORMAL)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 #endif
@@ -179,6 +183,19 @@ void Frag(PackedVaryings packedInput,
 
     half angleFadeFactor = 1.0;
 
+#ifdef _DECAL_LAYERS
+#ifdef _RENDER_PASS_ENABLED
+    uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy).r);
+#else
+    uint surfaceRenderingLayer = LoadSceneRenderingLayer(input.positionCS.xy);
+#endif
+    uint projectorRenderingLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal));
+    // This is simple trick to clip if there is no matching layers
+    // Part (surfaceRenderingLayer & projectorRenderingLayer) will produce 0, 1, 2 ...
+    // Finally we subtract with small value to remmap only zero to negative value
+    clip((surfaceRenderingLayer & projectorRenderingLayer) - 0.1);
+#endif
+
 #if defined(DECAL_PROJECTOR)
 #if UNITY_REVERSED_Z
 #if _RENDER_PASS_ENABLED
@@ -266,7 +283,7 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     DecalSurfaceData surfaceData;
-    GetSurfaceData(input, viewDirectionWS, (uint2)positionSS, angleFadeFactor, surfaceData);
+    GetSurfaceData(input, viewDirectionWS, input.positionCS, angleFadeFactor, surfaceData);
 
 #if defined(DECAL_DBUFFER)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);

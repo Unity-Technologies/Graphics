@@ -30,7 +30,13 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET
+void frag(
+    PackedVaryings packedInput
+    , out half4 outColor : SV_Target0
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
+#endif
+)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -44,6 +50,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         half alpha = surfaceDescription.Alpha;
     #else
         half alpha = half(1.0);
+    #endif
+
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(unpacked.positionCS);
     #endif
 
 #if defined(_ALPHAMODULATE_ON)
@@ -61,5 +71,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
 
-    return finalColor;
+    outColor = finalColor;
+
+#ifdef _WRITE_RENDERING_LAYERS
+    uint renderingLayers = GetMeshRenderingLayer();
+    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+#endif
 }

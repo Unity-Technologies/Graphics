@@ -139,6 +139,7 @@ namespace UnityEditor.VFX.UI
             public string[] enumValue;
             public string tooltip;
             public bool isOutput;
+            public VFXCoordinateSpace space;
             public ParameterNode[] nodes;
         }
 

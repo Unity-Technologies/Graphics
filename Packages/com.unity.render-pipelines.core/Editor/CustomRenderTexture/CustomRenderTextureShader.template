@@ -23,7 +23,7 @@ Shader "CustomRenderTexture/#NAME#"
             float4      _Color;
             sampler2D   _MainTex;
 
-            float4 frag(v2f_customrendertexture IN) : COLOR
+            float4 frag(v2f_customrendertexture IN) : SV_Target
             {
                 float2 uv = IN.localTexcoord.xy;
                 float4 color = tex2D(_MainTex, uv) * _Color;

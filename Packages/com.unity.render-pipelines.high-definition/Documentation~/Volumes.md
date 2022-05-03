@@ -1,16 +1,16 @@
 # Volumes
 
-The High Definition Render Pipeline (HDRP) uses a Volume framework. Each Volume can either be global or have local boundaries. They each contain Scene setting property values that HDRP interpolates between, depending on the position of the Camera, in order to calculate a final value. For example, you can use local Volumes to change environment settings, such as fog color and density, to alter the mood of different areas of your Scene.
+The High Definition Render Pipeline (HDRP) uses a Volume framework. Each Volume can either be global or have local boundaries. They each contain Scene setting property values that HDRP interpolates between, depending on the position of the Camera, to calculate a final value. For example, you can use local Volumes to change environment settings, such as fog color and density, to alter the mood of different areas of your Scene.
 
-You can add a __Volume__ component to any GameObject, including a Camera, although it is good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data and instead references a [Volume Profile](Volume-Profile.md) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume overrides](Volume-Components.md), which are structures containing overrides for the default values, to the Volume Profile.
+You can add a __Volume__ component to any GameObject, including a Camera, although it's good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data and instead references a [Volume Profile](Volume-Profile.md) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume overrides](Volume-Components.md), which are structures containing overrides for the default values, to the Volume Profile.
 
-A Scene can contain many Volumes so each Volume contains properties that control how it interacts with others in the Scene. **Global** Volumes affect the Camera wherever the Camera is in the Scene and **Local** Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.
+A Scene can contain several Volumes so each Volume contains properties that control how it interacts with others in the Scene. **Global** Volumes affect the Camera wherever the Camera is in the Scene and **Local** Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.
 
-At runtime, HDRP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in every Volume override.
+At runtime, HDRP looks at all the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in every Volume override.
 
 Volumes can contain different combinations of Volume overrides. For example, one Volume may hold a Physically Based Sky Volume override while other Volumes hold an Exponential Fog Volume override.
 
-Note that, for Volumes with the same priority, there is no guarantee on the order in which HDRP evaluates them. This means that, depending on creation order, a global Volume can take precedence over a local Volume. The result is that a Camera can go within the bounds of a local Volume but still exclusively use the Volume Override properties from a global Volume in the Scene.
+**Note**: For Volumes with the same priority, there is no guarantee on the order in which HDRP evaluates them. This means that, depending on creation order, a global Volume can take precedence over a local Volume. The result is that a Camera can go within the bounds of a local Volume but still exclusively use the Volume Override properties from a global Volume in the Scene.
 
 ## Properties
 
@@ -30,4 +30,10 @@ The __Profile__ field stores a [Volume Profile](Volume-Profile.md), which is an 
 
 ## Configuring a local Volume
 
-If your select **Local** from the **Mode** drop-down on your Volume, you must attach a Trigger Collider to the GameObject to define its boundaries. Click the Volume to open it in the Inspector and then select __Add Component > Physics > Box Collider__. To define the boundary of the Volume, adjust the __Size__ field of the Box Collider, and the __Scale__ field of the Transform.  You can use any type of 3D collider, from simple Box Colliders to more complex convex Mesh Colliders. However, for performance reasons, you should use simple colliders because traversing Mesh Colliders with many vertices is resource intensive. Local volumes also have a __Blend Distance__ that represents the outer distance from the Collider surface where HDRP begins to blend the settings for that Volume with the others affecting the Camera.
+If you select **Local** from the **Mode** drop-down on your Volume, you must attach a Trigger Collider to the GameObject to define its boundaries:
+
+1. Select the Volume to open it in the Inspector.
+2. Got to **Add Component** > **Physics** > **Box Collider**.
+3. To define the boundary of the Volume, adjust the __Size__ field of the Box Collider, and the __Scale__ field of the Transform.
+
+You can use any type of 3D Collider, from simple Box Colliders to more complex convex Mesh Colliders. However, for performance reasons, use simple colliders because traversing Mesh Colliders with many vertices is resource intensive. Local volumes also have a __Blend Distance__ that represents the outer distance from the Collider surface where HDRP begins to blend the settings for that Volume with the others affecting the Camera.

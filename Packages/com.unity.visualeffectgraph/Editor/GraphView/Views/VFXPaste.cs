@@ -78,9 +78,15 @@ namespace UnityEditor.VFX.UI
 
         public static bool CanPaste(VFXView view, object data)
         {
+            var content = data?.ToString();
+            if (string.IsNullOrEmpty(content))
+            {
+                return false;
+            }
+
             try
             {
-                var serializableGraph = JsonUtility.FromJson<SerializableGraph>(data.ToString());
+                var serializableGraph = JsonUtility.FromJson<SerializableGraph>(content);
 
                 if (view.controller.model.isSubgraph)
                 {
@@ -233,11 +239,11 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteContexts(viewController, center, ref serializableGraph);
+                PasteContexts(viewController, center, serializableGraph);
             }
 
-            PasteOperators(viewController, center, ref serializableGraph);
-            PasteParameters(viewController, ref serializableGraph, center);
+            PasteOperators(viewController, center, serializableGraph);
+            PasteParameters(viewController, serializableGraph, center);
 
             // Create controllers for all new nodes
             viewController.LightApplyChanges();
@@ -245,19 +251,19 @@ namespace UnityEditor.VFX.UI
             // Register all nodes for usage in groupNodes and edges
             RegisterContexts(viewController);
             RegisterOperators(viewController);
-            RegisterParameterNodes(viewController);
+            RegisterParameterNodes(viewController, serializableGraph);
 
             VFXUI ui = viewController.graph.UIInfos;
             firstCopiedGroup = -1;
             firstCopiedStickyNote = ui.stickyNoteInfos != null ? ui.stickyNoteInfos.Length : 0;
 
             //Paste Everything else
-            PasteGroupNodes(ref serializableGraph, center, ui);
-            PasteStickyNotes(ref serializableGraph, center, ui);
+            PasteGroupNodes(serializableGraph, center, ui);
+            PasteStickyNotes(serializableGraph, center, ui);
 
-            PasteDatas(ref serializableGraph); // TODO Data settings should be pasted at context creation. This can lead to issues as blocks are added before data is initialized
-            PasteDataEdges(ref serializableGraph);
-            PasteFlowEdges(ref serializableGraph);
+            PasteDatas(serializableGraph); // TODO Data settings should be pasted at context creation. This can lead to issues as blocks are added before data is initialized
+            PasteDataEdges(serializableGraph);
+            PasteFlowEdges(serializableGraph);
 
             // Create all ui based on model
             viewController.LightApplyChanges();
@@ -274,7 +280,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void PasteDataEdges(ref SerializableGraph serializableGraph)
+        void PasteDataEdges(SerializableGraph serializableGraph)
         {
             if (serializableGraph.dataEdges != null)
             {
@@ -560,7 +566,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteGroupNodes(ref SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
+        private void PasteGroupNodes(SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
         {
             if (serializableGraph.groupNodes != null && serializableGraph.groupNodes.Length > 0)
             {
@@ -586,11 +592,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void RegisterParameterNodes(VFXViewController viewController)
+        private void RegisterParameterNodes(VFXViewController viewController, SerializableGraph serializableGraph)
         {
             for (int i = 0; i < newParameters.Count; ++i)
             {
-                viewController.GetParameterController(newParameters[i].Key).ApplyChanges();
+                var parameterController = viewController.GetParameterController(newParameters[i].Key);
+                parameterController.ApplyChanges();
+                parameterController.space = serializableGraph.parameters[i].space;
 
                 for (int j = 0; j < newParameters[i].Value.Count; j++)
                 {
@@ -631,7 +639,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteStickyNotes(ref SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
+        private void PasteStickyNotes(SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
         {
             if (serializableGraph.stickyNotes != null && serializableGraph.stickyNotes.Length > 0)
             {
@@ -652,7 +660,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteDatas(ref SerializableGraph serializableGraph)
+        private void PasteDatas(SerializableGraph serializableGraph)
         {
             for (int i = 0; i < newContexts.Count; ++i)
             {
@@ -683,7 +691,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteFlowEdges(ref SerializableGraph serializableGraph)
+        private void PasteFlowEdges(SerializableGraph serializableGraph)
         {
             if (serializableGraph.flowEdges != null)
             {
@@ -698,7 +706,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteContexts(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph)
+        private void PasteContexts(VFXViewController viewController, Vector2 center, SerializableGraph serializableGraph)
         {
             if (serializableGraph.contexts != null)
             {
@@ -711,7 +719,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteOperators(VFXViewController viewController, Vector2 center, ref SerializableGraph serializableGraph)
+        private void PasteOperators(VFXViewController viewController, Vector2 center, SerializableGraph serializableGraph)
         {
             newOperators.Clear();
             if (serializableGraph.operators != null)
@@ -726,7 +734,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteParameters(VFXViewController viewController, ref SerializableGraph serializableGraph, Vector2 center)
+        private void PasteParameters(VFXViewController viewController, SerializableGraph serializableGraph, Vector2 center)
         {
             newParameters.Clear();
 

@@ -175,7 +175,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
   - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
   - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).
   - MSAA.
-  - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+  - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
   - [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
 
 ### Unsupported shader graph nodes for path tracing

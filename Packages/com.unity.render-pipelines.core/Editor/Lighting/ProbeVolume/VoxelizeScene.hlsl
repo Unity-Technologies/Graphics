@@ -74,7 +74,7 @@ void ConservativeGeom(triangle VertexToGeometry inputVertex[3], inout TriangleSt
     }
 }
 
-float4 ConservativeFrag(GeometryToFragment i) : COLOR
+float4 ConservativeFrag(GeometryToFragment i) : SV_Target
 {
     if (i.cellPos01.x < i.minMaxX.x || i.cellPos01.x > i.minMaxX.y)
         return 0;
@@ -155,7 +155,7 @@ TerrainVertexToFragment TerrainVert(uint vertexID : SV_VERTEXID, uint instanceID
     return o;
 }
 
-float4 TerrainFrag(TerrainVertexToFragment i) : COLOR
+float4 TerrainFrag(TerrainVertexToFragment i) : SV_Target
 {
     if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
         return 0;
@@ -207,7 +207,7 @@ VertexToFragment MeshVert(float4 vertex : POSITION)
     return o;
 }
 
-float4 MeshFrag(VertexToFragment i) : COLOR
+float4 MeshFrag(VertexToFragment i) : SV_Target
 {
     if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
         return 0;

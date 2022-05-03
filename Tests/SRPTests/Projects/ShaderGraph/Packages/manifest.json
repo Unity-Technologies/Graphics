@@ -1,10 +1,10 @@
 {
   "dependencies": {
     "com.unity.ide.vscode": "1.1.3",
-    "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
-    "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
-    "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
+    "com.unity.render-pipelines.core": "file:../../../../../Packages/com.unity.render-pipelines.core",
+    "com.unity.render-pipelines.universal": "file:../../../../../Packages/com.unity.render-pipelines.universal",
+    "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
+    "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.test-framework": "1.1.30",
     "com.unity.test-framework.build": "0.0.1-preview.3",
     "com.unity.test-framework.utp-reporter": "1.0.2-preview",

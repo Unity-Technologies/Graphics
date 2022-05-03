@@ -24,8 +24,8 @@ namespace UnityEngine.Rendering
         public Brick[] bricks;
         public Vector3[] probePositions;
         public SphericalHarmonicsL2[] sh;
-        public uint[] validity;
-
+        public byte[] validityNeighbourMask;
+        public float[] validity;
         public Vector3[] offsetVectors;
         public float[] touchupVolumeInteraction;
 
@@ -87,6 +87,15 @@ namespace UnityEngine.Rendering
     [InitializeOnLoad]
     partial class ProbeGIBaking
     {
+        enum BakingStage
+        {
+            NotStarted,
+            Started,
+            PlacementDone,
+            OnBakeCompletedStarted,
+            OnBakeCompletedFinished
+        }
+
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
         static ProbeReferenceVolumeProfile m_BakingProfile = null;
@@ -99,7 +108,7 @@ namespace UnityEngine.Rendering
         static Vector3Int minCellPosition = Vector3Int.one * int.MaxValue;
         static Vector3Int maxCellPosition = Vector3Int.one * int.MinValue;
 
-        static bool onAdditionalProbesBakeCompletedCalled = false;
+        static BakingStage currentBakingState = BakingStage.NotStarted;
 
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
@@ -280,7 +289,7 @@ namespace UnityEngine.Rendering
 
         static void OnBakeStarted()
         {
-            if (!ProbeReferenceVolume.instance.isInitialized) return;
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return;
 
             EnsurePerSceneDataInOpenScenes();
 
@@ -295,6 +304,8 @@ namespace UnityEngine.Rendering
             FindWorldBounds(out bool hasFoundInvalidSetup);
             if (hasFoundInvalidSetup) return;
 
+            currentBakingState = BakingStage.Started;
+
             SetBakingContext(sceneDataList);
 
             // Get min/max
@@ -304,6 +315,8 @@ namespace UnityEngine.Rendering
                 data.Initialize();
 
             RunPlacement();
+
+            currentBakingState = BakingStage.PlacementDone;
         }
 
         static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters)
@@ -357,10 +370,10 @@ namespace UnityEngine.Rendering
                 {
                     if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
-                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.bakingScenario.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                        WriteToShaderCoeffsL0L1(blackProbe, cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData, i * 4);
 
                         if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                            WriteToShaderCoeffsL2(ref blackProbe, cell.bakingScenario.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                            WriteToShaderCoeffsL2(blackProbe, cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, i * 4);
                     }
                 }
             }
@@ -542,6 +555,15 @@ namespace UnityEngine.Rendering
         {
             using var pm = new ProfilerMarker("OnAdditionalProbesBakeCompleted").Auto();
 
+            if (currentBakingState != BakingStage.PlacementDone)
+            {
+                // This can happen if a baking job is canceled and a phantom call to OnAdditionalProbesBakeCompleted cannot be dequeued.
+                // TODO: Investigate with the lighting team if we have a cleaner way.
+                return;
+            }
+
+            currentBakingState = BakingStage.OnBakeCompletedStarted;
+
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             s_ForceInvalidatedProbesAndTouchupVols.Clear();
             s_CustomDilationThresh.Clear();
@@ -579,8 +601,6 @@ namespace UnityEngine.Rendering
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
 
-            onAdditionalProbesBakeCompletedCalled = true;
-
             var dilationSettings = m_BakingSettings.dilationSettings;
             var virtualOffsets = m_BakingBatch.virtualOffsets;
 
@@ -597,7 +617,6 @@ namespace UnityEngine.Rendering
             if (!m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
                 AddOccluders();
 
-
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -612,7 +631,8 @@ namespace UnityEngine.Rendering
                 Debug.Assert(numProbes > 0);
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
-                cell.validity = new uint[numProbes];
+                cell.validity = new float[numProbes];
+                cell.validityNeighbourMask = new byte[numProbes];
                 cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
                 cell.touchupVolumeInteraction = new float[numProbes];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
@@ -731,12 +751,12 @@ namespace UnityEngine.Rendering
 
                     float currValidity = invalidatedProbe ? 1.0f : validity[j];
                     byte currValidityNeighbourMask = 255;
-                    cell.validity[i] = ProbeReferenceVolume.Cell.PackValidityAndMask(currValidity, currValidityNeighbourMask);
+                    cell.validity[i] = currValidity;
+                    cell.validityNeighbourMask[i] = currValidityNeighbourMask;
                 }
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
-                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
-
+                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length, ProbeBrickPool.GetChunkSizeInBrickCount());
 
                 ComputeValidityMasks(cell);
 
@@ -839,12 +859,16 @@ namespace UnityEngine.Rendering
             // Mark old bakes as out of date if needed
             if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
             {
-                var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow));
+                // We don't want to force focus on the window if it did already have it.
+                var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow), utility: false, title: null, focus: false);
                 window.UpdateScenariosStatuses(ProbeReferenceVolume.instance.lightingScenario);
             }
 
             // We are done with baking so we reset whether we need to bake only the active or not.
             isBakingOnlyActiveScene = false;
+
+            currentBakingState = BakingStage.OnBakeCompletedFinished;
+
         }
 
         static void OnLightingDataCleared()
@@ -852,66 +876,135 @@ namespace UnityEngine.Rendering
             Clear();
         }
 
-        static void WriteToShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
+        static ushort SHFloatToHalf(float value)
         {
-            shaderCoeffsL0L1[offset + 0] = sh[0, 0]; shaderCoeffsL0L1[offset + 1] = sh[1, 0]; shaderCoeffsL0L1[offset + 2] = sh[2, 0]; shaderCoeffsL0L1[offset + 3] = sh[0, 1];
-            shaderCoeffsL0L1[offset + 4] = sh[1, 1]; shaderCoeffsL0L1[offset + 5] = sh[1, 2]; shaderCoeffsL0L1[offset + 6] = sh[1, 3]; shaderCoeffsL0L1[offset + 7] = sh[0, 2];
-            shaderCoeffsL0L1[offset + 8] = sh[2, 1]; shaderCoeffsL0L1[offset + 9] = sh[2, 2]; shaderCoeffsL0L1[offset + 10] = sh[2, 3]; shaderCoeffsL0L1[offset + 11] = sh[0, 3];
+            return Mathf.FloatToHalf(value);
         }
 
-        static void WriteToShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
+        static float SHHalfToFloat(ushort value)
         {
-            shaderCoeffsL2[offset + 0] = sh[0, 4]; shaderCoeffsL2[offset + 1] = sh[0, 5]; shaderCoeffsL2[offset + 2] = sh[0, 6]; shaderCoeffsL2[offset + 3] = sh[0, 7];
-            shaderCoeffsL2[offset + 4] = sh[1, 4]; shaderCoeffsL2[offset + 5] = sh[1, 5]; shaderCoeffsL2[offset + 6] = sh[1, 6]; shaderCoeffsL2[offset + 7] = sh[1, 7];
-            shaderCoeffsL2[offset + 8] = sh[2, 4]; shaderCoeffsL2[offset + 9] = sh[2, 5]; shaderCoeffsL2[offset + 10] = sh[2, 6]; shaderCoeffsL2[offset + 11] = sh[2, 7];
-            shaderCoeffsL2[offset + 12] = sh[0, 8]; shaderCoeffsL2[offset + 13] = sh[1, 8]; shaderCoeffsL2[offset + 14] = sh[2, 8];
+            return Mathf.HalfToFloat(value);
         }
 
-        static void ReadFromShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
+        static byte SHFloatToByte(float value)
         {
-            sh[0, 0] = shaderCoeffsL0L1[offset + 0]; sh[1, 0] = shaderCoeffsL0L1[offset + 1]; sh[2, 0] = shaderCoeffsL0L1[offset + 2]; sh[0, 1] = shaderCoeffsL0L1[offset + 3];
-            sh[1, 1] = shaderCoeffsL0L1[offset + 4]; sh[1, 2] = shaderCoeffsL0L1[offset + 5]; sh[1, 3] = shaderCoeffsL0L1[offset + 6]; sh[0, 2] = shaderCoeffsL0L1[offset + 7];
-            sh[2, 1] = shaderCoeffsL0L1[offset + 8]; sh[2, 2] = shaderCoeffsL0L1[offset + 9]; sh[2, 3] = shaderCoeffsL0L1[offset + 10]; sh[0, 3] = shaderCoeffsL0L1[offset + 11];
+            return (byte)(Mathf.Clamp(value, 0.0f, 1.0f) * 255.0f);
         }
 
-        static void ReadFromShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
+        static float SHByteToFloat(byte value)
         {
-            sh[0, 4] = shaderCoeffsL2[offset + 0]; sh[0, 5] = shaderCoeffsL2[offset + 1]; sh[0, 6] = shaderCoeffsL2[offset + 2]; sh[0, 7] = shaderCoeffsL2[offset + 3];
-            sh[1, 4] = shaderCoeffsL2[offset + 4]; sh[1, 5] = shaderCoeffsL2[offset + 5]; sh[1, 6] = shaderCoeffsL2[offset + 6]; sh[1, 7] = shaderCoeffsL2[offset + 7];
-            sh[2, 4] = shaderCoeffsL2[offset + 8]; sh[2, 5] = shaderCoeffsL2[offset + 9]; sh[2, 6] = shaderCoeffsL2[offset + 10]; sh[2, 7] = shaderCoeffsL2[offset + 11];
-            sh[0, 8] = shaderCoeffsL2[offset + 12]; sh[1, 8] = shaderCoeffsL2[offset + 13]; sh[2, 8] = shaderCoeffsL2[offset + 14];
+            return value / 255.0f;
         }
 
-        static void ReadFullFromShaderCoeffsL0L1L2(ref SphericalHarmonicsL2 sh, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int probeIdx)
+        static void WriteToShaderCoeffsL0L1(in SphericalHarmonicsL2 sh, NativeArray<ushort> shaderCoeffsL0L1Rx, NativeArray<byte> shaderCoeffsL1GL1Ry, NativeArray<byte> shaderCoeffsL1BL1Rz, int offset)
         {
-            ReadFromShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
-            ReadFromShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+            shaderCoeffsL0L1Rx[offset + 0] = SHFloatToHalf(sh[0, 0]); shaderCoeffsL0L1Rx[offset + 1] = SHFloatToHalf(sh[1, 0]); shaderCoeffsL0L1Rx[offset + 2] = SHFloatToHalf(sh[2, 0]); shaderCoeffsL0L1Rx[offset + 3] = SHFloatToHalf(sh[0, 1]);
+            shaderCoeffsL1GL1Ry[offset + 0] = SHFloatToByte(sh[1, 1]); shaderCoeffsL1GL1Ry[offset + 1] = SHFloatToByte(sh[1, 2]); shaderCoeffsL1GL1Ry[offset + 2] = SHFloatToByte(sh[1, 3]); shaderCoeffsL1GL1Ry[offset + 3] = SHFloatToByte(sh[0, 2]);
+            shaderCoeffsL1BL1Rz[offset + 0] = SHFloatToByte(sh[2, 1]); shaderCoeffsL1BL1Rz[offset + 1] = SHFloatToByte(sh[2, 2]); shaderCoeffsL1BL1Rz[offset + 2] = SHFloatToByte(sh[2, 3]); shaderCoeffsL1BL1Rz[offset + 3] = SHFloatToByte(sh[0, 3]);
+        }
+
+        static void WriteToShaderCoeffsL2(in SphericalHarmonicsL2 sh, NativeArray<byte> shaderCoeffsL2_0, NativeArray<byte> shaderCoeffsL2_1, NativeArray<byte> shaderCoeffsL2_2, NativeArray<byte> shaderCoeffsL2_3, int offset)
+        {
+            shaderCoeffsL2_0[offset + 0] = SHFloatToByte(sh[0, 4]); shaderCoeffsL2_0[offset + 1] = SHFloatToByte(sh[0, 5]); shaderCoeffsL2_0[offset + 2] = SHFloatToByte(sh[0, 6]); shaderCoeffsL2_0[offset + 3] = SHFloatToByte(sh[0, 7]);
+            shaderCoeffsL2_1[offset + 0] = SHFloatToByte(sh[1, 4]); shaderCoeffsL2_1[offset + 1] = SHFloatToByte(sh[1, 5]); shaderCoeffsL2_1[offset + 2] = SHFloatToByte(sh[1, 6]); shaderCoeffsL2_1[offset + 3] = SHFloatToByte(sh[1, 7]);
+            shaderCoeffsL2_2[offset + 0] = SHFloatToByte(sh[2, 4]); shaderCoeffsL2_2[offset + 1] = SHFloatToByte(sh[2, 5]); shaderCoeffsL2_2[offset + 2] = SHFloatToByte(sh[2, 6]); shaderCoeffsL2_2[offset + 3] = SHFloatToByte(sh[2, 7]);
+            shaderCoeffsL2_3[offset + 0] = SHFloatToByte(sh[0, 8]); shaderCoeffsL2_3[offset + 1] = SHFloatToByte(sh[1, 8]); shaderCoeffsL2_3[offset + 2] = SHFloatToByte(sh[2, 8]);
+        }
+
+        static void ReadFromShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<ushort> shaderCoeffsL0L1Rx, NativeArray<byte> shaderCoeffsL1GL1Ry, NativeArray<byte> shaderCoeffsL1BL1Rz, int offset)
+        {
+            sh[0, 0] = SHHalfToFloat(shaderCoeffsL0L1Rx[offset + 0]); sh[1, 0] = SHHalfToFloat(shaderCoeffsL0L1Rx[offset + 1]); sh[2, 0] = SHHalfToFloat(shaderCoeffsL0L1Rx[offset + 2]); sh[0, 1] = SHHalfToFloat(shaderCoeffsL0L1Rx[offset + 3]);
+            sh[1, 1] = SHByteToFloat(shaderCoeffsL1GL1Ry[offset + 0]); sh[1, 2] = SHByteToFloat(shaderCoeffsL1GL1Ry[offset + 1]); sh[1, 3] = SHByteToFloat(shaderCoeffsL1GL1Ry[offset + 2]); sh[0, 2] = SHByteToFloat(shaderCoeffsL1GL1Ry[offset + 3]);
+            sh[2, 1] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 0]); sh[2, 2] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 1]); sh[2, 3] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 2]); sh[0, 3] = SHByteToFloat(shaderCoeffsL1BL1Rz[offset + 3]);
+        }
+
+        static void ReadFromShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<byte> shaderCoeffsL2_0, NativeArray<byte> shaderCoeffsL2_1, NativeArray<byte> shaderCoeffsL2_2, NativeArray<byte> shaderCoeffsL2_3, int offset)
+        {
+            sh[0, 4] = SHByteToFloat(shaderCoeffsL2_0[offset + 0]); sh[0, 5] = SHByteToFloat(shaderCoeffsL2_0[offset + 1]); sh[0, 6] = SHByteToFloat(shaderCoeffsL2_0[offset + 2]); sh[0, 7] = SHByteToFloat(shaderCoeffsL2_0[offset + 3]);
+            sh[1, 4] = SHByteToFloat(shaderCoeffsL2_1[offset + 0]); sh[1, 5] = SHByteToFloat(shaderCoeffsL2_1[offset + 1]); sh[1, 6] = SHByteToFloat(shaderCoeffsL2_1[offset + 2]); sh[1, 7] = SHByteToFloat(shaderCoeffsL2_1[offset + 3]);
+            sh[2, 4] = SHByteToFloat(shaderCoeffsL2_2[offset + 0]); sh[2, 5] = SHByteToFloat(shaderCoeffsL2_2[offset + 1]); sh[2, 6] = SHByteToFloat(shaderCoeffsL2_2[offset + 2]); sh[2, 7] = SHByteToFloat(shaderCoeffsL2_2[offset + 3]);
+            sh[0, 8] = SHByteToFloat(shaderCoeffsL2_3[offset + 0]); sh[1, 8] = SHByteToFloat(shaderCoeffsL2_3[offset + 1]); sh[2, 8] = SHByteToFloat(shaderCoeffsL2_3[offset + 2]);
+        }
+
+        static void ReadFullFromShaderCoeffsL0L1L2(ref SphericalHarmonicsL2 sh,
+            NativeArray<ushort> shaderCoeffsL0L1Rx, NativeArray<byte> shaderCoeffsL1GL1Ry, NativeArray<byte> shaderCoeffsL1BL1Rz,
+            NativeArray<byte> shaderCoeffsL2_0, NativeArray<byte> shaderCoeffsL2_1, NativeArray<byte> shaderCoeffsL2_2, NativeArray<byte> shaderCoeffsL2_3,
+            int probeIdx)
+        {
+            ReadFromShaderCoeffsL0L1(ref sh, shaderCoeffsL0L1Rx, shaderCoeffsL1GL1Ry, shaderCoeffsL1BL1Rz, probeIdx * 4);
+            ReadFromShaderCoeffsL2(ref sh, shaderCoeffsL2_0, shaderCoeffsL2_1, shaderCoeffsL2_2, shaderCoeffsL2_3, probeIdx * 4);
 
         }
 
-        static BakingCell ConvertCellToBakingCell(ProbeReferenceVolume.Cell cell)
+        // Returns index in the GPU layout of probe of coordinate (x, y, z) in the brick at brickIndex for a DataLocation of size locSize
+        static int GetProbeGPUIndex(int brickIndex, int x, int y, int z, Vector3Int locSize)
+        {
+            Vector3Int locSizeInBrick = locSize / ProbeBrickPool.kBrickProbeCountPerDim;
+
+            int bx = brickIndex % locSizeInBrick.x;
+            int by = (brickIndex / locSizeInBrick.x) % locSizeInBrick.y;
+            int bz = ((brickIndex / locSizeInBrick.x) / locSizeInBrick.y) % locSizeInBrick.z;
+
+            // In probes
+            int ix = bx * ProbeBrickPool.kBrickProbeCountPerDim + x;
+            int iy = by * ProbeBrickPool.kBrickProbeCountPerDim + y;
+            int iz = bz * ProbeBrickPool.kBrickProbeCountPerDim + z;
+
+            return ix + locSize.x * (iy + locSize.y * iz);
+        }
+
+        static BakingCell ConvertCellToBakingCell(Cell cell)
         {
             BakingCell bc = new BakingCell
             {
                 position = cell.position,
                 index = cell.index,
                 bricks = cell.bricks.ToArray(),
-                probePositions = cell.probePositions.ToArray(),
-                validity = cell.validity.ToArray(),
-                offsetVectors = cell.offsetVectors.ToArray(),
-                touchupVolumeInteraction = cell.touchupVolumeInteraction.ToArray(),
                 minSubdiv = cell.minSubdiv,
                 indexChunkCount = cell.indexChunkCount,
                 shChunkCount = cell.shChunkCount,
                 probeIndices = null, // Not needed for this conversion.
             };
 
-            // Need to unpack the sh
-            int numberOfProbes = bc.probePositions.Length;
-            bc.sh = new SphericalHarmonicsL2[numberOfProbes];
-            for (int probe = 0; probe < numberOfProbes; ++probe)
+            // Runtime Cell arrays may contain padding to match chunk size
+            // so we use the actual probe count for these arrays.
+            int probeCount = cell.probeCount;
+            bc.probePositions = new Vector3[probeCount];
+            bc.validity = new float[probeCount];
+            bc.touchupVolumeInteraction = new float[probeCount];
+            bc.validityNeighbourMask = new byte[probeCount];
+            bc.offsetVectors = new Vector3[probeCount];
+            bc.sh = new SphericalHarmonicsL2[probeCount];
+
+            // Runtime data layout is for GPU consumption.
+            // We need to convert it back to a linear layout for the baking cell.
+            int brickCount = probeCount / ProbeBrickPool.kBrickProbeCountTotal;
+            int probeIndex = 0;
+            Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
+
+            for (int brickIndex = 0; brickIndex < brickCount; ++brickIndex)
             {
-                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, probe);
+                for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                {
+                    for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                    {
+                        for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                        {
+                            int remappedIndex = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
+                            ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probeIndex],
+                                cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData,
+                                cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, remappedIndex);
+
+                            bc.probePositions[probeIndex] = cell.probePositions[remappedIndex];
+                            bc.validity[probeIndex] = cell.validity[remappedIndex];
+                            bc.validityNeighbourMask[probeIndex] = cell.validityNeighMaskData[remappedIndex];
+                            bc.touchupVolumeInteraction[probeIndex] = cell.touchupVolumeInteraction[remappedIndex];
+                            bc.offsetVectors[probeIndex] = cell.offsetVectors[remappedIndex];
+
+                            probeIndex++;
+                        }
+                    }
+                }
             }
 
             return bc;
@@ -967,9 +1060,12 @@ namespace UnityEngine.Rendering
             outCell.probePositions = new Vector3[numberOfProbes];
             outCell.minSubdiv = Math.Min(dst.minSubdiv, srcCell.minSubdiv);
             outCell.sh = new SphericalHarmonicsL2[numberOfProbes];
-            outCell.validity = new uint[numberOfProbes];
+            outCell.validity = new float[numberOfProbes];
+            outCell.validityNeighbourMask = new byte[numberOfProbes];
+            outCell.offsetVectors = new Vector3[numberOfProbes];
+            outCell.touchupVolumeInteraction = new float[numberOfProbes];
             outCell.indexChunkCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(outCell.position, outCell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
-            outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length);
+            outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length, ProbeBrickPool.GetChunkSizeInBrickCount());
 
             BakingCell[] consideredCells = { dst, srcCell };
 
@@ -985,10 +1081,11 @@ namespace UnityEngine.Rendering
                     outCell.probePositions[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].probePositions[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.sh[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].sh[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.validity[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validity[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.validityNeighbourMask[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validityNeighbourMask[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.offsetVectors[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].offsetVectors[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    outCell.touchupVolumeInteraction[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].touchupVolumeInteraction[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                 }
             }
-
-            outCell.offsetVectors = new Vector3[0]; // kill debug view (TODO: fix)
             return outCell;
         }
 
@@ -1038,7 +1135,7 @@ namespace UnityEngine.Rendering
         ///   CellSharedData: a binary flat file containing bricks data
         ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
         /// </summary>
-        static void WriteBakingCells(ProbeVolumePerSceneData data, List<BakingCell> bakingCells)
+        unsafe static void WriteBakingCells(ProbeVolumePerSceneData data, List<BakingCell> bakingCells)
         {
             data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
@@ -1046,6 +1143,7 @@ namespace UnityEngine.Rendering
             asset.cells = new Cell[bakingCells.Count];
             asset.cellCounts = new ProbeVolumeAsset.CellCounts[bakingCells.Count];
             asset.totalCellCounts = new ProbeVolumeAsset.CellCounts();
+            asset.chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
 
             for (var i = 0; i < bakingCells.Count; ++i)
             {
@@ -1055,6 +1153,7 @@ namespace UnityEngine.Rendering
                 {
                     position = bakingCell.position,
                     index = bakingCell.index,
+                    probeCount = bakingCell.probePositions.Length,
                     minSubdiv = bakingCell.minSubdiv,
                     indexChunkCount = bakingCell.indexChunkCount,
                     shChunkCount = bakingCell.shChunkCount,
@@ -1065,30 +1164,56 @@ namespace UnityEngine.Rendering
                 {
                     bricksCount = bakingCell.bricks.Length,
                     probesCount = bakingCell.probePositions.Length,
-                    offsetsCount = bakingCell.offsetVectors.Length
+                    offsetsCount = bakingCell.offsetVectors.Length,
+                    chunksCount = bakingCell.shChunkCount
                 };
                 asset.cellCounts[i] = cellCounts;
                 asset.totalCellCounts.Add(cellCounts);
             }
 
             // CellData
-            using var probesL0L1 = new NativeArray<float>(asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            // Need full chunks so we don't use totalCellCounts.probesCount
+            var probeCountPadded = asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount(); // Padded to a multiple of chunk size.
+            var count = probeCountPadded * 4; // 4 component per probe per texture.
+            using var probesL0L1Rx = new NativeArray<ushort>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var probesL1GL1Ry = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var probesL1BL1Rz = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellOptionalData
-            var probesL2ScalarPaddedCount = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount + 3 : 0;
-            using var probesL2 = new NativeArray<float>(probesL2ScalarPaddedCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            count = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? count : 0;
+            using var probesL2_0 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var probesL2_1 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var probesL2_2 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var probesL2_3 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSharedData
             using var bricks = new NativeArray<Brick>(asset.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var validity = new NativeArray<uint>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var validityNeighbourMask = new NativeArray<byte>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSupportData
-            using var positions = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var touchupVolumeInteraction = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var offsets = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var positions = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var touchupVolumeInteraction = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var validity = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var offsets = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             var sceneStateHash = asset.GetBakingHashCode();
             var startCounts = new ProbeVolumeAsset.CellCounts();
+
+            int chunkOffsetInProbes = 0;
+            var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+
+            int shChunkOffset = 0;
+            var shChunkSize = chunkSizeInProbes * 4;
+
+            // Init SH with values that will resolve to black
+            var blackSH = new SphericalHarmonicsL2();
+            for (int channel = 0; channel < 3; ++channel)
+            {
+                blackSH[channel, 0] = 0.0f;
+                for (int coeff = 1; coeff < 9; ++coeff)
+                    blackSH[channel, coeff] = 0.5f;
+            }
+
             for (var i = 0; i < bakingCells.Count; ++i)
             {
                 var bakingCell = bakingCells[i];
@@ -1096,29 +1221,94 @@ namespace UnityEngine.Rendering
 
                 sceneStateHash = sceneStateHash * 23 + bakingCell.GetBakingHashCode();
 
-                var probesTargetL0L1 = probesL0L1.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
-                for (int j = 0, k = 0; j < cellCounts.probesCount; ++j, k += ProbeVolumeAsset.kL0L1ScalarCoefficientsCount)
-                {
-                    ref var sh = ref bakingCell.sh[j];
-                    WriteToShaderCoeffsL0L1(ref sh, probesTargetL0L1, k);
-                }
+                var inputProbesCount = cellCounts.probesCount;
+                // Size of the DataLocation used to do the copy texture at runtime. Used to generate the right layout for the 3D texture.
+                Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
 
-                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                int shidx = 0;
+
+                // Here we directly map each chunk to the layout of the 3D textures in order to be able to copy the data directly to the GPU.
+                // The granularity at runtime is one chunk at a time currently so the temporary data loc used is sized accordingly.
+                for (int chunkIndex = 0; chunkIndex < cellCounts.chunksCount; ++chunkIndex)
                 {
-                    var probesTargetL2 = probesL2.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
-                    for (int j = 0, k = 0; j < cellCounts.probesCount; ++j, k += ProbeVolumeAsset.kL2ScalarCoefficientsCount)
+                    var probesTargetL0L1Rx = probesL0L1Rx.GetSubArray(shChunkOffset, shChunkSize);
+                    var probesTargetL1GL1Ry = probesL1GL1Ry.GetSubArray(shChunkOffset, shChunkSize);
+                    var probesTargetL1BL1Rz = probesL1BL1Rz.GetSubArray(shChunkOffset, shChunkSize);
+                    var validityNeighboorMaskChunkTarget = validityNeighbourMask.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    var positionsChunkTarget = positions.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    var validityChunkTarget = validity.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    var offsetChunkTarget = offsets.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    var touchupVolumeInteractionChunkTarget = touchupVolumeInteraction.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+
+                    NativeArray<byte> probesTargetL2_0 = default(NativeArray<byte>);
+                    NativeArray<byte> probesTargetL2_1 = default(NativeArray<byte>);
+                    NativeArray<byte> probesTargetL2_2 = default(NativeArray<byte>);
+                    NativeArray<byte> probesTargetL2_3 = default(NativeArray<byte>);
+
+                    if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
-                        ref var sh = ref bakingCell.sh[j];
-                        WriteToShaderCoeffsL2(ref sh, probesTargetL2, k);
+                        probesTargetL2_0 = probesL2_0.GetSubArray(shChunkOffset, shChunkSize);
+                        probesTargetL2_1 = probesL2_1.GetSubArray(shChunkOffset, shChunkSize);
+                        probesTargetL2_2 = probesL2_2.GetSubArray(shChunkOffset, shChunkSize);
+                        probesTargetL2_3 = probesL2_3.GetSubArray(shChunkOffset, shChunkSize);
                     }
+
+                    for (int brickIndex = 0; brickIndex < asset.chunkSizeInBricks; brickIndex++)
+                    {
+                        for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                        {
+                            for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                            {
+                                for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                                {
+                                    int index = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
+
+                                    // We are processing chunks at a time.
+                                    // So in practice we can go over the number of SH we have in the input list.
+                                    // We fill with encoded black to avoid copying garbage in the final atlas.
+                                    if (shidx >= inputProbesCount)
+                                    {
+                                        WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
+
+                                        validityNeighboorMaskChunkTarget[index] = 0;
+                                        validityChunkTarget[index] = 0.0f;
+                                        positionsChunkTarget[index] = Vector3.zero;
+                                        offsetChunkTarget[index] = Vector3.zero;
+                                        touchupVolumeInteractionChunkTarget[index] = 0.0f;
+
+                                        if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                            WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
+                                    }
+                                    else
+                                    {
+                                        ref var sh = ref bakingCell.sh[shidx];
+
+                                        WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
+
+                                        validityChunkTarget[index] = bakingCell.validity[shidx];
+                                        validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
+                                        positionsChunkTarget[index] = bakingCell.probePositions[shidx];
+                                        // TODO for Julien: Just skip if we don't have the offsets; no need to store the data.
+                                        // Shouldn't be hard, but currently it is expecting it will always be there.
+                                        offsetChunkTarget[index] = shidx < bakingCell.offsetVectors.Length ? bakingCell.offsetVectors[shidx] : Vector3.zero;
+                                        touchupVolumeInteractionChunkTarget[index] = bakingCell.touchupVolumeInteraction[shidx];
+
+                                        if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                        {
+                                            WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
+                                        }
+                                    }
+                                    shidx++;
+                                }
+                            }
+                        }
+                    }
+
+                    shChunkOffset += shChunkSize;
+                    chunkOffsetInProbes += chunkSizeInProbes;
                 }
 
                 bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
-                validity.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
-
-                positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
-                touchupVolumeInteraction.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.touchupVolumeInteraction);
-                offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
 
                 startCounts.Add(cellCounts);
             }
@@ -1137,26 +1327,41 @@ namespace UnityEngine.Rendering
             {
                 static long AlignRemainder16(long count) => count % 16L;
 
+                void WriteNativeArray<T>(System.IO.FileStream fs, NativeArray<T> array) where T : struct
+                {
+                    fs.Write(new ReadOnlySpan<byte>(array.GetUnsafeReadOnlyPtr(), array.Length * UnsafeUtility.SizeOf<T>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                }
+
                 using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
-                    fs.Write(new ReadOnlySpan<byte>(probesL0L1.GetUnsafeReadOnlyPtr(), probesL0L1.Length * UnsafeUtility.SizeOf<float>()));
+                {
+                    WriteNativeArray(fs, probesL0L1Rx);
+                    WriteNativeArray(fs, probesL1GL1Ry);
+                    WriteNativeArray(fs, probesL1BL1Rz);
+                }
+
                 if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
                     using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
-                        fs.Write(new ReadOnlySpan<byte>(probesL2.GetUnsafeReadOnlyPtr(), probesL2.Length * UnsafeUtility.SizeOf<float>()));
+                    {
+                        WriteNativeArray(fs, probesL2_0);
+                        WriteNativeArray(fs, probesL2_1);
+                        WriteNativeArray(fs, probesL2_2);
+                        WriteNativeArray(fs, probesL2_3);
+                    }
                 }
+
                 using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    fs.Write(new ReadOnlySpan<byte>(bricks.GetUnsafeReadOnlyPtr(), bricks.Length * UnsafeUtility.SizeOf<Brick>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<uint>()));
+                    WriteNativeArray(fs, bricks);
+                    WriteNativeArray(fs, validityNeighbourMask);
                 }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(touchupVolumeInteraction.GetUnsafeReadOnlyPtr(), touchupVolumeInteraction.Length * UnsafeUtility.SizeOf<float>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(offsets.GetUnsafeReadOnlyPtr(), offsets.Length * UnsafeUtility.SizeOf<Vector3>()));
+                    WriteNativeArray(fs, positions);
+                    WriteNativeArray(fs, touchupVolumeInteraction);
+                    WriteNativeArray(fs, validity);
+                    WriteNativeArray(fs, offsets);
                 }
             }
 
@@ -1245,11 +1450,12 @@ namespace UnityEngine.Rendering
 
         public static void OnBakeCompletedCleanup()
         {
-            if (!onAdditionalProbesBakeCompletedCalled)
+            if (currentBakingState != BakingStage.OnBakeCompletedFinished && currentBakingState != BakingStage.OnBakeCompletedStarted)
             {
                 // Dequeue the call if something has failed.
                 UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
+                if (m_BakingBatch != null)
+                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
                 if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
                     CleanupOccluders();
             }
@@ -1257,7 +1463,6 @@ namespace UnityEngine.Rendering
 
         public static void RunPlacement()
         {
-            onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
             AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;

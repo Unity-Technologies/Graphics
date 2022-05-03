@@ -62,27 +62,27 @@ namespace UnityEngine.Rendering
                 L2_4 = new Vector3(sh[0, 8], sh[1, 8], sh[2, 8]);
             }
 
-            internal void FromSphericalHarmonicsShaderConstants(ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int probeIdx)
+            internal void FromSphericalHarmonicsShaderConstants(ProbeReferenceVolume.Cell cell, int probeIdx)
             {
                 var sh = new SphericalHarmonicsL2();
 
-                ReadFromShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                ReadFromShaderCoeffsL0L1(ref sh, cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData, probeIdx * 4);
 
-                if (srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    ReadFromShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    ReadFromShaderCoeffsL2(ref sh, cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, probeIdx * 4);
 
                 FromSphericalHarmonicsL2(ref sh);
             }
 
-            internal void ToSphericalHarmonicsShaderConstants(ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int probeIdx)
+            internal void ToSphericalHarmonicsShaderConstants(ProbeReferenceVolume.Cell cell, int probeIdx)
             {
                 var sh = new SphericalHarmonicsL2();
                 ToSphericalHarmonicsL2(ref sh);
 
-                WriteToShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                WriteToShaderCoeffsL0L1(sh, cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData, probeIdx * 4);
 
-                if (srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    WriteToShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    WriteToShaderCoeffsL2(sh, cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, probeIdx * 4);
             }
         }
 
@@ -112,9 +112,9 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < probeCount; ++i)
                 {
-                    dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
+                    dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell, i);
                     needDilating[i] = s_CustomDilationThresh.ContainsKey(i) ?
-                        (cell.GetValidity(i) > s_CustomDilationThresh[i] ? 1 : 0) : (cell.GetValidity(i) > defaultThreshold ? 1 : 0);
+                        (cell.validity[i] > s_CustomDilationThresh[i] ? 1 : 0) : (cell.validity[i] > defaultThreshold ? 1 : 0);
                 }
 
                 outputProbes.SetData(dilatedProbes);
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering
                 int probeCount = cell.probePositions.Length;
                 for (int i = 0; i < probeCount; ++i)
                 {
-                    dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.bakingScenario.shL0L1Data, cell.bakingScenario.shL2Data, i);
+                    dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell, i);
                 }
             }
 
@@ -169,7 +169,6 @@ namespace UnityEngine.Rendering
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _OutputProbes, data.outputProbes);
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _NeedDilating, data.needDilatingBuffer);
 
-
             int probeCount = cell.probePositions.Length;
 
             cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, ProbeReferenceVolume.instance.MinBrickSize()));
@@ -205,6 +204,8 @@ namespace UnityEngine.Rendering
             parameters.occlusionWeightContribution = 0.0f;
             parameters.minValidNormalWeight = 0.0f;
             parameters.frameIndexForNoise = 0;
+            parameters.reflNormalizationLowerClamp = 0.1f;
+            parameters.reflNormalizationUpperClamp = 1.0f;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

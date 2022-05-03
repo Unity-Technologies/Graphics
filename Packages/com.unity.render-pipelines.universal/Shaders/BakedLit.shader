@@ -57,6 +57,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             // -------------------------------------
             // Unity defined keywords
@@ -64,6 +65,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -97,6 +99,10 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
 
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -129,8 +135,10 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             // -------------------------------------
-            // Unity defined keywords
+            // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             //--------------------------------------
             // GPU Instancing
@@ -164,8 +172,10 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             // -------------------------------------
-            // Unity defined keywords
+            // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
 
             //--------------------------------------
             // Defines
@@ -232,7 +242,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="2.0"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
         ZWrite [_ZWrite]
         Cull [_Cull]
 
@@ -263,6 +273,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
@@ -299,6 +310,10 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
 
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
@@ -324,6 +339,10 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Material Keywords
             #pragma shader_feature_local _ _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing

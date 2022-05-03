@@ -1,5 +1,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#if defined(LOD_FADE_CROSSFADE)
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
 
 struct Attributes
 {
@@ -107,7 +110,13 @@ Varyings BakedLitForwardPassVertex(Attributes input)
     return output;
 }
 
-half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
+void BakedLitForwardPassFragment(
+    Varyings input
+    , out half4 outColor : SV_Target0
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
+#endif
+    )
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -129,6 +138,10 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
 
+#ifdef LOD_FADE_CROSSFADE
+    LODFadeCrossFade(input.positionCS);
+#endif
+
 #ifdef _DBUFFER
     ApplyDecalToBaseColorAndNormal(input.positionCS, color, inputData.normalWS);
 #endif
@@ -136,5 +149,10 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
 
     finalColor.a = OutputAlpha(finalColor.a, _Surface);
-    return finalColor;
+    outColor = finalColor;
+
+#ifdef _WRITE_RENDERING_LAYERS
+    uint renderingLayers = GetMeshRenderingLayer();
+    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+#endif
 }

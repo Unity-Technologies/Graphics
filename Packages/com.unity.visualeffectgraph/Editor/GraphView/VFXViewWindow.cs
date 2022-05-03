@@ -354,12 +354,6 @@ namespace UnityEditor.VFX.UI
                 graphView.OnFocus();
         }
 
-        void OnLostFocus()
-        {
-            if (graphView != null)
-                graphView.ClearSelectionOnly();
-        }
-
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> componentChanged)
         {
             if (graphView != null)

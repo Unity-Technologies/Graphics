@@ -153,9 +153,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
 
-        // Physical camera copy
-        HDPhysicalCamera m_PhysicalCamera;
-
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
         // - If post processing is enabled, then post processing passes will either copy (exposure, color grading, etc) or process (DoF, TAA, etc) the alpha channel, if one exists.
@@ -322,9 +319,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AnimatedMaterialsEnabled = camera.animateMaterials;
             m_AfterDynamicResUpscaleRes = new Vector2Int((int)Mathf.Round(camera.finalViewport.width), (int)Mathf.Round(camera.finalViewport.height));
             m_BeforeDynamicResUpscaleRes = new Vector2Int(camera.actualWidth, camera.actualHeight);
-
-            // Grab a copy of the physical camera settings
-            m_PhysicalCamera = camera.physicalParameters;
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
@@ -496,7 +490,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
-            var postProcessHistorySizes = DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost ? m_BeforeDynamicResUpscaleRes : m_AfterDynamicResUpscaleRes;
+            var postProcessHistorySizes = DynamicResolutionHandler.instance.upsamplerSchedule != DynamicResolutionHandler.UpsamplerScheduleType.BeforePost ? m_BeforeDynamicResUpscaleRes : m_AfterDynamicResUpscaleRes;
             hdCamera.SetPostProcessHistorySizeAndReference(postProcessHistorySizes.x, postProcessHistorySizes.y, m_AfterDynamicResUpscaleRes.x, m_AfterDynamicResUpscaleRes.y);
 
             var source = inputColor;
@@ -510,9 +504,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Save the post process screen size before any resolution group change
             var postProcessScreenSize = hdCamera.postProcessScreenSize;
 
-            //default always to downsampled resolution group.
-            //when DRS is off this resolution group is the same.
-            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.BeforeDynamicResUpscale);
+            //The resGroup is always expected to be in BeforeDynamicResUpscale state at the beginning of post processing.
+            //If this assert fails, it means that some effects prior might be using the wrong resolution.
+            Assert.IsTrue(resGroup == ResolutionGroup.BeforeDynamicResUpscale, "Resolution group must always be reset before calling RenderPostProcess");
 
             // Note: whether a pass is really executed or not is generally inside the Do* functions.
             // with few exceptions.
@@ -530,10 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
-                {
-                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
-                }
+                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
@@ -559,6 +550,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
+                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
+
                 if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !m_PathTracing.enable.value)
                 {
                     RenderAccumulation(m_RenderGraph, hdCamera, source, source, null, false);
@@ -576,7 +569,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // HDRP to reduce the amount of resolution lost at the center of the screen
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBuffer, sunOcclusionTexture);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph);
@@ -593,17 +586,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
-                {
-                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
-                }
+                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
+                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
             }
 
             if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
             {
-                // AMD Fidelity FX passes
-                source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
-                source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
+                if (hdCamera.IsDLSSEnabled())
+                {
+                    source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterPost, source, depthBuffer, motionVectors);
+                }
+                else
+                {
+                    // AMD Fidelity FX passes
+                    source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
+                    source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
+                }
             }
 
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess, cubemapFace);
@@ -699,10 +697,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public DLSSPass.CameraResourcesHandles resourceHandles;
         }
 
-        TextureHandle DoDLSSPasses(RenderGraph renderGraph, HDCamera hdCamera,
+        TextureHandle DoDLSSPasses(RenderGraph renderGraph, HDCamera hdCamera, DynamicResolutionHandler.UpsamplerScheduleType upsamplerSchedule,
             TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors)
         {
-            if (!m_DLSSPassEnabled)
+            if (!m_DLSSPassEnabled || upsamplerSchedule != currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint)
                 return source;
 
             TextureHandle colorBiasMask = DoDLSSColorMaskPass(renderGraph, hdCamera, depthBuffer);
@@ -982,7 +980,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else // ExposureMode.UsePhysicalCamera
             {
                 kernel = cs.FindKernel("KManualCameraExposure");
-                exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso);
+                exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, hdCamera.camera.aperture, hdCamera.camera.shutterSpeed, hdCamera.camera.iso);
             }
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParams);
@@ -2000,7 +1998,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool useMipSafePath;
         }
 
-        DepthOfFieldParameters PrepareDoFParameters(HDCamera camera)
+        DepthOfFieldParameters PrepareDoFParameters(HDCamera hdCamera)
         {
             DepthOfFieldParameters parameters = new DepthOfFieldParameters();
 
@@ -2046,14 +2044,14 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.pbDoFCombineKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
             parameters.minMaxCoCTileSize = 8;
 
-            parameters.camera = camera;
+            parameters.camera = hdCamera;
             parameters.viewportSize = postProcessViewportSize;
-            parameters.resetPostProcessingHistory = camera.resetPostProcessingHistory;
+            parameters.resetPostProcessingHistory = hdCamera.resetPostProcessingHistory;
 
             parameters.nearLayerActive = m_DepthOfField.IsNearLayerActive();
             parameters.farLayerActive = m_DepthOfField.IsFarLayerActive();
             parameters.highQualityFiltering = m_DepthOfField.highQualityFiltering;
-            parameters.useTiles = !camera.xr.singlePassEnabled;
+            parameters.useTiles = !hdCamera.xr.singlePassEnabled;
 
             parameters.resolution = m_DepthOfField.resolution;
 
@@ -2076,11 +2074,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.threadGroup8 = new Vector2Int(threadGroup8X, threadGroup8Y);
 
-            parameters.physicalCameraCurvature = m_PhysicalCamera.curvature;
-            parameters.physicalCameraAnamorphism = m_PhysicalCamera.anamorphism;
-            parameters.physicalCameraAperture = m_PhysicalCamera.aperture;
-            parameters.physicalCameraBarrelClipping = m_PhysicalCamera.barrelClipping;
-            parameters.physicalCameraBladeCount = m_PhysicalCamera.bladeCount;
+            var camera = hdCamera.camera;
+            parameters.physicalCameraCurvature = camera.curvature;
+            parameters.physicalCameraAnamorphism = camera.anamorphism;
+            parameters.physicalCameraAperture = camera.aperture;
+            parameters.physicalCameraBarrelClipping = camera.barrelClipping;
+            parameters.physicalCameraBladeCount = camera.bladeCount;
 
             parameters.nearFocusStart = m_DepthOfField.nearFocusStart.value;
             parameters.nearFocusEnd = m_DepthOfField.nearFocusEnd.value;
@@ -2090,7 +2089,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
                 parameters.focusDistance = m_DepthOfField.focusDistance.value;
             else
-                parameters.focusDistance = m_PhysicalCamera.focusDistance;
+                parameters.focusDistance = hdCamera.camera.focusDistance;
 
             parameters.focusMode = m_DepthOfField.focusMode.value;
 
@@ -2178,7 +2177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.resolution = DepthOfFieldResolution.Half;
             }
 
-            if (camera.msaaEnabled)
+            if (hdCamera.msaaEnabled)
             {
                 // When MSAA is enabled, DoF should use the min depth of the MSAA samples to avoid 1-pixel ringing around in-focus objects [case 1347291]
                 parameters.dofCoCCS.EnableKeyword("USE_MIN_DEPTH");
@@ -2247,7 +2246,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int bladeCount = dofParameters.physicalCameraBladeCount;
 
-            float rotation = (dofParameters.physicalCameraAperture - HDPhysicalCamera.kMinAperture) / (HDPhysicalCamera.kMaxAperture - HDPhysicalCamera.kMinAperture);
+            float rotation = (dofParameters.physicalCameraAperture - Camera.kMinAperture) / (Camera.kMaxAperture - Camera.kMinAperture);
             rotation *= (360f / bladeCount) * Mathf.Deg2Rad; // TODO: Crude approximation, make it correct
 
             float ngonFactor = 1f;
@@ -2723,7 +2722,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
-                    bool upsampleBeforePost = dofParameters.camera.UpsampleHappensBeforePost();
 
                     if (dofParameters.camera.camera.gateFit == Camera.GateFitMode.Horizontal)
                         sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * (float)dofParameters.viewportSize.x;
@@ -2898,7 +2896,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isOrtho = hdCamera.camera.orthographic;
 
             // If DLSS is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
-            if (m_DLSSPassEnabled)
+            if (m_DLSSPassEnabled && currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 stabilizeCoC = true;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
@@ -3220,7 +3218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.viewProjMatrix,
+                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
@@ -3862,7 +3860,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Bloom.anamorphic.value)
             {
                 // Positive anamorphic ratio values distort vertically - negative is horizontal
-                float anamorphism = m_PhysicalCamera.anamorphism * 0.5f;
+                float anamorphism = camera.camera.anamorphism * 0.5f;
                 scaleW *= anamorphism < 0 ? 1f + anamorphism : 1f;
                 scaleH *= anamorphism > 0 ? 1f - anamorphism : 1f;
             }
@@ -4637,7 +4635,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.uberPostCS.EnableKeyword("ENABLE_ALPHA");
                 }
 
-                if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
+                if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost && !hdCamera.IsDLSSEnabled())
                 {
                     passData.uberPostCS.EnableKeyword("GAMMA2_OUTPUT");
                 }
@@ -4952,7 +4950,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // General
                 passData.postProcessEnabled = m_PostProcessEnabled;
-                passData.performUpsampling = DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+                passData.performUpsampling = !hdCamera.IsDLSSEnabled() && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
                 passData.finalPassMaterial = m_FinalPassMaterial;
                 passData.hdCamera = hdCamera;
                 passData.blueNoise = blueNoise;

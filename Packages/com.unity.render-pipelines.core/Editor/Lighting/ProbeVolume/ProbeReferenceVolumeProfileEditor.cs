@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering
         static class Styles
         {
             // TODO: Better tooltip are needed here.
-            public static readonly GUIContent simplificationLevels = new GUIContent("Simplification levels", "Determine how many bricks are in a streamable unit. Each simplification step adds a brick level above the minimum one.");
+            public static readonly GUIContent simplificationLevels = new GUIContent("Simplification levels", "Determines how many bricks are in a streamable unit. Each simplification step adds a brick level above the minimum one if it fits the bounds of the probe volume.");
             public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
             public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
             public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");

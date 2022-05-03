@@ -7,7 +7,10 @@ using System.Reflection;
 using System.Text;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
+using UnityEditor.PackageManager;
 
 namespace UnityEditor.Rendering
 {
@@ -1266,6 +1269,53 @@ namespace UnityEditor.Rendering
         internal static void EndAdditionalPropertiesHighlight()
         {
             EditorGUILayout.EndVertical();
+        }
+
+        internal static T CreateAssetAt<T>(Scene scene, string targetName) where T : ScriptableObject
+        {
+            string path;
+
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                path = "Assets/";
+            }
+            else
+            {
+                var scenePath = Path.GetDirectoryName(scene.path);
+                var extPath = scene.name;
+                var profilePath = scenePath + Path.DirectorySeparatorChar + extPath;
+
+                if (!AssetDatabase.IsValidFolder(profilePath))
+                {
+                    var directories = profilePath.Split(Path.DirectorySeparatorChar);
+                    string rootPath = "";
+                    foreach (var directory in directories)
+                    {
+                        var newPath = rootPath + directory;
+                        if (!AssetDatabase.IsValidFolder(newPath))
+                            AssetDatabase.CreateFolder(rootPath.TrimEnd(Path.DirectorySeparatorChar), directory);
+                        rootPath = newPath + Path.DirectorySeparatorChar;
+                    }
+                }
+
+                path = profilePath + Path.DirectorySeparatorChar;
+            }
+
+            path += targetName.ReplaceInvalidFileNameCharacters() + ".asset";
+            path = AssetDatabase.GenerateUniqueAssetPath(path);
+
+            var profile = ScriptableObject.CreateInstance<T>();
+            AssetDatabase.CreateAsset(profile, path);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return profile;
+        }
+
+        internal static bool IsAssetInReadOnlyPackage(string path)
+        {
+            Assert.IsNotNull(path);
+            var info = PackageManager.PackageInfo.FindForAssetPath(path);
+            return info != null && (info.source != PackageSource.Local && info.source != PackageSource.Embedded);
         }
     }
 }

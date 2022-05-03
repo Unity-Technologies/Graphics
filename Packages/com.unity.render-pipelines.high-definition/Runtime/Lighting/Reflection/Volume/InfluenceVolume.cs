@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3 m_BoxSideFadeNegative = Vector3.one;
 
         // Sphere
-        [SerializeField, FormerlySerializedAs("m_SphereBaseRadius")]
+        [SerializeField, FormerlySerializedAs("m_SphereBaseRadius"), Min(0)]
         float m_SphereRadius = 3f;
         [SerializeField, FormerlySerializedAs("m_SphereInfluenceFade")]
         float m_SphereBlendDistance;

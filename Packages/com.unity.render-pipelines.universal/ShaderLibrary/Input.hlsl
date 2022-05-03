@@ -7,10 +7,6 @@
 // Keep in sync with RenderingUtils.useStructuredBuffer
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
-#define RENDERING_LIGHT_LAYERS_MASK (255)
-#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
-#define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
@@ -86,6 +82,10 @@ SAMPLER(sampler_GlossyEnvironmentCubeMap);
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
 
+// x = Mip Bias
+// y = 2.0 ^ [Mip Bias]
+float2 _GlobalMipBias;
+
 float4 _MainLightPosition;
 half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
@@ -96,6 +96,9 @@ uint _MainLightLayerMask;
 half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
+
+uint _RenderingLayerMaxInt;
+float _RenderingLayerRcpMaxInt;
 
 #if USE_CLUSTERED_LIGHTING
 // Directional lights would be in all clusters, so they don't go into the cluster structure.

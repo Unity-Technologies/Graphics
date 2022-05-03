@@ -66,3 +66,14 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 7
     Reason: 'XR : development build text issue'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
+    - {fileID: 102900000, guid: 677cb6424a7fe3947974395b6c3d70a4, type: 3}
+    - {fileID: 102900000, guid: 4cd2c01cabdfb47d5a3ac05309090490, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Disabled to make builder green

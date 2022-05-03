@@ -1,6 +1,6 @@
 # High Definition Render Pipeline Wizard
 
-The High Definition Render Pipeline (HDRP) includes the **HDRP Wizard** to help you configure your Unity Project so that it is compatible with HDRP.
+The High Definition Render Pipeline (HDRP) includes the **HDRP Wizard** to help you configure your Unity Project so that it's compatible with HDRP.
 
 To open the **Render Pipeline Wizard**, go to **Window > Rendering** and select **HDRP Wizard**.
 
@@ -51,8 +51,8 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.md)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
-| **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that is not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to modify the **Default Volume Profile Asset**.<br/>Press the **Fix** button to copy the **Default Volume Profile Asset** from the **High Definition RP** package into the **Default Resource Folder** and assign it. |
-| **LookDev Volume Profile** | Checks to make sure you have assigned a **LookDev Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that is not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to use LookDev and modify the profile used in it.<br/>Press the **Fix** button to copy the **LookDev Volume Profile Asset** from the **High Definition RP**  package into the **Default Resource Folder** and assign it. |
+| **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that's not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to modify the **Default Volume Profile Asset**.<br/>Press the **Fix** button to copy the **Default Volume Profile Asset** from the **High Definition RP** package into the **Default Resource Folder** and assign it. |
+| **LookDev Volume Profile** | Checks to make sure you have assigned a **LookDev Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that's not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to use LookDev and modify the profile used in it.<br/>Press the **Fix** button to copy the **LookDev Volume Profile Asset** from the **High Definition RP**  package into the **Default Resource Folder** and assign it. |
 | **Assets Migration** | Checks to make sure all **HDRenderPipelineAsset** used in quality levels and the current **HDRenderPipelineGlobalSettings** have been upgraded to current version of High Definition Render Pipeline. <br />Press the **Fix** button to upgrade any asset that require it. Asset that have been migrated will be logged in the console. You still need to save your project to save the changes. |
 
 **Current Quality:**
@@ -60,61 +60,90 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **Configuration Option** | **Description**                                              |
 | ------------------------ | ------------------------------------------------------------ |
 | **Assigned - Quality**   | Checks to make sure you have assigned either an [HDRP Asset](HDRP-Asset.md) or null to the **Quality Settings** field corresponding to the current used quality (menu: **Edit** > **Project Settings** > **Quality**).<br />If the value is null, all **Current Quality** related configuration will be the one from the [HDRP Asset](HDRP-Asset.md) used in **Global**.<br />Press the **Fix** button to nullify the field. |
-| **SRP Batcher**          | Checks to make sure that SRP Batcher is enabled.<br />Press the **Fix** button to enable it in the used HDRP Asset. |
+| **SRP Batcher**          | Checks to make sure that SRP Batcher is enabled.<br/>Press the **Fix** button to enable it in the used HDRP Asset. |
 
 <a name="VRTab"></a>
 
 ### HDRP + VR
 
-This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support virtual reality. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS. You can adjust the extra configuration options in the  **Global** scope.
+This tab provides all the configuration options from the [HDRP tab](#HDRPTab) and extra configuration options to help you set your HDRP Project up to support virtual reality. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS. You can adjust the extra configuration options in the  **Global** scope.
 
-| **Configuration Option**     | **Description**                                              |
-| -------------------------------- | ------------------------------------------------------------ |
-| **Legacy VR System**    | Checks to make sure **Virtual Reality Supported** is disabled. This was the legacy system that is being deprecated. <br />Press the **Fix** button to disable **Virtual Reality Supported**. |
-| **XR Management Package** | Check to make sure the **XR Management Package** is installed.<br />Press the **Fix** button to install it. |
-| **- Oculus Plugin** | This cannot be checked directly by the wizard. So it is basically info on procedure to check it.<br />You should install the plugin manually in **Edit** > **Project Settings** > **XR Plugin Manager** |
-| **- Single-Pass Instancing** | This cannot be checked directly by the wizard. So it is basically info on procedure to check it.<br />You should check in **Edit** > **Project Settings** > **XR Plugin Manager** > **Oculus** that **Stereo Rendering Mode** use **Single-Pass Instancing** |
-| **XR Legacy Helpers Package** | Check to make sure the **XR Legacy Helpers Package** is installed. It is require to handle inputs with the **TrackedPoseDriver** component.<br />Press the **Fix** button to install it. |
+<table>
+<thead>
+  <tr>
+    <th><strong>Configuration Option</strong></th>
+    <th></th>
+    <th><strong>Description</strong></th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td><strong>Legacy VR System</strong></td>
+    <td></td>
+    <td>Checks that <strong>Virtual Reality Supported</strong> is disabled. This is the deprecated system. <br>Press the <strong>Fix</strong> button to disable <strong>Virtual Reality Supported</strong>.</td>
+  </tr>
+  <tr>
+    <td><strong>XR Management Package</strong></td>
+    <td></td>
+    <td>Checks that the <strong>XR Management Package</strong> is installed.<br>Press the <strong>Fix</strong> button to install it.</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>Oculus Plugin</strong></td>
+    <td>The wizard can't check this directly. This option gives information on the procedure to follow to check it.<br>To install the plugin manually, go to <strong>Edit</strong> &gt; <strong>Project Settings</strong> &gt; <strong>XR Plugin Manager</strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>Single-Pass Instancing</strong></td>
+    <td>The wizard can't check this directly. This option gives information on the procedure to follow to check it.<br>Go to <strong>Edit</strong> &gt; <strong>Project Settings</strong> &gt; <strong>XR Plugin Manager</strong> &gt; <strong>Oculus</strong> and make sure <strong>Stereo Rendering Mode</strong> uses <strong>Single-Pass Instancing</strong></td>
+  </tr>
+  <tr>
+    <td><strong>XR Legacy Helpers Package</strong></td>
+    <td></td>
+    <td>Checks that the <strong>XR Legacy Helpers Package</strong> is installed. It's required to handle inputs with the <strong>TrackedPoseDriver</strong> component.<br>Press the <strong>Fix</strong> button to install it.</td>
+  </tr>
+</tbody>
+</table>
 
 <a name="DXRTab"></a>
 
 ### HDRP + DXR
 
-This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support ray tracing. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS.
+This tab provides all the configuration options from the [HDRP tab](#HDRPTab) and extra configuration options to help you set your HDRP Project up to support ray tracing. If you can't find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS.
 
-Note that every **Fix** will be deactivated if your Hardware or OS do not support DXR.
+**Note**: Every **Fix** will be disabled if your Hardware or OS don't support DXR.
 
 **Global:**
 
 | **Configuration Option**          | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Auto Graphics API**            | Checks to make sure **Auto Graphics API** is disabled in your Player Settings for the current platform. DXR needs to use **Direct3D 12**. <br />Press the **Fix** button to disable **Auto Graphics API**. |
-| **Direct3D 12**                  | Checks to make sure **Direct3D 12** is the first Graphic API set in Player Settings for the current plateform. <br />Press the **Fix** button to make Unity use **Direct3D 12**. |
-| **Static Batching** | **Static Batching** is not supported while using DXR.<br />Press the **Fix** button to deactivate it. |
+| **Auto Graphics API**            | Checks that **Auto Graphics API** is disabled in your Player Settings for the current platform. DXR needs to use **Direct3D 12**. <br />Press the **Fix** button to disable **Auto Graphics API**. |
+| **Direct3D 12**                  | Checks that **Direct3D 12** is the first Graphic API set in Player Settings for the current plateform. <br />Press the **Fix** button to make Unity use **Direct3D 12**. |
+| **Static Batching** | **Static Batching** isn't supported while using DXR.<br />Press the **Fix** button to deactivate it. |
 | **Architecture 64 bits** | DXR only supports 64 bit architecture.<br />Press the **Fix** button to change the target architecture to 64 bit. |
-| **DXR Resources** | Checks to make sure that your HDRP Asset references an **HD Render Pipeline RayTracing Resources** Asset. <br />Press the **Fix** button to reload the raytracing resources for the HDRP Asset. |
-| **Screen Space Shadow (HDRP Default Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Screen Space Shadows** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/ >Press the **Fix** button to enable the **Screen Space Shadows** Frame Setting.<br />Note: This configuration option depends on **Screen Space Shadows (Asset)**. This means, before you fix this, you must fix **Screen Space Shadows (Asset)** first. |
-| **Screen Space Reflection (HDRP Default Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Screen Space Reflections** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/ >Press the **Fix** button to enable the **Screen Space Reflections** Frame Setting.<br />Note: This configuration option depends on **Screen Space Reflection (Asset)**. This means, before you fix this, you must fix **Screen Space Reflection (Asset)** first. |
-| **Screen Space Reflection - Transparents (HDRP Default Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Transparents** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/ >Press the **Fix** button to enable the **Screen Space Reflections** Frame Setting.<br />Note: This configuration option depends on **Screen Space Reflection - Transparents (Asset)**. This means, before you fix this, you must fix **Screen Space Reflection - Transparents (Asset)** first. |
-| **Screen Space Global Illumination (HDRP Frame Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Screen Space Global Illumination** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/ >Press the **Fix** button to enable the **Screen Space Global Illumination** Frame Setting.<br />Note: This configuration option depends on **Screen Space Global Illumination (Asset)**. This means, before you fix this, you must fix **Screen Space Global Illumination (Asset)** first. |
-| **DXR Shader Config** | Checks to make sure that the **ShaderConfig.cs.hlsl**, in the **High Definition RP Config** package referenced in your Project, has **SHADEROPTIONS_RAYTRACING** set to **1**. <br />Press the **Fix** button to create a local copy of the **High Definition RP Config** package and, in the **ShaderConfig.cs.hlsl**, set **SHADEROPTIONS_RAYTRACING** to **1**. |
+| **DXR Resources** | Checks that your HDRP Asset references an **HD Render Pipeline RayTracing Resources** Asset. <br />Press the **Fix** button to reload the raytracing resources for the HDRP Asset. |
+| **Screen Space Shadow (HDRP Default Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Screen Space Shadows** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/>Press the **Fix** button to enable the **Screen Space Shadows** Frame Setting.<br />**Note**: This configuration option depends on **Screen Space Shadows (Asset)**. This means, before you fix this, you must fix **Screen Space Shadows (Asset)** first. |
+| **Screen Space Reflection (HDRP Default Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Screen Space Reflections** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/>Press the **Fix** button to enable the **Screen Space Reflections** Frame Setting.<br />**Note**: This configuration option depends on **Screen Space Reflection (Asset)**. This means, before you fix this, you must fix **Screen Space Reflection (Asset)** first. |
+| **Screen Space Reflection - Transparents (HDRP Default Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Transparents** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/>Press the **Fix** button to enable the **Screen Space Reflections** Frame Setting.<br/>**Note**: This configuration option depends on **Screen Space Reflection - Transparents (Asset)**. This means, before you fix this, you must fix **Screen Space Reflection - Transparents (Asset)** first. |
+| **Screen Space Global Illumination (HDRP Frame Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Screen Space Global Illumination** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/>Press the **Fix** button to enable the **Screen Space Global Illumination** Frame Setting.<br />**Note**: This configuration option depends on **Screen Space Global Illumination (Asset)**. This means, before you fix this, you must fix **Screen Space Global Illumination (Asset)** first. |
+| **DXR Shader Config** | Checks to make sure that the **ShaderConfig.cs.hlsl**, in the **High Definition RP Config** package referenced in your Project, has **SHADEROPTIONS_RAYTRACING** set to **1**. <br/>Press the **Fix** button to create a local copy of the **High Definition RP Config** package and, in the **ShaderConfig.cs.hlsl**, set **SHADEROPTIONS_RAYTRACING** to **1**. |
 
 **Current Quality:**
 
 | **Configuration Option**                           | **Description**                                              |
 | -------------------------------------------------- | ------------------------------------------------------------ |
-| **DXR Activated**                                  | Checks to make sure **DXR Activated** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **DXR Activated**. |
-| **Screen Space Shadows (Asset)**                   | Checks to make sure **Screen Space Shadows** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Shadows**. |
-| **Screen Space Reflection (Asset)**                | Checks to make sure **Screen Space Reflection** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Reflection**. |
-| **Screen Space Reflection - Transparents (Asset)** | Checks to make sure **Transparents** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Transparents**. |
-| **Screen Space Global Illumination (Asset)**       | Checks to make sure **Screen Space Global Illumination** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Global Illumination**. |
+| **DXR Activated**                                  | Checks that **DXR Activated** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **DXR Activated**. |
+| **Screen Space Shadows (Asset)**                   | Checks that **Screen Space Shadows** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Shadows**. |
+| **Screen Space Reflection (Asset)**                | Checks that **Screen Space Reflection** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Reflection**. |
+| **Screen Space Reflection - Transparents (Asset)** | Checks that **Transparents** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Transparents**. |
+| **Screen Space Global Illumination (Asset)**       | Checks that **Screen Space Global Illumination** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Global Illumination**. |
 
 ## Project Migration Quick-links
 
-When upgrading a project from the built-in render pipeline to HDRP, you need to do convert your Materials. Use the following utility functions to help with the upgrade process:
+To upgrade a project from the built-in render pipeline to HDRP, you need to convert your Materials. To do this, select one of the following:
 
 - **Convert All Built-in Materials to HDRP**: Upgrades every Material in your Unity Project to HDRP Materials.
 - **Convert Selected Built-in Materials to HDRP**: Upgrades every Material currently selected to HDRP Materials.
 - **Upgrade HDRP Materials to Latest Version:** Upgrades every Material in your Unity Project to the latest version.
 
-The lighting will not match as HDRP use a different attenuation function than built-in and use correct math to handle lighting model. There is no function that can convert the look. Thus the lighting will require to be redone.
+Lighting in a HDRP scene appears different from lighting in other render pipelines. This is because HDRP uses a different attenuation function than built-in and uses correct math to handle lighting model. The HDRP Wizard does not convert lighting automatically, so you must reconfigure it.

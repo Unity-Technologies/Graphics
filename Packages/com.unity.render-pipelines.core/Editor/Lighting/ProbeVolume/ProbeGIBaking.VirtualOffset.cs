@@ -82,18 +82,15 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            var autoSimState = Physics.autoSimulation;
+            var autoSimState = Physics.simulationMode;
             try
             {
-                if (autoSimState)
-                    Physics.autoSimulation = false;
-
+                Physics.simulationMode = SimulationMode.Script;
                 Physics.Simulate(0.1f);
             }
             finally
             {
-                if (autoSimState)
-                    Physics.autoSimulation = true;
+                Physics.simulationMode = autoSimState;
             }
         }
 

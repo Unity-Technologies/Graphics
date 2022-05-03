@@ -30,7 +30,7 @@ public class FullscreenTests : MonoBehaviour
     void Update()
     {
         var cmd = new CommandBuffer{ name = "Fullscreen Blit" };
-        
+
         DrawFullscreenBlitTest(cmd, uv, uvRT1, uvRT2);
         DrawFullscreenBlitTest(cmd, viewDir, viewDirRT1, viewDirRT2);
         DrawFullscreenBlitTest(cmd, alphaBlend, alphaBlendRT1, alphaBlendRT2);

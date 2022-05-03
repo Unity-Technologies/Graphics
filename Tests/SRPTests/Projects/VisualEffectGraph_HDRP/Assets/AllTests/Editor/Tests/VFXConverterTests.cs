@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEditor.VFX.UI;
 using UnityEngine.VFX;
 using UnityEngine.TestTools;
+using System;
 
 namespace UnityEditor.VFX.Test
 {
@@ -207,6 +208,99 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(transform.scale.x, 4, epsilon);
             Assert.AreEqual(transform.scale.y, 5, epsilon);
             Assert.AreEqual(transform.scale.z, 6, epsilon);
+        }
+
+        [Test]
+        public void LogarithmicScaleTest_Invalid_Minimum()
+        {
+            Assert.Throws(typeof(ArgumentException), () => new LogarithmicSliderScale(new Vector2(0, 1000)));
+            Assert.Throws(typeof(ArgumentException), () => new LogarithmicSliderScale(new Vector2(-1, 1000)));
+        }
+
+        public void LogarithmicScaleTest_Invalid_Range_With_Snapping()
+        {
+            Assert.Throws(typeof(ArgumentException), () => new LogarithmicSliderScale(new Vector2(10, 1005), 10, true));
+            Assert.Throws(typeof(ArgumentException), () => new LogarithmicSliderScale(new Vector2(5, 1024), 2, true));
+        }
+
+        [Test]
+        public void LogarithmicScaleTest_Base10_NoSnap()
+        {
+            var logScale = new LogarithmicSliderScale(new Vector2(1, 1000), 10, false);
+
+            Assert.AreEqual(1f, logScale.ToScaled(1f));
+            Assert.AreEqual(1.06f, logScale.ToScaled(10f), 1e-2);
+            Assert.AreEqual(2f, logScale.ToScaled(100f), 1e-1);
+            Assert.AreEqual(1000f, logScale.ToScaled(1000f));
+
+            Assert.AreEqual(1, logScale.ToLinear(1));
+            Assert.AreEqual(100, logScale.ToLinear(2), 2);
+            Assert.AreEqual(1000, logScale.ToLinear(1000));
+        }
+
+        [Test]
+        public void LogarithmicScaleTest_Base10_Min_Not_1_NoSnap()
+        {
+            var logScale = new LogarithmicSliderScale(new Vector2(150, 1000), 10, false);
+
+            Assert.AreEqual(150f, logScale.ToScaled(1f), 1e-3);
+            Assert.AreEqual(150f, logScale.ToScaled(10f), 1e-3);
+            Assert.AreEqual(167.709f, logScale.ToScaled(200f), 1e-3);
+            Assert.AreEqual(1000f, logScale.ToScaled(1000f));
+
+            Assert.AreEqual(150f, logScale.ToLinear(1));
+            Assert.AreEqual(150f, logScale.ToLinear(2));
+            Assert.AreEqual(278.895f, logScale.ToLinear(200), 1e-3);
+            Assert.AreEqual(1000, logScale.ToLinear(1000), 1e-3);
+        }
+
+        [Test]
+        public void LogarithmicScaleTest_Base10_Snap()
+        {
+            var logScale = new LogarithmicSliderScale(new Vector2(1, 1000), 10, true);
+
+            Assert.AreEqual(1f, logScale.ToScaled(1f));
+            Assert.AreEqual(1f, logScale.ToScaled(10f));
+            Assert.AreEqual(1f, logScale.ToScaled(100f));
+            Assert.AreEqual(1000f, logScale.ToScaled(1000f));
+
+            Assert.AreEqual(1f, logScale.ToLinear(1f));
+            Assert.AreEqual(100f, logScale.ToLinear(2f), 2);
+            Assert.AreEqual(1000f, logScale.ToLinear(1000f));
+        }
+
+        [Test]
+        public void LogarithmicScaleTest_Base2_NoSnap()
+        {
+            var logScale = new LogarithmicSliderScale(new Vector2(1, 2048), 2, false);
+
+            Assert.AreEqual(1f, logScale.ToScaled(1f));
+            Assert.AreEqual(1.114f, logScale.ToScaled(30f), 1e-3);
+            Assert.AreEqual(2.528f, logScale.ToScaled(250f), 1e-3);
+            Assert.AreEqual(41.307f, logScale.ToScaled(1000f), 1e-3);
+            Assert.AreEqual(2048f, logScale.ToScaled(2048f), 1e-2);
+
+            Assert.AreEqual(1, logScale.ToLinear(1f));
+            Assert.AreEqual(187.09f, logScale.ToLinear(2f), 1e-3);
+            Assert.AreEqual(991.362f, logScale.ToLinear(40f), 1e-3);
+            Assert.AreEqual(2048f, logScale.ToLinear(2048f), 1e-2);
+        }
+
+        [Test]
+        public void LogarithmicScaleTest_Base2_Snap()
+        {
+            var logScale = new LogarithmicSliderScale(new Vector2(1, 2048), 2, true);
+
+            Assert.AreEqual(1f, logScale.ToScaled(1f));
+            Assert.AreEqual(1f, logScale.ToScaled(30f));
+            Assert.AreEqual(4f, logScale.ToScaled(300f));
+            Assert.AreEqual(32f, logScale.ToScaled(1000f));
+            Assert.AreEqual(2048f, logScale.ToScaled(2048f));
+
+            Assert.AreEqual(1, logScale.ToLinear(1f));
+            Assert.AreEqual(187.09f, logScale.ToLinear(2f), 1e-3);
+            Assert.AreEqual(991.362f, logScale.ToLinear(40f), 1e-3);
+            Assert.AreEqual(2048f, logScale.ToLinear(2048f), 1e-2);
         }
     }
 }

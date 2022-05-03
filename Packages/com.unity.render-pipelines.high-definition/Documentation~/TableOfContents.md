@@ -82,6 +82,7 @@
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
   * [Material Type](Material-Type.md)
+  * [Material Variants](materialvariant-HDRP)
   * [Tessellation](Tessellation.md)
   * [Surface Type](Surface-Type.md)
   * [Renderer and Material Priority](Renderer-And-Material-Priority.md)

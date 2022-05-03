@@ -618,10 +618,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
 
-        // We set the values of the physical camera in the Update() call. Here we initialize with
-        // the defaults, in case someone is trying to access the values before the first Update
-        internal HDPhysicalCamera physicalParameters { get; private set; } = HDPhysicalCamera.GetDefaults();
-
         internal IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
             ? m_AdditionalCameraData.aovRequests
@@ -729,9 +725,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
         }
 
-        internal bool UpsampleHappensBeforePost()
+        internal DynamicResolutionHandler.UpsamplerScheduleType UpsampleSyncPoint()
         {
-            return IsDLSSEnabled() || IsTAAUEnabled();
+            if (IsDLSSEnabled())
+            {
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint;
+            }
+            else if (IsTAAUEnabled())
+            {
+                return DynamicResolutionHandler.UpsamplerScheduleType.BeforePost;
+            }
+            else
+            {
+                return DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+            }
         }
 
         internal bool allowDeepLearningSuperSampling => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowDeepLearningSuperSampling;
@@ -836,7 +843,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAntialiasing();
 
             // ORDER is important: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
-            DynamicResolutionHandler.instance.upsamplerSchedule = UpsampleHappensBeforePost() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+            DynamicResolutionHandler.instance.upsamplerSchedule = UpsampleSyncPoint();
 
             // Handle memory allocation.
             if (allocateHistoryBuffers)
@@ -851,7 +858,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If we have a mismatch with color buffer format we need to reallocate the pyramid
                 var hdPipeline = (HDRenderPipeline)(RenderPipelineManager.currentPipeline);
-                bool forceReallocPyramid = false;
+                bool forceReallocHistorySystem = false;
                 int colorBufferID = (int)HDCameraFrameHistoryType.ColorBufferMipChain;
                 int numColorPyramidBuffersAllocated = m_HistoryRTSystem.GetNumFramesAllocated(colorBufferID);
                 if (numColorPyramidBuffersAllocated > 0)
@@ -859,7 +866,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var currPyramid = GetCurrentFrameRT(colorBufferID);
                     if (currPyramid != null && currPyramid.rt.graphicsFormat != hdPipeline.GetColorBufferFormat())
                     {
-                        forceReallocPyramid = true;
+                        forceReallocHistorySystem = true;
                     }
                 }
 
@@ -875,7 +882,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var aovHistory = GetHistoryRTHandleSystem(aovRequest);
                     if (aovHistory.GetNumFramesAllocated(colorBufferID) != numColorPyramidBuffersRequired)
                     {
-                        forceReallocPyramid = true;
+                        forceReallocHistorySystem = true;
                         break;
                     }
                 }
@@ -883,26 +890,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If we change the upscale schedule, refresh the history buffers. We need to do this, because if postprocess is after upscale, the size of some buffers needs to change.
                 if (m_PrevUpsamplerSchedule != DynamicResolutionHandler.instance.upsamplerSchedule || previousFrameWasTAAUpsampled != IsTAAUEnabled())
                 {
-                    forceReallocPyramid = true;
+                    forceReallocHistorySystem = true;
                     m_PrevUpsamplerSchedule = DynamicResolutionHandler.instance.upsamplerSchedule;
                 }
 
                 // Handle the color buffers
-                if (numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocPyramid)
+                if (numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocHistorySystem)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
+
                     // Since we nuke all history we must inform the post process system too.
                     resetPostProcessingHistory = true;
 
-                    // The history system only supports the "nuke all" option.
-                    // TODO: Fix this, only the color buffers should be discarded.
-                    m_HistoryRTSystem.Dispose();
-                    m_HistoryRTSystem = new BufferedRTHandleSystem();
+                    if (forceReallocHistorySystem)
+                    {
+                        m_HistoryRTSystem.Dispose();
+                        m_HistoryRTSystem = new BufferedRTHandleSystem();
+                    }
+                    else
+                    {
+                       // We only need to release all the ColorBufferMipChain buffers (and they will potentially be allocated just under if needed).
+                        m_HistoryRTSystem.ReleaseBuffer((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                    }
 
                     m_ExposureTextures.clear();
 
-                    if (numColorPyramidBuffersRequired != 0 || forceReallocPyramid)
+                    if (numColorPyramidBuffersRequired != 0 || forceReallocHistorySystem)
                     {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
 
@@ -959,7 +973,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleHappensBeforePost());
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField);
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
             }
 
@@ -1690,7 +1704,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 volumeLayerMask = m_AdditionalCameraData.volumeLayerMask;
                 volumeAnchor = m_AdditionalCameraData.volumeAnchorOverride;
-                physicalParameters = m_AdditionalCameraData.physicalParameters;
             }
             else
             {
@@ -1708,7 +1721,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             volumeLayerMask = mainCamAdditionalData.volumeLayerMask;
                             volumeAnchor = mainCamAdditionalData.volumeAnchorOverride;
-                            physicalParameters = mainCamAdditionalData.physicalParameters;
                             needFallback = false;
                         }
                     }
@@ -1716,8 +1728,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (needFallback)
                     {
                         volumeLayerMask = GetSceneViewLayerMaskFallback();
-                        // Use the default physical camera values so the exposure will look reasonable
-                        physicalParameters = HDPhysicalCamera.GetDefaults();
                     }
                 }
             }

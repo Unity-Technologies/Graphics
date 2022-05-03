@@ -119,7 +119,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 generatesPreview = false,
                 passes = GetPasses(),
-                usePassList = new List<string>() { "HDRP/RayTracingDebug/DebugDXR" }
             };
 
             PassCollection GetPasses()
@@ -133,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passes.Add(HDShaderPasses.GenerateRaytracingVisibility(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingForward(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingDebug());
                 }
                 ;
 

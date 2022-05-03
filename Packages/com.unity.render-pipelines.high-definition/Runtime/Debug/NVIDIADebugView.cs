@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
 namespace UnityEngine.NVIDIA
@@ -186,6 +187,10 @@ namespace UnityEngine.NVIDIA
                     {
                         displayName = "DLSS Supported",
                         getter = () => m_Data.dlssSupported ? "True" : "False",
+                    },
+                    new DebugUI.Value {
+                        displayName = "DLSS Injection Point",
+                        getter = () => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint
                     },
                     m_DlssViewStateTable
                 }

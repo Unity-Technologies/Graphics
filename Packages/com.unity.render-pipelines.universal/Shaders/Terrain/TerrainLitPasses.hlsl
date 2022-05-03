@@ -320,7 +320,13 @@ void ComputeMasks(out half4 masks[4], half4 hasMask, Varyings IN)
 #ifdef TERRAIN_GBUFFER
 FragmentOutput SplatmapFragment(Varyings IN)
 #else
-half4 SplatmapFragment(Varyings IN) : SV_TARGET
+void SplatmapFragment(
+    Varyings IN
+    , out half4 outColor : SV_Target0
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
+#endif
+    )
 #endif
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
@@ -420,7 +426,12 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     SplatmapFinalColor(color, inputData.fogCoord);
 
-    return half4(color.rgb, 1.0h);
+    outColor = half4(color.rgb, 1.0h);
+
+#ifdef _WRITE_RENDERING_LAYERS
+    uint renderingLayers = GetMeshRenderingLayer();
+    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+#endif
 #endif
 }
 

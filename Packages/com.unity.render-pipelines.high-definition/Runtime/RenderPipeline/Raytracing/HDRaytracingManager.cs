@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shadows = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) && (rayTracedShadows || rayTracedContactShadows);
 
             // Aggregate the ambient occlusion parameters
-            AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
             parameters.ambientOcclusion = aoSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO);
             parameters.aoLayerMask = aoSettings.layerMask.value;
 

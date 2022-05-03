@@ -237,8 +237,22 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent enabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.");
             public static readonly GUIContent enableDLSS = EditorGUIUtility.TrTextContent("Enable DLSS", "Enables NVIDIA Deep Learning Super Sampling (DLSS).");
             public static readonly GUIContent DLSSQualitySettingContent = EditorGUIUtility.TrTextContent("Mode", "Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS).");
+            public static readonly GUIContent DLSSInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply DLSS upscaling.");
             public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("Use Optimal Settings", "Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
             public static readonly GUIContent DLSSSharpnessContent = EditorGUIUtility.TrTextContent("Sharpness", "NVIDIA Deep Learning Super Sampling pixel sharpness of upsampler. Controls how the DLSS upsampler will render edges on the image. More sharpness usually means more contrast and clearer image but can increase flickering and fireflies. This setting is ignored if use optimal settings is used");
+
+            public static readonly GUIContent[] DLSSInjectionPointNames =
+            {
+                new GUIContent("Before Post Process (Default)"),
+                new GUIContent("After Depth Of Field (Low depth of field cost)"),
+                new GUIContent("After Post Process (Low post process cost)")
+            };
+            public static readonly int[] DLSSInjectionPointValues =
+            {
+                (int)DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
+                (int)DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField,
+                (int)DynamicResolutionHandler.UpsamplerScheduleType.AfterPost
+            };
 
             public const string DLSSPackageLabel = "NVIDIA Deep Learning Super Sampling (DLSS) is not active in this project. To activate it, install the NVIDIA package.";
 

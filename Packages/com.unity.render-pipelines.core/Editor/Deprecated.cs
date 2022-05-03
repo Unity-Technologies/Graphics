@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
@@ -10,7 +12,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     /// <seealso cref="VolumeComponentEditor"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [Obsolete("VolumeComponentEditor property has been deprecated. Please use CustomEditor.")]
+    [Obsolete("VolumeComponentEditor property has been deprecated. Please use CustomEditor. #from(2022.2)")]
     public sealed class VolumeComponentEditorAttribute : CustomEditor
     {
         /// <summary>
@@ -27,5 +29,21 @@ namespace UnityEditor.Rendering
         {
             this.componentType = componentType;
         }
+    }
+
+    /// <summary>
+    /// Interface that should be used with [ScriptableRenderPipelineExtension(type))] attribute to dispatch ContextualMenu calls on the different SRPs
+    /// </summary>
+    /// <typeparam name="T">This must be a component that require AdditionalData in your SRP</typeparam>
+    [Obsolete("The menu items are handled automatically for components with the AdditionalComponentData attribute. #from(2022.2)", false)]
+    public interface IRemoveAdditionalDataContextualMenu<T>
+        where T : Component
+    {
+        /// <summary>
+        /// Remove the given component
+        /// </summary>
+        /// <param name="component">The component to remove</param>
+        /// <param name="dependencies">Dependencies.</param>
+        void RemoveComponent(T component, IEnumerable<Component> dependencies);
     }
 }

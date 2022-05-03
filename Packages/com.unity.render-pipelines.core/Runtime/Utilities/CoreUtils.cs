@@ -1412,6 +1412,7 @@ namespace UnityEngine.Rendering
             var fieldExpression = System.Linq.Expressions.Expression.Field(null, field);
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
             materialEditors = lambda.Compile();
+            LoadSceneViewMethods();
         }
 
 #endif
@@ -1462,29 +1463,32 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        /// <summary>
-        /// Draw a renderer list.
-        /// </summary>
-        /// <param name="renderContext">Current Scriptable Render Context.</param>
-        /// <param name="cmd">Command Buffer used for rendering.</param>
-        /// <param name="rendererList">Renderer List to render.</param>
-        [Obsolete("Use the updated RendererList API in the UnityEngine.Rendering.RendererUtils namespace.")]
-        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, Experimental.Rendering.RendererList rendererList)
+#if UNITY_EDITOR
+        static Func<int> GetSceneViewPrefabStageContext;
+
+        static void LoadSceneViewMethods()
         {
-            if (!rendererList.isValid)
-                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+            var stageNavigatorManager = typeof(UnityEditor.SceneManagement.PrefabStage).Assembly.GetType("UnityEditor.SceneManagement.StageNavigationManager");
+            var instance = stageNavigatorManager.GetProperty("instance", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.FlattenHierarchy);
+            var renderMode = stageNavigatorManager.GetProperty("contextRenderMode", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+            var renderModeAccessor = System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression.Property(null, instance), renderMode);
+            var internalRenderModeLambda = System.Linq.Expressions.Expression.Lambda<Func<int>>(System.Linq.Expressions.Expression.Convert(renderModeAccessor, typeof(int)));
+            GetSceneViewPrefabStageContext = internalRenderModeLambda.Compile();
+        }
+#endif
 
-            if (rendererList.stateBlock == null)
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
-            else
-            {
-                var renderStateBlock = rendererList.stateBlock.Value;
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
-            }
+        /// <summary>
+        /// Returns true if the currently opened prefab stage context is set to Hidden.
+        /// </summary>
+        /// <returns>True if the currently opened prefab stage context is set to Hidden.</returns>
+        public static bool IsSceneViewPrefabStageContextHidden()
+        {
+#if UNITY_EDITOR
+            return GetSceneViewPrefabStageContext() == 2; // 2 is hidden, see ContextRenderMode enum
+#else
+            return false;
+#endif
         }
 
         /// <summary>
@@ -1493,7 +1497,7 @@ namespace UnityEngine.Rendering
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
-        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererUtils.RendererList rendererList)
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList)
         {
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");

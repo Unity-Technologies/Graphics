@@ -463,10 +463,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 pbrSky.spaceRotation.value.y,
                 pbrSky.spaceRotation.value.z);
 
+            var planetRotationMatrix = Matrix4x4.Rotate(planetRotation);
+            planetRotationMatrix[0] *= -1;
+            planetRotationMatrix[1] *= -1;
+            planetRotationMatrix[2] *= -1;
+
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
             s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1, cameraPos);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1, builtinParams.viewMatrix);
-            s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation, Matrix4x4.Rotate(planetRotation));
+            s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation, planetRotationMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation, Matrix4x4.Rotate(spaceRotation));
 
             m_PrecomputedData.BindBuffers(cmd, s_PbrSkyMaterialProperties);

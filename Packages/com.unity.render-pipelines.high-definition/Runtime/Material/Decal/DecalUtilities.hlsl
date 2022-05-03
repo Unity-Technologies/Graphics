@@ -43,8 +43,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
             fadeFactor *= angleFadeFactor;
         }
 
-        float albedoMapBlend = fadeFactor;
-        float maskMapBlend = fadeFactor;
+        float albedoMapBlend;
+        float maskMapBlend = fadeFactor * decalData.scalingBAndRemappingM.y; // Multiply by mask map blue scale
 
         // Albedo
         // We must always sample diffuse texture due to opacity that can affect everything)
@@ -108,7 +108,6 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 #endif
 
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
-                src.z *= decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
                 src.x = lerp(decalData.scalingBAndRemappingM.z, decalData.scalingBAndRemappingM.w, src.x); // Remap Metal
@@ -118,8 +117,6 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
             }
             else
             {
-                src.z = decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
-                maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
                 src.x = decalData.scalingBAndRemappingM.z; // Metal
                 src.y = decalData.remappingAOS.x; // AO

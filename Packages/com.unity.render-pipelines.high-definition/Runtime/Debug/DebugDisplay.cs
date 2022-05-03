@@ -219,12 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_RenderingFullScreenDebugValues = null;
         static GUIContent[] s_MaterialFullScreenDebugStrings = null;
         static int[] s_MaterialFullScreenDebugValues = null;
-        static GUIContent[] s_MsaaSamplesDebugStrings = null;
-        static int[] s_MsaaSamplesDebugValues = null;
-        static GUIContent[] s_RTASViewDebugStrings = null;
-        static int[] s_RTASViewDebugValues = null;
-        static GUIContent[] s_RTASModeDebugStrings = null;
-        static int[] s_RTASModeDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = null;
@@ -414,16 +408,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>List of Full Screen Lighting Debug mode values.</summary>
         public static int[] lightingFullScreenDebugValues => s_LightingFullScreenDebugValues;
 
-        /// <summary>List of Full Screen Lighting RTAS Debug view names.</summary>
-        public static GUIContent[] lightingFullScreenRTASDebugViewStrings => s_RTASViewDebugStrings;
-        /// <summary>List of Full Screen Lighting RTAS Debug view values.</summary>
-        public static int[] lightingFullScreenRTASDebugViewValues => s_RTASViewDebugValues;
-
-        /// <summary>List of Full Screen Lighting RTAS Debug mode names.</summary>
-        public static GUIContent[] lightingFullScreenRTASDebugModeStrings => s_RTASModeDebugStrings;
-        /// <summary>List of Full Screen Lighting RTAS Debug mode values.</summary>
-        public static int[] lightingFullScreenRTASDebugModeValues => s_RTASModeDebugValues;
-
         internal DebugDisplaySettings()
         {
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
@@ -444,17 +428,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
-
-            s_MsaaSamplesDebugStrings = Enum.GetNames(typeof(MSAASamples))
-                .Select(t => new GUIContent(t))
-                .ToArray();
-            s_MsaaSamplesDebugValues = (int[])Enum.GetValues(typeof(MSAASamples));
-
-            s_RTASViewDebugStrings = Enum.GetNames(typeof(RTASDebugView)).Select(t => new GUIContent(t)).ToArray();
-            s_RTASViewDebugValues = (int[])Enum.GetValues(typeof(RTASDebugView));
-
-            s_RTASModeDebugStrings = Enum.GetNames(typeof(RTASDebugMode)).Select(t => new GUIContent(t)).ToArray();
-            s_RTASModeDebugValues = (int[])Enum.GetValues(typeof(RTASDebugMode));
 
             m_Data = new DebugData();
         }
@@ -1067,11 +1040,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 EnableProfilingRecordersRT();
                 list.Add(new DebugUI.Foldout("Ray Tracing Stats", BuildProfilingSamplerWidgetList(m_RecordedSamplersRT), new[] { "CPU", "CPUInline", "GPU" }));
             }
-            list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
-            if (data.countRays)
+            list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value });
             {
                 list.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => !data.countRays,
                     children =
                     {
                         new DebugUI.Value { displayName = "Ambient Occlusion", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.AmbientOcclusion)) / 1e6f, refreshRate = 1f / 30f },
@@ -1149,45 +1122,40 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Attributes, getter = () => (int)data.materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => data.attributesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.attributesEnumIndex = value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Properties, getter = () => (int)data.materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => data.propertiesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.propertiesEnumIndex = value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.GBuffer, getter = () => data.materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues, getIndex = () => data.gBufferEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.gBufferEnumIndex = value; } });
-            list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.MaterialValidator, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_MaterialFullScreenDebugStrings, enumValues = s_MaterialFullScreenDebugValues, onValueChanged = RefreshMaterialDebug, getIndex = () => data.materialValidatorDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialValidatorDebugModeEnumIndex = value; } });
+            list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.MaterialValidator, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_MaterialFullScreenDebugStrings, enumValues = s_MaterialFullScreenDebugValues, getIndex = () => data.materialValidatorDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialValidatorDebugModeEnumIndex = value; } });
 
-            if (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor || data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor)
+            list.Add(new DebugUI.Container
             {
-                list.Add(new DebugUI.Container
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.ValidateDiffuseColor && data.fullScreenDebugMode != FullScreenDebugMode.ValidateSpecularColor,
+                children =
                 {
-                    children =
-                    {
-                        new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorTooHighColor, getter = () => data.materialDebugSettings.materialValidateHighColor, setter = value => data.materialDebugSettings.materialValidateHighColor = value, showAlpha = false, hdr = true },
-                        new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorTooLowColor, getter = () => data.materialDebugSettings.materialValidateLowColor, setter = value => data.materialDebugSettings.materialValidateLowColor = value, showAlpha = false, hdr = true },
-                        new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorNotAPureMetalColor, getter = () => data.materialDebugSettings.materialValidateTrueMetalColor, setter = value => data.materialDebugSettings.materialValidateTrueMetalColor = value, showAlpha = false, hdr = true },
-                        new DebugUI.BoolField  { nameAndTooltip = MaterialStrings.ValidatorPureMetals, getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
-                    }
-                });
-            }
+                    new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorTooHighColor, getter = () => data.materialDebugSettings.materialValidateHighColor, setter = value => data.materialDebugSettings.materialValidateHighColor = value, showAlpha = false, hdr = true },
+                    new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorTooLowColor, getter = () => data.materialDebugSettings.materialValidateLowColor, setter = value => data.materialDebugSettings.materialValidateLowColor = value, showAlpha = false, hdr = true },
+                    new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorNotAPureMetalColor, getter = () => data.materialDebugSettings.materialValidateTrueMetalColor, setter = value => data.materialDebugSettings.materialValidateTrueMetalColor = value, showAlpha = false, hdr = true },
+                    new DebugUI.BoolField  { nameAndTooltip = MaterialStrings.ValidatorPureMetals, getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
+                }
+            });
 
-            if (ShaderConfig.s_GlobalMipBias)
+            list.Add(new DebugUI.Container
             {
-                list.Add(
+                isHiddenCallback = () => !ShaderConfig.s_GlobalMipBias,
+                children =
+                {
                     new DebugUI.BoolField
                     {
                         nameAndTooltip = MaterialStrings.OverrideGlobalMaterialTextureMipBias,
                         getter = () => data.UseDebugGlobalMipBiasOverride(),
                         setter = (value) => data.SetUseDebugGlobalMipBiasOverride(value),
-                        onValueChanged = RefreshMaterialDebug
-                    });
-
-                if (data.UseDebugGlobalMipBiasOverride())
-                {
-                    list.Add(
-                        new DebugUI.FloatField
-                        {
-                            nameAndTooltip = MaterialStrings.DebugGlobalMaterialTextureMipBiasValue,
-                            getter = () => data.GetDebugGlobalMipBiasOverride(),
-                            setter = (value) => data.SetDebugGlobalMipBiasOverride(value),
-                            onValueChanged = RefreshMaterialDebug
-                        });
+                    },
+                    new DebugUI.FloatField
+                    {
+                        nameAndTooltip = MaterialStrings.DebugGlobalMaterialTextureMipBiasValue,
+                        getter = () => data.GetDebugGlobalMipBiasOverride(),
+                        setter = (value) => data.SetDebugGlobalMipBiasOverride(value),
+                        isHiddenCallback = () => !data.UseDebugGlobalMipBiasOverride()
+                    }
                 }
-            }
+            });
 
             m_DebugMaterialItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelMaterials, true);
@@ -1290,7 +1258,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Tile/Cluster debug
             public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for." };
-            public static readonly NameAndTooltip TileClusterDebugByCategory = new() { name = "Tile/Cluster Debug By Catagory", tooltip = "Use the drop-down to select the visualization mode for the cluster." };
+            public static readonly NameAndTooltip TileClusterDebugByCategory = new() { name = "Tile/Cluster Debug By Category", tooltip = "Use the drop-down to select the visualization mode for the cluster." };
             public static readonly NameAndTooltip ClusterDebugMode = new() { name = "Cluster Debug Mode", tooltip = "Select the debug visualization mode for the Cluster." };
             public static readonly NameAndTooltip ClusterDistance = new() { name = "Cluster Distance", tooltip = "Set the distance from the camera that HDRP displays the Cluster slice." };
 
@@ -1328,17 +1296,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var shadows = new DebugUI.Container() { displayName = "Shadows" };
 
-                shadows.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.ShadowDebugMode, getter = () => (int)data.lightingDebugSettings.shadowDebugMode, setter = value => SetShadowDebugMode((ShadowMapDebugMode)value), autoEnum = typeof(ShadowMapDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.shadowDebugModeEnumIndex, setIndex = value => data.shadowDebugModeEnumIndex = value });
-
-                if (data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap || data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                shadows.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.ShadowDebugMode, getter = () => (int)data.lightingDebugSettings.shadowDebugMode, setter = value => SetShadowDebugMode((ShadowMapDebugMode)value), autoEnum = typeof(ShadowMapDebugMode), getIndex = () => data.shadowDebugModeEnumIndex, setIndex = value => data.shadowDebugModeEnumIndex = value });
                 {
-                    var container = new DebugUI.Container();
-                    container.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.ShadowDebugUseSelection, getter = () => data.lightingDebugSettings.shadowDebugUseSelection, setter = value => data.lightingDebugSettings.shadowDebugUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug });
-
-                    if (!data.lightingDebugSettings.shadowDebugUseSelection)
-                        container.children.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.ShadowDebugShadowMapIndex, getter = () => data.lightingDebugSettings.shadowMapIndex, setter = value => data.lightingDebugSettings.shadowMapIndex = value, min = () => 0u, max = () => (uint)(Math.Max(0, (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCurrentShadowCount() - 1u)) });
-
-                    shadows.children.Add(container);
+                    shadows.children.Add(new DebugUI.Container()
+                    {
+                        isHiddenCallback = () => data.lightingDebugSettings.shadowDebugMode != ShadowMapDebugMode.VisualizeShadowMap && data.lightingDebugSettings.shadowDebugMode != ShadowMapDebugMode.SingleShadow,
+                        children =
+                        {
+                            new DebugUI.BoolField { nameAndTooltip = LightingStrings.ShadowDebugUseSelection, getter = () => data.lightingDebugSettings.shadowDebugUseSelection, setter = value => data.lightingDebugSettings.shadowDebugUseSelection = value, flags = DebugUI.Flags.EditorOnly },
+                            new DebugUI.UIntField { nameAndTooltip = LightingStrings.ShadowDebugShadowMapIndex, getter = () => data.lightingDebugSettings.shadowMapIndex, setter = value => data.lightingDebugSettings.shadowMapIndex = value, min = () => 0u, max = () => (uint)(Math.Max(0, (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCurrentShadowCount() - 1u)), isHiddenCallback = () => !data.lightingDebugSettings.shadowDebugUseSelection }
+                        }
+                    });
                 }
 
                 shadows.children.Add(new DebugUI.FloatField
@@ -1377,71 +1345,65 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 });
 
-                var exposureFoldout = new DebugUI.Foldout
                 {
-                    nameAndTooltip = LightingStrings.Exposure,
-                    children =
+                    var exposureFoldout = new DebugUI.Foldout
                     {
-                        new DebugUI.EnumField
+                        nameAndTooltip = LightingStrings.Exposure,
+                        children =
                         {
-                            nameAndTooltip = LightingStrings.ExposureDebugMode,
-                            getter = () => (int)data.lightingDebugSettings.exposureDebugMode,
-                            setter = value => SetExposureDebugMode((ExposureDebugMode)value),
-                            autoEnum = typeof(ExposureDebugMode), onValueChanged = RefreshLightingDebug,
-                            getIndex = () => data.exposureDebugModeEnumIndex,
-                            setIndex = value => data.exposureDebugModeEnumIndex = value
+                            new DebugUI.EnumField
+                            {
+                                nameAndTooltip = LightingStrings.ExposureDebugMode,
+                                getter = () => (int)data.lightingDebugSettings.exposureDebugMode,
+                                setter = value => SetExposureDebugMode((ExposureDebugMode)value),
+                                autoEnum = typeof(ExposureDebugMode),
+                                getIndex = () => data.exposureDebugModeEnumIndex,
+                                setIndex = value => data.exposureDebugModeEnumIndex = value
+                            },
+                            new DebugUI.BoolField()
+                            {
+                                nameAndTooltip = LightingStrings.ExposureDisplayMaskOnly,
+                                getter = () => data.lightingDebugSettings.displayMaskOnly,
+                                setter = value => data.lightingDebugSettings.displayMaskOnly = value,
+                                isHiddenCallback = () => data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.MeteringWeighted
+                            },
+                            new DebugUI.Container()
+                            {
+                                isHiddenCallback = () => data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.HistogramView,
+                                children =
+                                {
+                                    new DebugUI.BoolField()
+                                    {
+                                        nameAndTooltip = LightingStrings.ExposureShowTonemapCurve,
+                                        getter = () => data.lightingDebugSettings.showTonemapCurveAlongHistogramView,
+                                        setter = value => data.lightingDebugSettings.showTonemapCurveAlongHistogramView = value
+                                    },
+                                    new DebugUI.BoolField()
+                                    {
+                                        nameAndTooltip = LightingStrings.ExposureCenterAroundExposure,
+                                        getter = () => data.lightingDebugSettings.centerHistogramAroundMiddleGrey,
+                                        setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
+                                    }
+                                }
+                            },
+                            new DebugUI.BoolField()
+                            {
+                                nameAndTooltip = LightingStrings.ExposureDisplayRGBHistogram,
+                                getter = () => data.lightingDebugSettings.displayFinalImageHistogramAsRGB,
+                                setter = value => data.lightingDebugSettings.displayFinalImageHistogramAsRGB = value,
+                                isHiddenCallback = () => data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.FinalImageHistogramView
+                            },
+                            new DebugUI.FloatField
+                            {
+                                nameAndTooltip = LightingStrings.DebugExposureCompensation,
+                                getter = () => data.lightingDebugSettings.debugExposure,
+                                setter = value => data.lightingDebugSettings.debugExposure = value
+                            }
                         }
-                    }
-                };
+                    };
 
-                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
-                {
-                    exposureFoldout.children.Add(
-                        new DebugUI.BoolField()
-                        {
-                            nameAndTooltip = LightingStrings.ExposureDisplayMaskOnly,
-                            getter = () => data.lightingDebugSettings.displayMaskOnly,
-                            setter = value => data.lightingDebugSettings.displayMaskOnly = value
-                        });
+                    lighting.children.Add(exposureFoldout);
                 }
-                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
-                {
-                    exposureFoldout.children.Add(
-                        new DebugUI.BoolField()
-                        {
-                            nameAndTooltip = LightingStrings.ExposureShowTonemapCurve,
-                            getter = () => data.lightingDebugSettings.showTonemapCurveAlongHistogramView,
-                            setter = value => data.lightingDebugSettings.showTonemapCurveAlongHistogramView = value
-                        });
-                    exposureFoldout.children.Add(
-                        new DebugUI.BoolField()
-                        {
-                            nameAndTooltip = LightingStrings.ExposureCenterAroundExposure,
-                            getter = () => data.lightingDebugSettings.centerHistogramAroundMiddleGrey,
-                            setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
-                        });
-                }
-                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
-                {
-                    exposureFoldout.children.Add(
-                        new DebugUI.BoolField()
-                        {
-                            nameAndTooltip = LightingStrings.ExposureDisplayRGBHistogram,
-                            getter = () => data.lightingDebugSettings.displayFinalImageHistogramAsRGB,
-                            setter = value => data.lightingDebugSettings.displayFinalImageHistogramAsRGB = value
-                        });
-                }
-
-                exposureFoldout.children.Add(
-                    new DebugUI.FloatField
-                    {
-                        nameAndTooltip = LightingStrings.DebugExposureCompensation,
-                        getter = () => data.lightingDebugSettings.debugExposure,
-                        setter = value => data.lightingDebugSettings.debugExposure = value
-                    });
-
-
-                lighting.children.Add(exposureFoldout);
 
                 var hdrFoldout = new DebugUI.Foldout
                 {
@@ -1453,7 +1415,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             nameAndTooltip = LightingStrings.HDROutputDebugMode,
                             getter = () => (int)data.lightingDebugSettings.hdrDebugMode,
                             setter = value => SetHDRDebugMode((HDRDebugMode)value),
-                            autoEnum = typeof(HDRDebugMode), onValueChanged = RefreshLightingDebug,
+                            autoEnum = typeof(HDRDebugMode),
                             getIndex = () => data.hdrDebugModeEnumIndex,
                             setIndex = value => data.hdrDebugModeEnumIndex = value
                         }
@@ -1462,42 +1424,43 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lighting.children.Add(hdrFoldout);
 
-                lighting.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightingDebugMode, getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
-                lighting.children.Add(new DebugUI.BitField { nameAndTooltip = LightingStrings.LightHierarchyDebugMode, getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode), onValueChanged = RefreshLightingDebug, });
+                lighting.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightingDebugMode, getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
+                lighting.children.Add(new DebugUI.BitField { nameAndTooltip = LightingStrings.LightHierarchyDebugMode, getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode)});
 
-                lighting.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.LightLayersVisualization, getter = () => data.lightingDebugSettings.debugLightLayers, setter = value => SetDebugLightLayersMode(value), onValueChanged = RefreshLightingDebug });
+                lighting.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.LightLayersVisualization, getter = () => data.lightingDebugSettings.debugLightLayers, setter = value => SetDebugLightLayersMode(value)});
 
-                if (data.lightingDebugSettings.debugLightLayers)
                 {
-                    var container = new DebugUI.Container();
-                    container.children.Add(new DebugUI.BoolField
+                    var container = new DebugUI.Container()
                     {
-                        nameAndTooltip = LightingStrings.LightLayersUseSelectedLight,
-                        getter = () => data.lightingDebugSettings.debugSelectionLightLayers,
-                        setter = value => data.lightingDebugSettings.debugSelectionLightLayers = value,
-                        flags = DebugUI.Flags.EditorOnly,
-                        onValueChanged = RefreshLightingDebug
-                    });
-
-                    if (data.lightingDebugSettings.debugSelectionLightLayers)
-                    {
-                        container.children.Add(new DebugUI.BoolField
+                        isHiddenCallback = () => !data.lightingDebugSettings.debugLightLayers,
+                        children =
                         {
-                            nameAndTooltip = LightingStrings.LightLayersSwitchToLightShadowLayers,
-                            getter = () => data.lightingDebugSettings.debugSelectionShadowLayers,
-                            setter = value => data.lightingDebugSettings.debugSelectionShadowLayers = value,
-                            flags = DebugUI.Flags.EditorOnly,
-                            onValueChanged = RefreshLightingDebug
-                        });
-                    }
-                    else
+                            new DebugUI.BoolField
+                            {
+                                nameAndTooltip = LightingStrings.LightLayersUseSelectedLight,
+                                getter = () => data.lightingDebugSettings.debugSelectionLightLayers,
+                                setter = value => data.lightingDebugSettings.debugSelectionLightLayers = value,
+                                flags = DebugUI.Flags.EditorOnly,
+                            },
+                            new DebugUI.BoolField
+                            {
+                                nameAndTooltip = LightingStrings.LightLayersSwitchToLightShadowLayers,
+                                getter = () => data.lightingDebugSettings.debugSelectionShadowLayers,
+                                setter = value => data.lightingDebugSettings.debugSelectionShadowLayers = value,
+                                flags = DebugUI.Flags.EditorOnly,
+                                isHiddenCallback = () => !data.lightingDebugSettings.debugSelectionLightLayers
+                            }
+                        }
+                    };
+
                     {
                         var field = new DebugUI.BitField
                         {
                             nameAndTooltip = LightingStrings.LightLayersFilterLayers,
                             getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
                             setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)value,
-                            enumType = typeof(DebugLightLayersMask)
+                            enumType = typeof(DebugLightLayersMask),
+                            isHiddenCallback = () => data.lightingDebugSettings.debugSelectionLightLayers
                         };
 
                         for (int i = 0; i < 8; i++)
@@ -1525,159 +1488,175 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             {
-                var material = new DebugUI.Container() { displayName = "Material Overrides" };
-
-                material.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideSmoothness, getter = () => data.lightingDebugSettings.overrideSmoothness, setter = value => data.lightingDebugSettings.overrideSmoothness = value, onValueChanged = RefreshLightingDebug });
-                if (data.lightingDebugSettings.overrideSmoothness)
+                var material = new DebugUI.Container()
                 {
-                    material.children.Add(new DebugUI.Container
+                    displayName = "Material Overrides",
+                    children =
                     {
-                        children =
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideSmoothness, getter = () => data.lightingDebugSettings.overrideSmoothness, setter = value => data.lightingDebugSettings.overrideSmoothness = value },
+                        new DebugUI.Container
                         {
-                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.Smoothness, getter = () => data.lightingDebugSettings.overrideSmoothnessValue, setter = value => data.lightingDebugSettings.overrideSmoothnessValue = value, min = () => 0f, max = () => 1f, incStep = 0.025f }
-                        }
-                    });
-                }
-
-                material.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideAlbedo, getter = () => data.lightingDebugSettings.overrideAlbedo, setter = value => data.lightingDebugSettings.overrideAlbedo = value, onValueChanged = RefreshLightingDebug });
-                if (data.lightingDebugSettings.overrideAlbedo)
-                {
-                    material.children.Add(new DebugUI.Container
-                    {
-                        children =
+                            isHiddenCallback = () => !data.lightingDebugSettings.overrideSmoothness,
+                            children =
+                            {
+                                new DebugUI.FloatField { nameAndTooltip = LightingStrings.Smoothness, getter = () => data.lightingDebugSettings.overrideSmoothnessValue, setter = value => data.lightingDebugSettings.overrideSmoothnessValue = value, min = () => 0f, max = () => 1f, incStep = 0.025f }
+                            }
+                        },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideAlbedo, getter = () => data.lightingDebugSettings.overrideAlbedo, setter = value => data.lightingDebugSettings.overrideAlbedo = value },
+                        new DebugUI.Container
                         {
-                            new DebugUI.ColorField { nameAndTooltip = LightingStrings.Albedo, getter = () => data.lightingDebugSettings.overrideAlbedoValue, setter = value => data.lightingDebugSettings.overrideAlbedoValue = value, showAlpha = false, hdr = false }
-                        }
-                    });
-                }
-
-                material.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideNormal, getter = () => data.lightingDebugSettings.overrideNormal, setter = value => data.lightingDebugSettings.overrideNormal = value });
-
-                material.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideSpecularColor, getter = () => data.lightingDebugSettings.overrideSpecularColor, setter = value => data.lightingDebugSettings.overrideSpecularColor = value, onValueChanged = RefreshLightingDebug });
-                if (data.lightingDebugSettings.overrideSpecularColor)
-                {
-                    material.children.Add(new DebugUI.Container
-                    {
-                        children =
+                            isHiddenCallback = () => !data.lightingDebugSettings.overrideAlbedo,
+                            children =
+                            {
+                                new DebugUI.ColorField { nameAndTooltip = LightingStrings.Albedo, getter = () => data.lightingDebugSettings.overrideAlbedoValue, setter = value => data.lightingDebugSettings.overrideAlbedoValue = value, showAlpha = false, hdr = false }
+                            }
+                        },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideNormal, getter = () => data.lightingDebugSettings.overrideNormal, setter = value => data.lightingDebugSettings.overrideNormal = value },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideSpecularColor, getter = () => data.lightingDebugSettings.overrideSpecularColor, setter = value => data.lightingDebugSettings.overrideSpecularColor = value },
+                        new DebugUI.Container
                         {
-                            new DebugUI.ColorField { nameAndTooltip = LightingStrings.SpecularColor, getter = () => data.lightingDebugSettings.overrideSpecularColorValue, setter = value => data.lightingDebugSettings.overrideSpecularColorValue = value, showAlpha = false, hdr = false }
-                        }
-                    });
-                }
-
-                material.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideAmbientOcclusion, getter = () => data.lightingDebugSettings.overrideAmbientOcclusion, setter = value => data.lightingDebugSettings.overrideAmbientOcclusion = value, onValueChanged = RefreshLightingDebug });
-                if (data.lightingDebugSettings.overrideAmbientOcclusion)
-                {
-                    material.children.Add(new DebugUI.Container
-                    {
-                        children =
+                            isHiddenCallback = () => !data.lightingDebugSettings.overrideSpecularColor,
+                            children =
+                            {
+                                new DebugUI.ColorField { nameAndTooltip = LightingStrings.SpecularColor, getter = () => data.lightingDebugSettings.overrideSpecularColorValue, setter = value => data.lightingDebugSettings.overrideSpecularColorValue = value, showAlpha = false, hdr = false }
+                            }
+                        },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideAmbientOcclusion, getter = () => data.lightingDebugSettings.overrideAmbientOcclusion, setter = value => data.lightingDebugSettings.overrideAmbientOcclusion = value},
+                        new DebugUI.Container
                         {
-                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.AmbientOcclusion, getter = () => data.lightingDebugSettings.overrideAmbientOcclusionValue, setter = value => data.lightingDebugSettings.overrideAmbientOcclusionValue = value, min = () => 0f, max = () => 1f, incStep = 0.025f }
-                        }
-                    });
-                }
-
-                material.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideEmissiveColor, getter = () => data.lightingDebugSettings.overrideEmissiveColor, setter = value => data.lightingDebugSettings.overrideEmissiveColor = value, onValueChanged = RefreshLightingDebug });
-                if (data.lightingDebugSettings.overrideEmissiveColor)
-                {
-                    material.children.Add(new DebugUI.Container
-                    {
-                        children =
+                            isHiddenCallback = () => !data.lightingDebugSettings.overrideAmbientOcclusion,
+                            children =
+                            {
+                                new DebugUI.FloatField { nameAndTooltip = LightingStrings.AmbientOcclusion, getter = () => data.lightingDebugSettings.overrideAmbientOcclusionValue, setter = value => data.lightingDebugSettings.overrideAmbientOcclusionValue = value, min = () => 0f, max = () => 1f, incStep = 0.025f }
+                            }
+                        },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.OverrideEmissiveColor, getter = () => data.lightingDebugSettings.overrideEmissiveColor, setter = value => data.lightingDebugSettings.overrideEmissiveColor = value },
+                        new DebugUI.Container
                         {
-                            new DebugUI.ColorField { nameAndTooltip = LightingStrings.EmissiveColor, getter = () => data.lightingDebugSettings.overrideEmissiveColorValue, setter = value => data.lightingDebugSettings.overrideEmissiveColorValue = value, showAlpha = false, hdr = true }
+                            isHiddenCallback = () => !data.lightingDebugSettings.overrideEmissiveColor,
+                            children =
+                            {
+                                new DebugUI.ColorField { nameAndTooltip = LightingStrings.EmissiveColor, getter = () => data.lightingDebugSettings.overrideEmissiveColorValue, setter = value => data.lightingDebugSettings.overrideEmissiveColorValue = value, showAlpha = false, hdr = true }
+                            }
                         }
-                    });
-                }
+                    }
+                };
 
                 list.Add(material);
             }
 
-            list.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.FullscreenDebugMode, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_LightingFullScreenDebugStrings, enumValues = s_LightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingFulscreenDebugModeEnumIndex = value; } });
-
-            if (data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows)
+            list.Add(new DebugUI.EnumField
             {
-                list.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.ScreenSpaceShadowIndex, getter = () => data.screenSpaceShadowIndex, setter = value => data.screenSpaceShadowIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() });
-            }
-
-            if (data.fullScreenDebugMode == FullScreenDebugMode.RayTracingAccelerationStructure)
-            {
-                list.Add(new DebugUI.Container
+                nameAndTooltip = LightingStrings.FullscreenDebugMode,
+                getter = () => (int)data.fullScreenDebugMode,
+                setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value),
+                enumNames = s_LightingFullScreenDebugStrings,
+                enumValues = s_LightingFullScreenDebugValues,
+                getIndex = () => data.lightingFulscreenDebugModeEnumIndex,
+                setIndex = value =>
                 {
-                    children =
+                    data.ResetExclusiveEnumIndices();
+                    data.lightingFulscreenDebugModeEnumIndex = value;
+                },
+                onValueChanged = (_, __) =>
+                {
+                    switch (data.fullScreenDebugMode)
+                    {
+                        case FullScreenDebugMode.PreRefractionColorPyramid:
+                        case FullScreenDebugMode.FinalColorPyramid:
+                        case FullScreenDebugMode.DepthPyramid:
+                        case FullScreenDebugMode.ContactShadows:
+                            break;
+                        default:
+                            data.fullscreenDebugMip = 0;
+                            break;
+                    }
+                }
+            });
+            list.Add(new DebugUI.Container
+            {
+                children =
+                {
+                    new DebugUI.UIntField
+                    {
+                        nameAndTooltip = LightingStrings.ScreenSpaceShadowIndex,
+                        getter = () => data.screenSpaceShadowIndex,
+                        setter = value => data.screenSpaceShadowIndex = value,
+                        min = () => 0u,
+                        max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows(),
+                        isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.ScreenSpaceShadows
+                    }
+                }
+            });
+            list.Add(new DebugUI.Container
+            {
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.RayTracingAccelerationStructure,
+                children =
+                {
+                    new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugView, getter = () => (int)data.rtasDebugView, setter = value => SetRTASDebugView((RTASDebugView)value), autoEnum = typeof(RTASDebugView), getIndex = () => data.rtasDebugViewEnumIndex, setIndex = value => { data.rtasDebugViewEnumIndex = value; } },
+                    new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugMode, getter = () => (int)data.rtasDebugMode, setter = value => SetRTASDebugMode((RTASDebugMode)value), autoEnum = typeof(RTASDebugMode), getIndex = () => data.rtasDebugModeEnumIndex, setIndex = value => { data.rtasDebugModeEnumIndex = value; } }
+                }
+            });
+            list.Add(new DebugUI.Container()
+            {
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.PreRefractionColorPyramid && data.fullScreenDebugMode != FullScreenDebugMode.FinalColorPyramid && data.fullScreenDebugMode != FullScreenDebugMode.DepthPyramid,
+                children =
+                {
+                    new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
+                    new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
+                    new DebugUI.Container()
+                    {
+                        isHiddenCallback = () => !data.enableDebugDepthRemap,
+                        children =
                         {
-                            new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugView, getter = () => (int)data.rtasDebugView, setter = value => SetRTASDebugView((RTASDebugView)value), enumNames = s_RTASViewDebugStrings, enumValues = s_RTASViewDebugValues, getIndex = () => data.rtasDebugViewEnumIndex, setIndex = value => { data.rtasDebugViewEnumIndex = value; } },
-                            new DebugUI.EnumField { nameAndTooltip = LightingStrings.RTASDebugMode, getter = () => (int)data.rtasDebugMode, setter = value => SetRTASDebugMode((RTASDebugMode)value), enumNames = s_RTASModeDebugStrings, enumValues = s_RTASModeDebugValues, getIndex = () => data.rtasDebugModeEnumIndex, setIndex = value => { data.rtasDebugModeEnumIndex = value; } }
+                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMin, getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = Mathf.Min(value, data.fullScreenDebugDepthRemap.y), min = () => 0f, max = () => 1f, incStep = 0.01f },
+                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMax, getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = Mathf.Max(value, data.fullScreenDebugDepthRemap.x), min = () => 0.01f, max = () => 1f, incStep = 0.01f }
                         }
+                    }
+                }
+            });
+            list.Add(new DebugUI.Container
+            {
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.ContactShadows,
+                children =
+                {
+                    new DebugUI.IntField
+                    {
+                        nameAndTooltip = LightingStrings.ContactShadowsLightIndex,
+                        getter = () => data.fullScreenContactShadowLightIndex,
+                        setter = value => data.fullScreenContactShadowLightIndex = value,
+                        min = () => - 1, // -1 will display all contact shadow
+                        max = () => ShaderConfig.FPTLMaxLightCount - 1
+                    },
+                }
+            });
+
+            list.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.TileClusterDebug, getter = () => (int)data.lightingDebugSettings.tileClusterDebug, setter = value => data.lightingDebugSettings.tileClusterDebug = (TileClusterDebug)value, autoEnum = typeof(TileClusterDebug), getIndex = () => data.tileClusterDebugEnumIndex, setIndex = value => data.tileClusterDebugEnumIndex = value });
+            {
+                list.Add(new DebugUI.Container()
+                {
+                    isHiddenCallback = () => data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.None || data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.MaterialFeatureVariants,
+                    children =
+                    {
+                        new DebugUI.EnumField { nameAndTooltip = LightingStrings.TileClusterDebugByCategory, getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, autoEnum = typeof(TileClusterCategoryDebug), getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value },
+                        new DebugUI.Container()
+                        {
+                            isHiddenCallback = () => data.lightingDebugSettings.tileClusterDebug != TileClusterDebug.Cluster,
+                            children =
+                            {
+                                new DebugUI.EnumField { nameAndTooltip = LightingStrings.ClusterDebugMode, getter = () => (int)data.lightingDebugSettings.clusterDebugMode, setter = value => data.lightingDebugSettings.clusterDebugMode = (ClusterDebugMode)value, autoEnum = typeof(ClusterDebugMode), getIndex = () => data.clusterDebugModeEnumIndex, setIndex = value => data.clusterDebugModeEnumIndex = value },
+                                new DebugUI.FloatField { isHiddenCallback = () => data.lightingDebugSettings.clusterDebugMode != ClusterDebugMode.VisualizeSlice, nameAndTooltip = LightingStrings.ClusterDistance, getter = () => data.lightingDebugSettings.clusterDebugDistance, setter = value => data.lightingDebugSettings.clusterDebugDistance = value, min = () => 0f, max = () => 100.0f, incStep = 0.05f }
+                            }
+                        }
+                    }
                 });
             }
 
-            switch (data.fullScreenDebugMode)
-            {
-                case FullScreenDebugMode.PreRefractionColorPyramid:
-                case FullScreenDebugMode.FinalColorPyramid:
-                case FullScreenDebugMode.DepthPyramid:
-                {
-                    var depthPyramidContainer = new DebugUI.Container();
-                    depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f });
-                    depthPyramidContainer.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value, onValueChanged = RefreshLightingDebug });
-                    if (data.enableDebugDepthRemap)
-                    {
-                        depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMin, getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = Mathf.Min(value, data.fullScreenDebugDepthRemap.y), min = () => 0f, max = () => 1f, incStep = 0.01f });
-                        depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMax, getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = Mathf.Max(value, data.fullScreenDebugDepthRemap.x), min = () => 0.01f, max = () => 1f, incStep = 0.01f });
-                    }
-
-                    list.Add(depthPyramidContainer);
-                    break;
-                }
-                case FullScreenDebugMode.ContactShadows:
-                    list.Add(new DebugUI.Container
-                    {
-                        children =
-                        {
-                            new DebugUI.IntField
-                            {
-                                nameAndTooltip = LightingStrings.ContactShadowsLightIndex,
-                                getter = () =>
-                                {
-                                    return data.fullScreenContactShadowLightIndex;
-                                },
-                                setter = value =>
-                                {
-                                    data.fullScreenContactShadowLightIndex = value;
-                                },
-                                min = () => - 1, // -1 will display all contact shadow
-                                max = () => ShaderConfig.FPTLMaxLightCount - 1
-                            },
-                        }
-                    });
-                    break;
-                default:
-                    data.fullscreenDebugMip = 0;
-                    break;
-            }
-
-            list.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.TileClusterDebug, getter = () => (int)data.lightingDebugSettings.tileClusterDebug, setter = value => data.lightingDebugSettings.tileClusterDebug = (TileClusterDebug)value, autoEnum = typeof(TileClusterDebug), onValueChanged = RefreshLightingDebug, getIndex = () => data.tileClusterDebugEnumIndex, setIndex = value => data.tileClusterDebugEnumIndex = value });
-            if (data.lightingDebugSettings.tileClusterDebug != TileClusterDebug.None && data.lightingDebugSettings.tileClusterDebug != TileClusterDebug.MaterialFeatureVariants)
-            {
-                var clusterDebugContainer = new DebugUI.Container();
-
-                clusterDebugContainer.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.TileClusterDebugByCategory, getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, autoEnum = typeof(TileClusterCategoryDebug), getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value });
-                if (data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.Cluster)
-                {
-                    clusterDebugContainer.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.ClusterDebugMode, getter = () => (int)data.lightingDebugSettings.clusterDebugMode, setter = value => data.lightingDebugSettings.clusterDebugMode = (ClusterDebugMode)value, autoEnum = typeof(ClusterDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.clusterDebugModeEnumIndex, setIndex = value => data.clusterDebugModeEnumIndex = value });
-
-                    if (data.lightingDebugSettings.clusterDebugMode == ClusterDebugMode.VisualizeSlice)
-                        clusterDebugContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.ClusterDistance, getter = () => data.lightingDebugSettings.clusterDebugDistance, setter = value => data.lightingDebugSettings.clusterDebugDistance = value, min = () => 0f, max = () => 100.0f, incStep = 0.05f });
-                }
-
-                list.Add(clusterDebugContainer);
-            }
-
-            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplaySkyReflection, getter = () => data.lightingDebugSettings.displaySkyReflection, setter = value => data.lightingDebugSettings.displaySkyReflection = value, onValueChanged = RefreshLightingDebug });
-            if (data.lightingDebugSettings.displaySkyReflection)
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplaySkyReflection, getter = () => data.lightingDebugSettings.displaySkyReflection, setter = value => data.lightingDebugSettings.displaySkyReflection = value });
             {
                 list.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => !data.lightingDebugSettings.displaySkyReflection,
                     children =
                     {
                         new DebugUI.FloatField { nameAndTooltip = LightingStrings.SkyReflectionMipmap, getter = () => data.lightingDebugSettings.skyReflectionMipmap, setter = value => data.lightingDebugSettings.skyReflectionMipmap = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
@@ -1685,29 +1664,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayLightVolumes, getter = () => data.lightingDebugSettings.displayLightVolumes, setter = value => data.lightingDebugSettings.displayLightVolumes = value, onValueChanged = RefreshLightingDebug });
-            if (data.lightingDebugSettings.displayLightVolumes)
-            {
-                var container = new DebugUI.Container
-                {
-                    children =
-                    {
-                        new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightVolumeDebugType, getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value, onValueChanged = RefreshLightingDebug }
-                    }
-                };
-                if (data.lightingDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.Gradient)
-                {
-                    container.children.Add(new DebugUI.UIntField { nameAndTooltip = LightingStrings.MaxDebugLightCount, getter = () => (uint)data.lightingDebugSettings.maxDebugLightCount, setter = value => data.lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 });
-                }
-
-                list.Add(container);
-            }
-
-            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayCookieAtlas, getter = () => data.lightingDebugSettings.displayCookieAtlas, setter = value => data.lightingDebugSettings.displayCookieAtlas = value, onValueChanged = RefreshLightingDebug });
-            if (data.lightingDebugSettings.displayCookieAtlas)
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayLightVolumes, getter = () => data.lightingDebugSettings.displayLightVolumes, setter = value => data.lightingDebugSettings.displayLightVolumes = value});
             {
                 list.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => !data.lightingDebugSettings.displayLightVolumes,
+                    children =
+                    {
+                        new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightVolumeDebugType, getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value },
+                        new DebugUI.UIntField { isHiddenCallback = () => data.lightingDebugSettings.lightVolumeDebugByCategory != LightVolumeDebug.Gradient, nameAndTooltip = LightingStrings.MaxDebugLightCount, getter = () => (uint)data.lightingDebugSettings.maxDebugLightCount, setter = value => data.lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayCookieAtlas, getter = () => data.lightingDebugSettings.displayCookieAtlas, setter = value => data.lightingDebugSettings.displayCookieAtlas = value });
+            {
+                list.Add(new DebugUI.Container
+                {
+                    isHiddenCallback = () => !data.lightingDebugSettings.displayCookieAtlas,
                     children =
                     {
                         new DebugUI.UIntField { nameAndTooltip = LightingStrings.CookieAtlasMipLevel, getter = () => data.lightingDebugSettings.cookieAtlasMipLevel, setter = value => data.lightingDebugSettings.cookieAtlasMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCookieAtlasMipCount()},
@@ -1716,11 +1690,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayPlanarReflectionAtlas, getter = () => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas = value, onValueChanged = RefreshLightingDebug });
-            if (data.lightingDebugSettings.displayPlanarReflectionProbeAtlas)
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayPlanarReflectionAtlas, getter = () => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas = value });
             {
                 list.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => !data.lightingDebugSettings.displayPlanarReflectionProbeAtlas,
                     children =
                     {
                         new DebugUI.UIntField { nameAndTooltip = LightingStrings.PlanarAtlasMipLevel, getter = () => data.lightingDebugSettings.planarReflectionProbeMipLevel, setter = value => data.lightingDebugSettings.planarReflectionProbeMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetPlanarReflectionProbeMipCount()},
@@ -1729,15 +1703,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayLocalVolumetricFogAtlas, getter = () => data.lightingDebugSettings.displayLocalVolumetricFogAtlas, setter = value => data.lightingDebugSettings.displayLocalVolumetricFogAtlas = value, onValueChanged = RefreshLightingDebug });
-            if (data.lightingDebugSettings.displayLocalVolumetricFogAtlas)
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayLocalVolumetricFogAtlas, getter = () => data.lightingDebugSettings.displayLocalVolumetricFogAtlas, setter = value => data.lightingDebugSettings.displayLocalVolumetricFogAtlas = value });
             {
                 list.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => !data.lightingDebugSettings.displayLocalVolumetricFogAtlas,
                     children =
                     {
                         new DebugUI.UIntField { nameAndTooltip = LightingStrings.VolumetricFogSlice, getter = () => data.lightingDebugSettings.localVolumetricFogAtlasSlice, setter = value => data.lightingDebugSettings.localVolumetricFogAtlasSlice = value, min = () => 0, max = () => GetLocalVolumetricFogSliceCount()},
-                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.VolumetricFogUseSelection, getter = () => data.lightingDebugSettings.localVolumetricFogUseSelection, setter = value => data.lightingDebugSettings.localVolumetricFogUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.VolumetricFogUseSelection, getter = () => data.lightingDebugSettings.localVolumetricFogUseSelection, setter = value => data.lightingDebugSettings.localVolumetricFogUseSelection = value, flags = DebugUI.Flags.EditorOnly },
                     }
                 });
             }
@@ -1801,43 +1775,46 @@ namespace UnityEngine.Rendering.HighDefinition
             widgetList.Add(CreateMissingDebugShadersWarning());
 
             widgetList.Add(
-                new DebugUI.EnumField { nameAndTooltip = RenderingStrings.FullscreenDebugMode, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingFulscreenDebugModeEnumIndex = value; } }
+                new DebugUI.EnumField { nameAndTooltip = RenderingStrings.FullscreenDebugMode, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingFulscreenDebugModeEnumIndex = value; } }
             );
 
-            if (data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
                 widgetList.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.TransparencyOverdraw,
                     children =
                     {
                         new DebugUI.FloatField { nameAndTooltip = RenderingStrings.MaxOverdrawCount, getter = () => data.transparencyDebugSettings.maxPixelCost, setter = value => data.transparencyDebugSettings.maxPixelCost = value, min = () => 0.25f, max = () => 2048.0f}
                     }
                 });
             }
-            else if (data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw)
+
             {
                 widgetList.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.QuadOverdraw,
                     children =
                     {
                         new DebugUI.UIntField { nameAndTooltip = RenderingStrings.MaxQuadCost, getter = () => data.maxQuadCost, setter = value => data.maxQuadCost = value, min = () => 1, max = () => 10}
                     }
                 });
             }
-            else if (data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity)
+
             {
                 widgetList.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.VertexDensity,
                     children =
                     {
                         new DebugUI.UIntField { nameAndTooltip = RenderingStrings.MaxVertexDensity, getter = () => data.maxVertexDensity, setter = value => data.maxVertexDensity = value, min = () => 1, max = () => 100}
                     }
                 });
             }
-            else if (data.fullScreenDebugMode == FullScreenDebugMode.MotionVectors)
+
             {
                 widgetList.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.MotionVectors,
                     children =
                     {
                         new DebugUI.FloatField {displayName = "Min Motion Vector Length (in pixels)", getter = () => data.minMotionVectorLength, setter = value => data.minMotionVectorLength = value, min = () => 0}
@@ -1847,13 +1824,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             widgetList.AddRange(new DebugUI.Widget[]
             {
-                new DebugUI.EnumField { nameAndTooltip = RenderingStrings.MipMaps, getter = () => (int)data.mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode), onValueChanged = RefreshRenderingDebug, getIndex = () => data.mipMapsEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.mipMapsEnumIndex = value; } },
+                new DebugUI.EnumField { nameAndTooltip = RenderingStrings.MipMaps, getter = () => (int)data.mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode), getIndex = () => data.mipMapsEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.mipMapsEnumIndex = value; } },
             });
 
-            if (data.mipMapDebugSettings.debugMipMapMode != DebugMipMapMode.None)
             {
                 widgetList.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => data.fullScreenDebugMode == FullScreenDebugMode.None,
                     children =
                     {
                         new DebugUI.EnumField { nameAndTooltip = RenderingStrings.TerrainTexture, getter = () => (int)data.mipMapDebugSettings.terrainTexture, setter = value => data.mipMapDebugSettings.terrainTexture = (DebugMipMapModeTerrainTexture)value, autoEnum = typeof(DebugMipMapModeTerrainTexture), getIndex = () => data.terrainTextureEnumIndex, setIndex = value => data.terrainTextureEnumIndex = value }
@@ -1875,11 +1852,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             });
 
-            widgetList.Add(new DebugUI.BoolField { nameAndTooltip = RenderingStrings.FalseColorMode, getter = () => data.falseColorDebugSettings.falseColor, setter = value => data.falseColorDebugSettings.falseColor = value, onValueChanged = RefreshRenderingDebug });
-            if (data.falseColorDebugSettings.falseColor)
+            widgetList.Add(new DebugUI.BoolField { nameAndTooltip = RenderingStrings.FalseColorMode, getter = () => data.falseColorDebugSettings.falseColor, setter = value => data.falseColorDebugSettings.falseColor = value});
             {
                 widgetList.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => !data.falseColorDebugSettings.falseColor,
                     flags = DebugUI.Flags.EditorOnly,
                     children =
                     {

@@ -28,6 +28,7 @@ MonoBehaviour:
     supportLightLayers: 0
     supportWater: 0
     waterSimulationResolution: 128
+    waterCPUSimulation: 0
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -37,7 +38,7 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 2
     planarReflectionResolution:
-      m_Values: 000100000004000000080000
+      m_Values: 000100000004000000040000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -51,6 +52,7 @@ MonoBehaviour:
     supportTerrainHole: 0
     lightProbeSystem: 1
     probeVolumeMemoryBudget: 1024
+    probeVolumeBlendingMemoryBudget: 128
     supportProbeVolumeStreaming: 0
     probeVolumeSHBands: 1
     supportRayTracing: 0

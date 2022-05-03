@@ -4,6 +4,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#if defined(LOD_FADE_CROSSFADE)
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
 
 struct Attributes
 {
@@ -89,7 +92,13 @@ Varyings UnlitPassVertex(Attributes input)
     return output;
 }
 
-half4 UnlitPassFragment(Varyings input) : SV_Target
+void UnlitPassFragment(
+    Varyings input
+    , out half4 outColor : SV_Target0
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
+#endif
+)
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -101,6 +110,10 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
 
     AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
+
+#ifdef LOD_FADE_CROSSFADE
+    LODFadeCrossFade(input.positionCS);
+#endif
 
     InputData inputData;
     InitializeInputData(input, inputData);
@@ -131,7 +144,12 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
 #endif
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
 
-    return finalColor;
+    outColor = finalColor;
+
+#ifdef _WRITE_RENDERING_LAYERS
+    uint renderingLayers = GetMeshRenderingLayer();
+    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+#endif
 }
 
 #endif

@@ -1,8 +1,6 @@
 # Volume Overrides
 
-__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.md). The High Definition Render Pipeline (HDRP) uses these Profiles within the [Volume](Volumes.md) framework. For example, you could use a Volume Override in your Unity Project to render a different fog color in a certain area of your Scene.
-
-[Fog](Override-Fog.md) is an example of a Volume Override:
+__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.md). The High Definition Render Pipeline (HDRP) uses these Profiles within the [Volume](Volumes.md) framework. For example, you could use a [Fog Volume Override](Override-Fog.md) in your Unity Project to render a different fog color in a certain area of your Scene.
 
 ![](Images/Override-VolumetricFog1.png)
 
@@ -14,10 +12,11 @@ Override checkboxes allow you to override as many or as few values on a Volume c
 
 To render a different fog color in a certain area of your Scene:
 
-1. Create a global Volume (menu: __GameObject > Volume > Global Volume__).
-2. Click the **New** button next to the **Profile** property to add a new Volume Profile to the Volume.
-3. Select **Add Override > Fog** and leave it with the default settings.
-4. Create a local Volume. To add a **Local** Volume with a box boundary, select __GameObject > Volume > Box Volume__.
-5. Select **Add Override > Fog** then in the **Fog** Inspector, override the properties with your preferred values.
+1. Create a global Volume. Go to **GameObject** > **Volume** > **Global Volume**.
+2. Select **New** next to the **Profile** property to add a new Volume Profile to the Volume.
+3. Select **Add Override** > **Fog**.
+4. Create a local Volume. Go to **GameObject** > **Volume** > **Box Volume**.
+5. Go to **Add Override** > **Fog**.
+6. In the **Fog** Inspector, override the properties with your preferred values.
 
-Now, whenever your Camera is within the bounds of the local Volume's Collider, HDRP uses the Fog values from that Volume. Whenever your Camera is outside the bounds of the local Volume's Collider, HDRP uses the Fog values from the global Volume
+When your Camera is within the bounds of the local Volume's Collider, HDRP uses the Fog values from that Volume. Whenever your Camera is outside the bounds of the local Volume's Collider, HDRP uses the Fog values from the global Volume.

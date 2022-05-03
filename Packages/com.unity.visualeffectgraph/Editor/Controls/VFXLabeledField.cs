@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 using System;
 
 namespace UnityEditor.VFX.UI
@@ -105,8 +104,20 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXLabeledField<T, U> : VisualElement, INotifyValueChanged<U> where T : VisualElement, INotifyValueChanged<U>, new()
+
+    interface IVFXDraggedElement
     {
+        void SetOnValueDragStarted(Action<IVFXDraggedElement> callback);
+        void SetOnValueDragFinished(Action<IVFXDraggedElement> callback);
+    }
+
+    class VFXLabeledField<T, U> : VisualElement, INotifyValueChanged<U>, IVFXDraggedElement where T : VisualElement, INotifyValueChanged<U>, new()
+    {
+        private Action<IVFXDraggedElement> m_OnValueDragFinished;
+        private Action<IVFXDraggedElement> m_OnValueDragStarted;
+
+        private bool m_Indeterminate;
+
         protected Label m_Label;
         protected T m_Control;
 
@@ -120,7 +131,6 @@ namespace UnityEditor.VFX.UI
             SetupLabel();
         }
 
-        bool m_Indeterminate;
 
         public bool indeterminate
         {
@@ -160,35 +170,18 @@ namespace UnityEditor.VFX.UI
             SetupLabel();
         }
 
+        public void SetOnValueDragStarted(Action<IVFXDraggedElement> callback) => m_OnValueDragStarted = callback;
+        public void SetOnValueDragFinished(Action<IVFXDraggedElement> callback) => m_OnValueDragFinished = callback;
+
         void SetupLabel()
         {
             if (typeof(IValueField<U>).IsAssignableFrom(typeof(T)))
             {
                 m_Label.styleSheets.Add(VFXView.LoadStyleSheet("VFXLabeledField"));
-                if (typeof(U) == typeof(float))
-                {
-                    var dragger = new VFXFieldMouseDragger<float>((IValueField<float>)m_Control, DragValueFinished, DragValueStarted);
-                    dragger.SetDragZone(m_Label);
-                    m_Label.AddToClassList("cursor-slide-arrow");
-                }
-                else if (typeof(U) == typeof(double))
-                {
-                    var dragger = new VFXFieldMouseDragger<double>((IValueField<double>)m_Control, DragValueFinished, DragValueStarted);
-                    dragger.SetDragZone(m_Label);
-                    m_Label.AddToClassList("cursor-slide-arrow");
-                }
-                else if (typeof(U) == typeof(long))
-                {
-                    var dragger = new VFXFieldMouseDragger<long>((IValueField<long>)m_Control, DragValueFinished, DragValueStarted);
-                    dragger.SetDragZone(m_Label);
-                    m_Label.AddToClassList("cursor-slide-arrow");
-                }
-                else if (typeof(U) == typeof(int))
-                {
-                    var dragger = new VFXFieldMouseDragger<int>((IValueField<int>)m_Control, DragValueFinished, DragValueStarted);
-                    dragger.SetDragZone(m_Label);
-                    m_Label.AddToClassList("cursor-slide-arrow");
-                }
+
+                var dragger = new VFXFieldMouseDragger<U>((IValueField<U>)m_Control, DragValueFinished, DragValueStarted);
+                dragger.SetDragZone(m_Label);
+                m_Label.AddToClassList("cursor-slide-arrow");
             }
 
             m_IndeterminateLabel = new Label()
@@ -201,18 +194,13 @@ namespace UnityEditor.VFX.UI
 
         void DragValueFinished()
         {
-            if (onValueDragFinished != null)
-                onValueDragFinished(this);
+            m_OnValueDragFinished?.Invoke(this);
         }
 
         void DragValueStarted()
         {
-            if (onValueDragStarted != null)
-                onValueDragStarted(this);
+            m_OnValueDragStarted?.Invoke(this);
         }
-
-        public Action<VFXLabeledField<T, U>> onValueDragFinished;
-        public Action<VFXLabeledField<T, U>> onValueDragStarted;
 
         void CreateControl()
         {
@@ -244,12 +232,12 @@ namespace UnityEditor.VFX.UI
 
         public void SetValueAndNotify(U newValue)
         {
-            (m_Control as INotifyValueChanged<U>).value = newValue;
+            m_Control.value = newValue;
         }
 
         public void SetValueWithoutNotify(U newValue)
         {
-            (m_Control as INotifyValueChanged<U>).SetValueWithoutNotify(newValue);
+            m_Control.SetValueWithoutNotify(newValue);
         }
 
         public U value

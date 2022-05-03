@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System.Runtime.CompilerServices;
+using System.Linq;
 
 [assembly: InternalsVisibleTo("MaterialPostprocessor")]
 namespace UnityEditor.Rendering.Universal
@@ -12,13 +13,11 @@ namespace UnityEditor.Rendering.Universal
     internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
     {
         public override string name => "Material Upgrade";
-        public override string info => "This will upgrade your materials.";
+        public override string info => "This converter converts Materials from the Built-in Render Pipeline to URP. This converter works best on default pre-built Materials that are supplied by Unity. Custom Materials are not supported.";
         public override int priority => -1000;
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
-
-        private List<GUID> m_MaterialGUIDs = new();
 
         static List<MaterialUpgrader> m_Upgraders;
         private static HashSet<string> m_ShaderNamesToIgnore;
@@ -215,7 +214,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 throw new ArgumentNullException(nameof(path));
             }
-            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
+            // Making sure it is a .mat file and it is not from a package.
+            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase) && !(path.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase));
         }
 
         bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
@@ -226,25 +226,28 @@ namespace UnityEditor.Rendering.Universal
             if (material.shader == null)
                 return false;
 
+            // Checking if the Shader Graph tag exists, if it does it is a Shader Graph and shouldnt be Upgraded here
+            var result = material.GetTag("ShaderGraphShader", false, "sg");
+            if (result != "sg")
+            {
+                return false;
+            }
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
         /// <inheritdoc/>
         public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
+            List<ConverterItemDescriptor> descriptors = new List<ConverterItemDescriptor>();
             foreach (string path in AssetDatabase.GetAllAssetPaths())
             {
                 if (IsMaterialPath(path))
                 {
                     Material m = AssetDatabase.LoadMainAssetAtPath(path) as Material;
 
+                    // We should also check if the material is already URP
                     if (!ShouldUpgradeShader(m, m_ShaderNamesToIgnore))
                         continue;
-
-                    GUID guid = AssetDatabase.GUIDFromAssetPath(path);
-                    m_MaterialGUIDs.Add(guid);
-
-                    m_AssetsToConvert.Add(path);
 
                     ConverterItemDescriptor desc = new ConverterItemDescriptor()
                     {
@@ -253,10 +256,19 @@ namespace UnityEditor.Rendering.Universal
                         warningMessage = String.Empty,
                         helpLink = String.Empty,
                     };
-                    // Each converter needs to add this info using this API.
-                    context.AddAssetToConvert(desc);
+
+                    descriptors.Add(desc);
                 }
             }
+
+            // This need to be sorted by name property
+            descriptors = descriptors.OrderBy(o => o.name).ToList();
+            foreach (var desc in descriptors)
+            {
+                context.AddAssetToConvert(desc);
+                m_AssetsToConvert.Add(desc.info);
+            }
+
             callback.Invoke();
         }
 

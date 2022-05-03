@@ -8,3 +8,8 @@ ACEScg is now the default color space for color grading HDRP projects. When you 
 
 ## Distortion Blur on shaderGraph Unlit
 The default value of "Distortion Blur" is now 0 according to the documentation.
+
+## HDRenderPipeline Asset
+
+When building project, the shader variant stripper no longer take into account automatically HDRenderPipeline Asset located in Resources folder that aren't referenced by Scene or Quality Settings.
+To have the shader variant stripper continuing to use those assets, add a label **"HDRP:IncludeInBuild"** on the assets.

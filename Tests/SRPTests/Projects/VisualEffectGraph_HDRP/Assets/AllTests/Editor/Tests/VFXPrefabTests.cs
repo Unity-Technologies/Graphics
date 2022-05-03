@@ -507,6 +507,85 @@ namespace UnityEditor.VFX.Test
 
             m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = null;
         }
+
+        private static readonly string m_Exposed_name_Create_Prefab_And_Check_UndoRedo = "asefthukom";
+        [UnityTest]
+        public IEnumerator Create_Prefab_And_Check_UndoRedo()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var parametersUintDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(uint)).First();
+
+            var parameter = parametersUintDesc.CreateInstance();
+            parameter.SetSettingValue("m_ExposedName", m_Exposed_name_Create_Prefab_And_Check_UndoRedo);
+            parameter.SetSettingValue("m_Exposed", true);
+            parameter.value = 123u;
+            graph.AddChild(parameter);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var mainObject = new GameObject("CreatePrefab_VFX_Undo_Redo", typeof(VisualEffect));
+            var vfx = mainObject.GetComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            vfx.SetUInt(m_Exposed_name_Create_Prefab_And_Check_UndoRedo, 666);
+
+            GameObject newGameObject, prefabInstanceObject;
+            MakeTemporaryPrebab(mainObject, out newGameObject, out prefabInstanceObject);
+            GameObject.DestroyImmediate(mainObject);
+
+            yield return null;
+
+            var editor = Editor.CreateEditor(prefabInstanceObject.GetComponent<VisualEffect>());
+            editor.serializedObject.Update();
+
+            //Testing Undo/Redo on simple reset seed on play boolean (no issue reported but ease debug)
+            {
+                var resetSeedOnPlay = editor.serializedObject.FindProperty("m_ResetSeedOnPlay");
+                Assert.IsNotNull(resetSeedOnPlay);
+                Assert.AreEqual(true, resetSeedOnPlay.boolValue);
+
+                resetSeedOnPlay.boolValue = false;
+                Undo.IncrementCurrentGroup();
+                editor.serializedObject.ApplyModifiedProperties();
+
+                editor.serializedObject.Update();
+                Assert.AreEqual(false, resetSeedOnPlay.boolValue);
+
+                Undo.PerformUndo();
+                editor.serializedObject.Update();
+                Assert.AreEqual(true, resetSeedOnPlay.boolValue);
+            }
+
+            //Testing Undo/Redo on PropertySheet (see https://fogbugz.unity3d.com/f/cases/1395584/)
+            {
+                var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
+                Assert.AreNotEqual(null, propertySheet);
+
+                var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(VFXValueType.Uint32)) + ".m_Array";
+                var vfxField = propertySheet.FindPropertyRelative(fieldName);
+
+                Assert.IsNotNull(vfxField);
+                Assert.AreEqual(1, vfxField.arraySize);
+
+                var property = vfxField.GetArrayElementAtIndex(0);
+                property = property.FindPropertyRelative("m_Value");
+                Assert.IsNotNull(property);
+                Assert.AreEqual(property.uintValue, 666);
+
+                property.uintValue = 432;
+
+                Undo.IncrementCurrentGroup();
+                editor.serializedObject.ApplyModifiedProperties();
+
+                editor.serializedObject.Update();
+                Assert.AreEqual(property.uintValue, 432);
+
+                Undo.PerformUndo();
+                editor.serializedObject.Update();
+                Assert.AreEqual(property.uintValue, 666, "Regression from case 1395584");
+            }
+
+            GameObject.DestroyImmediate(editor);
+        }
+
     }
 }
 #endif

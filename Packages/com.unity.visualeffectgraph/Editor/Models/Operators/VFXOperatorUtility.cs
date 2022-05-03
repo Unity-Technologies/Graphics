@@ -128,6 +128,14 @@ namespace UnityEditor.VFX
             return new VFXExpressionPow(BaseToConstant(_base, input.valueType), input);
         }
 
+        static public VFXExpression SnapToClosestPowerOfBase(VFXExpression input, VFXExpression _base)
+        {
+            var exactPower = Log(input, _base);
+            var nextPower = Round(exactPower);
+            return new VFXExpressionPow(_base, nextPower);
+        }
+
+
         static public VFXExpression Atanh(VFXExpression input)
         {
             //0.5*Log((1+x)/(1-x), e)

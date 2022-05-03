@@ -10,10 +10,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RTHandle depthHandle { get; set; }
         private RTHandle normalHandle { get; set; }
+        private RTHandle renderingLayersHandle { get; set; }
+        internal bool enableRenderingLayers { get; set; } = false;
         private FilteringSettings m_FilteringSettings;
 
         // Constants
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
+        private static readonly RTHandle[] k_ColorAttachment1 = new RTHandle[1];
+        private static readonly RTHandle[] k_ColorAttachment2 = new RTHandle[2];
 
         /// <summary>
         /// Creates a new <c>DepthNormalOnlyPass</c> instance.
@@ -53,15 +57,40 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.depthHandle = depthHandle;
             this.normalHandle = normalHandle;
             this.shaderTagIds = k_DepthNormals;
+            this.enableRenderingLayers = false;
         }
+
+        /// <summary>
+        /// Configure the pass
+        /// </summary>
+        public void Setup(RTHandle depthHandle, RTHandle normalHandle, RTHandle decalLayerHandle)
+        {
+            Setup(depthHandle, normalHandle);
+            this.renderingLayersHandle = decalLayerHandle;
+            this.enableRenderingLayers = true;
+        }
+
 
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
-                ConfigureTarget(normalHandle, renderingData.cameraData.renderer.cameraDepthTargetHandle);
+            RTHandle[] colorHandles;
+            if (this.enableRenderingLayers)
+            {
+                k_ColorAttachment2[0] = normalHandle;
+                k_ColorAttachment2[1] = renderingLayersHandle;
+                colorHandles = k_ColorAttachment2;
+            }
             else
-                ConfigureTarget(normalHandle, depthHandle);
+            {
+                k_ColorAttachment1[0] = normalHandle;
+                colorHandles = k_ColorAttachment1;
+            }
+
+            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                ConfigureTarget(colorHandles, renderingData.cameraData.renderer.cameraDepthTargetHandle);
+            else
+                ConfigureTarget(colorHandles, depthHandle);
 
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -72,6 +101,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, this.enableRenderingLayers);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -95,6 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             normalHandle = null;
             depthHandle = null;
+            renderingLayersHandle = null;
         }
     }
 }

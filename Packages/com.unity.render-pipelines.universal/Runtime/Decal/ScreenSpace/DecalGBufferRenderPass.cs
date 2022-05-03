@@ -18,8 +18,9 @@ namespace UnityEngine.Rendering.Universal
         private DecalScreenSpaceSettings m_Settings;
         private DeferredLights m_DeferredLights;
         private RTHandle[] m_GbufferAttachments;
+        private bool m_DecalLayers;
 
-        public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem)
+        public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem, bool decalLayers)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
 
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
             m_Settings = settings;
             m_ProfilingSampler = new ProfilingSampler("Decal GBuffer Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
+            m_DecalLayers = decalLayers;
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             if (drawSystem == null)
@@ -49,10 +51,45 @@ namespace UnityEngine.Rendering.Universal
                     m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
                     m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
                 };
-                ConfigureInputAttachments(m_DeferredLights.DepthCopyTexture, false);
+
+                if (m_DecalLayers)
+                {
+                    var deferredInputAttachments = new RTHandle[]
+                    {
+                        m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex],
+                        m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferRenderingLayers],
+                    };
+
+                    var deferredInputIsTransient = new bool[]
+                    {
+                        true, false, // TODO: Make rendering layers transient
+                    };
+
+                    ConfigureInputAttachments(deferredInputAttachments, deferredInputIsTransient);
+                }
+                else
+                {
+                    var deferredInputAttachments = new RTHandle[]
+                    {
+                        m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex],
+                    };
+
+                    var deferredInputIsTransient = new bool[]
+                    {
+                        true,
+                    };
+
+                    ConfigureInputAttachments(deferredInputAttachments, deferredInputIsTransient);
+                }
             }
             else
-                m_GbufferAttachments = m_DeferredLights.GbufferAttachments;
+            {
+                m_GbufferAttachments = new RTHandle[]
+                {
+                        m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
+                        m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
+                };
+            }
 
             ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentHandle);
         }
@@ -74,6 +111,8 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, m_Settings.normalBlend == DecalNormalBlend.Medium);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, m_Settings.normalBlend == DecalNormalBlend.High);
 
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, m_DecalLayers);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -93,6 +132,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
         }
     }
 }

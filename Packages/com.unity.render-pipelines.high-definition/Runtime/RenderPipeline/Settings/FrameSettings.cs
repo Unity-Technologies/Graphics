@@ -606,6 +606,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.VolumetricClouds,
                 (uint)FrameSettingsField.Water,
+                (uint)FrameSettingsField.ProbeVolume,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,

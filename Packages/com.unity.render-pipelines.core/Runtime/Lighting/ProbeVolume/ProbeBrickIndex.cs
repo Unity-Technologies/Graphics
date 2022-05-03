@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        internal bool AssignIndexChunksToCell(int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
+        internal bool AssignIndexChunksToCell(int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo, bool ignoreErrorLog)
         {
             // We need to better handle the case where the chunks are full, this is where streaming will need to come into place swapping in/out
             // Also the current way to find an empty spot might be sub-optimal, when streaming is in place it'd be nice to have this more efficient
@@ -283,7 +283,13 @@ namespace UnityEngine.Rendering
 
             if (firstValidChunk < 0)
             {
-                Debug.LogError("APV Index Allocation failed.");
+                // During baking we know we can hit this when trying to do dilation of all cells at the same time.
+                // That can happen because we try to load all cells at the same time. If the budget is not high enough it will fail.
+                // In this case we'll iterate separately on each cell and their neighbors.
+                // If so, we don't want controlled error message spam during baking so we ignore it.
+                // In theory this should never happen with proper streaming/defrag but we keep the message just in case otherwise.
+                if (!ignoreErrorLog)
+                    Debug.LogError("APV Index Allocation failed.");
                 return false;
             }
 
@@ -458,20 +464,23 @@ namespace UnityEngine.Rendering
             // Compute the span of the valid part
             var size = (cellMaxIndex - cellMinIndex);
 
-            // Loop through all touched indices
+            // Analytically compute min and max because doing it in the inner loop with Math.Min/Max is costly (not inlined)
             int chunkStart = cellInfo.firstChunkIndex * kIndexChunkSize;
-            for (int z = brickMin.z; z < brickMax.z; ++z)
+            int newMin = chunkStart + brickMin.z * (size.x * size.y) + brickMin.x * size.y + brickMin.y;
+            int newMax = chunkStart + Math.Max(0, (brickMax.z - 1)) * (size.x * size.y) + Math.Max(0, (brickMax.x - 1)) * size.y + Math.Max(0, (brickMax.y - 1));
+            m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
+            m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, newMax);
+
+            // Loop through all touched indices
+            for (int x = brickMin.x; x < brickMax.x; ++x)
             {
-                for (int y = brickMin.y; y < brickMax.y; ++y)
+                for (int z = brickMin.z; z < brickMax.z; ++z)
                 {
-                    for (int x = brickMin.x; x < brickMax.x; ++x)
+                    for (int y = brickMin.y; y < brickMax.y; ++y)
                     {
                         int localFlatIdx = z * (size.x * size.y) + x * size.y + y;
                         int actualIdx = chunkStart + localFlatIdx;
                         m_PhysicalIndexBufferData[actualIdx] = value;
-
-                        m_UpdateMinIndex = Math.Min(actualIdx, m_UpdateMinIndex);
-                        m_UpdateMaxIndex = Math.Max(actualIdx, m_UpdateMaxIndex);
                     }
                 }
             }

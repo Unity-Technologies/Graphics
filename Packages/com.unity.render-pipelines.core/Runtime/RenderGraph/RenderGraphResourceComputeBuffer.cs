@@ -110,27 +110,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // To work around this, we just copy/pasted the implementation in each final class...
         public override void CreatePooledGraphicsResource()
         {
-            Debug.Assert(m_Pool != null, "CreatePooledGraphicsResource should only be called for regular pooled resources");
+            Debug.Assert(m_Pool != null, "ComputeBufferResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
 
             int hashCode = desc.GetHashCode();
 
             if (graphicsResource != null)
-                throw new InvalidOperationException(string.Format("Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+                throw new InvalidOperationException(string.Format("ComputeBufferResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
 
             var pool = m_Pool as ComputeBufferPool;
             if (!pool.TryGetResource(hashCode, out graphicsResource))
             {
-                CreateGraphicsResource();
+                CreateGraphicsResource(desc.name);
             }
 
             cachedHash = hashCode;
             pool.RegisterFrameAllocation(cachedHash, graphicsResource);
+            graphicsResource.name = desc.name;
         }
 
         public override void ReleasePooledGraphicsResource(int frameIndex)
         {
             if (graphicsResource == null)
-                throw new InvalidOperationException($"Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+                throw new InvalidOperationException($"ComputeBufferResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
 
             // Shared resources don't use the pool
             var pool = m_Pool as ComputeBufferPool;

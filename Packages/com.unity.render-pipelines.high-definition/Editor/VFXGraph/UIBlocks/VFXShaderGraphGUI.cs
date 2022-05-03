@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             uiBlocks.Clear();
             uiBlocks.Add(new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: vfxSurfaceOptionFeatures));
+            uiBlocks.Add(new TransparencyUIBlock(MaterialUIBlock.ExpandableBit.Transparency, TransparencyUIBlock.Features.Refraction));
         }
     }
 }

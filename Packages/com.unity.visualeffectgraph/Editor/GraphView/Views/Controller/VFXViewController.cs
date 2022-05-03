@@ -597,7 +597,7 @@ namespace UnityEditor.VFX.UI
             get { return m_FlowEdges.AsReadOnly(); }
         }
 
-        public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
+        public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output, bool revertTypeConstraint = false)
         {
             if (input == null)
             {
@@ -614,7 +614,7 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
 
-            VFXParameter.NodeLinkedSlot resulting = input.CreateLinkTo(output);
+            VFXParameter.NodeLinkedSlot resulting = input.CreateLinkTo(output, revertTypeConstraint);
 
             if (resulting.inputSlot != null && resulting.outputSlot != null)
             {

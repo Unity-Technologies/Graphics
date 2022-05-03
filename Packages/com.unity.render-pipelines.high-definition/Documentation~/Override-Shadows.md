@@ -6,10 +6,10 @@ The **Shadows** [Volume component override](Volume-Components.md) controls the m
 
 **Shadows** uses the [Volume](Volumes.md) framework, so to enable and modify **Shadows** properties, you must add a **Shadows** override to a [Volume](Volumes.md) in your Scene.
 
-The **Shadows** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**). You can also manually add a **Shadows** override to any [Volume](Volumes.md). To add **Shadows** to a Volume:
+The **Shadows** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject** > **Rendering** > **Scene Settings**). You can also manually add a **Shadows** override to any [Volume](Volumes.md). To add **Shadows** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Shadows**. You can now use the **Shadows** override to alter shadow settings for this Volume.
+2. In the Inspector, go to **Add Override** > **Shadowing** and select **Shadows**. You can now use the **Shadows** override to alter shadow settings for this Volume.
 
 [!include[](snippets/volume-override-api.md)]
 
@@ -28,27 +28,25 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 | **Split 1**       | Set the distance of the split between the first and second cascades. The **Working Unit** defines the unit this property uses. |
 | **Split 2**       | Set the distance of the split between the second and third cascades. The **Working Unit** defines the unit this property uses. |
 | **Split 3**       | Set the distance of the split between the third and final cascades. The **Working Unit** defines the unit this property uses. |
-| **Border 1**      | Set the size of the border between the first and second cascade split. HDRP fades the shadow cascades between these two sections over this border.The **Working Unit** defines the unit this property uses. |
-| **Border 2**      | Set the size of the border between the second and third cascade split. HDRP fades the shadow cascades between these two sections over this border.The **Working Unit** defines the unit this property uses. |
-| **Border 3**      | Set the size of the border between the third and final cascade split. HDRP fades the shadow cascades between these two sections over this border.The **Working Unit** defines the unit this property uses. |
-| **Border 4**      | Set the size of the border at the end of the last cascade split.HDRP fades the final shadow cascade out over this distance.The **Working Unit** defines the unit this property uses. |
+| **Border 1**      | Set the size of the border between the first and second cascade split. HDRP fades the shadow cascades between these two sections over this border. The **Working Unit** defines the unit this property uses. |
+| **Border 2**      | Set the size of the border between the second and third cascade split. HDRP fades the shadow cascades between these two sections over this border. The **Working Unit** defines the unit this property uses. |
+| **Border 3**      | Set the size of the border between the third and final cascade split. HDRP fades the shadow cascades between these two sections over this border. The **Working Unit** defines the unit this property uses. |
+| **Border 4**      | Set the size of the border at the end of the last cascade split. HDRP fades the final shadow cascade out over this distance. The **Working Unit** defines the unit this property uses. |
 
 ## Visualizing the shadow cascades
 
-You can use the Shadows override to visualize the cascade sizes in the Inspector, as well as the boundaries of the cascades as they appear inside your Scene in real time.
+You can use the Shadows override to visualize the cascade sizes in the Inspector, and the boundaries of the cascades as they appear inside your Scene in real time.
 
 In the Inspector, use the **Cascade Splits** bar to see the size of each cascade relative to one another. You can also use the bar to:
 
 - Move the position of each cascade split. To do so, click on the tab above a split and drag it to adjust the position of that cascade split.
 - Move the position of each border. To do so, click on the tab below the split and drag it to adjust the position of the border
 
-![](Images/Override-Shadows2.png)
-
 In the Scene view and the Game view, the cascade visualization feature allows you to see the boundaries of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. This allows you to see which colored area matches which cascade.
 
 ![](Images/Override-Shadows3.png)
 
-In the Scene view and the Game view, you can use the cascade visualization feature to see the boundaries and borders of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. To enable the cascade visualization feature, click the **Show Cascades** button at the top of the list of **Shadows** properties. You can now see the shadow maps in the Scene view and the Game view.
+In the Scene view and the Game view, you can use the cascade visualization feature to see the boundaries and borders of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. To enable the cascade visualization feature, select **Show Cascades** at the top of the list of **Shadows** properties. You can now see the shadow maps in the Scene view and the Game view.
 
 - You can use the Scene view Camera to move around your Scene and quickly visualize the shadow maps of different areas.
 - You can use the Game view Camera to visualize the shadow maps from the point of view of the end user. You can use the **Show Cascades** feature while in Play Mode, which is useful if you have some method of controlling the Camera’s position and rotation and want to see the shadow maps from different points of view in your Project.

@@ -60,7 +60,7 @@ Shader "HDRP/Lit"
 
         _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
-        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
+        _Thickness("Thickness", Float) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
@@ -1205,6 +1205,30 @@ Shader "HDRP/Lit"
 
         Pass
         {
+            Name "DebugDXR"
+            Tags{ "LightMode" = "DebugDXR" }
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps5
+            #pragma raytracing surface_shader
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_DEBUG
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingDebug.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "PathTracingDXR"
             Tags{ "LightMode" = "PathTracingDXR" }
 
@@ -1244,9 +1268,6 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
-
-        // This ensures that the material finds the "DebugDXR" pass for ray tracing debug view
-        UsePass "HDRP/RayTracingDebug/DebugDXR"
     }
 
     CustomEditor "Rendering.HighDefinition.LitGUI"

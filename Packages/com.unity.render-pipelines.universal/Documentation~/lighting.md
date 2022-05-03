@@ -8,7 +8,7 @@ Areas where the Universal Render Pipeline (URP) differs from Unity's common ligh
 
 * The [Light component inspector](light-component.md), which displays some URP-specific controls.
 * The [Universal Additional Light Data](universal-additional-light-data.md) component, which allows Unity to store Light-related data that is specific to URP.
-* Enlighten Realtime Global Illumination is supported in URP from version 12. For more information, see [Realtime Global Illumination using Enlighten](https://docs.unity3d.com/2021.2/Documentation/Manual/realtime-gi-using-enlighten.html).
+* Enlighten Realtime Global Illumination is supported in URP from version 12. For more information, see [Realtime Global Illumination using Enlighten](https://docs.unity3d.com/Manual/realtime-gi-using-enlighten.html).
 
 For a full comparison of lighting features between Unity's Built-in Render Pipeline and URP, and an up to date list of lighting features that are currently under research, see [this feature comparison chart](universalrp-builtin-feature-comparison.md).
 

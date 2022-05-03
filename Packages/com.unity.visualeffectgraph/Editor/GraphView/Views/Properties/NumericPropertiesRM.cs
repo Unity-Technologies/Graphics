@@ -2,46 +2,79 @@ using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.VFX.UIElements;
 
 
 namespace UnityEditor.VFX.UI
 {
     abstract class NumericPropertyRM<T, U> : SimpleUIPropertyRM<T, U>
     {
-        public NumericPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        readonly VisualElement m_IndeterminateLabel;
+
+        protected NumericPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
+            m_IndeterminateLabel = new Label()
+            {
+                name = "indeterminate",
+                text = VFXControlConstants.indeterminateText
+            };
+            m_IndeterminateLabel.SetEnabled(false);
         }
 
         public override float GetPreferredControlWidth()
         {
-            Vector2 range = m_Provider.attributes.FindRange();
-            if (RangeShouldCreateSlider(range))
-            {
-                return 120;
-            }
-            return 60;
+            var range = m_Provider.attributes.FindRange();
+
+            return HasValidRange(range) ? 120 : 60;
         }
 
-        protected virtual bool RangeShouldCreateSlider(Vector2 range)
+        protected override void UpdateIndeterminate()
         {
-            return range != Vector2.zero && range.y != Mathf.Infinity;
+            if (field is VisualElement element)
+            {
+                if (indeterminate)
+                {
+                    if (m_IndeterminateLabel.parent == null)
+                    {
+                        element.RemoveFromHierarchy();
+                        m_FieldParent.Add(m_IndeterminateLabel);
+                    }
+                }
+                else
+                {
+                    if (element.parent == null)
+                    {
+                        m_IndeterminateLabel.RemoveFromHierarchy();
+                        m_FieldParent.Add(element);
+                    }
+                }
+            }
         }
 
-        protected VFXBaseSliderField<U> m_Slider;
-        protected TextValueField<U> m_TextField;
+        private bool HasValidRange(Vector2 range)
+        {
+            return range != Vector2.zero && !float.IsPositiveInfinity(range.y) && range.x < range.y;
+        }
 
-        protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
-        protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
+        private VFXBaseSliderField<U> m_Slider;
+        private TextValueField<U> m_TextField;
+
+        protected abstract VisualElement CreateSimpleField();
+        protected abstract (VisualElement, VFXBaseSliderField<U>) CreateSliderField();
 
         public override INotifyValueChanged<U> CreateField()
         {
             Vector2 range = m_Provider.attributes.FindRange();
-            INotifyValueChanged<U> result;
-            if (!RangeShouldCreateSlider(range))
+            VisualElement result;
+            if (!HasValidRange(range))
             {
-                result = CreateSimpleField(out m_TextField);
+                result = CreateSimpleField();
+                if (result is IVFXDraggedElement draggedElement)
+                {
+                    draggedElement.SetOnValueDragFinished(ValueDragStarted);
+                    draggedElement.SetOnValueDragFinished(ValueDragFinished);
+                }
+
+                m_TextField = result.Q(null, typeof(TextValueField<U>).ToString()) as TextValueField<U>;
                 if (m_TextField != null)
                 {
                     m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
@@ -50,13 +83,31 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                result = CreateSliderField(out m_Slider);
-                m_Slider.onValueDragFinished = ValueDragFinished;
-                m_Slider.onValueDragStarted = ValueDragStarted;
+                (result, m_Slider) = CreateSliderField();
+                m_Slider.SetOnValueDragFinished(ValueDragFinished);
+                m_Slider.SetOnValueDragStarted(ValueDragStarted);
                 m_Slider.RegisterCallback<BlurEvent>(OnFocusLost);
                 m_Slider.range = range;
+                if (IsLogarithmic() && m_Provider.attributes.FindLogarithmicBase() is float logBase && logBase > 0)
+                {
+                    bool snapToPower = m_Provider.attributes.FindSnapToPower();
+                    if (range.x > 0)
+                    {
+                        m_Slider.scale = new LogarithmicSliderScale(range, logBase, snapToPower);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Property `{this.m_Label.text}`: logarithmic scale does not support range minimum value <=0\nFallback to linear scale");
+                    }
+                }
             }
-            return result;
+
+            return result as INotifyValueChanged<U>;
+        }
+
+        bool IsLogarithmic()
+        {
+            return m_Provider.attributes.Is(VFXPropertyAttributes.Type.Logarithmic);
         }
 
         void OnKeyDown(KeyDownEvent e)
@@ -74,14 +125,14 @@ namespace UnityEditor.VFX.UI
             UpdateGUI(true);
         }
 
-        protected void ValueDragFinished()
+        protected void ValueDragFinished(IVFXDraggedElement draggedElement)
         {
             m_Provider.EndLiveModification();
             hasChangeDelayed = false;
             NotifyValueChanged();
         }
 
-        protected void ValueDragStarted()
+        protected void ValueDragStarted(IVFXDraggedElement draggedElement)
         {
             m_Provider.StartLiveModification();
         }
@@ -110,7 +161,7 @@ namespace UnityEditor.VFX.UI
 
             Vector2 range = m_Provider.attributes.FindRange();
 
-            return RangeShouldCreateSlider(range) != (m_Slider == null);
+            return HasValidRange(range) != (m_Slider == null);
         }
 
         public override void UpdateGUI(bool force)
@@ -126,58 +177,12 @@ namespace UnityEditor.VFX.UI
 
             base.UpdateGUI(force);
         }
-
-        public abstract T FilterValue(Vector2 range, T value);
-        public override object FilterValue(object value)
-        {
-            Vector2 range = m_Provider.attributes.FindRange();
-
-            if (range != Vector2.zero)
-            {
-                value = FilterValue(range, (T)value);
-            }
-
-            return value;
-        }
-    }
-    abstract class IntegerPropertyRM<T, U> : NumericPropertyRM<T, U>
-    {
-        VisualElement m_IndeterminateLabel;
-        public IntegerPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        {
-            m_IndeterminateLabel = new Label()
-            {
-                name = "indeterminate",
-                text = VFXControlConstants.indeterminateText
-            };
-            m_IndeterminateLabel.SetEnabled(false);
-        }
-
-        protected override void UpdateIndeterminate()
-        {
-            VisualElement field = this.field as VisualElement;
-            if (indeterminate)
-            {
-                if (m_IndeterminateLabel.parent == null)
-                {
-                    field.RemoveFromHierarchy();
-                    m_FieldParent.Add(m_IndeterminateLabel);
-                }
-            }
-            else
-            {
-                if (field.parent == null)
-                {
-                    m_IndeterminateLabel.RemoveFromHierarchy();
-                    m_FieldParent.Add(field);
-                }
-            }
-        }
     }
 
-    class UintPropertyRM : IntegerPropertyRM<uint, long>
+    class UintPropertyRM : NumericPropertyRM<uint, long>
     {
-        VFX32BitField m_BitField;
+        private VFXEnumValuePopup m_EnumPopup;
+        private VFX32BitField m_BitField;
 
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -185,13 +190,8 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
-                return 120;
-
-            return base.GetPreferredControlWidth();
+            return m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum) ? 120 : base.GetPreferredControlWidth();
         }
-
-        protected VFXEnumValuePopup m_EnumPopup;
 
         public override INotifyValueChanged<long> CreateField()
         {
@@ -206,11 +206,6 @@ namespace UnityEditor.VFX.UI
             return result;
         }
 
-        protected override bool RangeShouldCreateSlider(Vector2 range)
-        {
-            return base.RangeShouldCreateSlider(range) && (uint)range.x < (uint)range.y;
-        }
-
         public override bool IsCompatible(IPropertyRMProvider provider)
         {
             if (!base.IsCompatible(provider)) return false;
@@ -223,41 +218,22 @@ namespace UnityEditor.VFX.UI
             {
                 string[] enumValues = m_Provider.attributes.FindEnum();
 
-                return Enumerable.SequenceEqual(enumValues, m_EnumPopup.enumValues);
+                return enumValues.SequenceEqual(m_EnumPopup.enumValues);
             }
             return true;
         }
 
-        protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
+        protected override VisualElement CreateSimpleField()
         {
-            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.BitField))
-            {
-                var bitfield = new VFXLabeledField<VFX32BitField, long>(m_Label);
-                textField = null;
-                return bitfield;
-            }
-            var field = new VFXLabeledField<LongField, long>(m_Label);
-
-            field.onValueDragFinished = t => ValueDragFinished();
-            field.onValueDragStarted = t => ValueDragStarted();
-            textField = field.control;
-            return field;
+            return m_Provider.attributes.Is(VFXPropertyAttributes.Type.BitField)
+                ? new VFXLabeledField<VFX32BitField, long>(m_Label)
+                : new VFXLabeledField<LongField, long>(m_Label);
         }
 
-        protected override INotifyValueChanged<long> CreateSliderField(out VFXBaseSliderField<long> slider)
+        protected override (VisualElement, VFXBaseSliderField<long>) CreateSliderField()
         {
-            var field = new VFXLabeledField<VFXLongSliderField, long>(m_Label);
-            slider = field.control;
-            return field;
-        }
-
-        public override object FilterValue(object value)
-        {
-            if ((uint)value < 0)
-            {
-                value = (uint)0;
-            }
-            return base.FilterValue(value);
+            var labelField = new VFXLabeledField<VFXLongSliderField, long>(m_Label);
+            return (labelField, labelField.control);
         }
 
         public override uint Convert(object value)
@@ -271,63 +247,23 @@ namespace UnityEditor.VFX.UI
 
             return (uint)longValue;
         }
-
-        public override uint FilterValue(Vector2 range, uint value)
-        {
-            uint val = value;
-            if (range.x > val)
-            {
-                val = (uint)range.x;
-            }
-            if (range.y < val)
-            {
-                val = (uint)range.y;
-            }
-
-            return val;
-        }
     }
 
-    class IntPropertyRM : IntegerPropertyRM<int, int>
+    class IntPropertyRM : NumericPropertyRM<int, int>
     {
         public IntPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
-        protected override bool RangeShouldCreateSlider(Vector2 range)
+        protected override VisualElement CreateSimpleField()
         {
-            return base.RangeShouldCreateSlider(range) && (int)range.x < (int)range.y;
+            return new VFXLabeledField<IntegerField, int>(m_Label);
         }
 
-        protected override INotifyValueChanged<int> CreateSimpleField(out TextValueField<int> textField)
+        protected override (VisualElement, VFXBaseSliderField<int>) CreateSliderField()
         {
-            var field = new VFXLabeledField<IntegerField, int>(m_Label);
-            textField = field.control;
-            field.onValueDragFinished = t => ValueDragFinished();
-            field.onValueDragStarted = t => ValueDragStarted();
-            return field;
-        }
-
-        protected override INotifyValueChanged<int> CreateSliderField(out VFXBaseSliderField<int> slider)
-        {
-            var field = new VFXLabeledField<VFXIntSliderField, int>(m_Label);
-            slider = field.control;
-            return field;
-        }
-
-        public override int FilterValue(Vector2 range, int value)
-        {
-            int val = value;
-            if (range.x > val)
-            {
-                val = (int)range.x;
-            }
-            if (range.y < val)
-            {
-                val = (int)range.y;
-            }
-
-            return val;
+            var labelField = new VFXLabeledField<VFXIntSliderField, int>(m_Label);
+            return (labelField, labelField.control);
         }
     }
 
@@ -337,51 +273,15 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected override bool RangeShouldCreateSlider(Vector2 range)
+        protected override VisualElement CreateSimpleField()
         {
-            return base.RangeShouldCreateSlider(range) && range.x < range.y;
+            return new VFXLabeledField<FloatField, float>(m_Label);
         }
 
-        protected override INotifyValueChanged<float> CreateSimpleField(out TextValueField<float> textField)
+        protected override (VisualElement, VFXBaseSliderField<float>) CreateSliderField()
         {
-            var field = new VFXLabeledField<FloatField, float>(m_Label);
-            field.onValueDragFinished = t => ValueDragFinished();
-            field.onValueDragStarted = t => ValueDragStarted();
-            textField = field.control;
-            return field;
-        }
-
-        protected override INotifyValueChanged<float> CreateSliderField(out VFXBaseSliderField<float> slider)
-        {
-            var field = new VFXLabeledField<VFXFloatSliderField, float>(m_Label);
-            slider = field.control;
-            return field;
-        }
-
-        protected override void UpdateIndeterminate()
-        {
-            if (m_TextField != null)
-            {
-                (field as VFXLabeledField<FloatField, float>).indeterminate = indeterminate;
-            }
-
-            if (m_Slider != null)
-                (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
-        }
-
-        public override float FilterValue(Vector2 range, float value)
-        {
-            float val = value;
-            if (range.x > val)
-            {
-                val = range.x;
-            }
-            if (range.y < val)
-            {
-                val = range.y;
-            }
-
-            return val;
+            var labelField = new VFXLabeledField<VFXFloatSliderField, float>(m_Label);
+            return (labelField, labelField.control);
         }
     }
 }
