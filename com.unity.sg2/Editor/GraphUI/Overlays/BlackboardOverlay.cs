@@ -1,34 +1,51 @@
-//using UnityEditor.GraphToolsFoundation.Overdrive;
-//using UnityEditor.Overlays;
-//using UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows;
-//using UnityEditor.ShaderGraph.GraphUI.Utilities;
-//using UnityEngine;
-//using UnityEngine.UIElements;
+using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.Overlays;
+using UnityEngine;
+using UnityEngine.UIElements;
 
-//namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
-//{
-//    [Overlay(typeof(ShaderGraphEditorWindow), k_OverlayID)]
-//    class BlackboardOverlay : GraphSubWindowOverlay<Blackboard>
-//    {
-//        public const string k_OverlayID = "Blackboard";
-//        protected override string elementName => "Blackboard";
-//        protected override string ussRootClassName => "ge-blackboard";
+namespace UnityEditor.ShaderGraph.GraphUI
+{
+    [Overlay(typeof(ShaderGraphEditorWindow), k_OverlayID, "Blackboard", defaultDisplay = true,
+        defaultDockZone = DockZone.LeftColumn, defaultLayout = Layout.Panel)]
+    [Icon( GraphElementHelper.AssetPath + "GraphElements/Stylesheets/Icons/Blackboard.png")]
+    class SGBlackboardOverlay : Overlay
+    {
+        public const string k_OverlayID = "sg-Blackboard";
 
-//        protected override void OnPanelContentAttached(AttachToPanelEvent evt)
-//        {
-//            base.OnPanelContentAttached(evt);
-//            this.displayed = true;
-//            this.floatingPositionChanged += OnfloatingPositionChanged;
-//        }
+        BlackboardView m_BlackboardView;
+        public SGBlackboardOverlay()
+        {
+            minSize = new Vector2(100, 100);
+            maxSize = Vector2.positiveInfinity;
+        }
 
-//        void OnfloatingPositionChanged(Vector3 newPosition)
-//        {
-//            Debug.Log(newPosition);
-//            if (newPosition.x < 0)
-//            {
-//                var oldRect = this.containerWindow.position;
-//                this.containerWindow.position = new Rect(0, oldRect.y, oldRect.width, oldRect.height);
-//            }
-//        }
-//    }
-//}
+        /// <inheritdoc />
+        public override VisualElement CreatePanelContent()
+        {
+            var window = containerWindow as ShaderGraphEditorWindow;
+            if (window != null)
+            {
+                m_BlackboardView = window.CreateBlackboardView();
+                if (m_BlackboardView != null)
+                {
+                    m_BlackboardView.AddToClassList("unity-theme-env-variables");
+                    m_BlackboardView.RegisterCallback<TooltipEvent>((e) => e.StopPropagation());
+                    m_BlackboardView.AddToClassList(BlackboardView.ussClassName);
+                    m_BlackboardView.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+
+                    size = new Vector2(300, 400);
+                    return m_BlackboardView;
+                }
+            }
+
+            var emptyPlaceholder = new VisualElement();
+            return emptyPlaceholder;
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            var overlayContent = m_BlackboardView.GetFirstAncestorWithName("overlay-content");
+            overlayContent.style.flexGrow = 1.0f;
+        }
+    }
+}
