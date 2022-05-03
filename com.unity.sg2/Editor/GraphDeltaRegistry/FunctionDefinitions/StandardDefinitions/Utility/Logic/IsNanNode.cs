@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Is Nan",
-            tooltip: "returns true if the input is not a number (NaN)",
+            tooltip: "Checks if the input is not a number (NaN).",
             categories: new string[2] { "Utility", "Logic" },
             synonyms: new string[0],
             hasPreview: false,

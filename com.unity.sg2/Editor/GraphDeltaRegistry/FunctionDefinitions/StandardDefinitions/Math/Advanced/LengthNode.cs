@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the magnitude or length of the input vector",
+            tooltip: "Calculates the magnitude or length of the input vector.",
             categories: new string[2] { "Math", "Advanced" },
             synonyms: new string[1] { "measure" },
             parameters: new ParameterUIDescriptor[2] {

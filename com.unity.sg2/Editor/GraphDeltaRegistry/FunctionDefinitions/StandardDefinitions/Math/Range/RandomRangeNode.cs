@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Random Range",
-            tooltip: "returns a psuedo-random value base on input Seed between Min and Max",
+            tooltip: "Creates a psuedo-random value between min and max.",
             categories: new string[2] { "Math", "Range" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[4] {
