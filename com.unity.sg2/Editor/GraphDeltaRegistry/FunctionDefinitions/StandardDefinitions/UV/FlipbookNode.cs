@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "UV coordinates for sampling the atlas texture"
+                    tooltip: "UVs for sampling the atlas texture"
                 ),
                 new ParameterUIDescriptor(
                     name: "UV0",
