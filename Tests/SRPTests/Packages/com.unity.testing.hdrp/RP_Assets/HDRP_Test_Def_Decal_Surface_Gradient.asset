@@ -115,7 +115,7 @@ MonoBehaviour:
     decalSettings:
       drawDistance: 1000
       atlasWidth: 2048
-      atlasHeight: 1024
+      atlasHeight: 2048
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32

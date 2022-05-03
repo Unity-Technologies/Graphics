@@ -197,11 +197,16 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
 int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 positionWS, out float alpha, out int cascadeCount)
 {
     uint   i = 0;
+    int    shadowSplitIndex = -1;
     float  relDistance = 0.0;
-    float3 wposDir, splitSphere;
+    float3 wposDir = 0, splitSphere;
 
     HDDirectionalShadowData dsd = shadowContext.directionalShadowData;
 
+// Hack for metal compiler to correctly compute the split index (no idea why unroll on uniform loop fixes the issue).
+#if defined(SHADER_API_METAL)
+    [unroll]
+#endif
     // find the current cascade
     for (; i < _CascadeShadowCount; i++)
     {
@@ -213,10 +218,10 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
         {
             splitSphere = sphere.xyz;
             wposDir    /= sqrt(distSq);
+            shadowSplitIndex = i;
             break;
         }
     }
-    int shadowSplitIndex = i < _CascadeShadowCount ? i : -1;
 
     cascadeCount = dsd.cascadeDirection.w;
     float border = dsd.cascadeBorders[shadowSplitIndex];

@@ -412,6 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case CustomPass.RenderQueueType.AllTransparent: return HDRenderQueue.k_RenderQueue_AllTransparent;
                 case CustomPass.RenderQueueType.AllTransparentWithLowRes: return HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
                 case CustomPass.RenderQueueType.AfterPostProcessTransparent: return HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent;
+                case CustomPass.RenderQueueType.Overlay: return HDRenderQueue.k_RenderQueue_Overlay;
                 case CustomPass.RenderQueueType.All:
                 default:
                     return HDRenderQueue.k_RenderQueue_All;
@@ -508,6 +509,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(ctx.cmd, targetColor, clearFlag);
             else if (targetDepth != null)
                 CoreUtils.SetRenderTarget(ctx.cmd, targetDepth, clearFlag);
+
+#if UNITY_EDITOR
+            // In case the camera is inside an opened prefab, then we render the objects inside this prefab instead
+            // of the objects of the scene (if we don't do that, scene objects can be culled by the prefab system depending on the context)
+            var stage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null && view.gameObject.scene == stage.scene)
+                view.scene = view.gameObject.scene;
+#endif
 
             using (new DisableSinglePassRendering(ctx))
             {

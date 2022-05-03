@@ -14,9 +14,9 @@ For static shader analysis to work, you need to add all of the packages for each
 ## Create a test directory
 To set up a new test directory:
 
-1. Create a new test directory. To do this, go to **Create > Testing > Test Assembly** Folder. This automatically creates a folder named “**Tests**” and configures an assembly definition (.asmdef) file in test mode. 
+1. Create a new test directory. To do this, go to **Create > Testing > Test Assembly** Folder. This automatically creates a folder named “**Tests**” and configures an assembly definition (.asmdef) file in test mode.
 2. Create an Editor folder within the new Test Assembly folder to store your tests from the Editor. Configure this folder with Editor Only settings in the Inspector, otherwise the project does not compile.
-3. Create a Runtime folder to store your tests from runtime. 
+3. Create a Runtime folder to store your tests from runtime.
 4. Arrange the folders with the following file hierarchy:
    1. Assets/
       - Performance Tests
@@ -31,9 +31,9 @@ The **Resources** folder is the default directory for test assets that Unity loa
 ## Set up the assembly definition
 Your assembly definition file needs to include the references you use to write your tests. To add these references, include the following lines in the corresponding assembly definitions file.
 
-Add the following lines to your runtime assembly definitions file: 
+Add the following lines to your runtime assembly definitions file:
 
-```   
+```
 "references": [
         "GUID:91836b14885b8a34196f4aa8303d7793",
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
@@ -70,10 +70,10 @@ For the Editor assembly definitions, include all of the above functions and the 
 
 ## Set up the test assets
 
-The Graphics performance testing package comes with two test assets; Performance Test Description and Static Shader Analysis. To use these assets in your tests, you need to set them up in Unity: 
+The Graphics performance testing package comes with two test assets; Performance Test Description and Static Shader Analysis. To use these assets in your tests, you need to set them up in Unity:
 
 1. Go to **Assets > Create > Testing**, and create the **Performance Test Description** and **Static Shader Analysis** assets. Create both assets inside your Resources folder so that Unity can load them at runtime. To learn how to set up, configure and use these assets, see [Performance Test Description](Performance-Test-Description.md) and [Static Shader Analysis](static-shader-analysis.md).
 2. To instruct Unity to use these assets, go to **Project Settings > Performance Tests**. In the **Test Description Asset** field, add the Performance Test Description asset. In the **Static Analysis Asset** field, add the Static Shader Analysis asset.
-3. Create a simple scene with a camera to use during the tests. You need at least one scene asset and one Render Pipeline Asset for your first runtime test. 
+3. Create a simple scene with a camera to use during the tests. You need at least one scene asset and one Render Pipeline Asset for your first runtime test.
 4. Open the **Performance Test Description** asset and click the `+` in the Scenes window to reference your scene. This generates a list of tests in the **Test Runner** window.
-5. Click the `+` in the **SRP Assets** window of the Performance Test Description asset to reference the Scriptable Render Pipeline (SRP) asset Unity uses to render the scene. 
+5. Click the `+` in the **SRP Assets** window of the Performance Test Description asset to reference the Scriptable Render Pipeline (SRP) asset Unity uses to render the scene.

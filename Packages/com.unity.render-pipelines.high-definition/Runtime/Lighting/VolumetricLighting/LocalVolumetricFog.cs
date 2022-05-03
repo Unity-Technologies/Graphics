@@ -1,5 +1,9 @@
 using System;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -216,25 +220,50 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Handle scene visibility
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
             UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateLocalVolumetricFogVisibility;
+            SceneView.duringSceneGui -= UpdateLocalVolumetricFogVisibilityPrefabStage;
+            SceneView.duringSceneGui += UpdateLocalVolumetricFogVisibilityPrefabStage;
 #endif
         }
 
 #if UNITY_EDITOR
         void UpdateLocalVolumetricFogVisibility()
         {
-            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject))
+            bool isVisible = !UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject);
+            UpdateLocalVolumetricFogVisibility(isVisible);
+        }
+
+        void UpdateLocalVolumetricFogVisibilityPrefabStage(SceneView sv)
+        {
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null)
             {
-                if (LocalVolumetricFogManager.manager.ContainsVolume(this))
-                    LocalVolumetricFogManager.manager.DeRegisterVolume(this);
+                bool isVisible = true;
+                bool isInPrefabStage = gameObject.scene == stage.scene;
+
+                if (!isInPrefabStage && stage.mode == PrefabStage.Mode.InIsolation)
+                    isVisible = false;
+                if (!isInPrefabStage && CoreUtils.IsSceneViewPrefabStageContextHidden())
+                    isVisible = false;
+
+                UpdateLocalVolumetricFogVisibility(isVisible);
             }
-            else
+        }
+
+        void UpdateLocalVolumetricFogVisibility(bool isVisible)
+        {
+            if (isVisible)
             {
                 if (!LocalVolumetricFogManager.manager.ContainsVolume(this))
                     LocalVolumetricFogManager.manager.RegisterVolume(this);
             }
+            else
+            {
+                if (LocalVolumetricFogManager.manager.ContainsVolume(this))
+                    LocalVolumetricFogManager.manager.DeRegisterVolume(this);
+            }
         }
-
 #endif
 
         private void OnDisable()
@@ -243,6 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
+            SceneView.duringSceneGui -= UpdateLocalVolumetricFogVisibilityPrefabStage;
 #endif
         }
 

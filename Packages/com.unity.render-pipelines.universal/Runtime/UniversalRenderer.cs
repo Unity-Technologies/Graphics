@@ -35,8 +35,13 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class UniversalRenderer : ScriptableRenderer
     {
+        #if UNITY_SWITCH
+        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
+        const int k_DepthBufferBits = 24;
+        #else
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
+        #endif
 
         static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
 
@@ -44,6 +49,20 @@ namespace UnityEngine.Rendering.Universal
         {
             private const string k_Name = nameof(UniversalRenderer);
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
+        }
+
+        /// <inheritdoc/>
+        public override int SupportedCameraStackingTypes()
+        {
+            switch (m_RenderingMode)
+            {
+                case RenderingMode.Forward:
+                    return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
+                case RenderingMode.Deferred:
+                    return 1 << (int)CameraRenderType.Base;
+                default:
+                    return 0;
+            }
         }
 
         // Rendering mode setup from UI. The final rendering mode used can be different. See renderingModeActual.
@@ -264,10 +283,7 @@ namespace UnityEngine.Rendering.Universal
             // Samples (MSAA) depend on camera and pipeline
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
 
-            supportedRenderingFeatures = new RenderingFeatures()
-            {
-                cameraStacking = true,
-            };
+            supportedRenderingFeatures = new RenderingFeatures();
 
             if (this.renderingModeRequested == RenderingMode.Deferred)
             {

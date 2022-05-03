@@ -232,7 +232,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="2.0"}
         LOD 100
 
-        Blend [_SrcBlend][_DstBlend], [_SrcBlendA][_DstBlendA]
+        Blend [_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
         ZWrite [_ZWrite]
         Cull [_Cull]
 

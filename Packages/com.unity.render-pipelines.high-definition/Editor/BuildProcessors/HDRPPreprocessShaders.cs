@@ -731,7 +731,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add the HDRP assets that are in the Resources folders.
-            _hdrpAssets.AddRange(Resources.LoadAll<HDRenderPipelineAsset>(""));
+            // Do not call this function below because it cause the issue https://fogbugz.unity3d.com/f/cases/1417508/
+            // Users will need to rely on label instead.
+            //_hdrpAssets.AddRange(Resources.LoadAll<HDRenderPipelineAsset>(""));
 
             // Add the HDRP assets that are labeled to be included
             _hdrpAssets.AddRange(

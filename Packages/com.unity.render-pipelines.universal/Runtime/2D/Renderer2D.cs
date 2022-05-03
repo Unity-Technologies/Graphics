@@ -5,6 +5,12 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
+        #if UNITY_SWITCH
+        internal const int k_DepthBufferBits = 24;
+        #else
+        internal const int k_DepthBufferBits = 32;
+        #endif
+
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         UpscalePass m_UpscalePass;
@@ -37,6 +43,12 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RTHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
 
+        /// <inheritdoc/>
+        public override int SupportedCameraStackingTypes()
+        {
+            return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
+        }
+
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
@@ -55,10 +67,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_Renderer2DData = data;
 
-            supportedRenderingFeatures = new RenderingFeatures()
-            {
-                cameraStacking = true,
-            };
+            supportedRenderingFeatures = new RenderingFeatures();
 
             m_LightCullResult = new Light2DCullResult();
             m_Renderer2DData.lightCullResult = m_LightCullResult;
@@ -112,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var depthDescriptor = cameraTargetDescriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthBufferBits = 32;
+                    depthDescriptor.depthBufferBits = k_DepthBufferBits;
                     if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
                         depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                     RenderingUtils.ReAllocateIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
@@ -123,15 +132,16 @@ namespace UnityEngine.Rendering.Universal
             }
             else    // Overlay camera
             {
+                cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
+                var baseRenderer = (Renderer2D)baseCameraData.scriptableRenderer;
+
                 // These render textures are created by the base camera, but it's the responsibility of the last overlay camera's ScriptableRenderer
                 // to release the textures in its FinishRendering().
                 m_CreateColorTexture = true;
                 m_CreateDepthTexture = true;
 
-                m_ColorTextureHandle?.Release();
-                m_DepthTextureHandle?.Release();
-                m_ColorTextureHandle = RTHandles.Alloc("_CameraColorTexture", name: "_CameraColorTexture");
-                m_DepthTextureHandle = RTHandles.Alloc("_CameraDepthAttachment", name: "_CameraDepthAttachment");
+                m_ColorTextureHandle = baseRenderer.m_ColorTextureHandle;
+                m_DepthTextureHandle = baseRenderer.m_DepthTextureHandle;
 
                 colorTargetHandle = m_ColorTextureHandle;
                 depthTargetHandle = m_DepthTextureHandle;

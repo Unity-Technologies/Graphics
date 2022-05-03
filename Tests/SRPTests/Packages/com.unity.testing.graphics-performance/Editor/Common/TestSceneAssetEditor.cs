@@ -205,7 +205,7 @@ class TestSceneAssetEditor : Editor
 
         if (GUILayout.Button(Styles.refreshTestRunner))
             CompilationPipeline.RequestScriptCompilation();
-        
+
         EditorGUILayout.Space();
 
         DrawSRPAssetAliasList();
