@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan && s_videoMode;
         }
 
-        internal static int CurrentFrameID { get; set; }
+        internal static int CurrentFrameID { get; set; } = -1;
 
         private static int LastSentFrameID { get; set; }
 
