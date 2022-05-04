@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RttTest;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
@@ -42,22 +43,30 @@ namespace UnityEngine.Rendering.HighDefinition
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan && s_videoMode;
         }
 
-        private static int FrameID = -1;
+        internal static int CurrentFrameID { get; set; }
 
-        internal static int CurrentFrameID
+        private static int LastSentFrameID { get; set; }
+
+        internal static void RegisterReceivedData(int frameID, int userID, Datagram datagram)
         {
-            get => FrameID;
-            set => FrameID = value;
+            if (GetVideoMode())
+            {
+                ProcessReceivedDataVideoFrame(frameID, userID, datagram);
+            }
+            else
+            {
+                ProcessReceivedDataRawTexture(frameID, userID, datagram);
+            }
         }
 
-        public static int LastSentFrameID { get; set; }
+        private static Dictionary<int, Datagram> s_userDatagram = new Dictionary<int, Datagram>();
 
-        private static GetReceivedDistributedColorBufferEvent getReceivedDistributedColorBuffer = null;
-
-        internal static GetReceivedDistributedColorBufferEvent GetReceivedDistributedColorBuffer
+        private static void ProcessReceivedDataRawTexture(int frameID, int userID, Datagram datagram)
         {
-            get => getReceivedDistributedColorBuffer;
-            set => getReceivedDistributedColorBuffer = value;
+            if (s_userDatagram.ContainsKey(userID))
+                s_userDatagram[userID] = datagram;
+            else
+                s_userDatagram.Add(userID, datagram);
         }
 
         class ReceiveData
@@ -184,9 +193,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Set received data to compute buffer
                             using (new ProfilingScope(context.cmd, new ProfilingSampler($"Load Data {i}")))
                             {
-                                Datagram datagram = null;
-                                if(GetReceivedDistributedColorBuffer != null)
-                                    datagram = GetReceivedDistributedColorBuffer(i);
+                                // Check if this part of the data is ready
+                                bool hasData = s_userDatagram.TryGetValue(i, out var datagram);
+                                if (!hasData)
+                                    continue;
 
                                 if (datagram == null)
                                     continue;
@@ -194,6 +204,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 RttTestUtilities.ReceiveFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
                                     0, 0, datagram.length);
+
+                                // Finished using the data, mark it as consumed
+                                s_userDatagram[i] = null;
                             }
 
                             // Use compute shader to move the data to YUV textures
@@ -458,5 +471,4 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
     }
-    public delegate Datagram GetReceivedDistributedColorBufferEvent(int userID);
 }

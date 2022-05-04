@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using RttTest;
 using Unity.Rendering.VideoCodec;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Profiling;
 using UnityEngine.TCPTransmissionDatagrams;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -137,6 +139,36 @@ namespace UnityEngine.Rendering.HighDefinition
             s_videoCodecs = null;
         }
 
+        // Note: this "ready" does not mean that the video frame is transferred to the renderer,
+        // but rather an indicator of the data is "received and being processed", and the render pass can be executed.
+        // Whether it's finished processing is decided by the native lock.
+        private static Dictionary<int, bool> s_videoFrameReady = new Dictionary<int, bool>();
+
+        private static void ProcessReceivedDataVideoFrame(int frameID, int userID, Datagram datagram)
+        {
+            // Set received data to video packet
+            if (datagram == null)
+                return;
+
+            Profiler.BeginSample($"Load Data {userID} to Video Packet");
+
+            RttTestUtilities.ReceiveFrame(RttTestUtilities.Role.Merger, (uint)frameID, userID);
+            VideoDecoders[userID].SetPacketData(datagram.data);
+            VideoDecoders[userID].FrameID = frameID;
+            VideoDecoders[userID].SignalCodecThread();
+
+            if (s_videoFrameReady.ContainsKey(userID))
+                s_videoFrameReady[userID] = true;
+            else
+                s_videoFrameReady.Add(userID, true);
+
+            Profiler.EndSample();
+
+            // Decoding process starts right after signalling the thread, no need for another pass here
+            // Video/Graphics data transfer starts right after decoding process, before calling callback
+            // The texture object is locked in native plugin so the process is safe across the main thread and the render thread
+        }
+
         private static void SendEncodedData(IntPtr data, int size, int frameId)
         {
             var rendererId = Const.userID;
@@ -228,27 +260,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             Rect subsection = GetViewportSubsection(data.layout, i, data.userCount);
 
-                            // Set received data to video packet
-                            // TODO: This should be moved to the place where which frame being used is decided
-                            using (new ProfilingScope(context.cmd,
-                                       new ProfilingSampler($"Load Data {i} to Video Packet")))
-                            {
-                                Datagram datagram = null;
-                                if(GetReceivedDistributedColorBuffer != null)
-                                    datagram = GetReceivedDistributedColorBuffer(i);
-
-                                if (datagram == null)
-                                    continue;
-
-                                RttTestUtilities.ReceiveFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
-                                // TODO: this should be executed right after data received and decided to be used
-                                VideoDecoders[i].SetPacketData(datagram.data);
-                                VideoDecoders[i].FrameID = CurrentFrameID;
-                                VideoDecoders[i].SignalCodecThread();
-                            }
-
-                            // Decoding process starts right after signalling the thread, no need for another pass here
-                            // Video/Graphics data transfer starts right after decoding process, before calling callback
+                            // Check if this part of the data is ready
+                            bool hasKey = s_videoFrameReady.TryGetValue(i, out var dataReady);
+                            if (!hasKey || !dataReady)
+                                continue;
 
                             // Blit YUV textures to a RGB temp texture
                             using (new ProfilingScope(context.cmd,
@@ -260,6 +275,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 VideoDecoders[i].SetTextures(new Texture[] {passData.tempYTexture, passData.tempUVTexture},
                                     new[] {1.0f, 0.5f});
                                 VideoDecoders[i].BlitTexture(context.cmd);
+
+                                // The video frame is used, mark it as consumed
+                                s_videoFrameReady[i] = false;
 
                                 var mpbYUVToRGB = context.renderGraphPool.GetTempMaterialPropertyBlock();
 
