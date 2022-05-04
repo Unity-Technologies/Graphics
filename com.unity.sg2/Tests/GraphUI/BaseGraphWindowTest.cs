@@ -24,8 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected virtual bool hideOverlayWindows => true;
 
         // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO
-        const string k_BlackboardOverlayId = "gtf-blackboard";
-        const string k_InspectorOverlayId = "gtf-inspector";
+        const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
+        const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
 
         [SetUp]
         public virtual void SetUp()
@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var nodeModels = m_Window.GraphView.GraphModel.NodeModels;
             foreach (var nodeModel in nodeModels)
             {
-                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName)
+                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName && !concreteNodeModel.Destroyed)
                     return true;
             }
 
