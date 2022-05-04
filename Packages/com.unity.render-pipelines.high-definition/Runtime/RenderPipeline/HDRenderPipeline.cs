@@ -205,8 +205,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_IsDepthBufferCopyValid;
         RenderTexture m_TemporaryTargetForCubemaps;
 
-        private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
-            CameraCache<(Transform viewer, HDProbe probe, int face)>();
+        private ProbeCameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
+            ProbeCameraCache<(Transform viewer, HDProbe probe, int face)>();
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
@@ -1140,6 +1140,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (newCount != m_FrameCount)
             {
                 m_FrameCount = newCount;
+                m_ProbeCameraCache.ReleaseCamerasUnusedFor(2, Time.frameCount);
                 HDCamera.CleanUnused();
             }
 

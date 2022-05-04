@@ -2,12 +2,12 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public class CameraCacheTest
+    public class ProbeCameraCacheTest
     {
         [Test]
         public void GetOrCreate_And_Dispose_Works()
         {
-            var cache = new CameraCache<int>();
+            var cache = new ProbeCameraCache<int>();
 
             // Create the camera
             var camera = cache.GetOrCreate(0, 0);
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void GetOrCreate_And_Clear_Works()
         {
-            using (var cache = new CameraCache<int>())
+            using (var cache = new ProbeCameraCache<int>())
             {
                 var cameras = new Camera[5];
                 for (var i = 0; i < cameras.Length; ++i)
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void GetOrCreate_And_ClearCamerasUnusedFor_Works()
         {
-            using (var cache = new CameraCache<int>())
+            using (var cache = new ProbeCameraCache<int>())
             {
                 // Create cameras
                 var cameras = new Camera[5];
@@ -72,14 +72,15 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 for (var frameWindow = frameCount; frameWindow >= 0; --frameWindow)
                 {
                     // Clear the cameras older than i frames
-                    cache.ClearCamerasUnusedFor(frameWindow, frameCount);
-                    // Assert the cameras are destroyed on the C++ side if they are unused
-                    // since i frames or more
-                    var cameraAreDestroyedBeforeFrameCount = frameCount - frameWindow;
-                    for (var j = 0; j < cameraAreDestroyedBeforeFrameCount; ++j)
-                        Assert.True(cameras[j].Equals(null), $"Camera {j} is unused since {frameWindow} frames and must be destroyed.");
-                    for (var j = cameraAreDestroyedBeforeFrameCount; j < cameras.Length; ++j)
-                        Assert.False(cameras[j].Equals(null), $"Camera {j} is used since {frameWindow} frames and must be alive.");
+                    cache.ReleaseCamerasUnusedFor(frameWindow, frameCount);
+                    Assert.AreEqual(cache.cachedActiveCameraCount, frameCount - frameWindow);
+                    //// Assert the cameras are destroyed on the C++ side if they are unused
+                    //// since i frames or more
+                    //var cameraAreDestroyedBeforeFrameCount = frameCount - frameWindow;
+                    //for (var j = 0; j < cameraAreDestroyedBeforeFrameCount; ++j)
+                    //    Assert.True(cameras[j].Equals(null), $"Camera {j} is unused since {frameWindow} frames and must be destroyed.");
+                    //for (var j = cameraAreDestroyedBeforeFrameCount; j < cameras.Length; ++j)
+                    //    Assert.False(cameras[j].Equals(null), $"Camera {j} is used since {frameWindow} frames and must be alive.");
                 }
             }
         }
@@ -87,11 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void UsingDisposedObject_Throws()
         {
-            var cache = new CameraCache<int>();
+            var cache = new ProbeCameraCache<int>();
             cache.Dispose();
 
             Assert.Throws<System.ObjectDisposedException>(() => cache.GetOrCreate(0, 0));
-            Assert.Throws<System.ObjectDisposedException>(() => cache.ClearCamerasUnusedFor(0, 0));
+            Assert.Throws<System.ObjectDisposedException>(() => cache.ReleaseCamerasUnusedFor(0, 0));
             Assert.Throws<System.ObjectDisposedException>(() => cache.Clear());
             Assert.Throws<System.ObjectDisposedException>(() => cache.Dispose());
         }
