@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//need default uv
             new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] { 1f, 1f}),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

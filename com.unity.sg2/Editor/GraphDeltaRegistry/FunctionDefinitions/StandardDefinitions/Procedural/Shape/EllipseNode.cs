@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+            new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
             new ParameterDescriptor("d", TYPE.Float, Usage.Local),
             new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local)
         );

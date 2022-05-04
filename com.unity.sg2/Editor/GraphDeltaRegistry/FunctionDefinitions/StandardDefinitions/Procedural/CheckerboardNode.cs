@@ -36,9 +36,9 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("Frequency", TYPE.Vec2, Usage.Out, new float[] { 1f, 1f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),//should be fragmant stage only
             new ParameterDescriptor("distance3", TYPE.Vec2, Usage.Local),
-            //new ParameterDescriptor("derivatives", TYPE.Vec4, Usage.Local),
+            new ParameterDescriptor("derivatives", TYPE.Vec4, Usage.Local),
             new ParameterDescriptor("duv_length", TYPE.Vec2, Usage.Local),
             new ParameterDescriptor("scale", TYPE.Vec2, Usage.Local),
             new ParameterDescriptor("freqLimiter", TYPE.Float, Usage.Local),
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Creates a pattern of alternating black and white grid squares.",
+            tooltip: "Creates a pattern of alternating colored squares.",
             categories: new string[1] { "Procedural" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[5] {
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "a pattern of alternating black and white grid squares"
+                    tooltip: "a pattern of alternating colored squares"
                 )
             }
         );

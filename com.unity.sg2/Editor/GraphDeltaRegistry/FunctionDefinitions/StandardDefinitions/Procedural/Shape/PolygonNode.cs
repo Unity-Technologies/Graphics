@@ -14,35 +14,33 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"
 {
-    aWidth = Width * cos(pi / Sides);
-    aHeight = Height * cos(pi / Sides);
-    temp.x = aWidth;
-    temp.y = aHeight;
+    temp1 = cos(pi / Sides);
+    temp.x = Width * temp1;
+    temp.y = Height * temp1;
     uv = (UV * 2 - 1) / temp;
     uv.y *= -1;
     pCoord = atan2(uv.x, uv.y);
     r = 2 * pi / Sides;
-    distance = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
+    dist = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
 
 #if defined(SHADER_STAGE_RAY_TRACING)
-    Out = saturate((1.0 - distance) * 1e7);
+    Out = saturate((1.0 - dist) * 1e7);
 #else
-    Out = saturate((1 - distance) / fwidth(distance));
+    Out = saturate((1 - dist) / fwidth(dist));
 #endif
 }",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 6f }),
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
-            new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+            new ParameterDescriptor("Out", TYPE.Float, Usage.Out),//should be fragmant stage only
             new ParameterDescriptor("pi", TYPE.Float, Usage.Local, new float[] { 3.14159265359f }),
             new ParameterDescriptor("uv", TYPE.Vec2, Usage.Local),
-            new ParameterDescriptor("aWidth", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("aHeight", TYPE.Float, Usage.Local),
             new ParameterDescriptor("pCoord", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("distance", TYPE.Float, Usage.Local),
+            new ParameterDescriptor("dist", TYPE.Float, Usage.Local),
             new ParameterDescriptor("r", TYPE.Float, Usage.Local),
-            new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local)
+            new ParameterDescriptor("temp", TYPE.Vec2, Usage.Local),
+            new ParameterDescriptor("temp1", TYPE.Vec2, Usage.Local)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
@@ -54,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Width",
-                    tooltip: "polygon"
+                    tooltip: "polygon width"
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
@@ -70,8 +68,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "output value"
-                )            }
+                    tooltip: "a polygon shape with the given dimensions"
+                )
+            }
         );
     }
 }
