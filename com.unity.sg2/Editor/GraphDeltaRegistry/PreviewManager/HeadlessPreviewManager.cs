@@ -67,19 +67,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public bool hasShaderError;
         }
 
-        // TODO: This should live in the GTF view model
-        class MasterPreviewUserData
-        {
-            public SerializableMesh serializedMesh = new SerializableMesh();
-            public bool preventRotation;
-
-            [NonSerialized]
-            public Quaternion rotation = Quaternion.identity;
-
-            [NonSerialized]
-            public float scale = 1f;
-        }
-
         static Texture2D GenerateFourSquare(Color c1, Color c2)
         {
             var tex = new Texture2D(2, 2);
@@ -109,7 +96,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             // issue a dummy SRP render to force SRP initialization, use the master node texture
-            PreviewData renderData = m_MasterPreviewData;
+            PreviewData renderData = m_MainPreviewData;
             var previousRenderTexture = RenderTexture.active;
 
             //Temp workaround for alpha previews...
@@ -150,17 +137,27 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         PreviewSceneResources m_SceneResources;
 
-        PreviewData m_MasterPreviewData;
+        #region MainPreviewData
 
-        MasterPreviewUserData m_MasterPreviewUserData;
+        PreviewData m_MainPreviewData;
 
-        int m_MasterPreviewWidth => m_MasterPreviewData.renderTexture.width;
-        int m_MasterPreviewHeight => m_MasterPreviewData.renderTexture.height;
+        Mesh m_MainPreviewMesh;
+
+        Quaternion m_MainPreviewRotation;
+
+        bool m_PreventMainPreviewRotation;
+
+        float m_MainPreviewScale;
+
+        #endregion
+
+        int m_MainPreviewWidth => m_MainPreviewData.renderTexture.width;
+        int m_MainPreviewHeight => m_MainPreviewData.renderTexture.height;
 
         // TODO: Need a way to get the name of the main output context node
         const string k_MasterPreviewName = "TestContextDescriptor";
 
-        bool masterPreviewWasResized = false;
+        bool mainPreviewWasResized = false;
 
         // Some changes made to how rendering handles uncompiled shader variants, in future will be simplified so we can request a render that also handles
         // compiling any uncompiled shader variants/passes etc and there will be an async fallback provided, and a callback for when the async compile and render is done
@@ -241,7 +238,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Debug.Log("HeadlessPreviewManager: SetLocalProperty called on a node that hasn't been registered!");
 
             // Currently any change to any node needs to also dirty the master node as we don't actually have ability to traverse to master node, though in future it will and this can be removed
-            m_MasterPreviewData.isShaderOutOfDate = true;
+            m_MainPreviewData.isShaderOutOfDate = true;
 
             return new List<string>();
         }
@@ -296,7 +293,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// nodeRenderOutput is a Texture that contains the current preview output of a node, if its shaders have been compiled and ready to return
         /// </summary>
         /// <returns> Enum value that defines whether the node's render output is ready, currently being updated, or if a shader error was encountered </returns>
-        public PreviewOutputState RequestNodePreviewImage(string nodeName, out Texture nodeRenderOutput, out ShaderMessage[] errorMessages, PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D)
+        public PreviewOutputState RequestNodePreviewImage(
+            string nodeName,
+            out Texture nodeRenderOutput,
+            out ShaderMessage[] errorMessages,
+            PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D)
         {
             errorMessages = null;
 
@@ -422,31 +423,105 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// Used to get preview material associated with the final output of the active graph.
         /// </summary>
         /// <returns> Enum value that defines whether the node's render output is ready, currently being updated, or if a shader error was encountered </returns>
-        public PreviewOutputState RequestMasterPreviewMaterial(int width, int height, out Material masterPreviewMaterial, out ShaderMessage[] errorMessages)
+        public PreviewOutputState RequestMainPreviewMaterial(
+            int width,
+            int height,
+            out Material mainPreviewMaterial,
+            out ShaderMessage[] errorMessages)
         {
             errorMessages = null;
-            masterPreviewMaterial = null;
+            mainPreviewMaterial = null;
 
-            if (width != m_MasterPreviewWidth || height != m_MasterPreviewHeight)
+            if (width != m_MainPreviewWidth || height != m_MainPreviewHeight)
             {
-                // Master Preview window was resized, need to re-render at new size
-                m_MasterPreviewData.renderTexture.width = height;
-                m_MasterPreviewData.renderTexture.height = width;
-                masterPreviewMaterial = null;
-                masterPreviewWasResized = true;
+                // Main Preview window was resized, need to re-render at new size
+                m_MainPreviewData.renderTexture.width = height;
+                m_MainPreviewData.renderTexture.height = width;
+                mainPreviewMaterial = null;
+                mainPreviewWasResized = true;
                 return PreviewOutputState.Updating;
             }
-            else if (m_MasterPreviewData.isShaderOutOfDate)
+            else if (m_MainPreviewData.isShaderOutOfDate)
             {
-                UpdateShaderData(m_MasterPreviewData);
-                m_MasterPreviewData.isShaderOutOfDate = false;
-                if (m_MasterPreviewData.hasShaderError)
+                UpdateShaderData(m_MainPreviewData);
+                m_MainPreviewData.isShaderOutOfDate = false;
+                if (m_MainPreviewData.hasShaderError)
                 {
-                    masterPreviewMaterial = null;
+                    mainPreviewMaterial = null;
                     errorMessages = m_ShaderMessagesMap[k_MasterPreviewName];
                     return PreviewOutputState.ShaderError;
                 }
-                masterPreviewMaterial = m_MasterPreviewData.material;
+                mainPreviewMaterial = m_MainPreviewData.material;
+                return PreviewOutputState.Complete;
+            }
+
+            return PreviewOutputState.Updating;
+        }
+
+        /// <summary>
+        /// Used to get image associated with the final output of the active graph.
+        /// </summary>
+        /// <returns> Enum value that defines whether the node's render output is ready, currently being updated, or if a shader error was encountered </returns>
+        public PreviewOutputState RequestMainPreviewImage(
+            int width,
+            int height,
+            Mesh meshToRender,
+            float mainPreviewScale,
+            bool preventRotation,
+            Quaternion mainPreviewRotation,
+            out Texture mainPreviewImage,
+            out ShaderMessage[] errorMessages)
+        {
+            errorMessages = null;
+            mainPreviewImage = null;
+
+            if (width != m_MainPreviewWidth || height != m_MainPreviewHeight)
+            {
+                // Master Preview window was resized, need to re-render at new size
+                m_MainPreviewData.renderTexture.width = height;
+                m_MainPreviewData.renderTexture.height = width;
+                mainPreviewImage = null;
+                mainPreviewWasResized = true;
+                return PreviewOutputState.Updating;
+            }
+
+            if (meshToRender != m_MainPreviewMesh
+                || mainPreviewScale != m_MainPreviewScale
+                || preventRotation != m_PreventMainPreviewRotation
+                || mainPreviewRotation != m_MainPreviewRotation)
+            {
+                m_MainPreviewMesh = meshToRender;
+                m_MainPreviewScale = mainPreviewScale;
+                m_MainPreviewRotation = mainPreviewRotation;
+                m_PreventMainPreviewRotation = preventRotation;
+                m_MainPreviewData.isRenderOutOfDate = true;
+                mainPreviewImage = null;
+                return PreviewOutputState.Updating;
+            }
+
+            if (m_MainPreviewData.isShaderOutOfDate)
+            {
+                UpdateShaderData(m_MainPreviewData);
+                UpdateRenderData(m_MainPreviewData);
+                if (m_MainPreviewData.hasShaderError)
+                {
+                    mainPreviewImage = null;
+                    errorMessages = m_ShaderMessagesMap[k_MasterPreviewName];
+                    return PreviewOutputState.ShaderError;
+                }
+                mainPreviewImage = m_MainPreviewData.texture;
+                return PreviewOutputState.Complete;
+            }
+            else if (m_MainPreviewData.isRenderOutOfDate)
+            {
+                UpdateRenderData(m_MainPreviewData);
+                if (m_MainPreviewData.hasShaderError)
+                {
+                    mainPreviewImage = null;
+                    errorMessages = m_ShaderMessagesMap[k_MasterPreviewName];
+                    return PreviewOutputState.ShaderError;
+                }
+                mainPreviewImage = m_MainPreviewData.texture;
                 return PreviewOutputState.Complete;
             }
 
@@ -461,11 +536,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             errorMessages = new ShaderMessage[] {};
 
-            if (m_MasterPreviewData.isShaderOutOfDate)
+            if (m_MainPreviewData.isShaderOutOfDate)
             {
-                RequestMasterPreviewMaterial(m_MasterPreviewWidth, m_MasterPreviewHeight, out var masterPreviewMaterial, out var shaderMessages);
-                masterPreviewShaderCode = m_MasterPreviewData.shaderString;
-                if (m_MasterPreviewData.hasShaderError)
+                RequestMainPreviewMaterial(m_MainPreviewWidth, m_MainPreviewHeight, out var masterPreviewMaterial, out var shaderMessages);
+                masterPreviewShaderCode = m_MainPreviewData.shaderString;
+                if (m_MainPreviewData.hasShaderError)
                 {
                     errorMessages = m_ShaderMessagesMap[k_MasterPreviewName];
                     return PreviewOutputState.ShaderError;
@@ -474,14 +549,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                masterPreviewShaderCode = m_MasterPreviewData.shaderString;
+                masterPreviewShaderCode = m_MainPreviewData.shaderString;
                 return PreviewOutputState.Complete;
             }
         }
 
         void AddMasterPreviewData()
         {
-            m_MasterPreviewData = new PreviewData()
+            m_MainPreviewData = new PreviewData()
             {
                 nodeName = k_MasterPreviewName,
                 renderTexture =
@@ -489,10 +564,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 isShaderOutOfDate = true,
             };
 
-            m_CachedPreviewData.Add(k_MasterPreviewName, m_MasterPreviewData);
+            m_CachedPreviewData.Add(k_MasterPreviewName, m_MainPreviewData);
         }
 
-        private static Shader MakeShader(string input)
+        static Shader MakeShader(string input)
         {
             bool tmp = ShaderUtil.allowAsyncCompilation;
             ShaderUtil.allowAsyncCompilation = false;
@@ -515,8 +590,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             // TODO: Need a way to query the main context node without having a hard name dependence, from GraphDelta
             var contextNodeReader = m_GraphHandle.GetNode(k_MasterPreviewName);
-            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MasterPreviewData.defaultTextures);
-            m_MasterPreviewData.shaderString = shaderOutput;
+            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance, out m_MainPreviewData.defaultTextures);
+            m_MainPreviewData.shaderString = shaderOutput;
             return MakeShader(shaderOutput);
         }
 
@@ -551,7 +626,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             using (UpdateShadersMarker.Auto())
             {
                 // If master preview
-                if (m_MasterPreviewData == previewToUpdate)
+                if (m_MainPreviewData == previewToUpdate)
                 {
                     previewToUpdate.shader = GetMasterPreviewShaderObject();
                 }
@@ -602,21 +677,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_SceneResources.camera.orthographic = true;
 
             // Master preview
-            if (previewToUpdate == m_MasterPreviewData)
+            if (previewToUpdate == m_MainPreviewData)
             {
-                if (masterPreviewWasResized)
+                if (mainPreviewWasResized)
                 {
-                    if (m_MasterPreviewData.renderTexture != null)
-                        Object.DestroyImmediate(m_MasterPreviewData.renderTexture, true);
-                    m_MasterPreviewData.renderTexture = new RenderTexture((int)m_MasterPreviewWidth, (int)m_MasterPreviewHeight, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
-                    m_MasterPreviewData.renderTexture.Create();
-                    m_MasterPreviewData.texture = m_MasterPreviewData.renderTexture;
-                    masterPreviewWasResized = false;
+                    if (m_MainPreviewData.renderTexture != null)
+                        Object.DestroyImmediate(m_MainPreviewData.renderTexture, true);
+                    m_MainPreviewData.renderTexture = new RenderTexture((int)m_MainPreviewWidth, (int)m_MainPreviewHeight, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                    m_MainPreviewData.renderTexture.Create();
+                    m_MainPreviewData.texture = m_MainPreviewData.renderTexture;
+                    mainPreviewWasResized = false;
                 }
 
-                // TODO: Better understand how we will populate this information from the GTF view model data
-                var mesh = m_MasterPreviewUserData.serializedMesh.mesh;
-                var preventRotation = m_MasterPreviewUserData.preventRotation;
+                var mesh = m_MainPreviewMesh;
+                var preventRotation = m_PreventMainPreviewRotation;
                 if (!mesh)
                 {
                     // TODO: Revisit when GetTargetSettings() is implemented
@@ -626,12 +700,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     preventRotation = useSpritePreview;
                 }
 
-                var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_MasterPreviewUserData.rotation);
-                var scale = m_MasterPreviewUserData.scale;
+                var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_MainPreviewRotation);
+                var scale = m_MainPreviewScale;
                 previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                 previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
-                RenderPreview(m_MasterPreviewData, mesh, previewTransform);
+                RenderPreview(m_MainPreviewData, mesh, previewTransform);
             }
             else // Node previews
             {
@@ -666,7 +740,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
                 // Mesh is invalid for VFXTarget
                 // TODO: We should handle this more gracefully
-                if (renderData != m_MasterPreviewData /*|| !isOnlyVFXTarget*/)
+                if (renderData != m_MainPreviewData /*|| !isOnlyVFXTarget*/)
                 {
                     m_SceneResources.camera.targetTexture = temp;
                     Graphics.DrawMesh(mesh, transform, renderData.material, 1, m_SceneResources.camera, 0, m_PreviewMaterialPropertyBlock, ShadowCastingMode.Off, false, null, false);
@@ -685,6 +759,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 renderData.texture = renderData.renderTexture;
 
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
+
+                renderData.isRenderOutOfDate = false;
             }
         }
 

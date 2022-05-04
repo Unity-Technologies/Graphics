@@ -19,6 +19,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public List<JsonData<Target>> m_GraphTargets = new();
     }
 
+    [Serializable]
+    class MainPreviewData
+    {
+        public SerializableMesh serializedMesh = new SerializableMesh();
+        public bool preventRotation;
+
+        [NonSerialized]
+        public Quaternion rotation = Quaternion.identity;
+
+        [NonSerialized]
+        public float scale = 1f;
+    }
+
     public class ShaderGraphAssetModel : GraphAsset
     {
         protected override Type GraphModelType => typeof(ShaderGraphModel);
@@ -34,6 +47,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal List<JsonData<Target>> ActiveTargets => m_TargetSettingsObject.m_GraphTargets;
 
         #endregion
+
+        internal MainPreviewData mainPreviewData;
 
         public bool IsSubGraph { get; private set; }
 

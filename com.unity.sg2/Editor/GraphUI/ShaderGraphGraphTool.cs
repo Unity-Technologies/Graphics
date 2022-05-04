@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 case BreadcrumbsToolbar.toolbarId:
                     return new BreadcrumbsToolbarProvider();
                 case PanelsToolbar.toolbarId:
-                    return new PanelsToolbarProvider();
+                    return new SGPanelsToolbarProvider();
                 case OptionsMenuToolbar.toolbarId:
                     return new OptionsToolbarProvider();
                 default:

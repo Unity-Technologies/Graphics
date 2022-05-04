@@ -18,6 +18,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected GraphViewStateObserver m_GraphViewStateObserver;
 
+        MainPreviewView m_MainPreviewView;
+
+        // We setup a reference to the MainPreview when the overlay containing it is created
+        // We do this because the resources needed to initialize the preview are not available at overlay creation time
+        internal void SetMainPreviewReference(MainPreviewView mainPreviewView)
+        {
+            m_MainPreviewView = mainPreviewView;
+        }
+
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
         bool m_WasWindowCloseCancelledInDirtyState;
@@ -220,10 +229,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (!m_PreviewManager.IsInitialized)
             {
-                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, m_WasWindowCloseCancelledInDirtyState);
+                m_PreviewManager.Initialize(GraphTool.ToolState.GraphModel as ShaderGraphModel, m_MainPreviewView, m_WasWindowCloseCancelledInDirtyState);
                 var shaderGraphModel = GraphTool.ToolState.GraphModel as ShaderGraphModel;
                 ShaderGraphCommandsRegistrar.RegisterCommandHandlers(GraphTool, GraphView.GraphViewModel, m_PreviewManager, shaderGraphModel, GraphTool.Dispatcher);
             }
+
             m_PreviewManager.Update();
         }
     }

@@ -30,6 +30,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Dictionary<string, SerializableGUID> m_NodeLookupTable;
 
+        MainPreviewView m_MainPreviewView;
+
         public PreviewManager(GraphModelStateComponent graphModelStateComponent)
         {
             m_GraphModelStateComponent = graphModelStateComponent;
@@ -40,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_NodeLookupTable = new Dictionary<string, SerializableGUID>();
         }
 
-        public void Initialize(ShaderGraphModel graphModel, bool wasWindowCloseCancelled)
+        internal void Initialize(ShaderGraphModel graphModel, MainPreviewView mainPreviewView, bool wasWindowCloseCancelled)
         {
             // Can be null when the editor window is opened to the onboarding page
             if (graphModel == null)
@@ -48,6 +50,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_IsInitialized = true;
             m_GraphModel = graphModel;
+
+            m_MainPreviewView = mainPreviewView;
+            m_MainPreviewView.Initialize(graphModel.ShaderGraphAssetModel.mainPreviewData);
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
             m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance);

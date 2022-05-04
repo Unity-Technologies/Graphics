@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
+            m_PreviewManager.RequestMainPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
             Assert.IsNotNull(masterPreviewMaterial);
             Assert.AreEqual(Color.red, SampleMaterialColor(masterPreviewMaterial));
         }
@@ -214,7 +214,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
+            m_PreviewManager.RequestMainPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
             Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(masterPreviewMaterial));
         }
 
@@ -250,7 +250,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
+            m_PreviewManager.RequestMainPreviewMaterial(400, 400, out var masterPreviewMaterial, out var _);
             Assert.AreEqual(Color.black, SampleMaterialColor(masterPreviewMaterial));
         }
 
