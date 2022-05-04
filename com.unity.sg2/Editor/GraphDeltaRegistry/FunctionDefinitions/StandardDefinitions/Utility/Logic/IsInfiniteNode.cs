@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "true if the input is an infinite value"
+                    tooltip: "Returns true if the input is an infinite value."
                 )
             }
         );
