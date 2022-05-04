@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty colorGradingSpace;
         public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty supportRuntimeDebugDisplay;
+        public SerializedProperty autoRegisterDiffusionProfiles;
 
         public SerializedProperty rendererListCulling;
 
@@ -144,6 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
             rendererListCulling = serializedObject.FindProperty("rendererListCulling");
 
             supportRuntimeDebugDisplay = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
+            autoRegisterDiffusionProfiles = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.autoRegisterDiffusionProfiles);
 
             DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
             useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);

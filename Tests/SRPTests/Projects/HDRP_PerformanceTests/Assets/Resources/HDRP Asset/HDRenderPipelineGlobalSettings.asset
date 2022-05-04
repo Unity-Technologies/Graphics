@@ -102,7 +102,8 @@ MonoBehaviour:
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 0
   supportRuntimeDebugDisplay: 1
+  autoRegisterDiffusionProfiles: 0
   apvScenesBounds:
     serializedBounds: []
     serializedHasVolumes: []
-  m_Version: 3
+  m_Version: 4

@@ -65,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent probeVolumeSupportContentLabel = EditorGUIUtility.TrTextContent("Probe Volumes", "Set whether Probe volumes are supported by the project. The feature is highly experimental and subject to changes.");
             public static readonly GUIContent rendererListCulling = EditorGUIUtility.TrTextContent("Dynamic Render Pass Culling", "When enabled, rendering passes are automatically culled based on what is visible on the camera.");
             public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
+            public static readonly GUIContent autoRegisterDiffusionProfilesContentLabel = EditorGUIUtility.TrTextContent("Auto Register Diffusion Profiles", "When enabled, diffusion profiles referenced by an imported material will be automatically added to the diffusion profile list in the HDRP Global Settings.");
         }
     }
 }

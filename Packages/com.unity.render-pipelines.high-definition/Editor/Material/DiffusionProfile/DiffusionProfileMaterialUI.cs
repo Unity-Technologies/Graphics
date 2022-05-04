@@ -41,6 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(diffusionProfile));
                     newGuid = HDUtils.ConvertGUIDToVector4(guid);
                     hash = HDShadowUtils.Asfloat(diffusionProfile.profile.hash);
+
+                    HDRenderPipelineGlobalSettings.instance.TryAutoRegisterDiffusionProfile(diffusionProfile);
                 }
 
                 // encode back GUID and it's hash
