@@ -90,11 +90,11 @@ When you use path tracing, the **Double-Sided** property (menu: **Inspector** > 
 
 The following images display the same GameObjects with a single-sided Material and a double-sided material:
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Single Sided.png)
+![Surface_Options](Images/HDRP_PathtracingBoxes_SingleSided.png)
 
 GameObjects with a single-sided Material and path tracing enabled
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Double Sided.png)
+![Surface_Options](Images/HDRP_PathtracingBoxes_DoubleSided.png)
 
 GameObjects with a double-sided Material and path tracing enabled
 
