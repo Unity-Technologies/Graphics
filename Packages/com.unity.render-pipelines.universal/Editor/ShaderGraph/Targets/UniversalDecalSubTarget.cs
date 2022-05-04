@@ -949,6 +949,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Descriptors.AffectsNormal, 1, new FieldCondition(AffectsNormal, true) },
                 { Descriptors.AffectsNormalBlend, 1, new FieldCondition(AffectsNormalBlend, true) },
                 { Descriptors.AffectsMAOS, 1, new FieldCondition(AffectsMAOS, true) },
+                { CoreKeywordDescriptors.UseUnityCrossFade, 1, new FieldCondition(Fields.LodCrossFade, true) }
             };
 
             public static DefineCollection MeshEmission = new DefineCollection

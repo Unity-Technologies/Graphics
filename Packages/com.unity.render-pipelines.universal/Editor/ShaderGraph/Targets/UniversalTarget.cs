@@ -802,6 +802,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 pass.includes.Add(CoreIncludes.LODCrossFade);
                 pass.keywords.Add(CoreKeywordDescriptors.LODFadeCrossFade);
+                pass.defines.Add(CoreKeywordDescriptors.UseUnityCrossFade, 1);
             }
         }
 
@@ -1982,6 +1983,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
             referenceName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor UseUnityCrossFade = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
+            referenceName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
