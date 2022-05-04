@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "generates a 4-sided polygon with rounded corners",
+            tooltip: "Creates a 4-sided polygon with rounded corners.",
             categories: new string[2] { "Procedural", "Shape" },
             synonyms: new string[1] { "square" },
             displayName: "Rounded Rectangle",

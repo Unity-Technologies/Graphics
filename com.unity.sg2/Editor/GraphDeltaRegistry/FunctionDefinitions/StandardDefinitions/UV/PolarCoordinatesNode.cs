@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "converts the value of input UV to polar coordinates",
+            tooltip: "Converts input UVs to polar coordinates.",
             categories: new string[1] { "UV"},
             synonyms: new string[0] {  },
             displayName: "Polar Coordinates",

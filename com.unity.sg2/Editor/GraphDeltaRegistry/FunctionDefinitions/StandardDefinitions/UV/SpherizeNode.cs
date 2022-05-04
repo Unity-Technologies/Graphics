@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "applies a spherical warping effect similar to a fisheye camera lens to the UVs",
+            tooltip: "Applies a spherical warping effect to the input UVs, similar to a fisheye camera lens.",
             categories: new string[1] { "UV" },
             synonyms: new string[0] { },
             parameters: new ParameterUIDescriptor[5] {

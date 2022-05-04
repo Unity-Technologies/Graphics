@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "creates a pattern of alternating black and white grid squares",
+            tooltip: "Creates a pattern of alternating black and white grid squares.",
             categories: new string[1] { "Procedural" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[5] {

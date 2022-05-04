@@ -33,7 +33,7 @@ TexelHeight = 1;
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the Width and Height of the texel size of Texture 2D input",
+            tooltip: "Gets the dimensions of the texture in texels and also the dimensions of each texel in 0-1 UV space.",
             displayName: "Texture Size",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "texture size" },

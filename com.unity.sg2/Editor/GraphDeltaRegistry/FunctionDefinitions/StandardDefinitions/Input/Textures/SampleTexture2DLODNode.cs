@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "samples a 2D Texture with customizable LOD level and returns a Vector 4 color value",
+            tooltip: "Samples a 2D Texture with a specified level of detail (LOD).",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[2] { "tex2dlod", "mip" },
             displayName: "Sample Texture 2D LOD",

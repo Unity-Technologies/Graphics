@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "generates an ellipse shape",
+            tooltip: "Generates an ellipse shape.",
             categories: new string[2] { "Procedural", "Shape" },
             synonyms: new string[1] { "circle" },
             parameters: new ParameterUIDescriptor[4] {

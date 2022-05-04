@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName : "Contrast",
-            tooltip: "make the darks darker and the brights brighter",
+            tooltip: "Make the darks darker and the brights brighter.",
             categories: new string[2] { "Artistic", "Adjustment" },
             synonyms: new string[1] { "intensity" },
             selectableFunctions: new()

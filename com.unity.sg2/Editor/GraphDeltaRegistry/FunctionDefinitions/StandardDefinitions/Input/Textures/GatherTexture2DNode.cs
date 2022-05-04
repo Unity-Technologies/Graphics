@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "takes 4 samples (red channel only) to use for bilinear interpolation during sampling",
+            tooltip: "Takes 4 samples (red channel only) to use for bilinear interpolation during sampling.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[10] {

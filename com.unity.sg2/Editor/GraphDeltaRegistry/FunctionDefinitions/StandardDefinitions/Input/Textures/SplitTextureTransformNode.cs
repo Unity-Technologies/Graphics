@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "separates tiling, offset, and texture data",
+            tooltip: "Separates tiling, offset, and texture data from an input texture.",
             synonyms: new string[0] {},
             categories: new string[2] { "Input", "Texture" },
             hasPreview: false,

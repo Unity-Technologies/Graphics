@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "applies a radial shear warping effect similar to a wave to the UVs",
+            tooltip: "Applies a radial shear warping effect to the UVs, similar to a wave.",
             categories: new string[1] { "UV" },
             synonyms: new string[0] { },
             displayName:"Radial Shear",
