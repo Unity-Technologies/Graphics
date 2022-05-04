@@ -142,8 +142,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context nodes should not be deleted from selection");
-            yield return null;
-            yield return null;
         }
 
         [UnityTest]
