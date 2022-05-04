@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Fade Transition",
-            tooltip: "a method of adding noise to add variation while a function transitions from on to off",
+            tooltip: "Adds noise for variation while a function transitions from on to off in a graph.",
             categories: new string[2] { "Artistic", "Filter" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[4] {

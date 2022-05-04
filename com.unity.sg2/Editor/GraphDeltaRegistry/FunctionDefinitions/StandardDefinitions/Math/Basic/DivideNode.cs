@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "splits A by the number of B",
+            tooltip: "Divides input A by input B.",
             categories: new string[2] { "Math", "Basic" },
             synonyms: new string[3] { "division", "/", "divided by" },
             parameters: new ParameterUIDescriptor[3] {
