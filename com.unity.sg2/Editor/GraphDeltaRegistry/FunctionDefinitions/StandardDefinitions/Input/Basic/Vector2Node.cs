@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Vector 2",
-            tooltip: "a user-defined value with 2 channels",
+            tooltip: "Creates a user-defined value with 2 channels.",
             categories: new string[2] { "Input", "Basic" },
             synonyms: new string[4] { "2", "v2", "vec2", "float2" },
             parameters: new ParameterUIDescriptor[3] {

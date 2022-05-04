@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "samples a Cubemap with a reflection vector and returns a Vector 4 color value",
+            tooltip: "Samples a Cubemap with a reflection vector.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "texcube" },
             parameters: new ParameterUIDescriptor[11] {

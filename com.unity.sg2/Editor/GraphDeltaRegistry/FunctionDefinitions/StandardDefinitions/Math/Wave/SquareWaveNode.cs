@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Square Wave",
-            tooltip: "creates a wave form in which the amplitude alternates at a steady frequency between fixed min and max values",
+            tooltip: "Creates a wave where the amplitude alternates between fixed min and max values at a steady frequency.",
             categories: new string[2] { "Math", "Wave" },
             synonyms: new string[1] { "triangle wave" },
             parameters: new ParameterUIDescriptor[2] {

@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Vector 3",
-            tooltip: "a user-defined value with 3 channels",
+            tooltip: "Creates a user-defined value with 3 channels.",
             categories: new string[2] { "Input", "Basic" },
             synonyms: new string[4] { "3", "v3", "vec3", "float3" },
             parameters: new ParameterUIDescriptor[4] {
