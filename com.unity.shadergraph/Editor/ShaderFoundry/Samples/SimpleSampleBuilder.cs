@@ -77,20 +77,6 @@ namespace UnityEditor.ShaderFoundry
             return generatedShader;
         }
 
-        internal class PropertyAttributeData
-        {
-            internal string DefaultValue;
-            // The type of the property. Can be overridden in some cases (e.g. Color)
-            internal string Type;
-            internal string UniformName;
-            internal string DisplayName;
-            // Any extra tags to apply to the property (e.g. [MainTex])
-            internal string Tags;
-            // The declaration mode ("DoNotDeclare", "Global", "UnityPerMaterial", "HybridPerInstance")
-            internal string Mode;
-            internal bool Exposed = true;
-        }
-
         internal static void MarkAsProperty(ShaderContainer container, StructField.Builder fieldBuilder, PropertyAttribute propertyAttribute)
         {
             fieldBuilder.AddAttribute(propertyAttribute.Build(container));
