@@ -1,6 +1,6 @@
+using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEngine;
-
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {

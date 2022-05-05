@@ -47,6 +47,21 @@ namespace UnityEditor.ShaderGraph.Defs
         );
     }
 
+    internal class TestUITexture2DNode : IStandardNode
+    {
+        static string Name = "TestUITexture2DNode";
+        static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = SAMPLE_TEXTURE2D(Texture.tex, OverrideSampler.samplerstate, Texture.GetTransformedUV(UV));",
+            new ParameterDescriptor("Texture", TYPE.Texture2D, GraphType.Usage.In),
+            new ParameterDescriptor("UV", TYPE.Vec2, GraphType.Usage.In),
+            new ParameterDescriptor("OverrideSampler", TYPE.SamplerState, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out));
+    }
+
     internal class TestUIMat3Node : IStandardNode
     {
         static string Name = "TestUIMat3";
