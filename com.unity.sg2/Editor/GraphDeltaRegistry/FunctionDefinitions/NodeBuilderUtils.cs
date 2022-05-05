@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         /// </summary>
         /// <param name="userData">A reader for a node in the user layer.</param>
         /// <returns>The type that Any should resolve to for ports in the node.</returns>
-        internal static TypeDescriptor FallbackTypeResolver(NodeHandler userData)
+        internal static ITypeDescriptor FallbackTypeResolver(NodeHandler userData)
         {
             GraphType.Height resolvedHeight = GraphType.Height.Any;
             GraphType.Length resolvedLength = GraphType.Length.Any;
@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 resolvedPrimitive = GraphType.Primitive.Float;
             }
 
-            return new TypeDescriptor(
+            return new ITypeDescriptor(
                 resolvedPrecision,
                 resolvedPrimitive,
                 resolvedLength,
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
         /// <returns></returns>
         internal static PortHandler ParameterDescriptorToField(
             ParameterDescriptor param,
-            TypeDescriptor fallbackType,
+            ITypeDescriptor fallbackType,
             NodeHandler node,
             Registry registry)
         {
@@ -91,10 +91,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 registry
             );
 
-            TypeDescriptor paramType = param.TypeDescriptor;
+            ITypeDescriptor paramType = param.TypeDescriptor;
 
             // A new type descriptor with all Any values replaced.
-            TypeDescriptor resolvedType = new(
+            ITypeDescriptor resolvedType = new(
                 paramType.Precision == GraphType.Precision.Any ? fallbackType.Precision : paramType.Precision,
                 paramType.Primitive == GraphType.Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
                 paramType.Length == GraphType.Length.Any ? fallbackType.Length : paramType.Length,

@@ -2,16 +2,14 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    /// <summary>
-    /// </summary>
-    internal readonly struct TypeDescriptor
+    internal class ParametricTypeDescriptor: ITypeDescriptor
     {
         public GraphType.Primitive Primitive { get; }
         public GraphType.Precision Precision { get; }
         public GraphType.Length Length { get; }
         public GraphType.Height Height { get; }
 
-        public TypeDescriptor(
+        public ParametricTypeDescriptor(
             GraphType.Precision precision,
             GraphType.Primitive primitive,
             GraphType.Length length,

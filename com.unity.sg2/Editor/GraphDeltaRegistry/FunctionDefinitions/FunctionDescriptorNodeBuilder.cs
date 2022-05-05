@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            TypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
+            ITypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
             foreach (var param in m_functionDescriptor.Parameters)
             {
                 //userData.TryGetPort(param.Name, out IPortReader portReader);
