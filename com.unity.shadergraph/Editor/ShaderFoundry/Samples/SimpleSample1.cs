@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderFoundry
             var scrollSpeedBuilder = new StructField.Builder(container, "_ScrollSpeed", container._float2);
 
             // Setup the material property info. We need to mark the default expression, the property type, and that it is a property.
-            var scrollSpeedPropData = new SimpleSampleBuilder.PropertyAttributeData { DisplayName = "ScrollSpeed", DefaultValue = "(0.5, 1, 0, 0)" };
+            var scrollSpeedPropData = new PropertyAttribute { DisplayName = "ScrollSpeed", DefaultValue = "(0.5, 1, 0, 0)" };
             SimpleSampleBuilder.MarkAsProperty(container, scrollSpeedBuilder, scrollSpeedPropData);
             var scrollSpeed = scrollSpeedBuilder.Build();
             inputTypeBuilder.AddField(scrollSpeed);
@@ -154,16 +154,18 @@ namespace UnityEditor.ShaderFoundry
             // Make an input for Color. This input will also be a property.
             // For convenience, an input can be tagged with the [Property] attribute which will automatically add it as a property.
             var colorInputBuilder = new StructField.Builder(container, "_Color", container._float4);
-            var colorInputPropData = new SimpleSampleBuilder.PropertyAttributeData { DisplayName = "Color", Type = "Color", DefaultValue = "(1, 0, 0, 1)" };
+            var colorInputPropData = new PropertyAttribute { DisplayName = "Color", DefaultValue = "(1, 0, 0, 1)" };
             SimpleSampleBuilder.MarkAsProperty(container, colorInputBuilder, colorInputPropData);
+            colorInputBuilder.AddAttribute(new ShaderAttribute.Builder(container, "Color").Build());
             var colorInput = colorInputBuilder.Build();
             inputTypeBuilder.AddField(colorInput);
 
             // Make a texture for albedo color. Creating a texture is complicated so it's delegated to a helper.
             string albedoTexRefName = "_AlbedoTex";
             var albedoTexBuilder = new StructField.Builder(container, albedoTexRefName, container.GetType("UnityTexture2D"));
-            var albedoTexPropData = new SimpleSampleBuilder.PropertyAttributeData { DisplayName = "AlbedoTex", DefaultValue = "\"white\" {}" };
+            var albedoTexPropData = new PropertyAttribute { DisplayName = "AlbedoTex", DefaultValue = "\"white\" {}" };
             SimpleSampleBuilder.MarkAsProperty(container, albedoTexBuilder, albedoTexPropData);
+            albedoTexBuilder.AddAttribute(new ShaderAttribute.Builder(container, "ScaleOffset").Build());
             var albedoTex = albedoTexBuilder.Build();
             inputTypeBuilder.AddField(albedoTex);
 

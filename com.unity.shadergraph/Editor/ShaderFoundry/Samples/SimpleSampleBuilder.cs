@@ -91,24 +91,9 @@ namespace UnityEditor.ShaderFoundry
             internal bool Exposed = true;
         }
 
-        internal static void MarkAsProperty(ShaderContainer container, StructField.Builder fieldBuilder, PropertyAttributeData propertyAttributeData)
+        internal static void MarkAsProperty(ShaderContainer container, StructField.Builder fieldBuilder, PropertyAttribute propertyAttribute)
         {
-            var propAttributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.Property);
-            if (!string.IsNullOrEmpty(propertyAttributeData.UniformName))
-                propAttributeBuilder.Param("uniformName", propertyAttributeData.UniformName);
-            if (!string.IsNullOrEmpty(propertyAttributeData.DisplayName))
-                propAttributeBuilder.Param("displayName", propertyAttributeData.DisplayName);
-            if (!string.IsNullOrEmpty(propertyAttributeData.Type))
-                propAttributeBuilder.Param("type", propertyAttributeData.Type);
-            if (!string.IsNullOrEmpty(propertyAttributeData.DefaultValue))
-                propAttributeBuilder.Param("defaultValue", propertyAttributeData.DefaultValue);
-            if (!string.IsNullOrEmpty(propertyAttributeData.Tags))
-                propAttributeBuilder.Param("tags", propertyAttributeData.Tags);
-            if (!string.IsNullOrEmpty(propertyAttributeData.Mode))
-                propAttributeBuilder.Param("mode", propertyAttributeData.Mode);
-            if (!propertyAttributeData.Exposed)
-                propAttributeBuilder.Param("exposed", "false");
-            fieldBuilder.AddAttribute(propAttributeBuilder.Build());
+            fieldBuilder.AddAttribute(propertyAttribute.Build(container));
         }
 
         internal static BlockInstance BuildSimpleBlockInstance(ShaderContainer container, Block block)
