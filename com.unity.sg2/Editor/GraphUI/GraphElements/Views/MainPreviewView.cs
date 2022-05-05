@@ -14,7 +14,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         Image m_PreviewTextureImage;
 
-        public Image previewTextureImage => m_PreviewTextureImage;
+        public Texture mainPreviewTexture
+        {
+            get => m_PreviewTextureImage.image;
+            set
+            {
+                if(value != null)
+                    m_PreviewTextureImage.image = value;
+            }
+        }
 
         Vector2 m_PreviewScrollPosition;
 
@@ -30,6 +38,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         Mesh m_PreviousMesh;
 
+        // TODO: (Sai) Remove from here? And make commands affect this in the asset model?
+        // View and model are a bit tightly coupled here
         MainPreviewData m_MainPreviewData;
 
         public MainPreviewView(Dispatcher dispatcher)
@@ -37,7 +47,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_CommandDispatcher = dispatcher;
 
             // Initialize the preview image
-            m_PreviewTextureImage = CreatePreview(Texture2D.blackTexture);
+            m_PreviewTextureImage = CreatePreview(Texture2D.redTexture);
             Add(m_PreviewTextureImage);
 
             // Setup scroll manipulator for zoom in/out
@@ -90,7 +100,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void ChangePreviewMesh(Mesh newPreviewMesh)
         {
-
+            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh);
+            m_CommandDispatcher.Dispatch(changePreviewMeshCommand);
         }
 
         static EditorWindow Get()
@@ -108,12 +119,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void OnObjectSelectorClosed(object currentMesh)
         {
-
+            var newPreviewMesh = currentMesh as Mesh;
+            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh);
+            m_CommandDispatcher.Dispatch(changePreviewMeshCommand);
         }
 
         void OnObjectSelectionUpdated(object currentMesh)
         {
-
+            var newPreviewMesh = currentMesh as Mesh;
+            var changePreviewMeshCommand = new ChangePreviewMeshCommand(newPreviewMesh);
+            m_CommandDispatcher.Dispatch(changePreviewMeshCommand);
         }
 
         void OnMouseDragPreviewMesh(Vector2 obj)

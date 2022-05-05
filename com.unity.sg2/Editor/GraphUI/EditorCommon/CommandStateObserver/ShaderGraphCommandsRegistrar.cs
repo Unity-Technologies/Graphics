@@ -37,6 +37,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 previewManager
             );
 
+            var shaderGraphAssetModel = graphTool.ToolState.CurrentGraph.GetGraphAsset() as ShaderGraphAssetModel;
+
+            commandDispatcher.RegisterCommandHandler<ShaderGraphAssetModel, PreviewManager, ChangePreviewMeshCommand>(
+                ChangePreviewMeshCommand.DefaultCommandHandler,
+                shaderGraphAssetModel,
+                previewManager
+            );
+
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, ShaderGraphAssetModel, ChangeActiveTargetsCommand>(
                 ChangeActiveTargetsCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,

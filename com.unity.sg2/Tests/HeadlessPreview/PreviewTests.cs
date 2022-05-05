@@ -50,6 +50,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
         GraphHandler m_InterpreterTestsGraph;
 
+        string testContextDescriptor => new TestDescriptor().GetRegistryKey().Name;
+
         [OneTimeSetUp]
         public void Setup()
         {
@@ -57,6 +59,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_RegistryInstance.Register<GraphTypeAssignment>();
             m_RegistryInstance.Register<TestAddNode>();
             m_RegistryInstance.Register<TestDescriptor>();
+
+            m_PreviewManager.Initialize(testContextDescriptor, new Vector2(125, 125));
 
             // Setup a separate graph for the interpreter tests
             m_InterpreterTestsGraph = new GraphHandler();
@@ -432,7 +436,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphHandler.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev1, out var _);
+            m_PreviewManager.RequestMainPreviewShaderCode(out var shaderCodev1, out var _);
             Assert.IsTrue(shaderCodev1 != String.Empty);
 
             // Make some change
@@ -440,7 +444,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev2, out var _);
+            m_PreviewManager.RequestMainPreviewShaderCode(out var shaderCodev2, out var _);
             Assert.IsTrue(shaderCodev2 != String.Empty);
 
             // Code generated should be different after a change was made
@@ -477,7 +481,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphHandler.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCode, out var shaderMessages);
+            m_PreviewManager.RequestMainPreviewShaderCode(out var shaderCode, out var shaderMessages);
             Shader testShaderOutput = ShaderUtil.CreateShaderAsset(shaderCode, true);
 
             Assert.IsFalse(ShaderUtil.ShaderHasError(testShaderOutput), shaderMessages.ToString());
@@ -530,6 +534,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
 
             var passWriter = graphHandler.AddNode(passKey, "PassNodeInst", registry);
 
@@ -578,6 +583,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
 
             var scalarWriter = graphHandler.AddNode(scalarKey, "TruncateNodeInstance", registry);
             var makeWriter = graphHandler.AddNode(makeKey, "MakeNodeInstance", registry);
@@ -621,6 +627,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
 
             var nodeWriter = graphHandler.AddNode<SampleGradientNode>("SampleGradientNode", registry);
             previewMgr.NotifyNodeFlowChanged("SampleGradientNode");
@@ -685,6 +692,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
 
             var texNode = graphHandler.AddNode<SimpleTextureNode>("Tex", registry);
             graphHandler.AddNode<SimpleSampleTexture2DNode>("SampleTex", registry);
@@ -726,6 +734,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
 
             var texNode = graphHandler.AddNode<SimpleTextureNode>("Tex", registry);
             var texField = texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField();
@@ -767,6 +776,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             previewMgr.SetActiveGraph(graphHandler);
             previewMgr.SetActiveRegistry(registry);
+            previewMgr.Initialize(testContextDescriptor, new Vector2(125, 125));
 
             var texNode = graphHandler.AddNode<SimpleTextureNode>("Tex", registry);
             var texField = texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField();

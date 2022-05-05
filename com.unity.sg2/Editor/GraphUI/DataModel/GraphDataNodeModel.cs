@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public bool NodeRequiresTime { get; private set; }
 
-        public bool HasPreview { get; private set; }
+        public virtual bool HasPreview { get; private set; }
 
         // By default every node's preview is visible
         // TODO: Handle preview state serialization

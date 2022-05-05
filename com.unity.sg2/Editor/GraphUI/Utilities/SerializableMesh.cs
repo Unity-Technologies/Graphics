@@ -23,10 +23,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 #pragma warning restore 649
         }
 
+        public bool IsNotInitialized
+            => string.IsNullOrEmpty(m_SerializedMesh)
+                && string.IsNullOrEmpty(m_Guid)
+                && m_Mesh == null;
+
         public Mesh mesh
         {
             get
             {
+                // If using one of the preview meshes
                 if (!string.IsNullOrEmpty(m_SerializedMesh))
                 {
                     var meshHelper = new MeshHelper();
@@ -35,6 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_Guid = null;
                     m_Mesh = meshHelper.mesh;
                 }
+                // If using custom mesh asset
                 else if (!string.IsNullOrEmpty(m_Guid) && m_Mesh == null)
                 {
                     m_Mesh = AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(m_Guid));

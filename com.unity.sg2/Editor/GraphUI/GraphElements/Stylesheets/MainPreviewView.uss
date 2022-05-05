@@ -13,7 +13,6 @@
 
 #previewImage {
     align-self: center;
-    color: rgba(0, 0, 0, 255);
     width: 120px;
     height: 120px;
 }

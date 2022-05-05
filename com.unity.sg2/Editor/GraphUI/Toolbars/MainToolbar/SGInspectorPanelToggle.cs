@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string id = "ShaderGraph/Overlay Windows/Inspector";
 
         /// <inheritdoc />
-        protected override string WindowId => SGBlackboardOverlay.k_OverlayID;
+        protected override string WindowId => SGInspectorOverlay.k_OverlayID;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SGInspectorPanelToggle"/> class.
