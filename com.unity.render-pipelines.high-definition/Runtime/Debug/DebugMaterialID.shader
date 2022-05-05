@@ -51,10 +51,12 @@ Shader "Hidden/HDRP/MaterialError"
                     uint2 uv = i.positionCS.xy;
                     float materialDepth = (LOAD_TEXTURE2D(_MaterialDepth, uv).r);
                     uint materialID = asuint(materialDepth);
-                    materialID &= 0xFFFF;
-                    float id = materialID / _MaxRange;
+                    materialID *= 3.141592657;
+                    materialID &= 0x3FFF;
                     float4 color;
-                    color.rgb = id;
+                    color.r = (materialID & 0x2491) / 256.0f;
+                    color.g = (materialID & (0x824)) / 256.0f;
+                    color.b = (materialID & (0x4A2)) / 256.0f;
                     color.a = 1.0f;
                     return color;
                 }

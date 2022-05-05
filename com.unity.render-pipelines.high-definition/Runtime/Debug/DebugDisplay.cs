@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //GPU Driven Pipeline
         MinGPUDrivenPipelineFullScreenDebug,
         ClusterID,
+        InstanceID,
         TrangleID,
         MaterialID,
         MaterialRange,
@@ -1831,16 +1832,34 @@ namespace UnityEngine.Rendering.HighDefinition
                 children =
                 {
                         new DebugUI.EnumField { displayName = "Buffer Visualization", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), onValueChanged = RefreshGPUDrivenPipelineDebug, enumNames = s_GDRPBufferDebugStrings, enumValues = s_GDRPBufferDebugValues, getIndex = () => data.bufferGDRPEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.bufferGDRPEnumIndex = value; } },
-                        new DebugUI.FloatField
-                        {
-                            displayName = "Max Factor",
-                            getter = () => data.gdrpDebugSettings.maxRange,
-                            setter = (v) => data.gdrpDebugSettings.maxRange = v,
-                            min = () => 100.0f,
-                            max = () => 10000.0f,
-                        },
+
                 }
             };
+            if (data.fullScreenDebugMode == FullScreenDebugMode.ClusterID)
+            {
+                data.gdrpDebugSettings.maxRange = 100.0f;
+                //itemGPUDrivenPipeline.children.Add(new DebugUI.FloatField
+                //{
+                //    displayName = "Max Range",
+                //    getter = () => data.gdrpDebugSettings.maxRange,
+                //    setter = (v) => data.gdrpDebugSettings.maxRange = v,
+                //    min = () => 100.0f,
+                //    max = () => 10000.0f,
+                //});
+            }
+            if (data.fullScreenDebugMode == FullScreenDebugMode.MaterialID)
+            {
+                data.gdrpDebugSettings.maxRange = 1.0f;
+                //itemGPUDrivenPipeline.children.Add(new DebugUI.FloatField
+                //{
+                //    displayName = "Multi Factor",
+                //    getter = () => data.gdrpDebugSettings.maxRange,
+                //    setter = (v) => data.gdrpDebugSettings.maxRange = v,
+                //    min = () => 1.0f,
+                //    max = () => 100.0f,
+                //});
+            }
+            
             widgetList.Add(itemGPUDrivenPipeline);
 
             m_DebugGPUDrivenPipelineItems = widgetList.ToArray();

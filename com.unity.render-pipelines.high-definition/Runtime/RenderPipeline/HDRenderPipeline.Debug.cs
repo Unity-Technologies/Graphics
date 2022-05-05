@@ -334,6 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_GPU_DRIVEN_PIPELINE
             RenderClusterIDFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
+            RenderInstanceIDFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderTriangleIDFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderMaterialIDFullScreen(renderGraph, debugParameters, colorBuffer, depthBuffer);
 #endif
@@ -743,9 +744,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderClusterIDFullScreen(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
-            //if (!debugParameters.debugDisplaySettings.fullScreenDebugMode)
-            //    return;
-
             if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.ClusterID
                 || debugParameters.hdCamera.camera.cameraType != CameraType.Game)
                 return;
@@ -760,11 +758,40 @@ namespace UnityEngine.Rendering.HighDefinition
                 (DebugOverlayPassData data, RenderGraphContext ctx) =>
                 {
                     var visiblityBuffer = ctx.renderContext.GetVisibilityBuffer();
+                    var clusterIDBuffer = ctx.renderContext.GetVisibleClusterIDBuffer();
                     RTHandle vBuffer = RTHandles.Alloc(visiblityBuffer);
                     ctx.cmd.SetViewport(data.debugParameters.hdCamera.finalViewport);
+                    data.debugParameters.debugVisibilityMaterial.SetBuffer("_ClusterIDBuffer", clusterIDBuffer);
                     data.debugParameters.debugVisibilityMaterial.SetFloat("_MaxRange", data.debugParameters.debugDisplaySettings.data.gdrpDebugSettings.maxRange);
                     data.debugParameters.debugVisibilityMaterial.SetTexture("_VisibilityBuffer", visiblityBuffer);
                     CoreUtils.DrawFullScreen(ctx.cmd, data.debugParameters.debugVisibilityMaterial, data.colorBuffer);
+                });
+            }
+        }
+
+        void RenderInstanceIDFullScreen(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.InstanceID
+                || debugParameters.hdCamera.camera.cameraType != CameraType.Game)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("InstanceID FullScreen", out var passData))
+            {
+                passData.debugParameters = debugParameters;
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+
+                builder.SetRenderFunc(
+                (DebugOverlayPassData data, RenderGraphContext ctx) =>
+                {
+                    var visiblityBuffer = ctx.renderContext.GetVisibilityBuffer();
+                    var clusterIDBuffer = ctx.renderContext.GetVisibleClusterIDBuffer();
+                    RTHandle vBuffer = RTHandles.Alloc(visiblityBuffer);
+                    ctx.cmd.SetViewport(data.debugParameters.hdCamera.finalViewport);
+                    data.debugParameters.debugVisibilityMaterial.SetBuffer("_ClusterIDBuffer", clusterIDBuffer);
+                    data.debugParameters.debugVisibilityMaterial.SetFloat("_MaxRange", data.debugParameters.debugDisplaySettings.data.gdrpDebugSettings.maxRange);
+                    data.debugParameters.debugVisibilityMaterial.SetTexture("_VisibilityBuffer", visiblityBuffer);
+                    CoreUtils.DrawFullScreen(ctx.cmd, data.debugParameters.debugVisibilityMaterial, data.colorBuffer, null, 2);
                 });
             }
         }
