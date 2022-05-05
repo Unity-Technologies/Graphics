@@ -22,10 +22,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            ITypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
+            ParametricTypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
             foreach (var param in m_functionDescriptor.Parameters)
             {
-                //userData.TryGetPort(param.Name, out IPortReader portReader);
                 NodeBuilderUtils.ParameterDescriptorToField(
                     param,
                     fallbackType,
@@ -39,6 +38,20 @@ namespace UnityEditor.ShaderGraph.Defs
             ShaderContainer container,
             Registry registry)
         {
+
+            // TODO
+            //var samplerPort = node.GetPort(param.Name);
+            //bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
+            //bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
+            //bool hasSampler = isConnected || isInitialized;
+
+            //string initSampler = $"{kSampler} = UnityBuildSamplerStateStruct({kTexture}.samplerstate);";
+            //string body = $"{kOutput} = SAMPLE_TEXTURE2D({kTexture}.tex, {kSampler}.samplerstate, {kTexture}.GetTransformedUV({kUV}));";
+            //if (!hasSampler)
+            //    builder.AddLine(initSampler);
+            //builder.AddLine(body);
+
+
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
 

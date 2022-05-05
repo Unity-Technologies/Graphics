@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
     }
 
+    // TODO (Brett) This should probably be called TextureType not BaseTextureType
     public class BaseTextureType : ITypeDefinitionBuilder
     {
         public enum TextureType { Texture2D, Texture3D, CubeMap, Texture2DArray }

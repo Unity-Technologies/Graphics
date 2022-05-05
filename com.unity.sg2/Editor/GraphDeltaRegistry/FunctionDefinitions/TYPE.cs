@@ -9,19 +9,19 @@ namespace UnityEditor.ShaderGraph.Defs
         public static readonly SamplerStateTypeDescriptor SamplerState = new();
 
         public static readonly TextureTypeDescriptor Texture2D = new(
-            TextureTypeDescriptor.TextureCategory.Texture2D
+            BaseTextureType.TextureType.Texture2D
         );
 
         public static readonly TextureTypeDescriptor Texture3D = new(
-            TextureTypeDescriptor.TextureCategory.Texture3D
+            BaseTextureType.TextureType.Texture3D
         );
 
         public static readonly TextureTypeDescriptor TextureCube = new(
-            TextureTypeDescriptor.TextureCategory.CubeMap
+            BaseTextureType.TextureType.CubeMap
         );
 
         public static readonly TextureTypeDescriptor Texture2DArray = new(
-            TextureTypeDescriptor.TextureCategory.Texture2DArray
+            BaseTextureType.TextureType.Texture2DArray
         );
 
         public static readonly ParametricTypeDescriptor Any = new(

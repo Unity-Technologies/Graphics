@@ -1,5 +1,5 @@
+using System.Linq;
 using UnityEditor.ShaderGraph.GraphDelta;
-
 namespace UnityEditor.ShaderGraph.Defs
 {
     internal static class NodeBuilderUtils
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
         private static PortHandler ParametricToField(
             ParameterDescriptor param,
-            ITypeDescriptor fallbackType,
+            ParametricTypeDescriptor fallbackType,
             NodeHandler node,
             Registry registry)
         {
@@ -99,6 +99,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 paramType.Height == GraphType.Height.Any ? fallbackType.Height : paramType.Height
             );
 
+            // TODO (Brett) Use GraphType.GraphTypeHelpers to do this instead!
+            // TODO Specifically, InitGraphType does this thing.
+
             // Set the port's parameters from the resolved type.
             var typeField = port.GetTypeField();
             typeField.GetSubField<GraphType.Length>(GraphType.kLength).SetData(resolvedType.Length);
@@ -106,7 +109,8 @@ namespace UnityEditor.ShaderGraph.Defs
             typeField.GetSubField<GraphType.Precision>(GraphType.kPrecision).SetData(resolvedType.Precision);
             typeField.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).SetData(resolvedType.Primitive);
 
-            if (param.Usage is GraphType.Usage.Static) typeField.AddSubField("IsStatic", true); // TODO(Liz) : should be metadata
+            // TODO(Liz) : should be metadata
+            if (param.Usage is GraphType.Usage.Static) typeField.AddSubField("IsStatic", true);
             if (param.Usage is GraphType.Usage.Local) typeField.AddSubField("IsLocal", true);
 
             int i = 0;
@@ -120,24 +124,40 @@ namespace UnityEditor.ShaderGraph.Defs
 
         private static PortHandler TextureToField(
             ParameterDescriptor param,
-            ITypeDescriptor fallbackType,
             NodeHandler node,
             Registry registry)
         {
+            TextureTypeDescriptor typeDescriptor = (TextureTypeDescriptor)param.TypeDescriptor;
+            var port = node.AddPort<BaseTextureType>(
+                param.Name,
+                param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local,
+                registry);
 
+            BaseTextureType.SetTextureType(port.GetTypeField(), typeDescriptor.TextureType);
+            return port;
         }
 
         private static PortHandler SamplerStateToField(
             ParameterDescriptor param,
-            ITypeDescriptor fallbackType,
             NodeHandler node,
             Registry registry)
         {
-            var samplerPort = node.GetPort(param.Name);
-            bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
-            bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
-            bool hasSampler = isConnected || isInitialized;
+            return node.AddPort<SamplerStateType>(
+                param.Name,
+                param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local,
+                registry);
+        }
 
+        private static PortHandler GradientToField(
+            ParameterDescriptor param,
+            NodeHandler node,
+            Registry registry)
+        {
+            return node.AddPort<GradientType>(
+                param.Name,
+                param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local,
+                registry
+            );
         }
 
         /// <summary>
@@ -151,23 +171,19 @@ namespace UnityEditor.ShaderGraph.Defs
         /// <returns></returns>
         internal static PortHandler ParameterDescriptorToField(
             ParameterDescriptor param,
-            ITypeDescriptor fallbackType,
+            ParametricTypeDescriptor fallbackType,
             NodeHandler node,
             Registry registry)
         {
 
-            switch (param.TypeDescriptor)
+            return param.TypeDescriptor switch
             {
-                case ParametricTypeDescriptor parametric:
-                    break;
-                case SamplerStateTypeDescriptor sampleState:
-                    break;
-                case TextureTypeDescriptor texture:
-                    break;
-                case GradientTypeDescriptor gradient:
-                default:
-                    break;
-            }
+                ParametricTypeDescriptor => ParametricToField(param, fallbackType, node, registry),
+                SamplerStateTypeDescriptor => SamplerStateToField(param, node, registry),
+                TextureTypeDescriptor => TextureToField(param, node, registry),
+                GradientTypeDescriptor => GradientToField(param, node, registry),
+                _ => null,
+            };
 
             //// Create a port.
             //var port = node.AddPort<GraphType>(
