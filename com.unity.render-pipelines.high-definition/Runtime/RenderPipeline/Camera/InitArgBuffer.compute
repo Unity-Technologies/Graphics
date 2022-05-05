@@ -1,0 +1,106 @@
+//--------------------------------------------------------------------------------------
+// Includes
+//--------------------------------------------------------------------------------------
+//#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "GPUDrivenCommon.hlsl"
+
+//--------------------------------------------------------------------------------------
+// Pragmas
+//--------------------------------------------------------------------------------------
+#pragma kernel CSMain_AppendVisibleInstance
+#pragma kernel CSMain_CalculateArgsBuffer
+#pragma kernel CSMain_CalculateArgsBufferAtLeastOnce
+
+//#pragma enable_d3d11_debug_symbols
+//--------------------------------------------------------------------------------------
+// Constants
+//--------------------------------------------------------------------------------------
+#define THREAD_GROUP_SIZE_X 32
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 1
+
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------
+// Structured Buffers
+//--------------------------------------------------------------------------------------
+
+StructuredBuffer<uint> _VisibleBuffer;
+RWBuffer<uint> _BufferSize;
+RWBuffer<uint> _ArgsBuffer;
+AppendStructuredBuffer<ClusterIDs> _AppendClusterIDBuffer;
+//--------------------------------------------------------------------------------------
+// Kernels & Functions
+//--------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------
+// Kernels
+//--------------------------------------------------------------------------------------
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+inline void CSMain_AppendVisibleInstance(
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint  _groupIndex       : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID          : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID    : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    uint index;
+    InterlockedAdd(_BufferSize[0], 1, index);
+    if (_BufferSize[1] <= index)
+        return;
+    
+    uint instanceIndex = _VisibleBuffer[index];
+    InstanceBuffer instance = _InstanceBuffer[instanceIndex];
+    for (uint i = 0; i != instance.clusterCount; ++i)
+    {
+        uint clusterIndex = instance.clusterBegin + i;
+        //ClusterBuffer cluster = _ClusterBuffer[clusterIndex];
+        ClusterIDs id = (ClusterIDs) 0;
+        id.clusterID = clusterIndex;
+        id.instanceID = instanceIndex;
+        _AppendClusterIDBuffer.Append(id);
+    }
+}
+
+
+[numthreads(1, 1, 1)]
+inline void CSMain_CalculateArgsBuffer(
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint _groupIndex : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    uint count = max(_BufferSize[kBufferSize_VisibleCluster], _BufferSize[kBufferSize_VisibleInstance]);
+    count = max(count, _BufferSize[kBufferSize_CachedVisibleCluster]);
+    count = max(count, _BufferSize[kBufferSize_CachedVisibleInstance]);
+    _ArgsBuffer[0] = (count + THREAD_GROUP_SIZE_X - 1) / THREAD_GROUP_SIZE_X;
+    _ArgsBuffer[1] = 1;
+    _ArgsBuffer[2] = 1;
+    //g_Counter[0] = 0;
+}
+
+
+[numthreads(1, 1, 1)]
+inline void CSMain_CalculateArgsBufferAtLeastOnce(
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint _groupIndex : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    uint count = max(_BufferSize[kBufferSize_VisibleCluster], _BufferSize[kBufferSize_VisibleInstance]);
+    count = min(count, 1);
+    _ArgsBuffer[0] = (count + THREAD_GROUP_SIZE_X - 1) / THREAD_GROUP_SIZE_X;
+    _ArgsBuffer[1] = 1;
+    _ArgsBuffer[2] = 1;
+    //g_Counter[0] = 0;
+}

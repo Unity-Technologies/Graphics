@@ -103,7 +103,13 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
 #ifdef _NORMALMAP_IDX
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+        #ifdef UNITY_GPU_DRIVEN_PIPELINE
+            float lod = CalcLod(ADD_IDX(_NormalMap), ADD_IDX(layerTexCoord.base).ddxddy);
+            normalTS = SAMPLE_UVMAPPING_NORMALMAP_LOD(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), lod);
+        #else
+            normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+        #endif
+        
     #else // Object space
         // We forbid scale in case of object space as it make no sense
         // To be able to combine object space normal with detail map then later we will re-transform it to world space.
@@ -404,3 +410,246 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     return alpha;
 }
+
+
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+float ADD_IDX(GetSurfaceDataFromMaterialBuffer)(FragInputs input,
+    LayerTexCoord layerTexCoord,
+    InstanceHeader instance,
+    ClusterBuffer cluster,
+    out SurfaceData surfaceData,
+    out float3 normalTS,
+    out float3 bentNormalTS)
+{
+    surfaceData = (SurfaceData) 0;
+    normalTS = (float3) 0;
+    bentNormalTS = (float3) 0;
+    
+    float3 detailNormalTS = float3(0.0, 0.0, 0.0);
+    float detailMask = 0.0;
+#ifdef _DETAIL_MAP_IDX
+    detailMask = 1.0;
+#ifdef _MASKMAP_IDX
+        detailMask = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
+#endif
+    float2 detailAlbedoAndSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rb;
+    float detailAlbedo = detailAlbedoAndSmoothness.r * 2.0 - 1.0;
+    float detailSmoothness = detailAlbedoAndSmoothness.g * 2.0 - 1.0;
+    // Resample the detail map but this time for the normal map. This call should be optimize by the compiler
+    // We split both call due to trilinear mapping
+    float lodDetailMap = CalcLod(ADD_IDX(_DetailMap), ADD_IDX(layerTexCoord.base).ddxddy);
+    detailNormalTS = SAMPLE_UVMAPPING_NORMALMAP_AG_LOD(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details), ADD_IDX(_DetailNormalScale), lodDetailMap);
+#endif
+    
+    //float4 baseColor = ADD_IDX(_BaseColor).rgba;
+    //uint propertyChunkOffset = instance.materialPropertyOffset[cluster.submesh] * MATERIAL_CHUNK_SIZE;
+    uint propertyChunkOffset = 0;
+    float4 baseColor = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS4(ADD_IDX(_BaseColor), _MaterialBuffer, propertyChunkOffset));
+    //float4 baseColor = ADD_IDX(_BaseColor);
+    //baseColor *= UNITY_GPU_DRIVEN_DOTS_INSTANCING(float4, 0, instance.pageOffset);
+    //float4 color = baseColor;
+    //color *= input.color;
+    //surfaceData.baseColor.rg = layerTexCoord.details;
+    
+    //float4 color = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgba * baseColor;
+    float lod = CalcLod(ADD_IDX(_BaseColorMap), ADD_IDX(layerTexCoord.base).ddxddy);
+    float4 color = SAMPLE_UVMAPPING_TEXTURE2D_LOD(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base), lod).rgba * baseColor;
+    //color.r = 1.0f / lod;
+    //color.rg = layerTexCoord.base.uv;
+    surfaceData.baseColor = color.rgb;
+    float alpha = color.a;
+    
+#ifdef _DETAIL_MAP_IDX
+    // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
+    // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
+    // with a factor based on speed.
+    // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
+    float albedoDetailSpeed = saturate(abs(detailAlbedo) * ADD_IDX(_DetailAlbedoScale));
+    float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
+    baseColorOverlay *= baseColorOverlay;							   
+    // Lerp with details mask
+    surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask);
+#endif
+    
+    surfaceData.specularOcclusion = 1.0; // Will be setup outside of this function
+
+    surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
+    surfaceData.geomNormalWS = float3(0.0, 0.0, 0.0); // Not used, just to keep compiler quiet.
+    normalTS = ADD_IDX(GetNormalTS)
+    (input, layerTexCoord, detailNormalTS, detailMask);
+    //surfaceData.baseColor = normalTS;
+    bentNormalTS = ADD_IDX(GetBentNormalTS)
+    (input, layerTexCoord, normalTS, detailNormalTS, detailMask);
+    //normalTS = float3(1, 1, 1) - normalTS;
+    //surfaceData.baseColor = float3(layerTexCoord.base.uv, layerTexCoord.base.mappingType / 10.0f);
+    //surfaceData.baseColor = float3(1, 1, 1) - normalTS;
+    //surfaceData.baseColor = float3(0.5, 0.5, 0);
+#if defined(_MASKMAP_IDX)
+    surfaceData.perceptualSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
+    surfaceData.perceptualSmoothness = lerp(ADD_IDX(_SmoothnessRemapMin), ADD_IDX(_SmoothnessRemapMax), surfaceData.perceptualSmoothness);
+#else
+    surfaceData.perceptualSmoothness = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(ADD_IDX(_Smoothness), _MaterialBuffer, propertyChunkOffset));
+#endif    
+    //surfaceData.perceptualSmoothness = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_Smoothness, _MaterialBuffer, propertyChunkOffset));
+    
+#ifdef _MASKMAP_IDX
+    lod = CalcLod(ADD_IDX(_MaskMap), ADD_IDX(layerTexCoord.base).ddxddy);
+    surfaceData.metallic = SAMPLE_UVMAPPING_TEXTURE2D_LOD(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base), lod).r;
+    surfaceData.metallic = lerp(ADD_IDX(_MetallicRemapMin), ADD_IDX(_MetallicRemapMax), surfaceData.metallic);
+    surfaceData.ambientOcclusion = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).g;
+    surfaceData.ambientOcclusion = lerp(ADD_IDX(_AORemapMin), ADD_IDX(_AORemapMax), surfaceData.ambientOcclusion);
+#else
+    surfaceData.metallic = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(ADD_IDX(_Metallic), _MaterialBuffer, propertyChunkOffset));
+    surfaceData.ambientOcclusion = 1.0;
+#endif
+
+    surfaceData.diffusionProfileHash = (UNITY_GPU_DRIVEN_PROP_ACCESS1(ADD_IDX(_DiffusionProfileHash), _MaterialBuffer, propertyChunkOffset));
+    surfaceData.subsurfaceMask = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(ADD_IDX(_SubsurfaceMask), _MaterialBuffer, propertyChunkOffset));
+    
+#ifdef _THICKNESSMAP_IDX
+    surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMap), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    surfaceData.thickness = ADD_IDX(_ThicknessRemap).x + ADD_IDX(_ThicknessRemap).y * surfaceData.thickness;
+#else
+    surfaceData.thickness = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(ADD_IDX(_Thickness), _MaterialBuffer, propertyChunkOffset));
+#endif
+
+// This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
+#if !defined(LAYERED_LIT_SHADER)
+
+    // These static material feature allow compile time optimization
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
+#endif
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+#endif
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
+#endif
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
+#endif
+#ifdef _MATERIAL_FEATURE_IRIDESCENCE
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_IRIDESCENCE;
+#endif
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
+#endif
+
+#ifdef _TANGENTMAP
+#ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
+    // Tangent space vectors always use only 2 channels.
+    float3 tangentTS = UnpackNormalmapRGorAG(SAMPLE_UVMAPPING_TEXTURE2D(_TangentMap, sampler_TangentMap, layerTexCoord.base), 1.0);
+    surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.tangentToWorld);
+#else // Object space
+    // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
+    float3 tangentOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(_TangentMapOS, sampler_TangentMapOS,  layerTexCoord.base.uv), 1.0);
+    surfaceData.tangentWS = TransformObjectToWorldNormal(tangentOS);
+#endif
+#else
+    // Note we don't normalize tangentWS either with a tangentmap above or using the interpolated tangent from the TBN frame
+    // as it will be normalized later with a call to Orthonormalize():
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz; // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+#endif
+
+#ifdef _ANISOTROPYMAP
+    surfaceData.anisotropy = SAMPLE_UVMAPPING_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, layerTexCoord.base).r;
+#else
+    surfaceData.anisotropy = 1.0;
+#endif
+    surfaceData.anisotropy *= asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_Anisotropy, _MaterialBuffer, propertyChunkOffset));
+
+    surfaceData.specularColor = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS4(_SpecularColor, _MaterialBuffer, propertyChunkOffset)).rgb;
+
+#ifdef _SPECULARCOLORMAP
+    surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
+#endif
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+    // Require to have setup baseColor
+    // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
+    float energyConservingSpecularColor = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_EnergyConservingSpecularColor, _MaterialBuffer, propertyChunkOffset));
+    surfaceData.baseColor *= energyConservingSpecularColor > 0.0 ? (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b)) : 1.0;
+#endif
+
+
+#if HAS_REFRACTION
+    if (_EnableSSRefraction)
+    {
+        surfaceData.ior = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_Ior, _MaterialBuffer, propertyChunkOffset));
+        surfaceData.transmittanceColor = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS3(_TransmittanceColor, _MaterialBuffer, propertyChunkOffset));
+#ifdef _TRANSMITTANCECOLORMAP
+        surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(_TransmittanceColorMap, sampler_TransmittanceColorMap, ADD_IDX(layerTexCoord.base)).rgb;
+#endif
+
+        surfaceData.atDistance = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_ATDistance, _MaterialBuffer, propertyChunkOffset));
+        // Rough refraction don't use opacity. Instead we use opacity as a transmittance mask.
+        surfaceData.transmittanceMask = (1.0 - alpha);
+        alpha = 1.0;
+    }
+    else
+    {
+        surfaceData.ior = 1.0;
+        surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+        surfaceData.atDistance = 1.0;
+        surfaceData.transmittanceMask = 0.0;
+        alpha = 1.0;
+    }
+#else
+    surfaceData.ior = 1.0;
+    surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+    surfaceData.atDistance = 1.0;
+    surfaceData.transmittanceMask = 0.0;
+#endif
+
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
+    surfaceData.coatMask = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_CoatMask, _MaterialBuffer, propertyChunkOffset));
+    // To shader feature for keyword to limit the variant
+    surfaceData.coatMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_CoatMaskMap), ADD_ZERO_IDX(sampler_CoatMaskMap), ADD_IDX(layerTexCoord.base)).r;
+#else
+    surfaceData.coatMask = 0.0;
+#endif
+
+#ifdef _MATERIAL_FEATURE_IRIDESCENCE
+#ifdef _IRIDESCENCE_THICKNESSMAP
+    surfaceData.iridescenceThickness = SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceThicknessMap, sampler_IridescenceThicknessMap, layerTexCoord.base).r;
+    surfaceData.iridescenceThickness = _IridescenceThicknessRemap.x + _IridescenceThicknessRemap.y * surfaceData.iridescenceThickness;
+#else
+    surfaceData.iridescenceThickness = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_IridescenceThickness, _MaterialBuffer, propertyChunkOffset));
+#endif
+    surfaceData.iridescenceMask = asfloat(UNITY_GPU_DRIVEN_PROP_ACCESS1(_IridescenceMask, _MaterialBuffer, propertyChunkOffset));
+    surfaceData.iridescenceMask *= SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceMaskMap, sampler_IridescenceMaskMap, layerTexCoord.base).r;
+#else
+    surfaceData.iridescenceThickness = 0.0;
+    surfaceData.iridescenceMask = 0.0;
+#endif
+
+#else // #if !defined(LAYERED_LIT_SHADER)
+
+    // Mandatory to setup value to keep compiler quiet
+
+    // Layered shader material feature are define outside of this call
+    surfaceData.materialFeatures = 0;
+
+    // All these parameters are ignore as they are re-setup outside of the layers function
+    // Note: any parameters set here must also be set in GetSurfaceAndBuiltinData() layer version
+    surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
+    surfaceData.anisotropy = 0.0;
+    surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+    surfaceData.iridescenceThickness = 0.0;
+    surfaceData.iridescenceMask = 0.0;
+    surfaceData.coatMask = 0.0;
+
+    // Transparency
+    surfaceData.ior = 1.0;
+    surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+    surfaceData.atDistance = 1000000.0;
+    surfaceData.transmittanceMask = 0.0;
+
+#endif // #if !defined(LAYERED_LIT_SHADER)
+
+    
+    return alpha;
+}
+#endif

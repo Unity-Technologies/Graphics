@@ -1724,7 +1724,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
             // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
             // This is only present in Lit Material as it is the only one using the improved shadow algorithm.
-        #ifndef SKIP_RASTERIZED_AREA_SHADOWS
+#ifndef SKIP_RASTERIZED_AREA_SHADOWS
             SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
             lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
         #endif

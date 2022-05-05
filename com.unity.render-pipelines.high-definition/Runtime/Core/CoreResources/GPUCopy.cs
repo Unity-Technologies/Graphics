@@ -5,17 +5,21 @@ namespace UnityEngine.Rendering
         ComputeShader m_Shader;
         int k_SampleKernel_xyzw2x_8;
         int k_SampleKernel_xyzw2x_1;
+        int k_SampleKernel_mergeDepth;
 
         public GPUCopy(ComputeShader shader)
         {
             m_Shader = shader;
             k_SampleKernel_xyzw2x_8 = m_Shader.FindKernel("KSampleCopy4_1_x_8");
             k_SampleKernel_xyzw2x_1 = m_Shader.FindKernel("KSampleCopy4_1_x_1");
+
+            k_SampleKernel_mergeDepth = m_Shader.FindKernel("KSampleMergeDepth");
         }
 
         static readonly int _RectOffset = Shader.PropertyToID("_RectOffset");
         static readonly int _Result1 = Shader.PropertyToID("_Result1");
         static readonly int _Source4 = Shader.PropertyToID("_Source4");
+        static readonly int _Source1 = Shader.PropertyToID("_Source1");
         static int[] _IntParams = new int[2];
 
         void SampleCopyChannel(
@@ -97,6 +101,19 @@ namespace UnityEngine.Rendering
         {
             Debug.Assert(source.rt.volumeDepth == target.rt.volumeDepth);
             SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, source.rt.volumeDepth, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
+        }
+
+        public void SampleMergeDepth(CommandBuffer cmd, RTHandle source1, RTHandle source2, RTHandle target, RectInt rect)
+        {
+            cmd.SetComputeTextureParam(m_Shader, k_SampleKernel_mergeDepth, _Source1, source1);
+            cmd.SetComputeTextureParam(m_Shader, k_SampleKernel_mergeDepth, _Source4, source2);
+            cmd.SetComputeTextureParam(m_Shader, k_SampleKernel_mergeDepth, _Result1, target);
+
+            cmd.DispatchCompute(m_Shader, 
+                k_SampleKernel_mergeDepth, 
+                (int)Mathf.Max(rect.width / 8 + 1, 1),
+                (int)Mathf.Max(rect.height / 8 + 1, 1), 
+                1);
         }
     }
 }

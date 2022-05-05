@@ -59,7 +59,8 @@ namespace UnityEngine.Experimental.Rendering
 
             var drawSettings = new DrawingSettings(s_EmptyName, sortingSettings)
             {
-                perObjectData = desc.rendererConfiguration
+                perObjectData = desc.rendererConfiguration,
+                useGPUDrivenPipeline = desc.useGPUDrivenPipeline
             };
 
             if (desc.passName != ShaderTagId.none)
@@ -140,6 +141,9 @@ namespace UnityEngine.Experimental.Rendering
         internal ShaderTagId passName { get; private set; }
         internal ShaderTagId[] passNames { get; private set; }
 
+#if UNITY_GPU_DRIVEN_PIPELINE
+        public int useGPUDrivenPipeline;
+#endif
         /// <summary>
         /// RendererListDesc constructor
         /// </summary>

@@ -39,8 +39,38 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 // 3. PostInitBuiltinData - Handle debug mode + allow the current lighting model to update the data with ModifyBakedDiffuseLighting
 
 // This method initialize BuiltinData usual values and after update of builtinData by the caller must be follow by PostInitBuiltinData
-void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2,
-                        out BuiltinData builtinData)
+void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2, out BuiltinData builtinData)
+{
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+
+    builtinData.opacity = alpha;
+
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    builtinData.renderingLayers = GetMeshRenderingLightLayer();
+
+    // Sample lightmap/probevolume/lightprobe/volume proxy
+    builtinData.bakeDiffuseLighting = 0.0;
+    builtinData.backBakeDiffuseLighting = 0.0;
+    SampleBakedGI(posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy, 0, float2(0.0f, 0.0f), builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
+
+#ifdef SHADOWS_SHADOWMASK
+    float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy, 0, float2(0.0f, 0.0f));
+    builtinData.shadowMask0 = shadowMask.x;
+    builtinData.shadowMask1 = shadowMask.y;
+    builtinData.shadowMask2 = shadowMask.z;
+    builtinData.shadowMask3 = shadowMask.w;
+#endif
+}
+
+void InitBuiltinDataForGPUDriven(PositionInputs posInput, 
+    float alpha, 
+    float3 normalWS, 
+    float3 backNormalWS, 
+    float4 texCoord1, 
+    float4 texCoord2,
+    uint instancePageOffset,
+    float2 ddxddy,
+    out BuiltinData builtinData)
 {
     ZERO_BUILTIN_INITIALIZE(builtinData);
 
@@ -52,11 +82,13 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     // Sample lightmap/probevolume/lightprobe/volume proxy
     builtinData.bakeDiffuseLighting = 0.0;
     builtinData.backBakeDiffuseLighting = 0.0;
-    SampleBakedGI(  posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy,
-                    builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
+    SampleBakedGI(posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy,
+        instancePageOffset, ddxddy,
+        builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
 
+    //builtinData.bakeDiffuseLighting = 1;
 #ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);
+    float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy, instancePageOffset, ddxddy);
     builtinData.shadowMask0 = shadowMask.x;
     builtinData.shadowMask1 = shadowMask.y;
     builtinData.shadowMask2 = shadowMask.z;

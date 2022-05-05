@@ -322,6 +322,12 @@ uint BlendLayeredDiffusionProfile(uint x0, uint x1, uint x2, uint x3, float weig
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+                        float2 texcoordDDX0, float2 texcoordDDY0, 
+                        float2 texcoordDDX1, float2 texcoordDDY1, 
+                        float2 texcoordDDX2, float2 texcoordDDY2, 
+                        float2 texcoordDDX3, float2 texcoordDDY3, 
+#endif
                       float3 positionWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
     layerTexCoord.vertexNormalWS = vertexNormalWS;
@@ -369,6 +375,14 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             , positionWS, _TexWorldScale0,
                             mappingType, layerTexCoord);
 
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+    float2 ddxddy = _UVMappingMask0.x * float2(texcoordDDX0.x, texcoordDDY0.x) +
+                    _UVMappingMask0.y * float2(texcoordDDX1.x, texcoordDDY1.y) +
+                    _UVMappingMask0.z * float2(texcoordDDX2.x, texcoordDDY2.y) +
+                    _UVMappingMask0.w * float2(texcoordDDX3.x, texcoordDDY3.y);
+    layerTexCoord.base0.ddxddy = ddxddy;
+#endif
+    
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR1)
     mappingType = UV_MAPPING_PLANAR;
@@ -412,6 +426,12 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #endif
 
     GetLayerTexCoord(   input.texCoord0.xy, input.texCoord1.xy, input.texCoord2.xy, input.texCoord3.xy,
+#ifdef UNITY_GPU_DRIVEN_PIPELINE
+                        input.texcoordDDX0, input.texcoordDDY0, 
+                        input.texcoordDDX1, input.texcoordDDY1, 
+                        input.texcoordDDX2, input.texcoordDDY2, 
+                        input.texcoordDDX3, input.texcoordDDY3, 
+#endif
                         input.positionRWS, input.tangentToWorld[2].xyz, layerTexCoord);
 }
 

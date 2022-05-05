@@ -4,6 +4,9 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
+TEXTURE2D(_DistortionVectorMap);
+SAMPLER(sampler_DistortionVectorMap);
+
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
 
@@ -97,107 +100,111 @@ SAMPLER(sampler_LayerInfluenceMaskMap);
 CBUFFER_START(UnityPerMaterial)
 
 // shared constant between lit and layered lit
-float _AlphaCutoff;
-float _UseShadowThreshold;
-float _AlphaCutoffShadow;
-float _AlphaCutoffPrepass;
-float _AlphaCutoffPostpass;
-float4 _DoubleSidedConstants;
-float _BlendMode;
-float _EnableBlendModePreserveSpecularLighting;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _AlphaCutoff);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _UseShadowThreshold);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _AlphaCutoffShadow);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _AlphaCutoffPrepass);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _AlphaCutoffPostpass);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _DoubleSidedConstants);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DistortionScale);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DistortionVectorScale);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DistortionVectorBias);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DistortionBlurScale);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DistortionBlurRemapMin);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DistortionBlurRemapMax);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _BlendMode);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _EnableBlendModePreserveSpecularLighting);
 
-float _PPDMaxSamples;
-float _PPDMinSamples;
-float _PPDLodThreshold;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _PPDMaxSamples);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _PPDMinSamples);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _PPDLodThreshold);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float3, _EmissiveColor);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _AlbedoAffectEmissive);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _EmissiveExposureWeight);
 
-float3 _EmissiveColor;
-float _AlbedoAffectEmissive;
-float _EmissiveExposureWeight;
-
-int  _SpecularOcclusionMode;
+UNITY_DEFINE_GPU_DRIVEN_PROP(int, _SpecularOcclusionMode);
 
 // Transparency
-float3 _TransmittanceColor;
-float _Ior;
-float _ATDistance;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float3, _TransmittanceColor);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _Ior);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _ATDistance);
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
-float3 _EmissionColor;
-float4 _EmissiveColorMap_ST;
-float _TexWorldScaleEmissive;
-float4 _UVMappingMaskEmissive;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float3, _EmissionColor);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _EmissiveColorMap_ST);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _TexWorldScaleEmissive);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _UVMappingMaskEmissive);
 
-float4 _InvPrimScale; // Only XY are used
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _InvPrimScale); // Only XY are used
 
 // Wind
-float _InitialBend;
-float _Stiffness;
-float _Drag;
-float _ShiverDrag;
-float _ShiverDirectionality;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _InitialBend);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _Stiffness);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _Drag);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _ShiverDrag);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _ShiverDirectionality);
 
 // Specular AA
-float _EnableGeometricSpecularAA;
-float _SpecularAAScreenSpaceVariance;
-float _SpecularAAThreshold;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _EnableGeometricSpecularAA);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _SpecularAAScreenSpaceVariance);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _SpecularAAThreshold);
 
 // Raytracing
-float _RayTracing;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _RayTracing);
 
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables
-float4 _BaseColor;
-float4 _BaseColorMap_ST;
-float4 _BaseColorMap_TexelSize;
-float4 _BaseColorMap_MipInfo;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _BaseColor);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _BaseColorMap_ST);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _BaseColorMap_TexelSize);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _BaseColorMap_MipInfo);
 
-float _Metallic;
-float _MetallicRemapMin;
-float _MetallicRemapMax;
-float _Smoothness;
-float _SmoothnessRemapMin;
-float _SmoothnessRemapMax;
-float _AORemapMin;
-float _AORemapMax;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _Metallic);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _MetallicRemapMin);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _MetallicRemapMax);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _Smoothness);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _SmoothnessRemapMin);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _SmoothnessRemapMax);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _AORemapMin);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _AORemapMax);
 
-float _NormalScale;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _NormalScale);
 
-float4 _DetailMap_ST;
-float _DetailAlbedoScale;
-float _DetailNormalScale;
-float _DetailSmoothnessScale;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _DetailMap_ST);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DetailAlbedoScale);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DetailNormalScale);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DetailSmoothnessScale);
 
-float4 _HeightMap_TexelSize; // Unity facility. This will provide the size of the heightmap to the shader
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _HeightMap_TexelSize); // Unity facility. This will provide the size of the heightmap to the shader
 
-float _HeightAmplitude;
-float _HeightCenter;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _HeightAmplitude);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _HeightCenter);
 
-float _Anisotropy;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _Anisotropy);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _DiffusionProfileHash);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _SubsurfaceMask);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _Thickness);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _ThicknessRemap);
 
-float _DiffusionProfileHash;
-float _SubsurfaceMask;
-float _Thickness;
-float4 _ThicknessRemap;
 
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _IridescenceThickness);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _IridescenceThicknessRemap);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _IridescenceMask);
 
-float _IridescenceThickness;
-float4 _IridescenceThicknessRemap;
-float _IridescenceMask;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _CoatMask);
 
-float _CoatMask;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _SpecularColor);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _EnergyConservingSpecularColor);
 
-float4 _SpecularColor;
-float _EnergyConservingSpecularColor;
-
-float _TexWorldScale;
-float _InvTilingScale;
-float4 _UVMappingMask;
-float4 _UVDetailsMappingMask;
-float _LinkDetailsWithBase;
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _TexWorldScale);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _InvTilingScale);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _UVMappingMask);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float4, _UVDetailsMappingMask);
+UNITY_DEFINE_GPU_DRIVEN_PROP(float, _LinkDetailsWithBase);
 
 #else // LAYERED_LIT_SHADER
 

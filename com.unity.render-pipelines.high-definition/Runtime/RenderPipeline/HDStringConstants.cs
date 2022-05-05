@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_ForwardOnlyStr = "ForwardOnly";
         /// <summary>GBuffer pass name.</summary>
         public static readonly string s_GBufferStr = "GBuffer";
+        public static readonly string s_GBufferEmitStr = "GBufferEmit";
         /// <summary>GBuffer With Prepass pass name.</summary>
         public static readonly string s_GBufferWithPrepassStr = "GBufferWithPrepass";
         /// <summary>Legacy Unlit cross pipeline pass name.</summary>
@@ -64,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
+        public static readonly ShaderTagId s_GBufferEmitName = new ShaderTagId(s_GBufferEmitStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferWithPrepassName = new ShaderTagId(s_GBufferWithPrepassStr);
         /// <summary>Legacy Unlit cross pipeline shader tag id.</summary>

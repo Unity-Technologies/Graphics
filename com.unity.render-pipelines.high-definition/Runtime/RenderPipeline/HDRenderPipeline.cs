@@ -144,6 +144,9 @@ namespace UnityEngine.Rendering.HighDefinition
         PerObjectData m_CurrentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
         MaterialPropertyBlock m_CopyDepthPropertyBlock = new MaterialPropertyBlock();
         Material m_CopyDepth;
+#if UNITY_GPU_DRIVEN_PIPELINE
+        Material m_CopyStencil;
+#endif
         Material m_DownsampleDepthMaterial;
         Material m_UpsampleTransparency;
         GPUCopy m_GPUCopy;
@@ -174,6 +177,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugColorPicker;
         Material m_DebugExposure;
         Material m_ErrorMaterial;
+#if UNITY_GPU_DRIVEN_PIPELINE
+        Material m_DebugVisibilityMaterial;
+        Material m_DebugMaterialIDMaterial;
+#endif
 
         Material m_Blit;
         Material m_BlitTexArray;
@@ -510,6 +517,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
+#if UNITY_GPU_DRIVEN_PIPELINE
+            m_CopyStencil = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
+#endif
             m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
@@ -1087,7 +1097,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BlitRGBToYUV = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitRGBToYUVPS);
             m_BlitYUVToRGB = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitYUVToRGBPS);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
-
+#if UNITY_GPU_DRIVEN_PIPELINE
+            m_DebugVisibilityMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugVisibilityShader);
+            m_DebugMaterialIDMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugMaterialIDShader);
+#endif
             // With texture array enabled, we still need the normal blit version for other systems like atlas
             if (TextureXR.useTexArray)
             {
@@ -1212,11 +1225,14 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_BlitYUVToRGBTexArray);
             CoreUtils.Destroy(m_BlitYUVToRGBTexArraySingleSlice);
 
-
             CoreUtils.Destroy(m_BlitRGBToYUV);
             CoreUtils.Destroy(m_BlitRGBToYUVTexArray);
             CoreUtils.Destroy(m_BlitRGBToYUVTexArraySingleSlice);
 
+#if UNITY_GPU_DRIVEN_PIPELINE
+            CoreUtils.Destroy(m_DebugVisibilityMaterial);
+            CoreUtils.Destroy(m_DebugMaterialIDMaterial);
+#endif
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
@@ -1605,7 +1621,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         // Only for internal use, outside of SRP people can call Camera.Render()
-#if UNITY_2021_1_OR_NEWER   
+#if UNITY_2021_1_OR_NEWER
         internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
 #else
         internal void InternalRender(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -1775,6 +1791,35 @@ namespace UnityEngine.Rendering.HighDefinition
                             out var additionalCameraData,
                             out var hdCamera,
                             out var cullingParameters);
+
+#if UNITY_GPU_DRIVEN_PIPELINE
+                    //#if UNITY_EDITOR
+                    ComputeShader csCulling = defaultResources?.shaders.cullingCS;
+                    csCulling.name = "HZBOcclusionCulling";
+                    ComputeShader csInitArgsBuffer = defaultResources?.shaders.initArgsBufferCS;
+                    csInitArgsBuffer.name = "InitArgsBuffer";
+                    ComputeShader csGenerateMaterialRange = defaultResources?.shaders.generateMaterialRange;
+                    csGenerateMaterialRange.name = "GenerateMaterialRange";
+                    ComputeShader analyzeCS = defaultResources?.shaders.analyzeCS;
+                    analyzeCS.name = "AnalyzeVisibleCluster";
+                    ComputeShader copyBufferCS = defaultResources?.shaders.copyBufferCS;
+                    analyzeCS.name = "CopyBuffer";
+                    Shader visibilityShader = defaultResources?.shaders.visibilityShader;
+                    Shader materialDepthShader = defaultResources?.shaders.materialDepthShader;
+                    renderContext.AssignComputeShaders(csCulling,
+                        csInitArgsBuffer,
+                        csGenerateMaterialRange,
+                        visibilityShader,
+                        materialDepthShader,
+                        analyzeCS,
+                        copyBufferCS);
+                    //#endif
+                    if (camera.cameraType == CameraType.Game)
+                    {
+                        csCulling.SetVector(HDShaderIDs._ZBufferParams, hdCamera.zBufferParams);
+                        renderContext.SetRenderTargetSize(RTHandles.maxWidth, RTHandles.maxHeight);
+                    }
+#endif
 
                     // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                     if (!skipRequest)
@@ -2691,8 +2736,32 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
+#if UNITY_GPU_DRIVEN_PIPELINE
+                if (hdCamera.camera.cameraType == CameraType.Game)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
+                    {
+                        var visiblityDepth = renderContext.GetVisibilityDepth();
+                        if (visiblityDepth != null)
+                        {
+                            RTHandle depth = RTHandles.Alloc(visiblityDepth);
+                            // Copy and merge the visibilityDepth and depth pre-pass,
+                            // used as DBuffer rendering depth to early-Z test
+                            m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depth);
+                            m_CopyDepthPropertyBlock.SetTexture("_InputDepthTexture2", m_SharedRTManager.GetDepthStencilBuffer());
+                            m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                            m_CopyDepthPropertyBlock.SetInt("_FlipY", 0);
+                            cmd.SetRenderTarget(m_SharedRTManager.GetDepthStencilBuffer(), 0, CubemapFace.Unknown, -1);
+                            cmd.SetViewport(hdCamera.finalViewport);
+                            m_CopyDepth.SetInt("_StencilWriteMaskGBuffer", 0x0E);
+                            m_CopyDepth.SetInt("_StencilRefGBuffer", 0x0A);
 
-            DecalNormalPatch(hdCamera, cmd);
+                            CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
+                        }
+                    }
+                }
+#endif
+                DecalNormalPatch(hdCamera, cmd);
 
             // We can now bind the normal buffer to be use by any effect
             m_SharedRTManager.BindNormalBuffer(cmd);
@@ -2716,9 +2785,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid, mip1FromDownsampleForLowResTrans);
+#if UNITY_GPU_DRIVEN_PIPELINE
+                if (hdCamera.camera.cameraType == CameraType.Game)
+                {
+                    m_SharedRTManager.SetDepthBufferMipChainForGPUPipeline();
+                    CopyDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
 
-            // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
-            cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
+                    if (m_SharedRTManager.GetDepthBufferMipChainForGPUPipeline().m_OffsetBufferWillNeedUpdateForHZBOC)
+                    {
+                        // for now, only support one camera
+                        var info = m_SharedRTManager.GetDepthBufferMipChainForGPUPipeline();
+                        info.m_OffsetBufferWillNeedUpdateForHZBOC = false;
+                        Vector4[] mipmapInfo = new Vector4[info.mipLevelCount];
+                        for (int j = 0; j != info.mipLevelCount; ++j)
+                        {
+                            mipmapInfo[j].Set(info.mipLevelOffsets[j].x,
+                                info.mipLevelOffsets[j].y,
+                                info.mipLevelSizes[j].x,
+                                info.mipLevelSizes[j].y);
+                        }
+
+                        RenderTexture rt = m_SharedRTManager.GetDepthMipmap();
+                        renderContext.AssignDepthTexture(camera, rt, mipmapInfo);
+                    }
+                }
+#endif
+                // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
+                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
 
             if (shouldRenderMotionVectorAfterGBuffer)
             {
@@ -3599,6 +3692,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null,
             bool excludeObjectMotionVectors = false
+#if UNITY_GPU_DRIVEN_PIPELINE
+            , bool useGPUDrivenPipeline = false
+#endif
         )
         {
             var result = new RendererListDesc(passName, cull, camera)
@@ -3609,6 +3705,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
+#if UNITY_GPU_DRIVEN_PIPELINE
+                , useGPUDrivenPipeline = useGPUDrivenPipeline ? 1 : 0
+#endif
             };
             return result;
         }
@@ -3622,6 +3721,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null,
             bool excludeObjectMotionVectors = false
+#if UNITY_GPU_DRIVEN_PIPELINE
+            , bool useGPUDrivenPipeline = false
+#endif
         )
         {
             var result = new RendererListDesc(passNames, cull, camera)
@@ -3632,6 +3734,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
+#if UNITY_GPU_DRIVEN_PIPELINE
+                , useGPUDrivenPipeline = useGPUDrivenPipeline ? 1 : 0
+#endif
             };
             return result;
         }
@@ -3655,6 +3760,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
+#if UNITY_GPU_DRIVEN_PIPELINE
+                , useGPUDrivenPipeline = 0
+#endif
             };
             return result;
         }
@@ -3678,6 +3786,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
+#if UNITY_GPU_DRIVEN_PIPELINE
+                , useGPUDrivenPipeline = 0
+#endif
             };
             return result;
         }
@@ -3844,9 +3955,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 case LitShaderMode.Deferred:
                     result.hasDepthDeferredPass = true;
+#if UNITY_GPU_DRIVEN_PIPELINE
+                    RenderQueueRange range = RenderQueueRange.all;
+                    if (hdCamera.camera.cameraType == CameraType.Game)
+                    {
+                        result.passName = "Partial Depth Prepass (Deferred - AlphaTest)";
+                        range = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest;
+                    }
+                    else
+                    {
+                        result.passName = fullDeferredPrepass ? "Full Depth Prepass (Deferred)" :
+                                        (decalsEnabled ? "Partial Depth Prepass (Deferred - Decal + AlphaTest)" : "Partial Depth Prepass (Deferred - AlphaTest)");
+                        range = fullDeferredPrepass ? HDRenderQueue.k_RenderQueue_AllOpaque :
+                            (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest);
+                    }
+#else
                     result.passName = fullDeferredPrepass ? "Full Depth Prepass (Deferred)" :
                                         (decalsEnabled ? "Partial Depth Prepass (Deferred - Decal + AlphaTest)" : "Partial Depth Prepass (Deferred - AlphaTest)");
-
+                    RenderQueueRange range = fullDeferredPrepass? HDRenderQueue.k_RenderQueue_AllOpaque:
+                            (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest),
+#endif
                     bool excludeMotion = fullDeferredPrepass ? objectMotionEnabled : false;
 
                     // First deferred materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
@@ -3925,12 +4053,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? ProfilingSampler.Get(HDProfileId.GBufferDebug) : ProfilingSampler.Get(HDProfileId.GBuffer)))
             {
-                // setup GBuffer for rendering
-                CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
+#if UNITY_GPU_DRIVEN_PIPELINE
+                RendererList rendererList;
+                if (hdCamera.camera.cameraType == CameraType.Game)
+                {
+                    RTHandle depthBufferHandle = m_SharedRTManager.GetDepthStencilBuffer();
+                    if (renderContext.GetMaterialDepth() != null)
+                    {
+                        RenderTexture materialDepth = renderContext.GetMaterialDepth();
+                        depthBufferHandle = RTHandles.Alloc(materialDepth);
+                        //depthBufferHandle
+                    }
 
+                    CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), depthBufferHandle);
+                    rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferEmitName, m_CurrentRendererConfigurationBakedLighting));
+                    rendererList.drawSettings.useGPUDrivenPipeline = 1;
+                    DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
+
+                    rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting));
+                    rendererList.drawSettings.useGPUDrivenPipeline = 1;
+                    depthBufferHandle = m_SharedRTManager.GetDepthStencilBuffer();
+                    var visiblityDepth = renderContext.GetVisibilityDepth();
+                    if (visiblityDepth != null)
+                        depthBufferHandle = RTHandles.Alloc(visiblityDepth);
+                    CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), depthBufferHandle);
+                    DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
+                }
+                else
+                {
+                    RTHandle depthBufferHandle = m_SharedRTManager.GetDepthStencilBuffer();
+                    CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), depthBufferHandle);
+                    rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting));
+                    DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
+                }
+#else
+                RTHandle depthBufferHandle = m_SharedRTManager.GetDepthStencilBuffer();
+                CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), depthBufferHandle);
                 var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting));
                 DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
-
+#endif
                 m_GbufferManager.BindBufferAsTextures(cmd);
             }
         }
@@ -3953,8 +4114,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if(!canReadBoundDepthBuffer)
             {
+#if UNITY_GPU_DRIVEN_PIPELINE
+                var visiblityDepth = renderContext.GetVisibilityDepth();
+                if (hdCamera.camera.cameraType == CameraType.Game && visiblityDepth != null)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
+                    {
+                        RTHandle depth = RTHandles.Alloc(visiblityDepth);
+                        // Merge the visibilityDepth and depth pre-pass into depth mipmap chain,
+                        // this is to used in DBuffer rendering
+                        m_GPUCopy.SampleMergeDepth(cmd, depth, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), new RectInt(0, 0, hdCamera.actualWidth, hdCamera.actualHeight));
+
+                        // Copy and merge the visibilityDepth and depth pre-pass,
+                        // used as DBuffer rendering depth to early-Z test
+                        m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depth);
+                        m_CopyDepthPropertyBlock.SetTexture("_InputDepthTexture2", m_SharedRTManager.GetDepthStencilBuffer());
+                        m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                        m_CopyDepthPropertyBlock.SetInt("_FlipY", 0);
+                        cmd.SetRenderTarget(m_SharedRTManager.GetDecalDepthBuffer(), 0, CubemapFace.Unknown, -1);
+                        cmd.SetViewport(hdCamera.finalViewport);
+                        CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
+                    }
+                }
+                else
+                {
+                    // We need to copy depth buffer texture if we want to bind it at this stage
+                    CopyDepthBufferIfNeeded(hdCamera, cmd);
+                }
+#else
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(hdCamera, cmd);
+#endif
             }
 
             // If we have an incomplete depth buffer use for decal we will need to do another copy
@@ -3972,9 +4162,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DbufferManager.GetRTHandles(),
                                 m_SharedRTManager.GetDepthStencilBuffer(),
                                 canReadBoundDepthBuffer ? m_SharedRTManager.GetDepthStencilBuffer() : m_SharedRTManager.GetDepthTexture(),
+                                m_SharedRTManager.GetDecalDepthBuffer(),
                                 RendererList.Create(PrepareMeshDecalsRendererList(cullingResults, hdCamera, parameters.use4RTs)),
                                 supportDecalLayer ? m_SharedRTManager.GetDecalPrepassBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)) : TextureXR.GetBlackTexture(),
-                                renderContext, cmd);
+                                renderContext, cmd,
+                                hdCamera);
 
                 m_DbufferManager.BindBufferAsTextures(cmd);
             }
@@ -4093,10 +4285,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                     RTHandle[]                  rtHandles,
                                     RTHandle                    depthStencilBuffer,
                                     RTHandle                    depthTexture,
+                                    RTHandle                    mergedDepthBuffer,
                                     RendererList                meshDecalsRendererList,
                                     RTHandle                    decalPrepassBuffer,
                                     ScriptableRenderContext     renderContext,
-                                    CommandBuffer               cmd)
+                                    CommandBuffer               cmd,
+                                    HDCamera hdCamera)
         {
             // for alpha compositing, color is cleared to 0, alpha to 1
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -4122,8 +4316,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                      m_Dbuffer3RtIds[rtindex] = mrt[rtindex];
                 }
-                // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
-                CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
+#if UNITY_GPU_DRIVEN_PIPELINE
+                if (hdCamera.camera.cameraType == CameraType.Game)
+                {
+                    var visibilityDepth = renderContext.GetVisibilityDepth();
+                    CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, mergedDepthBuffer);
+                    cmd.SetViewport(hdCamera.finalViewport);
+                }
+                else
+                {
+                    // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
+                    CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
+                }
+#else
+                    // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
+                    CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
+#endif
             }
 
             cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, decalPrepassBuffer);
@@ -5126,6 +5334,29 @@ namespace UnityEngine.Rendering.HighDefinition
             PushFullScreenDebugTextureMip(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mipCount, debugMode);
         }
 
+#if UNITY_GPU_DRIVEN_PIPELINE
+        void CopyDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode)
+        {
+            using (new ProfilingScope(cmd, new ProfilingSampler("Copy the depth pyramid for GPU Driven Pipeline")))
+            {
+                // TODO: maybe we don't actually need the top MIP level?
+                // That way we could avoid making the copy, and build the MIP hierarchy directly.
+                // The downside is that our SSR tracing accuracy would decrease a little bit.
+                // But since we never render SSR at full resolution, this may be acceptable.
+
+                // TODO: reading the depth buffer with a compute shader will cause it to decompress in place.
+                // On console, to preserve the depth test performance, we must NOT decompress the 'm_CameraDepthStencilBuffer' in place.
+                // We should call decompressDepthSurfaceToCopy() and decompress it to 'm_CameraDepthBufferMipChain'.
+                int width = m_SharedRTManager.GetDepthMipmap().rt.width;
+                int height = m_SharedRTManager.GetDepthMipmap().rt.height;
+                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd,
+                    m_SharedRTManager.GetDepthTexture(),
+                    m_SharedRTManager.GetDepthMipmap(),
+                    new RectInt(0, 0, width, height));
+            }
+        }
+#endif
+
         void DownsampleDepthForLowResTransparency(HDCamera hdCamera, CommandBuffer cmd, RTHandle depthMipChain, bool computeMip0OfPyramid)
         {
             CopyDepthBufferIfNeeded(hdCamera, cmd);
@@ -5390,6 +5621,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Exposure
             public bool     exposureDebugEnabled;
             public Material debugExposureMaterial;
+
+            public Material debugVisibilityMaterial;
+            public Material debugMaterialID;
         }
 
         DebugParameters PrepareDebugParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
@@ -5417,6 +5651,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.exposureDebugEnabled = NeedExposureDebugMode(parameters.debugDisplaySettings);
             parameters.debugExposureMaterial = m_DebugExposure;
+
+            parameters.debugVisibilityMaterial = m_DebugVisibilityMaterial;
+            parameters.debugMaterialID = m_DebugMaterialIDMaterial;
 
             float overlayRatio = m_CurrentDebugDisplaySettings.data.debugOverlayRatio;
             int overlaySize = (int)(Math.Min(hdCamera.actualHeight, hdCamera.actualWidth) * overlayRatio);

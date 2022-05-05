@@ -12,6 +12,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // The best we can do for resolve is an OR of all samples, however this is inaccurate by nature.
         RTHandle m_StencilBufferResolved;
         RTHandle m_CameraDepthBufferMipChain;
+#if UNITY_GPU_DRIVEN_PIPELINE
+        RTHandle m_CameraDepthBufferMipmap = null;
+        HDUtils.PackedMipChainInfo m_CameraDepthBufferMipChainInfoForGPUDriven;
+
+        RTHandle m_decalDepthBuffer = null;
+#endif
         RTHandle m_CameraHalfResDepthBuffer = null;
         HDUtils.PackedMipChainInfo m_CameraDepthBufferMipChainInfo; // This is metadata
 
@@ -78,8 +84,23 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CameraDepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
             m_CameraDepthBufferMipChainInfo.Allocate();
             m_CameraDepthBufferMipChain = RTHandles.Alloc(ComputeDepthBufferMipChainSize, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CameraDepthBufferMipChain");
+#if UNITY_GPU_DRIVEN_PIPELINE
+            m_CameraDepthBufferMipmap = RTHandles.Alloc(ComputeDepthBufferMipChainSize,
+                TextureXR.slices, 
+                colorFormat: GraphicsFormat.R32_SFloat, 
+                dimension: TextureXR.dimension,
+                enableRandomWrite: true,
+                useDynamicScale: true, 
+                name: "CameraDepthBufferMipmap_forGPUDriven");
 
-            if(settings.lowresTransparentSettings.enabled)
+            m_decalDepthBuffer = RTHandles.Alloc(Vector2.one, 
+                TextureXR.slices,
+                DepthBits.Depth32,
+                dimension: TextureXR.dimension, 
+                useDynamicScale: true,
+                name: "CameraDepth");
+#endif
+            if (settings.lowresTransparentSettings.enabled)
             {
                 // Create the half res depth buffer used for low resolution transparency
                 m_CameraHalfResDepthBuffer = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "LowResDepthBuffer");
@@ -342,6 +363,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_GPU_DRIVEN_PIPELINE
+        public RTHandle GetDepthMipmap()
+        {
+            return m_CameraDepthBufferMipmap;
+        }
+
+        public ref HDUtils.PackedMipChainInfo GetDepthBufferMipChainInfoRef()
+        {
+            return ref m_CameraDepthBufferMipChainInfo;
+        }
+
+        public void SetDepthBufferMipChainForGPUPipeline()
+        {
+            m_CameraDepthBufferMipChainInfoForGPUDriven = m_CameraDepthBufferMipChainInfo;
+        }
+
+        public ref HDUtils.PackedMipChainInfo GetDepthBufferMipChainForGPUPipeline()
+        {
+            return ref m_CameraDepthBufferMipChainInfoForGPUDriven;
+        }
+
+        public RTHandle GetDecalDepthBuffer()
+        {
+            return m_decalDepthBuffer;
+        }
+#endif
+
         public RTHandle GetDepthValuesTexture()
         {
             Debug.Assert(m_MSAASupported);
@@ -416,7 +464,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraDepthStencilBuffer);
             RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraHalfResDepthBuffer);
-
+#if USE_GPU_DRIVEN_PIPELINE
+            RTHandles.Release(m_CameraDepthBufferMipmap);
+            RTHandles.Release(m_decalDepthBuffer);
+#endif
             if (m_MSAASupported)
             {
                 RTHandles.Release(m_CameraDepthStencilMSAABuffer);
