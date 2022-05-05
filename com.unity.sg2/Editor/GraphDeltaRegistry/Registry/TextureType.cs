@@ -76,25 +76,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, GetRegistryKey().Name);
             var field = node.GetPort(kInlineStatic).GetTypeField();
-
-            //string name;
-            //switch (BaseTextureType.GetTextureAsset(field))
-            //{
-            //    case Texture3D:
-            //        name = $"{GetRegistryKey().Name}_3D";
-            //        break;
-            //    case Texture2DArray:
-            //        name = $"{GetRegistryKey().Name}_2DArray";
-            //        break;
-            //    case Cubemap:
-            //        name = $"{GetRegistryKey().Name}_Cube";
-            //        break;
-            //    case Texture2D:
-            //    default:
-            //        name = $"{GetRegistryKey().Name}_2D";
-            //        break;
-            //}
-
             var shaderType = registry.GetShaderType(field, container);
 
             shaderFunctionBuilder.AddInput(shaderType, kInlineStatic);
