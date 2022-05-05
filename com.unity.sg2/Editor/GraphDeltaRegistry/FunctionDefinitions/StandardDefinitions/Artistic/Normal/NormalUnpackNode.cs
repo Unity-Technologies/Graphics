@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "converts a normal map texture to a normal vector (usually not needed)",
+            tooltip: "Converts a normal map texture to a normal vector.",
             categories: new string[2] { "Artistic", "Normal" },
             synonyms: new string[2] { "expand", "vectorize" },
             displayName: "Normal Unpack",

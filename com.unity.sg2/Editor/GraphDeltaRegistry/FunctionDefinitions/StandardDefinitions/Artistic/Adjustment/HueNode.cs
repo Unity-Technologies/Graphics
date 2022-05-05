@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "shifts the color to a different point on the color wheel",
+            tooltip: "Changes the hue of a color.",
             categories: new string[2] { "Artistic", "Adjustment" },
             synonyms: new string[0] {  },
             selectableFunctions: new()

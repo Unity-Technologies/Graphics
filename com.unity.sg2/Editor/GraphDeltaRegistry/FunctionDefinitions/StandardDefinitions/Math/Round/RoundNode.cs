@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "move the input up or down to the nearest whole number",
+            tooltip: "Round the input value up or down to the nearest whole number.",
             categories: new string[2] { "Math", "Round" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[2] {

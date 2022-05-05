@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the smaller of A and B",
+            tooltip: "Compares input A to input B to find the lesser value.",
             categories: new string[2] { "Math", "Range" },
             synonyms: new string[4] { "least", "littlest", "smallest", "lesser" },
             parameters: new ParameterUIDescriptor[3] {

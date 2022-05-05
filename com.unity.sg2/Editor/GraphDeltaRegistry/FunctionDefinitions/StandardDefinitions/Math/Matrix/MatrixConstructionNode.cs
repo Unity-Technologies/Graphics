@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Matrix Construction",
-            tooltip: "constructs square matrices from the four input vectors",
+            tooltip: "Creates square matrices using the input vectors.",
             categories: new string[2] { "Math", "Matrix" },
             synonyms: new string[3] { "create", "build", "construct" },
             selectableFunctions: new()

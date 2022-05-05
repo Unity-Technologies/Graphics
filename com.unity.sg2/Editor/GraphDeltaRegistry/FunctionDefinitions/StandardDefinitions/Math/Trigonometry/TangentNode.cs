@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the tangent of the input",
+            tooltip: "Calculates the tangent of the input.",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[0],
             selectableFunctions: new()

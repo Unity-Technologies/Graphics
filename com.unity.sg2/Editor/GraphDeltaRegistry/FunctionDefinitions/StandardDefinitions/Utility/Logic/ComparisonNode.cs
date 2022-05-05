@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "compares the two input values based on the condition selected on the dropdown",
+            tooltip: "Compares the 2 input values based on the selected condition.",
             categories: new string[2] { "Utility", "Logic" },
             synonyms: new string[6] { "equal", "less", "greater", ">", "<", "=" },
             hasPreview: false,

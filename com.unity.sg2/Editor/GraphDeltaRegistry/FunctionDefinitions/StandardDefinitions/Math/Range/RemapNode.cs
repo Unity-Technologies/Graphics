@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns a value between out min and max based on lerping the input between in min and max",
+            tooltip: "Calculates a new value for In. Uses the Out Min Max as a range and lerps between the In Min Max values.",
             categories: new string[2] { "Math", "Range" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[4] {

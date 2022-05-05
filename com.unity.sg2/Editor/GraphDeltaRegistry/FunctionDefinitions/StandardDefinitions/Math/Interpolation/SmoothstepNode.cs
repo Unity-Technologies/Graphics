@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the result of the selected interpolation between 0 and 1",
+            tooltip: "Calculates the selected interpolation between 0 and 1.",
             categories: new string[2] { "Math", "Interpolation" },
             synonyms: new string[1] { "curve" },
             selectableFunctions: new()
