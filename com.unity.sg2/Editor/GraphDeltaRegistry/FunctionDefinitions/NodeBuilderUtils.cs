@@ -4,13 +4,20 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal static class NodeBuilderUtils
     {
+
+        // TODO (Brett) FallbackTypeResolver used to return a TypeDescriptor,
+        // TODO however, that changed to being a ParametricTypeDescriptor.
+        // TODO For types that can't fallback, we need to decide where the logic
+        // TODO for that goes.
+        // TODO For now, having a Parametric in all cases is harmless.
+
         /// <summary>
         /// Calculates the fallback type for the fields of a node, given the
         /// current node data from the user layer.
         /// </summary>
         /// <param name="userData">A reader for a node in the user layer.</param>
         /// <returns>The type that Any should resolve to for ports in the node.</returns>
-        internal static ITypeDescriptor FallbackTypeResolver(NodeHandler userData)
+        internal static ParametricTypeDescriptor FallbackTypeResolver(NodeHandler userData)
         {
             GraphType.Height resolvedHeight = GraphType.Height.Any;
             GraphType.Length resolvedLength = GraphType.Length.Any;
@@ -61,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 resolvedPrimitive = GraphType.Primitive.Float;
             }
 
-            return new ITypeDescriptor(
+            return new ParametricTypeDescriptor(
                 resolvedPrecision,
                 resolvedPrimitive,
                 resolvedLength,
@@ -69,16 +76,7 @@ namespace UnityEditor.ShaderGraph.Defs
             );
         }
 
-        /// <summary>
-        /// Adds a port/field to the passed in node with configuration from param.
-        /// </summary>
-        /// <param name="param">Configuration info</param>
-        /// <param name="resolveType">The type to resolve ANY fields to.</param>
-        /// <param name="nodeReader">The way to read from the port/field.</param>
-        /// <param name="nodeWriter">The way to write to the port/field.</param>
-        /// <param name="registry">The registry holding the node.</param>
-        /// <returns></returns>
-        internal static PortHandler ParameterDescriptorToField(
+        private static PortHandler ParametricToField(
             ParameterDescriptor param,
             ITypeDescriptor fallbackType,
             NodeHandler node,
@@ -91,10 +89,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 registry
             );
 
-            ITypeDescriptor paramType = param.TypeDescriptor;
+            ParametricTypeDescriptor paramType = (ParametricTypeDescriptor)param.TypeDescriptor;
 
             // A new type descriptor with all Any values replaced.
-            ITypeDescriptor resolvedType = new(
+            ParametricTypeDescriptor resolvedType = new(
                 paramType.Precision == GraphType.Precision.Any ? fallbackType.Precision : paramType.Precision,
                 paramType.Primitive == GraphType.Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
                 paramType.Length == GraphType.Length.Any ? fallbackType.Length : paramType.Length,
@@ -118,6 +116,93 @@ namespace UnityEditor.ShaderGraph.Defs
             }
 
             return port;
+        }
+
+        private static PortHandler TextureToField(
+            ParameterDescriptor param,
+            ITypeDescriptor fallbackType,
+            NodeHandler node,
+            Registry registry)
+        {
+
+        }
+
+        private static PortHandler SamplerStateToField(
+            ParameterDescriptor param,
+            ITypeDescriptor fallbackType,
+            NodeHandler node,
+            Registry registry)
+        {
+            var samplerPort = node.GetPort(param.Name);
+            bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
+            bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
+            bool hasSampler = isConnected || isInitialized;
+
+        }
+
+        /// <summary>
+        /// Adds a port/field to the passed in node with configuration from param.
+        /// </summary>
+        /// <param name="param">Configuration info</param>
+        /// <param name="resolveType">The type to resolve ANY fields to.</param>
+        /// <param name="nodeReader">The way to read from the port/field.</param>
+        /// <param name="nodeWriter">The way to write to the port/field.</param>
+        /// <param name="registry">The registry holding the node.</param>
+        /// <returns></returns>
+        internal static PortHandler ParameterDescriptorToField(
+            ParameterDescriptor param,
+            ITypeDescriptor fallbackType,
+            NodeHandler node,
+            Registry registry)
+        {
+
+            switch (param.TypeDescriptor)
+            {
+                case ParametricTypeDescriptor parametric:
+                    break;
+                case SamplerStateTypeDescriptor sampleState:
+                    break;
+                case TextureTypeDescriptor texture:
+                    break;
+                case GradientTypeDescriptor gradient:
+                default:
+                    break;
+            }
+
+            //// Create a port.
+            //var port = node.AddPort<GraphType>(
+            //    param.Name,
+            //    param.Usage is GraphType.Usage.In or GraphType.Usage.Static or GraphType.Usage.Local,
+            //    registry
+            //);
+
+            //ParametricTypeDescriptor paramType = param.TypeDescriptor;
+
+            //// A new type descriptor with all Any values replaced.
+            //ParametricTypeDescriptor resolvedType = new(
+            //    paramType.Precision == GraphType.Precision.Any ? fallbackType.Precision : paramType.Precision,
+            //    paramType.Primitive == GraphType.Primitive.Any ? fallbackType.Primitive : paramType.Primitive,
+            //    paramType.Length == GraphType.Length.Any ? fallbackType.Length : paramType.Length,
+            //    paramType.Height == GraphType.Height.Any ? fallbackType.Height : paramType.Height
+            //);
+
+            //// Set the port's parameters from the resolved type.
+            //var typeField = port.GetTypeField();
+            //typeField.GetSubField<GraphType.Length>(GraphType.kLength).SetData(resolvedType.Length);
+            //typeField.GetSubField<GraphType.Height>(GraphType.kHeight).SetData(resolvedType.Height);
+            //typeField.GetSubField<GraphType.Precision>(GraphType.kPrecision).SetData(resolvedType.Precision);
+            //typeField.GetSubField<GraphType.Primitive>(GraphType.kPrimitive).SetData(resolvedType.Primitive);
+
+            //if (param.Usage is GraphType.Usage.Static) typeField.AddSubField("IsStatic", true); // TODO(Liz) : should be metadata
+            //if (param.Usage is GraphType.Usage.Local) typeField.AddSubField("IsLocal", true);
+
+            //int i = 0;
+            //foreach (var val in param.DefaultValue)
+            //{
+            //    typeField.SetField<float>($"c{i++}", val);
+            //}
+
+            //return port;
         }
     }
 }
