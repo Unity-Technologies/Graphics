@@ -168,7 +168,7 @@ struct VertexData
     uint clusterID;
     uint indexID;
     
-    uint2 debug;
+    uint4 debug;
 };
 
 
@@ -189,28 +189,18 @@ uint DecodeIndexBuffer(ClusterPageHeader header, ClusterBuffer cluster, uint ver
 {
     if (vertexID < cluster.indexCount)
     {
-        uint i = vertexID / 4 * 4;
-        uint index = _ClusterPageDataBuffer.Load(i + header.offset + CLUSTER_BUFFER_SIZE);
-        if (index == ~0u)
-            return index;
-        
-        if (vertexID % 4 == 0)
+        uint i = vertexID / 2;
+        uint index = _ClusterPageDataBuffer.Load(i * 4 + header.offset + CLUSTER_BUFFER_SIZE);
+        uint result = ~0u;
+        if (vertexID % 2 == 0)
         {
-            index = (index & 0xff);
-        }
-        else if (vertexID % 4 == 1)
-        {
-            index = (index >> 8 & 0xff);
-        }
-        else if (vertexID % 4 == 2)
-        {
-            index = (index >> 16 & 0xff);
+            result = (index & 0xffff);
         }
         else
         {
-            index = (index >> 24);
+            result = (index >> 16) & 0xffff;
         }
-        return index;
+        return result;
     }
     return ~0u;
 }
@@ -332,7 +322,8 @@ VertexData GetVertexData(uint vertexID, uint instanceID)
     vertexData.indexID = vertexID / 3;
     
     vertexData.debug.x = index;
-    vertexData.debug.y = cluster.vertexOffset;
+    vertexData.debug.y = header.offset;
+    vertexData.debug.z = cluster.vertexOffset;
     return vertexData;
 }
 

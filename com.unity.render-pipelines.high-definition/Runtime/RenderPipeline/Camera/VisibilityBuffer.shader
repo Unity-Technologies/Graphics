@@ -8,8 +8,6 @@ Shader "Hidden/HDRP/VisibilityBuffer"
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
 
-		
-
         Pass
         {
 
@@ -38,7 +36,7 @@ Shader "Hidden/HDRP/VisibilityBuffer"
 				float4 positionCS : SV_POSITION;
 				uint2 clusterID : TEXCOORD0;
 				float deviceZ : TEXCOORD1;
-				uint2 debug : TEXCOORD2;
+				uint4 debug : TEXCOORD2;
 			};
 
 			struct FragOut
