@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     public class BaseGraphWindowTest
     {
-        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(/*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
+        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
 
         protected TestEditorWindow m_Window;
         protected TestGraphView m_GraphView;
@@ -24,8 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected virtual bool hideOverlayWindows => true;
 
         // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO
-        const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
-        const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
+        protected const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
+        protected const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
 
         [SetUp]
         public virtual void SetUp()

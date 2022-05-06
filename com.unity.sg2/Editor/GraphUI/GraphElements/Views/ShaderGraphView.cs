@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEngine;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -12,9 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             BaseGraphTool graphTool,
             string graphViewName,
             GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
-            : base(window, graphTool, graphViewName, displayMode)
-        {
-        }
+            : base(window, graphTool, graphViewName, displayMode) { }
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -22,25 +22,31 @@ namespace UnityEditor.ShaderGraph.GraphUI
             for (var i = 0; i < evt.menu.MenuItems().Count; ++i)
             {
                 var menuItem = evt.menu.MenuItems()[i];
-                if (menuItem is DropdownMenuAction { name: "Disable Nodes" })
+                if (menuItem is DropdownMenuAction {name: "Disable Nodes"})
                     evt.menu.RemoveItemAt(i);
             }
+
             evt.menu.AppendSeparator();
         }
 
-    //    protected override void CollectCopyableGraphElements(
-    //        IEnumerable<IGraphElementModel> elements,
-    //        HashSet<IGraphElementModel> elementsToCopySet)
-    //    {
-    //        var elementsList = elements.ToList();
-    //        base.CollectCopyableGraphElements(elementsList, elementsToCopySet);
+        public override void Dispatch(ICommand command, Diagnostics diagnosticsFlags = Diagnostics.None)
+        {
+            base.Dispatch(command, diagnosticsFlags | Diagnostics.LogAllCommands);
+        }
 
-    //        // Pasting a redirect should also paste an edge to its source node.
-    //        foreach (var redirect in elementsList.OfType<RedirectNodeModel>())
-    //        {
-    //            var incomingEdge = redirect.GetIncomingEdges().FirstOrDefault();
-    //            if (incomingEdge != null) elementsToCopySet.Add(incomingEdge);
-    //        }
-    //    }
+        //    protected override void CollectCopyableGraphElements(
+        //        IEnumerable<IGraphElementModel> elements,
+        //        HashSet<IGraphElementModel> elementsToCopySet)
+        //    {
+        //        var elementsList = elements.ToList();
+        //        base.CollectCopyableGraphElements(elementsList, elementsToCopySet);
+
+        //        // Pasting a redirect should also paste an edge to its source node.
+        //        foreach (var redirect in elementsList.OfType<RedirectNodeModel>())
+        //        {
+        //            var incomingEdge = redirect.GetIncomingEdges().FirstOrDefault();
+        //            if (incomingEdge != null) elementsToCopySet.Add(incomingEdge);
+        //        }
+        //    }
     }
 }
