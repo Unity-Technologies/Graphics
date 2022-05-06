@@ -17,27 +17,27 @@ namespace UnityEditor.ShaderGraph.Defs
                     "3Samples",
 @"
 {
-    //3 sample version - only works on square textures with height in the red channel
-    //Offset = pow(Offset, 3) * 0.1;
-    //if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    //if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    //if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
-    //normalSample = dot(SAMPLE_TEXTURE2D(Texture, Sampler, UV), channeMask);
-    //va.z = (dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x + Offset, UV.y)), channelMask) - normalSample) * Strength;
-    //vb.z = (dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x, UV.y + Offset)), channelMask) - normalSample) * Strength;
-    //Out = normalize(cross(va.xyz, vb.xyz));
-    //if (OutputSpace==1)
-    //{
-    //    TangentMatrix[0] = IN.WorldSpaceTangent;
-    //    TangentMatrix[1] = IN.WorldSpaceBiTangent;
-    //    TangentMatrix[2] = IN.WorldSpaceNormal;
-    //	Out = TransformWorldToTangent(Out, TangentMatrix);	
-    //}
-    Out = float3(0,0,1);
+    //3 sample version - only works on square textures
+    UV = Texure.GetTransformedUV(UV);
+    Offset = pow(Offset, 3) * 0.1;
+    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    normalSample = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV), channeMask);
+    va.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask) - normalSample) * Strength;
+    vb.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask) - normalSample) * Strength;
+    Out = normalize(cross(va.xyz, vb.xyz));
+    if (OutputSpace==1)
+    {
+        TangentMatrix[0] = IN.WorldSpaceTangent;
+        TangentMatrix[1] = IN.WorldSpaceBiTangent;
+        TangentMatrix[2] = IN.WorldSpaceNormal;
+    	Out = TransformWorldToTangent(Out, TangentMatrix);	
+    }
 }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
                     new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
@@ -54,31 +54,31 @@ namespace UnityEditor.ShaderGraph.Defs
                     "4Samples",
 @"
 {
-    //4 samples - only works on square textures with height in the red channel
-    //Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
-    //if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    //if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    //if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
-    //va.x = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x - Offset, UV.y)), channelMask);//Bottom
-    //va.y = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x + Offset, UV.y)), channelMask);//Top
-    //vb.x = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x, UV.y + Offset)), channelMask);//Right
-    //vb.y = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x, UV.y - Offset)), channelMask);//Left
-    //Out.x = va.x - va.y;
-    //Out.y = vb.x - vb.y;
-    //Out.z = 1.0f / Strength;
-    //Out = normalize(Out);//TODO: Check normal direction
-    //if (OutputSpace==1)
-    //{
-    //	TangentMatrix[0] = IN.WorldSpaceTangent;
-    //    TangentMatrix[1] = IN.WorldSpaceBiTangent;
-    //    TangentMatrix[2] = IN.WorldSpaceNormal;
-    //	Out = TransformWorldToTangent(Out, TangentMatrix);	
-    //}
-    Out = float3(0,0,1);
+    //4 samples - only works on square textures
+    UV = Texure.GetTransformedUV(UV);
+    Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
+    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);//Bottom
+    va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask);//Top
+    vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask);//Right
+    vb.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y - Offset)), channelMask);//Left
+    Out.x = va.x - va.y;
+    Out.y = vb.x - vb.y;
+    Out.z = 1.0f / Strength;
+    Out = normalize(Out);//TODO: Check normal direction
+    if (OutputSpace==1)
+    {
+    	TangentMatrix[0] = IN.WorldSpaceTangent;
+        TangentMatrix[1] = IN.WorldSpaceBiTangent;
+        TangentMatrix[2] = IN.WorldSpaceNormal;
+    	Out = TransformWorldToTangent(Out, TangentMatrix);	
+    }
 }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
                     new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
@@ -95,38 +95,38 @@ namespace UnityEditor.ShaderGraph.Defs
                     "8Samples",
 @"
 {
-    //8 samples - only works on square textures with height in the red channel
-    //Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
-    //if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    //if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    //if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
-    //va.x = dot(SAMPLE_TEXTURE2D(Texture, Sampler, UV - Offset), channelMask);                   // top left
-    //va.y = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x - Offset, UV.y)), channelMask);   	  // left
-    //va.z = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x - Offset, UV.y + Offset)), channelMask);// bottom left
-    //va.w = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x, UV.y - Offset)), channelMask);   	  // top
-    //vb.x = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x, UV.y + Offset)), channelMask);   	  // bottom
-    //vb.y = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x + Offset, UV.y - Offset)), channelMask);// top right
-    //vb.z = dot(SAMPLE_TEXTURE2D(Texture, Sampler, (UV.x + Offset, UV.y)), channelMask);   	  // right
-    //vb.w = dot(SAMPLE_TEXTURE2D(Texture, Sampler, UV + Offset), channelMask);  				  // bottom right
+    //8 samples - only works on square textures
+    UV = Texure.GetTransformedUV(UV);
+    Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
+    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV - Offset), channelMask);                   // top left
+    va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);   	  // left
+    va.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y + Offset)), channelMask);// bottom left
+    va.w = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y - Offset)), channelMask);   	  // top
+    vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask);   	  // bottom
+    vb.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y - Offset)), channelMask);// top right
+    vb.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask);   	  // right
+    vb.w = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV + Offset), channelMask);  				  // bottom right
     // Compute dx using Sobel:
-    //Out.x = -(vb.y + 2*vb.z + vb.w -va.x - 2*va.y - va.z);
+    Out.x = -(vb.y + 2*vb.z + vb.w -va.x - 2*va.y - va.z);
     // Compute dy using Sobel:
-    //Out.y = va.z + 2*vb.x + vb.w -va.x - 2*va.w - vb.y;
+    Out.y = va.z + 2*vb.x + vb.w -va.x - 2*va.w - vb.y;
     // Build the normalized normal
-    //Out.z = 1.0f / Strength;
-    //Out = normalize(Out);//TODO: Check normal direction
-    //if (OutputSpace==1)
-    //{
-    //    TangentMatrix[0] = IN.WorldSpaceTangent;
-    //    TangentMatrix[1] = IN.WorldSpaceBiTangent;
-    //    TangentMatrix[2] = IN.WorldSpaceNormal;
-    //    Out = TransformWorldToTangent(Out, TangentMatrix);	
-    //}
-    Out = float3(0,0,1);
+    Out.z = 1.0f / Strength;
+    Out = normalize(Out);//TODO: Check normal direction
+    if (OutputSpace==1)
+    {
+        TangentMatrix[0] = IN.WorldSpaceTangent;
+        TangentMatrix[1] = IN.WorldSpaceBiTangent;
+        TangentMatrix[2] = IN.WorldSpaceNormal;
+        Out = TransformWorldToTangent(Out, TangentMatrix);	
+    }
 }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
                     new ParameterDescriptor("HeightChannel", TYPE.Int, Usage.Static),//TODO: Change this to a dropdown
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "creates a normal from multiple samples of a height map",
+            tooltip: "Creates a normal from multiple samples of a height map.",
             categories: new string[2] { "Artistic", "Normal" },
             synonyms: new string[2] { "convert to normal", "bump map" },
             displayName: "Normal From Texture",

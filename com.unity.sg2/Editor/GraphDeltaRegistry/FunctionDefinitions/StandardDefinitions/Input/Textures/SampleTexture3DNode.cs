@@ -3,7 +3,6 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class SampleTexture3DNode : IStandardNode
     {
         public static string Name = "SampleTexture3D";
@@ -18,17 +17,16 @@ namespace UnityEditor.ShaderGraph.Defs
                     "Standard",
 @"
 {
-    //RGBA = SAMPLE_TEXTURE3D(Texture.tex, Sampler.samplerstate, UV);
-    RGBA = float4(1,1,1,1);
+    RGBA = SAMPLE_TEXTURE3D(Texture.tex, Sampler.samplerstate, UV);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;
 }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
-                    new ParameterDescriptor("UV", TYPE.Vec3, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("Texture", TYPE.Texture3D, Usage.In),
+                    new ParameterDescriptor("UV", TYPE.Vec3, Usage.In),
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
@@ -41,18 +39,17 @@ namespace UnityEditor.ShaderGraph.Defs
                     "LOD",
 @"
 {
-    //RGBA = SAMPLE_TEXTURE3D_LOD(Texture.tex, Sampler.samplerstate, UV, LOD);
-    RGBA = float4(1,1,1,1);
+    RGBA = SAMPLE_TEXTURE3D_LOD(Texture.tex, Sampler.samplerstate, UV, LOD);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;
 }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
-                    new ParameterDescriptor("UV", TYPE.Vec3, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),//only show when Mip Sampling Mode is set to LOD
+                    new ParameterDescriptor("Texture", TYPE.Texture3D, Usage.In),
+                    new ParameterDescriptor("UV", TYPE.Vec3, Usage.In),
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),

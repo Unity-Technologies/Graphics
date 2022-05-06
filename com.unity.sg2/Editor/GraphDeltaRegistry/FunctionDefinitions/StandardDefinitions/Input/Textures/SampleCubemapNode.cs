@@ -3,7 +3,6 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class SampleCubemapNode : IStandardNode
     {
         public static string Name = "SampleReflectedCubemap";
@@ -14,18 +13,17 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"
 {
-    //RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), LOD);
-    RGBA = float4(1,1,1,1);
+    RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, reflect(-ViewDir, Normal), LOD);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;
 }",
-            new ParameterDescriptor("Cube", TYPE.Vec4, Usage.In),//fix type
+            new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
             new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In),//add default object space view dir
             new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In),//add default object space normal
-            new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+            new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
             new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
             new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
             new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
