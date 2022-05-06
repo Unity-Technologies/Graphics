@@ -183,6 +183,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         private string ColorKeyToDecl(GradientColorKey key) => $"float4({key.color.r},{key.color.g},{key.color.b},{key.time})";
         private string AlphaKeyToDecl(GradientAlphaKey key) => $"float2({key.alpha},{key.time})";
 
+        public void CopySubFieldData(FieldHandler src, FieldHandler dst)
+        {
+        }
 
         string ITypeDefinitionBuilder.GetInitializerList(FieldHandler data, Registry registry)
         {
