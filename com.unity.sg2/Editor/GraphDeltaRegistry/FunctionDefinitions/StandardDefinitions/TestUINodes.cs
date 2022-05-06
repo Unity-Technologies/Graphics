@@ -85,9 +85,9 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = SAMPLE_TEXTURE3D(Texture.tex, OverrideSampler.samplerstate, Texture.GetTransformedUV(UV));",
+            "Out = SAMPLE_TEXTURE3D(Texture.tex, OverrideSampler.samplerstate, UVW);",
             new ParameterDescriptor("Texture", TYPE.Texture3D, GraphType.Usage.In),
-            new ParameterDescriptor("UV", TYPE.Vec3, GraphType.Usage.In),
+            new ParameterDescriptor("UVW", TYPE.Vec3, GraphType.Usage.In),
             new ParameterDescriptor("OverrideSampler", TYPE.SamplerState, GraphType.Usage.In),
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out));
     }
