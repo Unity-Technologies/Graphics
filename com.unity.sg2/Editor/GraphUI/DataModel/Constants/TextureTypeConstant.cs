@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 if (!IsInitialized)
                     return typeof(Texture);
-                switch (BaseTextureType.GetTextureType(GetField()))
+                switch (GetTextureType())
                 {
                     case BaseTextureType.TextureType.Texture3D: return typeof(Texture3D);
                     case BaseTextureType.TextureType.CubeMap: return typeof(Cubemap);
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
         override public TypeHandle GetTypeHandle()
         {
-            switch (BaseTextureType.GetTextureType(GetField()))
+            switch (GetTextureType())
             {
                 case BaseTextureType.TextureType.Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
                 case BaseTextureType.TextureType.CubeMap: return ShaderGraphExampleTypes.CubemapTypeHandle;

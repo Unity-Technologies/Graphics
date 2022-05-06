@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Defs
             // TODO (Brett) THIS IS WRONG!
             // TODO (Brett) The fallback type should be determined with the currently selected FD.
             // determine a fallback type
-            TypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
+            ParametricTypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
 
             // setup the node topology
             foreach (var param in selectedFunction.Parameters)
