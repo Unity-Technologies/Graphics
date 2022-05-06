@@ -142,9 +142,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
         public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
 
-        // TODO: This is used by node builders and is general to all ports, should be moved into a CLDS header when possible.
+        // TODO: This is used by node builders and is general to all ports,
+        // TODO should be moved into a CLDS header when possible (metadata).
         public enum Usage { In, Out, Static, Local }
-
 
         #region Priorities
         // Values here represent a resolving priority.

@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "generates a 4-sided polygon",
+            tooltip: "Creates a 4-sided polygon.",
             categories: new string[2] { "Procedural", "Shape" },
             synonyms: new string[1] { "square" },
             selectableFunctions: new()

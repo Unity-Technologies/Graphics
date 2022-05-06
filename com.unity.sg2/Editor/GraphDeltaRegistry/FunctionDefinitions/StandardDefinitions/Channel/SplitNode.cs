@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "seperates the channels of the input vector",
+            tooltip: "Separates the channels of an input vector.",
             categories: new string[1] { "Channel" },
             synonyms: new string[1] { "separate" },
             hasPreview: false,

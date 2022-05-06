@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the decimal portion of the input without the integer portion",
+            tooltip: "Returns the decimal value of an input and excludes the integer portion.",
             categories: new string[2] { "Math", "Range" },
             synonyms: new string[1] { "remainder" },
             parameters: new ParameterUIDescriptor[2] {

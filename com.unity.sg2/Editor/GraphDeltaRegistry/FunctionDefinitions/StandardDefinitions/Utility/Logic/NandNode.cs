@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns true if both inputs are false",
+            tooltip: "Checks if input A and input B are both false.",
             categories: new string[2] { "Utility", "Logic" },
             synonyms: new string[0],
             hasPreview: false,

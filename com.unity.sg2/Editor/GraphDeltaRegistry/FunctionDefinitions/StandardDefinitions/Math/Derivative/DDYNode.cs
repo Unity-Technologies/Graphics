@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Calculates the partial derivative of the input with respect to the screen-space y-coordinate.",
+            tooltip: "Calculates the partial derivative of the input in relation to the screen-space y-coordinate.",
             categories: new string[2] { "Math", "Derivative" },
             synonyms: new string[2] { "derivative", "slope" },
             selectableFunctions: new()

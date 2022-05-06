@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the exponential value of the input",
+            tooltip: "Calculates the exponential value of the input.",
             categories: new string[2] { "Math", "Advanced" },
             synonyms: new string[0] {  },
             selectableFunctions: new()

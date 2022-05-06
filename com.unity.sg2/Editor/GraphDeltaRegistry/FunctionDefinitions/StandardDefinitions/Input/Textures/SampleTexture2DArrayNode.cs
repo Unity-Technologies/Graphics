@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "samples a 2D Texture Array and returns a Vector 4 color value",
+            tooltip: "Samples a 2D Texture Array.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[3] { "stack", "pile", "tex2darray" },
             selectableFunctions: new()

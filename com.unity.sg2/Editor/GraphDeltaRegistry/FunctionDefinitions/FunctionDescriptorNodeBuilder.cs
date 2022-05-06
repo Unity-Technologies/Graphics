@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 
@@ -22,10 +23,9 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            TypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
+            ParametricTypeDescriptor fallbackType = NodeBuilderUtils.FallbackTypeResolver(node);
             foreach (var param in m_functionDescriptor.Parameters)
             {
-                //userData.TryGetPort(param.Name, out IPortReader portReader);
                 NodeBuilderUtils.ParameterDescriptorToField(
                     param,
                     fallbackType,
@@ -42,13 +42,22 @@ namespace UnityEditor.ShaderGraph.Defs
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
 
+            // Find the name of a texture port.
+            // This texture variable name is used for every unassigned sampler state
+            // in the shader function.
+            string texturePortName = null;
+
             // Set up the vars in the shader function.
             foreach (var param in m_functionDescriptor.Parameters)
             {
+                // overwrite the stored texture port name each time a texture type is found.
+                if (param.TypeDescriptor is TextureTypeDescriptor)
+                {
+                    texturePortName = param.Name;
+                }
                 var port = data.GetPort(param.Name);
                 var field = port.GetTypeField();
                 var shaderType = registry.GetShaderType(field, container);
-
                 if (param.Usage == GraphType.Usage.In || param.Usage == GraphType.Usage.Static || param.Usage == GraphType.Usage.Local)
                 {
                     shaderFunctionBuilder.AddInput(shaderType, param.Name);
@@ -60,6 +69,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 else
                 {
                     throw new Exception($"No ShaderFunction parameter type for {param.Usage}");
+                }
+            }
+
+            // output a texture assignment for each sampler state that is unassigned
+            foreach (var param in m_functionDescriptor.Parameters)
+            {
+                if (param.TypeDescriptor is not SamplerStateTypeDescriptor) continue;
+                var samplerPort = data.GetPort(param.Name);
+                bool isConnected = samplerPort.GetConnectedPorts().Count() != 0;
+                bool isInitialized = SamplerStateType.IsInitialized(samplerPort.GetTypeField());
+                if (!isConnected && !isInitialized && !string.IsNullOrEmpty(texturePortName))
+                {
+                    string initSampler = $"{param.Name}.samplerstate = {texturePortName}.samplerstate;";
+                    shaderFunctionBuilder.AddLine(initSampler);
                 }
             }
 

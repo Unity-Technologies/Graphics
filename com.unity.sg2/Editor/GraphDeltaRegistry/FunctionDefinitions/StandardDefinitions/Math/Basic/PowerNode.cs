@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "multiplies Base by itself the number of times given by Exp",
+            tooltip: "Multiplies Base by itself the number of times given by Exp.",
             categories: new string[2] { "Math", "Basic" },
             synonyms: new string[2] { "Exponentiation", "^" },
             parameters: new ParameterUIDescriptor[4] {

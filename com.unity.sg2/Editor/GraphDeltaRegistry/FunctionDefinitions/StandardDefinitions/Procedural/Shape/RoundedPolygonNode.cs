@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "generates a polygon shape with rounded corners",
+            tooltip: "Creates a polygon of the specified size and shape, with rounded corners.",
             categories: new string[2] { "Procedural", "Shape" },
             synonyms: new string[1] { "shape" },
             parameters: new ParameterUIDescriptor[6] {

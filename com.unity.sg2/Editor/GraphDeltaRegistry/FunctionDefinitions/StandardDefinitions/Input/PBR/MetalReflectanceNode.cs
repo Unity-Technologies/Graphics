@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "provides common metallic reflectance values",
+            tooltip: "Gives a specified metal reflectance value.",
             categories: new string[2] { "Input", "PBR" },
             synonyms: new string[0] {  },
             selectableFunctions: new()

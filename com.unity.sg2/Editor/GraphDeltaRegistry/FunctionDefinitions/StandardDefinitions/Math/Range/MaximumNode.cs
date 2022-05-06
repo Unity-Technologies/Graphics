@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the greater of A or B",
+            tooltip: "Compares input A to input B to find the greater value.",
             categories: new string[2] { "Math", "Range" },
             synonyms: new string[4] { "biggest", "greatest", "largest", "most" },
             parameters: new ParameterUIDescriptor[3] {

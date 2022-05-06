@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the logarithm of the input",
+            tooltip: "Calculates the logarithm of the input.",
             categories: new string[2] { "Math", "Advanced" },
             synonyms: new string[0] {  },
             selectableFunctions: new()
