@@ -14,16 +14,21 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
+            // Reference nodes should be initialized with a connection to this port from a context entry.
             var inPort = node.AddPort(kContextEntry, true, true);
+            var outPort = node.AddPort(kOutput, false, true);
 
             var connectedPort = inPort.GetConnectedPorts().FirstOrDefault();
             if (connectedPort != null)
             {
-                var type = connectedPort.GetTypeField();
-                node.AddPort(kOutput, false, type.GetRegistryKey(), registry);
-                inPort.AddTypeField().SetMetadata("_RegistryKey", type.GetRegistryKey());
-                var builder = registry.GetTypeBuilder(type.GetRegistryKey());
-                builder.BuildType(inPort.GetTypeField(), registry);
+                var connectedField = connectedPort.GetTypeField();
+                // input port and output port's typeField data should now closely match the context entry data.
+                ITypeDefinitionBuilder.CopyTypeField(connectedField, inPort.AddTypeField(), registry);
+                ITypeDefinitionBuilder.CopyTypeField(connectedField, outPort.AddTypeField(), registry);
+            }
+            else
+            {
+                // This is an error state of sorts.
             }
         }
 

@@ -217,6 +217,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 GraphTypeHelpers.SetComponent(field, i, 0);
         }
 
+        public void CopySubFieldData(FieldHandler src, FieldHandler dst)
+        {
+            var length = GraphTypeHelpers.GetLength(src);
+            var height = GraphTypeHelpers.GetHeight(src);
+            var primitive = GraphTypeHelpers.GetPrimitive(src);
+            var precision = GraphTypeHelpers.GetPrecision(src);
+
+            GraphTypeHelpers.InitGraphType(dst, length, precision, primitive, height);
+        }
+
         string ITypeDefinitionBuilder.GetInitializerList(FieldHandler data, Registry registry)
         {
             var height = GraphTypeHelpers.GetHeight(data);
