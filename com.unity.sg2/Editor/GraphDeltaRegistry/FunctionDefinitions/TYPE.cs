@@ -2,32 +2,50 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    /// <summary>
-    /// </summary>
     internal class TYPE
     {
-        public static readonly TypeDescriptor Any = new(
+        public static readonly GradientTypeDescriptor Gradient = new();
+
+        public static readonly SamplerStateTypeDescriptor SamplerState = new();
+
+        public static readonly TextureTypeDescriptor Texture2D = new(
+            BaseTextureType.TextureType.Texture2D
+        );
+
+        public static readonly TextureTypeDescriptor Texture3D = new(
+            BaseTextureType.TextureType.Texture3D
+        );
+
+        public static readonly TextureTypeDescriptor TextureCube = new(
+            BaseTextureType.TextureType.CubeMap
+        );
+
+        public static readonly TextureTypeDescriptor Texture2DArray = new(
+            BaseTextureType.TextureType.Texture2DArray
+        );
+
+        public static readonly ParametricTypeDescriptor Any = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Any,
             GraphType.Height.Any
         );
 
-        public static readonly TypeDescriptor Bool = new(
+        public static readonly ParametricTypeDescriptor Bool = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Bool,
             GraphType.Length.One,
             GraphType.Height.One
         );
 
-        public static readonly TypeDescriptor Int = new(
+        public static readonly ParametricTypeDescriptor Int = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Int,
             GraphType.Length.One,
             GraphType.Height.One
         );
 
-        public static readonly TypeDescriptor Float = new(
+        public static readonly ParametricTypeDescriptor Float = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.One,
@@ -35,56 +53,56 @@ namespace UnityEditor.ShaderGraph.Defs
         );
 
         // A completely dynamic vector
-        public static readonly TypeDescriptor Vector = new(
+        public static readonly ParametricTypeDescriptor Vector = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Any,
             GraphType.Height.One
         );
 
-        public static readonly TypeDescriptor Vec2 = new(
+        public static readonly ParametricTypeDescriptor Vec2 = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Two,
             GraphType.Height.One
         );
 
-        public static readonly TypeDescriptor Vec3 = new(
+        public static readonly ParametricTypeDescriptor Vec3 = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Three,
             GraphType.Height.One
         );
 
-        public static readonly TypeDescriptor Vec4 = new(
+        public static readonly ParametricTypeDescriptor Vec4 = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Four,
             GraphType.Height.One
         );
 
-        public static readonly TypeDescriptor Matrix = new(
+        public static readonly ParametricTypeDescriptor Matrix = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Any,
             GraphType.Height.Any
         );
 
-        public static readonly TypeDescriptor Mat2 = new(
+        public static readonly ParametricTypeDescriptor Mat2 = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Two,
             GraphType.Height.Two
         );
 
-        public static readonly TypeDescriptor Mat3 = new(
+        public static readonly ParametricTypeDescriptor Mat3 = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Three,
             GraphType.Height.Three
         );
 
-        public static readonly TypeDescriptor Mat4 = new(
+        public static readonly ParametricTypeDescriptor Mat4 = new(
             GraphType.Precision.Any,
             GraphType.Primitive.Float,
             GraphType.Length.Four,

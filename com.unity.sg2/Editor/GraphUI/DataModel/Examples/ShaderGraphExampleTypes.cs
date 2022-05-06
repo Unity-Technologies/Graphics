@@ -51,12 +51,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             else if (key.Name == BaseTextureType.kRegistryKey.Name)
             {
-                switch (BaseTextureType.GetTextureAsset(field))
+                switch (BaseTextureType.GetTextureType(field))
                 {
-                    case Texture2DArray: return ShaderGraphExampleTypes.Texture2DArrayTypeHandle;
-                    case Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
-                    case Cubemap: return ShaderGraphExampleTypes.CubemapTypeHandle;
-                    case Texture2D:
+                    case BaseTextureType.TextureType.Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
+                    case BaseTextureType.TextureType.CubeMap: return ShaderGraphExampleTypes.CubemapTypeHandle;
+                    case BaseTextureType.TextureType.Texture2DArray: return ShaderGraphExampleTypes.Texture2DArrayTypeHandle;
+                    case BaseTextureType.TextureType.Texture2D:
                     default: return ShaderGraphExampleTypes.Texture2DTypeHandle;
                 }
             }
