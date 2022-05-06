@@ -171,7 +171,7 @@ CTYPE ResolveBackGroundEstimate(SampleData centerSample, float fgAlpha, float4 b
     result.xyz = lerp(centerSample.color.xyz, result.xyz, sqrt(fgAlpha));
 
 #ifdef ENABLE_ALPHA
-    result.w = bgEstimate.w > 0 ? alpha / bgEstimate.w : centerSample.color.w;
+    result.w = bgEstimate.w > 0 ? fgAlpha / bgEstimate.w : centerSample.color.w;
     result.w = lerp(centerSample.color.w, result.w, sqrt(fgAlpha));
 #endif
 
