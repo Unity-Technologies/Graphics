@@ -19,10 +19,10 @@ namespace UnityEditor.ShaderGraph.Defs
     Tiling = In.scaleTranslate.xy;
     Offset = In.scaleTranslate.zw;
 }",
-            new ParameterDescriptor("In", TYPE.Vec2, Usage.In),//need texture support
+            new ParameterDescriptor("In", TYPE.Texture2D, Usage.In),
             new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.Out),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.Out),
-            new ParameterDescriptor("TextureOnly", TYPE.Vec2, Usage.Out)//need texture support
+            new ParameterDescriptor("TextureOnly", TYPE.Texture2D, Usage.Out)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

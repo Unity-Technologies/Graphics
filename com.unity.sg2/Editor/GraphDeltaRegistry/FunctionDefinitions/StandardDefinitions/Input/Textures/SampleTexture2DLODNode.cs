@@ -18,10 +18,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     @"
                     {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
-                        RGBA = float4(1,1,1,1);
+                        RGBA = temp;
                     #else
-                       // RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
-                        RGBA = float4(1,1,1,1);
+                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
                     #endif
                         RGB = RGBA.rgb;
                         R = RGBA.r;
@@ -29,16 +28,17 @@ namespace UnityEditor.ShaderGraph.Defs
                         B = RGBA.b;
                         A = RGBA.a;
                     }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 ),
                 new (
                     1,
@@ -46,28 +46,28 @@ namespace UnityEditor.ShaderGraph.Defs
                     @"
                     {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
-                        RGBA = float4(1,1,1,1);
+                        RGBA = temp;
                     #else
-                        //RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
-                        RGBA = float4(1,1,1,1);
+                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
                     #endif
-                        //RGBA.rgb = UnpackNormalRGB(RGBA);
+                        RGBA.rgb = UnpackNormalRGB(RGBA);
                         RGB = RGBA.rgb;
                         R = RGBA.r;
                         G = RGBA.g;
                         B = RGBA.b;
                         A = RGBA.a;
                     }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 ),
                 new (
                     1,
@@ -75,28 +75,28 @@ namespace UnityEditor.ShaderGraph.Defs
                     @"
                     {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
-                        RGBA = float4(1,1,1,1);
+                        RGBA = temp;
                     #else
-                        //RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
-                        RGBA = float4(1,1,1,1);
+                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
                     #endif
-                        //RGBA.rgb = UnpackNormal(RGBA);
+                        RGBA.rgb = UnpackNormal(RGBA);
                         RGB = RGBA.rgb;
                         R = RGBA.r;
                         G = RGBA.g;
                         B = RGBA.b;
                         A = RGBA.a;
                     }",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 )
             }
 

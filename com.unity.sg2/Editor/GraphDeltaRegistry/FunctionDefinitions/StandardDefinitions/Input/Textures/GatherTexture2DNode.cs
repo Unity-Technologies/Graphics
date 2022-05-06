@@ -15,29 +15,27 @@ namespace UnityEditor.ShaderGraph.Defs
 @"
 {
 #if (SHADER_TARGET >= 41)
-    RGBA = float4(1,1,1,1);
-    //RGBA = Texture.tex.Gather(Sampler.samplerstate, UV, Offset);
+    RGBA = Texture.tex.Gather(Sampler.samplerstate, UV, Offset);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
     A = RGBA.a;
 #else
-    RGBA = float4(1,1,1,1);
-    //R = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp1) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
-    //G = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp2) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
-    //B = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp3) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
-    //A = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp4) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
-    //RGBA.r = R;
-    //RGBA.g = G;
-    //RGBA.b = B;
-    //RGBA.a = A;
+    R = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp1) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
+    G = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp2) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
+    B = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp3) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
+    A = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, (floor(UV * Texture.texelSize.zw + temp4) + trunc(Offset) + temp2) * Texture.texelSize.xy, 0).r;
+    RGBA.r = R;
+    RGBA.g = G;
+    RGBA.b = B;
+    RGBA.a = A;
     RGB = RGBA.rgb;
 #endif
 }",
-            new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+            new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-            new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
+            new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
             new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
             new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
