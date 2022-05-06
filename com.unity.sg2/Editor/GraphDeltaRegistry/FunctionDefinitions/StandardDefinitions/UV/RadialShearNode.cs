@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Defs
     delta = UV - Center;
     delta2 = dot(delta.xy, delta.xy);
     delta_offset = delta2 * Strength;
-    tmep.x = delta.y;
+    temp.x = delta.y;
     temp.y = -delta.x;
     Out = UV + temp * delta_offset + Offset;
 }",

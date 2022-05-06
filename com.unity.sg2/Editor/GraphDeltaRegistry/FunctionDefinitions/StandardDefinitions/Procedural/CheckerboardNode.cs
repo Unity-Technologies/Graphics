@@ -33,9 +33,9 @@ namespace UnityEditor.ShaderGraph.Defs
 #endif
 }",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-            new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In),
-            new ParameterDescriptor("Frequency", TYPE.Vec2, Usage.Out, new float[] { 1f, 1f }),
+            new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In, new float[] { 0.2f, 0.2f, 0.2f }),
+            new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In, new float[] { 0.7f, 0.7f, 0.7f }),
+            new ParameterDescriptor("Frequency", TYPE.Vec2, Usage.In, new float[] { 1f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),//should be fragmant stage only
             new ParameterDescriptor("distance3", TYPE.Vec2, Usage.Local),
             new ParameterDescriptor("derivatives", TYPE.Vec4, Usage.Local),

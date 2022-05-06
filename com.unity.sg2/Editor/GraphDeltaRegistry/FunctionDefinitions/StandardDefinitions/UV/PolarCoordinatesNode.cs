@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Defs
     delta = UV - Center;
     radius = length(delta) * 2 * RadialScale;
     angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
-    Out.x = radius
+    Out.x = radius;
     Out.y = angle;
 }",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
