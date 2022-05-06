@@ -255,7 +255,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 case Primitive.Float:
                     switch (precision)
                     {
-                        case Precision.Fixed: name = "fixed"; break;
+                        case Precision.Fixed: name = "float"; break;
                         case Precision.Half: name = "half"; break;
                     }
                     break;

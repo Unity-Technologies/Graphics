@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
+using static UnityEditor.ShaderGraph.GraphDelta.IContextDescriptor;
 
 namespace UnityEditor.ShaderGraph.Generation.UnitTests
 {
@@ -17,21 +19,21 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         public static void Setup()
         {
             registry = new Registry();
-            // var contextKey = Registry.ResolveKey<Registry.Default.DefaultContext>();
-            var propertyKey = Registry.ResolveKey<PropertyContext>();
-
-
             registry.Register<GraphType>();
             registry.Register<TestAddNode>();
             registry.Register<GraphTypeAssignment>();
+            registry.Register<PropertyContext>();
+            registry.Register<ShaderGraphContext>();
+            var contextKey = Registry.ResolveKey<ShaderGraphContext>();
+            var propertyKey = Registry.ResolveKey<PropertyContext>();
             graph = new GraphHandler(registry);
 
-            graph.AddContextNode(propertyKey, registry);
-            // graph.AddContextNode(contextKey, registry);
+            graph.AddContextNode(propertyKey);
+            graph.AddContextNode(contextKey);
 
-            graph.AddNode<TestAddNode>("Add1", registry).SetPortField("In1", "c0", 1f); //(1,0,0,0)
-            graph.AddNode<TestAddNode>("Add2", registry).SetPortField("In2", "c1", 1f); //(0,1,0,0)
-            graph.AddNode<TestAddNode>("Add3", registry);
+            graph.AddNode<TestAddNode>("Add1").SetPortField("In1", "c0", 1f); //(1,0,0,0)
+            graph.AddNode<TestAddNode>("Add2").SetPortField("In2", "c1", 1f); //(0,1,0,0)
+            graph.AddNode<TestAddNode>("Add3");
             graph.TryConnect("Add1", "Out", "Add3", "In1", registry);
             graph.TryConnect("Add2", "Out", "Add3", "In2", registry); //should be (1,1,0,0)
         }
@@ -47,15 +49,21 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
 
         private static Texture2D DrawToTex(Shader shader)
         {
-            var rt = RenderTexture.GetTemporary(4,4,0,RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            return DrawToTex(new Material(shader));
+        }
+
+        private static Texture2D DrawToTex(Material material)
+        {
+            var rt = RenderTexture.GetTemporary(4, 4, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             var prevActive = RenderTexture.active;
             RenderTexture.active = rt;
-            Graphics.Blit(null, rt, new Material(shader));
-            Texture2D output = new(4, 4, TextureFormat.ARGB32, false);
+            Graphics.Blit(null, rt, material);
+            Texture2D output = new (4, 4, TextureFormat.ARGB32, false);
             output.ReadPixels(new Rect(0, 0, 4, 4), 0, 0);
             RenderTexture.active = prevActive;
             rt.Release();
             return output;
+
         }
 
         static object[] testAsIsSource = new object[]
@@ -109,6 +117,47 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
                 File.WriteAllBytes($"Assets/FailureImageReferenceNode.jpg", rt.EncodeToJPG());
                 throw e;
             }
+
+        }
+
+        [Test]
+        public static void TestMaterialPropertyGeneration()
+        {
+            var propertyKey = Registry.ResolveKey<PropertyContext>();
+            var propContext = graph.GetNode(propertyKey.Name);
+            var entry = new ContextEntry
+            {
+                fieldName = "Foo",
+                height = GraphType.Height.One,
+                length = GraphType.Length.Four,
+                initialValue = Matrix4x4.zero,
+                precision = GraphType.Precision.Fixed,
+                primitive = GraphType.Primitive.Float
+            };
+
+            var contextKey = Registry.ResolveKey<ShaderGraphContext>();
+            ContextBuilder.AddReferableEntry(propContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, "Foo_Var");
+            
+            graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName, registry);
+            graph.AddEdge("Foo_Ref.Output", contextKey.Name + ".BaseColor");
+
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);
+            var shader = MakeShader(shaderString);
+            var material = new Material(shader);
+            material.SetVector("Foo_Var", new Vector4(1, 0, 0, 1));
+            var rt = DrawToTex(material);
+
+            try
+            {
+                var pixelColor = rt.GetPixel(0, 0);
+                Assert.IsTrue((pixelColor - new Color(1f, 0f, 0f)).maxColorComponent < 0.01f); //getting some weird color drift (0.5 -> 0.498) hmm
+            }
+            catch (Exception e)
+            {
+                File.WriteAllBytes($"Assets/FailureImageMaterialPropertyGen.jpg", rt.EncodeToJPG());
+                throw e;
+            }
+
 
         }
 

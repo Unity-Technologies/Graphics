@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.ShaderFoundry;
+using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -21,6 +22,23 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             port.GetTypeField().AddSubField(GraphType.kEntry, entry);
 
             contextNode.AddPort<GraphType>($"out_{entry.fieldName}", false, registry);
+        }
+
+        public static void AddReferableEntry(NodeHandler contextNode,
+                                             IContextDescriptor.ContextEntry entry,
+                                             Registry registry,
+                                             PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
+                                             string displayName = null,
+                                             string defaultValue = null)
+        {
+            AddContextEntry(contextNode, entry, registry);
+            var port = contextNode.GetPort(entry.fieldName);
+            port.AddField(kPropertyBlockUsage, usage);
+            if(displayName != null)
+                port.AddField(kDisplayName, displayName);
+            if(defaultValue != null)
+                port.AddField(kDefaultValue, defaultValue);
+
         }
 
         public void BuildNode(NodeHandler node, Registry registry)

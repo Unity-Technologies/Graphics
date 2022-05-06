@@ -177,7 +177,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     initialValue = Matrix4x4.zero,
                 };
 
-                ContextBuilder.AddContextEntry(propertyContext, entry, registry);
+                ContextBuilder.AddReferableEntry(propertyContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, variableDeclarationName);
                 graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry);
 
                 graphDataVar.contextNodeName = contextName;

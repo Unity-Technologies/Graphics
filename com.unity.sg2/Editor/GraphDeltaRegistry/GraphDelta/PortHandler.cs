@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         public FieldHandler<T> AddField<T>(string localID, T value = default, bool reconcretizeOnDataChange = false)
         {
-            Writer.AddChild(localID, value).SetHeader(new FieldHeader());
+            Writer.AddChild(localID, value).SetHeader(new FieldHeader<T>());
             var output = new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer);
             if(reconcretizeOnDataChange)
             {

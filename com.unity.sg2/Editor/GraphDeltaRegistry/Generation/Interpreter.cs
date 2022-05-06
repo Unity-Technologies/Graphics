@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
+using static UnityEditor.ShaderGraph.GraphDelta.ContextEntryEnumTags;
 
 namespace UnityEditor.ShaderGraph.Generation
 {
@@ -68,12 +69,34 @@ namespace UnityEditor.ShaderGraph.Generation
             return structBuilder.Build();
         }
 
-        private static StructField EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container)
+        private static void EvaluateBlockReferrables(PortHandler port, Registry registry, ShaderContainer container, ref List<StructField> outputVariables, ref List<StructField> inputVariables)
         {
             var name = port.ID.LocalPath;
             var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);
             var varOutBuilder = new StructField.Builder(container, name, type);
-            return varOutBuilder.Build();
+            var usage = PropertyBlockUsage.Excluded;
+            var usageField = port.GetField <PropertyBlockUsage>(kPropertyBlockUsage);
+            if(usageField != null)
+            {
+                usage = usageField.GetData();
+            }
+            SimpleSampleBuilder.PropertyAttributeData propertyData =null;
+            switch (usage)
+            {
+                case PropertyBlockUsage.Included:
+                    propertyData = new SimpleSampleBuilder.PropertyAttributeData { DefaultValue = port.GetDefaultValueString(registry, container), DisplayName = port.GetDisplayNameString() };
+                    break;
+                case PropertyBlockUsage.Excluded:
+                    propertyData = new SimpleSampleBuilder.PropertyAttributeData { /*Need to be able to set dataSource to Uniform*/};
+                    break;
+                default:
+                    break;
+            }
+
+            var varInBuilder = new StructField.Builder(container, name, type);
+            SimpleSampleBuilder.MarkAsProperty(container, varInBuilder, propertyData);
+            inputVariables.Add(varInBuilder.Build());
+            outputVariables.Add(varOutBuilder.Build());
         }
 
         internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder, ref List<(string, UnityEngine.Texture)> defaultTextures)
@@ -104,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 if (port.IsHorizontal && (isContext ? port.IsInput : !port.IsInput))
                 {
-                    outputVariables.Add(EvaluateBlockReferrables(port, registry, container));
+                    EvaluateBlockReferrables(port, registry, container, ref outputVariables, ref inputVariables);
                 }
             }
             //Create output type from evaluated root node outputs
@@ -181,9 +204,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         }
                         else // not connected.
                         {
-                            var field = port.GetTypeField();
-                            // get the inlined port value as an initializer from the definition-- since there was no connection).
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = {registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(field, registry)};");
+                            EvaluateContextOutputInitialization(mainBodyFunctionBuilder, port, outputVariables[varIndex++].Name, registry);
                         }
                     }
                     else if(!port.IsInput && !isContext)
@@ -239,6 +260,28 @@ namespace UnityEditor.ShaderGraph.Generation
                 var remapBlockDesc = remapBlockDescBuilder.Build();
                 surfaceDescBuilder.BlockInstances.Add(remapBlockDesc);
 
+            }
+
+        }
+
+        private static void EvaluateContextOutputInitialization(ShaderFunction.Builder mainBodyFunctionBuilder, PortHandler port, string name, Registry registry)
+        {
+            var field = port.GetTypeField();
+
+            var source = DataSource.Global;
+            var sourceField = port.GetField<DataSource>(kPropertyBlockUsage);
+            if (sourceField != null)
+            {
+                source = sourceField.GetData();
+            }
+            // basically, unless this is a completely inlined/constant value, this is just a passthrough from somewhere else.
+            if (source == DataSource.Constant)
+            {
+                mainBodyFunctionBuilder.AddLine($"output.{name} = {registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetInitializerList(field, registry)};");
+            }
+            else
+            {
+                mainBodyFunctionBuilder.AddLine($"output.{name} = In.{name};");
             }
 
         }
@@ -409,7 +452,7 @@ namespace UnityEditor.ShaderGraph.Generation
                 {
                     foreach (PortHandler port in check.GetPorts())
                     {
-                        if (port.IsHorizontal && port.IsInput)
+                        if (port.IsInput)
                         {
                             foreach (NodeHandler connected in GetConnectedNodes(port))
                             {

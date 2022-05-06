@@ -44,8 +44,8 @@ namespace UnityEditor.ShaderGraph
             var contextKey = Registry.ResolveKey<ShaderGraphContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             GraphHandler graph = new ();
-            graph.AddContextNode(contextKey, defaultRegistry);
             graph.AddContextNode(propertyKey, defaultRegistry);
+            graph.AddContextNode(contextKey, defaultRegistry);
             return graph;
         }
 
