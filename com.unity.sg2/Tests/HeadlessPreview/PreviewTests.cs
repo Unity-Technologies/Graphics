@@ -676,6 +676,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             registry.Register<GraphType>();
             registry.Register<GraphTypeAssignment>();
+            registry.Register<SamplerStateType>();
+            registry.Register<SamplerStateAssignment>();
             registry.Register<BaseTextureType>();
             registry.Register<BaseTextureTypeAssignment>();
             registry.Register<SimpleTextureNode>();
@@ -691,7 +693,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             previewMgr.NotifyNodeFlowChanged("SampleTex");
 
             var material = previewMgr.RequestNodePreviewMaterial("SampleTex");
-
             Assert.AreEqual(new Color(1, 1, 1, 1), SampleMaterialColor(material));
 
             // check that the material property is found on the shader.
@@ -716,6 +717,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
             registry.Register<GraphType>();
             registry.Register<GraphTypeAssignment>();
+            registry.Register<SamplerStateType>();
+            registry.Register<SamplerStateAssignment>();
             registry.Register<BaseTextureType>();
             registry.Register<BaseTextureTypeAssignment>();
             registry.Register<SimpleTextureNode>();
@@ -728,6 +731,49 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var texField = texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField();
             graphHandler.AddNode<SimpleSampleTexture2DNode>("SampleTex", registry);
             Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input", registry));
+
+            //set to a red texture and test.
+            BaseTextureType.SetTextureAsset(texField, Texture2D.redTexture);
+            graphHandler.ReconcretizeAll(registry);
+            previewMgr.NotifyNodeFlowChanged("SampleTex");
+            var material = previewMgr.RequestNodePreviewMaterial("SampleTex");
+            Assert.AreEqual(new Color(1, 0, 0, 1), SampleMaterialColor(material));
+
+            // set it to black and reconcretize, and test.
+            BaseTextureType.SetTextureAsset(texField, Texture2D.blackTexture);
+            graphHandler.ReconcretizeAll(registry);
+            previewMgr.NotifyNodeFlowChanged("SampleTex");
+            material = previewMgr.RequestNodePreviewMaterial("SampleTex");
+            Assert.AreEqual(new Color(0, 0, 0, 1), SampleMaterialColor(material));
+        }
+
+
+        [Test]
+        public void SamplerStateType_GeneratesCorrectly()
+        {
+            var graphHandler = new GraphHandler();
+            var registry = new Registry();
+            var previewMgr = new HeadlessPreviewManager();
+
+            registry.Register<GraphType>();
+            registry.Register<GraphTypeAssignment>();
+            registry.Register<SamplerStateType>();
+            registry.Register<SamplerStateAssignment>();
+            registry.Register<SamplerStateExampleNode>();
+            registry.Register<BaseTextureType>();
+            registry.Register<BaseTextureTypeAssignment>();
+            registry.Register<SimpleTextureNode>();
+            registry.Register<SimpleSampleTexture2DNode>();
+
+            previewMgr.SetActiveGraph(graphHandler);
+            previewMgr.SetActiveRegistry(registry);
+
+            var texNode = graphHandler.AddNode<SimpleTextureNode>("Tex", registry);
+            var texField = texNode.GetPort(SimpleTextureNode.kInlineStatic).GetTypeField();
+            graphHandler.AddNode<SimpleSampleTexture2DNode>("SampleTex", registry);
+            graphHandler.AddNode<SamplerStateExampleNode>("Sampler", registry);
+            Assert.IsTrue(graphHandler.TryConnect("Tex", "Output", "SampleTex", "Input", registry));
+            Assert.IsTrue(graphHandler.TryConnect("Sampler", "Out", "SampleTex", SimpleSampleTexture2DNode.kSampler, registry));
 
             //set to a red texture and test.
             BaseTextureType.SetTextureAsset(texField, Texture2D.redTexture);

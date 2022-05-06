@@ -8,21 +8,44 @@ namespace UnityEditor.ShaderGraph.Defs
         public static string Name = "Arcsine";
         public static int Version = 1;
 
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "Out = asin(In);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new FunctionDescriptor[] {
+                new(
+                    1,
+                    "Default",
+                    "Out = asin(In);",
+                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                ),
+                new(
+                    1,
+                    "Fast",
+@"
+{
+    a = In * In;
+    Out = In * (1 + a * (0.166667 + a * (0.075 + a * 0.04464)));
+}",
+                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                    new ParameterDescriptor("a", TYPE.Vector, Usage.Local),
+                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                )
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
             displayName: "Contrast",
-            tooltip: "returns the arcsine of each component of the input",
+            tooltip: "Calculates the arcsine of each component of the input.",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[1] { "asine" },
+            selectableFunctions: new()
+            {
+                { "Default", "Default" },
+                { "Fast", "Fast" }
+            },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

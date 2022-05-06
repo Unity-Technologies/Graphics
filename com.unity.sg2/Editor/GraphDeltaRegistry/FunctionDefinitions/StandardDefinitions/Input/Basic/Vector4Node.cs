@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Vector 4",
-            tooltip: "a user-defined value with 4 channels",
+            tooltip: "Creates a user-defined value with 4 channels.",
             categories: new string[2] { "Input", "Basic" },
             synonyms: new string[4] { "4", "v4", "vec4", "float4" },
             parameters: new ParameterUIDescriptor[5] {

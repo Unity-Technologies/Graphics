@@ -20,24 +20,23 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         // Used to send events to the highest shader graph editor window
         protected TestEventHelpers m_ShaderGraphWindowTestHelper;
 
-        protected string m_TestAssetPath = $"Assets\\{ShaderGraphStencil.DefaultAssetName}.{ShaderGraphStencil.GraphExtension}";
-
+        protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
         protected virtual bool hideOverlayWindows => true;
 
         // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO
-        const string k_BlackboardOverlayId = "gtf-blackboard";
-        const string k_InspectorOverlayId = "gtf-inspector";
+        const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
+        const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
 
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
             CreateWindow();
 
             m_GraphView = m_Window.GraphView as TestGraphView;
 
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
-            newGraphAction.Action(0, m_TestAssetPath, "");
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(m_TestAssetPath);
+            newGraphAction.Action(0, testAssetPath, "");
+            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(testAssetPath);
             m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             m_Window.GraphTool.Update();
 
@@ -54,10 +53,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         [TearDown]
-        public void TearDown()
+        public virtual void TearDown()
         {
             CloseWindow();
-            AssetDatabase.DeleteAsset(m_TestAssetPath);
+            AssetDatabase.DeleteAsset(testAssetPath);
         }
 
         public void CreateWindow()
@@ -125,7 +124,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var nodeModels = m_Window.GraphView.GraphModel.NodeModels;
             foreach (var nodeModel in nodeModels)
             {
-                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName)
+                if (nodeModel is NodeModel concreteNodeModel && concreteNodeModel.Title == nodeName && !concreteNodeModel.Destroyed)
                     return true;
             }
 

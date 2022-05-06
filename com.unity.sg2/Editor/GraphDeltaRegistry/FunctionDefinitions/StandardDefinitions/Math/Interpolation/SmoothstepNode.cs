@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
@@ -7,23 +7,113 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         public static string Name = "Smoothstep";
         public static int Version = 1;
-
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "Out = smoothstep(Edge1, Edge2, In);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Edge1", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Edge2", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new FunctionDescriptor[] {
+                new(
+                    1,
+                    "Smooth",
+                    "Out = smoothstep(Edge1, Edge2, In);",
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "Smoother",
+@"
+{
+	In = saturate((In - Edge1)/(Edge2-Edge1));
+	Out = (In*In*In) * (In * (In * 6.0 - 15.0) + 10.0);
+}",
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "Smoothest",
+@"
+{
+	In = saturate((In - Edge1)/(Edge2-Edge1));
+	Out = (-20.0 * pow(In, 7)) + (70.0 * pow(In, 6)) - (84.0 * pow(In, 5)) + (35.0 * pow(In, 4));
+}",
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "Linear",
+                    "Out = saturate((In - Edge1)/(Edge2-Edge1));",
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "EaseOut",
+@"
+{
+	In = saturate((In - Edge1)/(Edge2-Edge1));
+	Out = In*In;
+}",
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "EaseIn",
+@"
+{
+	In = saturate((In - Edge1)/(Edge2-Edge1));
+	Out = 1.0 - pow(In - 1.0, 2);
+}",
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                ),
+                new(
+                    1,
+                    "SquareStep",
+@"
+{
+	In = saturate((In - Edge1)/(Edge2-Edge1));
+	Out = step(0.5, In);
+}",
+                    new ParameterDescriptor("In", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge1", TYPE.Vector, GraphType.Usage.In),
+                    new ParameterDescriptor("Edge2", TYPE.Vector, GraphType.Usage.In, new float[] { 1f, 1f, 1f, 1f }),
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
+                )
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the result of a smooth Hermite interpolation between 0 and 1",
+            tooltip: "Calculates the selected interpolation between 0 and 1.",
             categories: new string[2] { "Math", "Interpolation" },
             synonyms: new string[1] { "curve" },
+            selectableFunctions: new()
+            {
+                { "Smooth", "Smooth" },
+                { "Smoother", "Smoother" },
+                { "Smoothest", "Smoothest" },
+                { "Linear", "Linear" },
+                { "EaseOut", "Ease Out" },
+                { "EaseIn", "Ease In" },
+                { "SquareStep", "Square Step" }
+
+            },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",
@@ -40,7 +130,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "the result of a smooth Hermite interpolation between 0 and 1"
+                    tooltip: "the result of the selected interpolation between 0 and 1"
                 )
             }
         );

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.GraphToolsFoundation.Overdrive
 {
@@ -99,19 +100,21 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
         internal MethodInfo GetRegisterCallback()
         {
             // PF TODO when this is a module, submit modifications to UIToolkit to avoid having to do reflection.
-            var type = typeof(CallbackEventHandler);
-            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Instance);
-            foreach (var method in methods)
-            {
-                if (method.Name == nameof(RegisterCallback) && method.GetGenericArguments().Length == 2)
-                {
-                    var t = ConstantModel.Type == typeof(EnumValueReference) ? typeof(Enum) : ConstantModel.Type;
-                    var changeEventType = typeof(ChangeEvent<>).MakeGenericType(t);
-                    return method.MakeGenericMethod(changeEventType, typeof(ConstantField));
-                }
-            }
+            var registerCallbackMethod = typeof(CallbackEventHandler)
+                .GetMethods(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Instance)
+                .SingleOrDefault(m => m.Name == nameof(RegisterCallback) && m.GetGenericArguments().Length == 2);
 
-            return null;
+            if (registerCallbackMethod == null)
+                return null;
+
+            var t = ConstantModel.Type == typeof(EnumValueReference) ? typeof(Enum) : ConstantModel.Type;
+
+            // objects such as Texture2D that inherit from UnityEngine.Object send a ChangeEvent<UnityEngine.Object>
+            if (t.IsSubclassOf(typeof(Object)))
+                t = typeof(Object);
+
+            var changeEventType = typeof(ChangeEvent<>).MakeGenericType(t);
+            return registerCallbackMethod.MakeGenericMethod(changeEventType, typeof(ConstantField));
         }
 
         /// <inheritdoc />

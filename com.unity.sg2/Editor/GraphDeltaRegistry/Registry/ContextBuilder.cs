@@ -15,13 +15,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         static public void AddContextEntry(NodeHandler contextNode, IContextDescriptor.ContextEntry entry, Registry registry)
         {
             // TODO/Problem: Only good for GraphType
-            var port = contextNode.AddPort<GraphType>(entry.fieldName, true, registry);
-            GraphTypeHelpers.InitGraphType(port.GetTypeField(), entry.length, entry.precision, entry.primitive, entry.height);
-            GraphTypeHelpers.SetAsMat4(port.GetTypeField(), entry.initialValue);
+            var inPort = contextNode.AddPort<GraphType>(entry.fieldName, true, registry);
+            GraphTypeHelpers.InitGraphType(inPort.GetTypeField(), entry.length, entry.precision, entry.primitive, entry.height);
+            GraphTypeHelpers.SetAsMat4(inPort.GetTypeField(), entry.initialValue);
 
-            port.GetTypeField().AddSubField(GraphType.kEntry, entry);
+            inPort.GetTypeField().AddSubField(GraphType.kEntry, entry);
 
-            contextNode.AddPort<GraphType>($"out_{entry.fieldName}", false, registry);
+            var outPort = contextNode.AddPort<GraphType>($"out_{entry.fieldName}", false, registry);
+            ITypeDefinitionBuilder.CopyTypeField(inPort.GetTypeField(), outPort.GetTypeField(), registry);
         }
 
         public static void AddReferableEntry(NodeHandler contextNode,
@@ -54,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // Cannot get a shader function from a context node, that needs to be processed by the graph.
             // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.
             // It's also pointless unless a similar strategy is taken for Reference nodes- who also need a fair amount of graph processing to function.
-            throw new NotImplementedException();
+            return ShaderFunction.Invalid;
         }
     }
 }

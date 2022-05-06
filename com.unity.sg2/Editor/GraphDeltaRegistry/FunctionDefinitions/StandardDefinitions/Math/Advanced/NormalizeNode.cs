@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "adjusts the input vector to unit length",
+            tooltip: "Changes the length of the input vector to 1.",
             categories: new string[2] { "Math", "Advanced" },
             synonyms: new string[1] { "Unitize" },
             parameters: new ParameterUIDescriptor[2] {

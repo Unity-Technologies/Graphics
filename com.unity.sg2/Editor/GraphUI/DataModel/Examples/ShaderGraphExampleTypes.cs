@@ -51,15 +51,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             else if (key.Name == BaseTextureType.kRegistryKey.Name)
             {
-                switch (BaseTextureType.GetTextureAsset(field))
+                switch (BaseTextureType.GetTextureType(field))
                 {
-                    case Texture2DArray: return ShaderGraphExampleTypes.Texture2DArrayTypeHandle;
-                    case Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
-                    case Cubemap: return ShaderGraphExampleTypes.CubemapTypeHandle;
-                    case Texture2D:
+                    case BaseTextureType.TextureType.Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;
+                    case BaseTextureType.TextureType.CubeMap: return ShaderGraphExampleTypes.CubemapTypeHandle;
+                    case BaseTextureType.TextureType.Texture2DArray: return ShaderGraphExampleTypes.Texture2DArrayTypeHandle;
+                    case BaseTextureType.TextureType.Texture2D:
                     default: return ShaderGraphExampleTypes.Texture2DTypeHandle;
                 }
             }
+
+            else if (key.Name == SamplerStateType.kRegistryKey.Name)
+                return SamplerStateTypeHandle;
 
             return TypeHandle.Unknown;
         }
@@ -72,6 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static readonly TypeHandle Texture2DArrayTypeHandle = typeof(Texture2DArray).GenerateTypeHandle();
         public static readonly TypeHandle CubemapTypeHandle = typeof(Cubemap).GenerateTypeHandle();
         public static readonly TypeHandle GradientTypeHandle = typeof(Gradient).GenerateTypeHandle();
+        public static readonly TypeHandle SamplerStateTypeHandle = typeof(SamplerStateData).GenerateTypeHandle();
         public static readonly TypeHandle Matrix2 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 2");
         public static readonly TypeHandle Matrix3 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 3");
         public static readonly TypeHandle Matrix4 = TypeHandleHelpers.GenerateCustomTypeHandle("Matrix 4");

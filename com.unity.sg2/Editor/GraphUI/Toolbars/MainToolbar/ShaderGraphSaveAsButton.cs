@@ -1,4 +1,5 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using System;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.Toolbars;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <inheritdoc />
         protected override void OnClick()
         {
-            GraphAssetUtils.SaveAsGraphImplementation(GraphTool);
+            GraphAssetUtils.SaveOpenGraphAssetAs(GraphTool);
         }
     }
 }

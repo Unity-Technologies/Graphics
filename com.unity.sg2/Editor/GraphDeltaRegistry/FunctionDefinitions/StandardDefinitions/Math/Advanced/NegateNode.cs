@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "multiplies the input by negative 1",
+            tooltip: "Multiplies the input by -1.",
             categories: new string[2] { "Math", "Advanced" },
             synonyms: new string[3] { "invert", "opposite", "-" },
             parameters: new ParameterUIDescriptor[2] {

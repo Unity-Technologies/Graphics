@@ -142,9 +142,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public enum Length { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
         public enum Height { One = 1, Two = 2, Three = 3, Four = 4, Any = -1 }
 
-        // TODO: This is used by node builders and is general to all ports, should be moved into a CLDS header when possible.
+        // TODO: This is used by node builders and is general to all ports,
+        // TODO should be moved into a CLDS header when possible (metadata).
         public enum Usage { In, Out, Static, Local }
-
 
         #region Priorities
         // Values here represent a resolving priority.
@@ -215,6 +215,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // we could just ignore userData though and just fill out all 16 possible components...
             for (int i = 0; i < (int)length * (int)height; ++i)
                 GraphTypeHelpers.SetComponent(field, i, 0);
+        }
+
+        public void CopySubFieldData(FieldHandler src, FieldHandler dst)
+        {
+            var length = GraphTypeHelpers.GetLength(src);
+            var height = GraphTypeHelpers.GetHeight(src);
+            var primitive = GraphTypeHelpers.GetPrimitive(src);
+            var precision = GraphTypeHelpers.GetPrecision(src);
+
+            GraphTypeHelpers.InitGraphType(dst, length, precision, primitive, height);
         }
 
         string ITypeDefinitionBuilder.GetInitializerList(FieldHandler data, Registry registry)

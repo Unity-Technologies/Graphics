@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the quantized value of In",
+            tooltip: "Quantizes the value of the input.",
             categories: new string[2] { "Math", "Advanced" },
             synonyms: new string[1] { "quantize" },
             parameters: new ParameterUIDescriptor[3] {

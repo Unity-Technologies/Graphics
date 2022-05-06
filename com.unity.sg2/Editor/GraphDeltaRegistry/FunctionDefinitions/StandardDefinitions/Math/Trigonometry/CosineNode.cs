@@ -8,20 +8,42 @@ namespace UnityEditor.ShaderGraph.Defs
         public static string Name = "Cosine";
         public static int Version = 1;
 
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "Out = cos(In);",
-            new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            new FunctionDescriptor[] {
+                new(
+                    1,
+                    "Default",
+                    "Out = cos(In);",
+                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                ),
+                new(
+                    1,
+                    "Fast",
+@"
+{
+    In = (In + 1.57) * 0.1592;
+    Out = (8.0 - 16.0 * abs(In * 0.1592)) * (In * 0.1592);
+}",
+                    new ParameterDescriptor("In", TYPE.Vector, Usage.In),
+                    new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                )
+            }
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the cosine of the input",
+            tooltip: "Calculates the cosine of the input.",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[0],
+            selectableFunctions: new()
+            {
+                { "Default", "Default" },
+                { "Fast", "Fast" }
+            },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

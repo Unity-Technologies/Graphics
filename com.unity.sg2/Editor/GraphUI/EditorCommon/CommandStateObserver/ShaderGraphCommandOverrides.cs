@@ -75,6 +75,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Delete backing data for graph data nodes.
             foreach (var graphData in command.Models.OfType<GraphDataNodeModel>())
             {
+                if (!graphData.IsDeletable()) continue;
+
                 graphModel.GraphHandler.RemoveNode(graphData.graphDataName);
 
                 // Need to update downstream nodes previews of the bypassed node
@@ -124,6 +126,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 foreach (var model in nonRedirects)
                 {
+                    if (!model.IsDeletable()) continue;
+
                     switch (model)
                     {
                         // Reset types on disconnected redirect nodes.
@@ -138,15 +142,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         }
 
                         // Delete backing data for graph data nodes.
-                        case GraphDataNodeModel graphData:
+                        case GraphDataNodeModel graphDataNode:
                         {
-                            graphModel.GraphHandler.RemoveNode(graphData.graphDataName);
+                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
                             break;
                         }
                     }
                 }
 
                 // Bypass redirects in a similar manner to GTF's BypassNodesCommand.
+
                 foreach (var redirect in redirects)
                 {
                     var inputEdgeModel = redirect.GetIncomingEdges().FirstOrDefault();

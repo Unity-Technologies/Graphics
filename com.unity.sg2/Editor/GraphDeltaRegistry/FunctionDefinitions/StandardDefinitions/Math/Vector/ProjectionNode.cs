@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the result of projecting A onto a straight line parallel to B",
+            tooltip: "Projects input A onto a straight line parallel to input B.",
             categories: new string[2] { "Math", "Vector" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[3] {

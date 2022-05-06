@@ -17,10 +17,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         fieldName = "BaseColor",
                         primitive = GraphType.Primitive.Float,
-                        precision = GraphType.Precision.Fixed,
+                        precision = GraphType.Precision.Single,
                         height = GraphType.Height.One,
-                        length = GraphType.Length.One,
-                    }
+                        length = GraphType.Length.Three,
+                    },
+                    new ()
+                    {
+                        fieldName = "NormalTS",
+                        primitive = GraphType.Primitive.Float,
+                        precision = GraphType.Precision.Single,
+                        height = GraphType.Height.One,
+                        length = GraphType.Length.Three,
+                    },
+                    new ()
+                    {
+                        fieldName = "Emission",
+                        primitive = GraphType.Primitive.Float,
+                        precision = GraphType.Precision.Single,
+                        height = GraphType.Height.One,
+                        length = GraphType.Length.Three,
+                    },
                 };
         }
 
