@@ -31,7 +31,7 @@
 struct LODProxy
 {
     float screenRelativeHeight[LOD_COUNT_MAX];
-    uint instanceID[LOD_COUNT_MAX];
+    float4 sphere[LOD_COUNT_MAX];
 };
 
 struct InstanceVisible
@@ -221,6 +221,8 @@ ClusterBuffer GetClusterBuffer(ClusterPageHeader header)
 VertexAttribute GetVertexAttribute(uint clusterID, uint vertexID)
 {
     VertexAttribute result = (VertexAttribute)0;
+    result.localPosition = asfloat(uint3(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF));
+    result.normal = float3(0.0f, 0.0f, 0.0f);
     
     ClusterIDs id = _ClusterIDBuffer[clusterID];
     ClusterPageHeader header = _ClusterPageHeaderBuffer[id.clusterID];

@@ -219,8 +219,8 @@ inline uint isVisibleInDepthBuffer(float3 clipMin, float3 clipMax, int id)
         farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 1);
     if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 2))
         farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 2);
-    if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 3))
-        farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 3);
+    //if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 3))
+    //    farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 3);
     //if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 4))
     //    farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 4);
     
@@ -282,7 +282,7 @@ uint FrustumCullingEx(float3 center, float3 extent)
     return 1;
 }
 
-inline uint DetailCullingInDepth(float3 clipMin, float3 clipMax)
+inline uint DetailCulling(float3 clipMin, float3 clipMax)
 {
 	float2 minXY = float2(clipMin.x, clipMin.y) * 0.5f + 0.5f;
     float2 maxXY = float2(clipMax.x, clipMax.y) * 0.5f + 0.5f;
@@ -291,7 +291,7 @@ inline uint DetailCullingInDepth(float3 clipMin, float3 clipMax)
 	
 	int2 cornerMin = round(minXY * _ViewportSize); 
 	int2 cornerMax = round(maxXY * _ViewportSize);
-	return cornerMin.x == cornerMax.x || cornerMin.y == cornerMax.y? 0: 1;
+	return cornerMin.x == cornerMax.x && cornerMin.y == cornerMax.y? 0: 1;
 }
 
 inline uint CalculateMinMaxWithLinearZ(float4 corner[8], float4x4 matrixVP, out float3 outClipMin, out float3 outClipMax)
@@ -669,6 +669,7 @@ void ClusterCull(
 
     float3 clipMin, clipMax;
     CalculateMinMaxWithLinearZ(boxCorners, _UNITY_MATRIX_VP1, clipMin, clipMax);
+    isVisible *= DetailCulling(clipMin, clipMax);
     isVisible *= isVisibleInDepthBuffer(clipMin, clipMax, tID);
     
     if (isVisible > 0)
@@ -694,13 +695,13 @@ inline void LODCalculation(in uint3 _dispatchThreadID : SV_DispatchThreadID)
     [unroll]
     for (int i = 0; i != LOD_COUNT_MAX; ++i)
     {
-        uint instanceID = lod.instanceID[i];
-        if (instanceID == ~0u)
+        float4 sphere = lod.sphere[i];
+        if (abs(sphere.w - 0.0f) < 0.0001f)
             continue;
         
-        InstanceHeader instance = _InstanceHeaderBuffer[instanceID];
-        float3 boundsCenter = instance.boundsCenter;
-        if (LODCalculate(boundsCenter, instance.boundsExtents, lod.screenRelativeHeight[i]))
+        //InstanceHeader instance = _InstanceHeaderBuffer[instanceID];
+        float3 boundsCenter = sphere.xyz;
+        if (LODCalculate(boundsCenter, sphere.w, lod.screenRelativeHeight[i]))
         {
             if (curIndexMask != (1 << i))
             {

@@ -282,27 +282,6 @@ void Frag(Varyings input, OUTPUT_GBUFFER( outGBuffer)/*, out float outputDepth :
     uint2 uv = input.positionCS.xy;
     uint3 pixelValue = LOAD_TEXTURE2D(_VisibilityBuffer, uv).rgb;
     uint clusterID = GetClusterID(pixelValue.r);
-
-//uint handleLPPVPerDraw = _LightmapAndLPPVBuffer[1];
-//uint lppvHandle = GetHandleLPPV(clusterID);
-//    if (lppvHandle != ~0u && lppvHandle != handleLPPVPerDraw)
-//        discard;
-
-    //uint curMaterialID = _TempMaterialBuffer[0];
-    //uint materialID = GetMaterialID(clusterID);
-    //if (materialID != curMaterialID)
-    //    discard;
-
-
-
-    //uint lightmapIndexPerDraw = _LightmapAndLPPVBuffer[0];
-    //uint lightmapIndex = GetLightmapIndex(clusterID);
-    //if ((lightmapIndex != lightmapIndexPerDraw && lightmapIndex != ~0u && lightmapIndex != 0xfffffffe)
-    //    || (lightmapIndex != lightmapIndexPerDraw && lightmapIndexPerDraw != ~0u && lightmapIndexPerDraw != 0xfffffffe))
-    //{
-    //    discard;
-    //}
-
     uint triangleID = GetTriangleID(pixelValue.g);
     uint vertexID = triangleID * 3; 
     VertexAttribute vertex0 = GetVertexAttribute(clusterID, vertexID);
@@ -451,8 +430,9 @@ void Frag(Varyings input, OUTPUT_GBUFFER( outGBuffer)/*, out float outputDepth :
 //builtinData.backBakeDiffuseLighting = 1;
 // Debug to output the uv1
 //surfaceData.baseColor = float3(fragInput.texCoord1.xyz);
+//surfaceData.baseColor = vertex0.normal;
 //surfaceData.baseColor = surfaceData.normalWS;
-//surfaceData.baseColor = builtinData.bakeDiffuseLighting;
+//surfaceData.baseColor = builtinData.bakeDiffuseLighting; 
     ENCODE_INTO_GBUFFER(surfaceData, builtinData, posInput.positionSS, outGBuffer);
 
     //float depth = LOAD_TEXTURE2D_X(_VisibilityDepth, uv).r;
