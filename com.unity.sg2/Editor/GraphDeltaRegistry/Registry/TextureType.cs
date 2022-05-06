@@ -139,6 +139,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             field.AddSubField(kTextureType, TextureType.Texture2D);
         }
 
+        public void CopySubFieldData(FieldHandler src, FieldHandler dst)
+        {
+            SetTextureType(dst, GetTextureType(src));
+        }
+
         ShaderType ITypeDefinitionBuilder.GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
         {
             return GetTextureType(field) switch
