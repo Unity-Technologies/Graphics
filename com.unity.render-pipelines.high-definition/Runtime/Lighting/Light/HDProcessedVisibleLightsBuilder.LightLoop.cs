@@ -116,16 +116,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int lightIndex = m_ShadowLightsDataIndices[i];
                         HDProcessedVisibleLight* entity = entitiesPtr + lightIndex;
-                        if (!cullResults.GetShadowCasterBounds(lightIndex, out var bounds) || defaultEntityDataIndex == entity->dataIndex)
+                        HDAdditionalLightData additionalLightData = HDLightRenderDatabase.instance.hdAdditionalLightData[entity->dataIndex];
+
+                        if (additionalLightData == null)
+                            continue;
+
+                        if ((!cullResults.GetShadowCasterBounds(lightIndex, out var bounds) && additionalLightData.shadowUpdateMode != ShadowUpdateMode.OnDemand) || defaultEntityDataIndex == entity->dataIndex)
                         {
                             entity->shadowMapFlags = ShadowMapFlags.None;
                             continue;
                         }
 
-                        HDAdditionalLightData additionalLightData = HDLightRenderDatabase.instance.hdAdditionalLightData[entity->dataIndex];
-                        if (additionalLightData == null)
-                            continue;
-
+                        
                         VisibleLight visibleLight = visibleLights[lightIndex];
                         additionalLightData.ReserveShadowMap(hdCamera.camera, shadowManager, hdShadowSettings, inShadowInitParameters, visibleLight, entity->lightType);
                     }
