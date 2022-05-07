@@ -356,6 +356,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
+            // DOTS instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma target 3.5 DOTS_INSTANCING_ON
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
@@ -413,6 +417,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
+            // DOTS instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma target 3.5 DOTS_INSTANCING_ON
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
@@ -449,6 +457,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
+            // DOTS instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma target 3.5 DOTS_INSTANCING_ON
+
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
@@ -477,6 +489,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
+
+            // DOTS instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma target 3.5 DOTS_INSTANCING_ON
 
             #pragma vertex DepthNormalsVertex
             #pragma fragment DepthNormalsFragment

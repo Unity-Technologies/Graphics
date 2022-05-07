@@ -31,8 +31,8 @@ namespace UnityEditor.ShaderGraph
 
         protected override void CalculateNodeHasError()
         {
-#if !HYBRID_RENDERER_0_6_0_OR_NEWER
-            owner.AddSetupError(objectId, "Could not find version 0.6.0 or newer of the Hybrid Renderer package installed in the project.");
+#if !(HYBRID_RENDERER_0_6_0_OR_NEWER || ENTITIES_GRAPHICS_0_60_0_OR_NEWER)
+            owner.AddSetupError(objectId, "Could not find a supported version (0.60.0 or newer) of the com.unity.entities.graphics package installed in the project.");
             hasError = true;
 #endif
 #if !ENABLE_COMPUTE_DEFORMATIONS

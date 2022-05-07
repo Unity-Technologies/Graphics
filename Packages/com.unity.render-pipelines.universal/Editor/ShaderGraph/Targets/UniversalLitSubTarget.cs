@@ -338,31 +338,31 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitKeywords.DOTSForward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.ForwardSM45, LitKeywords.DOTSForward));
                 else
-                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.DOTSForward, LitKeywords.DOTSForward));
+                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.ForwardSM45, LitKeywords.DOTSForward));
 
                 if (!complexLit)
                     result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.InstancedSM45));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.InstancedSM45));
 
                 if (complexLit)
-                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.InstancedSM45));
                 else
-                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DOTSDefault));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.InstancedSM45));
+                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DefaultSM45));
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DefaultSM45));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DefaultSM45));
 
-                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DefaultSM45));
 
                 return result;
             }
@@ -557,7 +557,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
-                    pragmas = CorePragmas.DOTSGBuffer,
+                    pragmas = CorePragmas.GBufferSM45,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.GBuffer },
                     includes = LitIncludes.GBuffer,

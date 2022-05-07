@@ -197,20 +197,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(PassVariant(UnlitPasses.Forward(target, UnlitKeywords.DOTSForward), CorePragmas.DOTSForward));
+                result.passes.Add(PassVariant(UnlitPasses.Forward(target, UnlitKeywords.DOTSForward), CorePragmas.ForwardSM45));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.InstancedSM45));
 
-                result.passes.Add(PassVariant(UnlitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(UnlitPasses.DepthNormalOnly(target), CorePragmas.InstancedSM45));
 
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.InstancedSM45));
 
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DefaultSM45));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DefaultSM45));
 
                 return result;
             }

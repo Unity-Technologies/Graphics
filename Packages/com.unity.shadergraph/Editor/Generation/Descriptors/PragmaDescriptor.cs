@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static PragmaDescriptor Target(ShaderModel value) => new PragmaDescriptor { value = $"target {value.ToShaderString()}" };
+        public static PragmaDescriptor TargetForKeyword(ShaderModel value, string keyword) => new PragmaDescriptor { value = $"target {value.ToShaderString()} {keyword}" };
         public static PragmaDescriptor Vertex(string value) => new PragmaDescriptor { value = $"vertex {value}" };
         public static PragmaDescriptor Fragment(string value) => new PragmaDescriptor { value = $"fragment {value}" };
         public static PragmaDescriptor Geometry(string value) => new PragmaDescriptor { value = $"geometry {value}" };

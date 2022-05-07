@@ -1412,10 +1412,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
+        // SM20 SubShaders need to use SM35 for DOTS_INSTANCING_ON variants
+        private static PragmaDescriptor DOTSInstancingSM35 => Pragma.TargetForKeyword(ShaderModel.Target35, "DOTS_INSTANCING_ON");
+
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1425,6 +1429,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
+            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1435,6 +1440,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1448,7 +1454,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSDefault = new PragmaCollection
+        public static readonly PragmaCollection DefaultSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
@@ -1457,7 +1463,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
+        public static readonly PragmaCollection InstancedSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
@@ -1467,7 +1473,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSForward = new PragmaCollection
+        public static readonly PragmaCollection ForwardSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
@@ -1479,7 +1485,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
+        public static readonly PragmaCollection GBufferSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },

@@ -36,6 +36,12 @@
 #endif
 #if defined(UNITY_SUPPORT_INSTANCING) && defined(DOTS_INSTANCING_ON)
     #define UNITY_DOTS_INSTANCING_ENABLED
+
+    // On GL, use UBO path, on every other platform use SSBO path
+    #if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)
+        #define UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+    #endif
+
 #endif
 #if defined(UNITY_SUPPORT_STEREO_INSTANCING) && defined(STEREO_INSTANCING_ON)
     #define UNITY_STEREO_INSTANCING_ENABLED
@@ -47,8 +53,18 @@
     #define UNITY_ANY_INSTANCING_ENABLED 0
 #endif
 
-#if defined(DOTS_INSTANCING_ON) && (SHADER_TARGET < 45)
-#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater).
+#if defined(DOTS_INSTANCING_ON)
+    #if defined(UNITY_DOTS_INSTANCING_UNIFORM_BUFFER)
+        #if (SHADER_TARGET < 35)
+            #error The DOTS_INSTANCING_ON keyword requires shader model 3.5 or greater ("#pragma target 3.5" or greater) on OpenGL. Make sure to use target 3.5 or greater in all SubShaders or variants that use DOTS_INSTANCING_ON, and to NOT use DOTS_INSTANCING_ON in any SubShaders that must use a lower target version.
+        #endif
+    #else
+        // DOTS_INSTANCING_ON requires SM4.5 on D3D11, but we skip issuing this error for SM3.5 as a workaround to d3d11 being enabled
+        // for SM2.0/SM3.5 subshaders in URP.
+        #if (defined(SHADER_API_D3D11) && (SHADER_TARGET < 35)) || (!defined(SHADER_API_D3D11) && (SHADER_TARGET < 45))
+            #error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater). Make sure to use target 4.5 or greater in all SubShaders or variants that use DOTS_INSTANCING_ON, and to NOT use DOTS_INSTANCING_ON in any SubShaders that must use a lower target version.
+        #endif
+    #endif
 #endif
 
 #if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
@@ -242,7 +258,8 @@
         #undef UNITY_SETUP_INSTANCE_ID
         #define UNITY_SETUP_INSTANCE_ID(input) {\
             DEFAULT_UNITY_SETUP_INSTANCE_ID(input);\
-            SetupDOTSVisibleInstancingData();}
+            SetupDOTSVisibleInstancingData();\
+            UNITY_SETUP_DOTS_SH_COEFFS; }
     #endif
 
 #else

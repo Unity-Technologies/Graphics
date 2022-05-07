@@ -29,7 +29,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             HLSLPROGRAM
 
             #pragma target 4.5
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles
 
             #pragma editor_sync_compilation
             #pragma multi_compile DOTS_INSTANCING_ON
@@ -88,9 +88,7 @@ Shader "Hidden/Universal Render Pipeline/BRGPicking"
             HLSLPROGRAM
 
             #pragma target 4.5
-            #pragma exclude_renderers gles gles3 glcore
-
-            #pragma enable_d3d11_debug_symbols
+            #pragma exclude_renderers gles
 
             #pragma editor_sync_compilation
 
