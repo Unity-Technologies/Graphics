@@ -54,6 +54,7 @@
       * [Shadows, Midtones, Highlights](Post-Processing-Shadows-Midtones-Highlights.md)
       * [Split Toning](Post-Processing-Split-Toning.md)
       * [Tonemapping](Post-Processing-Tonemapping.md)
+      * [High Dynamic Range (HDR) Output](HDR-Output.md)
       * [Vignette](Post-Processing-Vignette.md)
       * [White Balance](Post-Processing-White-Balance.md)
     * Shadowing
@@ -82,6 +83,7 @@
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
   * [Material Type](Material-Type.md)
+  * [Material Variants](materialvariant-HDRP.md)
   * [Tessellation](Tessellation.md)
   * [Surface Type](Surface-Type.md)
   * [Renderer and Material Priority](Renderer-And-Material-Priority.md)

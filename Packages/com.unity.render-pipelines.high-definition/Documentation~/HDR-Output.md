@@ -1,4 +1,4 @@
-# High Dynamic Range (HDR) Output in HDRP
+# High Dynamic Range (HDR) Output
 
 [High Dynamic Range](https://en.wikipedia.org/wiki/High_dynamic_range) content has a wider color gamut and greater luminosity range than standard definition content.
 
