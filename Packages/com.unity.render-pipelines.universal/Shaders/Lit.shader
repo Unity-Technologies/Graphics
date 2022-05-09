@@ -5,9 +5,11 @@ Shader "Universal Render Pipeline/Lit"
         // Specular vs Metallic workflow
         _WorkflowMode("WorkflowMode", Float) = 1.0
 
+        //MainTexture特性 将 _BaseMap设置为主纹理,与材质的主纹理字段对应Material.mainTexture
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
 
+        
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
