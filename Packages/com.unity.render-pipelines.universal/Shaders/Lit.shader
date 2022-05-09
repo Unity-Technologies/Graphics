@@ -9,43 +9,55 @@ Shader "Universal Render Pipeline/Lit"
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
 
-        
+        //Alpha通道的截断值
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
+        //光泽度
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
+        //金属度
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
         _MetallicGlossMap("Metallic", 2D) = "white" {}
 
+        //高光
         _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)
         _SpecGlossMap("Specular", 2D) = "white" {}
 
+        //ToggleOff特性使该属性在面板上显示为开关的样式，在材质面板上位于Advanced Options
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
         [ToggleOff] _EnvironmentReflections("Environment Reflections", Float) = 1.0
 
+        //法线贴图
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
 
+        //视差贴图-高度图
         _Parallax("Scale", Range(0.005, 0.08)) = 0.005
         _ParallaxMap("Height Map", 2D) = "black" {}
 
+        //环境光遮挡
         _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
         _OcclusionMap("Occlusion", 2D) = "white" {}
 
+        //自发光，指定使用HDR颜色，该颜色亮度值可以超过1
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
+        //细节贴图，可以给表面更多的细节信息
         _DetailMask("Detail Mask", 2D) = "white" {}
         _DetailAlbedoMapScale("Scale", Range(0.0, 2.0)) = 1.0
         _DetailAlbedoMap("Detail Albedo x2", 2D) = "linearGrey" {}
         _DetailNormalMapScale("Scale", Range(0.0, 2.0)) = 1.0
+
+        //Normal特性添加2D 纹理属性之前，可以检测关联的纹理贴图是否为法线贴图，如果不是，则弹出修复提示
         [Normal] _DetailNormalMap("Normal Map", 2D) = "bump" {}
 
         // SRP batching compatibility for Clear Coat (Not used in Lit)
         [HideInInspector] _ClearCoatMask("_ClearCoatMask", Float) = 0.0
         [HideInInspector] _ClearCoatSmoothness("_ClearCoatSmoothness", Float) = 0.0
 
+        //状态混合参数
         // Blending state
         _Surface("__surface", Float) = 0.0
         _Blend("__blend", Float) = 0.0
@@ -69,6 +81,7 @@ Shader "Universal Render Pipeline/Lit"
         [HideInInspector] _Glossiness("Smoothness", Float) = 0.0
         [HideInInspector] _GlossyReflections("EnvironmentReflections", Float) = 0.0
 
+        //NoScaleOffset 在面板上隐藏纹理贴图的Tilling和Offset选项
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
@@ -76,12 +89,17 @@ Shader "Universal Render Pipeline/Lit"
 
     SubShader
     {
+        //使用URP管线，需要指定渲染管线为UniversalPipeline,否则这个SubShader将失败，如果想使该材质同时在URP和内置管线中运行
+        //这里就是想让该shader在两个管线下都可以运行： 可以在下面添加一个新的SubShader或者Fallback到内置管线
         // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Universal Render Pipeline and Builtin Unity Pipeline
+        //指定ShaderModel为4.5，平台需要支持OpenGL ES 3.1
         Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
         LOD 300
 
+
+        //连续7个pass,分布为前向渲染，阴影投射，GBuffer,深度，相机法线，光照贴图，2D渲染
         // ------------------------------------------------------------------
         //  Forward pass. Shades all light in a single pass. GI + emission + Fog
         Pass
@@ -398,9 +416,11 @@ Shader "Universal Render Pipeline/Lit"
 
     SubShader
     {
+
         // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Universal Render Pipeline and Builtin Unity Pipeline
+        //ShaderModel为2.0,在unity所有支持的平台都能工作，上一个SubShader不能运行，那么就使用当前的SubShader
         Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True" "ShaderModel"="2.0"}
         LOD 300
 
@@ -641,6 +661,8 @@ Shader "Universal Render Pipeline/Lit"
         }
     }
 
+    //回退到FallBackError,该文件在Pakages/Universal RP/Shaders/Utils/FallbackError.shader
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
+    //自定义材质界面
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.LitShader"
 }
