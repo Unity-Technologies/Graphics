@@ -64,10 +64,10 @@ Shader "Hidden/HDRP/Distributed/BlitYUVToRGB"
             float R = y + e * v;
             float G = y - (a * e / b) * v - (c * d / b) * u;
             float B = y + d * u;
-            //float3 rgb = max(float3(0, 0, 0), float3(R, G, B));
-            //rgb = pow(rgb, 2.2f);
-		    //return float4(rgb, 1);
-            return float4(R, G, B, 1);
+            float3 rgb = max(float3(0, 0, 0), float3(R, G, B));
+            rgb = pow(rgb, 2.2f) * 16;
+		    return float4(rgb, 1);
+            //return float4(R, G, B, 1);
         }
 
         float4 FragYUV(Varyings input) : SV_Target
