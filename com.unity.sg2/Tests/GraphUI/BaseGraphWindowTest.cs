@@ -78,6 +78,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
+        /// <summary>
+        /// Saves the open graph, closes the tool window, then reopens the graph.
+        /// m_Window is reassigned after calling this method.
+        /// </summary>
+        public IEnumerator SaveAndReopenGraph()
+        {
+            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
+            CloseWindow();
+            yield return null;
+
+            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
+            CreateWindow();
+            m_Window.Show();
+            m_Window.Focus();
+            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            yield return null;
+
+            yield return null;
+        }
+
         public SearcherWindow SummonSearcher()
         {
             m_GraphView.DisplaySmartSearch(new Vector2());

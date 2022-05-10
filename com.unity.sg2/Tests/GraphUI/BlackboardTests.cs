@@ -21,18 +21,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public override void SetUp()
         {
             base.SetUp();
+            FindBlackboardView();
+        }
 
-            Assert.IsTrue(m_Window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay), "Blackboard overlay must be present for blackboard tests");
-            m_BlackboardView = (BlackboardView)blackboardOverlay
-                .GetType()
-                .GetField("m_BlackboardView", BindingFlags.NonPublic | BindingFlags.Instance)
+        private void FindBlackboardView()
+        {
+            const string viewFieldName = "m_BlackboardView";
+
+            var found = m_Window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay);
+            Assert.IsTrue(found, "Blackboard overlay was not found");
+
+            m_BlackboardView = (BlackboardView)blackboardOverlay.GetType()
+                .GetField(viewFieldName, BindingFlags.NonPublic | BindingFlags.Instance)?
                 .GetValue(blackboardOverlay);
+            Assert.IsNotNull(m_BlackboardView, "Blackboard view was not found");
         }
 
         [UnityTest]
         public IEnumerator TestBlackboardLoadsWithCorrectFieldType()
         {
-            void VerifyFloatDeclarationView()
+            void ValidateCreatedField()
             {
                 var model = (ShaderGraphModel)m_GraphView.GraphModel;
                 var decl = model.VariableDeclarations.FirstOrDefault();
@@ -55,8 +63,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
 
             {
-                yield return null;
-
                 var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
 
                 var createMenu = new List<Stencil.MenuItem>();
@@ -68,43 +74,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 floatItem.action.Invoke();
                 yield return null;
 
-                VerifyFloatDeclarationView();
+                ValidateCreatedField();
             }
 
-            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
-            CloseWindow();
-            yield return null;
+            yield return SaveAndReopenGraph();
 
-            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
-            CreateWindow();
-            m_Window.Show();
-            m_Window.Focus();
-            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-            yield return null;
-
-            Assert.IsTrue(m_Window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay), "Blackboard overlay must be present for blackboard tests");
-            m_BlackboardView = (BlackboardView)blackboardOverlay
-                .GetType()
-                .GetField("m_BlackboardView", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(blackboardOverlay);
-
-            VerifyFloatDeclarationView();
-        }
-
-        [UnityTest]
-        public IEnumerator TestBlackboardAttempt2()
-        {
-            var stencil = (ShaderGraphStencil)m_GraphView.GraphModel.Stencil;
-            var model = (ShaderGraphModel)m_GraphView.GraphModel;
-
-            var items = new List<Stencil.MenuItem>();
-            stencil.PopulateBlackboardCreateMenu("Properties", items, m_BlackboardView);
-
-            var floatItem = items.FirstOrDefault(i => i.name == "Create Float");
-            Assert.IsNotNull(floatItem, "Blackboard create menu must contain a \"Create Float\" item");
-
-            floatItem.action.Invoke();
-            yield return null;
+            {
+                FindBlackboardView();
+                ValidateCreatedField();
+            }
         }
     }
 }
