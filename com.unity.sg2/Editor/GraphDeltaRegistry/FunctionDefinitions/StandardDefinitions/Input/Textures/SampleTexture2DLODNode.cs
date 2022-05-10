@@ -3,136 +3,119 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class SampleTexture2DNode : IStandardNode
-    {
-        public static string Name = "SampleTexture2D";
-        public static int Version = 1;
 
+    internal class SampleTexture2DLODNode : IStandardNode
+    {
+        public static string Name = "SampleTexture2DLOD";
+        public static int Version = 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
             new FunctionDescriptor[] {
-                new(
+                new (
                     1,
                     "Standard",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
-    if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
-    if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
-    RGB = RGBA.rgb;
-    R = RGBA.r;
-    G = RGBA.g;
-    B = RGBA.b;
-    A = RGBA.a;
-}",
+                    @"
+                    {
+                    #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+                        RGBA = temp;
+                    #else
+                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
+                    #endif
+                        RGB = RGBA.rgb;
+                        R = RGBA.r;
+                        G = RGBA.g;
+                        B = RGBA.b;
+                        A = RGBA.a;
+                    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
-                    new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
-                    new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
-                    new ParameterDescriptor("R", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("G", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
-                ),
-                new(
-                    1,
-                    "LOD",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
-    if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
-    if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
-    RGB = RGBA.rgb;
-    R = RGBA.r;
-    G = RGBA.g;
-    B = RGBA.b;
-    A = RGBA.a;
-}",
-                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 ),
-                new(
+                new (
                     1,
-                    "Gradient",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
-    if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
-    if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
-    RGB = RGBA.rgb;
-    R = RGBA.r;
-    G = RGBA.g;
-    B = RGBA.b;
-    A = RGBA.a;
-}",
+                    "NormalObject",
+                    @"
+                    {
+                    #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+                        RGBA = temp;
+                    #else
+                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
+                    #endif
+                        RGBA.rgb = UnpackNormalRGB(RGBA);
+                        RGB = RGBA.rgb;
+                        R = RGBA.r;
+                        G = RGBA.g;
+                        B = RGBA.b;
+                        A = RGBA.a;
+                    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
-                    new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),
-                    new ParameterDescriptor("DDY", TYPE.Vec2, Usage.In),
+                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 ),
-                new(
+                new (
                     1,
-                    "Bias",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
-    if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
-    if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
-    RGB = RGBA.rgb;
-    R = RGBA.r;
-    G = RGBA.g;
-    B = RGBA.b;
-    A = RGBA.a;
-}",
+                    "NormalTangent",
+                    @"
+                    {
+                    #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+                        RGBA = temp;
+                    #else
+                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
+                    #endif
+                        RGBA.rgb = UnpackNormal(RGBA);
+                        RGB = RGBA.rgb;
+                        R = RGBA.r;
+                        G = RGBA.g;
+                        B = RGBA.b;
+                        A = RGBA.a;
+                    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
-                    new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("G", TYPE.Float, Usage.Out),
                     new ParameterDescriptor("B", TYPE.Float, Usage.Out),
-                    new ParameterDescriptor("A", TYPE.Float, Usage.Out)
+                    new ParameterDescriptor("A", TYPE.Float, Usage.Out),
+                    new ParameterDescriptor("temp", TYPE.Vec4, Usage.Local, new[] { 0.0f, 0.0f, 0.0f, 1.0f})
                 )
             }
+
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Samples a 2D Texture.",
+            tooltip: "Samples a 2D Texture with a specified level of detail (LOD).",
             categories: new string[2] { "Input", "Texture" },
-            synonyms: new string[1] { "tex2d" },
-            selectableFunctions: new()
+            synonyms: new string[2] { "tex2dlod", "mip" },
+            displayName: "Sample Texture 2D LOD",
+            selectableFunctions: new ()
             {
                 { "Standard", "Standard" },
-                { "LOD", "LOD" },
-                { "Gradient", "Gradient" },
-                { "Bias", "Bias" }
-            },
-            parameters: new ParameterUIDescriptor[13] {
+                { "NormalTangent", "Normal Tangent" },
+                { "NormalObject", "Normal Object" }
+        },
+            parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
                     name: "Texture",
                     tooltip: "the texture asset to sample"
@@ -144,22 +127,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Sampler",
                     tooltip: "the texture sampler to use for sampling the texture"
-                ),
-                new ParameterUIDescriptor(
-                    name: "LOD",
-                    tooltip: "explicitly defines the mip level to sample"
-                ),
-                new ParameterUIDescriptor(
-                    name: "DDX",
-                    tooltip: "the horizontal derivitive used to calculate the mip level"
-                ),
-                new ParameterUIDescriptor(
-                    name: "DDY",
-                    tooltip: "the vertical derivitive used to calculate the mip level"
-                ),
-                new ParameterUIDescriptor(
-                    name: "Bias",
-                    tooltip: "adds or substracts from the auto-generated mip level"
                 ),
                 new ParameterUIDescriptor(
                     name: "RGBA",
@@ -184,6 +151,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "A",
                     tooltip: "the alpha channel of the sampled texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "LOD",
+                    tooltip: "level of detail to sample"
                 )
             }
         );

@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
                     new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -166,7 +166,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -180,7 +180,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -194,7 +194,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
                     new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -254,7 +254,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
                     new ParameterDescriptor("check", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -268,7 +268,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
                     new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -315,7 +315,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
                     new ParameterDescriptor("zeroOrOne", TYPE.Vector, GraphType.Usage.Local),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 ),
                 new(
                     1,
@@ -328,7 +328,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Blend", TYPE.Vector, GraphType.Usage.In),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
                     new ParameterDescriptor("UseOpacity", TYPE.Bool, GraphType.Usage.Static, new float[] { 1.0f }),
-                    new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    new ParameterDescriptor("Out", TYPE.Vector, GraphType.Usage.Out)
                 )
             }
         );
