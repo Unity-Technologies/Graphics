@@ -19,6 +19,20 @@ In order to control the cost of building the ray tracing acceleration structure,
 HDRP can either extend the camera frustum, perform sphere culling or skip the culling step.
 ![](Images/RayTracingSettings_extended_frustum.gif)
 
+### Fullscreen Shader Graph
+
+![](Images/HDRP-Fullscreen-Frost-Effect.png)
+
+HDRP 14.0 introduces a new material type in ShaderGraph to create fullscreen effects.
+Shaders of the fullscreen type can be used in fullscreen custom passes, custom post processes and C# scripting.
+
+For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
+
+### Materials and Diffusion Profiles
+
+When importing a material with a diffusion profile that is not referenced in the HDRP Global Settings, rendering cannot be made correctly. With HDRP 14, these diffusion profiles are automatically registered in the Global Settings to ease importing of external assets. This can be disabled by unticking the box **Auto Register Diffusion Profiles** in the **Miscellaneaous** section of the Global Settings.
+Additionally, materials using a non registered diffusion profile are now displayed in fushia instead of green to better highlight them.
+
 ## Updated
 
 ### Cloud Layer
@@ -29,12 +43,3 @@ Improvements have also been made to the raymarching algorithm to improve scatter
 In the UI, **thickness** and **distortion** fields have been renamed to **density** and **wind**.
 
 ![](Images/cl-whats-new.png)
-
-### Fullscreen Shader Graph
-
-![](Images/HDRP-Fullscreen-Frost-Effect.png)
-
-HDRP 13.0 introduces a new material type in ShaderGraph to create fullscreen effects.
-Shaders of the fullscreen type can be used in fullscreen custom passes, custom post processes and C# scripting.
-
-For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).

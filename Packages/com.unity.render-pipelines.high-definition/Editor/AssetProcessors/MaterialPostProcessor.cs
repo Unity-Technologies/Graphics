@@ -329,10 +329,63 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
+        static void RegisterReferencedDiffusionProfiles(Material material)
+        {
+            void AddDiffusionProfileToSettings(string propName)
+            {
+                if (!material.HasProperty(propName))
+                    return;
+
+                var diffusionProfileAsset = material.GetVector(propName);
+                string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(assetPath);
+
+                HDRenderPipelineGlobalSettings.instance.TryAutoRegisterDiffusionProfile(diffusionProfile);
+            }
+
+            AddDiffusionProfileToSettings("_DiffusionProfileAsset");
+
+            // ShaderGraph can reference custom diffusion profiles.
+            var shader = material.shader;
+            if (shader.IsShaderGraphAsset())
+            {
+                int propertyCount = ShaderUtil.GetPropertyCount(shader);
+                for (int propIdx = 0; propIdx < propertyCount; ++propIdx)
+                {
+                    var attributes = shader.GetPropertyAttributes(propIdx);
+                    bool hasDiffusionProfileAttribute = false;
+                    foreach (var attribute in attributes)
+                    {
+                        if (attribute == "DiffusionProfile")
+                        {
+                            propIdx++;
+                            hasDiffusionProfileAttribute = true;
+                            break;
+                        }
+                    }
+
+                    var type = ShaderUtil.GetPropertyType(shader, propIdx);
+                    if (hasDiffusionProfileAttribute && type == ShaderUtil.ShaderPropertyType.Vector)
+                        AddDiffusionProfileToSettings(ShaderUtil.GetPropertyName(shader, propIdx));
+                }
+            }
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)
             {
+                // Register Diffuse Profiles
+                Material material = null;
+                if (HDRenderPipelineGlobalSettings.instance?.autoRegisterDiffusionProfiles == true)
+                {
+                    material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                    if (material == null)
+                        continue;
+                    RegisterReferencedDiffusionProfiles(material);
+                }
+
                 // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
                 if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
                 {
@@ -349,14 +402,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     continue;
                 }
-                else if (!asset.ToLowerInvariant().EndsWith(".mat"))
-                {
-                    continue;
-                }
 
                 // Materials (.mat) post processing:
+                if (!asset.ToLowerInvariant().EndsWith(".mat"))
+                    continue;
 
-                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null)
+                    material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
@@ -392,7 +444,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                     continue;
-
 
                 (ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;

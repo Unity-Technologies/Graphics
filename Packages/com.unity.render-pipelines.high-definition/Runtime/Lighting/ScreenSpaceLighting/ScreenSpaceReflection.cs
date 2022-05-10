@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         /// <summary>
-        /// Clamps the exposed intensity.
+        /// Clamps the exposed intensity, this only affects reflections on opaque objects.
         /// </summary>
         public float clampValue
         {
@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_ClampValue.value = value; }
         }
         [SerializeField, FormerlySerializedAs("clampValue")]
-        [Tooltip("Controls the clamp of intensity.")]
+        [Tooltip("Clamps the exposed intensity, this only affects reflections on opaque objects.")]
         private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
 
         /// <summary>

@@ -83,12 +83,26 @@ namespace UnityEditor.VFX
             return m_TransientData;
         }
 
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            if (GetParent() is VFXBlockSubgraphContext)
+            {
+                var notUndefinedSpace = inputSlots.Where(o => o.space != VFXCoordinateSpace.None);
+                if (notUndefinedSpace.Any())
+                {
+                    manager.RegisterError("SubgraphBlockSpaceIsIgnored", VFXErrorType.Warning, "Space Local/World are ignored in subgraph blocks.");
+                }
+            }
+        }
+
         public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             /* For block, space is directly inherited from parent context, this method should remains sealed */
             if (GetParent() != null)
                 return GetParent().space;
-            return (VFXCoordinateSpace)int.MaxValue;
+            return VFXCoordinateSpace.None;
         }
 
         public VFXContext flattenedParent

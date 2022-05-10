@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RaytracingNumSamples;
         // Index of the current sample
         public int _RaytracingSampleIndex;
+
         // Value used to clamp the intensity of the signal to reduce the signal/noise ratio
         public float _RaytracingIntensityClamp;
         // Flag that tracks if ray counting is enabled
@@ -19,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RaytracingPreExposition;
         // Near plane distance of the camera used for ray tracing
         public float _RaytracingCameraNearPlane;
+
         // Angle of a pixel (used for texture filtering)
         public float _RaytracingPixelSpreadAngle;
         // Ray traced reflection Data
@@ -26,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _RaytracingReflectionSmoothnessFadeStart;
         // Path tracing parameters
         public int _RaytracingMinRecursion;
+
         public int _RaytracingMaxRecursion;
         // Ray traced indirect diffuse data
         public int _RayTracingDiffuseLightingOnly;
@@ -33,11 +36,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _DirectionalShadowFallbackIntensity;
         // Global bias applied to texture reading for various reasons.
         public float _RayTracingLodBias;
+
         // Bit mask that defines which fall back to use when a ray misses.
         public int _RayTracingRayMissFallbackHierarchy;
         // Flag that defines if the sky should be used as an environment light.
         public int _RayTracingLastBounceFallbackHierarchy;
-        public int _Padding0;
+        // Flag that defines if
+        public int _RayTracingClampingFlag;
         public int _Padding1;
     }
 }

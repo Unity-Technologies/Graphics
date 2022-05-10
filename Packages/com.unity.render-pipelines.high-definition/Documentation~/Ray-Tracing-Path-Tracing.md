@@ -16,6 +16,8 @@ Clean image with **Maximum Samples** set to 256
 
 The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit, Stacklit, AxF, and Unlit materials, and area, point, directional, and environment lights.
 
+To troubleshoot this effect, HDRP provides a Path Tracing [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Setting up path tracing
 
 Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). You must carry out this setup before you can add path tracing to your Scene.
@@ -88,11 +90,11 @@ When you use path tracing, the **Double-Sided** property (menu: **Inspector** > 
 
 The following images display the same GameObjects with a single-sided Material and a double-sided material:
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Single Sided.png)
+![Surface_Options](Images/HDRP_PathtracingBoxes_SingleSided.png)
 
 GameObjects with a single-sided Material and path tracing enabled
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Double Sided.png)
+![Surface_Options](Images/HDRP_PathtracingBoxes_DoubleSided.png)
 
 GameObjects with a double-sided Material and path tracing enabled
 

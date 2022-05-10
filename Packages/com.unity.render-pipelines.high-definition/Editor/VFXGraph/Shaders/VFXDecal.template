@@ -55,12 +55,11 @@ if(_EnableDecalLayers)
 
 if(_EnableDecalLayers)
 {
-	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
+	if (i.VFX_VARYING_ANGLEFADE.x > 0.0f) // if angle fade is enabled
 	{
 		float3 decalNormal = normalize(worldToElement[2].xyz);
 		float dotAngle = dot(material.geomNormalWS, decalNormal);
-		// See equation in DecalSystem.cs - simplified to a madd mul add here
-		angleFadeFactor = saturate(i.VFX_VARYING_ANGLEFADE.x + i.VFX_VARYING_ANGLEFADE.y * (dotAngle * (dotAngle - 2.0f)));
+        angleFadeFactor = DecodeAngleFade(dot(material.geomNormalWS, decalNormal), i.VFX_VARYING_ANGLEFADE);
 	}
 }
 	float fadeFactor = i.VFX_VARYING_FADEFACTOR;

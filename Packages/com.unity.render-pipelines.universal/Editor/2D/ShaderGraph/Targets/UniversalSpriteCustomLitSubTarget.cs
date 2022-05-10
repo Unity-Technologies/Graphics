@@ -28,55 +28,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
-            var descs = context.blocks.Select(x => x.descriptor);
-            bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
-            context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
-
-            // Surface Type
-            context.AddField(UniversalFields.SurfaceTransparent);
-            context.AddField(Fields.DoubleSided);
-
-            // Blend Mode
-            switch (target.alphaMode)
-            {
-                case AlphaMode.Premultiply:
-                    context.AddField(UniversalFields.BlendPremultiply);
-                    break;
-                case AlphaMode.Additive:
-                    context.AddField(UniversalFields.BlendAdd);
-                    break;
-                case AlphaMode.Multiply:
-                    context.AddField(UniversalFields.BlendMultiply);
-                    break;
-                default:
-                    context.AddField(Fields.BlendAlpha);
-                    break;
-            }
+            SpriteSubTargetUtility.AddDefaultFields(ref context, target);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
-            bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
+            SpriteSubTargetUtility.GetDefaultActiveBlocks(ref context, target);
 
             context.AddBlock(UniversalBlockFields.SurfaceDescription.SpriteMask);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Blending Mode", new UnityEngine.UIElements.EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
-            {
-                if (Equals(target.alphaMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Blend");
-                target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
+            SpriteSubTargetUtility.AddDefaultPropertiesGUI(ref context, onChange, registerUndo, target);
         }
 
         #region SubShader
@@ -93,8 +58,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        { SpriteLitPasses.Lit },
-                        { SpriteLitPasses.Normal },
+                        { SpriteLitPasses.Lit(target) },
+                        { SpriteLitPasses.Normal(target) },
                         // Currently neither of these passes (selection/picking) can be last for the game view for
                         // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
@@ -110,60 +75,76 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Passes
         static class SpriteLitPasses
         {
-            public static PassDescriptor Lit = new PassDescriptor
+            public static PassDescriptor Lit(UniversalTarget target)
             {
-                // Definition
-                displayName = "Sprite Lit",
-                referenceName = "SHADERPASS_SPRITELIT",
-                lightMode = "Universal2D",
-                useInPreview = true,
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "Sprite Lit",
+                    referenceName = "SHADERPASS_SPRITELIT",
+                    lightMode = "Universal2D",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = SpriteLitRequiredFields.Lit,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = SpriteLitRequiredFields.Lit,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
-                keywords = SpriteLitKeywords.Lit,
-                includes = SpriteLitIncludes.Lit,
-            };
+                    // Conditional State
+                    renderStates = CoreRenderStates.Default,
+                    pragmas = CorePragmas._2DDefault,
+                    defines = new DefineCollection(),
+                    keywords = SpriteLitKeywords.Lit,
+                    includes = SpriteLitIncludes.Lit,
+                };
 
-            public static PassDescriptor Normal = new PassDescriptor
+                SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor Normal(UniversalTarget target)
             {
-                // Definition
-                displayName = "Sprite Normal",
-                referenceName = "SHADERPASS_SPRITENORMAL",
-                lightMode = "NormalsRendering",
-                useInPreview = true,
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "Sprite Normal",
+                    referenceName = "SHADERPASS_SPRITENORMAL",
+                    lightMode = "NormalsRendering",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = SpriteLitBlockMasks.FragmentNormal,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = SpriteLitBlockMasks.FragmentNormal,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = SpriteLitRequiredFields.Normal,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = SpriteLitRequiredFields.Normal,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
-                includes = SpriteLitIncludes.Normal,
-            };
+                    // Conditional State
+                    renderStates = CoreRenderStates.Default,
+                    pragmas = CorePragmas._2DDefault,
+                    defines = new DefineCollection(),
+                    includes = SpriteLitIncludes.Normal,
+                };
+
+                SpriteSubTargetUtility.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
 
             public static PassDescriptor Forward = new PassDescriptor
             {
@@ -207,12 +188,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescriptionLegacy.SpriteColor,
                 BlockFields.SurfaceDescription.Alpha,
                 UniversalBlockFields.SurfaceDescription.SpriteMask,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
             public static BlockFieldDescriptor[] FragmentNormal = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
             public static BlockFieldDescriptor[] FragmentForward = new BlockFieldDescriptor[]

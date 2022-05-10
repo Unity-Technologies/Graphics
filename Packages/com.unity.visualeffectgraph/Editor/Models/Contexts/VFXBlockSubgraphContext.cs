@@ -61,6 +61,17 @@ namespace UnityEditor.VFX
                 return false;
             }
         }
+
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+            //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
+            if (cause == InvalidationCause.kExpressionInvalidated)
+            {
+                model.RefreshErrors(GetGraph());
+            }
+        }
+
         public override bool Accept(VFXBlock block, int index = -1)
         {
             return ((block.compatibleContexts & compatibleContextType) == compatibleContextType);

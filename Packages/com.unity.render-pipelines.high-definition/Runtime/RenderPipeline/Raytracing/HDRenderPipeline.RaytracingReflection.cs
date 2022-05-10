@@ -355,6 +355,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
             // Override the ones we need to
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
+            deferredParameters.raytracingCB._RayTracingClampingFlag = transparent ? 0 : 1;
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 0;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
@@ -489,6 +490,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingAccelerationStructure(data.reflectionShader, HDShaderIDs._RaytracingAccelerationStructureName, data.accelerationStructure);
 
                         // Global reflection parameters
+                        data.shaderVariablesRayTracingCB._RayTracingClampingFlag = data.transparent ? 0 : 1;
                         data.shaderVariablesRayTracingCB._RaytracingIntensityClamp = data.clampValue;
                         // Inject the ray generation data
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;

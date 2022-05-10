@@ -300,25 +300,6 @@ void RayGenIntegrationTransparent()
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
-    // The clamping process is different for the sky and rest
-    float3 finalColor = 0.0;
-    if (rayIntersection.t == _RaytracingRayMaxLength)
-    {
-        // Convert to HSV space
-        finalColor = RgbToHsv(rayIntersection.color * GetCurrentExposureMultiplier());
-
-        // Expose and clamp the final color
-        finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
-
-        // Convert back to HSV space
-        finalColor = HsvToRgb(finalColor) * GetInverseCurrentExposureMultiplier();
-    }
-    else
-    {
-        // Expose and clamp the final color
-        finalColor = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
-    }
-
     // We store the sampled color and the weight that shall be used for it (1.0)
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(rayIntersection.color, 1.0);
 }

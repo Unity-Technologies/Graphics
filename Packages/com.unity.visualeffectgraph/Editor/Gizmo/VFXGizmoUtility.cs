@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -68,7 +69,7 @@ namespace UnityEditor.VFX.UI
                 if (m_Prepared)
                     return false;
                 m_Prepared = true;
-                m_Indeterminate = false;
+                m_Error = GizmoError.None;
                 m_PropertyCache.Clear();
                 InternalPrepare();
                 return true;
@@ -86,20 +87,21 @@ namespace UnityEditor.VFX.UI
             {
                 get;
             }
-            public virtual bool spaceLocalByDefault
-            {
-                get { return false; }
-            }
 
             protected Dictionary<string, object> m_PropertyCache = new Dictionary<string, object>();
 
             public abstract VFXGizmo.IProperty<T> RegisterProperty<T>(string member);
 
-            protected bool m_Indeterminate;
+            protected GizmoError m_Error;
+
+            public GizmoError GetError()
+            {
+                return m_Error;
+            }
 
             public bool IsIndeterminate()
             {
-                return m_Indeterminate;
+                return m_Error != GizmoError.None;
             }
         }
 
@@ -173,16 +175,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static internal bool NeedsComponent(Context context)
+        static internal GizmoError CollectGizmoError(Context context, VisualEffect component)
         {
+            var error = context.GetError();
             GizmoContext gizmo;
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
                 gizmo.gizmo.currentSpace = context.space;
-                gizmo.gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
-                return gizmo.gizmo.needsComponent;
+                gizmo.gizmo.component = component;
+                error |= gizmo.gizmo.error;
+                gizmo.gizmo.component = null;
             }
-            return false;
+            return error;
         }
 
         static internal Bounds GetGizmoBounds(Context context, VisualEffect component)
@@ -212,7 +216,6 @@ namespace UnityEditor.VFX.UI
             {
                 gizmo.component = component;
                 gizmo.currentSpace = context.space;
-                gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
                 Bounds bounds = gizmo.CallGetGizmoBounds(context.value);
                 gizmo.component = null;
 
@@ -232,7 +235,6 @@ namespace UnityEditor.VFX.UI
             {
                 gizmo.component = component;
                 gizmo.currentSpace = context.space;
-                gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
                 gizmo.currentHashCode = context.GetHashCode();
 
                 gizmo.CallDrawGizmo(context.value);

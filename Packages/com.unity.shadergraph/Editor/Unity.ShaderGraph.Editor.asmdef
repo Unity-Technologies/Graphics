@@ -24,8 +24,8 @@
         },
         {
             "name": "com.unity.entities.graphics",
-            "expression": "0.6.0-preview.5",
-            "define": "HYBRID_RENDERER_0_6_0_OR_NEWER"
+            "expression": "0.60.0-preview.1",
+            "define": "ENTITIES_GRAPHICS_0_60_0_OR_NEWER"
         },
         {
             "name": "com.unity.visualeffectgraph",

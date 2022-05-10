@@ -117,7 +117,7 @@ Pass
             $Varyings.texCoord2: input.texCoord2.xy = input.texCoord2.xy * scale + offset;
             $Varyings.texCoord3: input.texCoord3.xy = input.texCoord3.xy * scale + offset;
         #else
-            #ifdef LOD_FADE_CROSSFADE
+            #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
                 LODFadeCrossFade(positionCS);
             #endif
 

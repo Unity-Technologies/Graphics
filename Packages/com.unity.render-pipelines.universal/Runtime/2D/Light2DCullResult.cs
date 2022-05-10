@@ -27,16 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
         public bool IsSceneLit()
         {
-            if (visibleLights.Count > 0)
-                return true;
-
-            foreach (var light in Light2DManager.lights)
-            {
-                if (light.lightType == Light2D.LightType.Global)
-                    return true;
-            }
-
-            return false;
+            return Light2DManager.lights.Count > 0;
         }
 
         public LightStats GetLightStatsByLayer(int layer)

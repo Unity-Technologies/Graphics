@@ -10,7 +10,10 @@
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",
-      "dependencies": {}
+      "dependencies": {
+        "com.unity.modules.tilemap": "1.0.0",
+        "com.unity.modules.uielements": "1.0.0"
+      }
     },
     "com.unity.addressables": {
       "version": "1.19.7",
@@ -36,7 +39,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.burst": {
-      "version": "1.6.4",
+      "version": "1.7.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -107,14 +110,14 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.2",
+      "version": "3.0.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.render-pipelines.core": {
-      "version": "file:../../../com.unity.render-pipelines.core",
+      "version": "file:../../../../../Packages/com.unity.render-pipelines.core",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -124,7 +127,7 @@
       }
     },
     "com.unity.render-pipelines.universal": {
-      "version": "file:../../../com.unity.render-pipelines.universal",
+      "version": "file:../../../../../Packages/com.unity.render-pipelines.universal",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -135,26 +138,26 @@
       }
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.19.5",
+      "version": "1.19.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.searcher": {
-      "version": "4.9.1",
+      "version": "4.9.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.shadergraph": {
-      "version": "file:../../../com.unity.shadergraph",
+      "version": "file:../../../../../Packages/com.unity.shadergraph",
       "depth": 0,
       "source": "local",
       "dependencies": {
         "com.unity.render-pipelines.core": "14.0.2",
-        "com.unity.searcher": "4.9.1"
+        "com.unity.searcher": "4.9.2"
       }
     },
     "com.unity.subsystemregistration": {
@@ -197,15 +200,15 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.8.11-preview",
+      "version": "7.8.19-exp.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.xr.management": "4.0.5",
         "com.unity.external.test-protocol": "1.0.0-preview",
-        "com.unity.nuget.newtonsoft-json": "2.0.0-preview",
+        "com.unity.nuget.newtonsoft-json": "2.0.0",
         "com.unity.subsystemregistration": "1.0.6",
-        "com.unity.xr.legacyinputhelpers": "2.1.6",
+        "com.unity.xr.legacyinputhelpers": "2.1.8",
         "com.unity.modules.xr": "1.0.0",
         "com.unity.modules.vr": "1.0.0",
         "com.unity.addressables": "1.17.15",
@@ -213,8 +216,18 @@
       },
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
+    "com.unity.testing.brg": {
+      "version": "file:../../../Packages/com.unity.testing.brg",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.1",
+        "com.unity.collections": "0.17.0-preview.18",
+        "com.unity.render-pipelines.core": "file:./com.unity.render-pipelines.core"
+      }
+    },
     "com.unity.testing.xr": {
-      "version": "file:../../../com.unity.testing.xr",
+      "version": "file:../../../Packages/com.unity.testing.xr",
       "depth": 0,
       "source": "local",
       "dependencies": {}
@@ -229,7 +242,7 @@
       }
     },
     "com.unity.visualeffectgraph": {
-      "version": "file:../../../com.unity.visualeffectgraph",
+      "version": "file:../../../../../Packages/com.unity.visualeffectgraph",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -238,7 +251,7 @@
       }
     },
     "com.unity.xr.legacyinputhelpers": {
-      "version": "2.1.8",
+      "version": "2.1.9",
       "depth": 1,
       "source": "registry",
       "dependencies": {

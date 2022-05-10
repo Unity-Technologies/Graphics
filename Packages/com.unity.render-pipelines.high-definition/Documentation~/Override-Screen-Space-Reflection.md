@@ -94,7 +94,7 @@ This example image uses **Speed From Reflected Surface** to accumulate the sampl
 | **Minimum Smoothness**        | See **Minimum Smoothness** in [Screen-space](#screen-space). |
 | **Smoothness Fade Start**     | See **Smoothness Fade Start** in [Screen-space](#screen-space). |
 | **Max Ray Length**            | Controls the maximum length of reflection rays in meters. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection. |
-| **Clamp Value**               | Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality. |
+| **Clamp Value**               | Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality. This only affects reflections on opaque objects.|
 | **Full Resolution**           | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Sample Count**              | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br/>This property only appears if you set **Mode** to **Quality**. |
 | **Bounce Count**              | Controls the number of bounces that reflection rays can do. Increasing this value increases execution time exponentially.<br/>This property only appears if you set **Mode** to **Quality**. |

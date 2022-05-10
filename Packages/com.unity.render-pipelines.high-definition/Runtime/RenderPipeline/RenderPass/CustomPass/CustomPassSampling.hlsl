@@ -22,7 +22,7 @@ float3 CustomPassSampleCameraColor(float2 uv, float lod, bool uvGuards = true)
         case CUSTOMPASSINJECTIONPOINT_BEFORE_TRANSPARENT: return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScaleHistory.xy, lod).rgb;
         case CUSTOMPASSINJECTIONPOINT_BEFORE_POST_PROCESS: return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, lod).rgb;
         case CUSTOMPASSINJECTIONPOINT_BEFORE_PRE_REFRACTION: return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0).rgb;
-        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessColorBuffer, s_trilinear_clamp_sampler, uv * _RTHandleScale.zw, 0).rgb;
+        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessColorBuffer, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(uv), 0).rgb;
         default: return SampleCameraColor(uv, lod);
     }
 }

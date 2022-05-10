@@ -42,7 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
         {
-            rect.y += 2;
             EditorGUI.BeginDisabledGroup(!m_DiffusionProfiles.overrideState.boolValue);
             EditorGUI.ObjectField(rect, element, new GUIContent("Profile " + index));
             EditorGUI.EndDisabledGroup();

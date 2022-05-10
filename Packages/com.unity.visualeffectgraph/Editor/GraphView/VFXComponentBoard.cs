@@ -362,7 +362,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateBoundsRecorder()
         {
-            if (m_AttachedComponent != null && m_View.controller.graph != null)
+            if (controller != null && m_AttachedComponent != null && m_View.controller.graph != null)
             {
                 controller.RecompileExpressionGraphIfNeeded();
                 bool wasRecording = false;

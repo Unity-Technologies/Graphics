@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
+using System.Linq;
 using UnityEngine.Serialization;
-using UnityEngine.Experimental.Rendering;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
@@ -795,14 +795,29 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool rendererListCulling;
 
 #if UNITY_EDITOR
+        internal void TryAutoRegisterDiffusionProfile(DiffusionProfileSettings profile)
+        {
+            if (!autoRegisterDiffusionProfiles || profile == null || diffusionProfileSettingsList == null || diffusionProfileSettingsList.Any(d => d == profile))
+                return;
+
+            if (diffusionProfileSettingsList.Length >= 15)
+            {
+                Debug.LogError($"Failed to register profile '{profile.name}', the maximum number of diffusion profiles in HDRP's Global Settings has been reached.\n" +
+                        "Remove one from the list or disable the automatic registration of missing diffusion profiles in the Global Settings.", HDRenderPipelineGlobalSettings.instance);
+                return;
+            }
+
+            AddDiffusionProfile(profile);
+        }
+
         internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
         {
             if (diffusionProfileSettingsList.Length < 15)
             {
                 int index = diffusionProfileSettingsList.Length;
-                System.Array.Resize(ref diffusionProfileSettingsList, index + 1);
+                Array.Resize(ref diffusionProfileSettingsList, index + 1);
                 diffusionProfileSettingsList[index] = profile;
-                UnityEditor.EditorUtility.SetDirty(this);
+                EditorUtility.SetDirty(this);
                 return true;
             }
             else
@@ -827,6 +842,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
         public bool supportRuntimeDebugDisplay = false;
+
+        /// <summary>
+        /// Controls whether diffusion profiles referenced by an imported material should be automatically added to the list.
+        /// </summary>
+        public bool autoRegisterDiffusionProfiles = true;
 
         #endregion
 

@@ -85,7 +85,7 @@ void frag(
         half alpha = 1;
     #endif
 
-    #ifdef LOD_FADE_CROSSFADE
+    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
         LODFadeCrossFade(unpacked.positionCS);
     #endif
 

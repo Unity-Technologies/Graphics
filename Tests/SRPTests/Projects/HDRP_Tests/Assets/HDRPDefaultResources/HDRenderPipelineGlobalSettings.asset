@@ -117,6 +117,7 @@ MonoBehaviour:
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 1
   supportRuntimeDebugDisplay: 0
+  autoRegisterDiffusionProfiles: 0
   apvScenesData:
     serializedBounds: []
     serializedHasVolumes: []
@@ -141,4 +142,4 @@ MonoBehaviour:
       lightingScenarios:
       - Default
     m_LightingScenario: Default
-  m_Version: 3
+  m_Version: 4

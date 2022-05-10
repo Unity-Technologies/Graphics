@@ -540,31 +540,25 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHAb)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBr)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHC)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP(SH,       unity_SHCoefficients)
+    UNITY_DOTS_INSTANCED_PROP(uint2,    unity_EntityId)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 #define unity_LODFade               LoadDOTSInstancedData_LODFade()
+#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(float4, unity_ProbesOcclusion, unity_DOTS_ProbesOcclusion)
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
 #define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
-#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
-#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
-#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAb)
-#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBr)
-#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
-#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
-#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
-#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
-
+#define unity_SHAr                  LoadDOTSInstancedData_SHAr()
+#define unity_SHAg                  LoadDOTSInstancedData_SHAg()
+#define unity_SHAb                  LoadDOTSInstancedData_SHAb()
+#define unity_SHBr                  LoadDOTSInstancedData_SHBr()
+#define unity_SHBg                  LoadDOTSInstancedData_SHBg()
+#define unity_SHBb                  LoadDOTSInstancedData_SHBb()
+#define unity_SHC                   LoadDOTSInstancedData_SHC()
 #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 #define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
@@ -575,6 +569,16 @@ static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
 static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
 static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
+
+// Set up by BRG picking/selection code
+int unity_SubmeshIndex;
+#define unity_SelectionID UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex, _SelectionID)
+#define UNITY_SETUP_DOTS_SH_COEFFS  SetupDOTSSHCoeffs(UNITY_DOTS_INSTANCED_METADATA_NAME(SH, unity_SHCoefficients))
+
+#else
+
+#define unity_SelectionID _SelectionID
+#define UNITY_SETUP_DOTS_SH_COEFFS
 
 #endif
 

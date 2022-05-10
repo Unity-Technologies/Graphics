@@ -39,3 +39,7 @@ The old Unity material ball has been modified to remove all references to the ol
 The new Unity material ball with the new Unity logo can be accessed from com.unity.render-pipelines.high-definition\Runtime\RenderPipelineResources\Prefab.
 
 Material Samples have been updated accordinly.
+
+## Decal Projectors
+
+Starting from HDRP 14.x, the Angle Fade setting on Decal Projectors have been reworked to improve precision. As a result, Decal Projectors using angle fade may appear differently.

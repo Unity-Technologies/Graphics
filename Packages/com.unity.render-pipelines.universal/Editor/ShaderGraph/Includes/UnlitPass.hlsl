@@ -52,7 +52,7 @@ void frag(
         half alpha = half(1.0);
     #endif
 
-    #ifdef LOD_FADE_CROSSFADE
+    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
         LODFadeCrossFade(unpacked.positionCS);
     #endif
 

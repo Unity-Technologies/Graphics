@@ -526,7 +526,7 @@ MonoBehaviour:
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 0
-  m_EndAngleFade: 3.7864828
+  m_EndAngleFade: 45
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 1
@@ -584,7 +584,7 @@ MonoBehaviour:
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 0
-  m_EndAngleFade: 3.7864828
+  m_EndAngleFade: 45
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 1
@@ -1187,7 +1187,7 @@ MonoBehaviour:
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 0
-  m_EndAngleFade: 3.7864838
+  m_EndAngleFade: 45
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 1
@@ -1282,7 +1282,7 @@ MonoBehaviour:
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 0
-  m_EndAngleFade: 3.7864828
+  m_EndAngleFade: 45
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 1
@@ -1438,7 +1438,7 @@ MonoBehaviour:
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 0
-  m_EndAngleFade: 3.7864828
+  m_EndAngleFade: 45
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 1
@@ -1994,7 +1994,7 @@ MonoBehaviour:
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 0
-  m_EndAngleFade: 3.7864828
+  m_EndAngleFade: 45
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 1

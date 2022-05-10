@@ -10,6 +10,8 @@ HDRP might display the sky color instead of a GameObject that has ray tracing ap
 
 **Car gear shift rendered with recursive ray tracing**
 
+To troubleshoot this effect, HDRP provides a Recursive Rendering [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Using Recursive rendering
 
 Recursive Rendering uses the [Volume](Volumes.md) framework, so to enable this feature and modify its properties, you need to add a Recursive Rendering override to a [Volume](Volumes.md) in your Scene. To do this:

@@ -202,8 +202,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
                 var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
-
                 handle.EnterStage(
                     (int)BakingStages.ReflectionProbes,
                     string.Format("Reflection Probes | {0} jobs", addCount),
@@ -242,6 +240,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+                RenderTexture cubeRT = null, planarRT = null;
+
                 // Render probes that were added or modified
                 for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
@@ -259,12 +259,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
                     {
-                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
+                        if (probe.settings.type == ProbeSettings.ProbeType.ReflectionProbe && cubeRT == null)
+                            cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
+                        if (probe.settings.type == ProbeSettings.ProbeType.PlanarProbe && planarRT == null)
+                            planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
+
                         RenderAndWriteToFile(probe, cacheFile, cubeRT, planarRT);
-                        planarRT.Release();
                     }
                 }
-                cubeRT.Release();
+
+                if (cubeRT != null) cubeRT.Release();
+                if (planarRT != null) planarRT.Release();
 
                 // Copy texture from cache
                 for (int i = 0; i < toBakeIndicesList.Count; ++i)
@@ -397,7 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
             var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-            var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
+            RenderTexture cubeRT = null, planarRT = null;
 
             // Render and write the result to disk
             foreach (var probe in bakedProbes)
@@ -405,11 +410,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                     continue;
 
+                if (probe.settings.type == ProbeSettings.ProbeType.ReflectionProbe && cubeRT == null)
+                    cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
+                if (probe.settings.type == ProbeSettings.ProbeType.PlanarProbe && planarRT == null)
+                    planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
+
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
-                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                 RenderAndWriteToFile(probe, bakedTexturePath, cubeRT, planarRT);
-                planarRT.Release();
             }
+
+            if (cubeRT != null) cubeRT.Release();
+            if (planarRT != null) planarRT.Release();
 
             // AssetPipeline bug
             // Sometimes, the baked texture reference is destroyed during 'AssetDatabase.StopAssetEditing()'
@@ -465,8 +476,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     while (probe.texture.updateCount < c) probe.texture.IncrementUpdateCount();
                 }
             }
-
-            cubeRT.Release();
 
             hdPipeline.reflectionProbeBaking = false;
 

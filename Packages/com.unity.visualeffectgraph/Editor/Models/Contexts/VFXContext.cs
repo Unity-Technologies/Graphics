@@ -618,7 +618,7 @@ namespace UnityEditor.VFX
                 {
                     return (m_Data as ISpaceable).space;
                 }
-                return (VFXCoordinateSpace)int.MaxValue;
+                return VFXCoordinateSpace.None;
             }
 
             set

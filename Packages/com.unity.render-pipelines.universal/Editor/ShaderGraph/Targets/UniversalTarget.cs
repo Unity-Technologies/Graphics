@@ -802,6 +802,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 pass.includes.Add(CoreIncludes.LODCrossFade);
                 pass.keywords.Add(CoreKeywordDescriptors.LODFadeCrossFade);
+                pass.defines.Add(CoreKeywordDescriptors.UseUnityCrossFade, 1);
             }
         }
 
@@ -1411,10 +1412,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
+        // SM20 SubShaders need to use SM35 for DOTS_INSTANCING_ON variants
+        private static PragmaDescriptor DOTSInstancingSM35 => Pragma.TargetForKeyword(ShaderModel.Target35, "DOTS_INSTANCING_ON");
+
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
+            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1424,6 +1429,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
+            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -1434,6 +1440,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.DOTSInstancing }, { DOTSInstancingSM35 },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1447,15 +1454,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSDefault = new PragmaCollection
+        public static readonly PragmaCollection DefaultSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
+        public static readonly PragmaCollection InstancedSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
@@ -1465,7 +1473,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSForward = new PragmaCollection
+        public static readonly PragmaCollection ForwardSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
@@ -1477,7 +1485,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
+        public static readonly PragmaCollection GBufferSM45 = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
@@ -1497,6 +1505,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
         const string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
         const string kCore = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl";
+        const string kInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl";
         const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
         const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
         const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
@@ -1515,6 +1524,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kTexture, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
+            { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
         };
 
@@ -1979,6 +1989,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
             referenceName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor UseUnityCrossFade = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
+            referenceName = ShaderKeywordStrings.USE_UNITY_CROSSFADE,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

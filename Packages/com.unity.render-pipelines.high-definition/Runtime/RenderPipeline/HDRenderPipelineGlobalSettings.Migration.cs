@@ -18,7 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
             First,
             UpdateMSAA,
             UpdateLensFlare,
-            MovedSupportRuntimeDebugDisplayToGlobalSettings
+            MovedSupportRuntimeDebugDisplayToGlobalSettings,
+            DisableAutoRegistration,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -50,6 +51,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.supportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
                 }
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.DisableAutoRegistration, (HDRenderPipelineGlobalSettings data) =>
+            {
+                // Field is on for new projects, but disable it for existing projects
+                data.autoRegisterDiffusionProfiles = false;
             })
         );
         bool IMigratableAsset.Migrate()
