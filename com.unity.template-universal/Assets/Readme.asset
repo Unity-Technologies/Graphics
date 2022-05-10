@@ -29,10 +29,6 @@ MonoBehaviour:
     url: 
   - heading:
     text: 'Shader Graph is a tool that allows you to create shaders using a visual node editor instead of writing code.'
-    linkText: 
-    url: 
-  - heading: 
-    text: 'This template contains a sample Scene that contains examples of how to configure lighting settings, Materials, Shaders, and post-processing effects in URP, several preconfigured Universal Render Pipeline Assets that let you quickly swap between graphics quality levels, and Presets that have been optimized for use with URP.'
     linkText:
     url:
   - heading: 

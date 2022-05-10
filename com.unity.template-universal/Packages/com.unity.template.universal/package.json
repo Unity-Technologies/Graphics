@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.universal",
   "displayName": "Universal Render Pipeline",
-  "version": "13.2.2",
+  "version": "13.2.3",
   "type": "template",
   "unity": "2022.1",
   "host": "hub",
