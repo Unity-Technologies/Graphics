@@ -23,5 +23,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int GetDataSHL0Length(int i);
         void SetDataSHL0(CommandBuffer cmd, int i, ComputeBuffer buffer);
+
+#if UNITY_EDITOR
+        bool IsHiddenInScene(int i);
+#endif
     }
 }

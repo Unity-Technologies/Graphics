@@ -1228,7 +1228,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (
 #if UNITY_EDITOR
                         volume.IsAssetCompatible() &&
-                        !volume.IsHiddesInScene() &&
+                        !volume.IsHiddenInScene() &&
 #endif
                         volume.IsDataAssigned() &&
                         blendModeIsSupported &&

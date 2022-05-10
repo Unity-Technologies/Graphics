@@ -614,7 +614,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     MaskVolumeHandle volume = volumes[maskVolumesIndex];
 
-                    var isVisible = volume.parameters.weight >= 1e-5f && volume.IsDataAssigned();
+                    var isVisible =
+                        volume.parameters.weight >= 1e-5f &&
+#if UNITY_EDITOR
+                        !volume.IsHiddenInScene() &&
+#endif
+                        volume.IsDataAssigned();
 
                     // When hdCamera is null we are preparing for some view-independent baking, so we consider all valid volumes visible.
                     if (isViewDependent && isVisible)
