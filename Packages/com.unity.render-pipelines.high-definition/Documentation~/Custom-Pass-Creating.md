@@ -151,15 +151,17 @@ However, not all materials are supported by every injection point in a draw rend
 | **Injection Point**           | **Material Type(s) supported**                        |
 | ----------------------------- | ----------------------------------------------------- |
 | Before Rendering              | Unlit forward but without writing to the Camera color |
-| After Opaque Depth And Normal | Unlit forward                                         |
-| Before PreRefraction          | Unlit and Lit forward only                            |
-| Before Transparent            | Unlit and Lit forward only with refraction            |
-| Before Post Process           | Unlit and Lit forward only with refraction            |
-| After Post Process            | Unlit and Lit forward only with refraction            |
+| After Opaque Depth And Normal | Unlit                                        |
+| Before PreRefraction          | Unlit and Lit, `ForwardOnly`                            |
+| Before Transparent            | Unlit and Lit, `ForwardOnly`            |
+| Before Post Process           | Unlit and Lit, `ForwardOnly`           |
+| After Post Process            | Unlit and Lit, `ForwardOnly`           |
 
-When Unity renders a material that is not supported by the current injection point, it results in an undefined behavior. For example, rendering GameObjects with lit shaders in the **After Opaque Depth And Normal** injection point produces unexpected results.
+**Note**: You can only render Materials that use refraction at the Before Transparent, Before Post Process, and After Post Process injection points because this is when the refraction color pyramid is available.
 
-Note: HDRP does not support decals on GameObjects rendered in the DrawRenderers pass.
+When Unity renders a material that isn't supported by the current injection point, it results in an undefined behavior. For example, rendering GameObjects with lit shaders in the **After Opaque Depth And Normal** injection point produces unexpected results.
+
+**Note**: HDRP doesn't support decals on GameObjects rendered in the DrawRenderers pass.
 
 <a name="Object-ID-Custom-Pass"></a>
 
