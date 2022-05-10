@@ -301,7 +301,7 @@ float3 GetVertexPosition(ClusterPageHeader header, ClusterBuffer cluster, uint v
 VertexData GetVertexData(uint vertexID, uint instanceID)
 {
     VertexData vertexData = (VertexData)0;
-    vertexData.clipPos = (float4) 0xFFFFFFFF;
+    vertexData.clipPos = asfloat(0xFFFFFFFF);
     vertexData.clusterID = instanceID;
     
     ClusterIDs id = _ClusterIDBuffer[instanceID];

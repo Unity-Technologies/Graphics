@@ -72,6 +72,7 @@ CBUFFER_START(cb)
 	float4x4 _UNITY_MATRIX_LIGHT_TO_CAMERA3;
 	float4x4 _UNITY_MATRIX_LIGHT_TO_CAMERA4;
 
+    float4 _DepthMipmapOffset[12];
     float4 _ZBufferParam;
 	float4 _CullingPlanes[6];
 	float3 _CamPosition;
@@ -93,7 +94,7 @@ TEXTURE2D_X_FLOAT(_DepthPyramid);
 //--------------------------------------------------------------------------------------
 
 StructuredBuffer<float4> _ClusterShpereBuffer;
-StructuredBuffer<uint4> _DepthMipmapOffset;
+//StructuredBuffer<uint4> _DepthMipmapOffset;
 AppendStructuredBuffer<InstanceVisible> _AppendInstanceIDBuffer;
 AppendStructuredBuffer<ClusterIDs> _AppendClusterIDBuffer;
 AppendStructuredBuffer<ClusterIDs> _AppendClusterIDBuffer_CCW;
