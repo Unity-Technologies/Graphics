@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = saturate(In);",
+            "    Out = saturate(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );

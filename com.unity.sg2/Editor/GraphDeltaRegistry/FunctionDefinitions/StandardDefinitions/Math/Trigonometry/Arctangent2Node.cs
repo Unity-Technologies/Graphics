@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = atan2(A, B);",
+            "    Out = atan2(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)

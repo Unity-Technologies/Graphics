@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Degrees",
+                    "HueDegrees",
 @"
     temp1.rg = In.bg;
     temp1.ba = K.wz;
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                  new(
                     1,
-                    "Normalized",
+                    "HueNormalized",
 @"
     temp1.rg = In.bg;
     temp1.ba = K.wz;
@@ -104,8 +104,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {
-                { "Degrees", "Degrees" },
-                { "Normalized", "Normalized" }
+                { "HueDegrees", "Degrees" },
+                { "HueNormalized", "Normalized" }
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

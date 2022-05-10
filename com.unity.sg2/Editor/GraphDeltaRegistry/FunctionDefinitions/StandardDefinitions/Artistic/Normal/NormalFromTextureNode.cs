@@ -14,10 +14,8 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "3Samples",
-@"
-{
-    //3 sample version - only works on square textures
+                    "NormalFromTexture3Samples",
+@"    //3 sample version - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
@@ -33,8 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[1] = IN.WorldSpaceBiTangent;
         TangentMatrix[2] = IN.WorldSpaceNormal;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
-    }
-}",
+    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -51,10 +48,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "4Samples",
-@"
-{
-    //4 samples - only works on square textures
+                    "NormalFromTexture4Samples",
+@"    //4 samples - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
@@ -74,8 +69,7 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[1] = IN.WorldSpaceBiTangent;
         TangentMatrix[2] = IN.WorldSpaceNormal;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
-    }
-}",
+    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -92,10 +86,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "8Samples",
-@"
-{
-    //8 samples - only works on square textures
+                    "NormalFromTexture8Samples",
+@"    //8 samples - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
@@ -122,8 +114,7 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[1] = IN.WorldSpaceBiTangent;
         TangentMatrix[2] = IN.WorldSpaceNormal;
         Out = TransformWorldToTangent(Out, TangentMatrix);	
-    }
-}",
+    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -150,9 +141,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal From Texture",
             selectableFunctions: new()
              {
-                { "3Samples", "3 Samples" },
-                { "4Samples", "4 Samples" },
-                { "8Samples", "8 Samples" }
+                { "NormalFromTexture3Samples", "3 Samples" },
+                { "NormalFromTexture4Samples", "4 Samples" },
+                { "NormalFromTexture8Samples", "8 Samples" }
              },
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(

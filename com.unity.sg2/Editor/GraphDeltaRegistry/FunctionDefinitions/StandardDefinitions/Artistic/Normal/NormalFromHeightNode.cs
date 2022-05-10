@@ -14,16 +14,13 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Tangent",
-@"
-{
-    worldDerivativeX = ddx(IN.WorldSpacePosition);
+                    "NormalFromHeightTangent",
+
+@"    worldDerivativeX = ddx(IN.WorldSpacePosition);
     crossY = cross(ddy(IN.WorldSpacePosition), IN.WorldSpaceNormal.xyz);
     d = dot(worldDerivativeX, crossY);
     surfGrad = ((d < 0.0 ? (-1.0f) : 1.0f) / max(0.000000000000001192093f, abs(d))) * (ddx(In)*crossY + ddy(In)*(cross(IN.WorldSpaceNormal.xyz, worldDerivativeX)));
-    Out = SafeNormalize(IN.WorldSpaceNormal.xyz - (Strength * surfGrad));
-}
-",
+    Out = SafeNormalize(IN.WorldSpaceNormal.xyz - (Strength * surfGrad));",
                     new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
                     new ParameterDescriptor("Strength", TYPE.Float, GraphType.Usage.In, new float[] { 0.01f }),
                     new ParameterDescriptor("worldDerivativeX", TYPE.Vec3, GraphType.Usage.Local),
@@ -34,10 +31,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "World",
-@"
-{
-    TangentMatrix[0] = IN.WorldSpaceTangent;
+                    "NormalFromHeightWorld",
+@"    TangentMatrix[0] = IN.WorldSpaceTangent;
     TangentMatrix[1] = IN.WorldSpaceBiTangent;
     TangentMatrix[2] = IN.WorldSpaceNormal;
     worldDerivativeX = ddx(IN.WorldSpacePosition);
@@ -45,9 +40,7 @@ namespace UnityEditor.ShaderGraph.Defs
     d = dot(worldDerivativeX, crossY);
     surfGrad = ((d < 0.0 ? (-1.0f) : 1.0f) / max(0.000000000000001192093f, abs(d))) * (ddx(In)*crossY + ddy(In)*(cross(TangentMatrix[2].xyz, worldDerivativeX)));
     Out = SafeNormalize(TangentMatrix[2].xyz - (Strength * surfGrad));
-    Out = TransformWorldToTangent(Out, TangentMatrix);
-}
-",
+    Out = TransformWorldToTangent(Out, TangentMatrix);",
                     new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
                     new ParameterDescriptor("Strength", TYPE.Float, GraphType.Usage.In, new float[] { 0.01f }),
                     new ParameterDescriptor("worldDerivativeX", TYPE.Vec3, GraphType.Usage.Local),
@@ -69,8 +62,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal From Height",
             selectableFunctions: new()
             {
-                { "Tangent", "Tangent" },
-                { "World", "World" },
+                { "NormalFromHeightTangent", "Tangent" },
+                { "NormalFromHeightWorld", "World" },
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

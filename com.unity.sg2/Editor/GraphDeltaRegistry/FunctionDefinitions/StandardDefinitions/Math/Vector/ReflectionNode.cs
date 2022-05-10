@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             1,     // Version
             "Reflection", // Name
-            "Out = reflect(In, Normal);",
+            "    Out = reflect(In, Normal);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Normal", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)

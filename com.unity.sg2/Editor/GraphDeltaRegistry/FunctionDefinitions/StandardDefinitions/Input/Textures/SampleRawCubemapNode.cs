@@ -11,15 +11,12 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, Dir, LOD);
+@"    RGBA = SAMPLE_TEXTURECUBE_LOD(Cube.tex, Sampler.samplerstate, Dir, LOD);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
             new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
             new ParameterDescriptor("Dir", TYPE.Vec3, Usage.In),//add default world space normal
             new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),

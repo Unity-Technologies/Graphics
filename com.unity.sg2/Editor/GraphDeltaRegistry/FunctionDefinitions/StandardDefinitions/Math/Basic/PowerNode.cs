@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = UnsignedBase ? pow(abs(Base), Exp) : pow(Base, Exp);",
+            "    Out = UnsignedBase ? pow(abs(Base), Exp) : pow(Base, Exp);",
             new ParameterDescriptor("Base", TYPE.Any, Usage.In),
             new ParameterDescriptor("Exp", TYPE.Any, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
             new ParameterDescriptor("UnsignedBase", TYPE.Bool, Usage.Static, new float[] { 1f }),

@@ -14,23 +14,15 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Tangent",
-@"
-{
-    Out = UnpackNormal(In);
-}
-",
+                    "NormalUnpackTangent",
+                    "    Out = UnpackNormal(In);",
                     new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
                     1,
-                    "Object",
-@"
-{
-    Out = UnpackNormalRGB(In);
-}
-",
+                    "NormalUnpackObject",
+                    "    Out = UnpackNormal(In);",
                     new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 )
@@ -46,8 +38,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal Unpack",
             selectableFunctions: new()
             {
-                { "Tangent", "Tangent" },
-                { "Object", "Object" }
+                { "NormalUnpackTangent", "Tangent" },
+                { "NormalUnpackObject", "Object" }
             },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
