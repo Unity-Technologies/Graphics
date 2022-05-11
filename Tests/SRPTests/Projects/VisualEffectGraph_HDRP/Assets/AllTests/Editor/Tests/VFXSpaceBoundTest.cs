@@ -1,20 +1,18 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
-using System;
+using System.Linq;
+using System.Collections;
+
 using NUnit.Framework;
+
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEditor;
 using UnityEngine.TestTools;
-using System.Linq;
-using UnityEditor.VFX.UI;
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.Test
 {
-    public class VFXSpaceBoundTest
+    public class VFXSpaceBoundTest : VFXPlayModeTest
     {
         [OneTimeTearDown]
         public void CleanUp()

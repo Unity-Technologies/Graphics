@@ -2116,7 +2116,7 @@ namespace UnityEditor.VFX.UI
             (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
         }
 
-        private void AddRangeToSelection(List<ISelectable> selectables)
+        public void AddRangeToSelection(List<ISelectable> selectables)
         {
             selectables.ForEach(base.AddToSelection);
             UpdateGlobalSelection();
@@ -2264,7 +2264,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Rect GetElementsBounds(IEnumerable<GraphElement> elements)
+        internal Rect GetElementsBounds(IEnumerable<GraphElement> elements)
         {
             Rect[] elementBounds = elements.Where(t => !(t is VFXEdge)).Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
             if (elementBounds.Length < 1) return Rect.zero;

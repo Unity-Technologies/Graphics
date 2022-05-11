@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
 {
-    public class VisualEffectTest : ScriptableObject
+    public class VisualEffectTest : VFXPlayModeTest
     {
         [SerializeField] bool m_Init = false;
 

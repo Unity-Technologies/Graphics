@@ -598,7 +598,10 @@ namespace UnityEditor.VFX.UI
             {
                 var parameterController = viewController.GetParameterController(newParameters[i].Key);
                 parameterController.ApplyChanges();
-                parameterController.space = serializableGraph.parameters[i].space;
+                if (parameterController.spaceableAndMasterOfSpace)
+                {
+                    parameterController.space = serializableGraph.parameters[i].space;
+                }
 
                 for (int j = 0; j < newParameters[i].Value.Count; j++)
                 {

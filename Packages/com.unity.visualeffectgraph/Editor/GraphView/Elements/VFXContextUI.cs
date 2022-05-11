@@ -566,27 +566,25 @@ namespace UnityEditor.VFX.UI
             bool somethingChanged = m_BlockContainer.childCount < blockControllerCount || (!m_CanHaveBlocks && m_NoBlock.parent != null);
 
             int cptBlock = 0;
-            for (int i = 0; i < m_BlockContainer.childCount; ++i)
+            foreach (var child in m_BlockContainer.Children().OfType<VFXBlockUI>())
             {
-                var child = m_BlockContainer.ElementAt(i) as VFXBlockUI;
-                if (child != null)
+                if (!somethingChanged && blockControllerCount > cptBlock && child.controller != blockControllers[cptBlock])
                 {
-                    if (!somethingChanged && blockControllerCount > cptBlock && child.controller != blockControllers[cptBlock])
-                    {
-                        somethingChanged = true;
-                    }
-                    cptBlock++;
+                    somethingChanged = true;
                 }
+                cptBlock++;
             }
             if (somethingChanged || cptBlock != blockControllerCount)
             {
-                foreach (var controller in blocks.Keys.Except(blockControllers).ToArray())
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+
+                foreach (var controllerToRemove in blocks.Keys.Except(blockControllers).ToArray())
                 {
-                    GetFirstAncestorOfType<VFXView>().RemoveNodeEdges(blocks[controller]);
-                    m_BlockContainer.Remove(blocks[controller]);
-                    blocks.Remove(controller);
+                    view.RemoveNodeEdges(blocks[controllerToRemove]);
+                    m_BlockContainer.Remove(blocks[controllerToRemove]);
+                    blocks.Remove(controllerToRemove);
                 }
-                if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
+                if (blockControllers.Any() || !m_CanHaveBlocks)
                 {
                     m_NoBlock.RemoveFromHierarchy();
                 }
@@ -594,46 +592,44 @@ namespace UnityEditor.VFX.UI
                 {
                     m_BlockContainer.Add(m_NoBlock);
                 }
-                if (blockControllers.Count > 0)
+                if (blockControllers.Any())
                 {
                     VFXBlockUI prevBlock = null;
 
-                    VFXView view = GetFirstAncestorOfType<VFXView>();
-
-                    bool selectionCleared = false;
+                    var addedBlocks = new List<ISelectable>();
                     foreach (var blockController in blockControllers)
                     {
-                        VFXBlockUI blockUI;
-                        if (blocks.TryGetValue(blockController, out blockUI))
-                        {
-                            if (prevBlock != null)
-                                blockUI.PlaceInFront(prevBlock);
-                            else
-                                blockUI.SendToBack();
-                        }
-                        else
+                        if (!blocks.TryGetValue(blockController, out var blockUI))
                         {
                             blockUI = InstantiateBlock(blockController);
-                            m_BlockContainer.Add(blockUI);
                             m_BlockContainer.Insert(prevBlock == null ? 0 : m_BlockContainer.IndexOf(prevBlock) + 1, blockUI);
 
                             if (m_UpdateSelectionWithNewBlocks)
                             {
-                                if (!selectionCleared)
-                                {
-                                    selectionCleared = true;
-                                    view.ClearSelection();
-                                }
-                                view.AddToSelection(blockUI);
+                                addedBlocks.Add(blockUI);
                             }
-                            //Refresh error can only be called after the block has been instanciated
+                            //Refresh error can only be called after the block has been instantiated
                             blockController.model.RefreshErrors(controller.viewController.graph);
                         }
+
+                        if (prevBlock != null)
+                            blockUI.PlaceInFront(prevBlock);
+                        else
+                        {
+                            blockUI.SendToBack();
+                            blockUI.AddToClassList("first");
+                        }
+
                         prevBlock = blockUI;
                     }
+
+                    if (addedBlocks.Any())
+                    {
+                        view.ClearSelection();
+                        view.AddRangeToSelection(addedBlocks);
+                    }
+
                     m_UpdateSelectionWithNewBlocks = false;
-                    VFXBlockUI firstBlock = m_BlockContainer.Query<VFXBlockUI>();
-                    firstBlock.AddToClassList("first");
                 }
             }
             Profiler.EndSample();

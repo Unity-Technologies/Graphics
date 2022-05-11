@@ -258,63 +258,54 @@ namespace UnityEditor.VFX.UI
 
         void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container)
         {
-            var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
-
+            var existingAnchors = container.Children()
+                .Cast<VFXDataAnchor>()
+                .ToDictionary(t => t.controller, t => t);
 
             Profiler.BeginSample("VFXNodeUI.SyncAnchors Delete");
-            var deletedControllers = existingAnchors.Keys.Except(ports).ToArray();
-
-            foreach (var deletedController in deletedControllers)
+            var view = GetFirstAncestorOfType<VFXView>();
+            foreach (var deletedController in existingAnchors.Keys.Except(ports))
             {
-                //Explicitely remove edges before removing anchor.
-                GetFirstAncestorOfType<VFXView>().RemoveAnchorEdges(existingAnchors[deletedController]);
-                container.Remove(existingAnchors[deletedController]);
+                var anchor = existingAnchors[deletedController];
+                //Explicitly remove edges before removing anchor.
+                view.RemoveAnchorEdges(anchor);
+                container.Remove(anchor);
                 existingAnchors.Remove(deletedController);
             }
             Profiler.EndSample();
 
             Profiler.BeginSample("VFXNodeUI.SyncAnchors New");
-            var order = ports.Select((t, i) => new KeyValuePair<VFXDataAnchorController, int>(t, i)).ToDictionary(t => t.Key, t => t.Value);
+            var index = 0;
+            var order = ports.ToDictionary(x => x, x => index++);
 
-            var newAnchors = ports.Except(existingAnchors.Keys).ToArray();
-
-
-            VFXDataAnchor firstAnchor = null;
-            foreach (var newController in newAnchors)
+            foreach (var newController in ports.Except(existingAnchors.Keys))
             {
                 Profiler.BeginSample("VFXNodeUI.InstantiateDataAnchor");
                 var newElement = InstantiateDataAnchor(newController, this);
                 Profiler.EndSample();
 
-                (newElement as VFXDataAnchor).controller = newController;
-
                 container.Add(newElement);
                 existingAnchors[newController] = newElement;
-                if (firstAnchor == null)
-                    firstAnchor = newElement as VFXDataAnchor;
             }
 
-            if (firstAnchor != null)
-                firstAnchor.AddToClassList("first");
             Profiler.EndSample();
 
             Profiler.BeginSample("VFXNodeUI.SyncAnchors Reorder");
             //Reorder anchors.
             if (ports.Count > 0)
             {
-                var correctOrder = new VFXDataAnchor[ports.Count];
-                foreach (var kv in existingAnchors)
-                {
-                    correctOrder[order[kv.Key]] = kv.Value;
-                }
+                var sortedAnchors = existingAnchors
+                    .OrderBy(x => order[x.Key])
+                    .Select(x => x.Value)
+                    .ToArray();
 
-                correctOrder[0].SendToBack();
-                correctOrder[0].AddToClassList("first");
-                for (int i = 1; i < correctOrder.Length; ++i)
+                sortedAnchors[0].SendToBack();
+                sortedAnchors[0].AddToClassList("first");
+                for (int i = 1; i < sortedAnchors.Length; ++i)
                 {
-                    if (container.ElementAt(i) != correctOrder[i])
-                        correctOrder[i].PlaceInFront(correctOrder[i - 1]);
-                    correctOrder[i].RemoveFromClassList("first");
+                    if (container.ElementAt(i) != sortedAnchors[i])
+                        sortedAnchors[i].PlaceInFront(sortedAnchors[i - 1]);
+                    sortedAnchors[i].RemoveFromClassList("first");
                 }
             }
             Profiler.EndSample();

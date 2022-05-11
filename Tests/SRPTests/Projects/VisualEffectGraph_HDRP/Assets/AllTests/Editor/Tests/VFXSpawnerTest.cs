@@ -1,38 +1,41 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEditor;
-using UnityEngine.TestTools;
 using System.Linq;
-using UnityEditor.VFX.UI;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.VFX.Block;
 using System.Text;
 using System.Globalization;
 
+using NUnit.Framework;
+
+using UnityEngine;
+using UnityEngine.VFX;
+using UnityEngine.TestTools;
+
+using UnityEditor.VFX.Block;
+
 namespace UnityEditor.VFX.Test
 {
-    public class VFXSpawnerTest
+    public class VFXSpawnerTest : VFXPlayModeTest
     {
-        [OneTimeSetUp]
-        public void Init()
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
+
+        protected override void NotifyEnterPlayMode()
         {
             Time.captureFramerate = 10;
             UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
             UnityEngine.VFX.VFXManager.maxDeltaTime = 0.1f;
         }
 
-        [OneTimeTearDown]
-        public void CleanUp()
+        protected override void NotifyExitedPlayMode()
         {
             Time.captureFramerate = 0;
             UnityEngine.VFX.VFXManager.fixedTimeStep = 1.0f / 60.0f;
             UnityEngine.VFX.VFXManager.maxDeltaTime = 1.0f / 20.0f;
-            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         private void CreateAssetAndComponent(float spawnCountValue, string playEventName, out VFXGraph graph, out VisualEffect vfxComponent, out GameObject gameObj, out GameObject cameraObj)
@@ -1197,12 +1200,12 @@ namespace UnityEditor.VFX.Test
         }
 
         string expectedLogFolder = "Assets/AllTests/Editor/Tests/VFXSpawnerTest_";
-        bool CompareWithExpectedLog(StringBuilder actualContent, string identifier, out string error)
+        bool CompareWithExpectedLog(StringBuilder actualContent, string identifier, out string log)
         {
             var pathExpected = expectedLogFolder + identifier + ".expected.txt";
             var pathActual = expectedLogFolder + identifier + ".actual.txt";
             bool success = true;
-            error = string.Empty;
+            var sb = new StringBuilder();
 
             IEnumerable<string> expectedContent = Enumerable.Empty<string>();
             try
@@ -1212,27 +1215,32 @@ namespace UnityEditor.VFX.Test
             catch (System.Exception)
             {
                 success = false;
-                error += "\nCan't locate file : " + pathExpected;
+                sb.AppendLine($"Can't locate file : {pathExpected}");
             }
 
             //Compare line by line to avoid carriage return differences
+            var frameCount = 0;
             var reader = new System.IO.StringReader(actualContent.ToString());
             foreach (var expectedContentLine in expectedContent)
             {
                 var line = reader.ReadLine();
+
+                sb.AppendLine($"[{frameCount:D3}] Actual   : {line}");
                 if (line == null || string.Compare(line, expectedContentLine, StringComparison.InvariantCulture) != 0)
                 {
                     success = false;
-                    error += "\nExpected Line : " + expectedContentLine;
-                    error += "\nActual Line   : " + line;
-                    break;
+                    sb.AppendLine($"[{frameCount:D3}] Expected : {expectedContentLine}");
                 }
+
+                frameCount++;
             }
 
             if (!success)
             {
                 System.IO.File.WriteAllText(pathActual, actualContent.ToString());
             }
+
+            log = success ? string.Empty : sb.ToString();
             return success;
         }
 
@@ -1524,9 +1532,12 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateSpawner_ChangeLoopMode([ValueSource("k_CreateSpawner_ChangeLoopModeTestCases")] CreateSpawner_ChangeLoopMode_TestCase testCase)
         {
             yield return new EnterPlayMode();
-            Assert.AreEqual(UnityEngine.VFX.VFXManager.fixedTimeStep, 0.1f); //Early test
+
+            Assert.AreEqual(0.1f, UnityEngine.VFX.VFXManager.fixedTimeStep); //Early test
+            Assert.AreEqual(10, Time.captureFramerate);
 
             var graph = VFXTestCommon.MakeTemporaryGraph();
+            graph.visualEffectResource.updateMode = VFXUpdateMode.DeltaTime;
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockSpawnerConstant = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
@@ -1651,9 +1662,8 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            string error;
-            var compare = CompareWithExpectedLog(log, testCase.ToString(), out error);
-            Assert.IsTrue(compare);
+            var compare = CompareWithExpectedLog(log, testCase.ToString(), out var error);
+            Assert.IsTrue(compare, error);
 
             yield return new ExitPlayMode();
         }

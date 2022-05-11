@@ -768,24 +768,10 @@ namespace UnityEditor.VFX
         }
 
         public int GetNbLinks() { return m_LinkedSlots.Count; }
-        public bool HasLink(bool rescursive = false)
+        public bool HasLink(bool recursive = false)
         {
-            if (GetNbLinks() != 0)
-            {
-                return true;
-            }
-
-            if (rescursive)
-            {
-                foreach (var child in children)
-                {
-                    if (child.HasLink(rescursive))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return GetNbLinks() > 0
+                || recursive && children.Any(x => x.HasLink(true));
         }
 
         public bool CanLink(VFXSlot other)
