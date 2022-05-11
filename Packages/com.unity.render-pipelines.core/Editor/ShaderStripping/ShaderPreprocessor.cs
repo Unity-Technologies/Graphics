@@ -134,6 +134,7 @@ namespace UnityEditor.Rendering
             }
 
             ShaderStripping.reporter.OnShaderProcessed(shader, shaderVariant, renderPipelineTag,(uint)beforeStrippingInputShaderVariantCount, (uint)compilerDataList.Count, stripTimeMs);
+            ShaderStrippingWatcher.OnShaderProcessed(shader, shaderVariant, (uint)compilerDataList.Count, stripTimeMs);
 
             error = null;
             return true;
