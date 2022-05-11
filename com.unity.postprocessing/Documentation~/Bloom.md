@@ -4,12 +4,9 @@ The **Bloom** effect makes bright areas in your image glow. To do this, it creat
 
 The Bloom effect also has a **Dirtiness** feature, which you can use to apply a full-screen layer of smudges or dust to diffract the Bloom effect.
 
-
-![PostProcessing-Bloom-0](images\PostProcessing-Bloom-0.png)
+![Bloom applied to a glowing orb in a dark space](images\PostProcessing-Bloom-0.png)
 
 ### Properties
-
-![](images/bloom.png)
 
 **Bloom** settings:
 
