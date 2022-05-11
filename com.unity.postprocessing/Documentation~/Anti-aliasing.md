@@ -20,10 +20,6 @@ Each mode is set per-camera in the **Post-process Layer** component.
 
 **FXAA** is the most efficient anti-aliasing technique. It's ideal for mobile and other platforms that don’t support motion vectors, which are required for **Temporal Anti-aliasing**.
 
-
-![](images/aa-1.png)
-
-
 ### Properties
 
 | Property   | Function                                                     |
@@ -44,10 +40,6 @@ Enable `Fast Mode` if you are developing for mobile devices to get a performance
 ## Subpixel Morphological Anti-aliasing (SMAA)
 
 **SMAA** is a higher quality anti-aliasing effect than **FXAA** but it's also slower. Depending on the art-style of your game it can work as well as **Temporal Anti-aliasing** while avoiding some of the shortcomings of this technique.
-
-
-![](images/aa-2.png)
-
 
 ### Properties
 
@@ -72,10 +64,6 @@ Lowering the `Quality` setting makes the effect run faster. Do not use **SMAA** 
 ## Temporal Anti-aliasing (TAA)
 
 **TAA** is an advanced anti-aliasing technique where frames are accumulated over time in a history buffer to be used to smooth edges more effectively. It is substantially better at smoothing edges in motion but requires motion vectors and is more expensive than **FXAA**. It is ideal for desktop and console platforms.
-
-
-![](images/aa-3.png)
-
 
 ### Properties
 
