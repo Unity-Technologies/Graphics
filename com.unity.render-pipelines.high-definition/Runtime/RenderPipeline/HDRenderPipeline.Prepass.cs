@@ -241,7 +241,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The probe volume light lists do not depend on any of the framebuffer RTs being cleared - do they depend on anything in PushGlobalParams()?
                 // Do they depend on hdCamera.xr.StartSinglePass()?
                 BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume)
+                    && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass
+                    && GetDistributedMode() != DistributedMode.Merger)
                 {
                     probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
                 }
@@ -268,9 +270,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
-                RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
-
-                RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
+                
+                if (GetDistributedMode() != DistributedMode.Merger)
+                {
+                    RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
+                    RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
+                }
 #if UNITY_GPU_DRIVEN_PIPELINE
                 CopyDepthStencilForGPUDriven(renderGraph, hdCamera, ref result);
 #endif

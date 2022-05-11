@@ -2733,8 +2733,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+            HDProbeCullingResults hdProbeCullingResults,
+            DensityVolumeList densityVolumes,
+            ProbeVolumeList probeVolumes,
+            DebugDisplaySettings debugDisplaySettings,
+            AOVRequestData aovRequest,
+            HDRenderPipeline.DistributedMode mode)
         {
+            if (mode == DistributedMode.Merger)
+            {
+                m_EnableBakeShadowMask = m_EnableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
+                return m_EnableBakeShadowMask;
+            }
+
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
