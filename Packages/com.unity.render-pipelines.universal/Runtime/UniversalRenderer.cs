@@ -844,6 +844,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_XROcclusionMeshPass);
 #endif
 
+            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+
             if (this.renderingModeActual == RenderingMode.Deferred)
             {
                 if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
@@ -860,8 +862,9 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraTargetDescriptor.msaaSamples > 1)
                     opaquePassColorStoreAction = copyColorPass ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Store;
 
+
                 // make sure we store the depth only if following passes need it.
-                RenderBufferStoreAction opaquePassDepthStoreAction = (copyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+                RenderBufferStoreAction opaquePassDepthStoreAction = (copyColorPass || requiresDepthCopyPass || !lastCameraInTheStack) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.copyDepth)
                 {
@@ -958,8 +961,6 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_MotionVectorPass);
             }
 
-            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
-
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
@@ -971,7 +972,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // if this is not lastCameraInTheStack we still need to Store, since the MSAA buffer might be needed by the Overlay cameras
                 RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
-                RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
+                RenderBufferStoreAction transparentPassDepthStoreAction = lastCameraInTheStack ? RenderBufferStoreAction.DontCare : RenderBufferStoreAction.Store;
 
                 // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
                 if (requiresDepthCopyPass && m_CopyDepthPass.renderPassEvent >= RenderPassEvent.AfterRenderingTransparents)
