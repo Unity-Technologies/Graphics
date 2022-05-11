@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -122,6 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_MaxMaskVolumeMaskCount;
         RTHandle m_MaskVolumeAtlasSHRTHandle;
 
+        List<MaskVolume.MaskVolumeAtlasKey> keysInAtlas;
         Texture3DAtlasDynamic<MaskVolume.MaskVolumeAtlasKey> maskVolumeAtlas = null;
 
         bool isClearMaskVolumeAtlasRequested = false;
@@ -207,6 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name:              "MaskVolumeAtlasSH"
             );
 
+            keysInAtlas = new List<MaskVolume.MaskVolumeAtlasKey>();
             maskVolumeAtlas = new Texture3DAtlasDynamic<MaskVolume.MaskVolumeAtlasKey>(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, k_MaxVisibleMaskVolumeCount, m_MaskVolumeAtlasSHRTHandle);
         }
 
@@ -221,6 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_MaskVolumeAtlasSHRTHandle != null)
                 RTHandles.Release(m_MaskVolumeAtlasSHRTHandle);
 
+            keysInAtlas = null;
             if (maskVolumeAtlas != null)
                 maskVolumeAtlas.Release();
 
@@ -332,36 +334,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._MaskVolumeAtlasSH, maskVolumeAtlas);
         }
 
-        internal void ReleaseMaskVolumeFromAtlas(MaskVolumeHandle volume)
+        bool EnsureMaskVolumeInAtlas(CommandBuffer immediateCmd, RenderGraph renderGraph, ref MaskVolumesResources resources, MaskVolumeHandle volume)
         {
-            if (!m_SupportMaskVolume)
-                return;
-
-            MaskVolume.MaskVolumeAtlasKey key = volume.ComputeMaskVolumeAtlasKey();
-            MaskVolume.MaskVolumeAtlasKey keyPrevious = volume.GetMaskVolumeAtlasKeyPrevious();
-
-            if (maskVolumeAtlas.IsTextureSlotAllocated(key)) { maskVolumeAtlas.ReleaseTextureSlot(key); }
-            if (maskVolumeAtlas.IsTextureSlotAllocated(keyPrevious)) { maskVolumeAtlas.ReleaseTextureSlot(keyPrevious); }
-        }
-
-        internal void EnsureStaleDataIsFlushedFromAtlases(MaskVolumeHandle volume)
-        {
-            MaskVolume.MaskVolumeAtlasKey key = volume.ComputeMaskVolumeAtlasKey();
-            MaskVolume.MaskVolumeAtlasKey keyPrevious = volume.GetMaskVolumeAtlasKeyPrevious();
-            if (!key.Equals(keyPrevious))
-            {
-                if (maskVolumeAtlas.IsTextureSlotAllocated(keyPrevious))
-                {
-                    maskVolumeAtlas.ReleaseTextureSlot(keyPrevious);
-                }
-
-                volume.SetMaskVolumeAtlasKeyPrevious(key);
-            }
-        }
-
-        internal bool EnsureMaskVolumeInAtlas(CommandBuffer immediateCmd, RenderGraph renderGraph, ref MaskVolumesResources resources, MaskVolumeHandle volume)
-        {
-            VolumeGlobalUniqueID id = volume.GetAtlasID();
             var resolution = volume.GetResolution();
             int size = resolution.x * resolution.y * resolution.z;
             Debug.Assert(size > 0, "MaskVolume: Encountered mask volume with resolution set to zero on all three axes.");
@@ -376,14 +350,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (isSlotAllocated)
             {
+                // Sync local key list with any allocated slot, no matter if we will actually upload anything to it.
+                // Needed to identify and free the slot later when no volumes with this key is present in a frame.
+                if (!keysInAtlas.Contains(key))
+                    keysInAtlas.Add(key);
+                
                 if (isUploadNeeded || volume.IsDataUpdated())
                 {
-                    if (!volume.IsDataAssigned())
-                    {
-                        ReleaseMaskVolumeFromAtlas(volume);
-                        return false;
-                    }
-
                     int sizeSHCoefficientsL0 = size * MaskVolumePayload.GetDataSHL0Stride();
                     Debug.AssertFormat(volume.DataSHL0Length == sizeSHCoefficientsL0, "MaskVolume: The mask volume data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", volume.DataSHL0Length, sizeSHCoefficientsL0);
 
@@ -432,14 +405,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     return true;
-
                 }
                 return false;
             }
 
             if (!isSlotAllocated)
             {
-                Debug.LogWarningFormat("MaskVolume: Texture Atlas failed to allocate space for texture (id: {0}, width: {1}, height: {2}, depth: {3})", id, resolution.x, resolution.y, resolution.z);
+                Debug.LogWarningFormat("MaskVolume: Texture Atlas failed to allocate space for texture (id: {0}, width: {1}, height: {2}, depth: {3})", key.id, resolution.x, resolution.y, resolution.z);
             }
 
             return false;
@@ -497,6 +469,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isClearMaskVolumeAtlasRequested) { return; }
             isClearMaskVolumeAtlasRequested = false;
 
+            keysInAtlas.Clear();
             maskVolumeAtlas.ResetAllocator();
 
             if (renderGraph != null)
@@ -645,9 +618,27 @@ namespace UnityEngine.Rendering.HighDefinition
                         var logVolume = CalculateMaskVolumeLogVolume(volume.parameters.size);
                         m_MaskVolumeSortKeys[sortCount++] = PackMaskVolumeSortKey(logVolume, maskVolumesIndex);
                     }
-                    else
+                }
+
+                for (int keyIndex = keysInAtlas.Count - 1; keyIndex >= 0; keyIndex--)
+                {
+                    var key = keysInAtlas[keyIndex];
+                    var dataIsNeededInAtlas = false;
+                    for (int sortIndex = 0; sortIndex < sortCount; sortIndex++)
                     {
-                        ReleaseMaskVolumeFromAtlas(volume);
+                        var sortKey = m_MaskVolumeSortKeys[sortIndex];
+                        UnpackMaskVolumeSortKey(sortKey, out var maskVolumesIndex);
+                        var volumeKey = volumes[maskVolumesIndex].ComputeMaskVolumeAtlasKey();
+                        if (volumeKey.Equals(key))
+                        {
+                            dataIsNeededInAtlas = true;
+                            break;
+                        }
+                    }
+                    if (!dataIsNeededInAtlas)
+                    {
+                        keysInAtlas.RemoveAt(keyIndex);
+                        maskVolumeAtlas.ReleaseTextureSlot(key);
                     }
                 }
 
@@ -692,8 +683,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     UnpackMaskVolumeSortKey(sortKey, out maskVolumesIndex);
 
                     MaskVolumeHandle volume = volumes[maskVolumesIndex];
-
-                    EnsureStaleDataIsFlushedFromAtlases(volume);
 
                     if (volumeUploadedToAtlasSHCount < volumeUploadedToAtlasCapacity)
                     {
