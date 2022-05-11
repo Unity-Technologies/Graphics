@@ -139,3 +139,39 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Error on lightmapper side
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Tmp disabled until all CI machines are the same windows version.
