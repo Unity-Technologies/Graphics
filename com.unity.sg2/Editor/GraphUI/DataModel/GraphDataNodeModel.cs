@@ -189,6 +189,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts())
             {
+                if (!portReader.IsHorizontal)
+                    continue;
                 var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
                 var localField = portReader.GetTypeField().GetSubField<bool>("IsLocal");
                 if (staticField != null && staticField.GetData()) continue;
