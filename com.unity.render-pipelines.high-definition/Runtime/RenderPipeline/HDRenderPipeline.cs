@@ -1062,7 +1062,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CleanupNonRenderGraphResources()
         {
-            DestroyCodecs();
             DestroyRenderTextures();
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
@@ -1138,6 +1137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Graphics.ClearRandomWriteTargets();
             Graphics.SetRenderTarget(null);
 
+            DestroyCodecs();
             if (GetDistributedMode() == DistributedMode.Renderer)
                 SocketClient.Instance.CloseSocket();
             if (GetDistributedMode() == DistributedMode.Merger)
@@ -1605,7 +1605,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         // Only for internal use, outside of SRP people can call Camera.Render()
-#if UNITY_2021_1_OR_NEWER   
+#if UNITY_2021_1_OR_NEWER
         internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
 #else
         internal void InternalRender(ScriptableRenderContext renderContext, Camera[] cameras)
