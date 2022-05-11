@@ -253,7 +253,12 @@ Varyings Vert(Attributes inputMesh)
     UNITY_SETUP_INSTANCE_ID(inputMesh);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 #ifdef PROCEDURAL_INSTANCING_ON
-    uint quadIndex = (inputMesh.vertexID & 0x03) + (inputMesh.vertexID >> 2) * (inputMesh.vertexID & 0x01);
+#if defined(SHADER_API_VULKAN)
+    float remap[6] = {0, 1, 2, 3, 0, 2};
+#else
+    float remap[6] = {0, 2, 1, 3, 2, 0};
+#endif
+    uint quadIndex = remap[inputMesh.vertexID];
     output.positionCS = GetTileVertexPosition(quadIndex, inputMesh.instanceID, _TileSize, _ScreenSize.xy);
     output.positionCS.y *= -1.0;
     output.positionCS.z = asfloat(_TempMaterialBuffer[0]);
@@ -266,7 +271,7 @@ Varyings Vert(Attributes inputMesh)
     uint curMaterialID = _TempMaterialBuffer[1] & (0x00003FFF);
     if ((range.min > curMaterialID || curMaterialID > range.max))
     {
-        output.positionCS.x = asfloat(0xFFFFFFFF);
+        output.positionCS.xy = asfloat(0xFFFFFFFF);
     }
 #else
     output.positionCS = float4(0, 0, -1, 1);

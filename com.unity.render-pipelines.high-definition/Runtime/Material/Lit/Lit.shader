@@ -478,7 +478,7 @@ Shader "HDRP/Lit"
 			Name "GBufferEmit"
 			Tags { "LightMode" = "GBufferEmit" } // This will be only for opaque object based on the RenderQueue index
 
-			Cull Front
+			Cull Back
 			
 			ZTest Equal
 			ZWrite Off
