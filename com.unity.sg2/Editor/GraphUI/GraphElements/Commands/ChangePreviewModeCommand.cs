@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -11,10 +12,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         PreviewRenderMode m_PreviewMode;
 
-        public ChangePreviewModeCommand(PreviewRenderMode previewMode, IReadOnlyList<GraphDataNodeModel> models)
-            : base("Change Preview Mode", "Change Preview Modes", models)
+        // Needed for the ModelPropertyField used by the SGNodeFieldsInspector
+        public ChangePreviewModeCommand(object previewMode, IModel model)
+            : base("Change Preview Mode", "Change Preview Modes", new []{ model as GraphDataNodeModel })
         {
-            m_PreviewMode = previewMode;
+            m_PreviewMode = (PreviewRenderMode)previewMode;
         }
 
         public static void DefaultCommandHandler(
@@ -24,8 +26,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ChangePreviewModeCommand command
         )
         {
-            undoState.UpdateScope.SaveSingleState(graphModelState, command);
-            using var graphUpdater = graphModelState.UpdateScope;
+            using (var undoStateUpdater = undoState.UpdateScope)
+            {
+                undoStateUpdater.SaveSingleState(graphModelState, command);
+            }
+
+            using(var graphUpdater = graphModelState.UpdateScope)
             {
                 foreach (var graphDataNodeModel in command.Models)
                 {
