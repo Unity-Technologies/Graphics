@@ -46,7 +46,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var variableDeclarationModel in VariableDeclarations)
             {
-                // variableDeclarationModel.AssetModel = AssetModel;
+                // Variable declarations need to be given a valid GraphHandler now so the blackboard can build the
+                // correct fields.
+                if (variableDeclarationModel.InitializationModel is BaseShaderGraphConstant cldsConstant)
+                {
+                    cldsConstant.Initialize(GraphHandler, cldsConstant.NodeName, cldsConstant.PortName);
+                }
             }
 
             var contextNames = GraphHandler
