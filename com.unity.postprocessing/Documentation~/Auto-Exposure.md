@@ -4,9 +4,11 @@ The **Auto Exposure** effect simulates how the human eye adjusts to changes in b
 
 In Unity, this effect generates a histogram on every frame and filters it to find the average luminance value. This histogram and the **Auto Exposure** effect requires [Compute shader](https://docs.unity3d.com/Manual/class-ComputeShader.html) support.
 
+![Scene rendered without the Auto Exposure effect](images\auto-exposure-off.png)  
+Scene without **Auto Exposure**.
 
-![](images\autoexposure.png)
-
+![Scene rendered with the Auto Exposure effect](images\auto-exposure-on.png)  
+Scene with **Auto Exposure**.
 
 ### Properties
 
