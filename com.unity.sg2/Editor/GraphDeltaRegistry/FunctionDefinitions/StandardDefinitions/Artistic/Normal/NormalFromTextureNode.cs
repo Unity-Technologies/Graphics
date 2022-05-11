@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "NormalFromTexture3Samples",
+//waiting for support for bringing in WorldSpaceNormal, WorldSpaceTangent, and WorldSpaceBitangent
 @"    //3 sample version - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
@@ -49,6 +50,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "NormalFromTexture4Samples",
+//waiting for support for bringing in WorldSpaceNormal, WorldSpaceTangent, and WorldSpaceBitangent
 @"    //4 samples - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
@@ -87,6 +89,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "NormalFromTexture8Samples",
+//waiting for support for bringing in WorldSpaceNormal, WorldSpaceTangent, and WorldSpaceBitangent
 @"    //8 samples - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version

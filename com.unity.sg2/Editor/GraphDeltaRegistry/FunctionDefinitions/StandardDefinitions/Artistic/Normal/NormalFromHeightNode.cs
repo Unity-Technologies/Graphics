@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "NormalFromHeightTangent",
-
+//waiting for support for bringing in WorldSpaceNormal and WorldSpacePosition
 @"    worldDerivativeX = ddx(IN.WorldSpacePosition);
     crossY = cross(ddy(IN.WorldSpacePosition), IN.WorldSpaceNormal.xyz);
     d = dot(worldDerivativeX, crossY);
@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "NormalFromHeightWorld",
+//waiting for support for bringing in WorldSpaceNormal, WorldSpaceTangent, WorldSpaceNormal, and WorldSpacePosition
 @"    TangentMatrix[0] = IN.WorldSpaceTangent;
     TangentMatrix[1] = IN.WorldSpaceBiTangent;
     TangentMatrix[2] = IN.WorldSpaceNormal;
