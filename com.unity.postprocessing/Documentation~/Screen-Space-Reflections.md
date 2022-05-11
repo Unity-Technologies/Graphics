@@ -6,11 +6,7 @@ Screen Space Reflection replaces specular highlights on a surface, which makes i
 
 ![Scene with Screen Space Reflections](images\screenshot-ssr.png)
 
-
-
 ### Properties
-
-![](images/ssr.png)
 
 | Property                | Function                                                     |
 | :----------------------- | :------------------------------------------------------------ |
