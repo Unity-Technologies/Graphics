@@ -2,7 +2,7 @@
 
 The **Color Grading** effect alters or corrects the color and luminance of the final image that Unity produces. You can use this to alter the look and feel of your application.
 
-![](images\screenshot-grading.png)
+![Three examples of how Color Grading can be used](images\screenshot-grading.png)
 
 The **Color Grading** effect comes with three modes:
 
@@ -16,8 +16,6 @@ Use these settings to control how the **Color Grading** effect operates.
 
 The Lookup Texture and Contribution settings are only available for **Low Definition Range** and **External** modes.
 
-![](images/grading-1.png)
-
 ### Properties
 
 | Property       | Function                                                   |
@@ -27,7 +25,6 @@ The Lookup Texture and Contribution settings are only available for **Low Defini
 | Contribution   | **LDR:** Set how much of the lookup texture will contribute to the color grading. |
 
 > **Note:** Volume blending between multiple LDR lookup textures is supported but only works correctly if they're the same size. For this reason it is recommended to stick to a single LUT size for the whole project (256x16 or 1024x32).
-
 
 ## Tonemapping
 
@@ -39,7 +36,7 @@ Always apply **Tonemapping** when using an HDR camera, otherwise color intensity
 
 ### Properties
 
-![](images/grading-2.png)
+![Tonemapping UI](images\tonemapping.png)  
 
 | Property          | Function                                                     |
 | :----------------- | :------------------------------------------------------------ |
@@ -55,9 +52,6 @@ Always apply **Tonemapping** when using an HDR camera, otherwise color intensity
 
 **White Balance** allows you to adjust the overall tint and temperature of your image to create a colder or warmer feel in the final render.
 
-![](images/grading-3.png)
-
-
 ### Properties
 
 | Property    | Function                                                     |
@@ -66,10 +60,6 @@ Always apply **Tonemapping** when using an HDR camera, otherwise color intensity
 | Tint        | Set the white balance to compensate for a green or magenta tint. |
 
 ## Tone
-
-
-![](images/grading-4.png)
-
 
 ### Properties
 
@@ -82,16 +72,11 @@ Always apply **Tonemapping** when using an HDR camera, otherwise color intensity
 | Brightness    | Only available in the **Low Definition Range (LDR)** mode. </br>Adjust the brightness of the image.<br /> |
 | Contrast      | Adjust the overall range of tonal values.        |
 
-
 ## Channel Mixer
 
 You can use the **Channel Mixer** to adjust the color balance of your image.
 
 The **Channel Mixer** effect modifies the influence each input color channel has on the overall mix of the output channel. For example, if you increase the influence of the green channel on the overall mix of the red channel, all areas of the final image that include a green tone tint to a more reddish hue.
-
-
-![](images/grading-5.png)
-
 
 ### Properties
 
@@ -108,9 +93,7 @@ Use **Trackballs** to perform three-way color grading. Adjust the position of th
 
 > **Note:** you can right-click a trackball to reset it to its default value. To change the trackball's sensitivity go to  `Edit -> Preferences -> PostProcessing`.
 
-
-![](images/grading-6.png)
-
+![Trackballs UI](images/trackballs.png)
 
 ### Properties
 
@@ -128,42 +111,31 @@ Use **Trackballs** to perform three-way color grading. Adjust the position of th
 
 **YRGB Curves** are only available in the **Low Definition Range (LDR)** mode. These curves, also called `Master`, `Red`, `Green` and `Blue` affect the selected input channel's intensity across the whole image. The X axis of the graph represents input intensity and the Y axis represents output intensity for the selected channel. Use these curves to adjust the appearance of attributes such as contrast and brightness.
 
-
-![](images/grading-11.png)
-
+![YRGB Curves UI](images/yrgb-curves.png)  
 
 ### Hue vs Hue
 
 Use **Hue vs Hue** to shift hues within specific ranges. This curve shifts the input hue (X axis) according to the output hue (Y axis). Use this setting to fine tune hues of specific ranges or perform color replacement.
 
-
-![](images/grading-7.png)
-
+![Hue vs Hue UI](images/hue-vs-hue.png)  
 
 ### Hue vs Sat
 
 Use **Hue vs Sat** to adjust the saturation of hues within specific ranges. This curve adjusts saturation (Y axis) according to the input hue (X axis). Use this setting to tone down particularly bright areas or create artistic effects.
 
-
-![](images/grading-8.png)
-
+![Hue vs Sat UI](images/hue-vs-sat.png)  
 
 ### Sat vs Sat
 
 Use **Sat vs Sat** to adjust the saturation of areas of certain saturation. This curve adjusts saturation (Y axis) according to the input saturation (X axis). Use this setting to fine tune saturation adjustments made with settings from the [**Tone**](#tone) section.
 
-
-![](images/grading-9.png)
-
+![Sat vs Sat UI](images/sat-vs-sat.png)  
 
 ### Lum vs Sat
 
 Use **Lum vs Sat** to adjust the saturation of areas of certain luminance. This curve adjusts saturation (Y axis) according to the input luminance (X axis). use this setting to desaturate areas of darkness to provide an interesting visual contrast.
 
-
-![](images/grading-10.png)
-
-
+![Lum vs Sat UI](images/lum-vs-sat.png)  
 
 ### Requirements
 
