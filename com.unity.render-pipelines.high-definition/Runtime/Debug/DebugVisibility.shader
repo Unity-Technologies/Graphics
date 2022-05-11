@@ -36,7 +36,7 @@ Shader "Hidden/HDRP/DebugVisibility"
 
             
             Texture2D<uint4> _VisibilityBuffer;
-            float _MaxRange;
+            uniform float4 _DebugColor[7];
 
             v2f vert (appdata_t v)
             {
@@ -55,14 +55,8 @@ Shader "Hidden/HDRP/DebugVisibility"
                     return float4(0, 0, 0, 1);
 
                 clusterID = _ClusterIDBuffer[clusterID].clusterID;
-                clusterID *= 3.141592657f;
-                float4 color;
-                color.r = ((clusterID) & 0x924924) / 256.0f;
-                color.g = ((clusterID) & 0x492492) / 256.0f;
-                color.b = (clusterID & 0x249248) / 256.0f;
-                color.rgb = 0.299f * color.r + 0.578f * color.g + 0.114f * color.b;
-                //color.rgb = 0.33f * color.r + 0.34f * color.g + 0.33f * color.b;
-                color.a = 1.0f;
+                uint index = clusterID % 7;
+                float4 color = _DebugColor[index];
                 return color;
             }
             ENDHLSL
@@ -158,7 +152,7 @@ Shader "Hidden/HDRP/DebugVisibility"
 
 
                 Texture2D<uint4> _VisibilityBuffer;
-                float _MaxRange;
+                uniform float4 _DebugColor[7];
 
                 v2f vert(appdata_t v)
                 {
@@ -177,14 +171,8 @@ Shader "Hidden/HDRP/DebugVisibility"
                         return float4(0, 0, 0, 1);
 
                     uint instanceID = _ClusterIDBuffer[clusterID].instanceID;
-                    //clusterID *= 3.141592657f;
-                    float4 color;
-                    color.r = ((instanceID) & 0x924924) / 2560.0f;
-                    color.g = ((instanceID) & 0x492492) / 2560.0f;
-                    color.b = (instanceID & 0x249248) / 2560.0f;
-                    color.rgb = 0.299f * color.r + 0.578f * color.g + 0.114f * color.b;
-                    //color.rgb = 0.33f * color.r + 0.34f * color.g + 0.33f * color.b;
-                    color.a = 1.0f;
+                    uint index = instanceID % 7;
+                    float4 color = _DebugColor[index];
                     return color;
                 }
                 ENDHLSL

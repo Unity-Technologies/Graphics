@@ -762,7 +762,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle vBuffer = RTHandles.Alloc(visiblityBuffer);
                     ctx.cmd.SetViewport(data.debugParameters.hdCamera.finalViewport);
                     data.debugParameters.debugVisibilityMaterial.SetBuffer("_ClusterIDBuffer", clusterIDBuffer);
-                    data.debugParameters.debugVisibilityMaterial.SetFloat("_MaxRange", data.debugParameters.debugDisplaySettings.data.gdrpDebugSettings.maxRange);
+                    //data.debugParameters.debugVisibilityMaterial.SetFloat("_MaxRange", data.debugParameters.debugDisplaySettings.data.gdrpDebugSettings.maxRange);
+                    data.debugParameters.debugVisibilityMaterial.SetVectorArray("_DebugColor", GPUDrivenPipelineDebugSettings.color);
                     data.debugParameters.debugVisibilityMaterial.SetTexture("_VisibilityBuffer", visiblityBuffer);
                     CoreUtils.DrawFullScreen(ctx.cmd, data.debugParameters.debugVisibilityMaterial, data.colorBuffer);
                 });
@@ -784,12 +785,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (DebugOverlayPassData data, RenderGraphContext ctx) =>
                 {
+                    
                     var visiblityBuffer = ctx.renderContext.GetVisibilityBuffer();
                     var clusterIDBuffer = ctx.renderContext.GetVisibleClusterIDBuffer();
                     RTHandle vBuffer = RTHandles.Alloc(visiblityBuffer);
                     ctx.cmd.SetViewport(data.debugParameters.hdCamera.finalViewport);
                     data.debugParameters.debugVisibilityMaterial.SetBuffer("_ClusterIDBuffer", clusterIDBuffer);
-                    data.debugParameters.debugVisibilityMaterial.SetFloat("_MaxRange", data.debugParameters.debugDisplaySettings.data.gdrpDebugSettings.maxRange);
+                    data.debugParameters.debugVisibilityMaterial.SetVectorArray("_DebugColor", GPUDrivenPipelineDebugSettings.color);
                     data.debugParameters.debugVisibilityMaterial.SetTexture("_VisibilityBuffer", visiblityBuffer);
                     CoreUtils.DrawFullScreen(ctx.cmd, data.debugParameters.debugVisibilityMaterial, data.colorBuffer, null, 2);
                 });

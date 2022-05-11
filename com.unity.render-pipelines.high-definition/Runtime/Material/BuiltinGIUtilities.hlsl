@@ -93,6 +93,9 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
     backBakeDiffuseLighting += illuminance;
 #endif
 #endif
+
+    if (AnyIsNaN(bakeDiffuseLighting))
+        bakeDiffuseLighting.xyz = 0.0f;
 }
 
 void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backNormalWS, uint instancePageOffset, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)

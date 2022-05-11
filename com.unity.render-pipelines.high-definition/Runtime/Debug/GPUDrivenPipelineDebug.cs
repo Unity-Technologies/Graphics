@@ -9,5 +9,15 @@ namespace UnityEngine.Rendering.HighDefinition
     public class GPUDrivenPipelineDebugSettings
     {
         public float maxRange = 100.0f;
+        static public Vector4[] color = new Vector4[7]
+                    {
+                        Color.red,
+                        Color.green,
+                        Color.blue,
+                        Color.cyan,
+                        Color.gray,
+                        Color.magenta,
+                        Color.yellow
+                    };
     }
 }
