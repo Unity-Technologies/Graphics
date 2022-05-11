@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -169,10 +170,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_CreateEmptyShadowmap)
             {
                 SetEmptyMainLightCascadeShadowmap(ref context, ref renderingData);
+                renderingData.commandBuffer.SetGlobalTexture(m_MainLightShadowmapID, m_EmptyLightShadowmapTexture.nameID);
+
                 return;
             }
 
             RenderMainLightCascadeShadowmap(ref context, ref renderingData);
+            renderingData.commandBuffer.SetGlobalTexture(m_MainLightShadowmapID, m_MainLightShadowmapTexture.nameID);
         }
 
         void Clear()
@@ -191,7 +195,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var cmd = renderingData.commandBuffer;
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
-            cmd.SetGlobalTexture(m_MainLightShadowmapID, m_EmptyLightShadowmapTexture.nameID);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(1, 0, 1, 0));
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize,
@@ -265,7 +268,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
 
-            cmd.SetGlobalTexture(m_MainLightShadowmapID, m_MainLightShadowmapTexture.nameID);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
@@ -304,6 +306,78 @@ namespace UnityEngine.Rendering.Universal.Internal
                     invShadowAtlasHeight,
                     renderTargetWidth, renderTargetHeight));
             }
+        }
+        private class PassData
+        {
+            internal MainLightShadowCasterPass pass;
+            internal RenderGraph graph;
+
+            internal TextureHandle shadowmapTexture;
+            internal RenderingData renderingData;
+            internal int shadowmapID;
+
+            internal bool emptyShadowmap;
+        }
+
+        internal TextureHandle Render(RenderGraph graph, ref RenderingData renderingData)
+        {
+            TextureHandle shadowTexture;
+
+            using (var builder = graph.AddRenderPass<PassData>("Main Light Shadowmap", out var passData, base.profilingSampler))
+            {
+                InitPassData(ref passData, ref renderingData, ref graph);
+
+                if (!m_CreateEmptyShadowmap)
+                {
+                    passData.shadowmapTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "Main Shadowmap", true, ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
+                    builder.UseDepthBuffer(passData.shadowmapTexture, DepthAccess.Write);
+                }
+
+                // Need this as shadowmap is only used as Global Texture and not a buffer, so would get culled by RG
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    if (!data.emptyShadowmap)
+                        data.pass.RenderMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
+                });
+
+                shadowTexture = passData.shadowmapTexture;
+            }
+
+            using (var builder = graph.AddRenderPass<PassData>("Set Main Shadow Globals", out var passData, base.profilingSampler))
+            {
+                InitPassData(ref passData, ref renderingData, ref graph);
+
+                passData.shadowmapTexture = shadowTexture;
+
+                if (shadowTexture.IsValid())
+                    builder.UseDepthBuffer(shadowTexture, DepthAccess.Read);
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    if (data.emptyShadowmap)
+                    {
+                        data.pass.SetEmptyMainLightCascadeShadowmap(ref context.renderContext, ref data.renderingData);
+                        data.shadowmapTexture = data.graph.defaultResources.defaultShadowTexture;
+                    }
+
+                    data.renderingData.commandBuffer.SetGlobalTexture(data.shadowmapID, data.shadowmapTexture);
+                });
+                return passData.shadowmapTexture;
+            }
+        }
+
+        void InitPassData(ref PassData passData, ref RenderingData renderingData, ref RenderGraph graph)
+        {
+            passData.pass = this;
+            passData.graph = graph;
+
+            passData.emptyShadowmap = m_CreateEmptyShadowmap;
+            passData.shadowmapID = m_MainLightShadowmapID;
+            passData.renderingData = renderingData;
         }
     };
 }

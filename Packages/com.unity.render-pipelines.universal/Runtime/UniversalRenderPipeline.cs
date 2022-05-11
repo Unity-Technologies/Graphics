@@ -8,6 +8,7 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal
@@ -155,6 +156,9 @@ namespace UnityEngine.Rendering.Universal
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
+        internal static RenderGraph s_RenderGraph;
+        private static bool useRenderGraph;
+
         /// <summary>
         /// Creates a new <c>UniversalRenderPipeline</c> instance.
         /// </summary>
@@ -201,6 +205,9 @@ namespace UnityEngine.Rendering.Universal
 
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
+            s_RenderGraph = new RenderGraph("URPRenderGraph");
+            useRenderGraph = false;
+
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
 
@@ -218,6 +225,9 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
             XRSystem.Dispose();
+
+            s_RenderGraph.Cleanup();
+            s_RenderGraph = null;
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -243,6 +253,8 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
+            useRenderGraph = m_GlobalSettings.enableRenderGraph;
+
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
@@ -312,6 +324,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+
+            s_RenderGraph.EndFrame();
+
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
             {
@@ -442,11 +457,20 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.AddRenderPasses(ref renderingData);
 
-                using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
-                    renderer.Setup(context, ref renderingData);
+                if (useRenderGraph)
+                {
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, ref renderingData);
+                    renderer.FinishRenderGraphRendering(context, ref renderingData);
+                }
+                else
+                {
+                    using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
+                        renderer.Setup(context, ref renderingData);
 
-                // Timing scope inside
-                renderer.Execute(context, ref renderingData);
+                    // Timing scope inside
+                    renderer.Execute(context, ref renderingData);
+                }
+
                 CleanupLightData(ref renderingData.lightData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 

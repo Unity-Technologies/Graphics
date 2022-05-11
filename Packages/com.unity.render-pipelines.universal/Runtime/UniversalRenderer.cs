@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
     /// This renderer is supported on all Universal RP supported platforms.
     /// It uses a classic forward rendering strategy with per-object light culling.
     /// </summary>
-    public sealed class UniversalRenderer : ScriptableRenderer
+    public sealed partial class UniversalRenderer : ScriptableRenderer
     {
         #if UNITY_SWITCH
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
@@ -342,6 +342,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_StencilDeferredMaterial);
             CoreUtils.Destroy(m_CameraMotionVecMaterial);
             CoreUtils.Destroy(m_ObjectMotionVecMaterial);
+
+            CleanupRenderGraphResources();
 
             Blitter.Cleanup();
 

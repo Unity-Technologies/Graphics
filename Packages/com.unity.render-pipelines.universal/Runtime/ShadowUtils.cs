@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public static class ShadowUtils
     {
-        private static readonly bool m_ForceShadowPointSampling;
+        internal static readonly bool m_ForceShadowPointSampling;
 
         static ShadowUtils()
         {

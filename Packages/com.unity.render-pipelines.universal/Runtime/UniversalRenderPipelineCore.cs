@@ -4,6 +4,7 @@ using Unity.Collections;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -52,12 +53,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct RenderingData
     {
-        /// <summary>
-        /// Global CommandBuffer for the pipeline to be used instead of local command buffers inside ScriptableRenderPass.
-        /// This buffer is automatically executed after <c>ScriptableRenderPass.Execute</c>
-        /// </summary>
-        /// <seealso cref="ScriptableRenderPass.Execute(ScriptableRenderContext, ref RenderingData)"/>
-        public CommandBuffer commandBuffer;
+        internal CommandBuffer commandBuffer;
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -215,6 +211,11 @@ namespace UnityEngine.Rendering.Universal
             return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
+        internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
+        {
+            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
+        }
+
         /// <summary>
         /// The camera component.
         /// </summary>
@@ -249,7 +250,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool fsrOverrideSharpness;
         internal float fsrSharpness;
         internal HDRColorBufferPrecision hdrColorBufferPrecision;
-
 
         /// <summary>
         /// True if this camera should clear depth buffer. This setting only applies to cameras of type <c>CameraRenderType.Overlay</c>
@@ -342,6 +342,21 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return true;
+        }
+
+        public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
+        {
+
+#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
+            var targetId = color?.nameID ?? depth?.nameID;
+#pragma warning restore 0618
+            bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                renderingToBackBufferTarget |= targetId == xr.renderTarget;
+#endif
+            bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
+            return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
         }
 
         /// <summary>

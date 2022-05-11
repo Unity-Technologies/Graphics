@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -141,6 +142,35 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.GetViewMatrix(), cameraData.GetGPUProjectionMatrix(), false);
                 }
+            }
+        }
+
+        private class PassData
+        {
+            internal RenderObjectsPass pass;
+            internal RenderingData renderingData;
+        }
+
+        internal override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+
+            using (var builder = renderGraph.AddRenderPass<PassData>("Render Objects Pass", out var passData, m_ProfilingSampler))
+            {
+                TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
+                builder.UseColorBuffer(color, 0);
+                builder.UseDepthBuffer(UniversalRenderer.m_ActiveRenderGraphDepth, DepthAccess.Write);
+                builder.ReadTexture(renderer.frameResources.mainShadowsTexture);
+
+                builder.AllowPassCulling(false);
+
+                passData.pass = this;
+                passData.renderingData = renderingData;
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                {
+                    data.pass.Execute(rgContext.renderContext, ref data.renderingData);
+                });
             }
         }
     }

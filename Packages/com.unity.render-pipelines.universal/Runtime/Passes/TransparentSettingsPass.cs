@@ -29,12 +29,17 @@ namespace UnityEngine.Rendering.Universal
         {
             // Get a command buffer...
             var cmd = renderingData.commandBuffer;
+            ExecutePass(cmd, m_shouldReceiveShadows);
+        }
+
+        public static void ExecutePass(CommandBuffer cmd, bool shouldReceiveShadows)
+        {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 // Toggle light shadows enabled based on the renderer setting set in the constructor
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, m_shouldReceiveShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, m_shouldReceiveShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, m_shouldReceiveShadows);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, shouldReceiveShadows);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shouldReceiveShadows);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shouldReceiveShadows);
             }
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -21,6 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         PreviousFrameData m_MotionData;
         ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
+        private PassData m_PassData;
         #endregion
 
         #region Constructors
@@ -29,6 +31,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
+            m_PassData = new PassData();
+            base.profilingSampler = new ProfilingSampler("Motion Vector Pass");
+
         }
 
         #endregion
@@ -51,10 +56,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region Execution
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData)
         {
-            if (m_CameraMaterial == null || m_ObjectMaterial == null)
+            var cameraMaterial = passData.cameraMaterial;
+            var objectMaterial = passData.objectMaterial;
+            var motionData = passData.motionData;
+
+            if (cameraMaterial == null || objectMaterial == null)
                 return;
 
             // Get data
@@ -66,20 +74,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Profiling command
             var cmd = renderingData.commandBuffer;
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionVectors)))
             {
-                ExecuteCommand(context, cmd);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 var cameraData = renderingData.cameraData;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 {
-                    m_CameraMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, m_MotionData.previousViewProjectionMatrixStereo);
-                    m_ObjectMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, m_MotionData.previousViewProjectionMatrixStereo);
+                    cameraMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, motionData.previousViewProjectionMatrixStereo);
+                    objectMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, motionData.previousViewProjectionMatrixStereo);
                 }
                 else
 #endif
                 {
-                    Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionMatrix);
+                    Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, motionData.previousViewProjectionMatrix);
                 }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
@@ -87,12 +96,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 // TODO: add option to only draw either one?
-                DrawCameraMotionVectors(context, cmd, camera);
-                DrawObjectMotionVectors(context, ref renderingData, camera);
+                DrawCameraMotionVectors(context, cmd, camera, cameraMaterial);
+                DrawObjectMotionVectors(context, ref renderingData, camera, objectMaterial);
             }
         }
 
-        DrawingSettings GetDrawingSettings(ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            m_PassData.cameraMaterial = m_CameraMaterial;
+            m_PassData.objectMaterial = m_ObjectMaterial;
+            m_PassData.motionData = m_MotionData;
+
+            ExecutePass(context, m_PassData, ref renderingData);
+        }
+
+        private static DrawingSettings GetDrawingSettings(ref RenderingData renderingData, Material objectMaterial)
         {
             var camera = renderingData.cameraData.camera;
             var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
@@ -109,37 +127,61 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Material that will be used if shader tags cannot be found
-            drawingSettings.fallbackMaterial = m_ObjectMaterial;
+            drawingSettings.fallbackMaterial = objectMaterial;
 
             return drawingSettings;
         }
 
-        void DrawCameraMotionVectors(ScriptableRenderContext context, CommandBuffer cmd, Camera camera)
+        private static void DrawCameraMotionVectors(ScriptableRenderContext context, CommandBuffer cmd, Camera camera, Material cameraMaterial)
         {
             // Draw fullscreen quad
-            cmd.DrawProcedural(Matrix4x4.identity, m_CameraMaterial, 0, MeshTopology.Triangles, 3, 1);
-            ExecuteCommand(context, cmd);
+            cmd.DrawProcedural(Matrix4x4.identity, cameraMaterial, 0, MeshTopology.Triangles, 3, 1);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
-        void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, Camera camera)
+        private static void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, Camera camera, Material objectMaterial)
         {
-            var drawingSettings = GetDrawingSettings(ref renderingData);
+            var drawingSettings = GetDrawingSettings(ref renderingData, objectMaterial);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
             // Draw Renderers
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
         }
-
         #endregion
 
-        #region CommandBufer
-        void ExecuteCommand(ScriptableRenderContext context, CommandBuffer cmd)
+        private class PassData
         {
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+            internal TextureHandle motionVectorColor;
+            internal TextureHandle motionVectorDepth;
+            internal RenderingData renderingData;
+            internal Material cameraMaterial;
+            internal Material objectMaterial;
+            internal PreviousFrameData motionData;
         }
 
-        #endregion
+        internal void Render(RenderGraph renderGraph, in TextureHandle motionVectorColor, in TextureHandle motionVectorDepth, PreviousFrameData motionData, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("Motion Vector Pass", out var passData, base.profilingSampler))
+            {
+                //  TODO RENDERGRAPH: culling? force culling off for testing
+                builder.AllowPassCulling(false);
+                passData.motionVectorColor = builder.UseColorBuffer(motionVectorColor, 0);
+                passData.motionVectorDepth = builder.UseDepthBuffer(motionVectorDepth, DepthAccess.Write);
+                passData.renderingData = renderingData;
+                passData.cameraMaterial = m_CameraMaterial;
+                passData.objectMaterial = m_ObjectMaterial;
+                passData.motionData = motionData;
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    ExecutePass(context.renderContext, data, ref data.renderingData);
+                    data.renderingData.commandBuffer.SetGlobalTexture("_MotionVectorTexture", data.motionVectorColor);
+                });
+
+                return;
+            }
+        }
     }
 }

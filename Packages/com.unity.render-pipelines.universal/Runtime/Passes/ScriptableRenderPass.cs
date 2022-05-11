@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -73,10 +74,6 @@ namespace UnityEngine.Rendering.Universal
         /// Camera matrices and stereo rendering are already setup at this point.
         /// </summary>
         BeforeRenderingPrePasses = 150,
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Obsolete, to match the capital from 'Prepass' to 'PrePass' (UnityUpgradable) -> BeforeRenderingPrePasses")]
-        BeforeRenderingPrepasses = 151,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering prepasses, f.ex, depth prepass.
@@ -148,6 +145,26 @@ namespace UnityEngine.Rendering.Universal
         /// Executes a <c>ScriptableRenderPass</c> after rendering all effects.
         /// </summary>
         AfterRendering = 1000,
+    }
+
+    internal static class RenderPassEventsEnumValues
+    {
+        // we cache the values in this array at construction time to avoid runtime allocations, which we would cause if we accessed valuesInternal directly
+        public static int[] values;
+
+        static RenderPassEventsEnumValues()
+        {
+            System.Array valuesInternal = Enum.GetValues(typeof(RenderPassEvent));
+
+            values = new int[valuesInternal.Length];
+
+            int index = 0;
+            foreach (int value in valuesInternal)
+            {
+                values[index] = value;
+                index++;
+            }
+        }
     }
 
     /// <summary>
@@ -298,7 +315,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        internal DebugHandler GetActiveDebugHandler(RenderingData renderingData)
+        static internal DebugHandler GetActiveDebugHandler(RenderingData renderingData)
         {
             var debugHandler = renderingData.cameraData.renderer.DebugHandler;
             if ((debugHandler != null) && debugHandler.IsActiveForCamera(ref renderingData.cameraData))
@@ -646,6 +663,15 @@ namespace UnityEngine.Rendering.Universal
         public abstract void Execute(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
+        /// TODO RENDERGRAPH
+        /// </summary>
+        /// <param name="renderingData"></param>
+        internal virtual void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
+        }
+
+        /// <summary>
         /// Add a blit command to the context for execution. This changes the active render target in the ScriptableRenderer to
         /// destination.
         /// </summary>
@@ -716,18 +742,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="DrawingSettings"/>
         public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            Camera camera = renderingData.cameraData.camera;
-            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
-            DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
-            {
-                perObjectData = renderingData.perObjectData,
-                mainLightIndex = renderingData.lightData.mainLightIndex,
-                enableDynamicBatching = renderingData.supportsDynamicBatching,
-
-                // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
-                enableInstancing = camera.cameraType == CameraType.Preview ? false : true,
-            };
-            return settings;
+            return RenderingUtils.CreateDrawingSettings(shaderTagId, ref renderingData, sortingCriteria);
         }
 
         /// <summary>
@@ -741,16 +756,7 @@ namespace UnityEngine.Rendering.Universal
         public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            if (shaderTagIdList == null || shaderTagIdList.Count == 0)
-            {
-                Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
-            }
-
-            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
-            for (int i = 1; i < shaderTagIdList.Count; ++i)
-                settings.SetShaderPassName(i, shaderTagIdList[i]);
-            return settings;
+            return RenderingUtils.CreateDrawingSettings(shaderTagIdList, ref renderingData, sortingCriteria);
         }
 
         /// <summary>
@@ -773,6 +779,34 @@ namespace UnityEngine.Rendering.Universal
         public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
+        }
+
+        static internal int GetRenderPassEventRange(RenderPassEvent renderPassEvent)
+        {
+            int numEvents = RenderPassEventsEnumValues.values.Length;
+            int currentIndex = 0;
+
+            // find the index of the renderPassEvent in the values array
+            for(int i = 0; i < numEvents; ++i)
+            {
+                if (RenderPassEventsEnumValues.values[currentIndex] == (int)renderPassEvent)
+                    break;
+
+                currentIndex++;
+            }
+
+            if (currentIndex >= numEvents)
+            {
+                Debug.LogError("GetRenderPassEventRange: invalid renderPassEvent value cannot be found in the RenderPassEvent enumeration");
+                return 0;
+            }
+
+            if (currentIndex + 1 >= numEvents)
+                return 50; // if this was the last event in the enum, then add 50 as the range
+
+            int nextValue = RenderPassEventsEnumValues.values[currentIndex + 1];
+
+            return nextValue - (int) renderPassEvent;
         }
     }
 }
