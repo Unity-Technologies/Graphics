@@ -14,13 +14,13 @@ namespace UnityEditor.ShaderFoundry
 
     internal class PropertyAttribute
     {
-        const string AttributeName = CommonShaderAttributes.Property;
-        const string UniformNameParamName = "uniformName";
-        const string DisplayNameParamName = "displayName";
-        const string DefaultValueParamName = "defaultValue";
-        const string DataSourceParamName = "dataSource";
-        const string CustomBufferParamName = "customBufferName";
-        const string ExposedParamName = "exposed";
+        internal const string AttributeName = CommonShaderAttributes.Property;
+        internal const string UniformNameParamName = "uniformName";
+        internal const string DisplayNameParamName = "displayName";
+        internal const string DefaultValueParamName = "defaultValue";
+        internal const string DataSourceParamName = "dataSource";
+        internal const string CustomBufferParamName = "customBufferName";
+        internal const string ExposedParamName = "exposed";
 
         internal string UniformName;
         internal string DisplayName;
@@ -35,6 +35,25 @@ namespace UnityEditor.ShaderFoundry
             if (attribute.IsValid)
                 return Parse(attribute);
             return null;
+        }
+
+        internal ShaderAttribute Build(ShaderContainer container)
+        {
+            void TryAdd(ref ShaderAttribute.Builder builder, string name, string value)
+            {
+                if (!string.IsNullOrEmpty(value))
+                    builder.Param(name, value);
+            }
+
+            var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
+            TryAdd(ref attributeBuilder, UniformNameParamName, UniformName);
+            TryAdd(ref attributeBuilder, DisplayNameParamName, DisplayName);
+            TryAdd(ref attributeBuilder, DefaultValueParamName, DefaultValue);
+            TryAdd(ref attributeBuilder, DataSourceParamName, DataSource.ToString());
+            TryAdd(ref attributeBuilder, CustomBufferParamName, CustomBufferName);
+            TryAdd(ref attributeBuilder, ExposedParamName, Exposed.ToString());
+
+            return attributeBuilder.Build();
         }
 
         static AttributeParsing.SignatureDescription<PropertyAttribute> AttributeSignature = new AttributeParsing.SignatureDescription<PropertyAttribute>()
