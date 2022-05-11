@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = A - (B * dot(A, B) / dot(B, B));",
+            "    Out = A - (B * dot(A, B) / dot(B, B));",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)

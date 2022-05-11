@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = distance(A, B);",
+            "    Out = distance(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out)

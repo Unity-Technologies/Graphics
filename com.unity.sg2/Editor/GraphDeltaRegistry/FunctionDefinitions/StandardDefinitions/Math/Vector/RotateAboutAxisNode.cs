@@ -13,10 +13,8 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Radians",
-@"
-{
-    sincos(Rotation, s, c);
+                    "RotateAboutAxisRadians",
+@"    sincos(Rotation, s, c);
     one_minus_c = 1.0 - c;
     Axis = normalize(Axis);
 	rot_mat[0].x = one_minus_c * Axis.x * Axis.x + c;
@@ -28,9 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
 	rot_mat[2].x = one_minus_c * Axis.z * Axis.x - Axis.y * s;
 	rot_mat[2].y = one_minus_c * Axis.y * Axis.z + Axis.x * s;
 	rot_mat[2].z = 	one_minus_c * Axis.z * Axis.z + c;
-    Out = mul(rot_mat,  In);
-}
-",
+    Out = mul(rot_mat,  In);",
                     new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
@@ -42,10 +38,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Degrees",
-@"
-{
-    Rotation = radians(Rotation);
+                    "RotateAboutAxisDegrees",
+@"    Rotation = radians(Rotation);
     sincos(Rotation, s, c);
     one_minus_c = 1.0 - c;
     Axis = normalize(Axis);
@@ -58,9 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
 	rot_mat[2].x = one_minus_c * Axis.z * Axis.x - Axis.y * s;
 	rot_mat[2].y = one_minus_c * Axis.y * Axis.z + Axis.x * s;
 	rot_mat[2].z = 	one_minus_c * Axis.z * Axis.z + c;
-    Out = mul(rot_mat,  In);
-}
-",
+    Out = mul(rot_mat,  In);",
                     new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Axis", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
@@ -81,8 +73,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "pivot" },
             selectableFunctions: new()
             {
-                { "Radians", "Radians" },
-                { "Degrees", "Degrees" }
+                { "RotateAboutAxisRadians", "Radians" },
+                { "RotateAboutAxisDegrees", "Degrees" }
             },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
