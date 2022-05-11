@@ -9,6 +9,12 @@ The **Ambient Occlusion** effect in this package has two modes:
 - Scalable Ambient Obscurance
 - Multi-scale Volumetric Occlusion
 
+![Scene rendered without Ambient Occlusion effect](images/ao-off.png)
+Scene without **Ambient Occlusion**.
+
+![Scene rendered with Ambient Occlusion effect](images/ao-on.png)
+Scene with **Ambient Occlusion**.
+
 ## Scalable Ambient Obscurance
 
 This is a standard implementation of ambient obscurance that works on older platforms. If you need to target a compute-enabled platform, use the [**Multi-scale Volumetric Occlusion**](multi-scale-volumetric-occlusion) mode instead.
@@ -27,10 +33,6 @@ Dropping the `Quality` setting down will improve performance too.
 
 - Depth & Normals textures
 - Shader model 3
-
-
-![](images/ssao-1.png)
-
 
 ### Properties
 
@@ -52,9 +54,6 @@ This mode is optimized for consoles and desktop platforms. It has better graphic
 
 - Compute shader support
 - Shader model 4.5
-
-![](images/ssao-2.png)
-
 
 ### Properties
 
