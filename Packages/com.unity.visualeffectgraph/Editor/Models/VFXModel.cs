@@ -422,27 +422,8 @@ namespace UnityEditor.VFX
             }).Select(field => new VFXSetting(field, this));
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, VFXCoordinateSpace srcSpace, SpaceableType dstSpaceType, VFXCoordinateSpace dstSpace)
+        static protected VFXExpression TransformExpression(VFXExpression input, SpaceableType dstSpaceType, VFXExpression matrix)
         {
-            if (dstSpace == VFXCoordinateSpace.None || srcSpace == VFXCoordinateSpace.None)
-            {
-                return input;
-            }
-
-            VFXExpression matrix = null;
-            if (dstSpace == VFXCoordinateSpace.Local)
-            {
-                matrix = VFXBuiltInExpression.WorldToLocal;
-            }
-            else if (dstSpace == VFXCoordinateSpace.World)
-            {
-                matrix = VFXBuiltInExpression.LocalToWorld;
-            }
-            else
-            {
-                throw new InvalidOperationException("Cannot Convert to unknown space");
-            }
-
             if (dstSpaceType == SpaceableType.Position)
             {
                 input = new VFXExpressionTransformPosition(matrix, input);
@@ -463,7 +444,50 @@ namespace UnityEditor.VFX
             {
                 //Not a transformable subSlot
             }
+
             return input;
+        }
+
+        static protected VFXExpression ConvertSpace(VFXExpression input, VFXCoordinateSpace srcSpace, SpaceableType dstSpaceType, VFXCoordinateSpace dstSpace)
+        {
+            if (dstSpace == VFXCoordinateSpace.None || srcSpace == VFXCoordinateSpace.None)
+            {
+                return input;
+            }
+
+            VFXExpression matrix = null;
+            if (dstSpace == VFXCoordinateSpace.Local)
+            {
+                matrix = VFXBuiltInExpression.WorldToLocal;
+            }
+            else if (dstSpace == VFXCoordinateSpace.World)
+            {
+                matrix = VFXBuiltInExpression.LocalToWorld;
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot Convert to unknown space");
+            }
+            return TransformExpression(input, dstSpaceType, matrix);
+        }
+
+        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
+        {
+            VFXExpression matrix = null;
+            if (space == VFXCoordinateSpace.Local)
+            {
+                matrix = VFXBuiltInExpression.WorldToLocal;
+            }
+            else if (space == VFXCoordinateSpace.World)
+            {
+                matrix = VFXBuiltInExpression.LocalToWorld;
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot Convert to unknown space");
+            }
+
+            return TransformExpression(input, spaceType, matrix);
         }
 
         protected virtual IEnumerable<string> filteredOutSettings

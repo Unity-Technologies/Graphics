@@ -97,12 +97,18 @@ namespace UnityEditor.VFX
             }
         }
 
-        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        protected VFXCoordinateSpace GetOwnerSpace()
         {
-            /* For block, space is directly inherited from parent context, this method should remains sealed */
             if (GetParent() != null)
                 return GetParent().space;
             return VFXCoordinateSpace.None;
+        }
+
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            //For block, space is directly inherited from parent context
+            //Override with care: most block are assuming expression are in same space than owner (and doesn't conversion afterwards).
+            return GetOwnerSpace();
         }
 
         public VFXContext flattenedParent

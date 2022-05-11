@@ -7,16 +7,16 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
-    class MeshIndexCount : VFXOperator
+    class MeshTriangleCount : VFXOperator
     {
         override public string name
         {
             get
             {
                 if (source == SampleMesh.SourceType.Mesh)
-                    return "Get Mesh Index Count";
+                    return "Get Mesh Triangle Count";
                 else
-                    return "Get Skinned Mesh Index Count";
+                    return "Get Skinned Mesh Triangle Count";
             }
         }
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            [Tooltip("The number of indices in this mesh")]
+            [Tooltip("The number of triangle in this mesh")]
             public uint count;
         }
 
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.Operator
         {
             var mesh = inputExpression[0].valueType == VFXValueType.Mesh ? inputExpression[0] : new VFXExpressionMeshFromSkinnedMeshRenderer(inputExpression[0]);
             var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
-            return new VFXExpression[] { meshIndexCount };
+            return new VFXExpression[] { meshIndexCount / VFXValue.Constant(3u) };
         }
     }
 }

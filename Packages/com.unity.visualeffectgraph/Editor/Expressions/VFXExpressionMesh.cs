@@ -6,6 +6,16 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    interface IVFXExpressionSampleSkinnedMesh
+    {
+        VFXSkinnedMeshFrame frame => DefaultVFXSkinnedMeshFrame(this);
+        protected VFXSkinnedMeshFrame DefaultVFXSkinnedMeshFrame(IVFXExpressionSampleSkinnedMesh sampleSkinnedMesh)
+        {
+            //This override is only relevant for Float3 (position/normal) & Float4 (tangent)
+            return VFXSkinnedMeshFrame.Current;
+        }
+    }
+
     class VFXExpressionVertexBufferFromMesh : VFXExpression
     {
         public VFXExpressionVertexBufferFromMesh() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default)
@@ -21,12 +31,25 @@ namespace UnityEditor.VFX
 
     class VFXExpressionVertexBufferFromSkinnedMeshRenderer : VFXExpression
     {
-        public VFXExpressionVertexBufferFromSkinnedMeshRenderer() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default)
+        public VFXExpressionVertexBufferFromSkinnedMeshRenderer() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXSkinnedMeshFrame.Current)
         {
         }
 
-        public VFXExpressionVertexBufferFromSkinnedMeshRenderer(VFXExpression mesh, VFXExpression channelFormatAndDimensionAndStream) : base(Flags.InvalidOnGPU, new VFXExpression[] { mesh, channelFormatAndDimensionAndStream })
+        public VFXExpressionVertexBufferFromSkinnedMeshRenderer(VFXExpression mesh, VFXExpression channelFormatAndDimensionAndStream, VFXSkinnedMeshFrame frame) : base(Flags.InvalidOnGPU, new VFXExpression[] { mesh, channelFormatAndDimensionAndStream })
         {
+            m_Frame = frame;
+        }
+
+        private VFXSkinnedMeshFrame m_Frame;
+        public VFXSkinnedMeshFrame frame => m_Frame;
+
+        protected sealed override int[] additionnalOperands { get { return new[] { (int)m_Frame }; } }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var reduced = (VFXExpressionVertexBufferFromSkinnedMeshRenderer)base.Reduce(reducedParents);
+            reduced.m_Frame = m_Frame;
+            return reduced;
         }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.VertexBufferFromSkinnedMeshRenderer; } }
@@ -150,7 +173,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSampleSkinnedMeshRendererFloat : VFXExpressionSampleBaseFloat
+    class VFXExpressionSampleSkinnedMeshRendererFloat : VFXExpressionSampleBaseFloat, IVFXExpressionSampleSkinnedMesh
     {
         public VFXExpressionSampleSkinnedMeshRendererFloat() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
@@ -202,7 +225,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSampleSkinnedMeshRendererFloat2 : VFXExpressionSampleBaseFloat2
+    class VFXExpressionSampleSkinnedMeshRendererFloat2 : VFXExpressionSampleBaseFloat2, IVFXExpressionSampleSkinnedMesh
     {
         public VFXExpressionSampleSkinnedMeshRendererFloat2() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
@@ -255,17 +278,30 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSampleSkinnedMeshRendererFloat3 : VFXExpressionSampleBaseFloat3
+    class VFXExpressionSampleSkinnedMeshRendererFloat3 : VFXExpressionSampleBaseFloat3, IVFXExpressionSampleSkinnedMesh
     {
-        public VFXExpressionSampleSkinnedMeshRendererFloat3() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        public VFXExpressionSampleSkinnedMeshRendererFloat3() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXSkinnedMeshFrame.Current)
         {
         }
 
-        public VFXExpressionSampleSkinnedMeshRendererFloat3(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
+        public VFXExpressionSampleSkinnedMeshRendererFloat3(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension, VFXSkinnedMeshFrame frame) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
         {
+            m_Frame = frame;
         }
 
-        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var newExpression = (VFXExpressionSampleSkinnedMeshRendererFloat3)base.Reduce(reducedParents);
+            newExpression.m_Frame = m_Frame;
+            return newExpression;
+        }
+
+        private VFXSkinnedMeshFrame m_Frame;
+        VFXSkinnedMeshFrame IVFXExpressionSampleSkinnedMesh.frame => m_Frame;
+
+        protected override int[] additionnalOperands => new[] { (int)m_Frame }; //Not used but needed for default comparison of VFXExpressionSampleSkinnedMeshRendererFloat3
+
+        public sealed override VFXExpressionOperation operation => VFXExpressionOperation.None;
 
         sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
     }
@@ -308,15 +344,28 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSampleSkinnedMeshRendererFloat4 : VFXExpressionSampleBaseFloat4
+    class VFXExpressionSampleSkinnedMeshRendererFloat4 : VFXExpressionSampleBaseFloat4, IVFXExpressionSampleSkinnedMesh
     {
-        public VFXExpressionSampleSkinnedMeshRendererFloat4() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        public VFXExpressionSampleSkinnedMeshRendererFloat4() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXSkinnedMeshFrame.Current)
         {
         }
 
-        public VFXExpressionSampleSkinnedMeshRendererFloat4(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
+        public VFXExpressionSampleSkinnedMeshRendererFloat4(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension, VFXSkinnedMeshFrame frame) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
         {
+            m_Frame = frame;
         }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var newExpression = (VFXExpressionSampleSkinnedMeshRendererFloat4)base.Reduce(reducedParents);
+            newExpression.m_Frame = m_Frame;
+            return newExpression;
+        }
+
+        private VFXSkinnedMeshFrame m_Frame;
+        VFXSkinnedMeshFrame IVFXExpressionSampleSkinnedMesh.frame => m_Frame;
+
+        protected override int[] additionnalOperands => new[] { (int)m_Frame }; //Not used but needed for default comparison of VFXExpressionSampleSkinnedMeshRendererFloat4
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
 
@@ -361,7 +410,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSampleSkinnedMeshRendererColor : VFXExpressionSampleBaseColor
+    class VFXExpressionSampleSkinnedMeshRendererColor : VFXExpressionSampleBaseColor, IVFXExpressionSampleSkinnedMesh
     {
         public VFXExpressionSampleSkinnedMeshRendererColor() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
@@ -491,6 +540,44 @@ namespace UnityEditor.VFX
             var mesh = meshReduce.Get<Mesh>();
             var channelIndex = channelIndexReduce.Get<uint>();
             return VFXValue.Constant(VFXExpressionMesh.GetVertexStride(mesh, channelIndex));
+        }
+    }
+    class VFXExpressionRootBoneTransformFromSkinnedMeshRenderer : VFXExpression
+    {
+        public VFXExpressionRootBoneTransformFromSkinnedMeshRenderer() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXSkinnedTransform.LocalRootBoneTransform, VFXSkinnedMeshFrame.Current)
+        {
+        }
+
+        public VFXExpressionRootBoneTransformFromSkinnedMeshRenderer(VFXExpression skinnedMeshRenderer, VFXSkinnedTransform transform, VFXSkinnedMeshFrame frame) : base(Flags.InvalidOnGPU, skinnedMeshRenderer)
+        {
+            m_Transform = transform;
+            m_Frame = frame;
+        }
+        private VFXSkinnedTransform m_Transform;
+        private VFXSkinnedMeshFrame m_Frame;
+
+        protected sealed override int[] additionnalOperands { get { return new[] { (int)m_Frame, (int)m_Transform }; } }
+
+        public sealed override VFXExpressionOperation operation { get { return VFXExpressionOperation.RootBoneTransformFromSkinnedMeshRenderer; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var smr = constParents[0];
+            if (smr.Get<SkinnedMeshRenderer>() == null)
+            {
+                var transform = Matrix4x4.identity;
+                return VFXValue.Constant(transform);
+            }
+
+            throw new NotImplementedException("VFXExpressionRootBoneTransformFromSkinnedMeshRenderer cannot be constant folded.");
+        }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var newExpression = (VFXExpressionRootBoneTransformFromSkinnedMeshRenderer)base.Reduce(reducedParents);
+            newExpression.m_Transform = m_Transform;
+            newExpression.m_Frame = m_Frame;
+            return newExpression;
         }
     }
 }
