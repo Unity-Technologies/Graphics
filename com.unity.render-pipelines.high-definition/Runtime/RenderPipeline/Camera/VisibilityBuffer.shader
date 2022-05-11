@@ -59,7 +59,11 @@ Shader "Hidden/HDRP/VisibilityBuffer"
 				VaryingsVisibility output = (VaryingsVisibility)0;
 				UNITY_SETUP_INSTANCE_ID(input);
 #ifdef PROCEDURAL_INSTANCING_ON
-				VertexData vertexData = GetVertexData(input.vertexID, input.instanceID);
+                uint vertexID = input.vertexID;
+#if defined(SHADER_API_VULKAN)
+                vertexID -= 1;
+#endif
+				VertexData vertexData = GetVertexData(vertexID, input.instanceID);
 				//output.positionCS = mul(UNITY_MATRIX_VP, vertexData.worldPos);
 				output.positionCS = vertexData.clipPos;
 				//output.clusterID.x = vertexData.clusterID;
