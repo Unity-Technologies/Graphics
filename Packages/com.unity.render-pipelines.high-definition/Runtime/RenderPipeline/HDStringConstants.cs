@@ -1090,6 +1090,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcMip = Shader.PropertyToID("_SrcMip");
         public static readonly int _SrcScale = Shader.PropertyToID("_SrcScale");
         public static readonly int _SrcOffset = Shader.PropertyToID("_SrcOffset");
+
+        // Debug Color Monitors
+        public static readonly int _VectorscopeParameters = Shader.PropertyToID("_VectorscopeParameters");
+        public static readonly int _VectorscopeBuffer     = Shader.PropertyToID("_VectorscopeBuffer");
+        public static readonly int _WaveformParameters    = Shader.PropertyToID("_WaveformParameters");
+        public static readonly int _WaveformBuffer        = Shader.PropertyToID("_WaveformBuffer");
+        public static readonly int _BufferSize            = Shader.PropertyToID("_BufferSize");
     }
 
     /// <summary>

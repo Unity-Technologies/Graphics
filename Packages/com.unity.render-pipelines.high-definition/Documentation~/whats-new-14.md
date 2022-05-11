@@ -33,6 +33,20 @@ For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](
 When importing a material with a diffusion profile that is not referenced in the HDRP Global Settings, rendering cannot be made correctly. With HDRP 14, these diffusion profiles are automatically registered in the Global Settings to ease importing of external assets. This can be disabled by unticking the box **Auto Register Diffusion Profiles** in the **Miscellaneaous** section of the Global Settings.
 Additionally, materials using a non registered diffusion profile are now displayed in fushia instead of green to better highlight them.
 
+### Color Monitors
+
+HDRP 14.0 includes a set of industry-standard monitors that you can use to control the overall look and exposure of a scene.
+You can find these new monitors in the Rendering Debugger window (menu: **Windows/Analysis/Rendering Debugger**) under the **Rendering** tab.
+
+- Waveform: Displays the full range of luma information in the render
+![](Images/new_waveform.png)
+
+- Parade: This is a mode of the waveform monitor that splits the image into red, green and blue separately
+![](Images/new_waveform_parade.png)
+
+- Vectorscope: Measures the overall range of hue and saturation within the image
+![](Images/new_vectorscope.png)
+
 ## Updated
 
 ### Cloud Layer
