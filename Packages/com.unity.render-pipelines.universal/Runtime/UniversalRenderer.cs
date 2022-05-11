@@ -1035,7 +1035,6 @@ namespace UnityEngine.Rendering.Universal
 
                 if (renderingData.cameraData.captureActions != null)
                 {
-                    m_CapturePass.Setup(sourceForFinalPass);
                     EnqueuePass(m_CapturePass);
                 }
 
