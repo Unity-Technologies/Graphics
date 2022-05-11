@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     //Class representing lights in the context of a view.
-    internal abstract partial class HDProcessedVisibleLightsBuilder
+    internal partial class HDProcessedVisibleLightsBuilder
     {
         #region internal HDRP API
         [Flags]
@@ -36,6 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int sortedDirectionalLightCounts => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.DirectionalLights] : 0;
         public int sortedNonDirectionalLightCounts => sortedLightCounts - sortedDirectionalLightCounts;
         public int bakedShadowsCount => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.BakedShadows] : 0;
+        public int sortedDGILightCounts => m_ProcessDynamicGILightCounts.IsCreated ? m_ProcessDynamicGILightCounts[(int)ProcessLightsCountSlots.ProcessedLights] : 0;
+        public int sortedDGIDirectionalLightCounts => m_ProcessDynamicGILightCounts.IsCreated ? m_ProcessDynamicGILightCounts[(int)ProcessLightsCountSlots.DirectionalLights] : 0;
+        public int sortedDGINonDirectionalLightCounts => sortedDGILightCounts - sortedDGIDirectionalLightCounts;
 
         //Indexed by VisibleLights
         public NativeArray<LightBakingOutput> visibleLightBakingOutput => m_VisibleLightBakingOutput;
@@ -47,6 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //Indexed by sorted lights.
         public NativeArray<uint> sortKeys => m_SortKeys;
+        public NativeArray<uint> sortKeysDGI => m_SortKeysDGI;
         public NativeArray<uint> sortSupportArray => m_SortSupportArray;
         public NativeArray<int> shadowLightsDataIndices => m_ShadowLightsDataIndices;
 
@@ -64,15 +68,16 @@ namespace UnityEngine.Rendering.HighDefinition
             in HDShadowInitParameters inShadowInitParameters,
             in AOVRequestData aovRequestData,
             in GlobalLightLoopSettings lightLoopSettings,
-            DebugDisplaySettings debugDisplaySettings)
+            DebugDisplaySettings debugDisplaySettings,
+            bool processDynamicGI)
         {
-            BuildVisibleLightEntities(cullingResult);
+            BuildVisibleLightEntities(cullingResult, processDynamicGI);
 
             if (m_Size == 0)
                 return;
 
             FilterVisibleLightsByAOV(aovRequestData);
-            StartProcessVisibleLightJob(hdCamera, cullingResult.visibleLights, cullingResult.visibleOffscreenVertexLights, lightLoopSettings, debugDisplaySettings);
+            StartProcessVisibleLightJob(hdCamera, cullingResult.visibleLights, cullingResult.visibleOffscreenVertexLights, lightLoopSettings, debugDisplaySettings, processDynamicGI);
             CompleteProcessVisibleLightJob();
             SortLightKeys();
             ProcessShadows(hdCamera, shadowManager, inShadowInitParameters, cullingResult);
@@ -95,18 +100,20 @@ namespace UnityEngine.Rendering.HighDefinition
         private const int ArrayCapacity = 32;
 
         private NativeArray<int> m_ProcessVisibleLightCounts;
+        private NativeArray<int> m_ProcessDynamicGILightCounts;
         private NativeArray<int> m_VisibleLightEntityDataIndices;
         private NativeArray<LightBakingOutput> m_VisibleLightBakingOutput;
         private NativeArray<LightShadowCasterMode> m_VisibleLightShadowCasterMode;
         private NativeArray<LightShadows> m_VisibleLightShadows;
         private NativeArray<float> m_VisibleLightBounceIntensity;
-        private NativeArray<LightVolumeType> m_ProcessedLightVolumeType;
+        private NativeArray<LightVolumeType> m_ProcessedLightVolumeType; // GG: Is this write-only?
         private NativeArray<HDProcessedVisibleLight> m_ProcessedEntities;
 
         private int m_Capacity = 0;
         private int m_Size = 0;
 
         private NativeArray<uint> m_SortKeys;
+        private NativeArray<uint> m_SortKeysDGI;
         private NativeArray<uint> m_SortSupportArray;
         private NativeArray<int> m_ShadowLightsDataIndices;
 
@@ -122,6 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProcessedLightVolumeType.ResizeArray(m_Capacity);
             m_ProcessedEntities.ResizeArray(m_Capacity);
             m_SortKeys.ResizeArray(m_Capacity);
+            m_SortKeysDGI.ResizeArray(m_Capacity);
             m_ShadowLightsDataIndices.ResizeArray(m_Capacity);
         }
 
@@ -132,6 +140,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_ProcessVisibleLightCounts.IsCreated)
                 m_ProcessVisibleLightCounts.Dispose();
+
+            if (m_ProcessDynamicGILightCounts.IsCreated)
+                m_ProcessDynamicGILightCounts.Dispose();
 
             if (m_Capacity == 0)
                 return;
@@ -145,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProcessedLightVolumeType.Dispose();
             m_ProcessedEntities.Dispose();
             m_SortKeys.Dispose();
+            m_SortKeysDGI.Dispose();
             m_ShadowLightsDataIndices.Dispose();
 
             m_Capacity = 0;

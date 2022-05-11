@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public bool enableAreaLights;
             [ReadOnly]
-            public bool onlyDynamicGI;
+            public bool enableDynamicGI;
             [ReadOnly]
             public bool dynamicGIUseRealtimeLights;
             [ReadOnly]
@@ -55,10 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public bool dynamicGIPreparingMixedLights;
 #endif
-            [ReadOnly]
-            public bool evaluateShadowStates;
-            [ReadOnly]
-            public bool alwaysContributeToLightingWhenAffectsDynamicGI;
             [ReadOnly]
             public bool enableRayTracing;
             [ReadOnly]
@@ -85,12 +81,17 @@ namespace UnityEngine.Rendering.HighDefinition
             [WriteOnly]
             public NativeArray<int> processedVisibleLightCountsPtr;
             [WriteOnly]
+            public NativeArray<int> processedDynamicGILightCountsPtr;
+            [WriteOnly]
             public NativeArray<LightVolumeType> processedLightVolumeType;
             [WriteOnly]
             public NativeArray<HDProcessedVisibleLight> processedEntities;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<uint> sortKeys;
+            [WriteOnly]
+            [NativeDisableContainerSafetyRestriction]
+            public NativeArray<uint> sortKeysDGI;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<int> shadowLightsDataIndices;
@@ -110,31 +111,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            private int IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots counterSlot)
+            private int IncrementCounter(ref NativeArray<int> counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots counterSlot)
             {
                 int outputIndex = 0;
                 unsafe
                 {
-                    int* ptr = (int*)processedVisibleLightCountsPtr.GetUnsafePtr<int>() + (int)counterSlot;
+                    int* ptr = (int*)counterSet.GetUnsafePtr<int>() + (int)counterSlot;
                     outputIndex = Interlocked.Increment(ref UnsafeUtility.AsRef<int>(ptr));
                 }
                 return outputIndex;
             }
 
-            private int DecrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots counterSlot)
+            private int DecrementCounter(ref NativeArray<int> counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots counterSlot)
             {
                 int outputIndex = 0;
                 unsafe
                 {
-                    int* ptr = (int*)processedVisibleLightCountsPtr.GetUnsafePtr<int>() + (int)counterSlot;
+                    int* ptr = (int*)counterSet.GetUnsafePtr<int>() + (int)counterSlot;
                     outputIndex = Interlocked.Decrement(ref UnsafeUtility.AsRef<int>(ptr));
                 }
                 return outputIndex;
             }
 
-            private int NextOutputIndex() => IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.ProcessedLights) - 1;
+            private int NextOutputIndex(ref NativeArray<int> counterSet) => IncrementCounter(ref counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.ProcessedLights) - 1;
 
-            private bool IncrementLightCounterAndTestLimit(LightCategory lightCategory, GPULightType gpuLightType)
+            private bool IncrementLightCounterAndTestLimit(ref NativeArray<int> counterSet, LightCategory lightCategory, GPULightType gpuLightType)
             {
                 // Do NOT process lights beyond the specified limit!
                 switch (lightCategory)
@@ -142,26 +143,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     case LightCategory.Punctual:
                         if (gpuLightType == GPULightType.Directional) // Our directional lights are "punctual"...
                         {
-                            var directionalLightcount = IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.DirectionalLights) - 1;
+                            var directionalLightcount = IncrementCounter(ref counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.DirectionalLights) - 1;
                             if (!showDirectionalLight || directionalLightcount >= maxDirectionalLightsOnScreen)
                             {
-                                DecrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.DirectionalLights);
+                                DecrementCounter(ref counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.DirectionalLights);
                                 return false;
                             }
                             break;
                         }
-                        var punctualLightcount = IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.PunctualLights) - 1;
+                        var punctualLightcount = IncrementCounter(ref counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.PunctualLights) - 1;
                         if (!showPunctualLight || punctualLightcount >= maxPunctualLightsOnScreen)
                         {
-                            DecrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.PunctualLights);
+                            DecrementCounter(ref counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.PunctualLights);
                             return false;
                         }
                         break;
                     case LightCategory.Area:
-                        var areaLightCount = IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.AreaLightCounts) - 1;
+                        var areaLightCount = IncrementCounter(ref counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.AreaLightCounts) - 1;
                         if (!showAreaLight || areaLightCount >= maxAreaLightsOnScreen)
                         {
-                            DecrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.AreaLightCounts);
+                            DecrementCounter(ref counterSet, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.AreaLightCounts);
                             return false;
                         }
                         break;
@@ -261,22 +262,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ref HDLightRenderData lightRenderData = ref GetLightData(dataIndex);
 
-                if (onlyDynamicGI)
-                {
-                    if (!lightRenderData.affectDynamicGI)
-                        return;
-
-                    if (lightRenderData.mixedDynamicGI)
-                    {
-                        if (!dynamicGIUseMixedLights)
-                            return;
-                    }
-                    else
-                    {
-                        if (!dynamicGIUseRealtimeLights)
-                            return;
-                    }
-                }
+                bool affectsDynamicGI =
+                    enableDynamicGI &&
+                    lightRenderData.affectDynamicGI &&
+                    (lightRenderData.mixedDynamicGI ? dynamicGIUseMixedLights : dynamicGIUseRealtimeLights);
 
                 if (enableRayTracing && !lightRenderData.includeForRayTracing)
                     return;
@@ -316,12 +305,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 float volumetricDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.volumetricFadeDistance);
 
-                bool contributesToLighting = ((lightRenderData.lightDimmer > 0) && (lightRenderData.affectDiffuse || lightRenderData.affectSpecular)) || ((lightRenderData.affectVolumetric ? lightRenderData.volumetricDimmer : 0.0f) > 0);
-                contributesToLighting = contributesToLighting || (alwaysContributeToLightingWhenAffectsDynamicGI && lightRenderData.affectDynamicGI);
-                contributesToLighting = contributesToLighting && (lightDistanceFade > 0);
+                bool contributesToVisibleLighting = isFromVisibleList && (((lightRenderData.lightDimmer > 0) && (lightRenderData.affectDiffuse || lightRenderData.affectSpecular)) || ((lightRenderData.affectVolumetric ? lightRenderData.volumetricDimmer : 0.0f) > 0));
+                bool contributesToDynamicGILighting = affectsDynamicGI;
+                if (lightDistanceFade <= 0)
+                {
+                    contributesToVisibleLighting = false;
+                    contributesToDynamicGILighting = false;
+                }
 
                 var shadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None;
-                if (evaluateShadowStates && isFromVisibleList)
+                if (isFromVisibleList)
                 {
                     shadowMapFlags = EvaluateShadowState(
                         shadows, lightType, gpuLightType, areaLightShape,
@@ -329,18 +322,31 @@ namespace UnityEngine.Rendering.HighDefinition
                         lightRenderData.shadowDimmer, lightRenderData.shadowFadeDistance, distanceToCamera, lightVolumeType);
                 }
 
-                if (!contributesToLighting)
+                if (!contributesToVisibleLighting && !contributesToDynamicGILighting)
                     return;
 
-                if (!IncrementLightCounterAndTestLimit(lightCategory, gpuLightType))
-                    return;
+                uint sortKey = HDGpuLightsBuilder.PackLightSortKey(lightCategory, gpuLightType, lightVolumeType, index);
 
-                int outputIndex = NextOutputIndex();
+                if (contributesToVisibleLighting && IncrementLightCounterAndTestLimit(ref processedVisibleLightCountsPtr, lightCategory, gpuLightType))
+                {
+                    int outputIndex = NextOutputIndex(ref processedVisibleLightCountsPtr);
 #if DEBUG
-                if (outputIndex < 0 || outputIndex >= sortKeys.Length)
-                    throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + sortKeys.Length);
+                    if (outputIndex < 0 || outputIndex >= sortKeys.Length)
+                        throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + sortKeys.Length);
 #endif
-                sortKeys[outputIndex] = HDGpuLightsBuilder.PackLightSortKey(lightCategory, gpuLightType, lightVolumeType, index);
+                    sortKeys[outputIndex] = sortKey;
+                }
+
+                if (contributesToDynamicGILighting && IncrementLightCounterAndTestLimit(ref processedDynamicGILightCountsPtr, lightCategory, gpuLightType))
+                {
+                    int outputIndex = NextOutputIndex(ref processedDynamicGILightCountsPtr);
+#if DEBUG
+                    if (outputIndex < 0 || outputIndex >= sortKeysDGI.Length)
+                        throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + sortKeysDGI.Length);
+#endif
+                    sortKeysDGI[outputIndex] = sortKey;
+                }
+
 
                 processedLightVolumeType[index] = lightVolumeType;
                 processedEntities[index] = new HDProcessedVisibleLight()
@@ -355,12 +361,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     isBakedShadowMask = isBakedShadowMaskLight
                 };
 
+                // Shadow counters and shadow data indices are only updated for visible lights
+                if (!contributesToVisibleLighting)
+                    return;
+
                 if (isBakedShadowMaskLight)
-                    IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.BakedShadows);
+                    IncrementCounter(ref processedVisibleLightCountsPtr, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.BakedShadows);
 
                 if ((shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
                 {
-                    int shadowOutputIndex = IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.ShadowLights) - 1;
+                    int shadowOutputIndex = IncrementCounter(ref processedVisibleLightCountsPtr, HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots.ShadowLights) - 1;
                     shadowLightsDataIndices[shadowOutputIndex] = index;
                 }
             }
@@ -371,12 +381,14 @@ namespace UnityEngine.Rendering.HighDefinition
             NativeArray<VisibleLight> visibleLights,
             NativeArray<VisibleLight> visibleOffscreenVertexLights,
             in GlobalLightLoopSettings lightLoopSettings,
-            DebugDisplaySettings debugDisplaySettings)
+            DebugDisplaySettings debugDisplaySettings,
+            bool processDynamicGI)
         {
             if (m_Size == 0)
                 return;
 
             var lightEntityCollection = HDLightRenderDatabase.instance;
+            var dynamicGIMixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
             var processVisibleLightJob = new ProcessVisibleLightJob()
             {
                 //Parameters.
@@ -384,6 +396,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraPosition = hdCamera.camera.transform.position,
                 pixelCount = hdCamera.actualWidth * hdCamera.actualHeight,
                 enableAreaLights = ShaderConfig.s_AreaLights != 0,
+                enableDynamicGI = processDynamicGI,
+                dynamicGIUseRealtimeLights = dynamicGIMixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly,
+                dynamicGIUseMixedLights = dynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.ForceRealtime,
+#if UNITY_EDITOR
+                dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+#endif
                 enableRayTracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing),
                 showDirectionalLight = debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight,
                 showPunctualLight = debugDisplaySettings.data.lightingDebugSettings.showPunctualLight,
@@ -394,10 +412,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 maxPunctualLightsOnScreen = lightLoopSettings.maxPunctualLightsOnScreen,
                 maxAreaLightsOnScreen = lightLoopSettings.maxAreaLightsOnScreen,
                 debugFilterMode = debugDisplaySettings.GetDebugLightFilterMode(),
-
-#if UNITY_EDITOR
-                dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
-#endif
 
                 //render light entities.
                 lightData = lightEntityCollection.lightData,
@@ -412,12 +426,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //Output processed lights.
                 processedVisibleLightCountsPtr = m_ProcessVisibleLightCounts,
+                processedDynamicGILightCountsPtr = m_ProcessDynamicGILightCounts,
                 processedLightVolumeType = m_ProcessedLightVolumeType,
                 processedEntities = m_ProcessedEntities,
                 sortKeys = m_SortKeys,
+                sortKeysDGI = m_SortKeysDGI,
                 shadowLightsDataIndices = m_ShadowLightsDataIndices
             };
-            OverrideProcessVisibleLightJobParameters(hdCamera, ref processVisibleLightJob);
+
+#if UNITY_EDITOR
+            if (ProbeVolume.preparingMixedLights)
+            {
+                processVisibleLightJob.dynamicGIUseRealtimeLights = false;
+                processVisibleLightJob.dynamicGIUseMixedLights = true;
+            }
+#endif
 
             m_ProcessVisibleLightJobHandle = processVisibleLightJob.Schedule(m_Size, 32);
         }
@@ -428,42 +451,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_ProcessVisibleLightJobHandle.Complete();
-        }
-
-        protected abstract void OverrideProcessVisibleLightJobParameters(HDCamera hdCamera, ref ProcessVisibleLightJob job);
-    }
-
-    internal partial class HDProcessedVisibleLightsRegularBuilder : HDProcessedVisibleLightsBuilder
-    {
-        protected override void OverrideProcessVisibleLightJobParameters(HDCamera hdCamera, ref ProcessVisibleLightJob job)
-        {
-            job.onlyDynamicGI = false;
-            job.alwaysContributeToLightingWhenAffectsDynamicGI = false;
-            job.evaluateShadowStates = true;
-        }
-    }
-
-    internal partial class HDProcessedVisibleLightsDynamicBuilder : HDProcessedVisibleLightsBuilder
-    { 
-        protected override void OverrideProcessVisibleLightJobParameters(HDCamera hdCamera, ref ProcessVisibleLightJob job)
-        {
-            job.onlyDynamicGI = true;
-            job.alwaysContributeToLightingWhenAffectsDynamicGI = true;
-            job.evaluateShadowStates = false;
-
-#if UNITY_EDITOR
-            if (ProbeVolume.preparingMixedLights)
-            {
-                job.dynamicGIUseRealtimeLights = false;
-                job.dynamicGIUseMixedLights = true;
-            }
-            else
-#endif
-            {
-                var dynamicGIMixedLightMode = hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode;
-                job.dynamicGIUseRealtimeLights = dynamicGIMixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
-                job.dynamicGIUseMixedLights = dynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.ForceRealtime;
-            }
         }
     }
 }
