@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
         {
             public static readonly List<(string, object)> Spaces = new()
             {
-                ("Absolute World Space", AbsoluteWorldSpace),
                 ("World Space", WorldSpace),
                 ("Object Space", ObjectSpace),
                 ("View Space", ViewSpace),
@@ -16,7 +15,6 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             public static readonly List<(string, object)> Normals = new()
             {
-                ("Absolute World Space", AbsoluteWorldSpace_Normal),
                 ("World Space", WorldSpace_Normal),
                 ("Object Space", ObjectSpace_Normal),
                 ("View Space", ViewSpace_Normal),
@@ -24,7 +22,6 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             public static readonly List<(string, object)> Tangents = new()
             {
-                ("Absolute World Space", AbsoluteWorldSpace_Tangent),
                 ("World Space", WorldSpace_Tangent),
                 ("Object Space", ObjectSpace_Tangent),
                 ("View Space", ViewSpace_Tangent),
@@ -32,7 +29,6 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             public static readonly List<(string, object)> Bitangents = new()
             {
-                ("Absolute World Space", AbsoluteWorldSpace_Bitangent),
                 ("World Space", WorldSpace_Bitangent),
                 ("Object Space", ObjectSpace_Bitangent),
                 ("View Space", ViewSpace_Bitangent),
@@ -40,7 +36,6 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             public static readonly List<(string, object)> ViewDirections = new()
             {
-                ("Absolute World Space", AbsoluteWorldSpace_ViewDirection),
                 ("World Space", WorldSpace_ViewDirection),
                 ("Object Space", ObjectSpace_ViewDirection),
                 ("View Space", ViewSpace_ViewDirection),
@@ -48,7 +43,6 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             public static readonly List<(string, object)> Positions = new()
             {
-                ("Absolute World Space", AbsoluteWorldSpace_Position),
                 ("World Space", WorldSpace_Position),
                 ("Object Space", ObjectSpace_Position),
                 ("View Space", ViewSpace_Position),
@@ -98,13 +92,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 ("Pixel", ScreenPosition_Pixel)
             };
         }
-
-        public static readonly ReferenceValueDescriptor AbsoluteWorldSpace = new("");
-        public static readonly ReferenceValueDescriptor AbsoluteWorldSpace_Normal = new("");
-        public static readonly ReferenceValueDescriptor AbsoluteWorldSpace_Tangent = new("");
-        public static readonly ReferenceValueDescriptor AbsoluteWorldSpace_Bitangent = new("");
-        public static readonly ReferenceValueDescriptor AbsoluteWorldSpace_ViewDirection = new("");
-        public static readonly ReferenceValueDescriptor AbsoluteWorldSpace_Position = new("");
 
         public static readonly ReferenceValueDescriptor WorldSpace = new("");
         public static readonly ReferenceValueDescriptor WorldSpace_Normal = new("");
