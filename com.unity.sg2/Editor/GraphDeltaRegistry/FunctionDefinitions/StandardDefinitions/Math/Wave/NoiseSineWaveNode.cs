@@ -11,12 +11,8 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            @"
-{
-    sinIn = sin(In);
-    Out = sinIn + lerp(Min, Max, frac(sin((sinIn - sin(In + 1.0)) * (12.9898 + 78.233))*43758.5453));
-}
-",
+@"    sinIn = sin(In);
+    Out = sinIn + lerp(Min, Max, frac(sin((sinIn - sin(In + 1.0)) * (12.9898 + 78.233))*43758.5453));",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Min", TYPE.Float, Usage.In, new float[] { -0.5f }),
             new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 0.5f }),

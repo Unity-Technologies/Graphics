@@ -11,14 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    R = In.r;
+
+@"    R = In.r;
     G = In.g;
     B = In.b;
-    A = In.a;
-}
-",
+    A = In.a;",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("R", TYPE.Float, Usage.Out),
             new ParameterDescriptor("G", TYPE.Float, Usage.Out),

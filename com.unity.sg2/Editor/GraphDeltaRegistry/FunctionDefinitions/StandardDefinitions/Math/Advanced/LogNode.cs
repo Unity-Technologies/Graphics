@@ -13,22 +13,22 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "BaseE",
-                    "Out = log(In);",
+                    "LogBaseE",
+                    "    Out = log(In);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new(
                     1,
-                    "Base2",
-                    "Out = log2(In);",
+                    "LogBase2",
+                    "    Out = log2(In);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 ),
                 new(
                     1,
-                    "Base10",
-                    "Out = log10(In);",
+                    "LogBase10",
+                    "    Out = log10(In);",
                     new ParameterDescriptor("In", TYPE.Vector, Usage.In, new float[] { 1.0f, 1.0f, 1.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
                 )
@@ -43,9 +43,9 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {
-                { "BaseE", "BaseE" },
-                { "Base2", "Base2" },
-                { "Base10", "Base10" }
+                { "LogBaseE", "BaseE" },
+                { "LogBase2", "Base2" },
+                { "LogBase10", "Base10" }
             },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

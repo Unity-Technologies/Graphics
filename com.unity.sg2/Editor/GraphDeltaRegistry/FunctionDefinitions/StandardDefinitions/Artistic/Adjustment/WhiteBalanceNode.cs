@@ -11,29 +11,27 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            @"
-{
-        // Range ~[-1.67;1.67] works best
-        t1 = Temperature * 10 / 6;
 
-        // Get the CIE xy chromaticity of the reference white point.
-        // Note: 0.31271 = x value on the D65 white point
-        x = 0.31271 - t1 * (t1 < 0 ? 0.1 : 0.05);
-        y = (2.87 * x - 3 * x * x - 0.27509507) + (Tint * 10 / 6) * 0.05;
+@"    // Range ~[-1.67;1.67] works best
+    t1 = Temperature * 10 / 6;
 
-        // CIExyToLMS
-        X = 1 * x / y;
-        Z = 1 * (1 - x - y) / y;
-        w2.x = (0.7328 * X + 0.4296 * 1 - 0.1624 * Z);
-		w2.y = (-0.7036 * X + 1.6975 * 1 + 0.0061 * Z);
-		w2.z = (0.0030 * X + 0.0136 * 1 + 0.9834 * Z);
+    // Get the CIE xy chromaticity of the reference white point.
+    // Note: 0.31271 = x value on the D65 white point
+    x = 0.31271 - t1 * (t1 < 0 ? 0.1 : 0.05);
+    y = (2.87 * x - 3 * x * x - 0.27509507) + (Tint * 10 / 6) * 0.05;
 
-		lms = mul(LIN_2_LMS_MAT, In);
-		lms.x *= w1.x / w2.x;
-		lms.y *= w1.y / w2.y;
-		lms.z *= w1.z / w2.z;
-		Out = mul(LMS_2_LIN_MAT, lms);
-}",
+    // CIExyToLMS
+    X = 1 * x / y;
+    Z = 1 * (1 - x - y) / y;
+    w2.x = (0.7328 * X + 0.4296 * 1 - 0.1624 * Z);
+    w2.y = (-0.7036 * X + 1.6975 * 1 + 0.0061 * Z);
+    w2.z = (0.0030 * X + 0.0136 * 1 + 0.9834 * Z);
+
+    lms = mul(LIN_2_LMS_MAT, In);
+    lms.x *= w1.x / w2.x;
+    lms.y *= w1.y / w2.y;
+    lms.z *= w1.z / w2.z;
+    Out = mul(LMS_2_LIN_MAT, lms);",
             new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("Temperature", TYPE.Float, Usage.In),
             new ParameterDescriptor("Tint", TYPE.Float, Usage.In),

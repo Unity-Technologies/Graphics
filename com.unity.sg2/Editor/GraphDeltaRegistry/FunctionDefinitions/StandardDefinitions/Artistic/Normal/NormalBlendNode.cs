@@ -14,28 +14,20 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Default",
-@"
-{
-    Out.rg = A.rg + B.rg;
+                    "NormalBlendDefault",
+@"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
-	Out = SafeNormalize(Out);
-}
-",
+	Out = SafeNormalize(Out);",
                     new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
                     1,
-                    "Reoriented",
-@"
-{
-    t += A;
+                    "NormalBlendReoriented",
+@"    t += A;
     u *= B;
-    Out = (t / t.z) * dot(t, u) - u;
-}
-",
+    Out = (t / t.z) * dot(t, u) - u;",
                     new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("t", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 0.0f, 1.0f }),
@@ -44,14 +36,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "DefaultO",
-@"
-{
-    Out.rg = A.rg + B.rg;
+                    "NormalBlendDefaultO",
+@"    Out.rg = A.rg + B.rg;
 	Out.b = A.b * B.b;
-	Out = lerp(A, SafeNormalize(Out), Opacity);
-}
-",
+	Out = lerp(A, SafeNormalize(Out), Opacity);",
                     new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
@@ -59,14 +47,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "ReorientedO",
-@"
-{
-    t += A;
+                    "NormalBlendReorientedO",
+@"    t += A;
     u *= B;
-    Out = lerp( A, ((t / t.z) * dot(t, u) - u), Opacity);
-}
-",
+    Out = lerp( A, ((t / t.z) * dot(t, u) - u), Opacity);",
                     new ParameterDescriptor("A", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("B", TYPE.Vec3, GraphType.Usage.In, new float[] { 0.0f, 0.0f, 1.0f }),
                     new ParameterDescriptor("Opacity", TYPE.Float, GraphType.Usage.In, new float[] { 1.0f }),
@@ -86,10 +70,10 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal Blend",
             selectableFunctions: new()
             {
-                { "Default", "Whiteout" },
-                { "Reoriented", "Reoriented" },
-                { "DefaultO", "Whiteout Opacity" },
-                { "ReorientedO", "Reoriented Opacity" }
+                { "NormalBlendDefault", "Whiteout" },
+                { "NormalBlendReoriented", "Reoriented" },
+                { "NormalBlendDefaultO", "Whiteout Opacity" },
+                { "NormalBlendReorientedO", "Reoriented Opacity" }
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

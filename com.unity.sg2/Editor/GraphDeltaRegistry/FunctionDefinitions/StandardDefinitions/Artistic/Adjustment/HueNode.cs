@@ -13,9 +13,8 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Degrees",
-@"
-    temp1.rg = In.bg;
+                    "HueDegrees",
+@"    temp1.rg = In.bg;
     temp1.ba = K.wz;
     temp2.rg = In.gb;
     temp2.ba = K.xy;
@@ -36,8 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ? hue - 1
                 : hue;
     // HSV to RGB
-    Out = hsv.z * lerp(K2.xxx, saturate((abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www)) - K2.xxx), hsv.y);
-",
+    Out = hsv.z * lerp(K2.xxx, saturate((abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www)) - K2.xxx), hsv.y);",
                     new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
                     new ParameterDescriptor("temp1", TYPE.Vec4, Usage.Local),
@@ -54,9 +52,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                  new(
                     1,
-                    "Normalized",
-@"
-    temp1.rg = In.bg;
+                    "HueNormalized",
+@"    temp1.rg = In.bg;
     temp1.ba = K.wz;
     temp2.rg = In.gb;
     temp2.ba = K.xy;
@@ -77,8 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ? hue - 1
                 : hue;
     // HSV to RGB
-    Out = hsv.z * lerp(K2.xxx, saturate((abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www)) - K2.xxx), hsv.y);
-",
+    Out = hsv.z * lerp(K2.xxx, saturate((abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www)) - K2.xxx), hsv.y);",
                     new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("temp1", TYPE.Vec4, Usage.Local),
@@ -104,8 +100,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {
-                { "Degrees", "Degrees" },
-                { "Normalized", "Normalized" }
+                { "HueDegrees", "Degrees" },
+                { "HueNormalized", "Normalized" }
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

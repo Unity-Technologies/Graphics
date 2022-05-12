@@ -14,16 +14,13 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Standard",
-@"
-{
-    RGBA = SAMPLE_TEXTURE3D(Texture.tex, Sampler.samplerstate, UV);
+                    "SampleTexture3DStandard",
+@"    RGBA = SAMPLE_TEXTURE3D(Texture.tex, Sampler.samplerstate, UV);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture3D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -36,16 +33,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "LOD",
-@"
-{
-    RGBA = SAMPLE_TEXTURE3D_LOD(Texture.tex, Sampler.samplerstate, UV, LOD);
+                    "SampleTexture3DLOD",
+@"    RGBA = SAMPLE_TEXTURE3D_LOD(Texture.tex, Sampler.samplerstate, UV, LOD);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture3D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec3, Usage.In),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -68,8 +62,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[2] { "volume", "tex3d" },
             selectableFunctions: new()
             {
-                { "Standard", "Standard" },
-                { "LOD", "LOD" }
+                { "SampleTexture3DStandard", "Standard" },
+                { "SampleTexture3DLOD", "LOD" }
             },
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(

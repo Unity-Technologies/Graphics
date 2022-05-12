@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = min(A, B);",
+            "    Out = min(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
