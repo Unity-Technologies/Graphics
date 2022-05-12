@@ -11,10 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    Out = lerp(Min, Max, frac(sin(dot(Seed, temp))*43758.5453));
-}",
+@"  Out = lerp(Min, Max, frac(sin(dot(Seed, temp))*43758.5453));",
             new ParameterDescriptor("Seed", TYPE.Vec2, Usage.In),
             new ParameterDescriptor("Min", TYPE.Float, Usage.In),
             new ParameterDescriptor("Max", TYPE.Float, Usage.In, new float[] { 1f }),

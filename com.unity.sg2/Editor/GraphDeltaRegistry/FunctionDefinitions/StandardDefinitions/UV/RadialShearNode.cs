@@ -13,14 +13,13 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
 @"
-{
     delta = UV - Center;
     delta2 = dot(delta.xy, delta.xy);
     delta_offset = delta2 * Strength;
     temp.x = delta.y;
     temp.y = -delta.x;
     Out = UV + temp * delta_offset + Offset;
-}",
+",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),

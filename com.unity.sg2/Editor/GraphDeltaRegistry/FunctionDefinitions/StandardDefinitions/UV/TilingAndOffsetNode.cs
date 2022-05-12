@@ -12,10 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    Out = UV * Tiling + Offset;
-}",
+@"  Out = UV * Tiling + Offset;",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//need default uv
             new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] { 1f, 1f}),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),

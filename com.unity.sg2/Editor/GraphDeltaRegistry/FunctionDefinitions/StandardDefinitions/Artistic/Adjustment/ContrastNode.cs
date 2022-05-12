@@ -16,10 +16,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "Cheap",
             @"
-            {
                 midpoint = pow(0.5, 2.2);
                 Out =  (In - midpoint) * Contrast + midpoint;
-            }",
+            ",
                         new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                         new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
@@ -29,11 +28,10 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "Quality",
             @"
-            {
                 folded = (In > 0.5) ? 1 - In : In;
                 curved = pow(folded * 2, (Contrast + 1.0)) / 2;
                 Out = (In > 0.5) ? 1 - curved : curved;
-            }",
+            ",
                         new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
                         new ParameterDescriptor("Contrast", TYPE.Float, Usage.In, new float[] { 1f }),
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),

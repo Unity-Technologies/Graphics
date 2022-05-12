@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "Standard",
                     @"
-                    {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
                         RGBA = temp;
                     #else
@@ -27,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
                         G = RGBA.g;
                         B = RGBA.b;
                         A = RGBA.a;
-                    }",
+                    ",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -44,7 +43,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "NormalObject",
                     @"
-                    {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
                         RGBA = temp;
                     #else
@@ -56,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Defs
                         G = RGBA.g;
                         B = RGBA.b;
                         A = RGBA.a;
-                    }",
+                    ",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -73,7 +71,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "NormalTangent",
                     @"
-                    {
                     #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
                         RGBA = temp;
                     #else
@@ -85,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Defs
                         G = RGBA.g;
                         B = RGBA.b;
                         A = RGBA.a;
-                    }",
+                    ",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),

@@ -12,18 +12,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-//Width = Texture.texelSize.z;
-//Height = Texture.texelSize.w;
-//TexelWidth = Texture.texelSize.x;
-//TexelHeight = Texture.texelSize.y;
-Width = 1;
-Height = 1;
-TexelWidth = 1;
-TexelHeight = 1;
-}",
-            new ParameterDescriptor("Texture", TYPE.Vec2, Usage.In),//need texture support
+@"Width = Texture.texelSize.z;
+Height = Texture.texelSize.w;
+TexelWidth = Texture.texelSize.x;
+TexelHeight = Texture.texelSize.y;",
+            new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),//need texture support
             new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
             new ParameterDescriptor("Height", TYPE.Float, Usage.Out),
             new ParameterDescriptor("TexelWidth", TYPE.Float, Usage.Out),

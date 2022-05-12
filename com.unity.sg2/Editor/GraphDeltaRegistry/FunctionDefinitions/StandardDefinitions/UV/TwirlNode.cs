@@ -12,16 +12,12 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    delta = UV - Center;
+@"  delta = UV - Center;
     angle = Strength * length(delta);
     x = cos(angle) * delta.x - sin(angle) * delta.y;
     y = sin(angle) * delta.x + cos(angle) * delta.y;
     Out.x = x + Center.x + Offset.x;
-    Out.y = y + Center.y + Offset.y;
-
-}",
+    Out.y = y + Center.y + Offset.y;",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 10f, 10f }),
