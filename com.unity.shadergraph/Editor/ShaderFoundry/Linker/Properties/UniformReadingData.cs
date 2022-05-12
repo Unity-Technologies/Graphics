@@ -5,6 +5,10 @@ namespace UnityEditor.ShaderFoundry
         internal string Rhs;
         internal delegate void ReadUniformDelegate(ShaderBuilder builder, VariableLinkInstance owningVariable);
         internal ReadUniformDelegate ReadUniformCallback = null;
+        
+        internal delegate void WriteFieldNameDelegate();
+        internal delegate void ReadUniformDelegate2(ShaderBuilder builder, WriteFieldNameDelegate callback);
+        internal ReadUniformDelegate2 ReadUniformCallback2 = null;
 
         internal static UniformReadingData BuildSimple(FieldPropertyContext context, FieldPropertyData resultProperty)
         {
@@ -26,6 +30,19 @@ namespace UnityEditor.ShaderFoundry
             {
                 string variableDeclaration = owningVariable.GetDeclarationString();
                 builder.AddLine($"{variableDeclaration} = {Rhs};");
+            }
+        }
+
+        internal void Copy(ShaderBuilder builder, WriteFieldNameDelegate callback)
+        {
+            if (ReadUniformCallback2 != null)
+                ReadUniformCallback2(builder, callback);
+            else
+            {
+                builder.Indentation();
+                callback();
+                builder.Add($" = {Rhs};");
+                builder.NewLine();
             }
         }
 

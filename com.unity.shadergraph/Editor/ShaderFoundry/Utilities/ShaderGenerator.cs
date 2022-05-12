@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UnityEditor.ShaderFoundry
 {
     internal struct GeneratedShader
@@ -7,6 +9,7 @@ namespace UnityEditor.ShaderFoundry
         public string codeString;
         // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO: needed for populating compiled shader
         public string errorMessage;
+        public List<GUID> dependencies;
     }
 
     internal static class ShaderGenerator

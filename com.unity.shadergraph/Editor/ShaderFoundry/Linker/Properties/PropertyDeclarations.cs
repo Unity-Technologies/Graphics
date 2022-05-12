@@ -174,6 +174,23 @@ namespace UnityEditor.ShaderFoundry
 
                     if (usePreProcessor)
                         builder.AddLine("#endif");
+                },
+                ReadUniformCallback2 = (builder, callback) =>
+                {
+                    var keywordName = boolKeywordAttribute.GetKeywordName(uniformName);
+                    builder.AddLine($"{ifString} ({keywordName})");
+                    builder.Indent();
+                    callback();
+                    builder.AddLine($" = 1;");
+                    builder.Deindent();
+                    builder.AddLine(elseString);
+                    builder.Indent();
+                    callback();
+                    builder.AddLine($" = 0;");
+                    builder.Deindent();
+
+                    if (usePreProcessor)
+                        builder.AddLine("#endif");
                 }
             };
             return true;
@@ -221,6 +238,31 @@ namespace UnityEditor.ShaderFoundry
                     builder.AddLine(elseString);
                     builder.Indent();
                     builder.AddLine($"{variableDeclaration} = {enumKeywordAttribute.EnumCount};");
+                    builder.Deindent();
+                    if (usePreProcessor)
+                        builder.AddLine("#endif");
+                },
+                ReadUniformCallback2 = (builder, callback) =>
+                {
+                    for (var index = 0; index < enumKeywordAttribute.EnumCount; ++index)
+                    {
+                        var pair = enumKeywordAttribute.GetEnum(index);
+                        var keywordName = enumKeywordAttribute.GetKeywordName(uniformName, pair.Name);
+
+                        if (index == 0)
+                            builder.AddLine($"{ifString} ({keywordName})");
+                        else
+                            builder.AddLine($"{elseIfString} ({keywordName})");
+                        builder.Indent();
+                        callback();
+                        builder.AddLine($" = {pair.Value};");
+                        builder.Deindent();
+                    }
+
+                    builder.AddLine(elseString);
+                    builder.Indent();
+                    callback();
+                    builder.AddLine($" = {enumKeywordAttribute.EnumCount};");
                     builder.Deindent();
                     if (usePreProcessor)
                         builder.AddLine("#endif");
