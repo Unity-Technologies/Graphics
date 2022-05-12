@@ -30,16 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 m_GraphView.Dispatch(new CreateEdgeCommand(previewIn, addOut));
             }
 
-            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
-            CloseWindow();
-            yield return null;
-
-            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
-            CreateWindow();
-            m_Window.Show();
-            m_Window.Focus();
-            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-            yield return null;
+            yield return SaveAndReopenGraph();
 
             // Verify that edge is preserved
             {
