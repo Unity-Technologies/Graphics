@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"  Out = saturate(1 - (distance(MaskColor, In) - Range) / max(Fuzziness, 1e-5));",
+"  Out = saturate(1 - (distance(MaskColor, In) - Range) / max(Fuzziness, 1e-5));",
             new ParameterDescriptor("In", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("MaskColor", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("Range", TYPE.Float, Usage.In),
