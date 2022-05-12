@@ -1,7 +1,6 @@
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-//using Ref = UnityEditor.ShaderGraph.Defs.ReferenceValueDescriptor;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
@@ -9,19 +8,54 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         static string Name = "TestUIReferrablesNode";
         static int Version = 1;
-
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
-            "Out = UV;",
-            new ParameterDescriptor("UV", TYPE.Vec2, GraphType.Usage.Static, REF.WorldSpace_Normal),
-            new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.)
+            new FunctionDescriptor[] {
+                new(
+                    Version,
+                    Name,
+                    "Out = UV;",
+                    new ParameterDescriptor(
+                        name: "UV",
+                        type: TYPE.Vec2,
+                        usage: GraphType.Usage.Static,
+                        defaultValue: REF.WorldSpace_Normal
+                    ),
+                    new ParameterDescriptor(
+                        name: "Out",
+                        type: TYPE.Vec2,
+                        usage: GraphType.Usage.Out
+                    )
+                )
+            }
         );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string[] { "Test" },
+            synonyms: Array.Empty<string>(),
+            displayName: "Test Referrables Node",
+            hasPreview: false,
+            parameters: new ParameterUIDescriptor[]
+            {
+                new (
+                    name: "UV",
+                    options: REF.OptionList.Normals
+                ),
+                new (
+                    name: "Out"
+                )
+            }
+        );
+
     }
 
     internal class TestUINodeWithDefault : IStandardNode
     {
-        static string Name = "TestUIReferrablesNode";
+        static string Name = "TestUINodeWithDefault";
         static int Version = 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -32,14 +66,14 @@ namespace UnityEditor.ShaderGraph.Defs
                 "Out",
                 TYPE.Vec2,
                 GraphType.Usage.Out
-                ),
+            ),
             new ParameterDescriptor(
                 "In",
                 TYPE.Vec2,
                 GraphType.Usage.In,
                 Vector2.zero
-                )
-            );
+            )
+        );
     }
 
     internal class TestMultiFunctionNode : IStandardNode
