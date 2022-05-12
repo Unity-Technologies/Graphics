@@ -55,8 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public int outputDGILightCounts;
             [ReadOnly]
-            public int outputDGIDirectionalLightCounts;
-            [ReadOnly]
             public int outputLightBoundsCount;
             [ReadOnly]
             public CreateGpuLightDataJobGlobalConfig globalConfig;
@@ -122,9 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<LightData> dgiLights;
-            [WriteOnly]
-            [NativeDisableContainerSafetyRestriction]
-            public NativeArray<DirectionalLightData> dgiDirectionalLights;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<LightsPerView> lightsPerView;
@@ -743,7 +738,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int outputIndex = localIndex - (!isDGI ? outputDirectionalLightCounts : outputDGIDirectionalLightCounts);
+                    int outputIndex = localIndex;
+                    if (!isDGI)
+                        outputIndex = localIndex - outputDirectionalLightCounts;
                     StoreAndConvertLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType, isDGI);
                 }
             }
@@ -768,7 +765,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 outputLightCounts = m_LightCount,
                 outputDirectionalLightCounts = m_DirectionalLightCount,
                 outputDGILightCounts = m_DGILightCount,
-                outputDGIDirectionalLightCounts = m_DGIDirectionalLightCount,
                 outputLightBoundsCount = m_LightBoundsCount,
                 globalConfig = CreateGpuLightDataJobGlobalConfig.Create(hdCamera, hdShadowSettings),
                 cameraPos = hdCamera.camera.transform.position,
@@ -804,7 +800,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lights = m_Lights,
                 directionalLights = m_DirectionalLights,
                 dgiLights = m_DGILights,
-                dgiDirectionalLights = m_DGIDirectionalLights,
                 lightsPerView = m_LightsPerView,
                 lightBounds = m_LightBounds,
                 lightVolumes = m_LightVolumes

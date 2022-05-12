@@ -94,11 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int visibleLightsCount = processVisibleLights ? visibleLights.sortedNonDirectionalLightCounts : 0;
             int visibleDirectionalCount = processVisibleLights ? visibleLights.sortedDirectionalLightCounts : 0;
 
-            int totalDGILightsCount = processDynamicGI ? visibleLights.sortedDGILightCounts : 0;
-            int dgiLightsCount = processDynamicGI ? visibleLights.sortedDGINonDirectionalLightCounts : 0;
-            int dgiDirectionalCount = processDynamicGI ? visibleLights.sortedDGIDirectionalLightCounts : 0;
+            int dgiLightsCount = processDynamicGI ? visibleLights.sortedDGILightCounts : 0;
 
-            AllocateLightData(visibleLightsCount, visibleDirectionalCount, dgiLightsCount, dgiDirectionalCount);
+            AllocateLightData(visibleLightsCount, visibleDirectionalCount, dgiLightsCount);
 
             // TODO: Refactor shadow management
             // The good way of managing shadow:
@@ -109,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The lightLoop is in charge, not the shadow pass.
             // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
-            if (totalVisibleLightsCount > 0 || totalDGILightsCount > 0)
+            if (totalVisibleLightsCount > 0 || dgiLightsCount > 0)
             {
                 for (int viewId = 0; viewId < hdCamera.viewCount; ++viewId)
                 {

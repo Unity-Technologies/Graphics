@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //Allocate all the GPU critical buffers, for the case were there are no lights.
             //This ensures we can bind an empty buffer on ComputeBuffer SetData() call
-            AllocateLightData(0, 0, 0, 0);
+            AllocateLightData(0, 0, 0);
         }
 
         //Adds bounds for a new light type. Reflection probes / decals add their bounds here.
@@ -109,9 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_DGILights.IsCreated)
                 m_DGILights.Dispose();
-
-            if (m_DGIDirectionalLights.IsCreated)
-                m_DGIDirectionalLights.Dispose();
 
             if (m_LightsPerView.IsCreated)
                 m_LightsPerView.Dispose();
@@ -160,10 +157,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_DGILightCapacity = 0;
         private int m_DGILightCount = 0;
 
-        private NativeArray<DirectionalLightData> m_DGIDirectionalLights; // GG: Remove these?
-        private int m_DGIDirectionalLightCapacity = 0;
-        private int m_DGIDirectionalLightCount = 0;
-
         private NativeArray<int> m_LightTypeCounters;
         private NativeArray<int> m_DGILightTypeCounters;
 
@@ -186,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int m_BoundsEyeDataOffset = 0;
 
-        private void AllocateLightData(int lightCount, int directionalLightCount, int dgiLightCount, int dgiDirectionalLightCount)
+        private void AllocateLightData(int lightCount, int directionalLightCount, int dgiLightCount)
         {
             int requestedLightCount = Math.Max(1, lightCount);
             if (requestedLightCount > m_LightCapacity)
@@ -211,14 +204,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DGILights.ResizeArray(m_DGILightCapacity);
             }
             m_DGILightCount = dgiLightCount;
-
-            int requestedDGIDirectionalCount = Math.Max(1, dgiDirectionalLightCount);
-            if (requestedDGIDirectionalCount > m_DGIDirectionalLightCapacity)
-            {
-                m_DGIDirectionalLightCapacity = Math.Max(Math.Max(m_DGIDirectionalLightCapacity * 2, requestedDGIDirectionalCount), ArrayCapacity);
-                m_DGIDirectionalLights.ResizeArray(m_DGIDirectionalLightCapacity);
-            }
-            m_DGIDirectionalLightCount = dgiDirectionalLightCount;
         }
 
         #endregion

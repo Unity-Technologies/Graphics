@@ -37,8 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int sortedNonDirectionalLightCounts => sortedLightCounts - sortedDirectionalLightCounts;
         public int bakedShadowsCount => m_ProcessVisibleLightCounts.IsCreated ? m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.BakedShadows] : 0;
         public int sortedDGILightCounts => m_ProcessDynamicGILightCounts.IsCreated ? m_ProcessDynamicGILightCounts[(int)ProcessLightsCountSlots.ProcessedLights] : 0;
-        public int sortedDGIDirectionalLightCounts => m_ProcessDynamicGILightCounts.IsCreated ? m_ProcessDynamicGILightCounts[(int)ProcessLightsCountSlots.DirectionalLights] : 0;
-        public int sortedDGINonDirectionalLightCounts => sortedDGILightCounts - sortedDGIDirectionalLightCounts;
 
         //Indexed by VisibleLights
         public NativeArray<LightBakingOutput> visibleLightBakingOutput => m_VisibleLightBakingOutput;
