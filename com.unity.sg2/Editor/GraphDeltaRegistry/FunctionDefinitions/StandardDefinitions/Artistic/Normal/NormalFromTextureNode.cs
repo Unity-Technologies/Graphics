@@ -15,8 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "NormalFromTexture3Samples",
-//waiting for support for bringing in WorldSpaceNormal, WorldSpaceTangent, and WorldSpaceBitangent
-@"    //3 sample version - only works on square textures
+@"  //3 sample version - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
@@ -28,13 +27,13 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = normalize(cross(va.xyz, vb.xyz));
     if (OutputSpace==1)
     {
-        TangentMatrix[0] = IN.WorldSpaceTangent;
-        TangentMatrix[1] = IN.WorldSpaceBiTangent;
-        TangentMatrix[2] = IN.WorldSpaceNormal;
+        TangentMatrix[0] = TangentWS;
+        TangentMatrix[1] = BitangentWS;
+        TangentMatrix[2] = NormalWS;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -45,13 +44,15 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
                     1,
                     "NormalFromTexture4Samples",
-//waiting for support for bringing in WorldSpaceNormal, WorldSpaceTangent, and WorldSpaceBitangent
-@"    //4 samples - only works on square textures
+@"  //4 samples - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
@@ -67,13 +68,13 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = normalize(Out);//TODO: Check normal direction
     if (OutputSpace==1)
     {
-    	TangentMatrix[0] = IN.WorldSpaceTangent;
-        TangentMatrix[1] = IN.WorldSpaceBiTangent;
-        TangentMatrix[2] = IN.WorldSpaceNormal;
+        TangentMatrix[0] = TangentWS;
+        TangentMatrix[1] = BitangentWS;
+        TangentMatrix[2] = NormalWS;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -84,13 +85,15 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
                     1,
                     "NormalFromTexture8Samples",
-//waiting for support for bringing in WorldSpaceNormal, WorldSpaceTangent, and WorldSpaceBitangent
-@"    //8 samples - only works on square textures
+@"  //8 samples - only works on square textures
     UV = Texure.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
@@ -113,13 +116,13 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = normalize(Out);//TODO: Check normal direction
     if (OutputSpace==1)
     {
-        TangentMatrix[0] = IN.WorldSpaceTangent;
-        TangentMatrix[1] = IN.WorldSpaceBiTangent;
-        TangentMatrix[2] = IN.WorldSpaceNormal;
+        TangentMatrix[0] = TangentWS;
+        TangentMatrix[1] = BitangentWS;
+        TangentMatrix[2] = NormalWS;
         Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -130,6 +133,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 )
             }
@@ -155,7 +161,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the texture coordinates to use for sampling the texture"
+                    tooltip: "the texture coordinates to use for sampling the texture",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
     d = saturate(1 - d / fwidth(d));
 #endif
     Out = min(d.x, d.y);",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Defs
     o = min(o, k * w * 2.0f);
 #endif
     Out = o.x * o.y;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
@@ -73,7 +73,8 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the coordinates used to create the rectangle"
+                    tooltip: "the coordinates used to create the rectangle",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Width",

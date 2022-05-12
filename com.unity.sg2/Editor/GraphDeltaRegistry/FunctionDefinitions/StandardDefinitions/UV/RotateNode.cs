@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
     Out = UV;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
                     new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
                     new ParameterDescriptor("s", TYPE.Float, Usage.Local),
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
     Out = UV;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
                     new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
                     new ParameterDescriptor("s", TYPE.Float, Usage.Local),
@@ -69,7 +69,8 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the UVs to rotate"
+                    tooltip: "the UVs to rotate",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Center",

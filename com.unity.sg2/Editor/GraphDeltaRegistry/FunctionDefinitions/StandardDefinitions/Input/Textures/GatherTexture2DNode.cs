@@ -12,9 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-#if (SHADER_TARGET >= 41)
+@"#if (SHADER_TARGET >= 41)
     RGBA = Texture.tex.Gather(Sampler.samplerstate, UV, Offset);
     RGB = RGBA.rgb;
     R = RGBA.r;
@@ -31,10 +29,9 @@ namespace UnityEditor.ShaderGraph.Defs
     RGBA.b = B;
     RGBA.a = A;
     RGB = RGBA.rgb;
-#endif
-}",
+#endif",
             new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
             new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
             new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -62,7 +59,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the UV coordinates to use for sampling the texture"
+                    tooltip: "the UV coordinates to use for sampling the texture",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

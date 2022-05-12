@@ -12,15 +12,12 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    delta = UV - Center;
+@"  delta = UV - Center;
     radius = length(delta) * 2 * RadialScale;
     angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
     Out.x = radius;
-    Out.y = angle;
-}",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+    Out.y = angle;",
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("RadialScale", TYPE.Float, Usage.In, new float[] { 1f }),
             new ParameterDescriptor("LengthScale", TYPE.Float, Usage.In, new float[] { 1f }),
@@ -44,7 +41,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the input UV"
+                    tooltip: "the input UV",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "RadialScale",

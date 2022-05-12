@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Defs
 #else
     Out = saturate((1 - Out) / fwidth(Out));
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
             new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 5f }),
@@ -78,7 +78,8 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the coordinates used to create the rectangle"
+                    tooltip: "the coordinates used to create the rectangle",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Width",

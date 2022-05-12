@@ -12,15 +12,12 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    delta = UV - Center;
+@"  delta = UV - Center;
     delta2 = dot(delta.xy, delta.xy);
     delta4 = delta2 * delta2;
     delta_offset = delta4 * Strength;
-    Out = UV + delta * delta_offset + Offset;
-}",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+    Out = UV + delta * delta_offset + Offset;",
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
@@ -44,7 +41,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the input UV"
+                    tooltip: "the input UV",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Strength",

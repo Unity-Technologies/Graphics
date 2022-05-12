@@ -14,15 +14,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "Flip",
-@"
-{
-    Tile = fmod(Tile, Width * Height);
+@"  Tile = fmod(Tile, Width * Height);
     tileCount = float2(1.0, 1.0) / float2(Width, Height);
     tileXY.x = InvertY * Height - (floor(Tile * tileCount.x) + InvertY * 1);
     tileXY.y = InvertX * Width - ((Tile - Width * floor(Tile * tileCount.x)) + InvertX * 1);
-    Out = (UV + abs(tileXY)) * tileCount;
-}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+    Out = (UV + abs(tileXY)) * tileCount;",
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("Tile", TYPE.Float, Usage.In),
@@ -35,9 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "Blend",
-@"
-{
-    Blend = frac(Tile);
+@"  Blend = frac(Tile);
     tileCount.x = 1.0 / Width;
 	tileCount.y = 1.0 / Height;
 	IWidth = InvertX * Width;
@@ -52,9 +47,8 @@ namespace UnityEditor.ShaderGraph.Defs
 	Tile2 = fmod(Tile, Width * Height);
     tileXY.x = IHeight - (floor(Tile2 * tileCount.x) + InvertY);
     tileXY.y = IWidth - ((Tile2 - Width * floor(Tile2 * tileCount.x)) + InvertX);
-    UV1 = (UV + abs(tileXY)) * tileCount;
-}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+    UV1 = (UV + abs(tileXY)) * tileCount;",
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("IWidth", TYPE.Float, Usage.Local),
@@ -87,7 +81,8 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[7] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the input UV coordinates"
+                    tooltip: "the input UV coordinates",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Width",
