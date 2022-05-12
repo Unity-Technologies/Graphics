@@ -1,9 +1,47 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
+//using Ref = UnityEditor.ShaderGraph.Defs.ReferenceValueDescriptor;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
+    internal class TestUIReferrablesNode : IStandardNode
+    {
+        static string Name = "TestUIReferrablesNode";
+        static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = UV;",
+            new ParameterDescriptor("UV", TYPE.Vec2, GraphType.Usage.Static, REF.WorldSpace_Normal),
+            new ParameterDescriptor("Out", TYPE.Vec2, GraphType.Usage.)
+        );
+    }
+
+    internal class TestUINodeWithDefault : IStandardNode
+    {
+        static string Name = "TestUIReferrablesNode";
+        static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = In;",
+            new ParameterDescriptor(
+                "Out",
+                TYPE.Vec2,
+                GraphType.Usage.Out
+                ),
+            new ParameterDescriptor(
+                "In",
+                TYPE.Vec2,
+                GraphType.Usage.In,
+                Vector2.zero
+                )
+            );
+    }
+
     internal class TestMultiFunctionNode : IStandardNode
     {
         static string Name = "TestMultiFuctionNode";

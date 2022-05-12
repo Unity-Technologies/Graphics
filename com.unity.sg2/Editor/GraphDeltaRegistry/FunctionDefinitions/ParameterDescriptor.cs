@@ -24,25 +24,21 @@ namespace UnityEditor.ShaderGraph.Defs
         public string Name { get; }  // Must be a valid reference name
         public ITypeDescriptor TypeDescriptor { get; }
         public GraphType.Usage Usage { get; }
-        public IReadOnlyCollection<float> DefaultValue { get; }
+        //public IReadOnlyCollection<float> DefaultValue { get; }
+        public readonly IValueDescriptor DefaultValue { get; }
 
         public ParameterDescriptor(
             string name,
             ITypeDescriptor typeDescriptor,
             GraphType.Usage usage,
-            float[] defaultValue = null)
+            IValueDescriptor defaultValue = null)
+            //float[] defaultValue = null)
         {
             Name = name;
             TypeDescriptor = typeDescriptor;
             Usage = usage;
-            if (defaultValue == null)
-            {
-                DefaultValue = new List<float>();
-            }
-            else
-            {
-                DefaultValue = defaultValue.ToList();
-            }
+            DefaultValue = defaultValue;
+            //DefaultValue = (defaultValue == null) ? new List<float>() : defaultValue.ToList();
         }
     }
 }
