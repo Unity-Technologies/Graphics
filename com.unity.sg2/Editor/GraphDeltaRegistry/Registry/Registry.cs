@@ -85,9 +85,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public Registry()
         {
             Register<ContextBuilder>();
-            Register<ReferenceNodeBuilder>();
             Register<PropertyContext>();
             defaultTopologies = new GraphHandler(this);
+            Register<ReferenceNodeBuilder>();
         }
 
         internal ShaderFoundry.ShaderType GetShaderType(FieldHandler field, ShaderFoundry.ShaderContainer container)

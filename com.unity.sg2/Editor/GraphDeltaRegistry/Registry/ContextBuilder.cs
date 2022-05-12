@@ -29,12 +29,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                              IContextDescriptor.ContextEntry entry,
                                              Registry registry,
                                              PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
+                                             DataSource source = DataSource.Global,
                                              string displayName = null,
                                              string defaultValue = null)
         {
             AddContextEntry(contextNode, entry, registry);
             var port = contextNode.GetPort(entry.fieldName);
             port.AddField(kPropertyBlockUsage, usage);
+            port.AddField(kDataSource, source);
             if(displayName != null)
                 port.AddField(kDisplayName, displayName);
             if(defaultValue != null)

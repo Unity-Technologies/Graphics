@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string kOutput = "Output";
 
         public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
-        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
         public void BuildNode(NodeHandler node, Registry registry)
         {

@@ -76,7 +76,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (string nodeName in m_DirtyNodes)
             {
-                var nodeGuid = m_NodeLookupTable[nodeName];
+                if (!m_NodeLookupTable.TryGetValue(nodeName, out var nodeGuid))
+                    continue;
+                
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
                 if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
                 {

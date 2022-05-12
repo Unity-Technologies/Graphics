@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             };
 
             var contextKey = Registry.ResolveKey<ShaderGraphContext>();
-            ContextBuilder.AddReferableEntry(propContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, "Foo_Var");
+            ContextBuilder.AddReferableEntry(propContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: "Foo_Var");
             
             graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName, registry);
             graph.AddEdge("Foo_Ref.Output", contextKey.Name + ".BaseColor");

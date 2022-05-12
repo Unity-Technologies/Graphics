@@ -80,22 +80,21 @@ namespace UnityEditor.ShaderGraph.Generation
             {
                 usage = usageField.GetData();
             }
-            SimpleSampleBuilder.PropertyAttributeData propertyData =null;
+            PropertyAttribute propertyData = null;
             switch (usage)
             {
                 case PropertyBlockUsage.Included:
-                    propertyData = new SimpleSampleBuilder.PropertyAttributeData { DefaultValue = port.GetDefaultValueString(registry, container), DisplayName = port.GetDisplayNameString() };
+                    propertyData = new PropertyAttribute { DefaultValue = port.GetDefaultValueString(registry, container), DisplayName = port.GetDisplayNameString(), Exposed = true };
+                    var varInBuilder = new StructField.Builder(container, name, type);
+                    SimpleSampleBuilder.MarkAsProperty(container, varInBuilder, propertyData);
+                    inputVariables.Add(varInBuilder.Build());
                     break;
                 case PropertyBlockUsage.Excluded:
-                    propertyData = new SimpleSampleBuilder.PropertyAttributeData { /*Need to be able to set dataSource to Uniform*/};
                     break;
                 default:
                     break;
             }
 
-            var varInBuilder = new StructField.Builder(container, name, type);
-            SimpleSampleBuilder.MarkAsProperty(container, varInBuilder, propertyData);
-            inputVariables.Add(varInBuilder.Build());
             outputVariables.Add(varOutBuilder.Build());
         }
 
@@ -268,8 +267,8 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             var field = port.GetTypeField();
 
-            var source = DataSource.Global;
-            var sourceField = port.GetField<DataSource>(kPropertyBlockUsage);
+            var source = DataSource.Constant;
+            var sourceField = port.GetField<DataSource>(kDataSource);
             if (sourceField != null)
             {
                 source = sourceField.GetData();
