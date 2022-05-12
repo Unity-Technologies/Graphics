@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
                 else if (nodeModel is GraphDataNodeModel graphDataNodeModel && graphDataNodeModel.IsPreviewExpanded)
                 {
-                    var previewOutputState = m_PreviewHandlerInstance.RequestNodePreviewImage(nodeName, out var nodeRenderOutput, out var shaderMessages);
+                    var previewOutputState = m_PreviewHandlerInstance.RequestNodePreviewTexture(nodeName, out var nodeRenderOutput, out var shaderMessages);
                     if (nodeRenderOutput != graphDataNodeModel.PreviewTexture)
                     {
                         // Headless preview manager handles assigning correct texture in case of completion, error state, still updating etc.

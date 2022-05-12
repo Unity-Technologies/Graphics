@@ -92,13 +92,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         PreviewData m_MainPreviewData;
 
-        Mesh m_MainPreviewMesh;
+        Mesh m_MainPreviewMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
 
-        Quaternion m_MainPreviewRotation;
+        Quaternion m_MainPreviewRotation = Quaternion.identity;
 
         bool m_PreventMainPreviewRotation;
 
-        float m_MainPreviewScale;
+        float m_MainPreviewScale = 1.0f;
 
         #endregion
 
@@ -296,7 +296,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// nodeRenderOutput is a Texture that contains the current preview output of a node, if its shaders have been compiled and ready to return
         /// </summary>
         /// <returns> Enum value that defines whether the node's render output is ready, currently being updated, or if a shader error was encountered </returns>
-        public PreviewOutputState RequestNodePreviewImage(
+        public PreviewOutputState RequestNodePreviewTexture(
             string nodeName,
             out Texture nodeRenderOutput,
             out ShaderMessage[] errorMessages,
@@ -444,7 +444,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 m_MainPreviewWasResized = true;
                 return PreviewOutputState.Updating;
             }
-            else if (m_MainPreviewData.isShaderOutOfDate)
+
+            if (m_MainPreviewData.isShaderOutOfDate)
             {
                 UpdateShaderData(m_MainPreviewData);
                 m_MainPreviewData.isShaderOutOfDate = false;
@@ -489,9 +490,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             if (meshToRender != m_MainPreviewMesh
-                || mainPreviewScale != m_MainPreviewScale
+                || !Mathf.Approximately(mainPreviewScale, m_MainPreviewScale)
                 || preventRotation != m_PreventMainPreviewRotation
-                || mainPreviewRotation != m_MainPreviewRotation)
+                || !mainPreviewRotation.Equals(m_MainPreviewRotation))
             {
                 m_MainPreviewMesh = meshToRender;
                 m_MainPreviewScale = mainPreviewScale;
