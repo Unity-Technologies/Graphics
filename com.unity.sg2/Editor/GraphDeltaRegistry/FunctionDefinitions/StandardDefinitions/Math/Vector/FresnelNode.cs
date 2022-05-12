@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Fresnel Effect",
-            tooltip: "returns the inverted dot product between the view direction and the normal",
+            tooltip: "Calculates the inverted dot product between the view direction and the normal.",
             categories: new string[2] { "Math", "Vector" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[4] {

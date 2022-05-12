@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = In;",
+            "    Out = In;",
             new ParameterDescriptor("In", TYPE.Any, Usage.In),
             new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
         );
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "enables you to inspect a preview at a specific point",
+            tooltip: "Gets a preview of the shader at a specific point in the graph.",
             categories: new string[1] { "Utility" },
             synonyms: new string[1] { "triangle wave" },
             parameters: new ParameterUIDescriptor[2] {

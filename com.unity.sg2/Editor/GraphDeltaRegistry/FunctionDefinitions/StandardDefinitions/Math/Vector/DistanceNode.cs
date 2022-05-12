@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = distance(A, B);",
+            "    Out = distance(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the distance between A and B",
+            tooltip: "Calculates the distance between input A and input B.",
             categories: new string[2] { "Math", "Vector" },
             synonyms: new string[1] { "length" },
             parameters: new ParameterUIDescriptor[3] {

@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Hyperbolic Sine",
-            tooltip: "returns the hyperbolic sine of the input",
+            tooltip: "Calculates the hyperbolic sine of the input.",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[1] { "sinh" },
             selectableFunctions: new()

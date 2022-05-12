@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = A && B;",
+            "    Out = A && B;",
             new ParameterDescriptor("A", TYPE.Bool, Usage.In),
             new ParameterDescriptor("B", TYPE.Bool, Usage.In),
             new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns true if both A and B are true",
+            tooltip: "Checks if input A and input B are true.",
             categories: new string[2] { "Utility", "Logic" },
             synonyms: new string[1] { "&&" },
             hasPreview: false,

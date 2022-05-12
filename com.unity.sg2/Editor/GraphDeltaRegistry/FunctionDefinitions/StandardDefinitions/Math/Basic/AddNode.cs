@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = A + B;",
+            "    Out = A + B;",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the sum of A and B",
+            tooltip: "Calculates the sum of input A and input B.",
             categories: new string[2] { "Math", "Basic" },
             synonyms: new string[4] { "Addition", "Sum", "+", "plus" },
             parameters: new ParameterUIDescriptor[3] {

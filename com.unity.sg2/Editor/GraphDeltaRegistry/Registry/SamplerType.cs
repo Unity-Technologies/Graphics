@@ -115,6 +115,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
         }
 
+        public void CopySubFieldData(FieldHandler src, FieldHandler dst)
+        {
+        }
+
         public ShaderType GetShaderType(FieldHandler field, ShaderContainer container, Registry registry)
         {
             return container._UnitySamplerState;

@@ -22,13 +22,13 @@ namespace UnityEditor.ShaderGraph.Defs
     internal readonly struct ParameterDescriptor
     {
         public string Name { get; }  // Must be a valid reference name
-        public TypeDescriptor TypeDescriptor { get; }
+        public ITypeDescriptor TypeDescriptor { get; }
         public GraphType.Usage Usage { get; }
         public IReadOnlyCollection<float> DefaultValue { get; }
 
         public ParameterDescriptor(
             string name,
-            TypeDescriptor typeDescriptor,
+            ITypeDescriptor typeDescriptor,
             GraphType.Usage usage,
             float[] defaultValue = null)
         {

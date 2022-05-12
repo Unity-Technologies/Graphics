@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = step(Edge, In);",
+            "    Out = step(Edge, In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Edge", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns 1 if the input is greater or equal to Edge else returns 0",
+            tooltip: "Checks whether the value of In is equal to or greater than the value of Edge.",
             categories: new string[2] { "Math", "Round" },
             synonyms: new string[1] { "quantize" },
             parameters: new ParameterUIDescriptor[3] {

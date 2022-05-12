@@ -3,7 +3,6 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-
     internal class SampleTexture2DNode : IStandardNode
     {
         public static string Name = "SampleTexture2D";
@@ -15,23 +14,19 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Standard",
-@"
-{
-    //RGBA = SAMPLE_TEXTURE2D(Texture.tex, Texture.samplerstate, Texture.GetTransformedUV(UV));
-    RGBA = float4(1,1,1,1);
+                    "SampleTexture2DStandard",
+@"    RGBA = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+    A = RGBA.a;",
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
@@ -41,24 +36,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "LOD",
-@"
-{
-    //RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Texture.samplerstate, Texture.GetTransformedUV(UV));
-    RGBA = float4(1,1,1,1);
+                    "SampleTexture2DLOD",
+@"    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+    A = RGBA.a;",
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),
-                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),//only show when Mip Sampling Mode is set to LOD
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
+                    new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
@@ -68,25 +59,21 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Gradient",
-@"
-{
-    //RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Texture.samplerstate, Texture.GetTransformedUV(UV));
-    RGBA = float4(1,1,1,1);
+                    "SampleTexture2DGradient",
+@"    RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+    A = RGBA.a;",
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),
-                    new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),//only show when Mip Sampling Mode is set to Gradient
-                    new ParameterDescriptor("DDY", TYPE.Vec2, Usage.In),//only show when Mip Sampling Mode is set to Gradient
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
+                    new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),
+                    new ParameterDescriptor("DDY", TYPE.Vec2, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
@@ -96,24 +83,20 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Bias",
-@"
-{
-    //RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Texture.samplerstate, Texture.GetTransformedUV(UV));
-    RGBA = float4(1,1,1,1);
+                    "SampleTexture2DBias",
+@"    RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
-                    new ParameterDescriptor("Texture", TYPE.Vec4, Usage.In),//fix type
+    A = RGBA.a;",
+                    new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
-                    new ParameterDescriptor("Sampler", TYPE.Vec2, Usage.In),//fix type
-                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),
-                    new ParameterDescriptor("Bias", TYPE.Float, Usage.In),//only show when Mip Sampling Mode is set to Bias
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                    new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
+                    new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
                     new ParameterDescriptor("RGB", TYPE.Vec3, Usage.Out),//this is new.  Should we keep it?
                     new ParameterDescriptor("R", TYPE.Float, Usage.Out),
@@ -127,15 +110,15 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "samples a 2D Texture and returns a Vector 4 color value",
+            tooltip: "Samples a 2D Texture.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "tex2d" },
             selectableFunctions: new()
             {
-                { "Standard", "Standard" },
-                { "LOD", "LOD" },
-                { "Gradient", "Gradient" },
-                { "Bias", "Bias" }
+                { "SampleTexture2DStandard", "Standard" },
+                { "SampleTexture2DLOD", "LOD" },
+                { "SampleTexture2DGradient", "Gradient" },
+                { "SampleTexture2DBias", "Bias" }
             },
             parameters: new ParameterUIDescriptor[13] {
                 new ParameterUIDescriptor(

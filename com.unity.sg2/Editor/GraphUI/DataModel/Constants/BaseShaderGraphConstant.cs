@@ -14,8 +14,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private object tempSerializedValue;
 
         protected GraphHandler graphHandler;
+
+        [SerializeField]
         protected string nodeName, portName;
-        public bool IsInitialized => nodeName != null && nodeName != "" && graphHandler != null;
+        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null;
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;

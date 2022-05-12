@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = A - B;",
+            "    Out = A - B;",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "removes the value of B from A",
+            tooltip: "Subtracts the value of input B from input A.",
             categories: new string[2] { "Math", "Basic" },
             synonyms: new string[4] { "subtraction", "remove", "-", "minus" },
             parameters: new ParameterUIDescriptor[3] {
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "A minus B"
+                    tooltip: "A - B"
                 )
             }
         );

@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
 @"
-{
     RGBA.r = R;
     RGBA.g = G;
     RGBA.b = B;
@@ -22,7 +21,6 @@ namespace UnityEditor.ShaderGraph.Defs
     RGB.b = B;
     RG.r = R;
     RG.g = G;
-}
 ",
             new ParameterDescriptor("R", TYPE.Float, Usage.In),
             new ParameterDescriptor("G", TYPE.Float, Usage.In),
@@ -36,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "merges two or more float values into a vector",
+            tooltip: "Merges 2 or more input float values into a vector.",
             categories: new string[1] { "Channel" },
             synonyms: new string[1] { "append" },
             parameters: new ParameterUIDescriptor[7] {

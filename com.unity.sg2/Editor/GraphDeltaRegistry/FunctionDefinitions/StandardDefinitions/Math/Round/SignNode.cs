@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns 1 if the input is positive and -1 if the input is negative",
+            tooltip: "Determines whether the input is a positive or negative value.",
             categories: new string[2] { "Math", "Round" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[2] {

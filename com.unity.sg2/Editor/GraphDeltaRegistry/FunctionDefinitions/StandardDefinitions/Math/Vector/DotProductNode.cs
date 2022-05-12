@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = dot(A, B);",
+            "    Out = dot(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Dot Product",
-            tooltip: "returns the dot product between two vectors",
+            tooltip: "Calculates the dot product of two input vectors.",
             categories: new string[2] { "Math", "Vector" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[3] {

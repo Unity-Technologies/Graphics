@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the integer, or whole number, component of the input",
+            tooltip: "Calculates an integer, or whole number, from the input.",
             categories: new string[2] { "Math", "Round" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[2] {

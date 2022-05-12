@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the cosine of the input",
+            tooltip: "Calculates the cosine of the input.",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[0],
             selectableFunctions: new()

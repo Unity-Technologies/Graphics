@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Matrix Determinant",
-            tooltip: "returns the determinant of the matrix defined by the input",
+            tooltip: "Calculates the determinant of the matrix defined by the input.",
             categories: new string[2] { "Math", "Matrix" },
             synonyms: new string[1] { "Determinant" },
             hasPreview: false,

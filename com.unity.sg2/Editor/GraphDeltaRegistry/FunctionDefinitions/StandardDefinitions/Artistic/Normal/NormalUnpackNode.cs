@@ -14,23 +14,15 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Tangent",
-@"
-{
-    Out = UnpackNormal(In);
-}
-",
+                    "NormalUnpackTangent",
+                    "    Out = UnpackNormal(In);",
                     new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
                     1,
-                    "Object",
-@"
-{
-    Out = UnpackNormalRGB(In);
-}
-",
+                    "NormalUnpackObject",
+                    "    Out = UnpackNormal(In);",
                     new ParameterDescriptor("In", TYPE.Vec4, GraphType.Usage.In),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 )
@@ -40,14 +32,14 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "converts a normal map texture to a normal vector (usually not needed)",
+            tooltip: "Converts a normal map texture to a normal vector.",
             categories: new string[2] { "Artistic", "Normal" },
             synonyms: new string[2] { "expand", "vectorize" },
             displayName: "Normal Unpack",
             selectableFunctions: new()
             {
-                { "Tangent", "Tangent" },
-                { "Object", "Object" }
+                { "NormalUnpackTangent", "Tangent" },
+                { "NormalUnpackObject", "Object" }
             },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

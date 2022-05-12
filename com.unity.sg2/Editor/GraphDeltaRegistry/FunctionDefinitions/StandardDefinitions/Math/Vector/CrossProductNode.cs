@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = cross(A, B);",
+            "    Out = cross(A, B);",
             new ParameterDescriptor("A", TYPE.Vec3, Usage.In),
             new ParameterDescriptor("B", TYPE.Vec3, Usage.In, new float[] { 0f, 1f, 0f }),
             new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Cross Product",
-            tooltip: "returns a vector that is perpendicular to the two input vectors",
+            tooltip: "Calculates a vector that is perpendicular to the two input vectors.",
             categories: new string[2] { "Math", "Vector" },
             synonyms: new string[1] { "perpendicular" },
             parameters: new ParameterUIDescriptor[3] {

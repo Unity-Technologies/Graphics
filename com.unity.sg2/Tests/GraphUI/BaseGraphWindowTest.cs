@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     public class BaseGraphWindowTest
     {
-        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2(/*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
+        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
 
         protected TestEditorWindow m_Window;
         protected TestGraphView m_GraphView;
@@ -24,8 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected virtual bool hideOverlayWindows => true;
 
         // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO
-        const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
-        const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
+        protected const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
+        protected const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
 
         [SetUp]
         public virtual void SetUp()
@@ -76,6 +76,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             {
                 m_Window.Close();
             }
+        }
+
+        /// <summary>
+        /// Saves the open graph, closes the tool window, then reopens the graph.
+        /// m_Window is reassigned after calling this method.
+        /// </summary>
+        public IEnumerator SaveAndReopenGraph()
+        {
+            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
+            CloseWindow();
+            yield return null;
+
+            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
+            CreateWindow();
+            m_Window.Show();
+            m_Window.Focus();
+            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
+            yield return null;
+
+            yield return null;
         }
 
         public SearcherWindow SummonSearcher()

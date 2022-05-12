@@ -47,6 +47,67 @@ namespace UnityEditor.ShaderGraph.Defs
         );
     }
 
+    internal class TestUITexture2DNode : IStandardNode
+    {
+        static string Name = "TestUITexture2DNode";
+        static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = SAMPLE_TEXTURE2D(Texture.tex, OverrideSampler.samplerstate, Texture.GetTransformedUV(UV));",
+            new ParameterDescriptor("Texture", TYPE.Texture2D, GraphType.Usage.In),
+            new ParameterDescriptor("UV", TYPE.Vec2, GraphType.Usage.In),
+            new ParameterDescriptor("OverrideSampler", TYPE.SamplerState, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out)
+        );
+    }
+
+    internal class TestUITexture2DStaticNode : IStandardNode
+    {
+        static string Name = "TestUITexture2DSaticNode";
+        static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = Texture;",
+            new ParameterDescriptor("Texture", TYPE.Texture2D, GraphType.Usage.Static),
+            new ParameterDescriptor("Out", TYPE.Texture2D, GraphType.Usage.Out)
+        );
+    }
+
+    internal class TestUITexture3DNode : IStandardNode
+    {
+        static string Name = "TestUITexture3DNode";
+        static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = SAMPLE_TEXTURE3D(Texture.tex, OverrideSampler.samplerstate, UVW);",
+            new ParameterDescriptor("Texture", TYPE.Texture3D, GraphType.Usage.In),
+            new ParameterDescriptor("UVW", TYPE.Vec3, GraphType.Usage.In),
+            new ParameterDescriptor("OverrideSampler", TYPE.SamplerState, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out));
+    }
+
+    //internal class TestUITexture2DArrayNode : IStandardNode
+    //{
+    //    static string Name = "TestUITexture2DArrayNode";
+    //    static int Version = 1;
+
+    //    public static FunctionDescriptor FunctionDescriptor => new(
+    //        Version,
+    //        Name,
+    //        "Out = SAMPLE_TEXTURE3D(Texture.tex, OverrideSampler.samplerstate, Texture.GetTransformedUV(UV));",
+    //        new ParameterDescriptor("Texture", TYPE.Texture2DArray, GraphType.Usage.In),
+    //        new ParameterDescriptor("UV", TYPE.Vec3, GraphType.Usage.In),
+    //        new ParameterDescriptor("Index", TYPE.Int, GraphType.Usage.In),
+    //        new ParameterDescriptor("OverrideSampler", TYPE.SamplerState, GraphType.Usage.In),
+    //        new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out));
+    //}
+
     internal class TestUIMat3Node : IStandardNode
     {
         static string Name = "TestUIMat3";

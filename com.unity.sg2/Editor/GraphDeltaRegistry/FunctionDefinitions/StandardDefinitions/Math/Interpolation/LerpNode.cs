@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = lerp(A, B, T);",
+            "    Out = lerp(A, B, T);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("T", TYPE.Vector, Usage.In),
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "blends between A and B given the value of T",
+            tooltip: "Calculates a blend of values between input A and input B using the value of input T.",
             categories: new string[2] { "Math", "Interpolation" },
             synonyms: new string[5] { "Mix", "Blend", "Interpolate", "Extrapolate", "Linear Interpolate" },
             parameters: new ParameterUIDescriptor[4] {

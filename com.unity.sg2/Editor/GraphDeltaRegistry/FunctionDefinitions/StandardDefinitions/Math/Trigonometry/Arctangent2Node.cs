@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = atan2(A, B);",
+            "    Out = atan2(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the arctangent of A divided by B",
+            tooltip: "Calculates the arctangent of input A divided by input B",
             categories: new string[2] { "Math", "Trigonometry" },
             synonyms: new string[1] { "atan2" },
             parameters: new ParameterUIDescriptor[3] {

@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = saturate(In);",
+            "    Out = saturate(In);",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Clamps the input between 0 and 1",
+            tooltip: "Clamps the input to a value between 0 and 1.",
             categories: new string[2] { "Math", "Range" },
             synonyms: new string[0],
             parameters: new ParameterUIDescriptor[2] {

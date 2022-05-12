@@ -87,23 +87,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Assert.IsFalse(graphDataNodeModel.IsPreviewExpanded);
             }
 
-            // Save graph and close the window
-            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
-            CloseWindow();
-            yield return null;
-
-            // Reload the graph asset
-            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
-            CreateWindow();
-            m_Window.Show();
-            m_Window.Focus();
-            m_Window.SetCurrentSelection(graphAsset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-            yield return null;
-
+            yield return SaveAndReopenGraph();
             // Wait till the graph model is loaded back up
             while (m_Window.GraphView.GraphModel == null)
                 yield return null;
-
+                
             nodeModel = GetNodeModelFromGraphByName("Add");
             Assert.IsNotNull(nodeModel);
 

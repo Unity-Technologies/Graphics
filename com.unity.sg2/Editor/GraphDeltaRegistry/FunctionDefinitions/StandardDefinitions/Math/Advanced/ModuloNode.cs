@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = fmod(A, B);",
+            "    Out = fmod(A, B);",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 1f, 1f, 1f, 1f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "returns the remainder of dividing A by B",
+            tooltip: "Calculates the remainder of dividing input A by input B.",
             categories: new string[2] { "Math", "Advanced" },
             synonyms: new string[2] { "fmod", "%" },
             parameters: new ParameterUIDescriptor[3] {

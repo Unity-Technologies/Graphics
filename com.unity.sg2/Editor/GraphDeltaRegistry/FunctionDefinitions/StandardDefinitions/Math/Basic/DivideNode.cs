@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = A / B;",
+            "    Out = A / B;",
             new ParameterDescriptor("A", TYPE.Vector, Usage.In),
             new ParameterDescriptor("B", TYPE.Vector, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "splits A by the number of B",
+            tooltip: "Divides input A by input B.",
             categories: new string[2] { "Math", "Basic" },
             synonyms: new string[3] { "division", "/", "divided by" },
             parameters: new ParameterUIDescriptor[3] {
