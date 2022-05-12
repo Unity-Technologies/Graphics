@@ -37,11 +37,12 @@ Dropping the `Quality` setting down will improve performance too.
 ### Properties
 
 | Property     | Function                                                     |
-| :------------ | :------------------------------------------------------------ |
-| Intensity    | Adjust the degree of darkness **Ambient Occlusion** produces.                   |
+| :----------- | :------------------------------------------------------------ |
+| Mode         | Select the type of **Ambient Occlusion** to use. |
+| Intensity    | Adjust the degree of darkness **Ambient Occlusion** produces. |
 | Radius       | Set the radius of sample points, which controls the extent of darkened areas. |
 | Quality      | Define the number of sample points, which affects quality and performance. |
-| Color        | Set the tint color of the ambient occlusion.                               |
+| Color        | Set the tint color of the ambient occlusion. |
 | Ambient Only | Enable this checkbox to make the **Ambient Occlusion** effect only affect ambient lighting. This option is only available with the Deferred rendering path and HDR rendering. |
 
 <a name="multi-scale-volumetric-occlusion"></a>
@@ -58,8 +59,9 @@ This mode is optimized for consoles and desktop platforms. It has better graphic
 ### Properties
 
 | Property           | Function                                                     |
-| :------------------ | :------------------------------------------------------------ |
-| Intensity          | Adjust the degree of darkness **Ambient Occlusion** produces.                  |
+| :----------------- | :------------------------------------------------------------ |
+| Mode               | Select the type of **Ambient Occlusion** to use. |
+| Intensity          | Adjust the degree of darkness **Ambient Occlusion** produces. |
 | Thickness Modifier | Modify the thickness of occluders. This increases dark areas but can introduce dark halos around objects. |
-| Color              | Set the tint color of the ambient occlusion.                                 |
+| Color              | Set the tint color of the ambient occlusion. |
 | Ambient Only       | Enable this checkbox to make the **Ambient Occlusion** effect only affect ambient lighting. This option is only available with the Deferred rendering path and HDR rendering. |

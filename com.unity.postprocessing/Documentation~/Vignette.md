@@ -22,6 +22,7 @@ The Vignette effect in the post-processing stack has two modes:
 
 | Property   | Function                                                 |
 | :-------------- | :------------------------------------------------------------ |
+| Mode       | Select the type of **Vignette** to use. |
 | Color      | Set the color of the Vignette.      |
 | Center     | Set the Vignette center point (screen center is [0.5,0.5]). |
 | Intensity  | Set the amount of vignetting on screen.                              |
@@ -38,9 +39,10 @@ The Vignette effect in the post-processing stack has two modes:
 
 | Property  | Function                                            |
 | :------------- | :------------------------------------------------------- |
+| Mode      | Select the type of **Vignette** to use. |
 | Color     | Set the color of the Vignette. Use the alpha channel for transparency. |
 | Mask      | Select a black and white mask to use as a vignette.            |
-| Intensity | Set the mask opacity value.                                           |
+| Opacity   | Set the mask opacity value.                                           |
 
 ### Requirements
 

@@ -2,7 +2,7 @@
 
 The **Anti-aliasing** effect softens the appearance of edges in your scene. To do this, it surrounds the edge with similar points of color. This reduces the jagged effect caused by [aliasing](https://en.wikipedia.org/wiki/Aliasing).
 
-![](images/screenshot-antialiasing.png)
+![Example of anti-aliasing smoothing the edges of shapes](images/screenshot-antialiasing.png)
 
 The Post-processing anti-aliasing algorithms are image-based, which is useful when support for traditional multisampling is not available, such as the [deferred rendering](https://docs.unity3d.com/Manual/RenderTech-DeferredShading.html) path. You can configure the rendering settings in the [Quality settings](https://docs.unity3d.com/Manual/class-QualitySettings.html) window.
 
@@ -24,6 +24,7 @@ Each mode is set per-camera in the **Post-process Layer** component.
 
 | Property   | Function                                                     |
 | :--------- | :----------------------------------------------------------- |
+| Mode       | Select the type of **Anti-Aliasing** to use. |
 | Fast Mode  | Enable **Fast Mode** for a lower quality but faster variant of FXAA. This option is ideal for mobile platforms. |
 | Keep Alpha | Enable **Keep Alpha** to keep the alpha channel untouched by post-processing. If Keep Alpha is disabled, Unity uses the alpha channel to store internal data used to speed up and improve visual quality. |
 
@@ -44,7 +45,8 @@ Enable `Fast Mode` if you are developing for mobile devices to get a performance
 ### Properties
 
 | Property | Function                                         |
-| :-------- | :------------------------------------------------ |
+| :------- | :----------------------------------------------- |
+| Mode     | Select the type of **Anti-Aliasing** to use. |
 | Quality  | Set the overall quality of the anti-aliasing filter. |
 
 ### Performance
@@ -68,7 +70,8 @@ Lowering the `Quality` setting makes the effect run faster. Do not use **SMAA** 
 ### Properties
 
 | Property            | Function                                                     |
-| :------------------- | :------------------------------------------------------------ |
+| :------------------ | :----------------------------------------------------------- |
+| Mode                | Select the type of **Anti-Aliasing** to use. |
 | Jitter Spread       | Set the diameter (in texels) over which Unity spreads jitter samples. Smaller values result in crisper but a more aliased output. Larger values result in more stable but blurrier output. |
 | Stationary Blending | Set the blend coefficient for stationary fragments. This setting controls the percentage of history sample blended into final color for fragments with minimal active motion. |
 | Motion Blending     | Set the blending coefficient for moving fragments. This setting controls the percentage of history sample blended into the final color for fragments with significant active motion. |
