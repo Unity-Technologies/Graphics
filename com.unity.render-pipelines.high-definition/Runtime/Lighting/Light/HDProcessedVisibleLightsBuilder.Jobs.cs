@@ -83,8 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [WriteOnly]
             public NativeArray<int> processedDynamicGILightCountsPtr;
             [WriteOnly]
-            public NativeArray<LightVolumeType> processedLightVolumeType;
-            [WriteOnly]
             public NativeArray<HDProcessedVisibleLight> processedEntities;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
@@ -348,7 +346,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 
-                processedLightVolumeType[index] = lightVolumeType;
                 processedEntities[index] = new HDProcessedVisibleLight()
                 {
                     dataIndex = dataIndex,
@@ -427,7 +424,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //Output processed lights.
                 processedVisibleLightCountsPtr = m_ProcessVisibleLightCounts,
                 processedDynamicGILightCountsPtr = m_ProcessDynamicGILightCounts,
-                processedLightVolumeType = m_ProcessedLightVolumeType,
                 processedEntities = m_ProcessedEntities,
                 sortKeys = m_SortKeys,
                 sortKeysDGI = m_SortKeysDGI,
