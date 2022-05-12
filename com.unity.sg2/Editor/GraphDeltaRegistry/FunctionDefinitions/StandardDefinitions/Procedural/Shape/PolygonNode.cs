@@ -12,14 +12,14 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"  temp1 = cos(pi / Sides);
-    temp.x = Width * temp1;
-    temp.y = Height * temp1;
-    uv = (UV * 2 - 1) / temp;
-    uv.y *= -1;
-    pCoord = atan2(uv.x, uv.y);
-    r = 2 * pi / Sides;
-    dist = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
+@"temp1 = cos(pi / Sides);
+temp.x = Width * temp1;
+temp.y = Height * temp1;
+uv = (UV * 2 - 1) / temp;
+uv.y *= -1;
+pCoord = atan2(uv.x, uv.y);
+r = 2 * pi / Sides;
+dist = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
 
 #if defined(SHADER_STAGE_RAY_TRACING)
     Out = saturate((1.0 - dist) * 1e7);

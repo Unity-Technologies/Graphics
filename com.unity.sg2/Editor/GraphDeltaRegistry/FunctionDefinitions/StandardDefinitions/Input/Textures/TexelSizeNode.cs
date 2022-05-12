@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Defs
 Height = Texture.texelSize.w;
 TexelWidth = Texture.texelSize.x;
 TexelHeight = Texture.texelSize.y;",
-            new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),//need texture support
+            new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
             new ParameterDescriptor("Width", TYPE.Float, Usage.Out),
             new ParameterDescriptor("Height", TYPE.Float, Usage.Out),
             new ParameterDescriptor("TexelWidth", TYPE.Float, Usage.Out),
