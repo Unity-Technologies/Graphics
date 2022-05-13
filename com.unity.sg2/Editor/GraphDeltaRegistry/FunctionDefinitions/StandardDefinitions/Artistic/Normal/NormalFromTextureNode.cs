@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "NormalFromTexture3Samples",
 @"  //3 sample version - only works on square textures
-    UV = Texure.GetTransformedUV(UV);
+    UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
     if (HeightChannel == 2) channeMask = float4(0,0,1,0);
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "NormalFromTexture4Samples",
 @"  //4 samples - only works on square textures
-    UV = Texure.GetTransformedUV(UV);
+    UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
     if (HeightChannel == 2) channeMask = float4(0,0,1,0);
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "NormalFromTexture8Samples",
 @"  //8 samples - only works on square textures
-    UV = Texure.GetTransformedUV(UV);
+    UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
     if (HeightChannel == 1) channeMask = float4(0,1,0,0);
     if (HeightChannel == 2) channeMask = float4(0,0,1,0);

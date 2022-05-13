@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets a transformation matrix from one of model, view, projection, or view space.",
             categories: new string[2] { "Input", "Matrix" },
             synonyms: new string[0] { },
+            hasPreview: false,
             displayName: "Transformation Matrix",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
