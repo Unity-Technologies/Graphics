@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static IModelView CreateSectionInspector(this ElementBuilder elementBuilder, GraphDataNodeModel model)
         {
-            var ui = new ModelInspector();
+            var ui = new ShaderGraphModelInspector();
 
             ui.Setup(model, elementBuilder.View, elementBuilder.Context);
 
@@ -19,6 +19,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
+                        Debug.LogWarning("TODO: Node needs upgrade?");
+                        var upgradePrompt = new NodeUpgradePart("sg-node-upgrade", model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(upgradePrompt);
+
                         var s = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(s);
                         break;
