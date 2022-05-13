@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Defs
     angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
     Out.x = radius;
     Out.y = angle;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("RadialScale", TYPE.Float, Usage.In, new float[] { 1f }),
             new ParameterDescriptor("LengthScale", TYPE.Float, Usage.In, new float[] { 1f }),
@@ -46,10 +46,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "RadialScale",
+                    displayName: "Radial Scale",
                     tooltip: "scale of distance value"
                 ),
                 new ParameterUIDescriptor(
                     name: "LengthScale",
+                    displayName: "Length Scale",
                     tooltip: "scale of angle value"
                 ),
                 new ParameterUIDescriptor(
