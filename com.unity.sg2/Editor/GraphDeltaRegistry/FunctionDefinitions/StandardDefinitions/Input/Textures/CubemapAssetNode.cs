@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Defines a Cubemap Asset.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "environment" },
+            displayName: "Cubemap Asset",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

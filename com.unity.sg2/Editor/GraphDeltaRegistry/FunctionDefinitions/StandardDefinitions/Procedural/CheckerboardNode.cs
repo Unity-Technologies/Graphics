@@ -29,9 +29,8 @@ namespace UnityEditor.ShaderGraph.Defs
     vector_alpha = clamp(distance3 * scale.xy, -1.0, 1.0);
     alpha = saturate(0.5f + 0.5f * vector_alpha.x * vector_alpha.y * freqLimiter);
     Out = lerp(ColorA, ColorB, alpha.xxx);
-#endif
-",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+#endif",
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In, new float[] { 0.2f, 0.2f, 0.2f }),
             new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In, new float[] { 0.7f, 0.7f, 0.7f }),
             new ParameterDescriptor("Frequency", TYPE.Vec2, Usage.In, new float[] { 1f, 1f }),
@@ -58,15 +57,18 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the input UV"
+                    tooltip: "the input UV",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "ColorA",
+                    displayName: "Color A",
                     tooltip: "the first checker color",
                     useColor: true
                 ),
                 new ParameterUIDescriptor(
                     name: "ColorB",
+                    displayName: "Color B",
                     tooltip: "the second checker color",
                     useColor: true
                 ),

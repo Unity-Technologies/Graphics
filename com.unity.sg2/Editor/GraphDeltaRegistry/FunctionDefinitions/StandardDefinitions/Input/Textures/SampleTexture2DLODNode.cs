@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
     B = RGBA.b;
     A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -40,8 +40,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     1,
                     "NormalObject",
-@"
-#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+@"#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
     RGBA = temp;
 #else
     RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
@@ -51,10 +50,9 @@ namespace UnityEditor.ShaderGraph.Defs
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -79,10 +77,9 @@ namespace UnityEditor.ShaderGraph.Defs
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -117,7 +114,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the texture coordinates to use for sampling the texture"
+                    tooltip: "the texture coordinates to use for sampling the texture",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

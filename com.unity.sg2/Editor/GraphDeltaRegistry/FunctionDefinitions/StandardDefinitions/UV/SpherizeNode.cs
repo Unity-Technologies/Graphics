@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Defs
     delta4 = delta2 * delta2;
     delta_offset = delta4 * Strength;
     Out = UV + delta * delta_offset + Offset;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
@@ -41,7 +41,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the input UV"
+                    tooltip: "the input UV",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Strength",

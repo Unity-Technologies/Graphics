@@ -12,17 +12,15 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-    temp.x = Width;
+@"  temp.x = Width;
     temp.y = Height;
 #if defined(SHADER_STAGE_RAY_TRACING)
     Out = saturate((1.0 - length((UV * 2 - 1) / temp)) * 1e7);
 #else
     d = length((UV * 2 - 1) / temp);
     Out = saturate((1 - d) / fwidth(d));
-#endif
-",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+#endif",
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
@@ -43,7 +41,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the input UV"
+                    tooltip: "the input UV",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Height",

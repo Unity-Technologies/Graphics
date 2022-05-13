@@ -133,6 +133,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gives a specified metal reflectance value.",
             categories: new string[2] { "Input", "PBR" },
             synonyms: new string[0] {  },
+            displayName: "Metal Reflectance",
             selectableFunctions: new()
             {
                 { "MetalReflectanceIron", "Iron" },

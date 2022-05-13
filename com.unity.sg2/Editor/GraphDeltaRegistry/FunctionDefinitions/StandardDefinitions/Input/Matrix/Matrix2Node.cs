@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Matrix 2x2",
             tooltip: "creates a static 2x2 matrix",
             categories: new string[2] { "Input", "Matrix" },
             synonyms: new string[0],

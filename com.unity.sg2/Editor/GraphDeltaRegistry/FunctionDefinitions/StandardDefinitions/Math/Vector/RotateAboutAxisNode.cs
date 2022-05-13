@@ -71,6 +71,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "rotates the input vector around an axis by the given value",
             categories: new string[2] { "Math", "Vector" },
             synonyms: new string[1] { "pivot" },
+            displayName: "Rotate About Axis",
             selectableFunctions: new()
             {
                 { "RotateAboutAxisRadians", "Radians" },

@@ -300,7 +300,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "BlendVividLight", "Vivid Light" },
                 { "BlendOverwrite", "Overwrite" }
             },
-            parameters: new ParameterUIDescriptor[4] {
+            parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Base",
                     tooltip: "the base layer value"
@@ -312,6 +312,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Opacity",
                     tooltip: "the amount of contribution of the blend layer"
+                ),
+                new ParameterUIDescriptor(
+                    name: "UseOpacity",
+                    displayName: "Use Opacity",
+                    tooltip: "turning this off disables opacity and saves a small amount of math"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

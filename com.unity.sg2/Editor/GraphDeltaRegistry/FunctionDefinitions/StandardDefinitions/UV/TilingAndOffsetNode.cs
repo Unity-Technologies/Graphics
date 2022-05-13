@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"  Out = UV * Tiling + Offset;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//need default uv
+            "Out = UV * Tiling + Offset;",
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] { 1f, 1f}),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)
@@ -22,13 +22,15 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Tiling And Offset",
             tooltip: "Tiles and offsets the input UVs.",
             categories: new string[1] { "UV" },
             synonyms: new string[2] { "pan", "scale" },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "input UV value"
+                    tooltip: "input UV value",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Tiling",

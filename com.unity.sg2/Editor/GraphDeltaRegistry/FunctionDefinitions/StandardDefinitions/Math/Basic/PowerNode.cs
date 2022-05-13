@@ -34,6 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UnsignedBase",
+                    displayName: "Unsigned Base",
                     tooltip: "Performing power on negative values results in a NaN. When true, this feature prevents that."
                 ),
                 new ParameterUIDescriptor(

@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[0] {  },
             hasPreview: false,
+            displayName: "Texture 2D Asset",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",

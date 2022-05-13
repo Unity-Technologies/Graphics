@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Split Texture Transform",
             tooltip: "Separates tiling, offset, and texture data from an input texture.",
             synonyms: new string[0] {},
             categories: new string[2] { "Input", "Texture" },
@@ -45,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "TextureOnly",
+                    displayName: "Texture Only",
                     tooltip: "the input Texture2D, without tiling and offset data."
                 )
             }

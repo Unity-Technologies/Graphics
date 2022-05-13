@@ -12,21 +12,21 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"temp1 = cos(pi / Sides);
-temp.x = Width * temp1;
-temp.y = Height * temp1;
-uv = (UV * 2 - 1) / temp;
-uv.y *= -1;
-pCoord = atan2(uv.x, uv.y);
-r = 2 * pi / Sides;
-dist = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
+@"  temp1 = cos(pi / Sides);
+    temp.x = Width * temp1;
+    temp.y = Height * temp1;
+    uv = (UV * 2 - 1) / temp;
+    uv.y *= -1;
+    pCoord = atan2(uv.x, uv.y);
+    r = 2 * pi / Sides;
+    dist = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
 
 #if defined(SHADER_STAGE_RAY_TRACING)
     Out = saturate((1.0 - dist) * 1e7);
 #else
     Out = saturate((1 - dist) / fwidth(dist));
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 6f }),
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
@@ -53,7 +53,8 @@ dist = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the input UV"
+                    tooltip: "the input UV",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Height",
