@@ -277,7 +277,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, l, h);
             }
-            else
+            else if(h != 1 || l != 1)
             {
                 shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, Mathf.Max(l, h));
             }
