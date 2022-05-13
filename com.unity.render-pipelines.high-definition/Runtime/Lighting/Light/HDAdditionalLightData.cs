@@ -1795,7 +1795,10 @@ namespace UnityEngine.Rendering.HighDefinition
         byte showAdditionalSettings = 0;
 #pragma warning restore 0414
 
-        HDShadowRequest[]   shadowRequests;
+        // custom begin
+        internal
+        // custom end
+        HDShadowRequest[] shadowRequests;
         int[]               m_ShadowRequestIndices;
 
 
@@ -1810,7 +1813,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
         [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
-        
+
         // custom-begin:
         // Cache shadow data from render loop in order to simplify sending shadow data of light sources to custom data structures.
         // This avoids manually authoring a ton of spaghetti code to wire up additional custom shadow data requests.
@@ -2142,7 +2145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     distance01 = 1.0f - Mathf.Pow(distance01, 2);
                 }
 
-                // normalized ratio between light range and distance 
+                // normalized ratio between light range and distance
                 float range01 = Mathf.Clamp01(visibleLight.range / Vector3.Distance(camera.transform.position, visibleLight.GetPosition()));
 
                 float scaleFactor01 = Mathf.Max(distance01, range01);
@@ -3466,7 +3469,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cullingMask"></param>
         public void SetUseViewFrustumForShadowCasterCull(bool useViewFrustumForShadowCasterCull) => legacyLight.useViewFrustumForShadowCasterCull = useViewFrustumForShadowCasterCull;
-        
+
         /// <summary>
         /// Set the light layer shadow cull distances.
         /// </summary>
