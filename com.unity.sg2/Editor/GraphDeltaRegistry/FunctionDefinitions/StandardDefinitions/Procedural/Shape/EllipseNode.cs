@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
 @"
-{
     temp.x = Width;
     temp.y = Height;
 #if defined(SHADER_STAGE_RAY_TRACING)
@@ -22,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
     d = length((UV * 2 - 1) / temp);
     Out = saturate((1 - d) / fwidth(d));
 #endif
-}",
+",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),

@@ -12,9 +12,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    temp.x = Width;
+@"  temp.x = Width;
     temp.y = Height;
     Radius = max(min(min(abs(Radius * 2), abs(Width)), abs(Height)), 1e-5);
     uv = abs(UV * 2 - 1) - temp + Radius;
@@ -23,8 +21,7 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = saturate((1 - d) * 1e7);
 #else
     Out = saturate((1 - d) / max(fwidth(d), 1e-5));
-#endif
-}",
+#endif",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),

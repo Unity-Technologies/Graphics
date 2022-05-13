@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
 @"
-{
 #if defined(SHADER_STAGE_RAY_TRACING)
     int2 checker = frac(Frequency * UV) > 0.5;
     Out = checker.x ^ checker.y ? ColorA : ColorB;
@@ -31,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
     alpha = saturate(0.5f + 0.5f * vector_alpha.x * vector_alpha.y * freqLimiter);
     Out = lerp(ColorA, ColorB, alpha.xxx);
 #endif
-}",
+",
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In, new float[] { 0.2f, 0.2f, 0.2f }),
             new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In, new float[] { 0.7f, 0.7f, 0.7f }),

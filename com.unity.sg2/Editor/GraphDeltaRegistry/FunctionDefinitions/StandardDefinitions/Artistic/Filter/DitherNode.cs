@@ -12,11 +12,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
 @"
-{
     uv = ScreenPosition.xy * _ScreenParams.xy;
     uint index = (uint(uv.x) % 4) * 4 + uint(uv.y) % 4;
     Out = In - DITHER_THRESHOLDS[index];
-}",
+",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
             new ParameterDescriptor("ScreenPosition", TYPE.Vec2, Usage.In),//TODO: ScreenPosition default support
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),

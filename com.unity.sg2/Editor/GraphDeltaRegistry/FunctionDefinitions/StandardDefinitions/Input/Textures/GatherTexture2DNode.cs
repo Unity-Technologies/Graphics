@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
 @"
-{
 #if (SHADER_TARGET >= 41)
     RGBA = Texture.tex.Gather(Sampler.samplerstate, UV, Offset);
     RGB = RGBA.rgb;
@@ -32,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
     RGBA.a = A;
     RGB = RGBA.rgb;
 #endif
-}",
+",
             new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
             new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
             new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),

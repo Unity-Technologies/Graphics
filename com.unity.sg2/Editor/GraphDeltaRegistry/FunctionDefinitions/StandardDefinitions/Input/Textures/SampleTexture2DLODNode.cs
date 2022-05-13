@@ -15,19 +15,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     1,
                     "Standard",
-                    @"
-                    {
-                    #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
-                        RGBA = temp;
-                    #else
-                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
-                    #endif
-                        RGB = RGBA.rgb;
-                        R = RGBA.r;
-                        G = RGBA.g;
-                        B = RGBA.b;
-                        A = RGBA.a;
-                    }",
+@"#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+    RGBA = temp;
+#else
+    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
+#endif
+    RGB = RGBA.rgb;
+    R = RGBA.r;
+    G = RGBA.g;
+    B = RGBA.b;
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -43,20 +40,19 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     1,
                     "NormalObject",
-                    @"
-                    {
-                    #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
-                        RGBA = temp;
-                    #else
-                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
-                    #endif
-                        RGBA.rgb = UnpackNormalRGB(RGBA);
-                        RGB = RGBA.rgb;
-                        R = RGBA.r;
-                        G = RGBA.g;
-                        B = RGBA.b;
-                        A = RGBA.a;
-                    }",
+@"
+#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+    RGBA = temp;
+#else
+    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
+#endif
+    RGBA.rgb = UnpackNormalRGB(RGBA);
+    RGB = RGBA.rgb;
+    R = RGBA.r;
+    G = RGBA.g;
+    B = RGBA.b;
+    A = RGBA.a;
+",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
@@ -72,20 +68,19 @@ namespace UnityEditor.ShaderGraph.Defs
                 new (
                     1,
                     "NormalTangent",
-                    @"
-                    {
-                    #if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
-                        RGBA = temp;
-                    #else
-                        RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
-                    #endif
-                        RGBA.rgb = UnpackNormal(RGBA);
-                        RGB = RGBA.rgb;
-                        R = RGBA.r;
-                        G = RGBA.g;
-                        B = RGBA.b;
-                        A = RGBA.a;
-                    }",
+@"
+#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)
+    RGBA = temp;
+#else
+    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV), LOD);
+#endif
+    RGBA.rgb = UnpackNormal(RGBA);
+    RGB = RGBA.rgb;
+    R = RGBA.r;
+    G = RGBA.g;
+    B = RGBA.b;
+    A = RGBA.a;
+",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
                     new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
