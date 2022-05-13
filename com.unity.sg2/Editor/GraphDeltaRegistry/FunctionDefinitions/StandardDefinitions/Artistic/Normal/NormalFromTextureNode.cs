@@ -18,9 +18,9 @@ namespace UnityEditor.ShaderGraph.Defs
 @"  //3 sample version - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
-    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    if (HeightChannel == 1) channelMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channelMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
     normalSample = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV), channeMask);
     va.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask) - normalSample) * Strength;
     vb.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask) - normalSample) * Strength;
@@ -55,9 +55,9 @@ namespace UnityEditor.ShaderGraph.Defs
 @"  //4 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
-    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    if (HeightChannel == 1) channelMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channelMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
     va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);//Bottom
     va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask);//Top
     vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask);//Right
@@ -96,9 +96,9 @@ namespace UnityEditor.ShaderGraph.Defs
 @"  //8 samples - only works on square textures
     UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
-    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    if (HeightChannel == 1) channelMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channelMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
     va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV - Offset), channelMask);                   // top left
     va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);   	  // left
     va.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y + Offset)), channelMask);// bottom left
