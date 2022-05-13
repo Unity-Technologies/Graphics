@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
     A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Defs
     A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Defs
     A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Defs
     A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("Bias", TYPE.Float, Usage.In),

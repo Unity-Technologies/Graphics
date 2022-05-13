@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             "Out = Matrix;",
             new ParameterDescriptor("Out", TYPE.Mat4, GraphType.Usage.Out),
-            new ParameterDescriptor("Matrix", TYPE.Mat4, GraphType.Usage.Static, defaultValue: REF.M)
+            new ParameterDescriptor("Matrix", TYPE.Mat4, GraphType.Usage.Static, REF.M)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

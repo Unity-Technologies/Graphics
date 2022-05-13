@@ -17,14 +17,14 @@ namespace UnityEditor.ShaderGraph.Defs
                     1,
                     "SceneDepthLinear01",
                     "Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, defaultValue: REF.ScreenPosition_Default),
+                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                 ),
                 new(
                     1,
                     "SceneDepthRaw",
                     "Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, defaultValue: REF.ScreenPosition_Default),
+                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                 ),
                 new(
@@ -38,7 +38,7 @@ else
 {
 Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }",
-                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, defaultValue: REF.ScreenPosition_Default),
+                    new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default),
                     new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
                 )
             }

@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
     y = sin(angle) * delta.x + cos(angle) * delta.y;
     Out.x = x + Center.x + Offset.x;
     Out.y = y + Center.y + Offset.y;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 10f, 10f }),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),

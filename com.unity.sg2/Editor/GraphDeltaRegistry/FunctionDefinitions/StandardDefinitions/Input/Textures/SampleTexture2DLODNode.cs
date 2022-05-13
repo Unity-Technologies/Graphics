@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
     B = RGBA.b;
     A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Defs
     B = RGBA.b;
     A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.Defs
     B = RGBA.b;
     A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),

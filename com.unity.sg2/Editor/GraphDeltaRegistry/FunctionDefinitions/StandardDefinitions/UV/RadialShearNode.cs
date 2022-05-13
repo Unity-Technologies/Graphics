@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
     temp.x = delta.y;
     temp.y = -delta.x;
     Out = UV + temp * delta_offset + Offset;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f }),
             new ParameterDescriptor("Strength", TYPE.Vec2, Usage.In, new float[] { 10f, 10f }),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),

@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
     alpha = saturate(0.5f + 0.5f * vector_alpha.x * vector_alpha.y * freqLimiter);
     Out = lerp(ColorA, ColorB, alpha.xxx);
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("ColorA", TYPE.Vec3, Usage.In, new float[] { 0.2f, 0.2f, 0.2f }),
             new ParameterDescriptor("ColorB", TYPE.Vec3, Usage.In, new float[] { 0.7f, 0.7f, 0.7f }),
             new ParameterDescriptor("Frequency", TYPE.Vec2, Usage.In, new float[] { 1f, 1f }),

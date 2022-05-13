@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Defs
     tileXY.x = InvertY * Height - (floor(Tile * tileCount.x) + InvertY * 1);
     tileXY.y = InvertX * Width - ((Tile - Width * floor(Tile * tileCount.x)) + InvertX * 1);
     Out = (UV + abs(tileXY)) * tileCount;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("Tile", TYPE.Float, Usage.In),
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Defs
     tileXY.x = IHeight - (floor(Tile2 * tileCount.x) + InvertY);
     tileXY.y = IWidth - ((Tile2 - Width * floor(Tile2 * tileCount.x)) + InvertX);
     UV1 = (UV + abs(tileXY)) * tileCount;",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 1.0f}),
                     new ParameterDescriptor("IWidth", TYPE.Float, Usage.Local),

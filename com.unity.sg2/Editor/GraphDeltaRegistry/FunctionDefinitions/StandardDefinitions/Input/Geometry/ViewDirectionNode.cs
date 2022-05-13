@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             "Out = ViewDir;",
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.Static, defaultValue: REF.WorldSpace_ViewDirection)
+            new ParameterDescriptor("ViewDir", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_ViewDirection)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

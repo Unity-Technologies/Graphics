@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -44,9 +44,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Bitangent),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -85,9 +85,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Bitangent),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Defs
         Out = TransformWorldToTangent(Out, TangentMatrix);	
     }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -133,9 +133,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, defaultValue: REF.WorldSpace_Bitangent),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 )
             }

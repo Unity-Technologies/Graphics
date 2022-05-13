@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             "Out = pow((1.0 - saturate(dot(normalize(Normal), normalize(ViewDir)))), Power);",
-            new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, defaultValue: REF.WorldSpace_Normal),
-            new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, defaultValue: REF.WorldSpace_ViewDirection),
+            new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.WorldSpace_Normal),
+            new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.WorldSpace_ViewDirection),
             new ParameterDescriptor("Power", TYPE.Float, Usage.In, new float[] { 1f }),
             new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
         );

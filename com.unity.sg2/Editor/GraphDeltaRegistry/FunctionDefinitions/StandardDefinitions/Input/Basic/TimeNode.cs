@@ -15,7 +15,7 @@ SineTime = TimeParameters.y;
 CosineTime = TimeParameters.z;
 DeltaTime = unity_DeltaTime.x;
 SmoothDelta = unity_DeltaTime.z;",
-            new ParameterDescriptor("TimeParameters", TYPE.Vec4, Usage.Local, defaultValue: REF.TimeParameters),
+            new ParameterDescriptor("TimeParameters", TYPE.Vec4, Usage.Local, REF.TimeParameters),
             new ParameterDescriptor("Time", TYPE.Float, Usage.Out),
             new ParameterDescriptor("SineTime", TYPE.Float, Usage.Out),
             new ParameterDescriptor("CosineTime", TYPE.Float, Usage.Out),

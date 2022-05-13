@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             "Out = Position;",
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Static, defaultValue: REF.WorldSpace_Position)
+            new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Static, REF.WorldSpace_Position)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

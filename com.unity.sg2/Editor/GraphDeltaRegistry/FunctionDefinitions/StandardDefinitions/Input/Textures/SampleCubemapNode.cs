@@ -22,8 +22,8 @@ namespace UnityEditor.ShaderGraph.Defs
     B = RGBA.b;
     A = RGBA.a;",
                     new ParameterDescriptor("Cube", TYPE.TextureCube, Usage.In),
-                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, defaultValue: REF.ObjectSpace_ViewDirection),
-                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, defaultValue: REF.ObjectSpace_Normal),
+                    new ParameterDescriptor("ViewDir", TYPE.Vec3, Usage.In, REF.ObjectSpace_ViewDirection),
+                    new ParameterDescriptor("Normal", TYPE.Vec3, Usage.In, REF.ObjectSpace_Normal),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),

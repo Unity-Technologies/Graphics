@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
     uint index = (uint(uv.x) % 4) * 4 + uint(uv.y) % 4;
     Out = In - DITHER_THRESHOLDS[index];",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("ScreenPosition", TYPE.Vec2, Usage.In, defaultValue: REF.ScreenPosition_Default),
+            new ParameterDescriptor("ScreenPosition", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
             new ParameterDescriptor("uv", TYPE.Vec2, Usage.Local),
             new ParameterDescriptor("DITHER_THRESHOLDS", TYPE.Mat4, Usage.Local, new float[]

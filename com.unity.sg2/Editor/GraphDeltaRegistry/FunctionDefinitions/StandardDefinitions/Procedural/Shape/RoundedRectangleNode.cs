@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
 #else
     Out = saturate((1 - d) / max(fwidth(d), 1e-5));
 #endif",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] { 0.5f }),
             new ParameterDescriptor("Radius", TYPE.Float, Usage.In, new float[] { 0.1f }),

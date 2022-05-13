@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             "Out = UV * Tiling + Offset;",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, defaultValue: REF.UV0),
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.In, new float[] { 1f, 1f}),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.In),
             new ParameterDescriptor("Out", TYPE.Vec2, Usage.Out)

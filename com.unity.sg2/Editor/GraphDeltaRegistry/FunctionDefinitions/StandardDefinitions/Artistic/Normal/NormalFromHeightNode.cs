@@ -26,8 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("crossY", TYPE.Vec3, GraphType.Usage.Local),
                     new ParameterDescriptor("d", TYPE.Float, GraphType.Usage.Local),
                     new ParameterDescriptor("surfGrad", TYPE.Vec3, GraphType.Usage.Local),
-                    new ParameterDescriptor("PositionWS", TYPE.Vec3, GraphType.Usage.Local, defaultValue: REF.WorldSpace_Position),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, GraphType.Usage.Local, defaultValue: REF.WorldSpace_Normal),
+                    new ParameterDescriptor("PositionWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Position),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Normal),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 ),
                 new(
@@ -49,10 +49,10 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("d", TYPE.Float, GraphType.Usage.Local),
                     new ParameterDescriptor("surfGrad", TYPE.Vec3, GraphType.Usage.Local),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, GraphType.Usage.Local),
-                    new ParameterDescriptor("PositionWS", TYPE.Vec3, GraphType.Usage.Local, defaultValue: REF.WorldSpace_Position),
-                    new ParameterDescriptor("NormalWS", TYPE.Vec3, GraphType.Usage.Local, defaultValue: REF.WorldSpace_Normal),
-                    new ParameterDescriptor("TangentWS", TYPE.Vec3, GraphType.Usage.Local, defaultValue: REF.WorldSpace_Tangent),
-                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, GraphType.Usage.Local, defaultValue: REF.WorldSpace_Bitangent),
+                    new ParameterDescriptor("PositionWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Position),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, GraphType.Usage.Local, REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out)
                 )
             }
