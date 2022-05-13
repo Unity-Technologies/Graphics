@@ -80,6 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Samples a Cubemap.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "texcube" },
+            displayName: "Sample Cubemap",
             selectableFunctions: new()
             {
                 { "SampleCubemapLOD", "LOD" },

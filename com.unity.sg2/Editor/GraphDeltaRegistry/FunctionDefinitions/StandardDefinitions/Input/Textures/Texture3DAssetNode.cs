@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Defines a Texture 3D Asset.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "volume" },
+            displayName: "Texture 3D Asset",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

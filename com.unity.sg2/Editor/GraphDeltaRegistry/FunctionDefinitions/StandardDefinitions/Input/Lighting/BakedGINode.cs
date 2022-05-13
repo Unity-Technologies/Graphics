@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets the Baked GI values of an input mesh.",
             categories: new string[2] { "Input", "Lighting" },
             synonyms: new string[1] { "location" },
+            displayName: "Baked GI",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
@@ -39,15 +40,18 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "StaticUV",
                     tooltip: "Lightmap coordinates for the static lightmap",
+                    displayName: "Static UV",
                     options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "DynamicUV",
                     tooltip: "Lightmap coordinates for the dynamic lightmap",
+                    displayName: "Dynamic UV",
                     options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "ApplyLightmapScaling",
+                    displayName: "Apply Lightmap Scaling",
                     tooltip: "If enabled lightmaps are automatically scaled and offset."
                 ),
                 new ParameterUIDescriptor(

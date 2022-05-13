@@ -28,14 +28,17 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "NoiseValue",
+                    displayName: "Noise Value",
                     tooltip: "the noise variation to apply to the fade function"
                 ),
                 new ParameterUIDescriptor(
                     name: "FadeValue",
+                    displayName: "Fade Value",
                     tooltip: "the amount of transition to apply"
                 ),
                 new ParameterUIDescriptor(
                     name: "FadeContrast",
+                    displayName: "Fade Contrast",
                     tooltip: "the contrast at which a single pixel goes from fully transparent to fully opaque"
                 ),
                 new ParameterUIDescriptor(

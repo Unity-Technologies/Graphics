@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Matrix 4x4",
             tooltip: "make the darks darker and the brights brighter",
             categories: new string[2] { "Input", "Matrix" },
             synonyms: new string[0],

@@ -117,6 +117,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Samples a 2D Texture Array.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[3] { "stack", "pile", "tex2darray" },
+            displayName: "Sample Texture 2D Array",
             selectableFunctions: new()
             {
                 { "SampleTexture2DArrayStandard", "Standard" },
@@ -126,7 +127,8 @@ namespace UnityEditor.ShaderGraph.Defs
             },
             parameters: new ParameterUIDescriptor[14] {
                 new ParameterUIDescriptor(
-                    name: "Texture",
+                    name: "TextureArray",
+                    displayName: "Texture Array",
                     tooltip: "the texture array asset to sample"
                 ),
                 new ParameterUIDescriptor(

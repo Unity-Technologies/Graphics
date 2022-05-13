@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewDir",
+                    displayName: "View Dir",
                     tooltip: "view direction"
                 ),
                 new ParameterUIDescriptor(

@@ -40,6 +40,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "ScreenPosition",
+                    displayName: "Screen Position",
                     tooltip: "coordinates used to apply dither pattern",
                     options: REF.OptionList.ScreenPositions
                 ),

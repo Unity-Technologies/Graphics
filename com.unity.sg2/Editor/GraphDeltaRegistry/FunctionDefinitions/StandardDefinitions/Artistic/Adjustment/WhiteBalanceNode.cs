@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Saturation",
+            displayName: "White Balance",
             tooltip: "adjusts temperature and tint",
             categories: new string[2] { "Artistic", "Adjustment" },
             synonyms: new string[0],

@@ -62,11 +62,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "ColorA",
+                    displayName: "Color A",
                     tooltip: "the first checker color",
                     useColor: true
                 ),
                 new ParameterUIDescriptor(
                     name: "ColorB",
+                    displayName: "Color B",
                     tooltip: "the second checker color",
                     useColor: true
                 ),

@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "NormalFromTexture4Samples", "4 Samples" },
                 { "NormalFromTexture8Samples", "8 Samples" }
              },
-            parameters: new ParameterUIDescriptor[6] {
+            parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(
                     name: "Texture",
                     tooltip: "the height map texture asset to sample"
@@ -175,6 +175,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Strength",
                     tooltip: "strength multiplier"
+                ),
+                new ParameterUIDescriptor(
+                    name: "HeightChannel",
+                    tooltip: "select the texture channel the height data is in",
+                    displayName: "Height Channel"
+                ),
+                new ParameterUIDescriptor(
+                    name: "OutputSpace",
+                    tooltip: "the space of the resulting normal",
+                    displayName: "Output Space"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

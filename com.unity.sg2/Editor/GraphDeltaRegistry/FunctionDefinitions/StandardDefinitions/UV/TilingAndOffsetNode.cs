@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Tiling And Offset",
             tooltip: "Tiles and offsets the input UVs.",
             categories: new string[1] { "UV" },
             synonyms: new string[2] { "pan", "scale" },

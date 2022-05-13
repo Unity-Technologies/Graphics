@@ -83,6 +83,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Samples a Cubemap with a reflection vector.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "texcube" },
+            displayName: "Sample Reflected Cubemap",
             selectableFunctions: new()
             {
                 { "SampleReflectedCubemapLOD", "LOD" },

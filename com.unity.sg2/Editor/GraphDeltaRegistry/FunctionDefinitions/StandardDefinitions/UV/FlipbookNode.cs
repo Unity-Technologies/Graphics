@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Flip", "Flip" },
                 { "Blend", "Blend" }
             },
-            parameters: new ParameterUIDescriptor[7] {
+            parameters: new ParameterUIDescriptor[9] {
                 new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV coordinates",
@@ -91,6 +91,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Height",
                     tooltip: "the number of vertical tiles in the atlas texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "InvertX",
+                    tooltip: "inverts the horizontal axis of the UVs",
+                    displayName: "Invert X"
+                ),
+                new ParameterUIDescriptor(
+                    name: "InvertY",
+                    tooltip: "inverts the vertical axis of the UVs",
+                    displayName: "Invert Y"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
