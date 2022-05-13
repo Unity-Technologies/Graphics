@@ -322,7 +322,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     height = GraphType.Height.One
                 };
 
-                ContextBuilder.AddContextEntry(contextNode, entry, registry);
+                ContextBuilder.AddReferableEntry(contextNode, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Excluded, displayName: "Foo", defaultValue: "(0,0,0,0)");
                 graphHandler.AddReferenceNode("testNodeRef", "TestContextDescriptor", "TestContextEntry", registry);
                 graphHandler.AddReferenceNode("fooNodeRef", "TestContextDescriptor", "Foo", registry);
 

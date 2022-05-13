@@ -265,7 +265,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 case Primitive.Float:
                     switch (precision)
                     {
-                        case Precision.Fixed: name = "fixed"; break;
+                        case Precision.Fixed: name = "float"; break;
                         case Precision.Half: name = "half"; break;
                     }
                     break;
@@ -277,7 +277,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, l, h);
             }
-            else
+            else if(h != 1 || l != 1)
             {
                 shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, Mathf.Max(l, h));
             }

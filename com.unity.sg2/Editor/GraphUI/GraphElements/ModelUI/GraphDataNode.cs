@@ -48,6 +48,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var portReader in nodeReader.GetPorts())
             {
+                if (!portReader.IsHorizontal)
+                    continue;
                 // Only add new node parts for static ports.
                 var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
                 var portKey = portReader.GetTypeField().GetRegistryKey();
