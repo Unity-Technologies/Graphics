@@ -154,7 +154,21 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             }
             catch (Exception e)
             {
-                File.WriteAllBytes($"Assets/FailureImageMaterialPropertyGen.jpg", rt.EncodeToJPG());
+                File.WriteAllBytes($"Assets/FailureImageMaterialPropertyGen1.jpg", rt.EncodeToJPG());
+                throw e;
+            }
+
+            material.SetVector("Foo_Var", new Vector4(1, 1, 0, 1));
+            rt = DrawToTex(material);
+
+            try
+            {
+                var pixelColor = rt.GetPixel(0, 0);
+                Assert.IsTrue((pixelColor - new Color(1f, 1f, 0f)).maxColorComponent < 0.01f); //getting some weird color drift (0.5 -> 0.498) hmm
+            }
+            catch (Exception e)
+            {
+                File.WriteAllBytes($"Assets/FailureImageMaterialPropertyGen2.jpg", rt.EncodeToJPG());
                 throw e;
             }
 
