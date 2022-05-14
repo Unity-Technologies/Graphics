@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        public bool IsHiddesInScene() => m_List.IsHiddenInScene(m_Index);
+        public bool IsHiddenInScene() => m_List.IsHiddenInScene(m_Index);
 #endif
     }
 }
