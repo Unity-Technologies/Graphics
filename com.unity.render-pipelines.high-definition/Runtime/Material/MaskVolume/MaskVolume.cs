@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static UnityEngine.Rendering.HighDefinition.VolumeGlobalUniqueIDUtils;
 
@@ -347,6 +346,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (maskVolumeAsset == null)
                 return MaskVolumeAtlasKey.zero;
 
+            // Use the payloadID, rather than the probe volume ID to uniquely identify data in the atlas.
+            // This ensures that if 2 mask volumes exist that point to the same data, that data will only be uploaded once.
             return ComputeMaskVolumeAtlasKey(GetPayloadID(), maskVolumeAsset.resolutionX, maskVolumeAsset.resolutionY, maskVolumeAsset.resolutionZ);
         }
 
@@ -361,28 +362,9 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        private MaskVolumeAtlasKey maskVolumeAtlasKeyPrevious;
-
-        internal MaskVolumeAtlasKey GetMaskVolumeAtlasKeyPrevious()
-        {
-            return maskVolumeAtlasKeyPrevious;
-        }
-
-        internal void SetMaskVolumeAtlasKeyPrevious(MaskVolumeAtlasKey key)
-        {
-            maskVolumeAtlasKeyPrevious = key;
-        }
-
         private VolumeGlobalUniqueID GetPayloadID()
         {
             return (maskVolumeAsset == null) ? VolumeGlobalUniqueID.zero : maskVolumeAsset.GetID();
-        }
-
-        internal VolumeGlobalUniqueID GetAtlasID()
-        {
-            // Use the payloadID, rather than the probe volume ID to uniquely identify data in the atlas.
-            // This ensures that if 2 mask volumes exist that point to the same data, that data will only be uploaded once.
-            return GetPayloadID();
         }
 
         internal Vector3Int GetResolution()
@@ -533,8 +515,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 }
-
-                MaskVolumeManager.manager.ReleaseVolumeFromAtlas(this);
             }
 
             maskVolumeAsset.resolutionX = parameters.resolutionX;
