@@ -3933,7 +3933,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     result.passName = fullDeferredPrepass ? "Full Depth Prepass (Deferred)" :
                                         (decalsEnabled ? "Partial Depth Prepass (Deferred - Decal + AlphaTest)" : "Partial Depth Prepass (Deferred - AlphaTest)");
                     RenderQueueRange range = fullDeferredPrepass? HDRenderQueue.k_RenderQueue_AllOpaque:
-                            (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest),
+                            (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest);
 #endif
                     bool excludeMotion = fullDeferredPrepass ? objectMotionEnabled : false;
 

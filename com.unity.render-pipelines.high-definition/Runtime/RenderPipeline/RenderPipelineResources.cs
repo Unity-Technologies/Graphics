@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
 
-#if USE_GPU_DRIVEN_PIPELINE
+#if UNITY_GPU_DRIVEN_PIPELINE
             [Reload("Runtime/RenderPipeline/Camera/HZBOcclusionCulling.compute")]
             public ComputeShader cullingCS;
             [Reload("Runtime/RenderPipeline/Camera/InitArgBuffer.compute")]

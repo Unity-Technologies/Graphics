@@ -1191,7 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //PushFullScreenDebugTextureMip(renderGraph, output.depthPyramidTexture, GetDepthBufferMipChainInfo().mipLevelCount, renderGraph.rtHandleProperties.rtHandleScale, FullScreenDebugMode.DepthPyramid);
         }
 
-#if USE_GPU_DRIVEN_PIPELINE
+#if UNITY_GPU_DRIVEN_PIPELINE
         class CopyDepthPyramidPassData
         {
             public int width, height;

@@ -464,7 +464,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraDepthStencilBuffer);
             RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraHalfResDepthBuffer);
-#if USE_GPU_DRIVEN_PIPELINE
+#if UNITY_GPU_DRIVEN_PIPELINE
             RTHandles.Release(m_CameraDepthBufferMipmap);
             RTHandles.Release(m_decalDepthBuffer);
 #endif
