@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ReceiveColorBuffer(m_RenderGraph, colorBuffer);
                 }
 
-                if (GetDistributedMode() == DistributedMode.Merger || GetDistributedMode() == DistributedMode.None)
+                if (GetDistributedMode() == DistributedMode.Renderer || GetDistributedMode() == DistributedMode.None)
                     RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
             }
 
