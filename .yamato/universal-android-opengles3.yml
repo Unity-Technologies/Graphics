@@ -74,7 +74,7 @@ Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2020.3:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
+                utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
     artifacts:
         logs:
             paths:
@@ -153,7 +153,7 @@ Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
+                utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
     artifacts:
         logs:
             paths:

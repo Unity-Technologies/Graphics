@@ -62,7 +62,7 @@ Build_Universal_Linux_Vulkan_Standalone_mono_Linear_2020.3:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
     artifacts:
         logs:
             paths:
@@ -102,7 +102,7 @@ Universal_Linux_Vulkan_playmode_mono_Linear_2020.3:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -203,7 +203,7 @@ Build_Universal_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
     artifacts:
         logs:
             paths:
@@ -243,7 +243,7 @@ Universal_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
