@@ -41,10 +41,10 @@ MonoBehaviour:
           and reflection probes can render, such as Rendering features, Post-Processing,
           Lighting, LODs, etc.\n\n1. Go to <b>Edit</b> > <b>Project Settings</b>
           > <b>Graphics</b> > <b>HDRP Global Settings.</b>\n\n2. Scroll down to the
-          <b>Frame Settings</b> section.\n\n3. Under  <b>Camera</b> > <b>Lighting</b>
-          > <b>Rendering,</b> disable the <b>Decals.</b>\n\nNote that the water puddles
-          and other dirt decals have disappears, now that the feature has been disabled
-          for all cameras, by default.\n\n4. Re-enable the <b>Decals.</b>\n\n\n<b>Expert
+          <b>Frame Settings</b> section.\n\n3. Under  <b>Camera</b> > <b>Rendering,</b>
+          disable the <b>Decals.</b>\n\nNote that the water puddles and other dirt
+          decals have disappears, now that the feature has been disabled for all
+          cameras, by default.\n\n4. Re-enable the <b>Decals.</b>\n\n\n<b>Expert
           Tips</b>\n\nEach Camera and Reflection Probe component will let you override
           these default settings, via the <b>Custom Frame Settings</b> checkbox.\n\nFor
           instance, if a specific Reflection Probe in a Scene doesn't need to render
