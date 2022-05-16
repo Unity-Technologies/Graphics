@@ -41,7 +41,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_2020.3:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -127,7 +127,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

@@ -50,7 +50,7 @@ color_spaces:
   - gamma
 test_platforms:
   - type: Standalone
-    allow_cache: True
+    allow_cache: False
     utr_flags:
       - [OSX_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
@@ -132,7 +132,7 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
   - type: playmode
-    allow_cache: True
+    allow_cache: False
     utr_flags:
       - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
