@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // public static event Action<ScriptableRenderContext, Camera> OnNoesisBeginCameraRendering;
         // public static event Action<ScriptableRenderContext, Camera> OnNoesisEndCameraRendering;
         public static event Action<HDCamera, RenderGraph> OnRenderGraphBegin;
+        public static event Action<RenderGraph, HDCamera, TextureHandle, TextureHandle> OnRenderDebugOverlay;
     }
 }
 // custom-end
