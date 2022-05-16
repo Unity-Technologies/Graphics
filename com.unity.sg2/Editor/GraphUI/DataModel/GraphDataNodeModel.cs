@@ -141,6 +141,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_IsPreviewExpanded = value;
         }
 
+        bool m_OptedOutOfUpgrade;
+
+        public bool optedOutOfUpgrade
+        {
+            get => m_OptedOutOfUpgrade;
+            set => m_OptedOutOfUpgrade = value;
+        }
+
+        // TODO: ?
+        public bool newerVersionInRegistry => true;
+
         /// <summary>
         /// Sets the registry key used when previewing this node. Has no effect if graphDataName has been set.
         /// </summary>

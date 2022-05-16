@@ -1,23 +1,29 @@
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphProcessor : IGraphProcessor
     {
         const string k_RedirectMissingInputMessage = "Node has no input and default value will be 0.";
+        const string k_OutOfDateNodeMessage = "There is a newer version of this node available. Inspect node for details.";
 
         public GraphProcessingResult ProcessGraph(IGraphModel graphModel, GraphChangeDescription changes)
         {
             var result = new GraphProcessingResult();
 
-            foreach (var missingInput in graphModel
-                .NodeModels
-                .OfType<RedirectNodeModel>()
-                .Where(r => !r.GetIncomingEdges().Any() && r.GetConnectedEdges().Any()))
+            foreach (var node in graphModel.NodeModels)
             {
-                result.AddWarning(k_RedirectMissingInputMessage, missingInput);
+                switch (node)
+                {
+                    case RedirectNodeModel redirectNode when !redirectNode.GetIncomingEdges().Any() && redirectNode.GetConnectedEdges().Any():
+                        result.AddWarning(k_RedirectMissingInputMessage, node);
+                        break;
+
+                    case GraphDataNodeModel {newerVersionInRegistry: true, optedOutOfUpgrade: false}:
+                        result.AddWarning(k_OutOfDateNodeMessage, node);
+                        break;
+                }
             }
 
             return result;
