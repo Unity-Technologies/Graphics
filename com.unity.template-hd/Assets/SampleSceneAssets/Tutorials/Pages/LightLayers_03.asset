@@ -56,30 +56,32 @@ MonoBehaviour:
 
           Notice
           that the <b>Light Layer</b> is set to <b>Mixed...</b> and once the dropdown
-          is expanded, see that the <b>Lamp Only</b> layer is disabled.
+          is expanded, see that the <b>Lamp Only</b> layer is disabled. If the property
+          is not visible, enable Show Addidtional Properties using the 3 dots in
+          the General section.
 
 
-          Because
-          the spotlights in the light fixture are unable to affect the <b>Lamp Only</b>
-          layer, the pieces of glass placed on the <b>Lamps Only</b> layer cannot
-          receive lighting nor shadowing from said spotlights. Thus, no unwanted
-          shadows are produced.
+          Because the spotlights in the light fixture
+          are unable to affect the <b>Lamp Only</b> layer, the pieces of glass placed
+          on the <b>Lamps Only</b> layer cannot receive lighting nor shadowing from
+          said spotlights. Thus, no unwanted shadows are produced.
 
 
 
-          <b>Expert Tips</b>
+          <b>Expert
+          Tips</b>
 
 
-          Obviously,
-          Light layers are not physically correct, because light cannot be blocked
-          this way in real-life. However, in practice, this feature is extremely
-          useful to avoid unwanted illumination, shadowing and light leaking in more
-          difficult lighting scenarios.
+          Obviously, Light layers are not physically correct,
+          because light cannot be blocked this way in real-life. However, in practice,
+          this feature is extremely useful to avoid unwanted illumination, shadowing
+          and light leaking in more difficult lighting scenarios.
 
 
-          Light layers can be used to fix
-          indoor and outdoor light leaking, and selectively light a character in
-          a cutscene without affecting the rest of the environment or other characters.'
+          Light
+          layers can be used to fix indoor and outdoor light leaking, and selectively
+          light a character in a cutscene without affecting the rest of the environment
+          or other characters.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TutorialTitle:
     m_Untranslated: Reflection Probes
-  m_TutorialTitle: 
   m_ProgressTrackingEnabled: 1
   m_LessonId: 1017
   m_Version: 1
-  m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
+  m_SceneManagementBehavior: 0
+  m_Scenes:
+  - {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
   m_DefaultSceneCameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0
@@ -41,7 +42,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: f4d6b0802eb2b594fb9f50f7791c924c, type: 2}
     - {fileID: 11400000, guid: 6095fcfd0c49b0f47bb3279aa67391c5, type: 2}
     - {fileID: 11400000, guid: 11cf057090665424e8fbd5eed6307a53, type: 2}
-    - {fileID: 11400000, guid: 3eaea39409b7d6e4f944faa2a68245d9, type: 2}
+    - {fileID: 11400000, guid: ded30510e41cbb94c871232db0187e1c, type: 2}
     - {fileID: 11400000, guid: 3eaea39409b7d6e4f944faa2a68245d9, type: 2}
   Modified:
     m_PersistentCalls:
@@ -61,3 +62,5 @@ MonoBehaviour:
   Quit:
     m_PersistentCalls:
       m_Calls: []
+  m_Scene: {fileID: 0}
+  m_TutorialTitle: 
