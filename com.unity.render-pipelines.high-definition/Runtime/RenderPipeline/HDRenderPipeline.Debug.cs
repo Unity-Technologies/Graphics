@@ -550,6 +550,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderDebugOverlays(renderGraph, debugParameters, output, depthBuffer, depthPyramidTexture, lightLists, shadowResult);
 
+            if (OnRenderDebugOverlay != null)
+            {
+                OnRenderDebugOverlay(renderGraph, hdCamera, colorBuffer, depthBuffer);
+            }
+
             return output;
         }
 
