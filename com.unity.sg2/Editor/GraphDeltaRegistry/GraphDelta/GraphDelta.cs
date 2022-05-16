@@ -77,6 +77,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodeHandler.AddPort("Out", false, true).SetMetadata(kRegistryKeyName, contextKey);
             }
 
+            HookupToContextList(nodeHandler);
             nodeHandler.DefaultLayer = k_concrete;
             builder.BuildNode(nodeHandler, registry);
             nodeHandler.DefaultLayer = k_user;
@@ -111,8 +112,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 var last = contextNodes[^1];
                 var tailHandler = m_data.GetHandler(last, this, newContextNode.Registry).ToNodeHandler();
-                tailHandler.AddPort("Out", false, false);
-                newContextNode.AddPort("In", true, false);
+                AddEdge(tailHandler.AddPort("Out", false, false).ID, newContextNode.AddPort("In", true, false).ID);
             }
         }
 
