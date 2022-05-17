@@ -1249,6 +1249,13 @@ Shader "HDRP/Lit"
             // This is just because it needs to be defined, shadow maps are not used.
             #define SHADOW_LOW
 
+            // For all single-sided, refractive materials, we want to force a thin refraction model.
+            #if !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+                #undef  _REFRACTION_PLANE
+                #undef  _REFRACTION_SPHERE
+                #define _REFRACTION_THIN
+            #endif
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"

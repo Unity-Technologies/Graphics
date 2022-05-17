@@ -1,3 +1,30 @@
+// Using this function instead of accessing the constant directly allows for overrides, in particular
+// in Path Tracing where we want to change the sidedness behaviour based on the transparency mode.
+float3 GetDoubleSidedConstants()
+{
+#ifdef _DOUBLESIDED_ON
+
+    #if (SHADERPASS == SHADERPASS_PATH_TRACING)
+
+        #if defined(_SURFACE_TYPE_TRANSPARENT) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+            return 1.0; // Force to 'None'
+        #else
+            return _DoubleSidedConstants.z > 0.0 ? -1.0 : _DoubleSidedConstants.xyz; // Force to 'Flip' or 'Mirror'
+        #endif
+
+    #else // SHADERPASS_PATH_TRACING
+
+        return _DoubleSidedConstants.xyz;
+
+    #endif // SHADERPASS_PATH_TRACING
+
+#else // _DOUBLESIDED_ON
+
+    return 1.0;
+
+#endif // _DOUBLESIDED_ON
+}
+
 // Flipping or mirroring a normal can be done directly on the tangent space. This has the benefit to apply to the whole process either in surface gradient or not.
 // This function will modify FragInputs and this is not propagate outside of GetSurfaceAndBuiltinData(). This is ok as tangent space is not use outside of GetSurfaceAndBuiltinData().
 void ApplyDoubleSidedFlipOrMirror(inout FragInputs input, float3 doubleSidedConstants)
