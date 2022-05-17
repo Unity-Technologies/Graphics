@@ -26,23 +26,32 @@
     #define HAS_LIGHTLOOP
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-
-    #ifdef HDRP_MATERIAL_TYPE_SIMPLE
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+    #ifdef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/SmokeLighting/SixWaySmokeLit.hlsl"
         #define _DISABLE_SSR
     #else
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+        #ifdef HDRP_MATERIAL_TYPE_SIMPLE
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+            #define _DISABLE_SSR
+        #else
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+        #endif
     #endif
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
 #else // (SHADERPASS == SHADERPASS_FORWARD)
 
+#ifdef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/SmokeLighting/SixWaySmokeLit.hlsl"
+#else
     #ifdef HDRP_MATERIAL_TYPE_SIMPLE
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
     #else
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
     #endif
+#endif
+
 #endif // (SHADERPASS == SHADERPASS_FORWARD)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
@@ -78,6 +87,16 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     builtinData.emissiveColor *= lerp(GetInverseCurrentExposureMultiplier(),1.0f,i.VFX_VARYING_EXPOSUREWEIGHT);
     #endif
     #endif
+
+    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
+        builtinData.emissiveColor = SampleGradient(emissiveGradient, SampleTexture(VFX_SAMPLER(negativeAxesLightMap),uvData).a).rgb;
+        #if defined(VFX_VARYING_EMISSIVE_MULTIPLIER)
+            builtinData.emissiveColor *= i.VFX_VARYING_EMISSIVE_MULTIPLIER;
+        #endif
+        #ifdef VFX_VARYING_EXPOSUREWEIGHT
+            builtinData.emissiveColor *= lerp(GetInverseCurrentExposureMultiplier(),1.0f,i.VFX_VARYING_EXPOSUREWEIGHT);
+        #endif
+    #endif
     builtinData.emissiveColor *= opacity;
 
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInputs.positionWS),posInputs,surfaceData, builtinData);
@@ -112,6 +131,31 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     color.a *= colorMap.a;
     #endif
     #endif
+
+    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+        surfaceData.rigRTBk = SampleTexture(VFX_SAMPLER(positiveAxesLightMap),uvData).rgb;
+        surfaceData.rigLBtF = SampleTexture(VFX_SAMPLER(negativeAxesLightMap),uvData).rgb;
+        #ifdef VFX_VARYING_TANGENT
+            surfaceData.tangentWS = i.VFX_VARYING_TANGENT.xyz;
+        #else
+            surfaceData.tangentWS = float3(1,0,0);
+        #endif
+        color.a *= SampleTexture(VFX_SAMPLER(positiveAxesLightMap),uvData).a;
+        #ifndef IS_OPAQUE_PARTICLE
+            float4 alphaRemap = GetAlphaRemapCurveParameter();
+            color.a = SampleCurve(alphaRemap, color.a);
+        #endif
+        #if defined(VFX_VARYING_BAKE_DIFFUSE_LIGHTING) && defined(VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING)
+            surfaceData.bakeDiffuseLighting0 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0];
+            surfaceData.bakeDiffuseLighting1 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1];
+            surfaceData.bakeDiffuseLighting2 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[2];
+
+            surfaceData.backBakeDiffuseLighting0 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[0];
+            surfaceData.backBakeDiffuseLighting1 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[1];
+            surfaceData.backBakeDiffuseLighting2 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[2];
+        #endif
+    #endif
+
     color.a *= VFXGetSoftParticleFade(i);
     VFXClipFragmentColor(color.a,i);
     surfaceData.baseColor = saturate(color.rgb);
@@ -142,11 +186,14 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #endif
 
     surfaceData.normalWS = normalWS;
-    #ifdef VFX_VARYING_SMOOTHNESS
-    surfaceData.perceptualSmoothness = i.VFX_VARYING_SMOOTHNESS;
-    #endif
-    surfaceData.specularOcclusion = 1.0f;
     surfaceData.ambientOcclusion = 1.0f;
+    #ifndef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+        #ifdef VFX_VARYING_SMOOTHNESS
+        surfaceData.perceptualSmoothness = i.VFX_VARYING_SMOOTHNESS;
+        #endif
+        surfaceData.specularOcclusion = 1.0f;
+    #endif
+
 
     #if HDRP_USE_MASK_MAP
     float4 mask = SampleTexture(VFX_SAMPLER(maskMap),uvData);

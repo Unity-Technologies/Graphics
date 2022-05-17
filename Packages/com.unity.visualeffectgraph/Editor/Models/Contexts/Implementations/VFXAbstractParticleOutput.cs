@@ -276,11 +276,14 @@ namespace UnityEditor.VFX
                             VFXNamedExpression mainTextureExp;
                             try
                             {
-                                mainTextureExp = slotExpressions.First(o => (o.name == "mainTexture") | (o.name == "baseColorMap") | (o.name == "distortionBlurMap") | (o.name == "normalMap"));
+                                mainTextureExp = slotExpressions.First(o =>
+                                    (o.name == "mainTexture") | (o.name == "baseColorMap") |
+                                    (o.name == "distortionBlurMap") | (o.name == "normalMap") |
+                                    (o.name == "emissiveMap") | (o.name == "positiveAxesLightMap"));
                             }
                             catch (InvalidOperationException)
                             {
-                                throw new NotImplementedException("Trying to fetch an inexistent slot Main Texture or Base Color Map or Distortion Blur Map or Normal Map. ");
+                                throw new NotImplementedException("Trying to fetch an inexistent slot Main Texture or Base Color Map or Distortion Blur Map or Normal Map or Emissive Map or Six Way Map. ");
                             }
                             yield return new VFXNamedExpression(new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(mainTextureExp.exp)), "flipBookSize");
                         }

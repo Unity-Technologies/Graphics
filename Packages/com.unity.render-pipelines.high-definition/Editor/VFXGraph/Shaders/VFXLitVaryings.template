@@ -7,7 +7,9 @@ ${VFXBegin:VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_ALPHA color.a
 #endif
 
+#ifndef VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
 #define VFX_VARYING_SMOOTHNESS materialProperties.x
+#endif
 
 #if HDRP_MATERIAL_TYPE_STANDARD
 #define VFX_VARYING_METALLIC materialProperties.y
@@ -30,7 +32,11 @@ ${VFXBegin:VFXHDRPLitVaryingsMacros}
 #endif
 
 #if USE_EXPOSURE_WEIGHT
+#if HDRP_USE_EMISSIVE
 #define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
+#elif VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
+#define VFX_VARYING_EXPOSUREWEIGHT exposureWeight
+#endif
 #endif
 ${VFXEnd}
 
@@ -44,6 +50,8 @@ VFX_OPTIONAL_INTERPOLATION float3 specularColor : COLOR1;
 #endif
 #if HDRP_USE_EMISSIVE
 VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR2;
+#elif VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
+VFX_OPTIONAL_INTERPOLATION float exposureWeight : COLOR2;
 #endif
 
 // x: smoothness
@@ -104,5 +112,10 @@ ${VFXLoadParameter:{baseColor}}
 o.VFX_VARYING_COLOR = baseColor;
 #endif
 #endif
+#if defined(VFX_VARYING_EMISSIVE_MULTIPLIER)
+${VFXLoadParameter:{emissiveMultiplier}}
+o.VFX_VARYING_EMISSIVE_MULTIPLIER = emissiveMultiplier;
 #endif
+#endif
+
 ${VFXEnd}
