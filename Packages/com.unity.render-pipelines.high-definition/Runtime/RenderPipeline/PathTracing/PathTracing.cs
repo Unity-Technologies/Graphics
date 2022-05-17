@@ -101,16 +101,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 16384);
 
         /// <summary>
-        /// Defines the minimum number of bounces for each path, in [1, 10].
+        /// Defines the minimum number of bounces for each path, in [1, 32].
         /// </summary>
-        [Tooltip("Defines the minimum number of bounces for each path, in [1, 10].")]
-        public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
+        [Tooltip("Defines the minimum number of bounces for each path, in [1, 32].")]
+        public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 32);
 
         /// <summary>
-        /// Defines the maximum number of bounces for each path, in [minimumDepth, 10].
+        /// Defines the maximum number of bounces for each path, in [minimumDepth, 32].
         /// </summary>
-        [Tooltip("Defines the maximum number of bounces for each path, in [minimumDepth, 10].")]
-        public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
+        [Tooltip("Defines the maximum number of bounces for each path, in [minimumDepth, 32].")]
+        public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 32);
 
         /// <summary>
         /// Defines the maximum, post-exposed luminance computed for indirect path segments.
@@ -361,6 +361,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
 
+        private AccelerationStructureSize GetAccelerationStructureSize(HDCamera hdCamera)
+        {
+            AccelerationStructureSize accelSize;
+
+            RayTracingAccelerationStructure accel = RequestAccelerationStructure(hdCamera);
+            accelSize.memUsage = accel != null ? accel.GetSize() : 0;
+            accelSize.instCount = accel != null ? accel.GetInstanceCount() : 0;
+
+            return accelSize;
+        }
+
         private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
             // Check resolution dirtiness
@@ -388,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check acceleration structure dirtiness
-            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
+            AccelerationStructureSize accelSize = GetAccelerationStructureSize(hdCamera);
             if (accelSize != camData.accelSize)
             {
                 camData.accelSize = accelSize;
@@ -547,12 +558,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureWidth, 2 * data.skySize);
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureHeight, data.skySize);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, data.skyReflection);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._SkyCameraTexture, data.skyBG);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyCDFTexture, data.skyCDF);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyMarginalTexture, data.skyMarginal);
 
                         // Further sky-related data for the ray miss
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingCameraClearColor, data.backgroundColor);
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyCameraTexture, data.skyBG);
 
                         // Data used in the camera rays generation
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._FrameTexture, data.output);

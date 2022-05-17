@@ -7,6 +7,7 @@
 #define PTSKY_TEXTURE2D(name) TEXTURE2D(name)
 #endif
 
+TEXTURE2D_X(_SkyCameraTexture);
 PTSKY_TEXTURE2D(_PathTracingSkyCDFTexture);
 PTSKY_TEXTURE2D(_PathTracingSkyMarginalTexture);
 
@@ -106,6 +107,11 @@ float GetSkyPDFNormalizationFactor()
 float GetSkyPDFFromValue(float3 value)
 {
     return Luminance(value) * GetSkyPDFNormalizationFactor();
+}
+
+float4 GetSkyBackground(uint2 pixelCoord)
+{
+    return _SkyCameraTexture[COORD_TEXTURE2D_X(pixelCoord)];
 }
 
 float3 GetSkyValue(float3 dir)

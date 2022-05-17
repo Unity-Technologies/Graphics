@@ -43,3 +43,11 @@ Material Samples have been updated accordinly.
 ## Decal Projectors
 
 Starting from HDRP 14.x, the Angle Fade setting on Decal Projectors have been reworked to improve precision. As a result, Decal Projectors using angle fade may appear differently.
+
+## Path Tracing
+
+Path traced images can now be denoised using industry standard denoisers, and to better support this, a function has been added to the Path Tracing variant of material shaders, to dump albedo and normal values into Arbitrary Output Variables (AOVs).
+
+Another noteworthy change: continuation (indirect) rays used to be shot recursively, from the closesthit() function. Now, they are spawned from the ray generation shader, effectively replacing recursion with a loop. This allows to reach higher path depth than before, and to reflect this the Maximum Depth property has been upped from 10 to 32.
+
+Incidentally, part of the code has been refactored, including the private Path Tracing material API, and any custom shaders relying on this API will need an update.

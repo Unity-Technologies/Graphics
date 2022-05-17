@@ -14,6 +14,23 @@ using UnityEngine.Rendering.Denoising;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // Struct storing size-related information coming from the ray tracing acceleration structure
+    internal struct AccelerationStructureSize
+    {
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || !(obj is AccelerationStructureSize rhs))
+                return false;
+            return memUsage == rhs.memUsage && instCount == rhs.instCount;
+        }
+        public override int GetHashCode() { return base.GetHashCode(); }
+        public static bool operator ==(AccelerationStructureSize lhs, AccelerationStructureSize rhs) { return lhs.Equals(rhs); }
+        public static bool operator !=(AccelerationStructureSize lhs, AccelerationStructureSize rhs) => !(lhs == rhs);
+
+        public ulong memUsage;
+        public uint  instCount;
+    }
+
     // Struct storing per-camera data, to handle accumulation and dirtiness
     internal struct CameraData
     {
@@ -31,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint height;
         public bool skyEnabled;
         public bool fogEnabled;
-        public ulong accelSize;
+        public AccelerationStructureSize accelSize;
 
         public float accumulatedWeight;
         public uint currentIteration;
