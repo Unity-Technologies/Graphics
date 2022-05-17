@@ -9,13 +9,14 @@ namespace UnityEditor.VFX
 {
     class VFXUniformMapper
     {
-        public VFXUniformMapper(VFXExpressionMapper mapper, bool filterOutConstants)
+        public VFXUniformMapper(VFXExpressionMapper mapper, bool filterOutConstants, bool needsNameSuffixes)
         {
             m_FilterOutConstants = filterOutConstants;
+            m_NeedsNameSuffixes = needsNameSuffixes;
             Init(mapper);
         }
 
-        private void CollectAndAddUniforms(VFXExpression exp, IEnumerable<string> names, HashSet<VFXExpression> processedExp)
+        private void CollectAndAddUniforms(VFXExpression exp, IEnumerable<VFXExpressionMapper.Data> datas, HashSet<VFXExpression> processedExp)
         {
             if (!exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
             {
@@ -58,13 +59,23 @@ namespace UnityEditor.VFX
                     expressions[exp] = previousNames;
                 }
 
-                if (names == null)
+                if (datas == null)
                 {
                     if (previousNames.Count == 0) // No need to generate a name if one was already generated
                         previousNames.Add(prefix + VFXCodeGeneratorHelper.GeneratePrefix(m_CurrentUniformIndex++));
                 }
                 else
-                    previousNames.AddRange(names);
+                {
+                    foreach (var data in datas)
+                    {
+                        m_NameCounts.TryGetValue(data.name, out uint count);
+                        m_NameCounts[data.name] = count + 1u;
+                        previousNames.Add(data.id == -1 &&
+                                           (!VFXExpression.IsUniform(exp.valueType)
+                                            || data.name.StartsWith("unity_")
+                                            || !m_NeedsNameSuffixes ) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}");
+                    }
+                }
             }
             else
             {
@@ -84,15 +95,21 @@ namespace UnityEditor.VFX
             m_UniformToName = new Dictionary<VFXExpression, List<string>>();
             m_TextureToName = new Dictionary<VFXExpression, List<string>>();
             m_BufferToName = new Dictionary<VFXExpression, List<string>>();
+            m_NameCounts = new Dictionary<string, uint>();
 
             m_CurrentUniformIndex = 0;
 
+            AppendMapper(mapper);
+        }
+
+        public void AppendMapper(VFXExpressionMapper mapper)
+        {
             var processedExp = new HashSet<VFXExpression>();
             foreach (var exp in mapper.expressions)
             {
                 processedExp.Clear();
-                var initialNames = mapper.GetData(exp).Select(d => d.fullName);
-                CollectAndAddUniforms(exp, initialNames, processedExp);
+                var initialData = mapper.GetData(exp);
+                CollectAndAddUniforms(exp, initialData, processedExp);
             }
         }
 
@@ -126,6 +143,10 @@ namespace UnityEditor.VFX
                 {
                     string code = null;
                     string firstName = s.Value.First();
+                    if (!firstName.StartsWith("unity_"))
+                    {
+                        firstName = "graphValues." + firstName;
+                    }
                     switch (s.Key.valueType)
                     {
                         case VFXValueType.Int32:
@@ -141,7 +162,6 @@ namespace UnityEditor.VFX
                             code = firstName;
                             break;
                     }
-
                     return new KeyValuePair<VFXExpression, string>(s.Key, code);
                 })
                     .Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First())))
@@ -150,10 +170,31 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void OverrideNamesWithOther(VFXUniformMapper otherMapper)
+        {
+            var prevUniforms = uniforms.ToArray();
+            var prevTextures = textures.ToArray();
+            var prevBuffers = buffers.ToArray();
+            foreach (var exp in prevUniforms)
+            {
+                m_UniformToName[exp] = otherMapper.GetNames(exp);
+            }
+            foreach (var exp in prevTextures)
+            {
+                m_TextureToName[exp] = otherMapper.GetNames(exp);
+            }
+            foreach (var exp in prevBuffers)
+            {
+                m_BufferToName[exp] = otherMapper.GetNames(exp);
+            }
+        }
+
         private Dictionary<VFXExpression, List<string>> m_UniformToName;
         private Dictionary<VFXExpression, List<string>> m_TextureToName;
         private Dictionary<VFXExpression, List<string>> m_BufferToName;
+        private Dictionary<string, uint> m_NameCounts;
         private uint m_CurrentUniformIndex;
         private bool m_FilterOutConstants;
+        private bool m_NeedsNameSuffixes;
     }
 }

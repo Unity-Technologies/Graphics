@@ -154,7 +154,7 @@ namespace UnityEditor.VFX.Test
             var contextCompiledData = new VFXContextCompiledData()
             {
                 gpuMapper = new VFXExpressionMapper(),
-                uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true),
+                uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
                 graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
             };
             HashSet<string> dependencies = new HashSet<string>();

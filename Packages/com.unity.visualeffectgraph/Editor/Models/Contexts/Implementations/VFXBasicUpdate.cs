@@ -162,7 +162,7 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.StripAlive, VFXAttributeMode.ReadWrite);
 
                 VFXDataParticle particleData = GetData() as VFXDataParticle;
-                if (particleData && particleData.NeedsComputeBounds())
+                if (particleData && particleData.NeedsComputeBounds(this))
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
@@ -268,7 +268,7 @@ namespace UnityEditor.VFX
                 mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", -1);
             var dataParticle = GetData() as VFXDataParticle;
 
-            if (target == VFXDeviceTarget.GPU && dataParticle && dataParticle.NeedsComputeBounds() && space == VFXCoordinateSpace.World)
+            if (target == VFXDeviceTarget.GPU && dataParticle && dataParticle.NeedsComputeBounds(this) && space == VFXCoordinateSpace.World)
             {
                 mapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
             }
@@ -287,7 +287,7 @@ namespace UnityEditor.VFX
 
                 if (skipZeroDeltaUpdate)
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
-                if ((GetData() as VFXDataParticle).NeedsComputeBounds())
+                if ((GetData() as VFXDataParticle).NeedsComputeBounds(this))
                     yield return "VFX_COMPUTE_BOUNDS";
             }
         }

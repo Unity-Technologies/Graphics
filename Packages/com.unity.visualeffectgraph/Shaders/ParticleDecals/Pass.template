@@ -40,6 +40,8 @@ struct ps_input
 	#if USE_UV_SCALE_BIAS
 	nointerpolation float4 scaleBias : TEXCOORD6;
 	#endif
+    VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+
 };
 
 struct ps_output
@@ -109,7 +111,9 @@ ps_output frag(ps_input i)
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	ps_output o = (ps_output)0;
 	VFXTransformPSInputs(i);
-
+#if VFX_USE_GRAPH_VALUES
+    GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+#endif
 	float3 clipPos;
 
 	clipPos.xy = VFXGetNormalizedScreenSpaceUV(i.pos) * 2.0f - 1.0f;

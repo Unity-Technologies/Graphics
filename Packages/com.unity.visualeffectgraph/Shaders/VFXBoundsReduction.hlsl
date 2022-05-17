@@ -70,7 +70,7 @@ void InitReduction(VFXAttributes attributes, float3 size3, uint tid, float4x4 wo
     }
 }
 
-void PerformBoundsReduction(uint id, uint tid)
+void PerformBoundsReduction(uint id, uint tid, uint nbMax)
 {
     if(id >= nbMax)
     {

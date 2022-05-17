@@ -4,14 +4,11 @@ ${VFXPragmaRequire}
 
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
-${VFXPerPassInclude}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
-
-
-CBUFFER_START(params)
-    uint nbMax;
+CBUFFER_START(sortParamsConst)
     uint dispatchWidth;
+    ${VFXInstancingConstants}
 CBUFFER_END
 
 ByteAddressBuffer attributeBuffer;
@@ -29,15 +26,21 @@ struct Kvp
 
 RWStructuredBuffer<Kvp> outputBuffer;
 
+${VFXPerPassInclude}
+
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-	uint threshold = nbMax;
+	uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
+	uint index = id;
+    ${VFXInitInstancingCompute}
+
+	ContextData contextData = instancingContextData[instanceActiveIndex];
+	uint threshold = contextData.maxParticleCount;
 #if USE_DEAD_LIST_COUNT
 	threshold -= deadListCount.Load(0);
 #endif
-	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 	if (id < threshold)
 	{
 		uint index = inputBuffer[id];

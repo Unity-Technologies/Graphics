@@ -23,6 +23,9 @@ struct ps_input
 	#endif
 
 	UNITY_VERTEX_OUTPUT_STEREO
+
+    VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+
 };
 
 struct ps_output
@@ -54,22 +57,26 @@ struct ps_output
 #endif
 
 ${VFXPassForwardDefine}
-${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}	
-	
+${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}
+
 #pragma fragment frag
 ps_output frag(ps_input i)
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	ps_output o = (ps_output)0;
 	VFXTransformPSInputs(i);
-	
+
+#if VFX_USE_GRAPH_VALUES
+    GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+#endif
+
 	${VFXApplyColor}
-	
+
 	// Line AA
-	#if IS_TRANSPARENT_PARTICLE	
+	#if IS_TRANSPARENT_PARTICLE
 	o.color.a *= 1.0f - abs(i.pixelOffset);
 	#endif
-	
+
 	o.color = VFXApplyPreExposure(o.color, i);
 	o.color = VFXApplyFog(o.color,i);
 	VFXClipFragmentColor(o.color.a,i);

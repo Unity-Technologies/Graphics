@@ -21,6 +21,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	uint index = id;
 
+	${VFXInitInstancingOutput}
+	${VFXLoadGraphValues}
+
+	ContextData contextData = instancingContextData[instanceActiveIndex];
+	uint systemSeed = contextData.systemSeed;
+	uint nbMax = contextData.maxParticleCount;
+
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 

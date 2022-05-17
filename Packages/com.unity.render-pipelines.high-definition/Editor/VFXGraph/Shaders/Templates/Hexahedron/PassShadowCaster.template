@@ -23,10 +23,12 @@ Pass
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
 		#endif
-		
+
 		nointerpolation uint faceID : TEXCOORD2;
 
 		UNITY_VERTEX_OUTPUT_STEREO
+
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input

@@ -57,10 +57,12 @@ namespace UnityEditor.VFX
     {
         const string kGeneralFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.General";
         const string kRendererFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer";
+        const string kInstancingFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Instancing";
         const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
         bool showGeneralCategory;
         bool showRendererCategory;
+        bool showInstancingCategory;
         bool showPropertyCategory;
 
         protected SerializedProperty m_VisualEffectAsset;
@@ -69,6 +71,7 @@ namespace UnityEditor.VFX
         SerializedProperty m_InitialEventNameOverriden;
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
+        SerializedProperty m_AllowInstancing;
 
         RendererEditor m_RendererEditor;
 
@@ -92,6 +95,7 @@ namespace UnityEditor.VFX
             m_SingleSerializedObject = targets.Length == 1 ? serializedObject : new SerializedObject(targets[0]);
             showPropertyCategory = EditorPrefs.GetBool(kPropertyFoldoutStatePreferenceName, true);
             showRendererCategory = EditorPrefs.GetBool(kRendererFoldoutStatePreferenceName, true);
+            showInstancingCategory = EditorPrefs.GetBool(kInstancingFoldoutStatePreferenceName, true);
             showGeneralCategory = EditorPrefs.GetBool(kGeneralFoldoutStatePreferenceName, true);
 
             m_OtherSerializedObjects = targets.Skip(1).Select(x => new SerializedObject(x)).ToArray();
@@ -102,6 +106,7 @@ namespace UnityEditor.VFX
             m_InitialEventNameOverriden = serializedObject.FindProperty("m_InitialEventNameOverriden");
             m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
             m_VFXPropertySheet = m_SingleSerializedObject.FindProperty("m_PropertySheet");
+            m_AllowInstancing = serializedObject.FindProperty("m_AllowInstancing");
 
             var renderers = targets.Cast<Component>().Select(t => t.GetComponent<VFXRenderer>()).ToArray();
             m_RendererEditor = new RendererEditor(renderers);
@@ -628,7 +633,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public static bool ShowHeader(GUIContent nameContent, bool displayFoldout, bool foldoutState)
+        public static bool ShowHeader(GUIContent nameContent, bool displayFoldout, bool foldoutState, string preferenceName = null)
         {
             float height = Styles.categoryHeader.CalcHeight(nameContent, 4000) + 3;
 
@@ -649,6 +654,11 @@ namespace UnityEditor.VFX
             }
 
             EditorGUI.indentLevel = result ? 1 : 0;
+
+            if (preferenceName != null && result != foldoutState)
+            {
+                EditorPrefs.SetBool(preferenceName, result);
+            }
 
             return result;
         }
@@ -764,12 +774,8 @@ namespace UnityEditor.VFX
         public override void OnInspectorGUI()
         {
             GUILayout.Space(6);
-            bool newShowGeneralCategory = ShowHeader(Contents.headerGeneral, true, showGeneralCategory);
-            if (newShowGeneralCategory != showGeneralCategory)
-            {
-                EditorPrefs.SetBool(kGeneralFoldoutStatePreferenceName, newShowGeneralCategory);
-                showGeneralCategory = newShowGeneralCategory;
-            }
+            showGeneralCategory = ShowHeader(Contents.headerGeneral, true, showGeneralCategory, kGeneralFoldoutStatePreferenceName);
+
             m_SingleSerializedObject.Update();
             if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
             {
@@ -802,6 +808,7 @@ namespace UnityEditor.VFX
                     InitialEventField(resource);
 
                 DrawRendererProperties();
+                DrawInstancingProperties();
                 DrawParameters(resource);
             }
             EditorGUI.indentLevel = 0;
@@ -855,12 +862,7 @@ namespace UnityEditor.VFX
 
                 if (graph.m_ParameterInfo != null)
                 {
-                    bool newShowParameterCategory = ShowHeader(Contents.headerProperties, true, showPropertyCategory);
-                    if (newShowParameterCategory != showPropertyCategory)
-                    {
-                        EditorPrefs.SetBool(kPropertyFoldoutStatePreferenceName, newShowParameterCategory);
-                        showPropertyCategory = newShowParameterCategory;
-                    }
+                    showPropertyCategory = ShowHeader(Contents.headerProperties, true, showPropertyCategory, kPropertyFoldoutStatePreferenceName);
 
                     if (showPropertyCategory)
                     {
@@ -1158,15 +1160,30 @@ namespace UnityEditor.VFX
 
         private void DrawRendererProperties()
         {
-            bool newShowRendererCategory = ShowHeader(Contents.headerRenderer, true, showRendererCategory);
-            if (newShowRendererCategory != showRendererCategory)
-            {
-                EditorPrefs.SetBool(kRendererFoldoutStatePreferenceName, newShowRendererCategory);
-                showRendererCategory = newShowRendererCategory;
-            }
+            showRendererCategory = ShowHeader(Contents.headerRenderer, true, showRendererCategory, kRendererFoldoutStatePreferenceName);
 
             if (showRendererCategory)
                 m_RendererEditor.OnInspectorGUI();
+        }
+
+        private void DrawInstancingProperties()
+        {
+            showInstancingCategory = ShowHeader(Contents.headerInstancing, true, showInstancingCategory, kInstancingFoldoutStatePreferenceName);
+
+            if (showInstancingCategory)
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_AllowInstancing, Contents.allowInstancing);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serializedObject.ApplyModifiedProperties();
+
+                    foreach (var visualEffect in targets.OfType<VisualEffect>())
+                    {
+                        visualEffect.RecreateData();
+                    }
+                }
+            }
         }
 
         internal class RendererEditor
@@ -1224,6 +1241,8 @@ namespace UnityEditor.VFX
                 }
                 return null;
             }
+
+            public SerializedObject SerializedRenderers => m_SerializedRenderers;
 
             public static readonly Action<GUIContent, SerializedProperty, GUIStyle, GUIStyle> s_fnGetSortingLayerField = GetSortingLayerField();
 
@@ -1420,6 +1439,7 @@ namespace UnityEditor.VFX
             public static readonly GUIContent headerGeneral = EditorGUIUtility.TrTextContent("General");
             public static readonly GUIContent headerProperties = EditorGUIUtility.TrTextContent("Properties");
             public static readonly GUIContent headerRenderer = EditorGUIUtility.TrTextContent("Renderer");
+            public static readonly GUIContent headerInstancing = EditorGUIUtility.TrTextContent("Instancing");
 
             public static readonly GUIContent assetPath = EditorGUIUtility.TrTextContent("Asset Template", "Sets the Visual Effect Graph asset to be used in this component.");
             public static readonly GUIContent randomSeed = EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
@@ -1436,6 +1456,8 @@ namespace UnityEditor.VFX
             public static readonly GUILayoutOption powerSliderWidth = GUILayout.Width(124);
             public static readonly GUILayoutOption sceneViewButtonWidth = GUILayout.Width(52);
             public static readonly GUILayoutOption playRateDropdownWidth = GUILayout.Width(40);
+
+            public static readonly GUIContent allowInstancing = EditorGUIUtility.TrTextContent("Allow Instancing", "When enabled, the effect will try to be batched with other of the same type.");
 
             public static readonly GUIContent graphInBundle = EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
             public static readonly GUIContent play = new GUIContent("Play()");

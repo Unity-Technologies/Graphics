@@ -14,26 +14,33 @@ struct vs_input
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 {
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-	
+
 	UNITY_SETUP_INSTANCE_ID(i);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 	uint index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
-	
+
+	${VFXInitInstancingOutput}
+	${VFXLoadGraphValues}
+
+	ContextData contextData = instancingContextData[instanceActiveIndex];
+	uint systemSeed = contextData.systemSeed;
+	uint nbMax = contextData.maxParticleCount;
+
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
-			
+
 	if (!attributes.alive)
 		return o;
-	
+
 	float3 offsets = (float3)0;
 	offsets.x = float(id & 1);
 	offsets.y = (id & 2) * 0.5f;
 	offsets.z = (id & 4) * 0.25f;
 	offsets -= 0.5f;
-	
+
 	${VFXLoadSize}
-	
+
 	float3x3 rot = GetEulerMatrix(radians(float3(attributes.angleX,attributes.angleY,attributes.angleZ)));
 	float4x4 elementToVFX = GetElementToVFXMatrix(
 		attributes.axisX,
@@ -47,7 +54,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	float3 inputVertexPosition = offsets;
 	float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
 	float3 vPosWS = TransformPositionVFXToWorld(vPos);
-	
+
 #ifdef VFX_VARYING_POSWS
 	o.VFX_VARYING_POSWS = vPosWS;
 #endif
@@ -59,31 +66,31 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #endif
 #if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
 	rot = mul(transpose(float3x3(attributes.axisX,attributes.axisY,attributes.axisZ)),rot);
-#ifdef VFX_LOCAL_SPACE 
+#ifdef VFX_LOCAL_SPACE
 	rot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);
 #endif
 	o.VFX_VARYING_ROTX = rot[0];
 	o.VFX_VARYING_ROTY = rot[1];
 #endif
 	o.VFX_VARYING_POSCS = VFXTransformPositionWorldToClip(vPosWS);
-	
+
 	${VFXVertexComputeCurrentAndPreviousClipPos}
 
 	${VFXVertexCommonProcess}
-	
-	
+
+
 	#if USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE) && defined(VFX_VARYING_UV_BIAS)
 	o.VFX_VARYING_UV_SCALE = uvScale;
 	o.VFX_VARYING_UV_BIAS = uvBias;
 	#endif
-	
+
 	#if USE_FLIPBOOK
 		${VFXLoadParameter:{flipBookSize}}
 		${VFXLoadParameter:{invFlipBookSize}}
 		#ifdef VFX_VARYING_TEXINDEX
 			o.VFX_VARYING_TEXINDEX = attributes.texIndex;
 		#endif
-		
+
 		#if defined(VFX_VARYING_FLIPBOOKSIZE)
 			o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
 		#endif
@@ -156,7 +163,7 @@ float3 VFXCubeTransformNormalWS(VFX_VARYING_PS_INPUTS i,float3 normal)
 #endif
 }
 
-float2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS i) 
+float2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS i)
 {
 #if defined(VFX_VARYING_OFFSETS) && defined(VFX_VARYING_FACEID)
 	float2 uv;

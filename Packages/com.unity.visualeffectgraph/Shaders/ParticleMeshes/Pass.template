@@ -36,16 +36,23 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	UNITY_SETUP_INSTANCE_ID(i);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-	uint index = VFX_GET_INSTANCE_ID(i);	
+	uint index = VFX_GET_INSTANCE_ID(i);
+
+	${VFXInitInstancingOutput}
+	${VFXLoadGraphValues}
+
+	ContextData contextData = instancingContextData[instanceActiveIndex];
+	uint systemSeed = contextData.systemSeed;
+	uint nbMax = contextData.maxParticleCount;
 
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
-			
+
 	if (!attributes.alive)
 		return o;
-	
+
 	o.VFX_VARYING_UV.xy = i.uv;
-    
+
     #if VFX_SHADERGRAPH_HAS_UV1
     o.uv1 = i.uv1;
     #endif
@@ -58,9 +65,9 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
     #if VFX_SHADERGRAPH_HAS_COLOR
     o.vertexColor = i.vertexColor;
     #endif
-	
+
 	${VFXLoadSize}
-	
+
 	float3 inputVertexPosition = i.pos;
 	float4x4 elementToVFX = GetElementToVFXMatrix(
 		attributes.axisX,
@@ -70,11 +77,11 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
 		size3,
 		attributes.position);
-		
+
 	float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
 	float4 csPos = TransformPositionVFXToClip(vPos);
 	o.VFX_VARYING_POSCS = csPos;
-	
+
 	// TODO This is needed only if in local space (to handle non uniform scale) or if scale attributes are stored/written (no way to know atm)
 	float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
 		attributes.axisX,
@@ -82,7 +89,7 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 		attributes.axisZ,
 		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
 		size3);
-			
+
 	float3 normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));
 	#ifdef VFX_VARYING_NORMAL
 	o.VFX_VARYING_NORMAL = normalWS;
@@ -92,15 +99,15 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	#endif
 
 	${VFXVertexComputeCurrentAndPreviousClipPos}
-	
+
 	${VFXVertexCommonProcess}
-	
+
 	${VFXVertexSetFlipbooksInterpolants}
 
 	${VFXVertexAdditionalProcess}
-    
+
     ${VFXAdditionalInterpolantsGeneration}
-	
+
 	return o;
 }
 

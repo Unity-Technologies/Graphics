@@ -14,7 +14,7 @@ struct ps_input
 		#if USE_FLIPBOOK_ARRAY_LAYOUT
 		float3 uv : TEXCOORD0;
 		#else
-		float2 uv : TEXCOORD0;	
+		float2 uv : TEXCOORD0;
 		#endif
 	#endif
 	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
@@ -24,13 +24,13 @@ struct ps_input
 	// w: smoothness
 	VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
 	#endif
-	
+
 	#if USE_FLIPBOOK_MOTIONVECTORS
 	// x: motion vector scale u
 	// y: motion vector scale v
 	VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 	#endif
-	
+
 	#if NEEDS_NORMAL
 	float4 normal : TEXCOORD3; // normal scale is stored in w
 	#endif
@@ -43,14 +43,17 @@ struct ps_input
 	#if NEEDS_WORLDPOS
 	float3 posWS : TEXCOORD6;
 	#endif
-		
+
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	VFX_DECLARE_MOTION_VECTORS_STORAGE(7,8)
 	#endif
-    
+
     ${VFXAdditionalInterpolantsDeclaration}
 
 	UNITY_VERTEX_OUTPUT_STEREO
+
+    VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+
 };
 
 #define VFX_VARYING_PS_INPUTS ps_input

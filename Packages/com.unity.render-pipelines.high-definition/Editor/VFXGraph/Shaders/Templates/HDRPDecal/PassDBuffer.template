@@ -59,6 +59,10 @@ ${VFXIncludeRP("VFXDecal.template")}
 	void frag(ps_input i, OUTPUT_DBUFFER(outDBuffer))
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+#if VFX_USE_GRAPH_VALUES
+    GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+#endif
+        //TODO Ludovic: pass graphValues here
 		VFXComputePixelOutputToDBuffer(i,outDBuffer);
 	}
 	ENDHLSL

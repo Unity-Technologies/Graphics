@@ -1,13 +1,13 @@
 // Forward pass
 Pass
-{		
+{
 	Tags { "LightMode"=${VFXPassForward} }
-	
+
 	${VFXStencilForward}
 
 	HLSLPROGRAM
 	#pragma target 4.5
-	
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
@@ -21,7 +21,7 @@ Pass
 		// z: exposure weight
 		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
-		
+
 		#if VFX_USE_RIM_LIGHT
 		float3 offsets : TEXCOORD0;
 		nointerpolation float3 rotX : TEXCOORD2;
@@ -34,8 +34,10 @@ Pass
 		#endif
 
         UNITY_VERTEX_OUTPUT_STEREO
+
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 	};
-	
+
 	struct ps_output
 	{
 		float4 color : SV_Target0;
@@ -60,7 +62,7 @@ Pass
 #define VFX_VARYING_FACEID faceID
 #endif
 #endif
-				
+
 	${VFXBegin:VFXVertexAdditionalProcess}
 #if VFX_USE_RIM_LIGHT
 	${VFXLoadParameter:{rimColor}}
@@ -71,31 +73,34 @@ Pass
 	${VFXEnd}
 
 	${VFXPassForwardDefine}
-	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
-		
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{
+    #if VFX_USE_GRAPH_VALUES
+        GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+    #endif
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
-		
+
 		o.color = VFXGetFragmentColor(i);
-		
+
 #if VFX_USE_RIM_LIGHT
-		float3 normal = VFXCubeGetLocalNormal(i);	
+		float3 normal = VFXCubeGetLocalNormal(i);
 #if VFX_USE_NORMAL_MAP
 		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
 		normal = VFXCubeTransformNormalTS(normal,n);
 #endif
 		normal = VFXCubeTransformNormalWS(i,normal);
-		
+
 		const float r0 = i.rimSettings.a;
 		float3 posToCam = normalize(VFXGetViewWorldPosition() - i.posWS);
 		const float3 fresnel = r0 + (1.0f - r0) * pow(1.0f - saturate(dot(normal,posToCam)),5.0f);
 		o.color.rgb += saturate(fresnel) * i.rimSettings.rgb;
 #endif
-		
+
         o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);

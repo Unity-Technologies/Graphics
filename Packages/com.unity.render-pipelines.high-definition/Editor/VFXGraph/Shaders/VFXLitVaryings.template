@@ -42,7 +42,7 @@ VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
 #if HDRP_MATERIAL_TYPE_SPECULAR
 VFX_OPTIONAL_INTERPOLATION float3 specularColor : COLOR1;
 #endif
-#if HDRP_USE_EMISSIVE	
+#if HDRP_USE_EMISSIVE
 VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR2;
 #endif
 
@@ -51,6 +51,9 @@ VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR2;
 // z: normal scale
 // w: emissive scale
 VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
+
+VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPLitFillVaryings}
