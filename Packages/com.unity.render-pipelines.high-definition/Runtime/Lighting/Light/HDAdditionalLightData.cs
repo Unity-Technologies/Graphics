@@ -2227,6 +2227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         out invViewProjection, out shadowRequest.projection,
                         out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
+                    shadowRequest.projectionType = BatchCullingProjectionType.Perspective;
                     break;
                 case HDLightType.Spot:
                     float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle) : visibleLight.light.spotAngle;
@@ -2236,6 +2237,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
                         out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
+                    shadowRequest.projectionType = (spotLightShape == SpotLightShape.Box) ?
+                        BatchCullingProjectionType.Orthographic:
+                        BatchCullingProjectionType.Perspective;
                     if (CustomViewCallbackEvent != null)
                     {
                         shadowRequest.view = CustomViewCallbackEvent(visibleLight.localToWorldMatrix);
@@ -2243,6 +2247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case HDLightType.Directional:
                     UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, shadowIndex, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+                    shadowRequest.projectionType = BatchCullingProjectionType.Orthographic;
                     break;
                 case HDLightType.Area:
                     switch (areaLightShape)
@@ -2252,6 +2257,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             forwardOffset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                             HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
                                 out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
+                            shadowRequest.projectionType = BatchCullingProjectionType.Perspective;
                             break;
                         case AreaLightShape.Tube:
                             //Tube do not cast shadow at the moment.

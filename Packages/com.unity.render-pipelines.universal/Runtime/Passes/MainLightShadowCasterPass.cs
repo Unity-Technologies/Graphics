@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MainLightShadow)))
             {
-                var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
+                var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex, BatchCullingProjectionType.Orthographic);
                 settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.supportsLightLayers;
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
