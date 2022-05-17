@@ -57,3 +57,16 @@ Improvements have also been made to the raymarching algorithm to improve scatter
 In the UI, **thickness** and **distortion** fields have been renamed to **density** and **wind**.
 
 ![](Images/cl-whats-new.png)
+
+### Fullscreen Shader Graph
+
+![](Images/HDRP-Fullscreen-Frost-Effect.png)
+
+HDRP 14.0 introduces a new material type in ShaderGraph to create fullscreen effects.
+Shaders of the fullscreen type can be used in fullscreen custom passes, custom post processes and C# scripting.
+
+For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
+
+### Renderer bounds access in ShaderGraph
+
+The [Object Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Object-Node.html) in Shader Graph has been updated to give access to the bounds of the current object being rendered. This information can be useful to compute refraction effect and such. Note that these bounds are available in world space.

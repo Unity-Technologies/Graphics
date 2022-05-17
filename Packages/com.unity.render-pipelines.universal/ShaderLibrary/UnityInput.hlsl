@@ -144,6 +144,10 @@ real4 unity_SHBg;
 real4 unity_SHBb;
 real4 unity_SHC;
 
+// Renderer bounding box.
+float4 unity_RendererBounds_Min;
+float4 unity_RendererBounds_Max;
+
 // Velocity
 float4x4 unity_MatrixPreviousM;
 float4x4 unity_MatrixPreviousMI;
