@@ -11,6 +11,7 @@ using UnityEngine.TestTools;
 
 using UnityEditor.VFX.UI;
 using UnityEditor.VFX.Block.Test;
+using UnityEngine.UIElements;
 using UnityEditor.VFX.Block;
 using UnityEditor.VFX.Operator;
 
@@ -539,6 +540,35 @@ namespace UnityEditor.VFX.Test
             // VFX graph must keep the focus
             yield return null;
             Assert.True(window.graphView.HasFocus());
+        }
+
+        [UnityTest]
+        public IEnumerator Check_Delayed_Field_Correctly_Saved()
+        {
+            // Prepare
+            var vfxController = StartEditTestAsset();
+            var initializeContextDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name == "Initialize Particle");
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var initializeContext = vfxController.AddVFXContext(new Vector2(4, 4), initializeContextDesc) as VFXBasicInitialize;
+            vfxController.ApplyChanges();
+            yield return null;
+
+            var initializeNode = window.graphView.GetAllContexts().Single(x => x.controller.model is VFXBasicInitialize);
+            var capacityField = initializeNode.Q<LongField>();
+            Assert.AreEqual(128, capacityField.value);
+            Assert.AreEqual(128u, (uint)initializeContext.GetSetting("capacity").value);
+
+            // Act
+            capacityField.Focus();
+            capacityField.value = 2 * capacityField.value;
+            capacityField.Blur();
+            window.graphView.OnSave();
+            yield return null;
+
+            // Assert
+            Assert.AreEqual(256, capacityField.value);
+            Assert.AreEqual(256u, (uint)initializeContext.GetSetting("capacity").value);
         }
 
         private static VFXModelDescriptor<VFXBlock>[] GetAllBlocks(bool filterOut, Predicate<VFXModelDescriptor<VFXBlock>> predicate)

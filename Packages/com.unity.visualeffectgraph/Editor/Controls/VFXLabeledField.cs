@@ -123,11 +123,11 @@ namespace UnityEditor.VFX.UI
 
         public VisualElement m_IndeterminateLabel;
 
-        public VFXLabeledField(Label existingLabel)
+        public VFXLabeledField(Label existingLabel, string controlName = null)
         {
             m_Label = existingLabel;
 
-            CreateControl();
+            CreateControl(controlName);
             SetupLabel();
         }
 
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXLabeledField(string label)
+        public VFXLabeledField(string label, string controlName = null)
         {
             if (!string.IsNullOrEmpty(label))
             {
@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.UI
             }
             style.flexDirection = FlexDirection.Row;
 
-            CreateControl();
+            CreateControl(controlName);
             SetupLabel();
         }
 
@@ -202,9 +202,9 @@ namespace UnityEditor.VFX.UI
             m_OnValueDragStarted?.Invoke(this);
         }
 
-        void CreateControl()
+        void CreateControl(string controlName)
         {
-            m_Control = new T();
+            m_Control = new T { name = controlName };
             Add(m_Control);
 
             m_Control.RegisterValueChangedCallback(OnControlChange);
