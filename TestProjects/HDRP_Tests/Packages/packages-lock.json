@@ -114,7 +114,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.testframework.graphics": "7.2.1-preview",
+        "com.unity.testframework.graphics": "7.8.23-exp.2",
         "com.unity.render-pipelines.high-definition": "file:./com.unity.render-pipelines.high-definition"
       }
     },
