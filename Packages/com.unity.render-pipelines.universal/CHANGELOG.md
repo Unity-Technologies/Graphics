@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed spot light distance attenuation artefact on some platforms due to fp16 precision issue.
 
+## [14.0.3] - 2021-05-09
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 
 ## [14.0.2] - 2021-02-04
 
