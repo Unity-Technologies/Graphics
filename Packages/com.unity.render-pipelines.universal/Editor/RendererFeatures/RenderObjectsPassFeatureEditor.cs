@@ -28,6 +28,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             //Render Options
             public static GUIContent overrideMaterial = new GUIContent("Material", "Choose an override material, every renderer will be rendered with this material.");
             public static GUIContent overrideMaterialPass = new GUIContent("Pass Index", "The pass index for the override material to use.");
+            public static GUIContent overrideShader = new GUIContent("Shader", "Choose an override shader, every renderer will be renderered with this shader and it's current material properties");
+            public static GUIContent overrideShaderPass = new GUIContent("Pass Index", "The pass index for the override shader to use.");
+            public static GUIContent overrideMode = new GUIContent("Override Mode", "Choose the material override mode. Material: override the material and all properties. Shader: override the shader and maintain current properties.");
 
             //Depth Settings
             public static GUIContent overrideDepth = new GUIContent("Depth", "Select this option to specify how this Renderer Feature affects or uses the values in the Depth buffer.");
@@ -60,6 +63,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
         //Render props
         private SerializedProperty m_OverrideMaterial;
         private SerializedProperty m_OverrideMaterialPass;
+        private SerializedProperty m_OverrideShader;
+        private SerializedProperty m_OverrideShaderPass;
+        private SerializedProperty m_OverrideMode;
         //Depth props
         private SerializedProperty m_OverrideDepth;
         private SerializedProperty m_WriteDepth;
@@ -110,6 +116,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             //Render options
             m_OverrideMaterial = property.FindPropertyRelative("overrideMaterial");
             m_OverrideMaterialPass = property.FindPropertyRelative("overrideMaterialPassIndex");
+            m_OverrideShader = property.FindPropertyRelative("overrideShader");
+            m_OverrideShaderPass = property.FindPropertyRelative("overrideShaderPassIndex");
+            m_OverrideMode = property.FindPropertyRelative("overrideMode");
 
             //Depth props
             m_OverrideDepth = property.FindPropertyRelative("overrideDepthState");
@@ -206,18 +215,42 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DoMaterialOverride(ref Rect rect)
         {
-            //Override material
-            EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
-            if (m_OverrideMaterial.objectReferenceValue)
+            EditorGUI.PropertyField(rect, m_OverrideMode, Styles.overrideMode);
+            EditorGUI.indentLevel++;
+
+            switch (m_OverrideMode.intValue)
             {
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.indentLevel++;
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.PropertyField(rect, m_OverrideMaterialPass, Styles.overrideMaterialPass);
-                if (EditorGUI.EndChangeCheck())
-                    m_OverrideMaterialPass.intValue = Mathf.Max(0, m_OverrideMaterialPass.intValue);
-                EditorGUI.indentLevel--;
+                case (int)RenderObjects.RenderObjectsSettings.OverrideMaterialMode.None:
+                    m_MaterialLines = 1;
+                    break;
+
+                case (int)RenderObjects.RenderObjectsSettings.OverrideMaterialMode.Material:
+                    m_MaterialLines = 3;
+
+                    rect.y += Styles.defaultLineSpace;
+                    EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
+                    rect.y += Styles.defaultLineSpace;
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.PropertyField(rect, m_OverrideMaterialPass, Styles.overrideMaterialPass);
+                    if (EditorGUI.EndChangeCheck())
+                        m_OverrideMaterialPass.intValue = Mathf.Max(0, m_OverrideMaterialPass.intValue);
+                    break;
+
+                case (int)RenderObjects.RenderObjectsSettings.OverrideMaterialMode.Shader:
+                    m_MaterialLines = 3;
+
+                    rect.y += Styles.defaultLineSpace;
+                    EditorGUI.PropertyField(rect, m_OverrideShader, Styles.overrideShader);
+                    rect.y += Styles.defaultLineSpace;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.PropertyField(rect, m_OverrideShaderPass, Styles.overrideShaderPass);
+                    if (EditorGUI.EndChangeCheck())
+                        m_OverrideShaderPass.intValue = Mathf.Max(0, m_OverrideShaderPass.intValue);
+                    break;
             }
+
+            EditorGUI.indentLevel--;
         }
 
         void DoDepthOverride(ref Rect rect)
@@ -272,7 +305,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             height += Styles.defaultLineSpace; // add line for overrides dropdown
             if (m_RenderFoldout.value)
             {
-                height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
+                height += Styles.defaultLineSpace * m_MaterialLines;
                 height += Styles.defaultLineSpace * (m_OverrideDepth.boolValue ? m_DepthLines : 1);
                 height += EditorGUI.GetPropertyHeight(m_StencilSettings);
                 height += Styles.defaultLineSpace * (m_OverrideCamera.boolValue ? m_CameraLines : 1);

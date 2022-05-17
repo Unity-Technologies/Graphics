@@ -16,6 +16,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public Material overrideMaterial { get; set; }
         public int overrideMaterialPassIndex { get; set; }
+        public Shader overrideShader { get; set; }
+        public int overrideShaderPassIndex { get; set; }
 
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
@@ -51,6 +53,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             this.renderQueueType = renderQueueType;
             this.overrideMaterial = null;
             this.overrideMaterialPassIndex = 0;
+            this.overrideShader = null;
+            this.overrideShaderPassIndex = 0;
             RenderQueueRange renderQueueRange = (renderQueueType == RenderQueueType.Transparent)
                 ? RenderQueueRange.transparent
                 : RenderQueueRange.opaque;
@@ -94,6 +98,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
             drawingSettings.overrideMaterial = overrideMaterial;
             drawingSettings.overrideMaterialPassIndex = overrideMaterialPassIndex;
+            drawingSettings.overrideShader = overrideShader;
+            drawingSettings.overrideShaderPassIndex = overrideShaderPassIndex;
 
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;

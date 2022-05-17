@@ -35,6 +35,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             public Material overrideMaterial = null;
             public int overrideMaterialPassIndex = 0;
+            public Shader overrideShader = null;
+            public int overrideShaderPassIndex = 0;
+            public enum OverrideMaterialMode { None, Material, Shader };
+            public OverrideMaterialMode overrideMode = OverrideMaterialMode.Material; //default to Material as this was previously the only option
 
             public bool overrideDepthState = false;
             public CompareFunction depthCompareFunction = CompareFunction.LessEqual;
@@ -89,8 +93,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
                 filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
 
-            renderObjectsPass.overrideMaterial = settings.overrideMaterial;
-            renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;
+            switch (settings.overrideMode)
+            {
+                case RenderObjectsSettings.OverrideMaterialMode.None:
+                    renderObjectsPass.overrideMaterial = null;
+                    renderObjectsPass.overrideShader = null;
+                    break;
+                case RenderObjectsSettings.OverrideMaterialMode.Material:
+                    renderObjectsPass.overrideMaterial = settings.overrideMaterial;
+                    renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;
+                    renderObjectsPass.overrideShader = null;
+                    break;
+                case RenderObjectsSettings.OverrideMaterialMode.Shader:
+                    renderObjectsPass.overrideMaterial = null;
+                    renderObjectsPass.overrideShader = settings.overrideShader;
+                    renderObjectsPass.overrideShaderPassIndex = settings.overrideShaderPassIndex;
+                    break;
+            }
 
             if (settings.overrideDepthState)
                 renderObjectsPass.SetDetphState(settings.enableWrite, settings.depthCompareFunction);

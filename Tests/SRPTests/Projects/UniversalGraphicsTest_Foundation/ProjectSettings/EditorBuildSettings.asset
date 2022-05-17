@@ -306,6 +306,9 @@ EditorBuildSettings:
     path: Assets/Scenes/250_RenderingLayers.unity
     guid: 87ee64df2c957224ab067a27a80ea7af
   - enabled: 1
+    path: Assets/Scenes/251_ReplacementShader.unity
+    guid: 5998559ab00db184ba4ce2490fa35a72
+  - enabled: 1
     path: Assets/Scenes/265_RenderingLayers_Surfaces.unity
     guid: 646226f38a4201047a6572d1cb8a620c
   - enabled: 1
