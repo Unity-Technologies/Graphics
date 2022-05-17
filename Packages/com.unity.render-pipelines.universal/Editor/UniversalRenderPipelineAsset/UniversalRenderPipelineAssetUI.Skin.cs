@@ -106,6 +106,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues: ");
             public static GUIContent rendererUnsupportedAPIMessage =
                 EditorGUIUtility.TrTextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n");
+            public static GUIContent shadowCascadesUnsupportedMessage =
+                EditorGUIUtility.TrTextContent("Unity does not support shadow cascades on OpenGL ES 2.0 platforms. If you build a Player for the OpenGL ES 2.0 API, Unity ignores this setting at runtime and sets the number of cascades to 1.");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };

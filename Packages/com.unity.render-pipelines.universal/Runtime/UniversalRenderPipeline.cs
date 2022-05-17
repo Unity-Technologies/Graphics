@@ -1149,7 +1149,8 @@ namespace UnityEngine.Rendering.Universal
             shadowData.requiresScreenSpaceShadowResolve = false;
 #pragma warning restore 0618
 
-            shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
+            // On GLES2 we strip the cascade keywords from the lighting shaders, so for consistency we force disable the cascades here too
+            shadowData.mainLightShadowCascadesCount = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ? 1 : settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 
