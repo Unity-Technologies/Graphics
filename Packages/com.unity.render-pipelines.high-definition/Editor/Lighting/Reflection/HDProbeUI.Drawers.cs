@@ -384,6 +384,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static void DrawSHNormalizationStatus(SerializedHDProbe serialized, Editor owner)
             {
+                if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightProbeSystem != RenderPipelineSettings.LightProbeSystem.ProbeVolumes)
+                    return;
+
                 const string kResolution = " Please ensure that probe positions are valid (not inside static geometry) then bake lighting to regenerate data.";
                 const string kMixedMode = "Unable to show normalization data validity when selecting probes with different modes.";
                 const string kMixedValidity = "Baked reflection probe normalization data is partially invalid." + kResolution;

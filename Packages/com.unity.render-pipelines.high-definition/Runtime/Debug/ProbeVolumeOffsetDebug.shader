@@ -38,23 +38,9 @@ Shader "Hidden/HDRP/ProbeVolumeOffsetDebug"
 
         float4 frag(v2f i) : SV_Target
         {
-            return float4(1, 0, 0, 1);
+            return float4(0, 0, 1, 1);
         }
         ENDHLSL
-
-        Pass
-        {
-            Name "DepthForwardOnly"
-            Tags{ "LightMode" = "DepthForwardOnly" }
-
-            ZWrite On
-
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_instancing
-            ENDHLSL
-        }
 
         Pass
         {

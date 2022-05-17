@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_ObjectLayerMask = new GUIContent("Layer Mask", "Control which layers will be used to select the meshes for the probe placement algorithm.");
             internal static readonly GUIContent s_MinRendererVolumeSize = new GUIContent("Min Volume Size", "Specifies the minimum bounding box volume of renderers to consider placing probes around.");
             internal static readonly GUIContent s_OverrideRendererFilters = new GUIContent("Override Renderer Filters", "Overrides the filters used to select renderers for the probe placement.");
+            internal static readonly GUIContent s_DistanceBetweenProbes = new GUIContent("Distance Between Probes", "Overrides the number of simplification levels set in the Probe Volume Settings window. Can not exceed the global maximum value.");
             internal static readonly string s_ProbeVolumeChangedMessage = "The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.";
 
             internal static readonly Color k_GizmoColorBase = new Color32(137, 222, 144, 255);

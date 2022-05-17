@@ -106,7 +106,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -119,7 +119,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -742,7 +742,7 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 1
+      m_CSVersion: 2
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
@@ -956,33 +956,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 277.11194
-    sh[ 1]: -148.10918
-    sh[ 2]: 67.57195
-    sh[ 3]: 3.144598
-    sh[ 4]: -26.79524
-    sh[ 5]: -61.86737
-    sh[ 6]: -11.856552
-    sh[ 7]: 13.274286
-    sh[ 8]: -8.525034
-    sh[ 9]: 397.78824
-    sh[10]: -202.99312
-    sh[11]: -14.3033085
-    sh[12]: 36.468464
-    sh[13]: -67.875626
-    sh[14]: 38.56822
-    sh[15]: -15.542818
-    sh[16]: -19.50568
-    sh[17]: -16.00898
-    sh[18]: 560.54004
-    sh[19]: -84.47734
-    sh[20]: -213.46635
-    sh[21]: 59.169132
-    sh[22]: -53.81318
-    sh[23]: 66.08101
-    sh[24]: 47.337315
-    sh[25]: -95.8706
-    sh[26]: 28.853296
+    sh[ 0]: 312.94235
+    sh[ 1]: -187.60643
+    sh[ 2]: 166.37894
+    sh[ 3]: -33.353714
+    sh[ 4]: 5.737907
+    sh[ 5]: -94.603745
+    sh[ 6]: -6.0550632
+    sh[ 7]: -30.697018
+    sh[ 8]: -27.341091
+    sh[ 9]: 374.88306
+    sh[10]: -167.34158
+    sh[11]: 154.53041
+    sh[12]: -31.58607
+    sh[13]: -4.327828
+    sh[14]: -87.48828
+    sh[15]: -5.6446776
+    sh[16]: -46.591755
+    sh[17]: -19.959606
+    sh[18]: 813.6431
+    sh[19]: -334.9676
+    sh[20]: -213.4212
+    sh[21]: 123.06818
+    sh[22]: -82.94431
+    sh[23]: 44.769997
+    sh[24]: 27.21065
+    sh[25]: -202.1709
+    sh[26]: -16.329988
   m_SHValidForCapturePosition: {x: -3.424, y: 13.12, z: 3.08}
   m_SHValidForSourcePosition: {x: -3.424, y: 13.12, z: 3.08}
   m_HDProbeVersion: 3
@@ -1523,6 +1523,7 @@ MonoBehaviour:
     e32: 0
     e33: 1
   cachedHashCode: 507495071
+  fillEmptySpaces: 0
 --- !u!4 &1017176620
 Transform:
   m_ObjectHideFlags: 0
@@ -1538,6 +1539,55 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1198170530
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1198170532}
+  - component: {fileID: 1198170531}
+  m_Layer: 0
+  m_Name: Probe Touchup Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1198170531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1198170530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55f90731af2ebc94fb7fdaebe2a9a409, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  intensityScale: 1
+  invalidateProbes: 1
+  overrideDilationThreshold: 0
+  overriddenDilationThreshold: 0.75
+  size: {x: 5.7269, y: 0.8505597, z: 4.86174}
+--- !u!4 &1198170532
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1198170530}
+  m_LocalRotation: {x: -0.24676245, y: 0.6819678, z: -0.24926546, w: 0.6417905}
+  m_LocalPosition: {x: -3.5244923, y: 9.793617, z: 6.298096}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 12
+  m_LocalEulerAnglesHint: {x: 1.332, y: 92.978, z: -41.049}
 --- !u!1 &1381588290
 GameObject:
   m_ObjectHideFlags: 0
@@ -1690,7 +1740,7 @@ Light:
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
-  m_Color: {r: 0, g: 1, b: 0, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_Intensity: 4774.648
   m_Range: 1.9943948
   m_SpotAngle: 30
@@ -2103,7 +2153,6 @@ MonoBehaviour:
     m_ShutterSpeed: 0.005
     m_Aperture: 16
     m_FocusDistance: 10
-    m_GateFit: 1
     m_BladeCount: 5
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -2148,7 +2197,7 @@ MonoBehaviour:
       data1: 0
       data2: 13835058055282163712
   defaultFrameSettings: 0
-  m_Version: 8
+  m_Version: 9
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -2354,7 +2403,7 @@ MonoBehaviour:
   serializedScenarios:
   - scenario: Scenario 1
     data:
-      sceneHash: 1784705805
+      sceneHash: -2092273140
       cellDataAsset: {fileID: 4900000, guid: ae544a6f3c1b9164abd2fab0146045c0, type: 3}
       cellOptionalDataAsset: {fileID: 4900000, guid: 53fac240cb0516e49bb93a839ab630fa,
         type: 3}

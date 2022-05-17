@@ -20,104 +20,81 @@ namespace UnityEditor.Rendering
 
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
 
-            Bounds bounds = new Bounds();
-            bool foundABound = false;
-            bool performFitting = false;
-            bool performFittingOnlyOnScene = false;
-            bool performFittingOnlyOnSelection = false;
-
-            bool ContributesToGI(Renderer renderer)
-            {
-                var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) & StaticEditorFlags.ContributeGI;
-                return (flags & StaticEditorFlags.ContributeGI) != 0;
-            }
-
-            void ExpandBounds(Bounds currBound)
-            {
-                if (!foundABound)
-                {
-                    bounds = currBound;
-                    foundABound = true;
-                }
-                else
-                {
-                    bounds.Encapsulate(currBound);
-                }
-            }
+            GIContributors.ContributorFilter? filter = null;
 
             EditorGUI.BeginDisabledGroup(pv.globalVolume);
-
             if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to all Scenes", "Fits the Probe Volume's boundary to all open Scenes"), EditorStyles.miniButton))
-            {
-                performFitting = true;
-            }
+                filter = GIContributors.ContributorFilter.All;
             if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fits the Probe Volume's boundary to the Scene it belongs to."), EditorStyles.miniButton))
-            {
-                performFitting = true;
-                performFittingOnlyOnScene = true;
-            }
+                filter = GIContributors.ContributorFilter.Scene;
             if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits the Probe Volume's boundary to the selected GameObjects. Lock the Probe Volume's Inspector to allow for the selection of other GameObjects."), EditorStyles.miniButton))
-            {
-                performFitting = true;
-                performFittingOnlyOnSelection = true;
-            }
+                filter = GIContributors.ContributorFilter.Selection;
             EditorGUI.EndDisabledGroup();
 
-            if (performFitting)
+            if (filter.HasValue)
             {
                 Undo.RecordObject(pv.transform, "Fitting Probe Volume");
 
-                if (performFittingOnlyOnSelection)
-                {
-                    var transforms = Selection.transforms;
-                    foreach (var transform in transforms)
-                    {
-                        var childrens = transform.gameObject.GetComponentsInChildren<Transform>();
-                        foreach (var children in childrens)
-                        {
-                            Renderer childRenderer;
-                            if (children.gameObject.TryGetComponent<Renderer>(out childRenderer))
-                            {
-                                bool childContributeGI = ContributesToGI(childRenderer) && childRenderer.gameObject.activeInHierarchy && childRenderer.enabled;
-
-                                if (childContributeGI)
-                                {
-                                    ExpandBounds(childRenderer.bounds);
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    var renderers = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
-
-                    foreach (Renderer renderer in renderers)
-                    {
-                        bool useRendererToExpand = false;
-                        bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy && renderer.enabled;
-
-                        if (contributeGI)
-                            useRendererToExpand = performFittingOnlyOnScene ? (renderer.gameObject.scene == pv.gameObject.scene) : true;
-
-                        if (useRendererToExpand)
-                            ExpandBounds(renderer.bounds);
-
-                    }
-                }
-
-                pv.transform.position = bounds.center;
+                // Get minBrickSize from scene profile if available
                 float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
-                Vector3 tmpClamp = (bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize));
-                tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
-                tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
-                tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
-                serialized.size.vector3Value = tmpClamp;
+                if (ProbeReferenceVolume.instance.sceneData != null)
+                {
+                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
+                    if (profile != null)
+                        minBrickSize = profile.minBrickSize;
+                }
+
+                var bounds = pv.ComputeBounds(filter.Value, pv.gameObject.scene);
+                pv.transform.position = bounds.center;
+                serialized.size.vector3Value = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
             }
         }
 
-        static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
+        static int s_SubdivisionRangeID = "SubdivisionRange".GetHashCode();
+
+        static void SubdivisionRange(SerializedProbeVolume serialized, int maxSubdiv, float minDistance)
         {
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, Styles.s_DistanceBetweenProbes, serialized.highestSubdivisionLevelOverride);
+            EditorGUI.BeginProperty(rect, Styles.s_DistanceBetweenProbes, serialized.lowestSubdivisionLevelOverride);
+            EditorGUI.BeginProperty(rect, Styles.s_DistanceBetweenProbes, serialized.overridesSubdivision);
+
+            var checkbox = new Rect(rect) { width = 14 + 9, x = rect.x + 2 };
+            serialized.overridesSubdivision.boolValue = EditorGUI.Toggle(checkbox, serialized.overridesSubdivision.boolValue);
+
+            using (new EditorGUI.DisabledScope(!serialized.overridesSubdivision.boolValue))
+            {
+                EditorGUIUtility.labelWidth -= checkbox.width;
+                rect.xMin = checkbox.xMax - 4;
+                int id = GUIUtility.GetControlID(s_SubdivisionRangeID, FocusType.Keyboard, rect);
+                rect = EditorGUI.PrefixLabel(rect, id, Styles.s_DistanceBetweenProbes);
+                EditorGUIUtility.labelWidth += checkbox.width;
+
+                if (serialized.highestSubdivisionLevelOverride.intValue > maxSubdiv)
+                    serialized.highestSubdivisionLevelOverride.intValue = maxSubdiv;
+                if (serialized.lowestSubdivisionLevelOverride.intValue > maxSubdiv)
+                    serialized.lowestSubdivisionLevelOverride.intValue = maxSubdiv;
+
+                float highest = maxSubdiv - serialized.highestSubdivisionLevelOverride.intValue;
+                float lowest = maxSubdiv - serialized.lowestSubdivisionLevelOverride.intValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.MinMaxSlider(rect, ref highest, ref lowest, 0, maxSubdiv);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    GUIUtility.keyboardControl = id;
+                    highest = maxSubdiv - Mathf.RoundToInt(highest);
+                    lowest = Mathf.Min(maxSubdiv - Mathf.RoundToInt(lowest), highest);
+
+                    serialized.highestSubdivisionLevelOverride.intValue = Mathf.RoundToInt(highest);
+                    serialized.lowestSubdivisionLevelOverride.intValue = Mathf.RoundToInt(lowest);
+                }
+
+                ProbeReferenceVolumeProfileEditor.DrawSimplificationLevelsMarkers(rect, minDistance, 0, maxSubdiv, (int)highest, (int)lowest);
+            }
+
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
         }
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
@@ -126,7 +103,6 @@ namespace UnityEditor.Rendering
 
             bool hasProfile = (ProbeReferenceVolume.instance.sceneData?.GetProfileForScene(pv.gameObject.scene) != null);
 
-            EditorGUI.BeginChangeCheck();
             if (pv.mightNeedRebaking)
             {
                 var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
@@ -135,73 +111,63 @@ namespace UnityEditor.Rendering
 
             EditorGUILayout.PropertyField(serialized.globalVolume, Styles.s_GlobalVolume);
             if (!serialized.globalVolume.boolValue)
+            {
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.size.vector3Value = Vector3.Max(serialized.size.vector3Value, Vector3.zero);
+            }
+            EditorGUILayout.PropertyField(serialized.fillEmptySpaces);
 
             if (!hasProfile)
             {
                 EditorGUILayout.HelpBox("No profile information is set for the scene that owns this probe volume so no subdivision information can be retrieved.", MessageType.Warning);
             }
 
+            bool isFreezingPlacement = ProbeGIBaking.isFreezingPlacement;
+
+            EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginDisabledGroup(!hasProfile);
-            var rect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(rect, Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride);
-            EditorGUI.BeginProperty(rect, Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride);
 
-            // Round min and max subdiv
-            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            if (ProbeReferenceVolume.instance.sceneData != null)
+            if (isFreezingPlacement)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
-
-                if (profile != null)
+                CoreEditorUtils.DrawFixMeBox("The placement is frozen in the baking settings. To change these values uncheck the Freeze Placement in the Probe Volume Settings Window.", MessageType.None, "Open", () =>
                 {
-                    ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
-                    maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-                }
-                else
-                {
-                    maxSubdiv = Mathf.Max(0, maxSubdiv);
-                }
+                    var window = (ProbeVolumeBakingWindow)UnityEditor.EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow), utility: false, title: null, focus: true);
+                });
             }
 
-            EditorGUILayout.LabelField("Subdivision Overrides", EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.overridesSubdivision, Styles.s_OverridesSubdivision);
-            EditorGUI.BeginDisabledGroup(!serialized.overridesSubdivision.boolValue);
-
-            int value = serialized.highestSubdivisionLevelOverride.intValue;
-
-            // We were initialized, but we cannot know the highest subdiv statically, so we need to resort to this.
-            if (serialized.highestSubdivisionLevelOverride.intValue < 0)
-                serialized.highestSubdivisionLevelOverride.intValue = maxSubdiv;
-
-            using (new EditorGUI.IndentLevelScope())
+            using (new EditorGUI.DisabledGroupScope(isFreezingPlacement))
             {
-                serialized.highestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
-                serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(maxSubdiv, EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv));
-                serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(serialized.lowestSubdivisionLevelOverride.intValue, serialized.highestSubdivisionLevelOverride.intValue);
+                // Get settings from scene profile if available
+                int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+                float minDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
+                if (ProbeReferenceVolume.instance.sceneData != null)
+                {
+                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
+                    if (profile != null)
+                    {
+                        maxSubdiv = profile.maxSubdivision - 1;
+                        minDistance = profile.minDistanceBetweenProbes;
+                    }
+                }
+                maxSubdiv = Mathf.Max(0, maxSubdiv);
+
+                EditorGUILayout.LabelField("Subdivision Override", EditorStyles.boldLabel);
+                SubdivisionRange(serialized, maxSubdiv, minDistance);
+
+                if (hasProfile)
+                {
+                    int minSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.lowestSubdivisionLevelOverride.intValue : 0;
+                    int maxSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.highestSubdivisionLevelOverride.intValue : maxSubdiv;
+
+                    EditorGUILayout.HelpBox($"Number of simplification levels will vary between {maxSubdiv - maxSubdivInVolume} and {maxSubdiv - minSubdivInVolume}", MessageType.Info);
+                }
+
+                EditorGUILayout.Space();
             }
-            EditorGUI.EndProperty();
-            EditorGUI.EndProperty();
-
-            int minSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.lowestSubdivisionLevelOverride.intValue : 0;
-            int maxSubdivInVolume = serialized.overridesSubdivision.boolValue ? serialized.highestSubdivisionLevelOverride.intValue : maxSubdiv;
-            EditorGUI.indentLevel--;
-
-            if (hasProfile)
-                EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
 
             EditorGUI.EndDisabledGroup();
-            EditorGUI.EndDisabledGroup();
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                Vector3 tmpClamp = serialized.size.vector3Value;
-                tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
-                tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
-                tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
-                serialized.size.vector3Value = tmpClamp;
-            }
 
             EditorGUILayout.LabelField("Geometry Settings", EditorStyles.boldLabel);
 
@@ -213,6 +179,8 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(serialized.minRendererVolumeSize, Styles.s_MinRendererVolumeSize);
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUILayout.Space();
         }
     }
 }

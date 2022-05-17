@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering
         public float subdivisionViewCullingDistance = 500.0f;
         public float probeCullingDistance = 200.0f;
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
+        public int minSubdivToVisualize = 0;
         public float exposureCompensation;
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
@@ -93,7 +94,7 @@ namespace UnityEngine.Rendering
         internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
 
         // Field used for the realtime subdivision preview
-        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
+        internal Dictionary<Bounds, ProbeBrickIndex.Brick[]> realtimeSubdivisionInfo = new ();
 
         /// <summary>
         ///  Render Probe Volume related debug
@@ -204,10 +205,20 @@ namespace UnityEngine.Rendering
                 {
                     displayName = "Max subdivision displayed",
                     getter = () => probeVolumeDebug.maxSubdivToVisualize,
-                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, ProbeReferenceVolume.instance.GetMaxSubdivision()),
+                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1),
                     min = () => 0,
-                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision(),
+                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision()-1,
                 });
+
+                probeContainerChildren.children.Add(new DebugUI.IntField
+                {
+                    displayName = "Min subdivision displayed",
+                    getter = () => probeVolumeDebug.minSubdivToVisualize,
+                    setter = (v) => probeVolumeDebug.minSubdivToVisualize = Mathf.Max(v, 0),
+                    min = () => 0,
+                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision()-1,
+                });
+
 
                 probeContainer.children.Add(probeContainerChildren);
             }
@@ -301,7 +312,7 @@ namespace UnityEngine.Rendering
                     enumValues = m_DebugScenarioValues,
                     getIndex = () =>
                     {
-                        RefreshScenarioNames(parameters.sceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
+                        RefreshScenarioNames(ProbeVolumeSceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
 
                         probeVolumeDebug.otherStateIndex = 0;
                         if (!string.IsNullOrEmpty(sceneData.otherScenario))
@@ -385,6 +396,18 @@ namespace UnityEngine.Rendering
             // They are going to be rendered opaque anyhow, just using the transparent render queue to make sure
             // they properly behave w.r.t fog.
             m_DebugMaterial.renderQueue = (int)RenderQueue.Transparent;
+            m_DebugOffsetMaterial.renderQueue = (int)RenderQueue.Transparent;
+
+            // Sanitize the min max subdiv levels with what is available
+            int minAvailableSubdiv = ProbeReferenceVolume.instance.cells.Count > 0 ? ProbeReferenceVolume.instance.GetMaxSubdivision()-1 : 0;
+            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+            {
+                minAvailableSubdiv = Mathf.Min(minAvailableSubdiv, cellInfo.cell.minSubdiv);
+            }
+
+            probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
+            probeVolumeDebug.minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, probeVolumeDebug.maxSubdivToVisualize);
+
 
             foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
@@ -404,6 +427,7 @@ namespace UnityEngine.Rendering
                     props.SetFloat("_ProbeSize", probeVolumeDebug.probeSize);
                     props.SetFloat("_CullDistance", probeVolumeDebug.probeCullingDistance);
                     props.SetInt("_MaxAllowedSubdiv", probeVolumeDebug.maxSubdivToVisualize);
+                    props.SetInt("_MinAllowedSubdiv", probeVolumeDebug.minSubdivToVisualize);
                     props.SetFloat("_ValidityThreshold", bakingProcessSettings.dilationSettings.dilationValidityThreshold);
                     props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
 

@@ -89,11 +89,8 @@ namespace UnityEngine.Rendering
                             var cameraPos = activeCamera.transform.position;
                             ctx.cells.Sort((c1, c2) =>
                             {
-                                c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
-                                float c1Distance = Vector3.Distance(cameraPos, c1Center);
-
-                                c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
-                                float c2Distance = Vector3.Distance(cameraPos, c2Center);
+                                float c1Distance = Vector3.Distance(cameraPos, c1.bounds.center);
+                                float c2Distance = Vector3.Distance(cameraPos, c2.bounds.center);
 
                                 return c1Distance.CompareTo(c2Distance);
                             });
@@ -103,10 +100,10 @@ namespace UnityEngine.Rendering
                         var cells = ctx.cells.ToList();
 
                         // Remove all the cells that was not updated to prevent ghosting
-                        foreach (var cellVolume in ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Keys.ToList())
+                        foreach (var cellBounds in ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Keys.ToList())
                         {
-                            if (!cells.Any(c => c.volume.Equals(cellVolume)))
-                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cellVolume);
+                            if (!cells.Any(c => c.bounds.Equals(cellBounds)))
+                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cellBounds);
                         }
 
                         // Subdivide visible cells
@@ -118,10 +115,10 @@ namespace UnityEngine.Rendering
 
                             var result = ProbeGIBaking.BakeBricks(ctx);
 
-                            if (result.bricksPerCells.TryGetValue(cell.position, out var bricks))
-                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.volume] = bricks;
+                            if (result.cells.Count != 0)
+                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.bounds] = result.cells[0].bricks;
                             else
-                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cell.volume);
+                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cell.bounds);
 
                             yield return null;
                         }
@@ -132,16 +129,18 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes = new List<(ProbeVolume, ProbeReferenceVolume.Volume)>();
-        public List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers = new List<(Renderer, ProbeReferenceVolume.Volume)>();
-        public List<(Vector3Int position, ProbeReferenceVolume.Volume volume)> cells = new List<(Vector3Int, ProbeReferenceVolume.Volume)>();
-        public List<(Terrain, ProbeReferenceVolume.Volume volume)> terrains = new List<(Terrain, ProbeReferenceVolume.Volume)>();
+        public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes = new ();
+        public List<(Vector3Int position, Bounds bounds)> cells = new ();
+        public GIContributors contributors;
         public ProbeReferenceVolumeProfile profile;
 
         public void Initialize(ProbeReferenceVolumeProfile profile, Vector3 refVolOrigin)
         {
+            Profiling.Profiler.BeginSample("ProbeSubdivisionContext.Initialize");
+
             this.profile = profile;
             float cellSize = profile.cellSizeInMeters;
+            Vector3 cellDimensions = new Vector3(cellSize, cellSize, cellSize);
 
             var pvList = ProbeGIBaking.GetProbeVolumeList();
             foreach (var pv in pvList)
@@ -150,44 +149,18 @@ namespace UnityEngine.Rendering
                     continue;
 
                 ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.GetMaxSubdivMultiplier(), pv.GetMinSubdivMultiplier());
-                probeVolumes.Add((pv, volume));
+                probeVolumes.Add((pv, volume, volume.CalculateAABB()));
             }
 
-            // Find all renderers in the scene
-            foreach (var r in UnityEngine.Object.FindObjectsOfType<Renderer>())
-            {
-                if (!r.enabled || !r.gameObject.activeSelf)
-                    continue;
-
-                var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject);
-                if ((flags & StaticEditorFlags.ContributeGI) == 0)
-                    continue;
-
-                // Inflate a bit the volume in case it's too small (plane case)
-                var volume = ProbePlacement.ToVolume(new Bounds(r.bounds.center, r.bounds.size + Vector3.one * 0.01f));
-
-                renderers.Add((r, volume));
-            }
-
-            foreach (var terrain in UnityEngine.Object.FindObjectsOfType<Terrain>())
-            {
-                if (!terrain.isActiveAndEnabled)
-                    continue;
-
-                var volume = ProbePlacement.ToVolume(terrain.terrainData.bounds);
-
-                terrains.Add((terrain, volume));
-            }
+            contributors = GIContributors.Find(GIContributors.ContributorFilter.All);
 
             // Generate all the unique cell positions from probe volumes:
-            var cellTrans = Matrix4x4.TRS(refVolOrigin, Quaternion.identity, Vector3.one);
             HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();
             foreach (var pv in probeVolumes)
             {
                 // This method generates many cells outside of the probe volumes but it's ok because next step will do obb collision tests between each cell and each probe volumes so we will eliminate them.
-                var aabb = pv.volume.CalculateAABB();
-                var minCellPosition = aabb.min / cellSize;
-                var maxCellPosition = aabb.max / cellSize;
+                var minCellPosition = pv.bounds.min / cellSize;
+                var maxCellPosition = pv.bounds.max / cellSize;
 
                 Vector3Int min = new Vector3Int(Mathf.FloorToInt(minCellPosition.x), Mathf.FloorToInt(minCellPosition.y), Mathf.FloorToInt(minCellPosition.z));
                 Vector3Int max = new Vector3Int(Mathf.CeilToInt(maxCellPosition.x), Mathf.CeilToInt(maxCellPosition.y), Mathf.CeilToInt(maxCellPosition.z));
@@ -200,17 +173,14 @@ namespace UnityEngine.Rendering
                             var cellPos = new Vector3Int(x, y, z);
                             if (cellPositions.Add(cellPos))
                             {
-                                // Calculate the cell volume:
-                                ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
-                                cellVolume.corner = new Vector3(cellPos.x * cellSize, cellPos.y * cellSize, cellPos.z * cellSize);
-                                cellVolume.X = new Vector3(cellSize, 0, 0);
-                                cellVolume.Y = new Vector3(0, cellSize, 0);
-                                cellVolume.Z = new Vector3(0, 0, cellSize);
-                                cells.Add((cellPos, cellVolume));
+                                var center = new Vector3((cellPos.x + 0.5f) * cellSize, (cellPos.y + 0.5f) * cellSize, (cellPos.z + 0.5f) * cellSize);
+                                cells.Add((cellPos, new Bounds(center, cellDimensions)));
                             }
                         }
                 }
             }
+
+            Profiling.Profiler.EndSample();
         }
     }
 }

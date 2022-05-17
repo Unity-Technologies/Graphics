@@ -17,6 +17,7 @@ uniform float4 _Color;
 uniform int _SubdivLevel;
 uniform float _CullDistance;
 uniform int _MaxAllowedSubdiv;
+uniform int _MinAllowedSubdiv;
 uniform float _ValidityThreshold;
 uniform float _OffsetSize;
 
@@ -55,7 +56,7 @@ bool ShouldCull(inout v2f o)
     float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
     int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
 
-    if(distance(position.xyz, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv)
+    if(distance(position.xyz, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
     {
         DoCull(o);
         return true;

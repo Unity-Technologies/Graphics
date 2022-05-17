@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum LightProbeSystem
         {
             /// <summary>The legacy light probe system.</summary>
+            [InspectorName("Light Probe Groups (Legacy)")]
             LegacyLightProbes = 0,
             /// <summary>Probe Volume system.</summary>
             ProbeVolumes = 1,

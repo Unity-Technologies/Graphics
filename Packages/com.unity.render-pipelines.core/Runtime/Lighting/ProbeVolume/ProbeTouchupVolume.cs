@@ -15,7 +15,11 @@ namespace UnityEngine.Rendering
     [AddComponentMenu("Light/Probe Volume Touchup")]
     public class ProbeTouchupVolume : MonoBehaviour
     {
-        internal float intensityScale = 1.0f;
+        /// <summary>
+        /// A scale to apply to probes falling within the invalidation volume. It is really important to use this with caution as it can lead to inconsistent lighting.
+        /// </summary>
+        [Range(0.0001f, 2.0f)]
+        public float intensityScale = 1.0f;
         /// <summary>
         /// Whether to invalidate all probes falling within this volume.
         /// </summary>
@@ -28,7 +32,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The overridden dilation threshold.
         /// </summary>
-        [Range(0.0f, 1.0f)]
+        [Range(0.0f, 0.99f)]
         public float overriddenDilationThreshold = 0.75f;
 
         /// <summary>
@@ -46,10 +50,10 @@ namespace UnityEngine.Rendering
             return size;
         }
 
-        internal Bounds GetBounds()
+        internal void GetOBBandAABB(out ProbeReferenceVolume.Volume volume, out Bounds bounds)
         {
-            ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, GetExtents()), 0, 0);
-            return volume.CalculateAABB();
+            volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, GetExtents()), 0, 0);
+            bounds = volume.CalculateAABB();
         }
 #endif
     }

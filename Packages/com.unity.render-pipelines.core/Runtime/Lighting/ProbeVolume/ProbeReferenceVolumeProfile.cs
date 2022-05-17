@@ -13,6 +13,10 @@ namespace UnityEngine.Rendering
         [SerializeField]
         Version version = CoreUtils.GetLastEnumValue<Version>();
 
+        // TODO: This is here just to find a place where to serialize it. It might not be the best spot.
+        [SerializeField]
+        internal bool freezePlacement = false;
+
         /// <summary>
         /// How many levels contains the probes hierarchical structure.
         /// </summary>

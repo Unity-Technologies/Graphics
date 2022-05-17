@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
         static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
-        internal string GetSceneGUID(Scene scene)
+        static internal string GetSceneGUID(Scene scene)
         {
             Debug.Assert(s_SceneGUID != null, "Reflection for scene GUID failed");
             return (string)s_SceneGUID.GetValue(scene);
@@ -353,19 +353,13 @@ namespace UnityEngine.Rendering
         }
 
 #if UNITY_EDITOR
-        private int FindInflatingBrickSize(Vector3 size, ProbeVolume pv)
+        static internal int MaxSubdivLevelInProbeVolume(Vector3 volumeSize, int maxSubdiv)
         {
-            var refVol = ProbeReferenceVolume.instance;
-            float minSizedDim = Mathf.Min(size.x, Mathf.Min(size.y, size.z));
-
-            float minBrickSize = refVol.MinBrickSize();
-
-            float minSideInBricks = Mathf.CeilToInt(minSizedDim / minBrickSize);
+            float maxSizedDim = Mathf.Max(volumeSize.x, Mathf.Max(volumeSize.y, volumeSize.z));
+            float maxSideInBricks = maxSizedDim / ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
             int absoluteMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            minSideInBricks = Mathf.Max(minSideInBricks, Mathf.Pow(3, absoluteMaxSubdiv - (pv.overridesSubdivLevels ? pv.highestSubdivLevelOverride : 0)));
-            int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
-
-            return subdivLevel;
+            int subdivLevel = Mathf.FloorToInt(Mathf.Log(maxSideInBricks, 3)) - 1;
+            return Mathf.Max(subdivLevel, absoluteMaxSubdiv - maxSubdiv);
         }
 
         private void InflateBound(ref Bounds bounds, ProbeVolume pv)
@@ -390,12 +384,13 @@ namespace UnityEngine.Rendering
             maxPadding = cellSizeVector - new Vector3(Mathf.Abs(maxPadding.x), Mathf.Abs(maxPadding.y), Mathf.Abs(maxPadding.z));
 
             // Find the size of the brick we can put for every axis given the padding size
-            float rightPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(maxPadding.x, originalBounds.size.y, originalBounds.size.z), pv));
-            float leftPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(minPadding.x, originalBounds.size.y, originalBounds.size.z), pv));
-            float topPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, maxPadding.y, originalBounds.size.z), pv));
-            float bottomPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, minPadding.y, originalBounds.size.z), pv));
-            float forwardPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, maxPadding.z), pv));
-            float backPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, minPadding.z), pv));
+            int maxSubdiv = (pv.overridesSubdivLevels ? pv.highestSubdivLevelOverride : 0);
+            float rightPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(maxPadding.x, originalBounds.size.y, originalBounds.size.z), maxSubdiv));
+            float leftPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(minPadding.x, originalBounds.size.y, originalBounds.size.z), maxSubdiv));
+            float topPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, maxPadding.y, originalBounds.size.z), maxSubdiv));
+            float bottomPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, minPadding.y, originalBounds.size.z), maxSubdiv));
+            float forwardPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, originalBounds.size.y, maxPadding.z), maxSubdiv));
+            float backPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, originalBounds.size.y, minPadding.z), maxSubdiv));
             // Remove the extra padding caused by cell rounding
             bounds.min = bounds.min + new Vector3(
                 leftPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.x - originalBounds.min.x) / (float)leftPaddingSubdivLevel),
@@ -409,20 +404,19 @@ namespace UnityEngine.Rendering
             );
         }
 
+        // Should be called after EnsureSceneIsInBakingSet otherwise GetProfileForScene might be out of date
         internal void UpdateSceneBounds(Scene scene)
         {
-            var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
+            var volumes = Object.FindObjectsOfType<ProbeVolume>();
+            float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
+            int prevMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
 
-            // If we have not yet loaded any asset, we haven't initialized the probe reference volume with any info from the profile.
-            // As a result we need to prime with the profile info directly stored here.
             {
                 var profile = GetProfileForScene(scene);
                 if (profile == null)
                 {
                     if (volumes.Length > 0)
-                    {
                         Debug.LogWarning("A probe volume is present in the scene but a profile has not been set. Please configure a profile for your scene in the Probe Volume Baking settings.");
-                    }
                     return;
                 }
                 ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
@@ -433,81 +427,44 @@ namespace UnityEngine.Rendering
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
             {
+                if (volume.gameObject.scene != scene)
+                    continue;
+
                 if (volume.globalVolume)
-                    volume.UpdateGlobalVolume(scene);
+                    volume.UpdateGlobalVolume();
 
-                var volumeSceneGUID = GetSceneGUID(volume.gameObject.scene);
-                if (volumeSceneGUID == sceneGUID)
+                var transform = volume.gameObject.transform;
+                var obb = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, volume.GetExtents()), 0, 0);
+                Bounds localBounds = obb.CalculateAABB();
+
+                InflateBound(ref localBounds, volume);
+
+                if (!boundFound)
                 {
-                    var pos = volume.gameObject.transform.position;
-                    var extent = volume.GetExtents();
-
-                    Bounds localBounds = new Bounds(pos, extent);
-
-                    InflateBound(ref localBounds, volume);
-
-                    if (!boundFound)
-                    {
-                        newBound = localBounds;
-                        boundFound = true;
-                    }
-                    else
-                    {
-                        newBound.Encapsulate(localBounds);
-                    }
-                }
-            }
-
-            if (boundFound)
-            {
-                if (sceneBounds == null)
-                {
-                    sceneBounds = new Dictionary<string, Bounds>();
-                    hasProbeVolumes = new Dictionary<string, bool>();
-                }
-
-                if (sceneBounds.ContainsKey(sceneGUID))
-                {
-                    sceneBounds[sceneGUID] = newBound;
+                    newBound = localBounds;
+                    boundFound = true;
                 }
                 else
                 {
-                    sceneBounds.Add(sceneGUID, newBound);
+                    newBound.Encapsulate(localBounds);
                 }
             }
 
-            if (hasProbeVolumes.ContainsKey(sceneGUID))
-                hasProbeVolumes[sceneGUID] = boundFound;
-            else
-                hasProbeVolumes.Add(sceneGUID, boundFound);
+            hasProbeVolumes[sceneGUID] = boundFound;
+            if (boundFound)
+                sceneBounds[sceneGUID] = newBound;
+
+            ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(prevBrickSize, prevMaxSubdiv);
 
             if (parentAsset != null)
-            {
                 EditorUtility.SetDirty(parentAsset);
-            }
         }
 
-        internal void EnsureSceneHasProbeVolumeIsValid(Scene scene)
-        {
-            var sceneGUID = GetSceneGUID(scene);
-            var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
-            foreach (var volume in volumes)
-            {
-                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID && volume.isActiveAndEnabled)
-                {
-                    hasProbeVolumes[sceneGUID] = true;
-                    return;
-                }
-            }
-            hasProbeVolumes[sceneGUID] = false;
-        }
-
-        // It is important this is called after UpdateSceneBounds is called!
+        // It is important this is called after UpdateSceneBounds is called otherwise SceneHasProbeVolumes might be out of date
         internal void EnsurePerSceneData(Scene scene)
         {
             var sceneGUID = GetSceneGUID(scene);
-
-            if (hasProbeVolumes.ContainsKey(sceneGUID) && hasProbeVolumes[sceneGUID])
+            if (SceneHasProbeVolumes(sceneGUID))
             {
                 bool foundPerSceneData = false;
                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
@@ -557,10 +514,9 @@ namespace UnityEngine.Rendering
 
         internal void OnSceneSaved(Scene scene)
         {
-            EnsureSceneHasProbeVolumeIsValid(scene);
             EnsureSceneIsInBakingSet(scene);
-            EnsurePerSceneData(scene);
             UpdateSceneBounds(scene);
+            EnsurePerSceneData(scene);
         }
 
         internal void SetProfileForScene(Scene scene, ProbeReferenceVolumeProfile profile)
@@ -625,11 +581,8 @@ namespace UnityEngine.Rendering
             return null;
         }
 
-        internal bool SceneHasProbeVolumes(Scene scene)
-        {
-            var sceneGUID = GetSceneGUID(scene);
-            return hasProbeVolumes != null && hasProbeVolumes.ContainsKey(sceneGUID) && hasProbeVolumes[sceneGUID];
-        }
+        internal bool SceneHasProbeVolumes(string sceneGUID) => hasProbeVolumes != null && hasProbeVolumes.TryGetValue(sceneGUID, out var hasPV) && hasPV;
+        internal bool SceneHasProbeVolumes(Scene scene) => SceneHasProbeVolumes(GetSceneGUID(scene));
 #endif
     }
 }

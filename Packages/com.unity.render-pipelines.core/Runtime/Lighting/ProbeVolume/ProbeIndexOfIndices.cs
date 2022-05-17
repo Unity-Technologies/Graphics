@@ -70,12 +70,11 @@ namespace UnityEngine.Rendering
 
         internal ProbeCellIndices(Vector3Int cellMin, Vector3Int cellMax, int cellSizeInMinBricks)
         {
-            Vector3Int cellCount = new Vector3Int(Mathf.Abs(cellMax.x - cellMin.x), Mathf.Abs(cellMax.y - cellMin.y), Mathf.Abs(cellMax.z - cellMin.z));
+            Vector3Int cellCount = cellMax + Vector3Int.one - cellMin;
             m_CellCount = cellCount;
             m_CellMin = cellMin;
             m_CellSizeInMinBricks = cellSizeInMinBricks;
             int flatCellCount = cellCount.x * cellCount.y * cellCount.z;
-            flatCellCount = flatCellCount == 0 ? 1 : flatCellCount;
             int bufferSize = kUintPerEntry * flatCellCount;
             m_IndexOfIndicesBuffer = new ComputeBuffer(flatCellCount, kUintPerEntry * sizeof(uint));
             m_IndexOfIndicesData = new uint[bufferSize];

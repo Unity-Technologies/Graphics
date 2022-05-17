@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using ProbeVolumeWithBounds = System.Collections.Generic.List<(UnityEngine.Rendering.ProbeVolume component, UnityEngine.Rendering.ProbeReferenceVolume.Volume volume)>;
 #endif
 
 namespace UnityEngine.Rendering
@@ -64,6 +65,11 @@ namespace UnityEngine.Rendering
         [SerializeField] internal Matrix4x4 cachedTransform;
         [SerializeField] internal int cachedHashCode;
 
+        /// <summary>Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.</summary>
+        [HideInInspector]
+        [Tooltip("Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.")]
+        public bool fillEmptySpaces = false;
+
 #if UNITY_EDITOR
         /// <summary>
         /// Returns the extents of the volume.
@@ -74,51 +80,49 @@ namespace UnityEngine.Rendering
             return size;
         }
 
-        internal void UpdateGlobalVolume(Scene scene)
+        internal Bounds ComputeBounds(GIContributors.ContributorFilter filter, Scene? scene = null)
         {
-            if (gameObject.scene != scene) return;
-
             Bounds bounds = new Bounds();
             bool foundABound = false;
-            bool ContributesToGI(Renderer renderer)
-            {
-                var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) & StaticEditorFlags.ContributeGI;
-                return (flags & StaticEditorFlags.ContributeGI) != 0;
-            }
 
-            void ExpandBounds(Bounds currBound)
+            void ExpandBounds(Bounds bound)
             {
                 if (!foundABound)
                 {
-                    bounds = currBound;
+                    bounds = bound;
                     foundABound = true;
                 }
                 else
                 {
-                    bounds.Encapsulate(currBound);
+                    bounds.Encapsulate(bound);
                 }
             }
 
-            var renderers = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+            var contributors = GIContributors.Find(filter, scene);
+            foreach (var renderer in contributors.renderers)
+                ExpandBounds(renderer.component.bounds);
+            foreach (var terrain in contributors.terrains)
+                ExpandBounds(terrain.boundsWithTrees);
 
-            foreach (Renderer renderer in renderers)
-            {
-                bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy && renderer.enabled;
+            return bounds;
+        }
 
-                if (contributeGI && renderer.gameObject.scene == scene)
-                {
-                    ExpandBounds(renderer.bounds);
-                }
-            }
+        internal void UpdateGlobalVolume()
+        {
+            var scene = gameObject.scene;
 
-            transform.position = bounds.center;
-
+            // Get minBrickSize from scene profile if available
             float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
-            Vector3 tmpClamp = (bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize));
-            tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
-            tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
-            tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
-            size = tmpClamp;
+            if (ProbeReferenceVolume.instance.sceneData != null)
+            {
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
+                if (profile != null)
+                    minBrickSize = profile.minBrickSize;
+            }
+
+            var bounds = ComputeBounds(GIContributors.ContributorFilter.Scene, scene);
+            transform.position = bounds.center;
+            size = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
         }
 
         internal void OnLightingDataAssetCleared()
@@ -309,7 +313,7 @@ namespace UnityEngine.Rendering
                     {
                         foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
                         {
-                            kp.Key.CalculateCenterAndSize(out var center, out var _);
+                            var center = kp.Key.center;
                             yield return new Vector4(center.x, center.y, center.z, 1.0f);
                         }
                     }

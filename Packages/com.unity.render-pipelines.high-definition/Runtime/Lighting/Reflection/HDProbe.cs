@@ -225,7 +225,6 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_RealtimeRenderCount = 0;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
-        int m_SHRequestID = -1;
 #endif
 
         [SerializeField] bool m_HasValidSHForNormalization;
@@ -732,7 +731,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void TryUpdateLuminanceSHL2ForNormalization()
         {
 #if UNITY_EDITOR
-            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization, out m_SHValidForCapturePosition);
+            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(GetInstanceID(), out m_SHForNormalization, out m_SHValidForCapturePosition);
             if (m_HasValidSHForNormalization)
                 m_SHValidForSourcePosition = transform.position;
 #endif
@@ -752,8 +751,8 @@ namespace UnityEngine.Rendering.HighDefinition
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 6, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
-            if (m_SHRequestID >= 0)
-                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
+
+            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetInstanceID());
 
             QueueSHBaking();
         }
@@ -834,14 +833,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             Vector3 capturePositionWS = ComputeCapturePositionWS();
-            if (m_SHRequestID < 0)
-            {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(capturePositionWS);
-            }
-            else
-            {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, capturePositionWS);
-            }
+            // If already enqueued this will just change the position, otherwise it'll enqueue the request.
+            AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(GetInstanceID(), capturePositionWS);
 
             ValidateSHNormalizationSourcePosition(transform.position);
             ValidateSHNormalizationCapturePosition(capturePositionWS);
@@ -897,11 +890,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void DequeueSHRequest()
         {
 #if UNITY_EDITOR
-            if (m_SHRequestID >= 0)
-            {
-                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
-            }
-            m_SHRequestID = -1;
+            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetInstanceID());
 #endif
         }
 

@@ -9,6 +9,8 @@ using RuntimeSRPPreferences = UnityEngine.Rendering.CoreRenderPipelinePreference
 
 namespace UnityEditor.Rendering
 {
+    using CED = CoreEditorDrawer<SerializedProbeTouchupVolume>;
+
     internal class ProbeTouchupColorPreferences
     {
         internal static Func<Color> GetColorPrefProbeVolumeGizmoColor;
@@ -30,8 +32,9 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
             internal static readonly GUIContent s_IntensityScale = new GUIContent("Probe Intensity Scale", "A scale to be applied to all probes that fall within this probe touchup volume.");
             internal static readonly GUIContent s_InvalidateProbes = new GUIContent("Invalidate Probes", "Set all probes falling within this probe touchup volume to invalid.");
-            internal static readonly GUIContent s_OverrideDilationThreshold = new GUIContent("Override Dilation Threshold", "Whether to override the dilation threshold used for probes falling within this probe touch-up volume.");
-            internal static readonly GUIContent s_OverriddenDilationThreshold = new GUIContent("Dilation Threshold", "The dilation threshold to use for this probe volume.");
+            internal static readonly GUIContent s_OverrideDilationThreshold = new GUIContent("Override Dilation Validity Threshold", "Whether to override the dilation validity threshold used for probes falling within this probe touch-up volume.");
+            internal static readonly GUIContent s_OverriddenDilationThreshold = new GUIContent("Dilation Validity Threshold", "The dilation validity threshold to use for this probe volume.");
+            internal static readonly GUIContent s_TouchupHeader = EditorGUIUtility.TrTextContent("Touchup Controls");
 
             internal static readonly Color k_GizmoColorBase = ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault;
 
@@ -44,8 +47,74 @@ namespace UnityEditor.Rendering
                 ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault,
                 ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault
             };
+        }
+
+        static class ProbeTouchupVolumeUI
+        {
+            public static readonly CED.IDrawer Inspector = null;
+
+            enum AdditionalProperties
+            {
+                Touchup = 1 << 0,
+            }
+            enum Expandable
+            {
+                Touchup = 1 << 0,
+            }
+
+            readonly static ExpandedState<Expandable, ProbeTouchupVolume> k_ExpandedState = new ExpandedState<Expandable, ProbeTouchupVolume>(Expandable.Touchup);
+            readonly static AdditionalPropertiesState<AdditionalProperties, ProbeTouchupVolume> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, ProbeTouchupVolume>(0);
+
+            public static void RegisterEditor(ProbeTouchupVolumeEditor editor)
+            {
+                k_AdditionalPropertiesState.RegisterEditor(editor);
+            }
+
+            public static void UnregisterEditor(ProbeTouchupVolumeEditor editor)
+            {
+                k_AdditionalPropertiesState.UnregisterEditor(editor);
+            }
+
+            [SetAdditionalPropertiesVisibility]
+            public static void SetAdditionalPropertiesVisibility(bool value)
+            {
+                if (value)
+                    k_AdditionalPropertiesState.ShowAll();
+                else
+                    k_AdditionalPropertiesState.HideAll();
+            }
+
+            public static void DrawTouchupAdditionalContent(SerializedProbeTouchupVolume serialized, Editor owner)
+            {
+                using (new EditorGUI.DisabledScope(serialized.invalidateProbes.boolValue))
+                {
+                    using (var change = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.HelpBox("Changing the intensity of probe data is a delicate operation that can lead to inconsistencies in the lighting, hence the feature is to be used sparingly.", MessageType.Info, wide: true);
+                        EditorGUILayout.PropertyField(serialized.intensityScale, Styles.s_IntensityScale);
+                    }
+                }
+            }
+
+            public static void DrawTouchupContent(SerializedProbeTouchupVolume serialized, Editor owner)
+            {
+                EditorGUILayout.PropertyField(serialized.invalidateProbes, Styles.s_InvalidateProbes);
+
+                using (new EditorGUI.DisabledScope(serialized.invalidateProbes.boolValue))
+                {
+                    EditorGUILayout.PropertyField(serialized.overrideDilationThreshold, Styles.s_OverrideDilationThreshold);
+                    using (new EditorGUI.DisabledScope(!serialized.overrideDilationThreshold.boolValue))
+                        EditorGUILayout.PropertyField(serialized.overriddenDilationThreshold, Styles.s_OverriddenDilationThreshold);
+                }
+            }
 
 
+            static ProbeTouchupVolumeUI()
+            {
+                Inspector = CED.Group(
+                CED.AdditionalPropertiesFoldoutGroup(Styles.s_TouchupHeader, Expandable.Touchup, k_ExpandedState, AdditionalProperties.Touchup, k_AdditionalPropertiesState,
+                CED.Group((serialized, owner) => DrawTouchupContent(serialized, owner)), DrawTouchupAdditionalContent));
+            }
         }
 
 
@@ -92,19 +161,7 @@ namespace UnityEditor.Rendering
                     m_SerializedTouchupVolume.size.vector3Value = tmpClamp;
                 }
 
-
-                EditorGUILayout.PropertyField(m_SerializedTouchupVolume.invalidateProbes, Styles.s_InvalidateProbes);
-
-                using (new EditorGUI.DisabledScope(m_SerializedTouchupVolume.invalidateProbes.boolValue))
-                {
-                    EditorGUILayout.PropertyField(m_SerializedTouchupVolume.overrideDilationThreshold, Styles.s_OverrideDilationThreshold);
-                    using (new EditorGUI.DisabledScope(!m_SerializedTouchupVolume.overrideDilationThreshold.boolValue))
-                        EditorGUILayout.PropertyField(m_SerializedTouchupVolume.overriddenDilationThreshold, Styles.s_OverriddenDilationThreshold);
-                }
-                // TODO: This is a very dangerous thing to expose, so for now we don't show. Keeping here in case we find it necessary.
-                //EditorGUI.BeginDisabledGroup(m_SerializedTouchupVolume.invalidateProbes.boolValue);
-                //EditorGUILayout.PropertyField(m_SerializedTouchupVolume.intensityScale, Styles.s_IntensityScale);
-                //EditorGUI.EndDisabledGroup();
+                ProbeTouchupVolumeUI.Inspector.Draw(m_SerializedTouchupVolume, this);
             }
             else
             {

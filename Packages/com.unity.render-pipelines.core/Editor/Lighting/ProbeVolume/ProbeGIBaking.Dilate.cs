@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     {
         static ComputeShader dilationShader;
         static int dilationKernel = -1;
-        static internal Dictionary<int, float> s_CustomDilationThresh = new Dictionary<int, float>();
+        static internal Dictionary<(int, int), float> s_CustomDilationThresh = new Dictionary<(int, int), float>();
 
         static void InitDilationShaders()
         {
@@ -113,8 +113,8 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < probeCount; ++i)
                 {
                     dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell, i);
-                    needDilating[i] = s_CustomDilationThresh.ContainsKey(i) ?
-                        (cell.validity[i] > s_CustomDilationThresh[i] ? 1 : 0) : (cell.validity[i] > defaultThreshold ? 1 : 0);
+                    needDilating[i] = s_CustomDilationThresh.ContainsKey((cell.index, i)) ?
+                        (cell.validity[i] > s_CustomDilationThresh[(cell.index, i)] ? 1 : 0) : (cell.validity[i] > defaultThreshold ? 1 : 0);
                 }
 
                 outputProbes.SetData(dilatedProbes);
@@ -141,7 +141,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static readonly int _ValidityBuffer = Shader.PropertyToID("_ValidityBuffer");
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
         static readonly int _NeedDilating = Shader.PropertyToID("_NeedDilating");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
