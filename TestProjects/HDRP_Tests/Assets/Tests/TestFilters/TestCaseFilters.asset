@@ -24,6 +24,24 @@ MonoBehaviour:
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 6a401c36b9353ae43a8f0e8b8a98d6f4, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 693e050797cc4554ea8c9c33d2f879c5, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: a43874f539bb5494e86fdea5ac9df469, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -46,6 +64,24 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d52dbea61cf2f884fadf33f8cc6afc0c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
     Reason: unstable on yamato
@@ -186,10 +222,19 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 92280049d357c564b9a9297b39e02a92, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -198,7 +243,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -328,12 +373,3 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on  XR yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 92280049d357c564b9a9297b39e02a92, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
