@@ -1,4 +1,5 @@
-#pragma only_renderers d3d11 ps5
+
+#pragma only_renderers d3d11 xboxseries ps5
 
 #pragma kernel TemporalAccumulationFullRes TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes
 #pragma kernel TemporalAccumulationHalfRes TEMPORAL_ACCUMULATION=TemporalAccumulationHalfRes HALF_RESOLUTION

@@ -14,7 +14,7 @@
 // In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
 #define SHADOW_LOW
 
-#pragma only_renderers d3d11 ps5
+#pragma only_renderers d3d11 xboxseries ps5
 
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"

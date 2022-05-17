@@ -191,7 +191,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyHelpersPackage, IsVRLegacyHelpersCorrect, FixVRLegacyHelpers)
             });
 
-            if (CalculateSelectedBuildTarget() == BuildTarget.PS5)
+            var currentBuildTarget = CalculateSelectedBuildTarget();
+            if (( currentBuildTarget == BuildTarget.PS5) || (currentBuildTarget == BuildTarget.GameCoreXboxSeries ))
             {
                 entryList.AddRange(new[]
                 {
@@ -792,7 +793,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var selectedBuildTarget = CalculateSelectedBuildTarget();
             return IsHdrpGlobalSettingsUsedCorrect()
                 && HDRenderPipelineGlobalSettings.instance.AreRayTracingResourcesCreated()
-                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.PS5);
+                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.GameCoreXboxSeries || selectedBuildTarget == BuildTarget.PS5);
         }
 
         void FixDXRResources(bool fromAsyncUnused)
@@ -868,12 +869,13 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsValidBuildTarget()
         {
             return (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64)
+                || (EditorUserBuildSettings.activeBuildTarget == BuildTarget.GameCoreXboxSeries)
                 || (EditorUserBuildSettings.activeBuildTarget == BuildTarget.PS5);
         }
 
         void FixBuildTarget(bool fromAsyncUnused)
         {
-            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.PS5)
+            if ((EditorUserBuildSettings.activeBuildTarget != BuildTarget.PS5) && (EditorUserBuildSettings.activeBuildTarget != BuildTarget.GameCoreXboxSeries))
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
         }
 

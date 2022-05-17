@@ -19,7 +19,7 @@
 // Debug
 #pragma kernel WriteShadowTextureDebug
 
-#pragma only_renderers d3d11 ps5
+#pragma only_renderers d3d11 xboxseries ps5
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -37,12 +37,12 @@ TEXTURE2D_X(_DepthTexture);
 // Analytic buffer for the current frame
 TEXTURE2D_X(_AnalyticProbBuffer);
 // Analytic buffer from the previous frame (stored as array)
-RW_TEXTURE2D_X(float4, _AnalyticHistoryBuffer);
+RW_TEXTURE2D_ARRAY(float4, _AnalyticHistoryBuffer);
 // Noisy buffer produced this frame
 TEXTURE2D_X(_DenoiseInputTexture);
 // Temporal Accumulated buffer from the previous frame
-TEXTURE2D_X(_AreaShadowHistory);
-RW_TEXTURE2D_X(float4, _AreaShadowHistoryRW);
+TEXTURE2D_ARRAY(_AreaShadowHistory);
+RW_TEXTURE2D_ARRAY(float4, _AreaShadowHistoryRW);
 // Output buffer for our temporal accumulation pass
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 // Value that tells us if the current history should be discarded based on scene-level data
@@ -515,7 +515,7 @@ void AreaShadowNoDenoise(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(shadowValue, currentAnalyticValue, 0.0, 1.0);
 }
 
-RW_TEXTURE2D_X(float4, _ScreenSpaceShadowsTextureRW);
+RW_TEXTURE2D_ARRAY(float4, _ScreenSpaceShadowsTextureRW);
 uint _DenoisingHistorySlot;
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]

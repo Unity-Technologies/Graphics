@@ -3,9 +3,7 @@
 #pragma kernel IndirectDiffuseIntegrationUpscaleHalfRes
 #pragma kernel IndirectDiffuseIntegrationUpscaleFullRes
 
-#pragma only_renderers d3d11 ps5
-
-// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 xboxseries ps5
 
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
