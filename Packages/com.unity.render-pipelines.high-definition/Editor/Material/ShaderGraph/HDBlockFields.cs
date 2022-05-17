@@ -86,11 +86,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 () => { return new DefaultMaterialSlot(0, "Baked Back GI", "BakedBackGI", ShaderStageCapability.Fragment); });
             public static BlockFieldDescriptor DepthOffset = new BlockFieldDescriptor(SurfaceDescription.name, "DepthOffset", "Depth Offset", "SURFACEDESCRIPTION_DEPTHOFFSET",
                 new FloatControl(0.0f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionIndex = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionIndex", "Refraction Index", "SURFACEDESCRIPTION_REFRACTIONINDEX",
+            public static BlockFieldDescriptor RefractionIndex = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionIndex", "Index Of Refraction", "SURFACEDESCRIPTION_REFRACTIONINDEX",
                 new FloatControl(1.0f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionColor = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionColor", "Refraction Color", "SURFACEDESCRIPTION_REFRACTIONCOLOR",
+            public static BlockFieldDescriptor RefractionColor = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionColor", "Transmittance Color", "SURFACEDESCRIPTION_REFRACTIONCOLOR",
                 new ColorControl(Color.white, false), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "Refraction Distance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE",
+            public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "Absorption Distance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE",
                 new FloatControl(1.0f), ShaderStage.Fragment);
 
             // --------------------------------------------------

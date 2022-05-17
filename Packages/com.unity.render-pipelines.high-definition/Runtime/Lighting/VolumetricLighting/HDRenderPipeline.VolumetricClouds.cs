@@ -613,6 +613,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)
         {
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+                return;
+
             // Grab the volume settings
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 

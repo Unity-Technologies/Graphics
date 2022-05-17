@@ -672,8 +672,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         };
 
-        // Motion vector require positionRWS.
-        public static FieldCollection BasicMotionVector = new FieldCollection()
+        // positionRWS required by GetSurfaceAndBuiltinData.
+        public static FieldCollection BasicSurfaceData = new FieldCollection()
         {
             Basic,
             HDStructFields.FragInputs.positionRWS,

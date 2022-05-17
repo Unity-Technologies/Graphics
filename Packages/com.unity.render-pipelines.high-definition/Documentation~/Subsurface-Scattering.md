@@ -7,7 +7,7 @@ Subsurface scattering also handles the light that penetrates GameObjects from be
 * __Subsurface Scattering__ implements both the screen-space blur effect and transmission (you can disable the latter).
 * __Translucent__ only models transmission.
 
-## Enabling Subsurface Scattering
+## Enable Subsurface Scattering
 
 To enable subsurface scattering in your [HDRP Asset](HDRP-Asset.md):
 
@@ -19,14 +19,29 @@ HDRP stores most subsurface scattering settings in a [Diffusion Profile](Diffusi
 
 For information on how to create and use a Diffusion Profile, see the [Diffusion Profile documentation](Diffusion-Profile.md)
 
-## Adding Subsurface Scattering to your Material
+## Add subsurface scattering to a Material
 
-First, change the Material’s __Material Type__ to __Subsurface Scattering__ or __Transmission__, depending on the effect you want.
+To add subsurface scattering to a Material:
 
-For the __Subsurface Scattering__ material type, uncheck the __Transmission__ checkbox to disable transmission.
+1. Open the Material in the Inspector.
+2. In the **Surface Options** section, set the Material’s __Material Type__ to __Subsurface Scattering__ or __Translucent__, depending on the effect you want.
+3. In the Surface Inputs section, select [Diffusion Profile](Diffusion-Profile.md) and assign a diffusion profile.
+4. If a warning box appears below the Diffusion Profile property, select **Fix**.
 
-### Customizing Subsurface Scattering behavior
+The following image displays grass in an environment scene. In the left image the grass renders correctly. The grass in the right image has the bright green tint that HDRP applies to a Material that doesn't have a valid diffusion profile:
 
-When you select __Subsurface Scattering__ or __Translucent__ from the __Material Type__ drop-down, Unity exposes several new properties in the Material UI. For information on how to use these properties to customize the behavior of the subsurface scattering effect, see the [Material Type documentation](Material-Type.md).
+![](Images/missing_profile.png)
 
-You can learn more about HDRP’s implementation in our [Efficient Screen-Space Subsurface Scattering](http://advances.realtimerendering.com/s2018/Efficient%20screen%20space%20subsurface%20scattering%20Siggraph%202018.pdf) presentation.
+The Material appears bright green in the following cases:
+
+- The Material doesn't have a diffusion profile assigned.
+
+- The Diffusion profile assigned in the Material is not included in a [Diffusion Profile List](Diffusion-Profile.md)
+
+### Customizing Subsurface Scattering
+
+When you select __Subsurface Scattering__ or __Translucent__ from the __Material Type__ drop-down, Unity exposes several new properties in the Material UI. For information on how to use these properties to customize the behavior of the subsurface scattering effect, see the [Material Type documentation](Material-Type.md) and the [Diffusion Profile documentation](Diffusion-Profile.md).
+
+Materials and Shader Graphs that use subsurface scattering do not use the Metallic property. This creates available space in the GBuffer to store all data related to subsurface scattering.
+
+You can learn more about HDRP’s subsurface scattering implementation in our [Efficient Screen-Space Subsurface Scattering](http://advances.realtimerendering.com/s2018/Efficient%20screen%20space%20subsurface%20scattering%20Siggraph%202018.pdf) presentation.

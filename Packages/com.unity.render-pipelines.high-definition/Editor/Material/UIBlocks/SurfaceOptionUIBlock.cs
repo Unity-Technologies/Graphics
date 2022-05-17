@@ -518,7 +518,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (renderQueueHasMultipleDifferentValue)
                     {
                         using (new EditorGUI.DisabledScope(true))
-                            EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
+                            EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText.text, Styles.notSupportedInMultiEdition);
                     }
                     else if (enableBlendModePreserveSpecularLighting != null && blendMode != null)
                         materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);

@@ -4,6 +4,7 @@ using UnityEditor.Rendering;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
 using UnityEngine.Rendering.Denoising;
@@ -64,6 +65,9 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                 {
                     using (new IndentLevelScope())
                     {
+                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                            HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
                         PropertyField(m_LayerMask);
                         PropertyField(m_MaxSamples);
                         PropertyField(m_MinDepth);

@@ -596,7 +596,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Use the influence volume as the proxy volume if this is true.
         /// </summary>
-        public bool useInfluenceVolumeAsProxyVolume => m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume;
+        public bool useInfluenceVolumeAsProxyVolume
+        {
+            get
+            {
+                return m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume;
+            }
+
+            internal set
+            {
+                m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume = value;
+            }
+        }
+
         /// <summary>Is the projection at infinite? Value could be changed by Proxy mode.</summary>
         public bool isProjectionInfinite
             => m_ProxyVolume != null && m_ProxyVolume.proxyVolume.shape == ProxyShape.Infinite

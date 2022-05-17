@@ -1,3 +1,7 @@
+#ifdef FRAG_INPUTS_ENABLE_STRIPPING
+    #error "FragInputs stripping not supported and not needed for ray tracing"
+#endif
+
 void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, out FragInputs outFragInputs)
 {
     float3 rayDirection = WorldRayDirection();

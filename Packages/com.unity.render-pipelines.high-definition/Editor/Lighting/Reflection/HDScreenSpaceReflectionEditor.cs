@@ -186,6 +186,9 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             using (new IndentLevelScope())
             {
+                if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                    HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
                 EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
                 PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
                 PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);

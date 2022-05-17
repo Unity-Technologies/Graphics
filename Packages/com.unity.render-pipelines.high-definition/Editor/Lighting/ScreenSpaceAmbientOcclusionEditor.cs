@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -105,7 +106,19 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (HDRenderPipeline.assetSupportsRayTracing)
+            {
                 PropertyField(m_RayTracing, Styles.rayTracing);
+
+                if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+                {
+                    using (new IndentLevelScope())
+                    {
+                        // If ray tracing is supported display the content of the volume component
+                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                            HDRenderPipelineUI.DisplayRayTracingSupportBox();
+                    }
+                }
+            }
 
             // Shared attributes
             PropertyField(m_Intensity, Styles.intesity);
