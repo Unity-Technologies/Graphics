@@ -52,6 +52,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected virtual PassUIFlag commonPassUIFlags => PassUIFlag.All;
 
+        /// <summary>
+        /// Get the current instance of the custom pass being displayed in the Custom Pass Volume Editor.
+        /// </summary>
+        protected CustomPass target => m_CustomPass;
+
         bool firstTime = true;
 
         // Serialized Properties
