@@ -32,10 +32,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return SaveAndReopenGraph();
 
-            // Wait till the graph model is loaded back up
-            while (m_Window.GraphView.GraphModel == null)
-                yield return null;
-
             // Verify that edge is preserved
             {
                 var edge = m_GraphView.GraphModel.EdgeModels.FirstOrDefault();
