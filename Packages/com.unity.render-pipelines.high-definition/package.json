@@ -53,6 +53,12 @@
       "displayName": "Local Volumetric 3D Texture Samples",
       "description": "Adds a set of 3D mask textures to your project. These texture can be used for the Density Mask Texture input of the Local Volumetric Fog.",
       "path": "Samples~/LocalVolumetricFogMasks"
+    },
+    {
+    "displayName":"Fullscreen Samples",
+    "description": "Add a set of examples using the Fullscreen Shadergraph to create Custom Pass, Custom Post Process or Custom Render Target.",
+    "path": "Samples~/FullscreenSamples"
     }
+
   ]
 }
