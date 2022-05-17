@@ -98,7 +98,7 @@ namespace UnityEngine.VFX
 #if UNITY_EDITOR
                 else
                 {
-                    Debug.LogErrorFormat("Unexpected clip type : {0} in timeline '{1}'", clip, UnityEditor.AssetDatabase.GetAssetPath(timelineAsset));
+                    Debug.LogErrorFormat("Unexpected clip type : {0} in timeline '{1}'. Please reimport this playable.", clip, UnityEditor.AssetDatabase.GetAssetPath(timelineAsset));
                 }
 #endif
             }
