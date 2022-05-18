@@ -19,32 +19,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public List<JsonData<Target>> m_GraphTargets = new();
     }
 
-    [Serializable]
-    class MainPreviewData
-    {
-        public SerializableMesh serializedMesh = new ();
-        public bool preventRotation;
-
-        public int width = 125;
-        public int height = 125;
-
-        [NonSerialized]
-        public Quaternion rotation = Quaternion.identity;
-
-        [NonSerialized]
-        public float scale = 1f;
-
-        public void Initialize()
-        {
-            if (serializedMesh.IsNotInitialized)
-            {
-                // Initialize the sphere mesh as the default
-                Mesh sphereMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
-                serializedMesh.mesh = sphereMesh;
-            }
-        }
-    }
-
     public class ShaderGraphAssetModel : GraphAsset
     {
         protected override Type GraphModelType => typeof(ShaderGraphModel);
@@ -61,39 +35,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         #endregion
 
-        #region MainPreviewData
-        MainPreviewData m_MainPreviewData = new ();
-
-        internal MainPreviewData mainPreviewData => m_MainPreviewData;
-
-        public void SetPreviewMesh(Mesh newPreviewMesh)
-        {
-            m_MainPreviewData.serializedMesh.mesh = newPreviewMesh;
-        }
-
-        public void SetPreviewScale(float newPreviewScale)
-        {
-            m_MainPreviewData.scale = newPreviewScale;
-        }
-
-        public void SetPreviewRotation(Quaternion newRotation)
-        {
-            m_MainPreviewData.rotation = newRotation;
-        }
-
-        public void SetPreviewSize(Vector2 newPreviewSize)
-        {
-            m_MainPreviewData.width = Mathf.FloorToInt(newPreviewSize.x);
-            m_MainPreviewData.height = Mathf.FloorToInt(newPreviewSize.y);
-        }
-
-        public void SetPreviewRotationLocked(bool preventRotation)
-        {
-            m_MainPreviewData.preventRotation = preventRotation;
-        }
-
-        #endregion
-
         public bool IsSubGraph { get; private set; }
 
         public void Init(GraphDelta.GraphHandler graph = null, bool isSubGraph = false)
@@ -101,7 +42,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphHandler = graph;
             IsSubGraph = isSubGraph;
             OnEnable();
-            m_MainPreviewData.Initialize();
         }
 
         protected override void OnEnable()

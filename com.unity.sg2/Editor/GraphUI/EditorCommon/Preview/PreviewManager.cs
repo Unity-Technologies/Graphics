@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Initialize the main preview
             m_MainPreviewView = mainPreviewView;
-            m_MainPreviewData = graphModel.ShaderGraphAssetModel.mainPreviewData;
+            m_MainPreviewData = graphModel.mainPreviewData;
             m_MainPreviewView.Initialize(m_MainPreviewData);
 
             // Initialize the headless preview

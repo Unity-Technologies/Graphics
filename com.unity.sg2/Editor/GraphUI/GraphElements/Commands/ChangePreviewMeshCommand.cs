@@ -13,12 +13,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static void DefaultCommandHandler(
-            ShaderGraphAssetModel graphAsset,
+            ShaderGraphModel graphModel,
             PreviewManager previewManager,
             ChangePreviewMeshCommand command
         )
         {
-            graphAsset.SetPreviewMesh(command.m_NewPreviewMesh);
+            graphModel.SetPreviewMesh(command.m_NewPreviewMesh);
             // Lets the preview manager know to re-render the main preview output
             previewManager.OnPreviewMeshChanged();
         }
