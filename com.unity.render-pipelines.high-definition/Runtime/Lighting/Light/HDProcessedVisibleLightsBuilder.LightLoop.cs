@@ -11,38 +11,54 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         private void SortLightKeys()
         {
+            SortLightKeys(ref m_SortKeys, m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.ProcessedLights]);
+            SortLightKeys(ref m_SortKeysDGI, m_ProcessDynamicGILightCounts[(int)ProcessLightsCountSlots.ProcessedLights]);
+        }
+
+        private void SortLightKeys(ref NativeArray<uint> sortKeys, int sortSize)
+        {
             using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.SortVisibleLights)))
             {
                 //Tunning against ps4 console,
                 //32 items insertion sort has a workst case of 3 micro seconds.
                 //200 non recursive merge sort has around 23 micro seconds.
                 //From 200 and more, Radix sort beats everything.
-                var sortSize = sortedLightCounts;
                 if (sortSize <= 32)
-                    CoreUnsafeUtils.InsertionSort(m_SortKeys, sortSize);
-                else if (m_Size <= 200)
-                    CoreUnsafeUtils.MergeSort(m_SortKeys, sortSize, ref m_SortSupportArray);
+                    CoreUnsafeUtils.InsertionSort(sortKeys, sortSize);
+                else if (sortSize <= 200)
+                    CoreUnsafeUtils.MergeSort(sortKeys, sortSize, ref m_SortSupportArray);
                 else
-                    CoreUnsafeUtils.RadixSort(m_SortKeys, sortSize, ref m_SortSupportArray);
+                    CoreUnsafeUtils.RadixSort(sortKeys, sortSize, ref m_SortSupportArray);
             }
         }
 
-        private void BuildVisibleLightEntities(in CullingResults cullResults)
+        private void BuildVisibleLightEntities(in CullingResults cullResults, bool processDynamicGI)
         {
             m_Size = 0;
 
+            int totalCounts = Enum.GetValues(typeof(ProcessLightsCountSlots)).Length;
+
             if (!m_ProcessVisibleLightCounts.IsCreated)
             {
-                int totalCounts = Enum.GetValues(typeof(ProcessLightsCountSlots)).Length;
                 m_ProcessVisibleLightCounts.ResizeArray(totalCounts);
             }
 
-            for (int i = 0; i < m_ProcessVisibleLightCounts.Length; ++i)
+            if (!m_ProcessDynamicGILightCounts.IsCreated)
+            {
+                m_ProcessDynamicGILightCounts.ResizeArray(totalCounts);
+            }
+
+            for (int i = 0; i < totalCounts; ++i)
+            {
                 m_ProcessVisibleLightCounts[i] = 0;
+                m_ProcessDynamicGILightCounts[i] = 0;
+            }
 
             using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.BuildVisibleLightEntities)))
             {
-                int totalLightCount = GetTotalLightCount(cullResults);
+                int visibleLightCount = cullResults.visibleLights.Length;
+                int dgiLightCount = processDynamicGI ? (cullResults.visibleLights.Length + cullResults.visibleOffscreenVertexLights.Length) : 0;
+                int totalLightCount = Math.Max(visibleLightCount, dgiLightCount);
 
                 if (totalLightCount == 0 || HDLightRenderDatabase.instance == null)
                     return;
@@ -155,31 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected abstract int GetTotalLightCount(in CullingResults cullResults);
-        protected abstract Light GetLightByIndex(in CullingResults cullResults, int index);
-    }
-
-    internal partial class HDProcessedVisibleLightsRegularBuilder : HDProcessedVisibleLightsBuilder
-    {
-        protected override int GetTotalLightCount(in CullingResults cullResults)
-        {
-            return cullResults.visibleLights.Length;
-        }
-
-        protected override Light GetLightByIndex(in CullingResults cullResults, int index)
-        {
-            return cullResults.visibleLights[index].light;
-        }
-    }
-
-    internal partial class HDProcessedVisibleLightsDynamicBuilder : HDProcessedVisibleLightsBuilder
-    {
-        protected override int GetTotalLightCount(in CullingResults cullResults)
-        {
-            return cullResults.visibleLights.Length + cullResults.visibleOffscreenVertexLights.Length;
-        }
-
-        protected override Light GetLightByIndex(in CullingResults cullResults, int index)
+        private Light GetLightByIndex(in CullingResults cullResults, int index)
         {
             if (index < cullResults.visibleLights.Length)
             {
@@ -192,5 +184,4 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
-
 }
