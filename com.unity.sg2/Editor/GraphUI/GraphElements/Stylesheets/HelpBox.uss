@@ -1,15 +1,14 @@
 .sg-help-box {
-    background-color: #fcd76e;
-    color: #584308;
-
-    flex-grow: 1;
+    flex-shrink: 1;
     flex-direction: row;
 
     margin-left: 8px;
     margin-right: 8px;
     padding: 4px 8px;
-
     border-radius: 2px;
+
+    background-color: #474747;
+    color: #d2d2d2;
 }
 
 #sg-help-box-icon {
@@ -17,5 +16,37 @@
     height: 20px;
     align-self: center;
     margin-right: 8px;
-    background-image: resource("console.warningicon");
+    background-image: resource("console.infoicon");
+}
+
+Label {
+    white-space: normal;
+}
+
+#sg-help-box-content {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+
+    justify-content: center;
+
+    white-space: normal;
+}
+
+.sg-help-box.sg-help-box-warning {
+    background-color: #fcd76e;
+    color: #584308;
+}
+
+.sg-help-box-warning #sg-help-box-icon {
+    background-image: resource("console.warnicon");
+}
+
+.sg-help-box.sg-help-box-error {
+    background-color: #fc6e6e;
+    color: #320913;
+}
+
+.sg-help-box-error #sg-help-box-icon {
+    background-image: resource("console.erroricon");
 }
