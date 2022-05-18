@@ -18,7 +18,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>True if the inspector does not contain any field.</returns>
         public override bool IsEmpty()
         {
-            return PartList.Parts.Count == 0;
+            foreach (var fieldsPart in PartList.Parts)
+            {
+                if(fieldsPart.PartName != fieldsPartName)
+                    continue;
+                if (fieldsPart is SGFieldsInspector fieldsInspector && !fieldsInspector.IsEmpty())
+                    return false;
+            }
+
+            return true;
         }
     }
 }

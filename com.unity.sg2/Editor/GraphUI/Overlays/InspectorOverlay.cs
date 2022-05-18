@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     m_InspectorView.AddToClassList(ModelInspectorView.ussClassName);
                     m_InspectorView.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
                     m_InspectorView.AddStylesheet("Inspector.uss");
-                    size = new Vector2(300, 400);
+                    size = new Vector2(300, 300);
                     return m_InspectorView;
                 }
             }
