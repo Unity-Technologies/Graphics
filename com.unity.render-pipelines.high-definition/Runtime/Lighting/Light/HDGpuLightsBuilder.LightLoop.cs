@@ -43,10 +43,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
             }
 
+            int numLightTypes = Enum.GetValues(typeof(GPULightTypeCountSlots)).Length;
             if (!m_LightTypeCounters.IsCreated)
-                m_LightTypeCounters.ResizeArray(Enum.GetValues(typeof(GPULightTypeCountSlots)).Length);
+                m_LightTypeCounters.ResizeArray(numLightTypes);
+            if (!m_DGILightTypeCounters.IsCreated)
+                m_DGILightTypeCounters.ResizeArray(numLightTypes);
 
             m_LightCount = 0;
+            m_DGILightCount = 0;
             m_ContactShadowIndex = 0;
             m_ScreenSpaceShadowIndex = 0;
             m_ScreenSpaceShadowChannelSlot = 0;
@@ -66,8 +70,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentScreenSpaceShadowData[i].valid = false;
             }
 
-            for (int i = 0; i < m_LightTypeCounters.Length; ++i)
+            for (int i = 0; i < numLightTypes; ++i)
+            {
                 m_LightTypeCounters[i] = 0;
+                m_DGILightTypeCounters[i] = 0;
+            }
         }
 
         //Builds the GPU light list.
@@ -79,23 +86,17 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightRenderDatabase lightEntities,
             in HDShadowInitParameters shadowInitParams,
             DebugDisplaySettings debugDisplaySettings,
-            HDRenderPipeline.HierarchicalVarianceScreenSpaceShadowsData hierarchicalVarianceScreenSpaceShadowsData)
+            HDRenderPipeline.HierarchicalVarianceScreenSpaceShadowsData hierarchicalVarianceScreenSpaceShadowsData,
+            bool processVisibleLights,
+            bool processDynamicGI)
         {
-            // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
-            // And if needed rescale the whole atlas
-            if (LayoutShadowMaps)
-            {
-                m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
-            }
+            int totalVisibleLightsCount = processVisibleLights ? visibleLights.sortedLightCounts : 0;
+            int visibleLightsCount = processVisibleLights ? visibleLights.sortedNonDirectionalLightCounts : 0;
+            int visibleDirectionalCount = processVisibleLights ? visibleLights.sortedDirectionalLightCounts : 0;
 
-            // Using the same pattern than shadowmaps, light have requested space in the atlas for their
-            // cookies and now we can layout the atlas (re-insert all entries by order of size) if needed
-            m_TextureCaches.lightCookieManager.LayoutIfNeeded();
+            int dgiLightsCount = processDynamicGI ? visibleLights.sortedDGILightCounts : 0;
 
-            int totalLightsCount = visibleLights.sortedLightCounts;
-            int lightsCount = visibleLights.sortedNonDirectionalLightCounts;
-            int directionalCount = visibleLights.sortedDirectionalLightCounts;
-            AllocateLightData(lightsCount, directionalCount);
+            AllocateLightData(visibleLightsCount, visibleDirectionalCount, dgiLightsCount);
 
             // TODO: Refactor shadow management
             // The good way of managing shadow:
@@ -106,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The lightLoop is in charge, not the shadow pass.
             // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
-            if (totalLightsCount > 0)
+            if (totalVisibleLightsCount > 0 || dgiLightsCount > 0)
             {
                 for (int viewId = 0; viewId < hdCamera.viewCount; ++viewId)
                 {
@@ -122,8 +123,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             //Sanity check
-            Debug.Assert(m_DirectionalLightCount == directionalLightCount, "Mismatch in Directional gpu lights processed. Lights should not be culled in this loop.");
-            Debug.Assert(m_LightCount == areaLightCount + punctualLightCount, "Mismatch in Area and Punctual gpu lights processed. Lights should not be culled in this loop.");
+            Debug.Assert(m_DirectionalLightCount == visibleDirectionalCount, "Mismatch in Directional gpu lights processed. Lights should not be culled in this loop.");
+            Debug.Assert(m_LightCount == areaLightCount + punctualLightCount, "Mismatch in Area and Punctual gpu Visible lights processed. Lights should not be culled in this loop.");
+            Debug.Assert(m_DGILightCount == dgiAreaLightCount + dgiPunctualLightCount, "Mismatch in Area and Punctual gpu Dynamic GI lights processed. Lights should not be culled in this loop.");
         }
 
         //Calculates a shadow type for a light and sets the shadow index information into the LightData.
@@ -386,6 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProcessedVisibleLight* processedLightArrayPtr = (HDProcessedVisibleLight*)visibleLights.processedEntities.GetUnsafePtr<HDProcessedVisibleLight>();
             LightData* lightArrayPtr = (LightData*)m_Lights.GetUnsafePtr<LightData>();
             DirectionalLightData* directionalLightArrayPtr = (DirectionalLightData*)m_DirectionalLights.GetUnsafePtr<DirectionalLightData>();
+            LightData* dgiLightArrayPtr = (LightData*)m_DGILights.GetUnsafePtr<LightData>();
             VisibleLight* visibleLightsArrayPtr = (VisibleLight*)cullResults.visibleLights.GetUnsafePtr<VisibleLight>();
             var shadowFilteringQuality = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality;
 
@@ -417,45 +420,34 @@ namespace UnityEngine.Rendering.HighDefinition
                 int shadowIndex = -1;
 
                 // Manage shadow requests
-                if (ManageShadowRequests)
+                if (lightComponent != null && (processedEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
                 {
-                    if (lightComponent != null && (processedEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
-                    {
-                        VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
-                        ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
-                        int shadowRequestCount;
-                        shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
+                    VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
+                    ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
+                    int shadowRequestCount;
+                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
 
 #if UNITY_EDITOR
-                        if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
-                             || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
-                            && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
-                        {
-                            m_DebugSelectedLightShadowIndex = shadowIndex;
-                            m_DebugSelectedLightShadowCount = shadowRequestCount;
-                        }
-#endif
+                    if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
+                            || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                        && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
+                    {
+                        m_DebugSelectedLightShadowIndex = shadowIndex;
+                        m_DebugSelectedLightShadowCount = shadowRequestCount;
                     }
-                }
-                else if (CopyShadowIndices)
-                {
-                    // use the same shadow index from the previously computed one for visible lights
-                    shadowIndex = additionalLightData.shadowIndex;
+#endif
                 }
 
                 if (gpuLightType == GPULightType.Directional)
                 {
-                    if (!SkipDirectionalLights)
-                    {
-                        VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
-                        ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
-                        int directionalLightDataIndex = sortKeyIndex;
-                        DirectionalLightData* lightDataPtr = directionalLightArrayPtr + directionalLightDataIndex;
-                        ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
-                        CalculateDirectionalLightDataTextureInfo(
-                            ref lightData, cmd, light, lightComponent, additionalLightData,
-                            hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
-                    }
+                    VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
+                    ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
+                    int directionalLightDataIndex = sortKeyIndex;
+                    DirectionalLightData* lightDataPtr = directionalLightArrayPtr + directionalLightDataIndex;
+                    ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
+                    CalculateDirectionalLightDataTextureInfo(
+                        ref lightData, cmd, light, lightComponent, additionalLightData,
+                        hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
                 }
                 else
                 {
@@ -468,27 +460,42 @@ namespace UnityEngine.Rendering.HighDefinition
                         lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
                 }
             }
+
+            int dgiLightCounts = visibleLights.sortedDGILightCounts;
+            for (int sortKeyIndex = 0; sortKeyIndex < dgiLightCounts; ++sortKeyIndex)
+            {
+                uint sortKey = visibleLights.sortKeysDGI[sortKeyIndex];
+                HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var lightCategory, out var gpuLightType, out var lightVolumeType, out var lightIndex);
+
+                int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
+                if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                    continue;
+
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
+                if (additionalLightData == null)
+                    continue;
+
+                //We utilize a raw light data pointer to avoid copying the entire structure
+                HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
+                ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
+                HDLightType lightType = processedEntity.lightType;
+
+                Light lightComponent = additionalLightData.legacyLight;
+
+                // use the same shadow index from the previously computed one for visible lights
+                int shadowIndex = additionalLightData.shadowIndex;
+
+                if (gpuLightType != GPULightType.Directional)
+                {
+                    int lightDataIndex = sortKeyIndex;
+                    LightData* lightDataPtr = dgiLightArrayPtr + lightDataIndex;
+                    ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
+                    CalculateLightDataTextureInfo(
+                        ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
+                        hdCamera, contactShadowScalableSetting,
+                        lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
+                }
+            }
         }
-
-        protected abstract bool LayoutShadowMaps { get; }
-        protected abstract bool ManageShadowRequests { get; }
-        protected abstract bool CopyShadowIndices { get; }
-        protected abstract bool SkipDirectionalLights { get; }
-    }
-
-    internal partial class HDGpuLightsRegularBuilder : HDGpuLightsBuilder
-    {
-        protected override bool LayoutShadowMaps => true;
-        protected override bool ManageShadowRequests => true;
-        protected override bool CopyShadowIndices => false;
-        protected override bool SkipDirectionalLights => false;
-    }
-
-    internal partial class HDGpuLightsDynamicBuilder : HDGpuLightsBuilder
-    {
-        protected override bool LayoutShadowMaps => false;
-        protected override bool ManageShadowRequests => false;
-        protected override bool CopyShadowIndices => true;
-        protected override bool SkipDirectionalLights => true;
     }
 }
