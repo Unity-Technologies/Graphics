@@ -207,6 +207,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
+
+            //Set per camera matrices.
+            SetCameraMatrices(cmd, ref cameraData, true);
         }
 
         /// <summary>
@@ -509,7 +512,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Initialize Camera Render State
                 ClearRenderingState(cmd);
-                SetPerCameraShaderVariables(cmd, ref cameraData);
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -545,7 +547,7 @@ namespace UnityEngine.Rendering.Universal
                     // The side effect is that this will override some shader properties we already setup and we will have to
                     // reset them.
                     context.SetupCameraProperties(camera);
-                    SetCameraMatrices(cmd, ref cameraData, true);
+                    SetPerCameraShaderVariables(cmd, ref cameraData);
 
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
