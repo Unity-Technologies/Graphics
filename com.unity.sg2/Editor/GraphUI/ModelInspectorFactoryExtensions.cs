@@ -19,12 +19,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
-                        Debug.LogWarning("TODO: Node needs upgrade?");
                         var upgradePrompt = new NodeUpgradePart("sg-node-upgrade", model, ui, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(upgradePrompt);
 
-                        var s = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
-                        ui.PartList.AppendPart(s);
+                        var staticPorts = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(staticPorts);
                         break;
                     }
 

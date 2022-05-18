@@ -51,10 +51,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveSingleState(graphModelState, command);
             }
 
-            using var graphUpdater = graphModelState.UpdateScope;
+            var nodeModel = command.NodeModel;
+            if (!nodeModel.isUpgradeable)
+            {
+                Debug.LogWarning($"Attempted to upgrade {nodeModel}, which is already at the latest version");
+                return;
+            }
 
-            Debug.LogWarning($"UNIMPLEMENTED: Upgrade {command.NodeModel}"); // TODO
-            graphUpdater.MarkChanged(command.NodeModel);
+            using var graphUpdater = graphModelState.UpdateScope;
+            nodeModel.UpgradeNode();
+            graphUpdater.MarkChanged(nodeModel);
         }
     }
 }

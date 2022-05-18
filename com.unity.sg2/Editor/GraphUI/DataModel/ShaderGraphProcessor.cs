@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         result.AddWarning(k_RedirectMissingInputMessage, node);
                         break;
 
-                    case GraphDataNodeModel {newerVersionInRegistry: true, optedOutOfUpgrade: false}:
+                    case GraphDataNodeModel {isUpgradeable: true, optedOutOfUpgrade: false}:
                         result.AddWarning(k_OutOfDateNodeMessage, node);
                         break;
                 }

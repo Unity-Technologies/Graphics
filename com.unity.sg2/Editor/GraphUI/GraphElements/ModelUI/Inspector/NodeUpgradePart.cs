@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void BuildPartUI(VisualElement parent)
         {
-            m_Root = new VisualElement();
+            m_Root = new VisualElement { name = "sg-node-upgrade-prompt" };
             parent.Add(m_Root);
         }
 
@@ -32,34 +32,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
 
             m_Root.Clear();
+
+            if (!graphDataNodeModel.isUpgradeable)
+            {
+                return;
+            }
+
             if (graphDataNodeModel.optedOutOfUpgrade)
             {
                 // No warning box if the user already acknowledged that the node is out-of-date.
-                m_Root.Add(new Button(() =>
-                {
-                    m_OwnerElement.RootView.Dispatch(new UpgradeNodeCommand(graphDataNodeModel));
-                }) {text = "Update"});
+                m_Root.Add(new Button(UpgradeNode) {text = "Update"});
+                return;
             }
-            else
-            {
-                GraphElementHelper.LoadTemplateAndStylesheet(m_Root, "HelpBox", k_RootClassName);
-                m_Root.Q(classes: "sg-help-box").AddToClassList("sg-help-box-warning");
 
-                var contentRoot = m_Root.MandatoryQ("sg-help-box-content");
-                var l = new Label {text = GetUpgradeMessage($"{graphDataNodeModel.DisplayTitle} Node")};
-                contentRoot.Add(l);
-                l.style.whiteSpace = new StyleEnum<WhiteSpace>(WhiteSpace.Normal);
+            GraphElementHelper.LoadTemplateAndStylesheet(m_Root, "HelpBox", k_RootClassName);
+            m_Root.Q(classes: "sg-help-box").AddToClassList("sg-help-box-warning");
 
-                contentRoot.Add(new Button(() =>
-                {
-                    m_OwnerElement.RootView.Dispatch(new UpgradeNodeCommand(graphDataNodeModel));
-                }) {text = "Upgrade"});
+            var contentRoot = m_Root.MandatoryQ("sg-help-box-content");
+            var label = new Label {text = GetUpgradeMessage($"{graphDataNodeModel.DisplayTitle} Node")};
+            contentRoot.Add(label);
+            label.style.whiteSpace = new StyleEnum<WhiteSpace>(WhiteSpace.Normal);
 
-                contentRoot.Add(new Button(() =>
-                {
-                    m_OwnerElement.RootView.Dispatch(new DismissNodeUpgradeCommand(graphDataNodeModel));
-                }) {text = "Dismiss"});
-            }
+            contentRoot.Add(new Button(UpgradeNode) {text = "Upgrade"});
+            contentRoot.Add(new Button(DismissUpgrade) {text = "Dismiss"});
+        }
+
+        void UpgradeNode()
+        {
+            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            m_OwnerElement.RootView.Dispatch(new UpgradeNodeCommand(graphDataNodeModel));
+        }
+
+        void DismissUpgrade()
+        {
+            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            m_OwnerElement.RootView.Dispatch(new DismissNodeUpgradeCommand(graphDataNodeModel));
         }
     }
 }

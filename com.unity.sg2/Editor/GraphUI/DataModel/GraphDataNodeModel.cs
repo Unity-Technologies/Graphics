@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.Defs;
@@ -141,6 +142,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_IsPreviewExpanded = value;
         }
 
+        // TODO: In SG1 upgrade opt-out is for a specific node version, not *all* upgrades
         bool m_OptedOutOfUpgrade;
 
         public bool optedOutOfUpgrade
@@ -149,8 +151,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_OptedOutOfUpgrade = value;
         }
 
-        // TODO: ?
-        public bool newerVersionInRegistry => true;
+        public bool isUpgradeable => graphHandler.registry.BrowseRegistryKeys().Any(otherKey => otherKey.Name == registryKey.Name && otherKey.Version > registryKey.Version);
 
         /// <summary>
         /// Sets the registry key used when previewing this node. Has no effect if graphDataName has been set.
@@ -159,6 +160,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void SetSearcherPreviewRegistryKey(RegistryKey key)
         {
             m_PreviewRegistryKey = key;
+        }
+
+        public void UpgradeNode()
+        {
+            var nodeHandler = graphHandler.GetNode(graphDataName);
+            var newestVersion = graphHandler.registry.BrowseRegistryKeys().Where(otherKey => otherKey.Name == registryKey.Name).Select(otherKey => otherKey.Version).Max();
+            var newKey = new RegistryKey {Name = registryKey.Name, Version = newestVersion};
+            nodeHandler.SetMetadata(GraphDelta.GraphDelta.kRegistryKeyName, newKey);
+            graphHandler.ReconcretizeNode(graphDataName);
+            DefineNode();
         }
 
         public void ChangeNodeFunction(string newFunctionName)
