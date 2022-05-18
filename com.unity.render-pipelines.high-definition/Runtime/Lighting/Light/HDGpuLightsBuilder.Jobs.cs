@@ -53,13 +53,13 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public int outputDirectionalLightCounts;
             [ReadOnly]
+            public int outputDGILightCounts;
+            [ReadOnly]
             public int outputLightBoundsCount;
             [ReadOnly]
             public CreateGpuLightDataJobGlobalConfig globalConfig;
             [ReadOnly]
             public Vector3 cameraPos;
-            [ReadOnly]
-            public int directionalSortedLightCounts;
             [ReadOnly]
             public bool isPbrSkyActive;
             [ReadOnly]
@@ -70,12 +70,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCounts;
             [ReadOnly]
             public bool useCameraRelativePosition;
-            [ReadOnly]
-            public bool skipDirectionalLights;
-            [ReadOnly]
-            public bool modulateByBounceIntensity;
-            [ReadOnly]
-            public bool computeLightDataVolumeAndBound;
 
             //sky settings
             [ReadOnly]
@@ -101,6 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public NativeArray<uint> sortKeys;
             [ReadOnly]
+            public NativeArray<uint> dgiSortKeys;
+            [ReadOnly]
             public NativeArray<HDProcessedVisibleLight> processedEntities;
             [ReadOnly]
             public NativeArray<VisibleLight> visibleLights;
@@ -123,6 +119,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<DirectionalLightData> directionalLights;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
+            public NativeArray<LightData> dgiLights;
+            [WriteOnly]
+            [NativeDisableContainerSafetyRestriction]
             public NativeArray<LightsPerView> lightsPerView;
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
@@ -133,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [WriteOnly]
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<int> gpuLightCounters;
+            [WriteOnly]
+            [NativeDisableContainerSafetyRestriction]
+            public NativeArray<int> dgiGpuLightCounters;
             #endregion
 
             private ref HDLightRenderData GetLightData(int dataIndex)
@@ -157,11 +159,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private static Vector3 GetLightColor(in VisibleLight light) => new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
 
-            private void IncrementCounter(HDGpuLightsBuilder.GPULightTypeCountSlots counterSlot)
+            private void IncrementCounter(ref NativeArray<int> counterSet, HDGpuLightsBuilder.GPULightTypeCountSlots counterSlot)
             {
                 unsafe
                 {
-                    int* ptr = (int*)gpuLightCounters.GetUnsafePtr<int>() + (int)counterSlot;
+                    int* ptr = (int*)counterSet.GetUnsafePtr<int>() + (int)counterSlot;
                     Interlocked.Increment(ref UnsafeUtility.AsRef<int>(ptr));
                 }
             }
@@ -364,7 +366,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private void StoreAndConvertLightToGPUFormat(
                 int outputIndex, int lightIndex,
-                LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType)
+                LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
+                bool isDGI)
             {
                 bool isFromVisibleList = lightIndex < visibleLights.Length;
                 var light = isFromVisibleList ? visibleLights[lightIndex] : visibleOffscreenLights[lightIndex - visibleLights.Length];
@@ -373,7 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ref HDLightRenderData lightRenderData = ref GetLightData(processedEntity.dataIndex);
 
                 ConvertLightToGPUFormat(
-                   lightCategory, gpuLightType, globalConfig,
+                    lightCategory, gpuLightType, globalConfig,
                     visibleLightShadowCasterMode[lightIndex],
                     visibleLightBakingOutput[lightIndex],
                     light,
@@ -382,12 +385,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     out var lightDimensions,
                     ref lightData);
 
-                if (modulateByBounceIntensity)
+                // DGI lights get modulated by light bounce intensity
+                if (isDGI)
                 {
                     lightData.color *= visibleLightBounceIntensity[lightIndex];
                 }
 
-                if (computeLightDataVolumeAndBound)
+                // Volume and Bound data is only calculated for visible (non-DGI) lights
+                if (!isDGI)
                 {
                     for (int viewId = 0; viewId < viewCounts; ++viewId)
                     {
@@ -401,13 +406,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;
 
+                var counterSet = !isDGI ? gpuLightCounters : dgiGpuLightCounters;
+                int maxLightCount = !isDGI ? outputLightCounts : outputDGILightCounts;
+                var outputArray = !isDGI ? lights : dgiLights;
+
                 switch (lightCategory)
                 {
                     case LightCategory.Punctual:
-                        IncrementCounter(HDGpuLightsBuilder.GPULightTypeCountSlots.Punctual);
+                        IncrementCounter(ref counterSet, HDGpuLightsBuilder.GPULightTypeCountSlots.Punctual);
                         break;
                     case LightCategory.Area:
-                        IncrementCounter(HDGpuLightsBuilder.GPULightTypeCountSlots.Area);
+                        IncrementCounter(ref counterSet, HDGpuLightsBuilder.GPULightTypeCountSlots.Area);
                         break;
                     default:
                         Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
@@ -415,10 +424,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 #if DEBUG
-                if (outputIndex < 0 || outputIndex >= outputLightCounts)
+                if (outputIndex < 0 || outputIndex >= maxLightCount)
                     throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + outputLightCounts);
 #endif
-                lights[outputIndex] = lightData;
+                outputArray[outputIndex] = lightData;
             }
 
             private void ComputeLightVolumeDataAndBound(
@@ -699,11 +708,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;
 
-                IncrementCounter(HDGpuLightsBuilder.GPULightTypeCountSlots.Directional);
+                IncrementCounter(ref gpuLightCounters, HDGpuLightsBuilder.GPULightTypeCountSlots.Directional);
 
 #if DEBUG
                 if (outputIndex < 0 || outputIndex >= outputDirectionalLightCounts)
-                    throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + outputLightCounts);
+                    throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + outputDirectionalLightCounts);
 #endif
 
                 directionalLights[outputIndex] = lightData;
@@ -711,21 +720,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Execute(int index)
             {
-                var sortKey = sortKeys[index];
+                int totalVisibleLights = outputLightCounts + outputDirectionalLightCounts;
+
+                bool isDGI = index >= totalVisibleLights;
+                int localIndex = !isDGI ? index : (index - totalVisibleLights);
+
+                var sortKey = !isDGI ? sortKeys[localIndex] : dgiSortKeys[localIndex];
                 HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var lightCategory, out var gpuLightType, out var lightVolumeType, out var lightIndex);
 
                 if (gpuLightType == GPULightType.Directional)
                 {
-                    if (!skipDirectionalLights)
+                    if (!isDGI) // While we setup output buffers for directional DGI lights, they're never used, so we skip processing them
                     {
-                        int outputIndex = index;
+                        int outputIndex = localIndex;
                         ConvertDirectionalLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType);
                     }
                 }
                 else
                 {
-                    int outputIndex = index - directionalSortedLightCounts;
-                    StoreAndConvertLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType);
+                    int outputIndex = localIndex;
+                    if (!isDGI)
+                        outputIndex = localIndex - outputDirectionalLightCounts;
+                    StoreAndConvertLightToGPUFormat(outputIndex, lightIndex, lightCategory, gpuLightType, lightVolumeType, isDGI);
                 }
             }
         }
@@ -748,16 +764,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 totalLightCounts = lightEntities.lightCount,
                 outputLightCounts = m_LightCount,
                 outputDirectionalLightCounts = m_DirectionalLightCount,
+                outputDGILightCounts = m_DGILightCount,
                 outputLightBoundsCount = m_LightBoundsCount,
                 globalConfig = CreateGpuLightDataJobGlobalConfig.Create(hdCamera, hdShadowSettings),
                 cameraPos = hdCamera.camera.transform.position,
-                directionalSortedLightCounts = visibleLights.sortedDirectionalLightCounts,
                 isPbrSkyActive = isPbrSkyActive,
                 precomputedAtmosphericAttenuation = ShaderConfig.s_PrecomputedAtmosphericAttenuation,
                 defaultDataIndex = lightEntities.GetEntityDataIndex(lightEntities.GetDefaultLightEntity()),
                 viewCounts = hdCamera.viewCount,
                 useCameraRelativePosition = ShaderConfig.s_CameraRelativeRendering != 0,
-                skipDirectionalLights = SkipDirectionalLights,
 
                 planetCenterPosition = skySettings.GetPlanetCenterPosition(hdCamera.camera.transform.position),
                 planetaryRadius = skySettings.GetPlanetaryRadius(),
@@ -771,6 +786,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //visible lights processed
                 sortKeys = visibleLights.sortKeys,
+                dgiSortKeys = visibleLights.sortKeysDGI,
                 processedEntities = visibleLights.processedEntities,
                 visibleLights = cullingResult.visibleLights,
                 visibleOffscreenLights = cullingResult.visibleOffscreenVertexLights,
@@ -780,40 +796,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //outputs
                 gpuLightCounters = m_LightTypeCounters,
+                dgiGpuLightCounters = m_DGILightTypeCounters,
                 lights = m_Lights,
                 directionalLights = m_DirectionalLights,
+                dgiLights = m_DGILights,
                 lightsPerView = m_LightsPerView,
                 lightBounds = m_LightBounds,
                 lightVolumes = m_LightVolumes
             };
-            OverrideCreateGpuLightDataJobParameters(ref createGpuLightDataJob);
 
-            m_CreateGpuLightDataJobHandle = createGpuLightDataJob.Schedule(visibleLights.sortedLightCounts, 32);
+            m_CreateGpuLightDataJobHandle = createGpuLightDataJob.Schedule(visibleLights.sortedLightCounts + visibleLights.sortedDGILightCounts, 32);
         }
 
         public void CompleteGpuLightDataJob()
         {
             m_CreateGpuLightDataJobHandle.Complete();
         }
-
-        protected abstract void OverrideCreateGpuLightDataJobParameters(ref CreateGpuLightDataJob job);
     }
 
-    internal partial class HDGpuLightsRegularBuilder : HDGpuLightsBuilder
-    {
-        protected override void OverrideCreateGpuLightDataJobParameters(ref CreateGpuLightDataJob job)
-        {
-            job.modulateByBounceIntensity = false;
-            job.computeLightDataVolumeAndBound = true;
-        }
-    }
-
-    internal partial class HDGpuLightsDynamicBuilder : HDGpuLightsBuilder
-    {
-        protected override void OverrideCreateGpuLightDataJobParameters(ref CreateGpuLightDataJob job)
-        {
-            job.modulateByBounceIntensity = true;
-            job.computeLightDataVolumeAndBound = false;
-        }
-    }
 }

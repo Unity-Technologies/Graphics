@@ -647,12 +647,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal LightList m_lightList;
-        internal HDProcessedVisibleLightsRegularBuilder m_ProcessedLightsBuilder;
-        internal HDProcessedVisibleLightsDynamicBuilder m_ProcessedLightsDynamicBuilder;
-        internal HDGpuLightsRegularBuilder m_GpuLightsBuilder;
-        internal HDGpuLightsDynamicBuilder m_GpuLightsDynamicBuilder;
-
-        internal HDGpuLightsRegularBuilder gpuLightList => m_GpuLightsBuilder;
+        internal HDProcessedVisibleLightsBuilder m_ProcessedLightsBuilder;
+        internal HDGpuLightsBuilder m_GpuLightsBuilder;
 
         int m_TotalLightCount = 0;
         int m_DensityVolumeCount = 0;
@@ -889,10 +885,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList = new LightList();
             m_lightList.Allocate();
 
-            m_ProcessedLightsBuilder = new HDProcessedVisibleLightsRegularBuilder();
-            m_ProcessedLightsDynamicBuilder = new HDProcessedVisibleLightsDynamicBuilder();
-            m_GpuLightsBuilder = new HDGpuLightsRegularBuilder();
-            m_GpuLightsDynamicBuilder = new HDGpuLightsDynamicBuilder();
+            m_ProcessedLightsBuilder = new HDProcessedVisibleLightsBuilder();
+            m_GpuLightsBuilder = new HDGpuLightsBuilder();
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
@@ -1047,7 +1041,6 @@ namespace UnityEngine.Rendering.HighDefinition
             InitShadowSystem(asset, defaultResources);
 
             m_GpuLightsBuilder.Initialize(m_Asset, m_ShadowManager, m_TextureCaches);
-            m_GpuLightsDynamicBuilder.Initialize(m_Asset, m_ShadowManager, m_TextureCaches);
 
             s_lightVolumes = new DebugLightVolumes();
             s_lightVolumes.InitData(defaultResources);
@@ -1101,9 +1094,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HierarchicalVarianceScreenSpaceShadowsData.Clear(float.MaxValue, -float.MaxValue);
 
             m_ProcessedLightsBuilder.Cleanup();
-            m_ProcessedLightsDynamicBuilder.Cleanup();
             m_GpuLightsBuilder.Cleanup();
-            m_GpuLightsDynamicBuilder.Cleanup();
         }
 
         void LightLoopNewRender()
@@ -1760,7 +1751,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This will go through the list of all visible light and do two main things:
         // - Precompute data that will be reused through the light loop
         // - Discard all lights considered unnecessary (too far away, explicitly discarded by type, ...)
-        void PreprocessVisibleLights(CommandBuffer cmd, HDCamera hdCamera, in CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
+        void PreprocessLights(CommandBuffer cmd, HDCamera hdCamera, in CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest, bool processDynamicGI)
         {
             var lightLoopSettings = asset.currentPlatformRenderPipelineSettings.lightLoopSettings;
             m_ProcessedLightsBuilder.Build(
@@ -1770,12 +1761,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowInitParameters,
                 aovRequest,
                 lightLoopSettings,
-                m_CurrentDebugDisplaySettings);
+                m_CurrentDebugDisplaySettings,
+                processDynamicGI);
+
+            var lightEntities = HDLightRenderDatabase.instance;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProcessDirectionalAndCookies)))
             {
                 int visibleLightCounts = m_ProcessedLightsBuilder.sortedLightCounts;
-                var lightEntities = HDLightRenderDatabase.instance;
                 for (int i = 0; i < visibleLightCounts; ++i)
                 {
                     uint sortKey = m_ProcessedLightsBuilder.sortKeys[i];
@@ -1796,32 +1789,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     ReserveCookieAtlasTexture(additionalLightData, additionalLightData.legacyLight, processedLightEntity.lightType);
                 }
             }
-        }
-
-        // This will go through the list of all visible & offscreen dynamic GI lights and do two main things:
-        // - Precompute data that will be reused through the light loop
-        // - Discard all lights considered unnecessary (too far away, explicitly discarded by type, ...)
-        void PreprocessDynamicGILights(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
-        {
-            var lightLoopSettings = asset.currentPlatformRenderPipelineSettings.lightLoopSettings;
-            m_ProcessedLightsDynamicBuilder.Build(
-                hdCamera,
-                cullResults,
-                m_ShadowManager,
-                m_ShadowInitParameters,
-                aovRequest,
-                lightLoopSettings,
-                m_CurrentDebugDisplaySettings);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProcessDynamicGICookies)))
             {
-                int visibleLightCounts = m_ProcessedLightsDynamicBuilder.sortedLightCounts;
-                var lightEntities = HDLightRenderDatabase.instance;
-                for (int i = 0; i < visibleLightCounts; ++i)
+                int dgiLightCounts = m_ProcessedLightsBuilder.sortedDGILightCounts;
+                for (int i = 0; i < dgiLightCounts; ++i)
                 {
-                    uint sortKey = m_ProcessedLightsDynamicBuilder.sortKeys[i];
+                    uint sortKey = m_ProcessedLightsBuilder.sortKeysDGI[i];
                     HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var _, out var _, out var _, out var lightIndex);
-                    HDProcessedVisibleLight processedLightEntity = m_ProcessedLightsDynamicBuilder.processedEntities[lightIndex];
+                    HDProcessedVisibleLight processedLightEntity = m_ProcessedLightsBuilder.processedEntities[lightIndex];
                     HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[processedLightEntity.dataIndex];
                     if (additionalLightData == null)
                         continue;
@@ -1865,35 +1841,56 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private HierarchicalVarianceScreenSpaceShadowsData m_HierarchicalVarianceScreenSpaceShadowsData = new HierarchicalVarianceScreenSpaceShadowsData();
 
-        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
+        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, bool processVisibleLights, bool processDynamicGI)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareGPULightData)))
             {
-                // 2. Go through all lights, convert them to GPU format.
+                // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
+                // And if needed rescale the whole atlas
+                if (processVisibleLights)
+                {
+                    m_ShadowManager.LayoutShadowMaps(m_CurrentDebugDisplaySettings.data.lightingDebugSettings);
+                }
+
+                // Using the same pattern than shadowmaps, light have requested space in the atlas for their
+                // cookies and now we can layout the atlas (re-insert all entries by order of size) if needed
+                m_TextureCaches.lightCookieManager.LayoutIfNeeded();
+
+
+                // Go through all lights, convert them to GPU format.
                 // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
-                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings, m_HierarchicalVarianceScreenSpaceShadowsData);
+                m_GpuLightsBuilder.Build(
+                    cmd,
+                    hdCamera,
+                    cullResults,
+                    m_ProcessedLightsBuilder,
+                    HDLightRenderDatabase.instance,
+                    m_ShadowInitParameters,
+                    m_CurrentDebugDisplaySettings,
+                    m_HierarchicalVarianceScreenSpaceShadowsData,
+                    processVisibleLights,
+                    processDynamicGI);
 
-                m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
-                m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;
-                m_CurrentSunLightAdditionalLightData = m_GpuLightsBuilder.currentSunLightAdditionalLightData;
-                m_CurrentSunShadowMapFlags = m_GpuLightsBuilder.currentSunShadowMapFlags;
-                m_CurrentSunLightDirectionalLightData = m_GpuLightsBuilder.currentSunLightDirectionalLightData;
 
-                m_ContactShadowIndex = m_GpuLightsBuilder.contactShadowIndex;
-                m_ScreenSpaceShadowIndex = m_GpuLightsBuilder.screenSpaceShadowIndex;
-                m_ScreenSpaceShadowChannelSlot = m_GpuLightsBuilder.screenSpaceShadowChannelSlot;
-                m_DebugSelectedLightShadowIndex = m_GpuLightsBuilder.debugSelectedLightShadowIndex;
-                m_DebugSelectedLightShadowCount = m_GpuLightsBuilder.debugSelectedLightShadowCount;
-                m_CurrentScreenSpaceShadowData = m_GpuLightsBuilder.currentScreenSpaceShadowData;
+                if (processVisibleLights)
+                {
+                    m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
+                    m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;
+                    m_CurrentSunLightAdditionalLightData = m_GpuLightsBuilder.currentSunLightAdditionalLightData;
+                    m_CurrentSunShadowMapFlags = m_GpuLightsBuilder.currentSunShadowMapFlags;
+                    m_CurrentSunLightDirectionalLightData = m_GpuLightsBuilder.currentSunLightDirectionalLightData;
+
+                    m_ContactShadowIndex = m_GpuLightsBuilder.contactShadowIndex;
+                    m_ScreenSpaceShadowIndex = m_GpuLightsBuilder.screenSpaceShadowIndex;
+                    m_ScreenSpaceShadowChannelSlot = m_GpuLightsBuilder.screenSpaceShadowChannelSlot;
+                    m_DebugSelectedLightShadowIndex = m_GpuLightsBuilder.debugSelectedLightShadowIndex;
+                    m_DebugSelectedLightShadowCount = m_GpuLightsBuilder.debugSelectedLightShadowCount;
+                    m_CurrentScreenSpaceShadowData = m_GpuLightsBuilder.currentScreenSpaceShadowData;
+
+                    m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
+                }
             }
         }
-
-
-        void PrepareDynamicGIGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
-        {
-            m_GpuLightsDynamicBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsDynamicBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings, null);
-        }
-
 
         bool TrivialRejectProbe(in ProcessedProbeData processedProbe, HDCamera hdCamera)
         {
@@ -2137,32 +2134,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera,
                     cullResults.visibleLights.Length + cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count
                     + decalDatasCount + m_DensityVolumeCount + m_ProbeVolumeCount + m_MaskVolumeCount);
-                m_GpuLightsDynamicBuilder.NewFrame(
-                    hdCamera,
-                    cullResults.visibleLights.Length + cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count
-                    + decalDatasCount + m_DensityVolumeCount + m_ProbeVolumeCount + m_MaskVolumeCount);
 
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
-                if (cullResults.visibleLights.Length != 0)
-                {
-                    PreprocessVisibleLights(cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest);
-
-                    // In case ray tracing supported and a light cluster is built, we need to make sure to reserve all the cookie slots we need
-                    if (m_RayTracingSupported)
-                        ReserveRayTracingCookieAtlasSlots();
-
-                    PrepareGPULightdata(cmd, hdCamera, cullResults);
-
-                    // Update the compute buffer with the shadow request datas
-                    m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
-                }
-                else if (m_RayTracingSupported)
-                {
-                    // In case there is no rasterization lights, we stil need to do it for ray tracing
-                    ReserveRayTracingCookieAtlasSlots();
-                    m_TextureCaches.lightCookieManager.LayoutIfNeeded();
-                }
+                bool processVisibleLights = cullResults.visibleLights.Length != 0;
 
                 bool dynamicGIEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI);
                 bool dynamicGINeedsLights =
@@ -2170,12 +2145,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     ProbeVolume.preparingMixedLights ||
 #endif
                     hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
+                bool processDynamicGI = dynamicGIEnabled && dynamicGINeedsLights;
 
-                if (dynamicGIEnabled && dynamicGINeedsLights)
-                {
-                    PreprocessDynamicGILights(cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest);
-                    PrepareDynamicGIGPULightdata(cmd, hdCamera, cullResults);
-                }
+                PreprocessLights(cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest, processDynamicGI);
+
+                // In case ray tracing supported and a light cluster is built, we need to make sure to reserve all the cookie slots we need
+                if (m_RayTracingSupported)
+                    ReserveRayTracingCookieAtlasSlots();
+
+                PrepareGPULightdata(cmd, hdCamera, cullResults, processVisibleLights, processDynamicGI);
 
                 if (cullResults.visibleReflectionProbes.Length != 0 || hdProbeCullingResults.visibleProbes.Count != 0)
                 {
@@ -3178,10 +3156,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (dynamicGIEnabled)
             {
-                m_LightLoopLightData.dynamicGILightData.SetData(m_GpuLightsDynamicBuilder.lights, 0, 0, m_GpuLightsDynamicBuilder.lightsCount);
+                m_LightLoopLightData.dynamicGILightData.SetData(m_GpuLightsBuilder.dgiLights, 0, 0, m_GpuLightsBuilder.dgiLightsCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._DynamicGILightDatas, m_LightLoopLightData.dynamicGILightData);
-                cmd.SetGlobalInt(HDShaderIDs._DynamicGIPunctualLightCount, m_GpuLightsDynamicBuilder.punctualLightCount);
-                cmd.SetGlobalInt(HDShaderIDs._DynamicGIAreaLightCount, m_GpuLightsDynamicBuilder.areaLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DynamicGIPunctualLightCount, m_GpuLightsBuilder.dgiPunctualLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DynamicGIAreaLightCount, m_GpuLightsBuilder.dgiAreaLightCount);
             }
         }
 
