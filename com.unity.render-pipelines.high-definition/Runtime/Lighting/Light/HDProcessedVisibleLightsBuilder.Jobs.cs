@@ -47,10 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool enableAreaLights;
             [ReadOnly]
             public bool enableDynamicGI;
-            [ReadOnly]
-            public bool dynamicGIUseRealtimeLights;
-            [ReadOnly]
-            public bool dynamicGIUseMixedLights;
 #if UNITY_EDITOR
             [ReadOnly]
             public bool dynamicGIPreparingMixedLights;
@@ -262,8 +258,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool affectsDynamicGI =
                     enableDynamicGI &&
-                    lightRenderData.affectDynamicGI &&
-                    (lightRenderData.mixedDynamicGI ? dynamicGIUseMixedLights : dynamicGIUseRealtimeLights);
+                    lightRenderData.affectDynamicGI;
+
+#if UNITY_EDITOR
+                if (dynamicGIPreparingMixedLights)
+                    affectsDynamicGI &= lightRenderData.mixedDynamicGI;
+#endif
 
                 if (enableRayTracing && !lightRenderData.includeForRayTracing)
                     return;
@@ -394,8 +394,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 pixelCount = hdCamera.actualWidth * hdCamera.actualHeight,
                 enableAreaLights = ShaderConfig.s_AreaLights != 0,
                 enableDynamicGI = processDynamicGI,
-                dynamicGIUseRealtimeLights = dynamicGIMixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly,
-                dynamicGIUseMixedLights = dynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.ForceRealtime,
 #if UNITY_EDITOR
                 dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
 #endif
@@ -429,14 +427,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortKeysDGI = m_SortKeysDGI,
                 shadowLightsDataIndices = m_ShadowLightsDataIndices
             };
-
-#if UNITY_EDITOR
-            if (ProbeVolume.preparingMixedLights)
-            {
-                processVisibleLightJob.dynamicGIUseRealtimeLights = false;
-                processVisibleLightJob.dynamicGIUseMixedLights = true;
-            }
-#endif
 
             m_ProcessVisibleLightJobHandle = processVisibleLightJob.Schedule(m_Size, 32);
         }

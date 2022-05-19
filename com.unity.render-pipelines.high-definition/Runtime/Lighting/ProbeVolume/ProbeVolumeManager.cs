@@ -245,5 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int IProbeVolumeList.GetNeighborAxisLength(int i) => m_Volumes[i].GetPayload().neighborAxis.Length;
         void IProbeVolumeList.SetHitNeighborAxis(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().hitNeighborAxis);
         void IProbeVolumeList.SetNeighborAxis(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().neighborAxis);
+        bool IProbeVolumeList.DynamicGIMixedLightsBaked(int i) => m_Volumes[i].probeVolumeAsset.dynamicGIMixedLightsBaked;
     }
 }
