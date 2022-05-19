@@ -6,6 +6,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 
+CBUFFER_START(EmitGBufferProperty)
+    float _CurrentMaterialID;
+CBUFFER_END
 
 uniform float2 _TileSize;
 //uniform float2 _ScreenSize;
@@ -15,11 +18,11 @@ Texture2D<uint4> _VisibilityBuffer;
 //TEXTURE2D_X(_VisibilityBuffer);
 TEXTURE2D_X(_VisibilityDepth);
 
-uniform uint _CurrentMaterialID;
+
 uniform float _MaterialDepth;
 ByteAddressBuffer _MaterialBuffer;
 
-Buffer<uint> _TempMaterialBuffer;
+StructuredBuffer<uint> _TempMaterialBuffer;
 
 struct Attributes
 {
@@ -253,22 +256,24 @@ Varyings Vert(Attributes inputMesh)
     UNITY_SETUP_INSTANCE_ID(inputMesh);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 #ifdef PROCEDURAL_INSTANCING_ON
-#if defined(SHADER_API_VULKAN)
-    float remap[6] = {0, 1, 2, 3, 0, 2};
-#else
+//#if defined(SHADER_API_VULKAN)
     float remap[6] = {0, 2, 1, 3, 2, 0};
-#endif
+//#else
+//    float remap[6] = {0, 1, 2, 3, 0, 2};
+//#endif
     uint quadIndex = remap[inputMesh.vertexID];
     output.positionCS = GetTileVertexPosition(quadIndex, inputMesh.instanceID, _TileSize, _ScreenSize.xy);
     output.positionCS.y *= -1.0;
-    output.positionCS.z = asfloat(_TempMaterialBuffer[0]);
-    //output.positionCS.z = 1.0f / float(_TempMaterialBuffer[0]);
+    //output.positionCS.z = asfloat(_TempMaterialBuffer[0]);
+    uint materialID = asuint(_CurrentMaterialID);
+    output.positionCS.z = asfloat(materialID);
     output.texcoord = GetTileTexCoord(quadIndex, inputMesh.instanceID, _TileSize, _ScreenSize.xy);
     
     uint2 xy = output.texcoord * _TileSize;
     uint id = (/*_TileSize.y -*/ xy.y) * _TileSize.x + xy.x;
     MaterialRange range = _MaterialRangeBuffer[inputMesh.instanceID];
     uint curMaterialID = _TempMaterialBuffer[1] & (0x00003FFF);
+    curMaterialID = materialID & 0x00003FFF;
     if ((range.min > curMaterialID || curMaterialID > range.max))
     {
         output.positionCS.xy = asfloat(0xFFFFFFFF);
