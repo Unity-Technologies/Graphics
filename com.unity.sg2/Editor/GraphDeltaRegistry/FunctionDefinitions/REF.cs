@@ -169,7 +169,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static readonly ReferenceValueDescriptor Vertex_Color = new("");
         public static readonly ReferenceValueDescriptor FaceSign = new("");
         public static readonly ReferenceValueDescriptor TimeParameters = new("");
-        public static readonly ReferenceValueDescriptor VertextID = new("");
+        public static readonly ReferenceValueDescriptor VertexID = new("");
         public static readonly ReferenceValueDescriptor BoneIndices = new("");
         public static readonly ReferenceValueDescriptor BoneWeights1 = new("");
 
