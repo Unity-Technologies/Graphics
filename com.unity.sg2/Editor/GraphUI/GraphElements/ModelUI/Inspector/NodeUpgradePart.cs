@@ -33,12 +33,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_Root.Clear();
 
-            if (!graphDataNodeModel.isUpgradeable)
+            if (graphDataNodeModel.currentVersion >= graphDataNodeModel.latestAvailableVersion)
             {
+                // Nothing to show if no upgrade is needed.
                 return;
             }
 
-            if (graphDataNodeModel.optedOutOfUpgrade)
+            if (graphDataNodeModel.dismissedUpgradeVersion >= graphDataNodeModel.latestAvailableVersion)
             {
                 // No warning box if the user already acknowledged that the node is out-of-date.
                 m_Root.Add(new Button(UpgradeNode) {text = "Update"});

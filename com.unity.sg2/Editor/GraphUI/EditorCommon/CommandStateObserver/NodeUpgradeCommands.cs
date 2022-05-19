@@ -25,9 +25,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             using var graphUpdater = graphModelState.UpdateScope;
-
-            command.NodeModel.optedOutOfUpgrade = true;
-            graphUpdater.MarkChanged(command.NodeModel);
+            var node = command.NodeModel;
+            node.dismissedUpgradeVersion = node.latestAvailableVersion;
+            graphUpdater.MarkChanged(node);
         }
     }
 
@@ -52,14 +52,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             var nodeModel = command.NodeModel;
-            if (!nodeModel.isUpgradeable)
-            {
-                Debug.LogWarning($"Attempted to upgrade {nodeModel}, which is already at the latest version");
-                return;
-            }
-
             using var graphUpdater = graphModelState.UpdateScope;
-            nodeModel.UpgradeNode();
+            nodeModel.UpgradeToLatestVersion();
             graphUpdater.MarkChanged(nodeModel);
         }
     }
