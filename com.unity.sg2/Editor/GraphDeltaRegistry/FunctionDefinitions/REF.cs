@@ -166,7 +166,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static readonly ReferenceValueDescriptor Fog = new("");
 
-        public static readonly ReferenceValueDescriptor Vertext_Color = new("");
+        public static readonly ReferenceValueDescriptor Vertex_Color = new("");
         public static readonly ReferenceValueDescriptor FaceSign = new("");
         public static readonly ReferenceValueDescriptor TimeParameters = new("");
         public static readonly ReferenceValueDescriptor VertextID = new("");
