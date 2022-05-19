@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 "    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);",
             new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.WorldSpace_Normal)
+            new ParameterDescriptor("UV", TYPE.Vec4, GraphType.Usage.In, REF.ScreenPosition_Default)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    options: REF.OptionList.Normals,
+                    options: REF.OptionList.ScreenPositions,
                     tooltip: "Normalized screen coordinates."
 
                 )

@@ -18,9 +18,9 @@ Ground = Ambient_Ground;
             new ParameterDescriptor("Color_Sky", TYPE.Vec3, GraphType.Usage.Out),
             new ParameterDescriptor("Equator", TYPE.Vec3, GraphType.Usage.Out),
             new ParameterDescriptor("Ground", TYPE.Vec3, GraphType.Usage.Out),
-            new ParameterDescriptor("Ambient_Sky", TYPE.Vec3, GraphType.Usage.Static, REF.Ambient_Sky),
-            new ParameterDescriptor("Ambient_Equator", TYPE.Vec3, GraphType.Usage.Static, REF.Ambient_Equator),
-            new ParameterDescriptor("Ambient_Ground", TYPE.Vec3, GraphType.Usage.Static, REF.Ambient_Ground)
+            new ParameterDescriptor("Ambient_Sky", TYPE.Vec3, GraphType.Usage.Local, REF.Ambient_Sky),
+            new ParameterDescriptor("Ambient_Equator", TYPE.Vec3, GraphType.Usage.Local, REF.Ambient_Equator),
+            new ParameterDescriptor("Ambient_Ground", TYPE.Vec3, GraphType.Usage.Local, REF.Ambient_Ground)
             );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

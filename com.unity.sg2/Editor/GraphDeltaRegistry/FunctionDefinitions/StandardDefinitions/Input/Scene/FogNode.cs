@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Color",
-                    tooltip: "The fop color."
+                    tooltip: "The fog color."
                 ),
                 new ParameterUIDescriptor(
                     name: "Density",

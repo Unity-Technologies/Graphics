@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             "Out = VertexID;",
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("VertexID", TYPE.Float, GraphType.Usage.Static, REF.VertextID)
+            new ParameterDescriptor("VertexID", TYPE.Float, GraphType.Usage.Local, REF.VertextID)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

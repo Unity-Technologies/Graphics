@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Gets the texture coordinates from the selected channel.",
             categories: new string[2] { "Input", "Geometry" },
-            hasPreview: false,
             synonyms: new string[3] { "texcoords", "coords", "coordinates" },
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
@@ -32,7 +31,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "UV",
                     options: REF.OptionList.UVs
-                )            }
+                )
+            }
         );
     }
 }

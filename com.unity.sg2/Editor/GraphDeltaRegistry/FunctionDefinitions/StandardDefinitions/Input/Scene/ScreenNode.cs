@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
 Height = ScreenParams.y;",
             new ParameterDescriptor("Width", TYPE.Float, GraphType.Usage.Out),
             new ParameterDescriptor("Height", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("ScreenParams", TYPE.Float, GraphType.Usage.Static, REF.ScreenParams)
+            new ParameterDescriptor("ScreenParams", TYPE.Vec2, GraphType.Usage.Static, REF.ScreenParams)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

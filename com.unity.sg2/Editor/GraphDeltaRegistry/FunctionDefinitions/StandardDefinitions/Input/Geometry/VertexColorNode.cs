@@ -13,20 +13,20 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             "Out = VertexColor;",
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
-            new ParameterDescriptor("VertexColor", TYPE.Vec4, GraphType.Usage.Static, REF.Vertext_Color)
+            new ParameterDescriptor("VertexColor", TYPE.Vec4, GraphType.Usage.Local, REF.Vertext_Color)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            tooltip: "Gets the color of the current vertex.",//vertec or point?
+            tooltip: "Gets the color of the current point.",//vertec or point?
             categories: new string[2] { "Input", "Geometry" },
             synonyms: new string[0] { },
             displayName: "Vertex Color",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
-                    tooltip: "The color of the current vertex."
+                    tooltip: "The color of the current point."
                 )
             }
         );

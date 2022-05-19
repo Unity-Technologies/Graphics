@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
 #endif
 ",
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("InstanceID", TYPE.Float, GraphType.Usage.Static, REF.InstanceID)
+            new ParameterDescriptor("InstanceID", TYPE.Float, GraphType.Usage.Local, REF.InstanceID)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(

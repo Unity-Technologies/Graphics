@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph.Defs
 #else
     Out = 0;
 #endif
-",//should we use REF.StereoEyeIndex?
+",
             new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out),
-            new ParameterDescriptor("EyeIndex", TYPE.Float, GraphType.Usage.Static, REF.StereoEyeIndex)
+            new ParameterDescriptor("EyeIndex", TYPE.Float, GraphType.Usage.Local, REF.StereoEyeIndex)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
