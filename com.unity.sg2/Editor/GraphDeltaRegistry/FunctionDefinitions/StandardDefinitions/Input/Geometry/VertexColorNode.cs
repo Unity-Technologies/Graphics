@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             "Out = VertexColor;",
             new ParameterDescriptor("Out", TYPE.Vec4, GraphType.Usage.Out),
-            new ParameterDescriptor("VertexColor", TYPE.Vec4, GraphType.Usage.Local, REF.Vertext_Color)
+            new ParameterDescriptor("VertexColor", TYPE.Vec4, GraphType.Usage.Local, REF.Vertex_Color)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
