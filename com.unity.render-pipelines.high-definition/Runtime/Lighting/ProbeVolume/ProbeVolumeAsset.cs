@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] internal VolumeGlobalUniqueID globalUniqueID;
         
+        [SerializeField] internal bool dynamicGIMixedLightsBaked;
+        
         // We are not saving it for now as it's only used when rebaking a loaded volume.
         internal int dataVersion;
 

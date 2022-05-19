@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int GetNeighborAxisLength(int i);
         void SetHitNeighborAxis(int i, ComputeBuffer buffer);
         void SetNeighborAxis(int i, ComputeBuffer buffer);
+        bool DynamicGIMixedLightsBaked(int i);
 
 #if UNITY_EDITOR
         public bool IsHiddenInScene(int i);

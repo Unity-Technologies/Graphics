@@ -615,8 +615,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We bake raw unscaled lighting values so we could adjust mixed lights contribution
                 // with Indirect Scale at runtime in the same way as runtime lights.
                 cmd.SetComputeFloatParam(shader, "_IndirectScale", 1f);
-                cmd.SetComputeFloatParam(shader, "_MixedLightingMultiplier", 0f);
                 cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", 0f);
+                cmd.SetComputeFloatParam(shader, "_MixedLightingMultiplier", 0f);
+                cmd.SetComputeIntParam(shader, "_MixedLightsAsRealtimeEnabled", 1);
                 infBounce = 0f;
 
                 cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
@@ -626,8 +627,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             {
                 cmd.SetComputeFloatParam(shader, "_IndirectScale", mixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly ? giSettings.indirectMultiplier.value : 0f);
-                cmd.SetComputeFloatParam(shader, "_MixedLightingMultiplier", mixedLightMode != ProbeVolumeDynamicGIMixedLightMode.ForceRealtime ? giSettings.indirectMultiplier.value : 0f);
                 cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
+
+                var forceRealtime = mixedLightMode == ProbeVolumeDynamicGIMixedLightMode.ForceRealtime;
+                cmd.SetComputeFloatParam(shader, "_MixedLightingMultiplier", !forceRealtime ? giSettings.indirectMultiplier.value : 0f);
+                cmd.SetComputeIntParam(shader, "_MixedLightsAsRealtimeEnabled", forceRealtime || !probeVolume.DynamicGIMixedLightsBaked() ? 1 : 0);
+
                 infBounce = infiniteBounces ? giSettings.infiniteBounce.value : 0f;
 
                 cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);

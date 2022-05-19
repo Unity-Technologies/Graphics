@@ -113,6 +113,9 @@ VaryingsType VertMeshProcedural(uint vertexID, uint instanceID)
         case 1:
             color = UnpackEmission(neighborData.emission);
             break;
+        default:
+            color = 0.0;
+            break;
     }
     
 #ifdef VARYINGS_NEED_POSITION_WS
