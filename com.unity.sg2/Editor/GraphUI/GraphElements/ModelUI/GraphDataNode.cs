@@ -18,6 +18,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.BuildPartList();
 
+            // We don't want to display serialized fields on the node body, only ports
+            // If this isn't in place, things like the PreviewMode dropdown show up on nodes
+            PartList.RemovePart(nodeSettingsContainerPartName);
+
             if (NodeModel is not GraphDataNodeModel)
                 return;
 
@@ -48,6 +52,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var portReader in nodeReader.GetPorts())
             {
+                if (!portReader.IsHorizontal)
+                    continue;
                 // Only add new node parts for static ports.
                 var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
                 var portKey = portReader.GetTypeField().GetRegistryKey();

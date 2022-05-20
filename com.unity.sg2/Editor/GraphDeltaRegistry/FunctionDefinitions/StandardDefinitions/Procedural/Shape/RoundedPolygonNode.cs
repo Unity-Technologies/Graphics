@@ -10,9 +10,8 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    UV = UV * 2. + negone;
+
+@"    UV = UV * 2. + negone;
     UV.x = UV.x / ( Width + (Width==0)*1e-6);
     UV.y = UV.y / ( Height + (Height==0)*1e-6);
     Roundness = clamp(Roundness, 1e-6, 1.);
@@ -49,9 +48,8 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = saturate((1 - Out) * 1e7);
 #else
     Out = saturate((1 - Out) / fwidth(Out));
-#endif
-}",
-            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+#endif",
+            new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
             new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
             new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
             new ParameterDescriptor("Sides", TYPE.Float, Usage.In, new float[] { 5f }),
@@ -74,13 +72,15 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Rounded Polygon",
             tooltip: "Creates a polygon of the specified size and shape, with rounded corners.",
             categories: new string[2] { "Procedural", "Shape" },
             synonyms: new string[1] { "shape" },
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the coordinates used to create the rectangle"
+                    tooltip: "the coordinates used to create the rectangle",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Width",

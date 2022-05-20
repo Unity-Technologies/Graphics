@@ -13,10 +13,9 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Fastest",
-@"
-{
-    w.x = Width;
+                    "RectangleFastest",
+
+@"    w.x = Width;
 	w.y = Height;
 	d = abs(UV * 2 - 1) - w;
 #if defined(SHADER_STAGE_RAY_TRACING)
@@ -24,9 +23,8 @@ namespace UnityEditor.ShaderGraph.Defs
 #else
     d = saturate(1 - d / fwidth(d));
 #endif
-    Out = min(d.x, d.y);
-}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+    Out = min(d.x, d.y);",
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
@@ -35,10 +33,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Nicest",
-@"
-{
-    UV = UV * 2.0 - 1.0;
+                    "RectangleNicest",
+
+@"    UV = UV * 2.0 - 1.0;
     w.x = Width;
 	w.y = Height;
 #if defined(SHADER_STAGE_RAY_TRACING)
@@ -49,9 +46,8 @@ namespace UnityEditor.ShaderGraph.Defs
     o = saturate(0.5f + k * (w - abs(UV)));
     o = min(o, k * w * 2.0f);
 #endif
-    Out = o.x * o.y;
-}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+    Out = o.x * o.y;",
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Width", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("Height", TYPE.Float, Usage.In, new float[] {0.5f}),
                     new ParameterDescriptor("w", TYPE.Vec2, Usage.Local),
@@ -71,13 +67,14 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "square" },
             selectableFunctions: new()
             {
-                { "Fastest", "Fastest" },
-                { "Nicest", "Nicest" }
+                { "RectangleFastest", "Fastest" },
+                { "RectangleNicest", "Nicest" }
             },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the coordinates used to create the rectangle"
+                    tooltip: "the coordinates used to create the rectangle",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Width",

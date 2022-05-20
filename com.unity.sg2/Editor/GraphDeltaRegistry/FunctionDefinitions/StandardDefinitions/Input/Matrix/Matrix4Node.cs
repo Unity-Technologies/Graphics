@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = Matrix4x4;",
+            "    Out = Matrix4x4;",
             new ParameterDescriptor("Matrix4x4", TYPE.Mat4, Usage.Static),
             new ParameterDescriptor("Out", TYPE.Mat4, Usage.Out)
         );
@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Matrix 4x4",
             tooltip: "make the darks darker and the brights brighter",
             categories: new string[2] { "Input", "Matrix" },
             synonyms: new string[0],

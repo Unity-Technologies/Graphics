@@ -31,10 +31,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "InMinMax",
+                    displayName: "In Min Max",
                     tooltip: "minimum and maximum values for input interpolation"
                 ),
                 new ParameterUIDescriptor(
                     name: "OutMinMax",
+                    displayName: "Out Min Max",
                     tooltip: "minimum and maximum values for output interpolation"
                 ),
                 new ParameterUIDescriptor(

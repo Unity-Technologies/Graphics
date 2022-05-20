@@ -1,9 +1,81 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
+    internal class TestUIReferrablesNode : IStandardNode
+    {
+        static string Name = "TestUIReferrablesNode";
+        static int Version = 1;
+        public static NodeDescriptor NodeDescriptor => new(
+            Version,
+            Name,
+            new FunctionDescriptor[] {
+                new(
+                    Version,
+                    Name,
+                    "Out = UV;",
+                    new ParameterDescriptor(
+                        name: "UV",
+                        type: TYPE.Vec2,
+                        usage: GraphType.Usage.Static,
+                        defaultValue: REF.WorldSpace_Normal
+                    ),
+                    new ParameterDescriptor(
+                        name: "Out",
+                        type: TYPE.Vec2,
+                        usage: GraphType.Usage.Out
+                    )
+                )
+            }
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            categories: new string[] { "Test" },
+            synonyms: Array.Empty<string>(),
+            displayName: "Test Referrables Node",
+            hasPreview: false,
+            parameters: new ParameterUIDescriptor[]
+            {
+                new (
+                    name: "UV",
+                    options: REF.OptionList.Normals
+                ),
+                new (
+                    name: "Out"
+                )
+            }
+        );
+
+    }
+
+    internal class TestUINodeWithDefault : IStandardNode
+    {
+        static string Name = "TestUINodeWithDefault";
+        static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = In;",
+            new ParameterDescriptor(
+                "Out",
+                TYPE.Vec2,
+                GraphType.Usage.Out
+            ),
+            new ParameterDescriptor(
+                "In",
+                TYPE.Vec2,
+                GraphType.Usage.In,
+                Vector2.zero
+            )
+        );
+    }
+
     internal class TestMultiFunctionNode : IStandardNode
     {
         static string Name = "TestMultiFuctionNode";

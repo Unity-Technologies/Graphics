@@ -117,15 +117,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public bool NodeRequiresTime { get; private set; }
 
-        public bool HasPreview { get; private set; }
+        public virtual bool HasPreview { get; private set; }
 
         // By default every node's preview is visible
-        // TODO: Handle preview state serialization
         [SerializeField]
         bool m_IsPreviewExpanded = true;
 
         // By default every node's preview uses the inherit mode
-        public PreviewRenderMode NodePreviewMode { get; set; }
+        [SerializeField]
+        [ModelSetting]
+        PreviewRenderMode m_NodePreviewMode;
+        public PreviewRenderMode NodePreviewMode
+        {
+            get => m_NodePreviewMode;
+            set => m_NodePreviewMode = value;
+        }
+
 
         public Texture PreviewTexture { get; private set; }
 
@@ -225,6 +232,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts())
             {
+                if (!portReader.IsHorizontal)
+                    continue;
                 var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
                 var localField = portReader.GetTypeField().GetSubField<bool>("IsLocal");
                 if (staticField != null && staticField.GetData()) continue;

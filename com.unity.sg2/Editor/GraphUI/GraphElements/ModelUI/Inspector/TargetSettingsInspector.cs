@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class TargetSettingsInspector : FieldsInspector
+    class TargetSettingsInspector : SGFieldsInspector
     {
         List<JsonData<Target>> m_GraphTargets;
 
@@ -163,6 +163,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             return propertyFieldList;
+        }
+
+        public override bool IsEmpty()
+        {
+            return false;
         }
     }
 }

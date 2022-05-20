@@ -24,7 +24,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                         var staticPorts = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(staticPorts);
+
+                        var inspectorFields = new SGNodeFieldsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(inspectorFields);
                         break;
+
                     }
 
                     // Uncomment to enable "properties" section - shows inline port editors

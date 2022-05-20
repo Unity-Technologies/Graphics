@@ -14,21 +14,18 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Standard",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_ARRAY(TextureArray.tex, Sampler.samplerstate, TextureArray.GetTransformedUV(UV), Index);
+                    "SampleTexture2DArrayStandard",
+@"  RGBA = SAMPLE_TEXTURE2D_ARRAY(TextureArray.tex, Sampler.samplerstate, UV, Index);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -40,21 +37,18 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "LOD",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_ARRAY_LOD(TextureArray.tex, Sampler.samplerstate, TextureArray.GetTransformedUV(UV), Index, LOD);
+                    "SampleTexture2DArrayLOD",
+@"  RGBA = SAMPLE_TEXTURE2D_ARRAY_LOD(TextureArray.tex, Sampler.samplerstate, UV, Index, LOD);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
@@ -67,21 +61,18 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Gradient",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_ARRAY_GRAD(TextureArray.tex, Sampler.samplerstate, TextureArray.GetTransformedUV(UV), Index, DDX, DDY);
+                    "SampleTexture2DArrayGradient",
+@"  RGBA = SAMPLE_TEXTURE2D_ARRAY_GRAD(TextureArray.tex, Sampler.samplerstate, UV, Index, DDX, DDY);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),
@@ -95,21 +86,18 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Bias",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_ARRAY_BIAS(TextureArray.tex, Sampler.samplerstate, TextureArray.GetTransformedUV(UV), Index, Bias);
+                    "SampleTexture2DArrayBias",
+@"  RGBA = SAMPLE_TEXTURE2D_ARRAY_BIAS(TextureArray.tex, Sampler.samplerstate, UV, Index, Bias);
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("TextureArray", TYPE.Texture2DArray, Usage.In),
                     new ParameterDescriptor("Index", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
@@ -129,21 +117,24 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Samples a 2D Texture Array.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[3] { "stack", "pile", "tex2darray" },
+            displayName: "Sample Texture 2D Array",
             selectableFunctions: new()
             {
-                { "Standard", "Standard" },
-                { "LOD", "LOD" },
-                { "Gradient", "Gradient" },
-                { "Bias", "Bias" }
+                { "SampleTexture2DArrayStandard", "Standard" },
+                { "SampleTexture2DArrayLOD", "LOD" },
+                { "SampleTexture2DArrayGradient", "Gradient" },
+                { "SampleTexture2DArrayBias", "Bias" }
             },
             parameters: new ParameterUIDescriptor[14] {
                 new ParameterUIDescriptor(
-                    name: "Texture",
+                    name: "TextureArray",
+                    displayName: "Texture Array",
                     tooltip: "the texture array asset to sample"
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the texture coordinates to use for sampling the texture"
+                    tooltip: "the texture coordinates to use for sampling the texture",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

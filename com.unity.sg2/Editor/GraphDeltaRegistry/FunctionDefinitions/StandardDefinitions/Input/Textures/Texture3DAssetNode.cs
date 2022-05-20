@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = Asset;",
+            "    Out = Asset;",
             new ParameterDescriptor("Asset", TYPE.Texture3D, Usage.Static),
             new ParameterDescriptor("Out", TYPE.Texture3D, Usage.Out)
         );
@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Defines a Texture 3D Asset.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[1] { "volume" },
+            displayName: "Texture 3D Asset",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = Asset;",
+            "    Out = Asset;",
             new ParameterDescriptor("Asset", TYPE.Texture2DArray, Usage.Static),
             new ParameterDescriptor("Out", TYPE.Texture2DArray, Usage.Out)
         );
@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Defines a Texture 2D Array Asset.",
             categories: new string[2] { "Input", "Texture" },
             synonyms: new string[2] { "stack", "pile" },
+            displayName: "Texture 2D Array Asset",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

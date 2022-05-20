@@ -11,14 +11,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    uv = ScreenPosition.xy * _ScreenParams.xy;
+@"  uv = ScreenPosition.xy * _ScreenParams.xy;
     uint index = (uint(uv.x) % 4) * 4 + uint(uv.y) % 4;
-    Out = In - DITHER_THRESHOLDS[index];
-}",
+    Out = In - DITHER_THRESHOLDS[index];",
             new ParameterDescriptor("In", TYPE.Vector, Usage.In),
-            new ParameterDescriptor("ScreenPosition", TYPE.Vec2, Usage.In),//TODO: ScreenPosition default support
+            new ParameterDescriptor("ScreenPosition", TYPE.Vec2, Usage.In, REF.ScreenPosition_Default),
             new ParameterDescriptor("Out", TYPE.Vector, Usage.Out),
             new ParameterDescriptor("uv", TYPE.Vec2, Usage.Local),
             new ParameterDescriptor("DITHER_THRESHOLDS", TYPE.Mat4, Usage.Local, new float[]
@@ -43,7 +40,9 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "ScreenPosition",
-                    tooltip: "coordinates used to apply dither pattern"
+                    displayName: "Screen Position",
+                    tooltip: "coordinates used to apply dither pattern",
+                    options: REF.OptionList.ScreenPositions
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

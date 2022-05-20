@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            "Out = !A && !B;",
+            "    Out = !A && !B;",
             new ParameterDescriptor("A", TYPE.Bool, Usage.In),
             new ParameterDescriptor("B", TYPE.Bool, Usage.In),
             new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)

@@ -77,38 +77,9 @@ namespace UnityEditor.ShaderFoundry
             return generatedShader;
         }
 
-        internal class PropertyAttributeData
+        internal static void MarkAsProperty(ShaderContainer container, StructField.Builder fieldBuilder, PropertyAttribute propertyAttribute)
         {
-            internal string DefaultValue;
-            // The type of the property. Can be overridden in some cases (e.g. Color)
-            internal string Type;
-            internal string UniformName;
-            internal string DisplayName;
-            // Any extra tags to apply to the property (e.g. [MainTex])
-            internal string Tags;
-            // The declaration mode ("DoNotDeclare", "Global", "UnityPerMaterial", "HybridPerInstance")
-            internal string Mode;
-            internal bool Exposed = true;
-        }
-
-        internal static void MarkAsProperty(ShaderContainer container, StructField.Builder fieldBuilder, PropertyAttributeData propertyAttributeData)
-        {
-            var propAttributeBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.Property);
-            if (!string.IsNullOrEmpty(propertyAttributeData.UniformName))
-                propAttributeBuilder.Param("uniformName", propertyAttributeData.UniformName);
-            if (!string.IsNullOrEmpty(propertyAttributeData.DisplayName))
-                propAttributeBuilder.Param("displayName", propertyAttributeData.DisplayName);
-            if (!string.IsNullOrEmpty(propertyAttributeData.Type))
-                propAttributeBuilder.Param("type", propertyAttributeData.Type);
-            if (!string.IsNullOrEmpty(propertyAttributeData.DefaultValue))
-                propAttributeBuilder.Param("defaultValue", propertyAttributeData.DefaultValue);
-            if (!string.IsNullOrEmpty(propertyAttributeData.Tags))
-                propAttributeBuilder.Param("tags", propertyAttributeData.Tags);
-            if (!string.IsNullOrEmpty(propertyAttributeData.Mode))
-                propAttributeBuilder.Param("mode", propertyAttributeData.Mode);
-            if (!propertyAttributeData.Exposed)
-                propAttributeBuilder.Param("exposed", "false");
-            fieldBuilder.AddAttribute(propAttributeBuilder.Build());
+            fieldBuilder.AddAttribute(propertyAttribute.Build(container));
         }
 
         internal static BlockInstance BuildSimpleBlockInstance(ShaderContainer container, Block block)

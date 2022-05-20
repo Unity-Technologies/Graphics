@@ -14,20 +14,17 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Standard",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+                    "SampleTexture2DStandard",
+@"  RGBA = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out),
@@ -39,20 +36,17 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "LOD",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+                    "SampleTexture2DLOD",
+@"  RGBA = SAMPLE_TEXTURE2D_LOD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("LOD", TYPE.Float, Usage.In),
@@ -65,20 +59,17 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Gradient",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+                    "SampleTexture2DGradient",
+@"  RGBA = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("DDX", TYPE.Vec2, Usage.In),
@@ -92,20 +83,17 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Bias",
-@"
-{
-    RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
+                    "SampleTexture2DBias",
+@"  RGBA = SAMPLE_TEXTURE2D_BIAS(Texture.tex, Sampler.samplerstate, Texture.GetTransformedUV(UV));
     if(Type == 1) RGBA.rgb = UnpackNormal(RGBA);
     if(Type == 2) RGBA.rgb = UnpackNormalRGB(RGBA);
     RGB = RGBA.rgb;
     R = RGBA.r;
     G = RGBA.g;
     B = RGBA.b;
-    A = RGBA.a;
-}",
+    A = RGBA.a;",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Type", TYPE.Int, Usage.Static),//convert this to a dropdown enum
                     new ParameterDescriptor("Bias", TYPE.Float, Usage.In),
@@ -127,10 +115,10 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "tex2d" },
             selectableFunctions: new()
             {
-                { "Standard", "Standard" },
-                { "LOD", "LOD" },
-                { "Gradient", "Gradient" },
-                { "Bias", "Bias" }
+                { "SampleTexture2DStandard", "Standard" },
+                { "SampleTexture2DLOD", "LOD" },
+                { "SampleTexture2DGradient", "Gradient" },
+                { "SampleTexture2DBias", "Bias" }
             },
             parameters: new ParameterUIDescriptor[13] {
                 new ParameterUIDescriptor(
@@ -139,7 +127,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the texture coordinates to use for sampling the texture"
+                    tooltip: "the texture coordinates to use for sampling the texture",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

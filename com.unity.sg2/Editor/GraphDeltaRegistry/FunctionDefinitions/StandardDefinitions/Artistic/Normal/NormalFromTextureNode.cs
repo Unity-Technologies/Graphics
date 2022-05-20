@@ -14,29 +14,26 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "3Samples",
-@"
-{
-    //3 sample version - only works on square textures
-    UV = Texure.GetTransformedUV(UV);
+                    "NormalFromTexture3Samples",
+@"  //3 sample version - only works on square textures
+    UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;
-    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    if (HeightChannel == 1) channelMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channelMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
     normalSample = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV), channeMask);
     va.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask) - normalSample) * Strength;
     vb.z = (dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask) - normalSample) * Strength;
     Out = normalize(cross(va.xyz, vb.xyz));
     if (OutputSpace==1)
     {
-        TangentMatrix[0] = IN.WorldSpaceTangent;
-        TangentMatrix[1] = IN.WorldSpaceBiTangent;
-        TangentMatrix[2] = IN.WorldSpaceNormal;
+        TangentMatrix[0] = TangentWS;
+        TangentMatrix[1] = BitangentWS;
+        TangentMatrix[2] = NormalWS;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
-    }
-}",
+    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -47,19 +44,20 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
                     1,
-                    "4Samples",
-@"
-{
-    //4 samples - only works on square textures
-    UV = Texure.GetTransformedUV(UV);
+                    "NormalFromTexture4Samples",
+@"  //4 samples - only works on square textures
+    UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
-    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    if (HeightChannel == 1) channelMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channelMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
     va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);//Bottom
     va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x + Offset, UV.y)), channelMask);//Top
     vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x, UV.y + Offset)), channelMask);//Right
@@ -70,14 +68,13 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = normalize(Out);//TODO: Check normal direction
     if (OutputSpace==1)
     {
-    	TangentMatrix[0] = IN.WorldSpaceTangent;
-        TangentMatrix[1] = IN.WorldSpaceBiTangent;
-        TangentMatrix[2] = IN.WorldSpaceNormal;
+        TangentMatrix[0] = TangentWS;
+        TangentMatrix[1] = BitangentWS;
+        TangentMatrix[2] = NormalWS;
     	Out = TransformWorldToTangent(Out, TangentMatrix);	
-    }
-}",
+    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -88,19 +85,20 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 ),
                 new(
                     1,
-                    "8Samples",
-@"
-{
-    //8 samples - only works on square textures
-    UV = Texure.GetTransformedUV(UV);
+                    "NormalFromTexture8Samples",
+@"  //8 samples - only works on square textures
+    UV = Texture.GetTransformedUV(UV);
     Offset = pow(Offset, 3) * 0.1;//balance this so it matches the 3 sample version
-    if (HeightChannel == 1) channeMask = float4(0,1,0,0);
-    if (HeightChannel == 2) channeMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channeMask = float4(0,0,0,1);	
+    if (HeightChannel == 1) channelMask = float4(0,1,0,0);
+    if (HeightChannel == 2) channelMask = float4(0,0,1,0);
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
     va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV - Offset), channelMask);                   // top left
     va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y)), channelMask);   	  // left
     va.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, (UV.x - Offset, UV.y + Offset)), channelMask);// bottom left
@@ -118,14 +116,13 @@ namespace UnityEditor.ShaderGraph.Defs
     Out = normalize(Out);//TODO: Check normal direction
     if (OutputSpace==1)
     {
-        TangentMatrix[0] = IN.WorldSpaceTangent;
-        TangentMatrix[1] = IN.WorldSpaceBiTangent;
-        TangentMatrix[2] = IN.WorldSpaceNormal;
+        TangentMatrix[0] = TangentWS;
+        TangentMatrix[1] = BitangentWS;
+        TangentMatrix[2] = NormalWS;
         Out = TransformWorldToTangent(Out, TangentMatrix);	
-    }
-}",
+    }",
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),//add default UVs
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] { 0.5f }),
                     new ParameterDescriptor("Strength", TYPE.Float, Usage.In, new float[] { 8.0f }),
@@ -136,6 +133,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("va", TYPE.Vec4, Usage.Local, new float[] { 1f, 0f, 0f, 0f }),
                     new ParameterDescriptor("vb", TYPE.Vec4, Usage.Local, new float[] { 0f, 1f, 0f, 0f }),
                     new ParameterDescriptor("TangentMatrix", TYPE.Mat3, Usage.Local),
+                    new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Normal),
+                    new ParameterDescriptor("TangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Tangent),
+                    new ParameterDescriptor("BitangentWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Bitangent),
                     new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
                 )
             }
@@ -150,18 +150,19 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Normal From Texture",
             selectableFunctions: new()
              {
-                { "3Samples", "3 Samples" },
-                { "4Samples", "4 Samples" },
-                { "8Samples", "8 Samples" }
+                { "NormalFromTexture3Samples", "3 Samples" },
+                { "NormalFromTexture4Samples", "4 Samples" },
+                { "NormalFromTexture8Samples", "8 Samples" }
              },
-            parameters: new ParameterUIDescriptor[6] {
+            parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(
                     name: "Texture",
                     tooltip: "the height map texture asset to sample"
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the texture coordinates to use for sampling the texture"
+                    tooltip: "the texture coordinates to use for sampling the texture",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",
@@ -174,6 +175,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Strength",
                     tooltip: "strength multiplier"
+                ),
+                new ParameterUIDescriptor(
+                    name: "HeightChannel",
+                    tooltip: "select the texture channel the height data is in",
+                    displayName: "Height Channel"
+                ),
+                new ParameterUIDescriptor(
+                    name: "OutputSpace",
+                    tooltip: "the space of the resulting normal",
+                    displayName: "Output Space"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
 @"
-{
     RGBA.r = R;
     RGBA.g = G;
     RGBA.b = B;
@@ -22,7 +21,6 @@ namespace UnityEditor.ShaderGraph.Defs
     RGB.b = B;
     RG.r = R;
     RG.g = G;
-}
 ",
             new ParameterDescriptor("R", TYPE.Float, Usage.In),
             new ParameterDescriptor("G", TYPE.Float, Usage.In),

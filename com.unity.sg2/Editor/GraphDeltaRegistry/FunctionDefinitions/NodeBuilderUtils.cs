@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Linq;
 using UnityEditor.ShaderGraph.GraphDelta;
 namespace UnityEditor.ShaderGraph.Defs
@@ -113,10 +114,13 @@ namespace UnityEditor.ShaderGraph.Defs
             if (param.Usage is GraphType.Usage.Static) typeField.AddSubField("IsStatic", true);
             if (param.Usage is GraphType.Usage.Local) typeField.AddSubField("IsLocal", true);
 
-            int i = 0;
-            foreach (var val in param.DefaultValue)
+            if (param.DefaultValue is IEnumerable)
             {
-                typeField.SetField<float>($"c{i++}", val);
+                int i = 0;
+                foreach (var val in param.DefaultValue as IEnumerable)
+                {
+                    typeField.SetField<float>($"c{i++}", (float)val);
+                }
             }
 
             return port;

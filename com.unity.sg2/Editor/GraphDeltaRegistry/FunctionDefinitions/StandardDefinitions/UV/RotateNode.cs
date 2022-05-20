@@ -13,10 +13,8 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Radians",
-@"
-{
-    UV -= Center;
+                    "RotateRadians",
+@"    UV -= Center;
 	sincos(Rotation, s, c);
 	rMatrix[0].x = c;
 	rMatrix[0].y = -s;
@@ -24,9 +22,8 @@ namespace UnityEditor.ShaderGraph.Defs
 	rMatrix[1].y = c;
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
-    Out = UV;
-}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+    Out = UV;",
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
                     new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
                     new ParameterDescriptor("s", TYPE.Float, Usage.Local),
@@ -36,10 +33,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     1,
-                    "Degrees",
-@"
-{
-    Rotation = radians(Rotation);
+                    "RotateDegrees",
+@"    Rotation = radians(Rotation);
     UV -= Center;
 	sincos(Rotation, s, c);
 	rMatrix[0].x = c;
@@ -48,9 +43,8 @@ namespace UnityEditor.ShaderGraph.Defs
 	rMatrix[1].y = c;
     UV.xy = mul(UV.xy, rMatrix);
     UV += Center;
-    Out = UV;
-}",
-                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In),
+    Out = UV;",
+                    new ParameterDescriptor("UV", TYPE.Vec2, Usage.In, REF.UV0),
                     new ParameterDescriptor("Center", TYPE.Vec2, Usage.In, new float[] { 0.5f, 0.5f}),
                     new ParameterDescriptor("Rotation", TYPE.Float, Usage.In),
                     new ParameterDescriptor("s", TYPE.Float, Usage.Local),
@@ -69,13 +63,14 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[0] {  },
             selectableFunctions: new()
             {
-                { "Radians", "Radians" },
-                { "Degrees", "Degrees" }
+                { "RotateRadians", "Radians" },
+                { "RotateDegrees", "Degrees" }
             },
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
-                    tooltip: "the UVs to rotate"
+                    tooltip: "the UVs to rotate",
+                    options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
                     name: "Center",

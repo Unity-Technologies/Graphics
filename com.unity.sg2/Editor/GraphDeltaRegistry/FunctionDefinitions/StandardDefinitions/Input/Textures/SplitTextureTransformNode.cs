@@ -12,13 +12,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-@"
-{
-    TextureOnly = In;
+@"  TextureOnly = In;
     TextureOnly.scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);
     Tiling = In.scaleTranslate.xy;
     Offset = In.scaleTranslate.zw;
-}",
+",
             new ParameterDescriptor("In", TYPE.Texture2D, Usage.In),
             new ParameterDescriptor("Tiling", TYPE.Vec2, Usage.Out),
             new ParameterDescriptor("Offset", TYPE.Vec2, Usage.Out),
@@ -28,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
+            displayName: "Split Texture Transform",
             tooltip: "Separates tiling, offset, and texture data from an input texture.",
             synonyms: new string[0] {},
             categories: new string[2] { "Input", "Texture" },
@@ -47,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "TextureOnly",
+                    displayName: "Texture Only",
                     tooltip: "the input Texture2D, without tiling and offset data."
                 )
             }

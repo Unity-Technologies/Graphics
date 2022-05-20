@@ -14,48 +14,48 @@ namespace UnityEditor.ShaderGraph.Defs
             new FunctionDescriptor[] {
                 new(
                     1,
-                    "Equal",
-                    "Out = A == B;",
+                    "ComparisonEqual",
+                    "    Out = A == B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
                     new ParameterDescriptor("B", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
                     1,
-                    "NotEqual",
-                    "Out = A != B;",
+                    "ComparisonNotEqual",
+                    "    Out = A != B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
                     new ParameterDescriptor("B", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
                     1,
-                    "Less",
-                    "Out = A < B;",
+                    "ComparisonLess",
+                    "    Out = A < B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
                     new ParameterDescriptor("B", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
                     1,
-                    "LessOrEqual",
-                    "Out = A <= B;",
+                    "ComparisonLessOrEqual",
+                    "    Out = A <= B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
                     new ParameterDescriptor("B", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
                     1,
-                    "Greater",
-                    "Out = A > B;",
+                    "ComparisonGreater",
+                    "    Out = A > B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
                     new ParameterDescriptor("B", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
                 ),
                 new(
                     1,
-                    "GreaterOrEqual",
-                    "Out = A >= B;",
+                    "ComparisonGreaterOrEqual",
+                    "    Out = A >= B;",
                     new ParameterDescriptor("A", TYPE.Float, Usage.In),
                     new ParameterDescriptor("B", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Out", TYPE.Bool, Usage.Out)
@@ -72,12 +72,12 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             selectableFunctions: new()
             {
-                { "Equal", "== Equal" },
-                { "NotEqual", "!= NotEqual" },
-                { "Less", "< Less" },
-                { "LessOrEqual", "<= Less Or Equal" },
-                { "Greater", "> Greater" },
-                { "GreaterOrEqual", ">= Greater Or Equal" },
+                { "ComparisonEqual", "== Equal" },
+                { "ComparisonNotEqual", "!= NotEqual" },
+                { "ComparisonLess", "< Less" },
+                { "ComparisonLessOrEqual", "<= Less Or Equal" },
+                { "ComparisonGreater", "> Greater" },
+                { "ComparisonGreaterOrEqual", ">= Greater Or Equal" },
             },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

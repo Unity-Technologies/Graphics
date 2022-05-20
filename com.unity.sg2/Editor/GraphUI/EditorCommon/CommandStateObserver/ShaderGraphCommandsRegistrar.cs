@@ -37,6 +37,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 previewManager
             );
 
+            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewManager, ChangePreviewMeshCommand>(
+                ChangePreviewMeshCommand.DefaultCommandHandler,
+                shaderGraphModel,
+                previewManager
+            );
+
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewModeCommand>(
+                ChangePreviewModeCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphModelState,
+                previewManager
+            );
+
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, ShaderGraphAssetModel, ChangeActiveTargetsCommand>(
                 ChangeActiveTargetsCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
