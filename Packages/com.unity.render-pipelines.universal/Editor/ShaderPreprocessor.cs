@@ -252,20 +252,22 @@ namespace UnityEditor.Rendering.Universal
             Shader m_Shader;
             ShaderKeywordSet m_KeywordSet;
             ShaderSnippetData m_SnippetData;
+            ShaderCompilerPlatform m_ShaderCompilerPlatform;
             bool m_stripUnusedVariants;
 
-            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripUnusedVariants)
+            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripUnusedVariants, ShaderCompilerPlatform shaderCompilerPlatform)
             {
                 m_Features = features;
                 m_Shader = shader;
                 m_SnippetData = snippetData;
                 m_KeywordSet = keywordSet;
                 m_stripUnusedVariants = stripUnusedVariants;
+                m_ShaderCompilerPlatform = shaderCompilerPlatform;
             }
 
             bool ContainsKeyword(in LocalKeyword kw)
             {
-                return ShaderUtil.PassHasKeyword(m_Shader, m_SnippetData.pass, kw, m_SnippetData.shaderType);
+                return ShaderUtil.PassHasKeyword(m_Shader, m_SnippetData.pass, kw, m_SnippetData.shaderType, m_ShaderCompilerPlatform);
             }
 
             public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2, in LocalKeyword kw3, T feature3)
@@ -357,7 +359,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
-            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
+            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants, compilerData.shaderCompilerPlatform);
 
             // strip main light shadows, cascade and screen variants
             if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants, features))
@@ -430,7 +432,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             // Shadow caster punctual light strip
-            if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_CastingPunctualLightShadow, snippetData.shaderType))
+            if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_CastingPunctualLightShadow, snippetData.shaderType, compilerData.shaderCompilerPlatform))
             {
                 if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
                     return true;
@@ -509,7 +511,7 @@ namespace UnityEditor.Rendering.Universal
         bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
-            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
+            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants, compilerData.shaderCompilerPlatform);
 
             if (stripTool.StripMultiCompileKeepOffVariant(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
