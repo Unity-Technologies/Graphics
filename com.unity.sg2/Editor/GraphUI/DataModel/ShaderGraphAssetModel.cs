@@ -74,6 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
+            // Deserialize target settings
             if (this.FilePath != String.Empty)
             {
                 string text = File.ReadAllText(this.FilePath, Encoding.UTF8);

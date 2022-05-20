@@ -10,5 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.Deletable);
             m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.Copiable);
         }
+
+        public override bool HasPreview => false;
     }
 }

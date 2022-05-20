@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -28,6 +29,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         precision = GraphType.Precision.Single,
                         height = GraphType.Height.One,
                         length = GraphType.Length.Three,
+                        // Expected default Tangent Space Normal is (0, 0, 1)
+                        initialValue = new Matrix4x4(
+                                            new Vector4(0, 0, 1, 0),
+                                            Vector4.zero,
+                                            Vector4.zero,
+                                            Vector4.zero)
                     },
                     new ()
                     {

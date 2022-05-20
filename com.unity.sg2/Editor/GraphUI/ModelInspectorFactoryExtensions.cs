@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static IModelView CreateSectionInspector(this ElementBuilder elementBuilder, GraphDataNodeModel model)
         {
-            var ui = new ModelInspector();
+            var ui = new ShaderGraphModelInspector();
 
             ui.Setup(model, elementBuilder.View, elementBuilder.Context);
 
@@ -21,7 +21,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         var s = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(s);
+
+                        var inspectorFields = new SGNodeFieldsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(inspectorFields);
                         break;
+
                     }
 
                     // Uncomment to enable "properties" section - shows inline port editors
