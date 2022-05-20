@@ -18,9 +18,9 @@ namespace UnityEditor.ShaderGraph.Defs
 @"  Node_UV = Position * Tile;
     Node_Blend = SafePositivePow_float(Normal, min(Blend, floor(log2(Min_float())/log2(1/sqrt(3)))) );
     Node_Blend /= dot(Node_Blend, 1.0);
-    Node_X = SAMPLE_TEXTURE2D(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, Node_UV.zy);
-    Node_Y = SAMPLE_TEXTURE2D(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, Node_UV.xz);
-    Node_Z = SAMPLE_TEXTURE2D(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, Node_UV.xy);
+    Node_X = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Node_UV.zy);
+    Node_Y = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Node_UV.xz);
+    Node_Z = SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Node_UV.xy);
     Y = Node_Y * Node_Blend.y;
     XZ = (Node_X * Node_Blend.x) + (Node_Z * Node_Blend.z);
     XYZ = XZ + Y;",
@@ -45,9 +45,9 @@ namespace UnityEditor.ShaderGraph.Defs
 @"  Node_UV = Position * Tile;
     Node_Blend = SafePositivePow_float(Normal, min(Blend, floor(log2(Min_float())/log2(1/sqrt(3)))) );
     Node_Blend /= dot(Node_Blend, 1.0);
-    Node_X = UnpackNormal(SAMPLE_TEXTURE2D(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, Node_UV.zy));
-    Node_Y = UnpackNormal(SAMPLE_TEXTURE2D(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, Node_UV.xz));
-    Node_Z = UnpackNormal(SAMPLE_TEXTURE2D(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, Node_UV.xy));
+    Node_X = UnpackNormal(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Node_UV.zy));
+    Node_Y = UnpackNormal(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Node_UV.xz));
+    Node_Z = UnpackNormal(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, Node_UV.xy));
     Node_X.xy = Node_X.xy + Normal.zy; Node_X.z = abs(Node_X.z) * Normal.x;
     Node_Y.xy = Node_Y.xy + Normal.xz; Node_Y.z = abs(Node_Y.z) * Normal.y;
     Node_Z.xy = Node_Z.xy + Normal.xy; Node_Y.z = abs(Node_Z.z) * Normal.z;
@@ -101,8 +101,8 @@ namespace UnityEditor.ShaderGraph.Defs
 	yDDX.x = dpdx[me.y]; yDDX.y = dpdx[me.z];
 	yDDY.x = dpdy[me.y]; yDDY.y = dpdy[me.z];	
 	// project+fetch
-	Node_X = SAMPLE_TEXTURE2D_GRAD(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, xCoords, xDDX, xDDY);
-	Node_Y = SAMPLE_TEXTURE2D_GRAD(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate, yCoords, yDDX, yDDY);
+	Node_X = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, xCoords, xDDX, xDDY);
+	Node_Y = SAMPLE_TEXTURE2D_GRAD(Texture.tex, Sampler.samplerstate, yCoords, yDDX, yDDY);
 	// blend factors
 	w.x = n[ma.x]; 	w.y = n[me.x];
 	// make local support
