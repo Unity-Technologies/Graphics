@@ -13,16 +13,16 @@ namespace UnityEditor.ShaderGraph.Defs
 @"#if (SHADER_TARGET >= 41)
     if (Clamp)
     {
-        LOD = UnityBuildTexture2DStructNoScale(Texture).tex.CalculateLevelOfDetail(Sampler.samplerstate, UV);
+        LOD = Texture.tex.CalculateLevelOfDetail(Sampler.samplerstate, UV);
     }else
     {
-        LOD = UnityBuildTexture2DStructNoScale(Texture).tex.CalculateLevelOfDetailUnclamped(Sampler.samplerstate, UV);
+        LOD = Texture.tex.CalculateLevelOfDetailUnclamped(Sampler.samplerstate, UV);
 	}
 #else
-	LOD = 0.5f*log2(max(dot(ddx(UV * UnityBuildTexture2DStructNoScale(Texture).texelSize.zw), ddx(UV * UnityBuildTexture2DStructNoScale(Texture).texelSize.zw)), dot(ddy(UV * UnityBuildTexture2DStructNoScale(Texture).texelSize.zw), ddy(UV * UnityBuildTexture2DStructNoScale(Texture).texelSize.zw))));
+	LOD = 0.5f*log2(max(dot(ddx(UV * Texture.texelSize.zw), ddx(UV * Texture.texelSize.zw)), dot(ddy(UV * Texture.texelSize.zw), ddy(UV * Texture.texelSize.zw))));
 	LOD = max(LOD, 0);
 	#if defined(MIP_COUNT_SUPPORTED)
-		LOD = min(LOD, GetMipCount(TEXTURE2D_ARGS(UnityBuildTexture2DStructNoScale(Texture).tex, Sampler.samplerstate))-1);
+		LOD = min(LOD, GetMipCount(TEXTURE2D_ARGS(Texture.tex, Sampler.samplerstate))-1);
 	#endif
 #endif",
             new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),

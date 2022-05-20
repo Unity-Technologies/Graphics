@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "SampleTriplanarDefault",
+                    //TODO: need to figure out how to deal with this precision-specific SafePositivePow_float call
 @"  Node_UV = Position * Tile;
     Node_Blend = SafePositivePow_float(Normal, min(Blend, floor(log2(Min_float())/log2(1/sqrt(3)))) );
     Node_Blend /= dot(Node_Blend, 1.0);
@@ -42,6 +43,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new(
                     1,
                     "SampleTriplanarNormal",
+                    //TODO: need to figure out how to deal with this precision-specific SafePositivePow_float call
 @"  Node_UV = Position * Tile;
     Node_Blend = SafePositivePow_float(Normal, min(Blend, floor(log2(Min_float())/log2(1/sqrt(3)))) );
     Node_Blend /= dot(Node_Blend, 1.0);
