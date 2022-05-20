@@ -33,6 +33,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
+        public override string DisplayTitle
+        {
+            get
+            {
+                var baseDisplayTitle = base.DisplayTitle;
+                if (latestAvailableVersion > currentVersion)
+                {
+                    baseDisplayTitle += $" (Legacy v{currentVersion})";
+                }
+
+                return baseDisplayTitle;
+            }
+        }
+
         RegistryKey m_PreviewRegistryKey;
 
         /// <summary>

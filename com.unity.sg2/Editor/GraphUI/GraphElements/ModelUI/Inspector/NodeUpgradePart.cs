@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_Root.Q(classes: "sg-help-box").AddToClassList("sg-help-box-warning");
 
             var contentRoot = m_Root.MandatoryQ("sg-help-box-content");
-            var label = new Label {text = GetUpgradeMessage($"{graphDataNodeModel.DisplayTitle} Node")};
+            var label = new Label {text = GetUpgradeMessage($"{graphDataNodeModel.Title.Nicify()} Node")};
             contentRoot.Add(label);
             label.style.whiteSpace = new StyleEnum<WhiteSpace>(WhiteSpace.Normal);
 
