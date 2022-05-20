@@ -125,6 +125,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             Initialize(cmd);
         }
 
+        public void SetCameraSettings(RenderTextureDescriptor desc, FilterMode filterMode)
+        {
+            m_Desc = desc;
+            m_FilterMode = filterMode;
+        }
+
         public RenderTargetHandle GetBufferA()
         {
             return m_A.rt;
