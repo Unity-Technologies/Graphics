@@ -271,9 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
 
                 RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
-#if UNITY_GPU_DRIVEN_PIPELINE
-                CopyDepthStencilForGPUDriven(renderGraph, hdCamera, ref result);
-#endif
+
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
                 // After Depth and Normals/roughness including decals
@@ -643,6 +641,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
                 }
+
+                CopyDepthStencilForGPUDriven(renderGraph, hdCamera, ref prepassOutput);
 
                 using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
                 {
