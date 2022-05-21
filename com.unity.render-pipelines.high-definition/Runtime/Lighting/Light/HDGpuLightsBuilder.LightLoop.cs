@@ -373,6 +373,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal static Unity.Profiling.ProfilerMarker calculateLightDataTextureInfoMarker = new ProfilerMarker("CalculateLightDataTextureInfo");
+
         private unsafe void CalculateAllLightDataTextureInfo(
             CommandBuffer cmd,
             HDCamera hdCamera,
@@ -397,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int lightCounts = visibleLights.sortedLightCounts;
             NativeArray<int> shadowIndices = new NativeArray<int>(lightCounts, Allocator.Temp);
             HDAdditionalLightData.CalculateShadowIndices(cmd, hdCamera, in cullResults, visibleLights, lightEntities, hdShadowSettings, in shadowInitParams, debugDisplaySettings,
-                hierarchicalVarianceScreenSpaceShadowsData, ManageShadowRequests, CopyShadowIndices, SkipDirectionalLights, m_ShadowManager, m_Asset,
+                hierarchicalVarianceScreenSpaceShadowsData, m_ShadowManager, m_Asset,
                 m_DirectionalLights, m_Lights, shadowIndices, ref m_DebugSelectedLightShadowIndex, ref m_DebugSelectedLightShadowCount);
 
             using (calculateLightDataTextureInfoMarker.Auto())
