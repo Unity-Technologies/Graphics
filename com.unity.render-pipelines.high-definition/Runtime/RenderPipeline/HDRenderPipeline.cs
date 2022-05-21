@@ -3960,7 +3960,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdCamera.camera.cameraType == CameraType.Game)
                     {
                         result.passName = "Partial Depth Prepass (Deferred - AlphaTest)";
-                        range = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest;
+                        if (GetDistributedMode() == DistributedMode.Merger)
+                            range = HDRenderQueue.k_RenderQueue_AllOpaque;
+                        else
+                            range = HDRenderQueue.k_RenderQueue_OpaqueAlphaTest;
                     }
                     else
                     {
@@ -3980,8 +3983,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // First deferred materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
                     result.depthDeferredRendererListDesc = CreateOpaqueRendererListDesc(
                         cull, hdCamera.camera, m_DepthOnlyPassNames,
-                        renderQueueRange: fullDeferredPrepass ? HDRenderQueue.k_RenderQueue_AllOpaque :
-                                                                (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest),
+                        renderQueueRange: range,
                         stateBlock: m_AlphaToMaskBlock,
                         excludeObjectMotionVectors: excludeMotion);
 
