@@ -105,6 +105,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
+    // Make sure the baked diffuse lighting is tinted with the diffuse color
+    ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
