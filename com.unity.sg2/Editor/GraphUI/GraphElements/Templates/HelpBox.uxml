@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:sg="UnityEditor.ShaderGraph.GraphUI">
+    <ui:VisualElement class="sg-help-box">
+        <ui:VisualElement name="sg-help-box-icon"/>
+        <ui:VisualElement name="sg-help-box-content"/>
+    </ui:VisualElement>
+</ui:UXML>
