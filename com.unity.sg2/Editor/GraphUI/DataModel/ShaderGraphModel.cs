@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [Serializable]
     class MainPreviewData
     {
-        public SerializableMesh serializedMesh = new ();
+        public SerializableMesh serializedMesh = new();
         public bool preventRotation;
 
         public int width = 125;
@@ -133,6 +134,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_MainPreviewData.Initialize();
         }
+
+        /// <summary>
+        /// The name of the context node on the graph that the Blackboard should modify.
+        /// </summary>
+        public string BlackboardContextName => (
+            IsSubGraph
+                ? Registry.ResolveKey<ShaderSubGraphInputContext>().Name
+                : Registry.ResolveKey<PropertyContext>().Name
+        );
 
         public bool IsSubGraph => ShaderGraphAssetModel.IsSubGraph;
         public override bool CanBeSubgraph() => IsSubGraph;

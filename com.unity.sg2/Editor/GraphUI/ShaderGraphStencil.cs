@@ -162,13 +162,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 if (model is not GraphDataVariableDeclarationModel graphDataVar) return;
 
+                var graphModel = (ShaderGraphModel)model.GraphModel;
+
                 // Use this variables' generated guid to bind it to an underlying element in the graph data.
-                var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
-                var graphHandler = shaderGraphModel.GraphHandler;
+                var registry = graphModel.RegistryInstance;
+                var graphHandler = graphModel.GraphHandler;
 
                 // If the guid starts with a number, it will produce an invalid identifier in HLSL.
                 var variableDeclarationName = "_" + graphDataVar.Guid;
-                var contextName = Registry.ResolveKey<PropertyContext>().Name;
+                var contextName = graphModel.BlackboardContextName;
 
                 var propertyContext = graphHandler.GetNode(contextName);
                 Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
