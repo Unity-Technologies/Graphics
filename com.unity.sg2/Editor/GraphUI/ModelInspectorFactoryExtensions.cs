@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public static IModelView CreateSectionInspector(this ElementBuilder elementBuilder, GraphDataNodeModel model)
         {
-            var ui = new ModelInspector();
+            var ui = new ShaderGraphModelInspector();
 
             ui.Setup(model, elementBuilder.View, elementBuilder.Context);
 
@@ -19,9 +19,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
-                        var s = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
-                        ui.PartList.AppendPart(s);
+                        var upgradePrompt = new NodeUpgradePart("sg-node-upgrade", model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(upgradePrompt);
+
+                        var staticPorts = new StaticPortsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(staticPorts);
+
+                        var inspectorFields = new SGNodeFieldsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(inspectorFields);
                         break;
+
                     }
 
                     // Uncomment to enable "properties" section - shows inline port editors

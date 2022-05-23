@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [EditorToolbarElement(id, typeof(GraphViewEditorWindow))]
     public sealed class ShaderGraphShowInProjectButton : MainToolbarButton
     {
-        public new const string id = "ShaderGraph/Main/ShowInProject";
+        public const string id = "ShaderGraph/Main/ShowInProject";
 
         public ShaderGraphShowInProjectButton()
         {

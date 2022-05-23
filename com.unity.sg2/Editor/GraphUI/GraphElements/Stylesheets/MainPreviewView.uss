@@ -1,0 +1,18 @@
+.MainPreviewView {
+    width: 125px;
+    height: 125px;
+    min-width: 100px;
+    min-height: 100px;
+    border-radius: 6px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-color: rgb(25,25,25);
+}
+
+#previewImage {
+    align-self: center;
+    width: 120px;
+    height: 120px;
+}

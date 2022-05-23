@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public class StaticPortsInspector : FieldsInspector
+    public class StaticPortsInspector : SGFieldsInspector
     {
         public StaticPortsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
@@ -41,6 +41,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // TODO: Last argument is label text, should come from UI strings
                 yield return InlineValueEditor.CreateEditorForConstant(m_OwnerElement?.RootView, nodeModel, constant, false, portName);
             }
+        }
+
+        public override bool IsEmpty()
+        {
+            return m_Fields.Count != 0;
         }
     }
 }

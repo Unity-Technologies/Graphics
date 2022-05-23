@@ -524,4 +524,49 @@ namespace UnityEditor.ShaderGraph.Defs
             }
         );
     }
+
+    internal class TestUpgrade_V1 : IStandardNode
+    {
+        public static string Name = "TestUpgrade";
+        public static int Version = 1;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = In;",
+            new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name + "(V1)",
+            tooltip: string.Empty,
+            categories: new[] { "Test", "Upgradeable", "V1" },
+            synonyms: Array.Empty<string>()
+        );
+    }
+
+    internal class TestUpgrade_V2 : IStandardNode
+    {
+        public static string Name = "TestUpgrade";
+        public static int Version = 2;
+
+        public static FunctionDescriptor FunctionDescriptor => new(
+            Version,
+            Name,
+            "Out = In + In2;",
+            new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("In2", TYPE.Float, GraphType.Usage.In),
+            new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name + "(V2)",
+            tooltip: string.Empty,
+            categories: new[] { "Test", "Upgradeable", "V2" },
+            synonyms: Array.Empty<string>()
+        );
+    }
 }

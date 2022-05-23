@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [EditorToolbarElement(id, typeof(GraphViewEditorWindow))]
     public sealed class ShaderGraphSaveButton : MainToolbarButton
     {
-        public new const string id = "ShaderGraph/Main/Save";
+        public const string id = "ShaderGraph/Main/Save";
 
         public ShaderGraphSaveButton()
         {

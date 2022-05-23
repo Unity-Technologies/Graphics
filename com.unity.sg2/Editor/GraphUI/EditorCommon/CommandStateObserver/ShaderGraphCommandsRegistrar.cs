@@ -37,6 +37,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 previewManager
             );
 
+            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewManager, ChangePreviewMeshCommand>(
+                ChangePreviewMeshCommand.DefaultCommandHandler,
+                shaderGraphModel,
+                previewManager
+            );
+
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, ChangePreviewModeCommand>(
+                ChangePreviewModeCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphModelState,
+                previewManager
+            );
+
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, ShaderGraphAssetModel, ChangeActiveTargetsCommand>(
                 ChangeActiveTargetsCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
@@ -105,6 +118,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeNodeFunctionCommand>(
                 ChangeNodeFunctionCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphModelState);
+
+            // Node upgrade commands
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, DismissNodeUpgradeCommand>(
+                DismissNodeUpgradeCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphModelState);
+
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, UpgradeNodeCommand>(
+                UpgradeNodeCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphView.GraphModelState);
         }
