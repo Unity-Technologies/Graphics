@@ -5,12 +5,12 @@
 // node work by falling to regular texture sampling.
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
 
-#if defined(_CLUSTERED_RENDERING)
+#if defined(_FORWARD_PLUS)
 #define _ADDITIONAL_LIGHTS 1
 #undef _ADDITIONAL_LIGHTS_VERTEX
-#define USE_CLUSTERED_LIGHTING 1
+#define USE_FORWARD_PLUS 1
 #else
-#define USE_CLUSTERED_LIGHTING 0
+#define USE_FORWARD_PLUS 0
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

@@ -10,9 +10,12 @@ namespace UnityEngine.Rendering.Universal
     public enum RenderingMode
     {
         /// <summary>Render all objects and lighting in one pass, with a hard limit on the number of lights that can be applied on an object.</summary>
-        Forward,
+        Forward = 0,
+        /// <summary>Render all objects and lighting in one pass using a clustered data structure to access lighting data.</summary>
+        [InspectorName("Forward+")]
+        ForwardPlus = 2,
         /// <summary>Render all objects first in a g-buffer pass, then apply all lighting in a separate pass using deferred shading.</summary>
-        Deferred
+        Deferred = 1
     };
 
     /// <summary>
@@ -57,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
             switch (m_RenderingMode)
             {
                 case RenderingMode.Forward:
+                case RenderingMode.ForwardPlus:
                     return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
                 case RenderingMode.Deferred:
                     return 1 << (int)CameraRenderType.Base;
@@ -69,9 +73,11 @@ namespace UnityEngine.Rendering.Universal
         internal RenderingMode renderingModeRequested => m_RenderingMode;
 
         // Actual rendering mode, which may be different (ex: wireframe rendering, hardware not capable of deferred rendering).
-        internal RenderingMode renderingModeActual => (GL.wireframe || (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
+        internal RenderingMode renderingModeActual => renderingModeRequested == RenderingMode.Deferred && (GL.wireframe || (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
         ? RenderingMode.Forward
         : this.renderingModeRequested;
+
+        bool m_Clustering;
 
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
 
@@ -188,8 +194,8 @@ namespace UnityEngine.Rendering.Universal
 
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
-            forwardInitParams.clusteredRendering = data.clusteredRendering;
-            forwardInitParams.tileSize = (int)data.tileSize;
+            forwardInitParams.forwardPlus = data.renderingMode == RenderingMode.ForwardPlus;
+            m_Clustering = data.renderingMode == RenderingMode.ForwardPlus;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -217,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_MotionVectorPass = new MotionVectorRenderPass(m_CameraMotionVecMaterial, m_ObjectMotionVecMaterial);
 
-            if (this.renderingModeRequested == RenderingMode.Forward)
+            if (renderingModeRequested == RenderingMode.Forward || renderingModeRequested == RenderingMode.ForwardPlus)
             {
                 m_PrimedDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial, true);
             }
@@ -444,7 +450,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = (rendererFeatures.Count != 0 && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera;
+            var createColorTexture = ((rendererFeatures.Count != 0 && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera) ||
+                (Application.isEditor && m_Clustering);
 
             // Gather render passe input requirements
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
@@ -583,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
 #endif
             bool useDepthPriming = IsDepthPrimingEnabled();
-            useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
+            useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && (m_RenderingMode == RenderingMode.Forward || m_RenderingMode == RenderingMode.ForwardPlus) && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;

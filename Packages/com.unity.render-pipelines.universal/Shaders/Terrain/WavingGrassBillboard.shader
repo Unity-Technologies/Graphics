@@ -27,7 +27,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _FORWARD_PLUS
 
             // -------------------------------------
             // Unity defined keywords

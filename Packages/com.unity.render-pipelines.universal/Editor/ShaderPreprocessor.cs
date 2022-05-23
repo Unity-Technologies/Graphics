@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.Universal
         DecalNormalBlendLow = (1 << 21),
         DecalNormalBlendMedium = (1 << 22),
         DecalNormalBlendHigh = (1 << 23),
-        ClusteredRendering = (1 << 24),
+        ForwardPlus = (1 << 24),
         RenderPassEnabled = (1 << 25),
         MainLightShadowsCascade = (1 << 26),
         DrawProcedural = (1 << 27),
@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendLow;
         LocalKeyword m_DecalNormalBlendMedium;
         LocalKeyword m_DecalNormalBlendHigh;
-        LocalKeyword m_ClusteredRendering;
+        LocalKeyword m_ForwardPlus;
         LocalKeyword m_EditorVisualization;
         LocalKeyword m_LODFadeCrossFade;
 
@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendLow);
             m_DecalNormalBlendMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendMedium);
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
-            m_ClusteredRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
+            m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
 
@@ -470,7 +470,7 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            if (stripTool.StripMultiCompile(m_ClusteredRendering, ShaderFeatures.ClusteredRendering))
+            if (stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus))
                 return true;
 
             // Screen Space Occlusion
@@ -652,7 +652,7 @@ namespace UnityEditor.Rendering.Universal
             bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
 
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering) || compilerData.shaderKeywordSet.IsEnabled(m_DeferredStencil)))
+            if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ForwardPlus) || compilerData.shaderKeywordSet.IsEnabled(m_DeferredStencil)))
                 return true;
 
             bool isShadowVariant = isMainShadow || isAdditionalShadow;
@@ -915,11 +915,6 @@ namespace UnityEditor.Rendering.Universal
                 shaderFeatures |= ShaderFeatures.AdditionalLights;
             }
 
-            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
-                (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
-            if (pipelineAsset.supportsSoftShadows && anyShadows)
-                shaderFeatures |= ShaderFeatures.SoftShadows;
-
             if (pipelineAsset.supportsMixedLighting)
                 shaderFeatures |= ShaderFeatures.MixedLighting;
 
@@ -939,8 +934,7 @@ namespace UnityEditor.Rendering.Universal
             bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;
             bool accurateGbufferNormals = false;
-            bool clusteredRendering = false;
-            bool onlyClusteredRendering = false;
+            bool forwardPlus = false;
             bool usesRenderPass = false;
 
             {
@@ -966,8 +960,6 @@ namespace UnityEditor.Rendering.Universal
 
                 if (!renderer.stripAdditionalLightOffVariants)
                     shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
-
-                var rendererClustered = false;
 
                 ScriptableRendererData rendererData = pipelineAsset.m_RendererDataList[rendererIndex];
                 if (rendererData != null)
@@ -1013,8 +1005,7 @@ namespace UnityEditor.Rendering.Universal
 
                     if (rendererData is UniversalRendererData universalRendererData)
                     {
-                        rendererClustered = universalRendererData.renderingMode == RenderingMode.Forward &&
-                            universalRendererData.clusteredRendering;
+                        forwardPlus = universalRendererData.renderingMode == RenderingMode.ForwardPlus;
 
                         if (RenderingLayerUtils.RequireRenderingLayers(universalRendererData,
                             pipelineAsset.msaaSampleCount,
@@ -1043,9 +1034,6 @@ namespace UnityEditor.Rendering.Universal
 #endif
                     }
                 }
-
-                clusteredRendering |= rendererClustered;
-                onlyClusteredRendering &= rendererClustered;
             }
 
             if (hasDeferredRenderer)
@@ -1069,23 +1057,26 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.reflectionProbeBoxProjection)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
 
-            if (clusteredRendering)
+            if (forwardPlus)
             {
-                shaderFeatures |= ShaderFeatures.ClusteredRendering;
+                shaderFeatures |= ShaderFeatures.ForwardPlus;
+                {
+                    shaderFeatures &= ~(ShaderFeatures.AdditionalLights | ShaderFeatures.VertexLighting);
+                }
             }
 
-            if (onlyClusteredRendering)
-            {
-                shaderFeatures &= ~(ShaderFeatures.AdditionalLights | ShaderFeatures.VertexLighting);
-            }
-
-            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || clusteredRendering)
+            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || forwardPlus)
             {
                 if (pipelineAsset.supportsAdditionalLightShadows)
                 {
                     shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
                 }
             }
+
+            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
+                (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
+            if (pipelineAsset.supportsSoftShadows && anyShadows)
+                shaderFeatures |= ShaderFeatures.SoftShadows;
 
             return shaderFeatures;
         }

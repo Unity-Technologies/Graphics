@@ -1973,10 +1973,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static readonly KeywordDescriptor ClusteredRendering = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ForwardPlus = new KeywordDescriptor()
         {
-            displayName = "Clustered Rendering",
-            referenceName = "_CLUSTERED_RENDERING",
+            displayName = "Forward+",
+            referenceName = "_FORWARD_PLUS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

@@ -36,7 +36,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
-            public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered (experimental)", "(Experimental) Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
             public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "Controls when URP renders via an intermediate texture.");
         }
 
@@ -46,20 +45,12 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_DepthPrimingMode;
         SerializedProperty m_CopyDepthMode;
         SerializedProperty m_AccurateGbufferNormals;
-        SerializedProperty m_ClusteredRendering;
-        SerializedProperty m_TileSize;
         SerializedProperty m_UseNativeRenderPass;
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
         SerializedProperty m_IntermediateTextureMode;
-
-#if URP_ENABLE_CLUSTERED_UI
-        static bool s_EnableClusteredUI => true;
-#else
-        static bool s_EnableClusteredUI => false;
-#endif
 
         private void OnEnable()
         {
@@ -69,8 +60,6 @@ namespace UnityEditor.Rendering.Universal
             m_DepthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
             m_CopyDepthMode = serializedObject.FindProperty("m_CopyDepthMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
-            m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
-            m_TileSize = serializedObject.FindProperty("m_TileSize");
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
@@ -102,17 +91,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
             }
 
-            if (m_RenderingMode.intValue == (int)RenderingMode.Forward)
+            if (m_RenderingMode.intValue == (int)RenderingMode.Forward || m_RenderingMode.intValue == (int)RenderingMode.ForwardPlus)
             {
                 EditorGUI.indentLevel++;
-
-                if (s_EnableClusteredUI)
-                {
-                    EditorGUILayout.PropertyField(m_ClusteredRendering, Styles.clusteredRenderingLabel);
-                    EditorGUI.BeginDisabledGroup(!m_ClusteredRendering.boolValue);
-                    EditorGUILayout.PropertyField(m_TileSize);
-                    EditorGUI.EndDisabledGroup();
-                }
 
                 EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
                 if (m_DepthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)

@@ -293,7 +293,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
 
-    #if USE_CLUSTERED_LIGHTING
+    #if USE_FORWARD_PLUS
     for (uint lightIndex = 0; lightIndex < min(_AdditionalLightsDirectionalCount, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
@@ -384,7 +384,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
 
-    #if USE_CLUSTERED_LIGHTING
+    #if USE_FORWARD_PLUS
     for (uint lightIndex = 0; lightIndex < min(_AdditionalLightsDirectionalCount, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);

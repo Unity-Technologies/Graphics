@@ -144,8 +144,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
-        internal static int maxZBins => 1024 * 4;
-        internal static int maxTileVec4s => 4096;
+        internal static int maxZBinWords => 1024 * 4;
+        internal static int maxTileWords => (maxVisibleAdditionalLights <= 32 ? 1024 : 4096) * 4;
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
@@ -300,6 +300,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             {
                 var camera = cameras[i];
+                camera.allowDynamicResolution = false;
                 if (IsGameCamera(camera))
                 {
                     RenderCameraStack(renderContext, camera);
@@ -1096,7 +1097,7 @@ namespace UnityEngine.Rendering.Universal
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
-            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
+            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount, ((settings.scriptableRendererData as UniversalRendererData)?.renderingMode ?? RenderingMode.Forward) == RenderingMode.ForwardPlus);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
             renderingData.commandBuffer = cmd;
 
@@ -1258,13 +1259,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
+        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount, bool clustering)
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
 
             var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
-            if (additionalLightsCount > 0)
+            if (additionalLightsCount > 0 && !clustering)
             {
                 configuration |= PerObjectData.LightData;
 

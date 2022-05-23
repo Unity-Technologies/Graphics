@@ -887,7 +887,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
-                { CoreKeywordDescriptors.ClusteredRendering },
+                { CoreKeywordDescriptors.ForwardPlus },
             };
 
             public static readonly KeywordCollection DOTSForward = new KeywordCollection

@@ -57,7 +57,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _FORWARD_PLUS
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS

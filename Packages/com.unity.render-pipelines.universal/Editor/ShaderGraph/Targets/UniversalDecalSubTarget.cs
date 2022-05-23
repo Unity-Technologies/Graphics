@@ -1026,7 +1026,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-                { CoreKeywordDescriptors.ClusteredRendering },
+                { CoreKeywordDescriptors.ForwardPlus },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
@@ -1044,7 +1044,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.ClusteredRendering },
+                { CoreKeywordDescriptors.ForwardPlus },
                 { Descriptors.DecalsNormalBlend },
             };
 
