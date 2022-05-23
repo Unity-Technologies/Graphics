@@ -46,6 +46,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
 
+            AlphaToMask On
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree8Vert

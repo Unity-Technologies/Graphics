@@ -314,4 +314,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/270_Decal_RenderingLayers.unity
     guid: f07beec5ff4e7744383242b8ed2eefff
+  - enabled: 1
+    path: Assets/Scenes/250_AlphaToCoverage/250_AlphaToCoverage_NonMSAA.unity
+    guid: 55b848c185ee4cb43b24ae0449be53ed
+  - enabled: 1
+    path: Assets/Scenes/250_AlphaToCoverage/250_AlphaToCoverage_MSAA.unity
+    guid: 5a37821ccdba7204096a71421610f99a
   m_configObjects: {}

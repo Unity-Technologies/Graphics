@@ -368,7 +368,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
-    AlphaDiscard(alpha, 0.3333);
+    alpha = AlphaDiscard(alpha, 0.3333);
 
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(input.interpolated.clipPos);

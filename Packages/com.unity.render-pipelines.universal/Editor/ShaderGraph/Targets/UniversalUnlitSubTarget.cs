@@ -97,6 +97,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+
+                bool enableAlphaToMask = (target.alphaClip && (target.surfaceType == SurfaceType.Opaque));
+                collector.AddFloatProperty(Property.AlphaToMask, enableAlphaToMask ? 1.0f : 0.0f);
             }
 
             // We always need these properties regardless of whether the material is allowed to override other shader properties.
@@ -254,6 +257,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddAlphaToMaskControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;

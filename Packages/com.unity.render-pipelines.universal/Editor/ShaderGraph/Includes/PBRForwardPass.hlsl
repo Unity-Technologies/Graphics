@@ -76,14 +76,19 @@ void frag(
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
-    #if _ALPHATEST_ON
-        half alpha = surfaceDescription.Alpha;
-        clip(alpha - surfaceDescription.AlphaClipThreshold);
-    #elif _SURFACE_TYPE_TRANSPARENT
-        half alpha = surfaceDescription.Alpha;
-    #else
-        half alpha = 1;
-    #endif
+#if defined(_SURFACE_TYPE_TRANSPARENT)
+    bool isTransparent = true;
+#else
+    bool isTransparent = false;
+#endif
+
+#if defined(_ALPHATEST_ON)
+    half alpha = AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+#elif defined(_SURFACE_TYPE_TRANSPARENT)
+    half alpha = surfaceDescription.Alpha;
+#else
+    half alpha = half(1.0);
+#endif
 
     #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
         LODFadeCrossFade(unpacked.positionCS);
@@ -131,8 +136,10 @@ void frag(
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surface);
-
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+    color.a = OutputAlpha(color.a, isTransparent);
+
     outColor = color;
 
 #ifdef _WRITE_RENDERING_LAYERS

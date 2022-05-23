@@ -16,6 +16,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
 
         Pass
         {
+            AlphaToMask On
+
             HLSLPROGRAM
             #pragma target 2.0
 

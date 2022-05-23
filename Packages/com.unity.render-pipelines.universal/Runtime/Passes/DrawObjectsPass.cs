@@ -174,11 +174,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, data.m_ProfilingSampler))
             {
-                // TODO RENDERGRAPH: do this as a separate pass, so no need of calling OnExecute here...
-                data.pass.OnExecute(cmd);
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
                 // Global render pass data containing various settings.
                 // x,y,z are currently unused
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
@@ -194,6 +189,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
+
+                // Set a value that can be used by shaders to identify when AlphaToMask functionality may be active
+                // The material shader alpha clipping logic requires this value in order to function correctly in all cases.
+                float alphaToMaskAvailable = ((renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.m_IsOpaque) ? 1.0f : 0.0f;
+                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
+
+                // TODO RENDERGRAPH: do this as a separate pass, so no need of calling OnExecute here...
+                data.pass.OnExecute(cmd);
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (data.m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;

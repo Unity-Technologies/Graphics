@@ -26,6 +26,7 @@ The version number for this package has increased due to a version update of a r
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
 - Add #pragma editor_sync_compilation directive to FallbackError.shader
 - Added commandBuffer variable to RenderingData struct and switched all of the renderer to use that buffer instead of creating local command buffers.
+- Added automatic Alpha-To-Coverage feature which improves visual quality for alpha-clipped opaque geometry when MSAA is enabled
 
 ### Changed
 - PostProcessPass to internal visibility since it's in Internal namespace.

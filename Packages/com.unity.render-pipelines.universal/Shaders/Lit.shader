@@ -55,6 +55,7 @@ Shader "Universal Render Pipeline/Lit"
         [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
+        [HideInInspector] _AlphaToMask("__alphaToMask", Float) = 0.0
 
         [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
@@ -92,6 +93,7 @@ Shader "Universal Render Pipeline/Lit"
             Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
+            AlphaToMask[_AlphaToMask]
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -414,6 +416,7 @@ Shader "Universal Render Pipeline/Lit"
             Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
+            AlphaToMask[_AlphaToMask]
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

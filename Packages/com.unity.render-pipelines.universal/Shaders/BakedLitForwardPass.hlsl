@@ -135,7 +135,7 @@ void BakedLitForwardPassFragment(
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
 
-    AlphaDiscard(alpha, _Cutoff);
+    alpha = AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
 
 #ifdef LOD_FADE_CROSSFADE
