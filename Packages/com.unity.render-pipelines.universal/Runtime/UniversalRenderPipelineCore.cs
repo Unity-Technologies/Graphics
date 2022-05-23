@@ -330,12 +330,12 @@ namespace UnityEngine.Rendering.Universal
             if (renderer != null)
             {
 #pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
-                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraDepthTarget;
+                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraColorTarget;
 #pragma warning restore 0618
                 bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= targetId == xr.renderTarget;
+                    renderingToBackBufferTarget |= targetId == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
@@ -561,6 +561,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int billboardTangent = Shader.PropertyToID("unity_BillboardTangent");
         public static readonly int billboardCameraParams = Shader.PropertyToID("unity_BillboardCameraParams");
 
+        public static readonly int blitTexture = Shader.PropertyToID("_BlitTexture");
+        public static readonly int blitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
@@ -693,9 +695,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _NORMALMAP = "_NORMALMAP";
 
         public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
-
-        // XR
-        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
     }
 
     public sealed partial class UniversalRenderPipeline

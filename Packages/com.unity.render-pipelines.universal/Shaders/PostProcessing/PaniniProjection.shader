@@ -5,12 +5,9 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
         #pragma exclude_renderers gles
 
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
-        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-        #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
-
-        TEXTURE2D_X(_SourceTex);
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
         float4 _Params;
 
@@ -101,16 +98,17 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+            float2 view_pos = (2.0 * input.texcoord - 1.0) * _Params.xy * _Params.w;
             #if _GENERIC
-            float2 proj_pos = Panini_Generic((2.0 * input.uv - 1.0) * _Params.xy * _Params.w, _Params.z);
+            float2 proj_pos = Panini_Generic(view_pos, _Params.z);
             #else // _UNIT_DISTANCE
-            float2 proj_pos = Panini_UnitDistance((2.0 * input.uv - 1.0) * _Params.xy * _Params.w);
+            float2 proj_pos = Panini_UnitDistance(view_pos);
             #endif
 
             float2 proj_ndc = proj_pos / _Params.xy;
             float2 coords = proj_ndc * 0.5 + 0.5;
 
-            return SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, coords);
+            return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, coords);
         }
 
     ENDHLSL
@@ -126,7 +124,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             Name "Panini Projection"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment Frag
             ENDHLSL
         }

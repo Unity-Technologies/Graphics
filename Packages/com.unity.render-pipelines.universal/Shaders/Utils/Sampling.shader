@@ -14,16 +14,14 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             Cull Off
 
             HLSLPROGRAM
-            #pragma vertex FullscreenVert
+            #pragma vertex Vert
             #pragma fragment FragBoxDownsample
 
-            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
-
-            TEXTURE2D_X(_SourceTex);
-            SAMPLER(sampler_SourceTex);
-            float4 _SourceTex_TexelSize;
+            SAMPLER(sampler_BlitTexture);
+            float4 _BlitTexture_TexelSize;
 
             float _SampleOffset;
 
@@ -31,13 +29,14 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                float4 d = _SourceTex_TexelSize.xyxy * float4(-_SampleOffset, -_SampleOffset, _SampleOffset, _SampleOffset);
+                float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
+                float4 d = _BlitTexture_TexelSize.xyxy * float4(-_SampleOffset, -_SampleOffset, _SampleOffset, _SampleOffset);
 
                 half4 s;
-                s =  SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, input.uv + d.xy);
-                s += SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, input.uv + d.zy);
-                s += SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, input.uv + d.xw);
-                s += SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, input.uv + d.zw);
+                s =  SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, uv + d.xy);
+                s += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, uv + d.zy);
+                s += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, uv + d.xw);
+                s += SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, uv + d.zw);
 
                 return s * 0.25h;
             }

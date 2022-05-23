@@ -95,5 +95,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.ReleaseTemporaryRT(m_CameraColor.id);
             cmd.ReleaseTemporaryRT(m_CameraDepth.id);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            m_FinalBlitPass.Dispose();
+        }
     }
 }

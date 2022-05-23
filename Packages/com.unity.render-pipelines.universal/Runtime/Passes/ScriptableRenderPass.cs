@@ -700,8 +700,10 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderer"/>
         public void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material = null, int passIndex = 0)
         {
-            ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
-            cmd.Blit(source.nameID, destination.nameID, material, passIndex);
+            if (material == null)
+                Blitter.BlitCameraTexture(cmd, source, destination, bilinear: source.rt.filterMode == FilterMode.Bilinear);
+            else
+                Blitter.BlitCameraTexture(cmd, source, destination, material, passIndex);
         }
 
         /// <summary>

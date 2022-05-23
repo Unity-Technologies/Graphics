@@ -163,50 +163,19 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 copyDepthMaterial.SetTexture("_CameraDepthAttachment", source.rt);
 
+                Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                // We y-flip if
+                // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
+                // 2) renderTexture starts UV at top
+                bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination.nameID == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                // XR uses procedural draw instead of cmd.blit or cmd.DrawFullScreenMesh
                 if (cameraData.xr.enabled)
-                {
-                    // XR flip logic is not the same as non-XR case because XR uses draw procedure
-                    // and draw procedure does not need to take projection matrix yflip into account
-                    // We y-flip if
-                    // 1) we are bliting from render texture to back buffer and
-                    // 2) renderTexture starts UV at top
-                    // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget;
-                    bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                    float flipSign = (yflip) ? -1.0f : 1.0f;
-                    Vector4 scaleBiasRt = (flipSign < 0.0f)
-                        ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                        : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, copyDepthMaterial, 0, MeshTopology.Quads, 4);
-                }
-                else
+                    isGameViewFinalTarget |= destination.nameID == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
 #endif
-                {
-                    // Blit has logic to flip projection matrix when rendering to render texture.
-                    // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                    // If you replace this Blit with a Draw* that sets projection matrix double check
-                    // to also update shader.
-                    // scaleBias.x = flipSign
-                    // scaleBias.y = scale
-                    // scaleBias.z = bias
-                    // scaleBias.w = unused
-                    // yFlip if
-                    // 1) blitting from render texture to backbuffer or
-                    // 2) blitting from backbuffer to render texture
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination.nameID == k_CameraTarget.nameID);
-                    bool yflip = isSourceYflipped && !isGameViewFinalTarget;
-                    float flipSign = yflip ? -1.0f : 1.0f;
-                    Vector4 scaleBiasRt = (flipSign < 0.0f)
-                        ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                        : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, copyDepthMaterial);
-                }
+                bool yflip = (copyToDepth || !isSourceYflipped && !isGameViewFinalTarget) && SystemInfo.graphicsUVStartsAtTop;
+                Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+                cmd.SetViewport(new Rect(0, 0, cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
+                Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
 

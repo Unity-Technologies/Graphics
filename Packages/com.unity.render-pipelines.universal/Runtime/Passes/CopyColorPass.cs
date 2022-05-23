@@ -169,20 +169,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             // TODO RENDERGRAPH: cmd.Blit is not compatible with RG but RenderingUtils.Blits would still call into it in some cases
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
+                ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
                 switch (downsamplingMethod)
                 {
                     case Downsampling.None:
-                        RenderingUtils.Blit(cmd, source, destination, copyColorMaterial, 0, useDrawProceduralBlit, RenderBufferLoadAction.DontCare);
+                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, copyColorMaterial, 0);
                         break;
                     case Downsampling._2xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, copyColorMaterial, 0, useDrawProceduralBlit, RenderBufferLoadAction.DontCare);
+                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, copyColorMaterial, 1);
                         break;
                     case Downsampling._4xBox:
                         samplingMaterial.SetFloat(sampleOffsetShaderHandle, 2);
-                        RenderingUtils.Blit(cmd, source, destination, samplingMaterial, 0, useDrawProceduralBlit, RenderBufferLoadAction.DontCare);
+                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, samplingMaterial, 0);
                         break;
                     case Downsampling._4xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, copyColorMaterial, 0, useDrawProceduralBlit, RenderBufferLoadAction.DontCare);
+                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, copyColorMaterial, 1);
                         break;
                 }
             }

@@ -13,12 +13,13 @@ Shader "Hidden/Universal Render Pipeline/DrawNormals"
             Cull Off
 
             HLSLPROGRAM
-            #pragma vertex FullscreenVert
+            #pragma vertex Vert
             #pragma fragment Fragment
             #pragma multi_compile _DRAW_NORMALS_TAP1 _DRAW_NORMALS_TAP3 _DRAW_NORMALS_TAP5 _DRAW_NORMALS_TAP9
             #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
 

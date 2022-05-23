@@ -43,7 +43,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
 
         half4 Frag(Varyings input) : SV_Target
         {
-            float3 colorLinear = GetLutStripValue(input.uv, _Lut_Params);
+            float3 colorLinear = GetLutStripValue(input.texcoord, _Lut_Params);
 
             // White balance in LMS space
             float3 colorLMS = LinearToLMS(colorLinear);
@@ -156,7 +156,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
             Name "LutBuilderLdr"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment Frag
             ENDHLSL
         }

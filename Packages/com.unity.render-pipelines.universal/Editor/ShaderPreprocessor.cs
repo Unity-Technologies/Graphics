@@ -99,7 +99,6 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_AlphaTestOn;
         LocalKeyword m_DeferredStencil;
         LocalKeyword m_GbufferNormalsOct;
-        LocalKeyword m_UseDrawProcedural;
         LocalKeyword m_ScreenSpaceOcclusion;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
@@ -167,7 +166,6 @@ namespace UnityEditor.Rendering.Universal
             m_AlphaTestOn = TryGetLocalKeyword(shader, ShaderKeywordStrings._ALPHATEST_ON);
             m_DeferredStencil = TryGetLocalKeyword(shader, ShaderKeywordStrings._DEFERRED_STENCIL);
             m_GbufferNormalsOct = TryGetLocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-            m_UseDrawProcedural = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseDrawProcedural);
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
@@ -520,10 +518,6 @@ namespace UnityEditor.Rendering.Universal
                 stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural) &&
-                !IsFeatureEnabled(features, ShaderFeatures.DrawProcedural))
-                return true;
-
             // Decal Normal Blend
             if (stripTool.StripMultiCompile(
                 m_DecalNormalBlendLow, ShaderFeatures.DecalNormalBlendLow,
@@ -626,10 +620,6 @@ namespace UnityEditor.Rendering.Universal
             // As GLES2 has low amount of registers, we strip:
             if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
             {
-                // VertexID - as GLES2 does not support VertexID that is required for full screen draw procedural pass;
-                if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural))
-                    return true;
-
                 // Cascade shadows
                 if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
                     return true;
