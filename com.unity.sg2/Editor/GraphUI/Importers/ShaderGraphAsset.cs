@@ -38,14 +38,33 @@ namespace UnityEditor.ShaderGraph
             return model;
         }
 
+        // Cheat and do a hard-coded lookup of the UniversalTarget for testing.
+        // Shader Graph should build targets however it wants to.
+        static internal Target GetTarget()
+        {
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach (var type in targetTypes)
+            {
+                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
+                    continue;
+
+                var target = (Target)Activator.CreateInstance(type);
+                if (!target.isHidden)
+                    return target;
+            }
+            return null;
+        }
+
+
         public static GraphHandler CreateBlankGraphHandler()
         {
             var defaultRegistry = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
             var contextKey = Registry.ResolveKey<ShaderGraphContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
-            GraphHandler graph = new ();
-            graph.AddContextNode(propertyKey, defaultRegistry);
-            graph.AddContextNode(contextKey, defaultRegistry);
+            GraphHandler graph = new GraphHandler(defaultRegistry);
+            graph.AddContextNode(propertyKey);
+            graph.AddContextNode(contextKey);
+            graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
             return graph;
         }
 

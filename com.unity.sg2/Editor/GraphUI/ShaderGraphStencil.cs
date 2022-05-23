@@ -173,7 +173,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var propertyContext = graphHandler.GetNode(contextName);
                 Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
 
-                var entry = new IContextDescriptor.ContextEntry
+                var entry = new ContextEntry
                 {
                     fieldName = variableDeclarationName,
                     height = ShaderGraphExampleTypes.GetGraphTypeHeight(model.DataType),

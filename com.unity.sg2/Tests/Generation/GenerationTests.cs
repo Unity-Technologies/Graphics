@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using NUnit.Framework;
+using UnityEditor.ShaderGraph.Configuration;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEngine;
@@ -31,6 +32,9 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             graph.AddContextNode(propertyKey);
             graph.AddContextNode(contextKey);
 
+            graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
+            //graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
+
             graph.AddNode<TestAddNode>("Add1").SetPortField("In1", "c0", 1f); //(1,0,0,0)
             graph.AddNode<TestAddNode>("Add2").SetPortField("In2", "c1", 1f); //(0,1,0,0)
             graph.AddNode<TestAddNode>("Add3");
@@ -52,14 +56,14 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             return DrawToTex(new Material(shader));
         }
 
-        private static Texture2D DrawToTex(Material material)
+        private static Texture2D DrawToTex(Material material, int width = 4, int height = 4)
         {
-            var rt = RenderTexture.GetTemporary(4, 4, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            var rt = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             var prevActive = RenderTexture.active;
             RenderTexture.active = rt;
             Graphics.Blit(null, rt, material);
-            Texture2D output = new (4, 4, TextureFormat.ARGB32, false);
-            output.ReadPixels(new Rect(0, 0, 4, 4), 0, 0);
+            Texture2D output = new (width, height, TextureFormat.ARGB32, false);
+            output.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             RenderTexture.active = prevActive;
             rt.Release();
             return output;
@@ -173,6 +177,59 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             }
 
 
+        }
+
+        // Cheat and do a hard-coded lookup of the UniversalTarget for testing.
+        // Shader Graph should build targets however it wants to.
+        static internal Target GetTarget()
+        {
+            var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach (var type in targetTypes)
+            {
+                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
+                    continue;
+
+                var target = (Target)Activator.CreateInstance(type);
+                if (!target.isHidden)
+                    return target;
+            }
+            return null;
+        }
+
+        public void LogDescriptor(CPGraphDataProvider.TemplateDataDescriptor desc)
+        {
+            Debug.Log(desc.templateName);
+            foreach (var cpio in desc.CPIO)
+            {
+                Debug.Log("\t" + cpio.customizationPointName);
+                Debug.Log("\t\tInputs");
+                foreach (var input in cpio.inputs)
+                {
+                    Debug.Log("\t\t\t" + input.name);
+                }
+                Debug.Log("\t\tOutputs");
+                foreach (var output in cpio.outputs)
+                {
+                    Debug.Log("\t\t\t" + output.name);
+                }
+            }
+        }
+
+
+        [Test]
+        public void FooTest()
+        {
+            var propertyKey = Registry.ResolveKey<PropertyContext>();
+            var propContext = graph.GetNode(propertyKey.Name);
+            var contextKey = Registry.ResolveKey<ShaderGraphContext>();
+            graph.AddReferenceNode("UV_Ref", propertyKey.Name, "uv0", registry);
+            graph.AddEdge("UV_Ref.Output", contextKey.Name + ".BaseColor");
+
+            var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);
+            var shader = MakeShader(shaderString);
+            var material = new Material(shader);
+            var rt = DrawToTex(material, 128, 128);
+            File.WriteAllBytes($"Assets/Foo.jpg", rt.EncodeToJPG());
         }
 
     }

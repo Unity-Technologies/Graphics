@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
 
-        static public void AddContextEntry(NodeHandler contextNode, IContextDescriptor.ContextEntry entry, Registry registry)
+        static public void AddContextEntry(NodeHandler contextNode, ContextEntry entry, Registry registry)
         {
             // TODO/Problem: Only good for GraphType
             var inPort = contextNode.AddPort<GraphType>(entry.fieldName, true, registry);
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         public static void AddReferableEntry(NodeHandler contextNode,
-                                             IContextDescriptor.ContextEntry entry,
+                                             ContextEntry entry,
                                              Registry registry,
                                              PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
                                              DataSource source = DataSource.Global,

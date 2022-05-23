@@ -126,9 +126,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var nodeHandler = m_data.GetHandler(id, this, registry).ToNodeHandler();
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
-            nodeHandler.ClearLayerData(k_concrete);
-            nodeHandler.DefaultLayer = k_concrete;
-            builder.BuildNode(nodeHandler, registry);
+            if (!(builder is ContextBuilder))
+            {
+                nodeHandler.ClearLayerData(k_concrete);
+                nodeHandler.DefaultLayer = k_concrete;
+                builder.BuildNode(nodeHandler, registry);
+                nodeHandler.DefaultLayer = k_user;
+            }
             foreach(var downstream in GetConnectedDownstreamNodes(id, registry).ToList())//we are modifying the collection, hence .ToList
             {
                 ReconcretizeNode(downstream.ID, registry);

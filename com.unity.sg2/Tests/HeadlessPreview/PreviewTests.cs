@@ -10,9 +10,9 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
     // TODO: Move to preview manager and then rely on the name from the registry key for the context node/master preview data name
     class TestDescriptor : IContextDescriptor
     {
-        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
+        public IEnumerable<ContextEntry> GetEntries()
         {
-            return new List<IContextDescriptor.ContextEntry>()
+            return new List<ContextEntry>()
             {
                 new ()
                 {

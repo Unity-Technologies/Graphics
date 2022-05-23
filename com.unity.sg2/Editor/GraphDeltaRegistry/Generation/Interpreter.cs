@@ -90,6 +90,19 @@ namespace UnityEditor.ShaderGraph.Generation
                     inputVariables.Add(varInBuilder.Build());
                     break;
                 case PropertyBlockUsage.Excluded:
+                    var source = DataSource.Constant;
+                    var sourceField = port.GetField<DataSource>(kDataSource);
+                    if (sourceField != null)
+                    {
+                        source = sourceField.GetData();
+                    }
+                    if(source != DataSource.Constant)
+                    {
+                        propertyData = new PropertyAttribute { DataSource = UniformDataSource.Global, UniformName = port.LocalID, Exposed = false };
+                        var varInputBuilder = new StructField.Builder(container, name, type);
+                        SimpleSampleBuilder.MarkAsProperty(container, varInputBuilder, propertyData);
+                        inputVariables.Add(varInputBuilder.Build());
+                    }
                     break;
                 default:
                     break;
@@ -285,7 +298,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
         }
 
-        private static ShaderType EvaluateShaderType(IContextDescriptor.ContextEntry entry, ShaderContainer container)
+        private static ShaderType EvaluateShaderType(ContextEntry entry, ShaderContainer container)
         {
             //length by height
             string lxh = "";
