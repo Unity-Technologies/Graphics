@@ -56,13 +56,18 @@ You can find these new monitors in the Rendering Debugger window (menu: **Window
 - Vectorscope: Measures the overall range of hue and saturation within the image
 ![](Images/new_vectorscope.png)
 
+### Denoising in Path Tracing
+HDRP 14.0 introduces denoising for path-traced frames with a choice of two different libraries: Optix Denoiser and Intel Open Image Denoise.
+
+![](Images/Path-Tracing-Denoise.png)
+
 ## Updated
 
 ### Cloud Layer
 
 When using the cloud layer in combination wiht the physically based sky, the sun light color will now correctly take atmospheric attenuation into account.
 Additionally, the sun light color will now always impact the color of the clouds, even if the raymarching is disabled.
-Improvements have also been made to the raymarching algorithm to improve scattering, and have more consistent results when changing the number of steps. Depending on your lightig conditions, you may have to tweak the density and exposure sliders to match the visuals with prior HDRP versions.
+Improvements have also been made to the raymarching algorithm to improve scattering, and have more consistent results when changing the number of steps. Depending on your lighting conditions, you may have to tweak the density and exposure sliders to match the visuals with prior HDRP versions.
 In the UI, **thickness** and **distortion** fields have been renamed to **density** and **wind**.
 
 ![](Images/cl-whats-new.png)
