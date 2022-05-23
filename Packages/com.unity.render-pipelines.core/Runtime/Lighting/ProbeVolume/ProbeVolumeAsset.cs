@@ -86,6 +86,9 @@ namespace UnityEngine.Rendering
         NativeArray<T> GetSubArray<T>(NativeArray<byte> input, int count, ref int offset) where T : struct
         {
             var size = count * UnsafeUtility.SizeOf<T>();
+            if (offset + size > input.Length)
+                return default;
+
             var result = input.GetSubArray(offset, size).Reinterpret<T>(1);
             offset = AlignUp16(offset + size);
             return result;

@@ -347,8 +347,8 @@ namespace UnityEngine.Rendering
 
             m_Scenarios.onAddCallback = (list) =>
             {
-                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking state");
-                var state = GetCurrentBakingSet().CreateScenario("New Baking State");
+                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new lighting scenario");
+                var state = GetCurrentBakingSet().CreateScenario("New Lighting Scenario");
                 m_Scenarios.index = GetCurrentBakingSet().lightingScenarios.IndexOf(state);
                 m_Scenarios.onSelectCallback(m_Scenarios);
                 UpdateScenariosStatuses();
@@ -358,10 +358,10 @@ namespace UnityEngine.Rendering
             {
                 if (m_Scenarios.count == 1)
                 {
-                    EditorUtility.DisplayDialog("Can't delete baking state", "You can't delete the last Baking state. You need to have at least one.", "Ok");
+                    EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "Ok");
                     return;
                 }
-                if (!EditorUtility.DisplayDialog("Delete the selected baking state?", $"Deleting the baking state will also delete corresponding baked data on disk.\nDo you really want to delete the baking state '{GetCurrentBakingSet().lightingScenarios[list.index]}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
+                if (!EditorUtility.DisplayDialog("Delete the selected scenario?", $"Deleting the scenario will also delete corresponding baked data on disk.\nDo you really want to delete the scenario '{GetCurrentBakingSet().lightingScenarios[list.index]}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
                     return;
                 var set = GetCurrentBakingSet();
                 var state = set.lightingScenarios[list.index];

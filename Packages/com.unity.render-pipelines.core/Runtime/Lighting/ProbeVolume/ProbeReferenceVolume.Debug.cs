@@ -267,8 +267,12 @@ namespace UnityEngine.Rendering
                 widgetList.Add(streamingContainer);
             }
 
-            if (parameters.scenarioBlendingShader != null && parameters.sceneData != null)
+            if (parameters.scenarioBlendingShader != null && parameters.blendingMemoryBudget != 0)
             {
+                var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
+                blendingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Blended Per Frame", getter = () => instance.numberOfCellsBlendedPerFrame, setter = value => instance.numberOfCellsBlendedPerFrame = value, min = () => 0 });
+                blendingContainer.children.Add(new DebugUI.FloatField { displayName = "Turnover Rate", getter = () => instance.turnoverRate, setter = value => instance.turnoverRate = value, min = () => 0, max = () => 1 });
+
                 void RefreshScenarioNames(string guid)
                 {
                     HashSet<string> allScenarios = new();
@@ -304,7 +308,6 @@ namespace UnityEngine.Rendering
                         probeVolumeDebug.otherStateIndex = 0;
                 }
 
-                var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
                 m_DebugScenarioField = new DebugUI.EnumField
                 {
                     displayName = "Scenario To Blend With",

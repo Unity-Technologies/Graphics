@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
 
-            if (ProbeBrickBlendingPool.isInitialized)
+            if (ProbeReferenceVolume.instance.enableScenarioBlending)
             {
                 // Trigger blending system to replace old cells with the one from the new active scenario.
                 // Although we technically don't need blending for that, it is better than unloading all cells
@@ -129,29 +129,35 @@ namespace UnityEngine.Rendering
 
         internal void BlendLightingScenario(string otherScenario, float blendingFactor)
         {
-            if (!ProbeBrickBlendingPool.isInitialized)
+            if (!ProbeReferenceVolume.instance.enableScenarioBlending)
             {
-                Debug.LogError("Blending between lighting scenarios is not supported by this render pipeline.");
+                if (!ProbeBrickBlendingPool.isSupported)
+                    Debug.LogError("Blending between lighting scenarios is not supported by this render pipeline.");
+                else
+                    Debug.LogError("Blending between lighting scenarios is disabled in the render pipeline settings.");
                 return;
             }
 
             blendingFactor = Mathf.Clamp01(blendingFactor);
 
-            if (otherScenario == m_LightingScenario)
+            if (otherScenario == m_LightingScenario || string.IsNullOrEmpty(otherScenario))
                 otherScenario = null;
             if (otherScenario == null)
                 blendingFactor = 0.0f;
             if (otherScenario == m_OtherScenario && Mathf.Approximately(blendingFactor, m_ScenarioBlendingFactor))
                 return;
 
-            bool requestUnloading = otherScenario != m_OtherScenario;
+            bool scenarioChanged = otherScenario != m_OtherScenario;
             m_OtherScenario = otherScenario;
             m_ScenarioBlendingFactor = blendingFactor;
 
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+            if (scenarioChanged)
+            {
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                    data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario);
+            }
 
-            ProbeReferenceVolume.instance.ScenarioBlendingChanged(requestUnloading);
+            ProbeReferenceVolume.instance.ScenarioBlendingChanged(scenarioChanged);
         }
 
         /// <summary>
@@ -233,6 +239,9 @@ namespace UnityEngine.Rendering
 
                 bakingSets.Add(set);
             }
+
+            if (m_OtherScenario == "")
+                m_OtherScenario = null;
         }
 
         // This function must not be called during the serialization (because of asset creation)

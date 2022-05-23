@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering
                 cellSizeInMeters = profile.cellSizeInMeters;
             }
 
-            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
+            var cameraTransform = Camera.current.transform;
 
             Vector3 cellCenterWS = cellPosition * cellSizeInMeters + originWS + Vector3.one * (cellSizeInMeters / 2.0f);
 
@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering
             if (roundedDownDist > ProbeReferenceVolume.instance.probeVolumeDebug.subdivisionViewCullingDistance)
                 return true;
 
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
+            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.current);
             var volumeAABB = new Bounds(cellCenterWS, cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);

@@ -77,19 +77,20 @@ namespace UnityEngine.Rendering
         int m_AvailableChunkCount;
 
         ProbeVolumeSHBands m_SHBands;
-        internal ProbeVolumeSHBands shBands => m_SHBands;
+        bool m_ContainsValidity;
 
-        internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
+        internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands, bool allocateValidityData = true)
         {
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
             m_SHBands = shBands;
+            m_ContainsValidity = allocateValidityData;
 
             m_FreeList = new Stack<BrickChunkAlloc>(256);
 
             DerivePoolSizeFromBudget(memoryBudget, out int width, out int height, out int depth);
-            m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", true, out int estimatedCost);
+            m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", true, allocateValidityData, out int estimatedCost);
             estimatedVMemCost = estimatedCost;
 
             m_AvailableChunkCount = (m_Pool.width / (kProbePoolChunkSizeInBricks * kBrickProbeCountPerDim)) * (m_Pool.height / kBrickProbeCountPerDim) * (m_Pool.depth / kBrickProbeCountPerDim);
@@ -108,7 +109,7 @@ namespace UnityEngine.Rendering
             if (m_Pool.TexL0_L1rx == null)
             {
                 m_Pool.Cleanup();
-                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, "APV", true, out int estimatedCost);
+                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, "APV", true, m_ContainsValidity, out int estimatedCost);
                 estimatedVMemCost = estimatedCost;
             }
         }
@@ -209,7 +210,8 @@ namespace UnityEngine.Rendering
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_B_rz, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B_rz, dst.z + j, 0, dst.x, dst.y);
 
-                    Graphics.CopyTexture(source.TexValidity, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexValidity, dst.z + j, 0, dst.x, dst.y);
+                    if (m_ContainsValidity)
+                        Graphics.CopyTexture(source.TexValidity, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexValidity, dst.z + j, 0, dst.x, dst.y);
 
                     if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
@@ -218,6 +220,23 @@ namespace UnityEngine.Rendering
                         Graphics.CopyTexture(source.TexL2_2, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL2_2, dst.z + j, 0, dst.x, dst.y);
                         Graphics.CopyTexture(source.TexL2_3, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL2_3, dst.z + j, 0, dst.x, dst.y);
                     }
+                }
+            }
+        }
+
+        internal void UpdateValidity(DataLocation source, List<BrickChunkAlloc> srcLocations, List<BrickChunkAlloc> dstLocations, int destStartIndex)
+        {
+            Debug.Assert(m_ContainsValidity);
+
+            for (int i = 0; i < srcLocations.Count; i++)
+            {
+                BrickChunkAlloc src = srcLocations[i];
+                BrickChunkAlloc dst = dstLocations[destStartIndex + i];
+
+                for (int j = 0; j < kBrickProbeCountPerDim; j++)
+                {
+                    int width = Mathf.Min(kProbePoolChunkSizeInBricks * kBrickProbeCountPerDim, source.width - src.x);
+                    Graphics.CopyTexture(source.TexValidity, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexValidity, dst.z + j, 0, dst.x, dst.y);
                 }
             }
         }
@@ -282,7 +301,7 @@ namespace UnityEngine.Rendering
             return texture;
         }
 
-        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, string name, bool allocateRendertexture, out int allocatedBytes)
+        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, string name, bool allocateRendertexture, bool allocateValidityData, out int allocatedBytes)
         {
             Vector3Int locSize = ProbeCountToDataLocSize(numProbes);
             int width = locSize.x;
@@ -297,7 +316,11 @@ namespace UnityEngine.Rendering
             loc.TexL0_L1rx = CreateDataTexture(width, height, depth, L0Format, $"{name}_TexL0_L1rx", allocateRendertexture, ref allocatedBytes);
             loc.TexL1_G_ry = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_G_ry", allocateRendertexture, ref allocatedBytes);
             loc.TexL1_B_rz = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_B_rz", allocateRendertexture, ref allocatedBytes);
-            loc.TexValidity = CreateDataTexture(width, height, depth, GraphicsFormat.R8_UNorm, $"{name}_Validity", false, ref allocatedBytes) as Texture3D;
+
+            if (allocateValidityData)
+                loc.TexValidity = CreateDataTexture(width, height, depth, GraphicsFormat.R8_UNorm, $"{name}_Validity", false, ref allocatedBytes) as Texture3D;
+            else
+                loc.TexValidity = null;
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
@@ -339,11 +362,10 @@ namespace UnityEngine.Rendering
     internal class ProbeBrickBlendingPool
     {
         static ComputeShader stateBlendShader;
-        static int stateBlendKernel = -1;
+        static int scenarioBlendingKernel = -1;
 
-        static readonly int _ChunkDim_LerpFactor = Shader.PropertyToID("_ChunkDim_LerpFactor");
-        static readonly int _ChunkMapping = Shader.PropertyToID("_ChunkMapping");
-        static readonly int _PoolDims = Shader.PropertyToID("_PoolDims");
+        static readonly int _PoolDim_LerpFactor = Shader.PropertyToID("_PoolDim_LerpFactor");
+        static readonly int _ChunkList = Shader.PropertyToID("_ChunkList");
 
         static readonly int _State0_L0_L1Rx = Shader.PropertyToID("_State0_L0_L1Rx");
         static readonly int _State0_L1G_L1Ry = Shader.PropertyToID("_State0_L1G_L1Ry");
@@ -369,25 +391,23 @@ namespace UnityEngine.Rendering
         static readonly int _Out_L2_2 = Shader.PropertyToID("_Out_L2_2");
         static readonly int _Out_L2_3 = Shader.PropertyToID("_Out_L2_3");
 
-        internal static bool isInitialized => stateBlendShader != null;
+        internal static bool isSupported => stateBlendShader != null;
 
         internal static void Initialize(in ProbeVolumeSystemParameters parameters)
         {
             stateBlendShader = parameters.scenarioBlendingShader;
-            stateBlendKernel = stateBlendShader ? stateBlendShader.FindKernel("BlendStates") : -1;
+            scenarioBlendingKernel = stateBlendShader ? stateBlendShader.FindKernel("BlendScenarios") : -1;
         }
 
-        const uint s_UnmappedChunk = unchecked((uint)-1);
-
-        List<uint> m_IndexMapping;
-        ComputeBuffer m_ChunkMapping;
-        bool m_MappingNeedsReupload = true;
-        int m_MappedChunks = 0;
+        Vector4[] m_ChunkList;
+        int m_MappedChunks;
 
         ProbeBrickPool m_State0, m_State1;
-        internal int estimatedVMemCost => m_State0.estimatedVMemCost + m_State1.estimatedVMemCost;
+        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+        ProbeVolumeSHBands m_ShBands;
 
-        internal int MaxAvailablebrickCount => GetPoolWidth() * GetPoolHeight() * GetPoolHeight() / ProbeBrickPool.kBrickProbeCountTotal;
+        internal bool isAllocated => m_State0 != null;
+        internal int estimatedVMemCost => isAllocated ? m_State0.estimatedVMemCost + m_State1.estimatedVMemCost : 0;
 
         internal int GetPoolWidth() { return m_State0.m_Pool.width; }
         internal int GetPoolHeight() { return m_State0.m_Pool.height; }
@@ -397,151 +417,132 @@ namespace UnityEngine.Rendering
         internal ProbeBrickBlendingPool(ProbeVolumeBlendingTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
             // Casting to other memory budget struct works cause it's casted to int in the end anyway
-            m_State0 = new ProbeBrickPool((ProbeVolumeTextureMemoryBudget)memoryBudget, shBands);
-            m_State1 = new ProbeBrickPool((ProbeVolumeTextureMemoryBudget)memoryBudget, shBands);
-
-            m_IndexMapping = new List<uint>(MaxAvailablebrickCount);
-            for (int i = 0; i < MaxAvailablebrickCount; i++)
-                m_IndexMapping.Add(s_UnmappedChunk);
-            m_ChunkMapping = new ComputeBuffer(m_IndexMapping.Count, sizeof(uint));
-            Upload();
+            m_MemoryBudget = (ProbeVolumeTextureMemoryBudget)memoryBudget;
+            m_ShBands = shBands;
         }
+
+        internal void AllocateResourcesIfNeeded()
+        {
+            if (isAllocated)
+                return;
+
+            m_State0 = new ProbeBrickPool(m_MemoryBudget, m_ShBands, false);
+            m_State1 = new ProbeBrickPool(m_MemoryBudget, m_ShBands, false);
+
+            int maxAvailablebrickCount = (GetPoolWidth()  / ProbeBrickPool.kChunkProbeCountPerDim)
+                                       * (GetPoolHeight() / ProbeBrickPool.kBrickProbeCountPerDim)
+                                       * (GetPoolDepth()  / ProbeBrickPool.kBrickProbeCountPerDim);
+
+            m_ChunkList = new Vector4[maxAvailablebrickCount];
+            m_MappedChunks = 0;
+        }
+
         internal void Update(ProbeBrickPool.DataLocation source, List<ProbeBrickPool.BrickChunkAlloc> srcLocations, List<ProbeBrickPool.BrickChunkAlloc> dstLocations, int destStartIndex, ProbeVolumeSHBands bands, int state)
         {
             (state == 0 ? m_State0 : m_State1).Update(source, srcLocations, dstLocations, destStartIndex, bands);
         }
 
-        void Upload()
-        {
-            if (m_MappingNeedsReupload)
-            {
-                m_ChunkMapping.SetData(m_IndexMapping);
-                m_MappingNeedsReupload = false;
-            }
-        }
-
         static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
-        internal void PerformBlending(float factor, ProbeBrickPool dstPool)
+        internal void PerformBlending(CommandBuffer cmd, float factor, ProbeBrickPool dstPool)
         {
             if (m_MappedChunks == 0)
                 return;
 
-            Upload();
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State0_L0_L1Rx, m_State0.m_Pool.TexL0_L1rx);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State0_L1G_L1Ry, m_State0.m_Pool.TexL1_G_ry);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State0_L1B_L1Rz, m_State0.m_Pool.TexL1_B_rz);
 
-            stateBlendShader.SetTexture(stateBlendKernel, _State0_L0_L1Rx, m_State0.m_Pool.TexL0_L1rx);
-            stateBlendShader.SetTexture(stateBlendKernel, _State0_L1G_L1Ry, m_State0.m_Pool.TexL1_G_ry);
-            stateBlendShader.SetTexture(stateBlendKernel, _State0_L1B_L1Rz, m_State0.m_Pool.TexL1_B_rz);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State1_L0_L1Rx, m_State1.m_Pool.TexL0_L1rx);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State1_L1G_L1Ry, m_State1.m_Pool.TexL1_G_ry);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State1_L1B_L1Rz, m_State1.m_Pool.TexL1_B_rz);
 
-            stateBlendShader.SetTexture(stateBlendKernel, _State1_L0_L1Rx, m_State1.m_Pool.TexL0_L1rx);
-            stateBlendShader.SetTexture(stateBlendKernel, _State1_L1G_L1Ry, m_State1.m_Pool.TexL1_G_ry);
-            stateBlendShader.SetTexture(stateBlendKernel, _State1_L1B_L1Rz, m_State1.m_Pool.TexL1_B_rz);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _Out_L0_L1Rx, dstPool.m_Pool.TexL0_L1rx);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _Out_L1G_L1Ry, dstPool.m_Pool.TexL1_G_ry);
+            cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _Out_L1B_L1Rz, dstPool.m_Pool.TexL1_B_rz);
 
-            stateBlendShader.SetTexture(stateBlendKernel, _Out_L0_L1Rx, dstPool.m_Pool.TexL0_L1rx);
-            stateBlendShader.SetTexture(stateBlendKernel, _Out_L1G_L1Ry, dstPool.m_Pool.TexL1_G_ry);
-            stateBlendShader.SetTexture(stateBlendKernel, _Out_L1B_L1Rz, dstPool.m_Pool.TexL1_B_rz);
-
-            if (m_State0.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            if (m_ShBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
                 stateBlendShader.EnableKeyword("PROBE_VOLUMES_L2");
 
-                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_0, m_State0.m_Pool.TexL2_0);
-                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_1, m_State0.m_Pool.TexL2_1);
-                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_2, m_State0.m_Pool.TexL2_2);
-                stateBlendShader.SetTexture(stateBlendKernel, _State0_L2_3, m_State0.m_Pool.TexL2_3);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State0_L2_0, m_State0.m_Pool.TexL2_0);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State0_L2_1, m_State0.m_Pool.TexL2_1);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State0_L2_2, m_State0.m_Pool.TexL2_2);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State0_L2_3, m_State0.m_Pool.TexL2_3);
 
-                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_0, m_State1.m_Pool.TexL2_0);
-                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_1, m_State1.m_Pool.TexL2_1);
-                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_2, m_State1.m_Pool.TexL2_2);
-                stateBlendShader.SetTexture(stateBlendKernel, _State1_L2_3, m_State1.m_Pool.TexL2_3);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State1_L2_0, m_State1.m_Pool.TexL2_0);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State1_L2_1, m_State1.m_Pool.TexL2_1);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State1_L2_2, m_State1.m_Pool.TexL2_2);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _State1_L2_3, m_State1.m_Pool.TexL2_3);
 
-                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_0, dstPool.m_Pool.TexL2_0);
-                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_1, dstPool.m_Pool.TexL2_1);
-                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_2, dstPool.m_Pool.TexL2_2);
-                stateBlendShader.SetTexture(stateBlendKernel, _Out_L2_3, dstPool.m_Pool.TexL2_3);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _Out_L2_0, dstPool.m_Pool.TexL2_0);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _Out_L2_1, dstPool.m_Pool.TexL2_1);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _Out_L2_2, dstPool.m_Pool.TexL2_2);
+                cmd.SetComputeTextureParam(stateBlendShader, scenarioBlendingKernel, _Out_L2_3, dstPool.m_Pool.TexL2_3);
             }
             else
                 stateBlendShader.DisableKeyword("PROBE_VOLUMES_L2");
 
-            var poolDims = new Vector4(
-                GetPoolWidth() / ProbeBrickPool.kChunkProbeCountPerDim,
-                GetPoolHeight() / ProbeBrickPool.kBrickProbeCountPerDim,
-                dstPool.GetPoolWidth(),
-                dstPool.GetPoolHeight());
-
-            var chunkDim_LerpFactor = new Vector4(ProbeBrickPool.kChunkProbeCountPerDim, ProbeBrickPool.kBrickProbeCountPerDim, ProbeBrickPool.kBrickProbeCountPerDim, factor);
-
-            stateBlendShader.SetBuffer(stateBlendKernel, _ChunkMapping, m_ChunkMapping);
-            stateBlendShader.SetVector(_ChunkDim_LerpFactor, chunkDim_LerpFactor);
-            stateBlendShader.SetVector(_PoolDims, poolDims);
+            var poolDim_LerpFactor = new Vector4(dstPool.GetPoolWidth(), dstPool.GetPoolHeight(), factor, 0.0f);
 
             const int numthreads = 4;
-            int threadX = DivRoundUp(GetPoolWidth(), numthreads);
-            int threadY = DivRoundUp(GetPoolHeight(), numthreads);
-            int threadZ = DivRoundUp(GetPoolDepth(), numthreads);
-            stateBlendShader.Dispatch(stateBlendKernel, threadX, threadY, threadZ);
+            int threadX = DivRoundUp(ProbeBrickPool.kChunkProbeCountPerDim, numthreads);
+            int threadY = DivRoundUp(ProbeBrickPool.kBrickProbeCountPerDim, numthreads);
+            int threadZ = DivRoundUp(ProbeBrickPool.kBrickProbeCountPerDim, numthreads);
+
+            cmd.SetComputeVectorArrayParam(stateBlendShader, _ChunkList, m_ChunkList);
+            cmd.SetComputeVectorParam(stateBlendShader, _PoolDim_LerpFactor, poolDim_LerpFactor);
+            cmd.DispatchCompute(stateBlendShader, scenarioBlendingKernel, threadX, threadY, threadZ * m_MappedChunks);
+            m_MappedChunks = 0;
         }
 
-        int GetChunkIndex(ProbeBrickPool.BrickChunkAlloc chunk)
+        internal void BlendChunks(ProbeReferenceVolume.BlendingCellInfo blendingCell, ProbeBrickPool dstPool)
         {
-            Vector3Int chunkIndex = new Vector3Int(
-                chunk.x / ProbeBrickPool.kChunkProbeCountPerDim,
-                chunk.y / ProbeBrickPool.kBrickProbeCountPerDim,
-                chunk.z / ProbeBrickPool.kBrickProbeCountPerDim);
+            for (int c = 0; c < blendingCell.chunkList.Count; c++)
+            {
+                var chunk = blendingCell.chunkList[c];
+                int dst = blendingCell.cellInfo.chunkList[c].flattenIndex(dstPool.GetPoolWidth(), dstPool.GetPoolHeight());
 
-            Vector2Int chunkCount = new Vector2Int(
-                GetPoolWidth() / ProbeBrickPool.kChunkProbeCountPerDim,
-                GetPoolHeight() / ProbeBrickPool.kBrickProbeCountPerDim);
-
-            return chunkIndex.z * chunkCount.x * chunkCount.y + chunkIndex.y * chunkCount.x + chunkIndex.x;
-        }
-
-        internal void MapChunk(ProbeBrickPool.BrickChunkAlloc chunk, int dst)
-        {
-            int src = GetChunkIndex(chunk);
-            Debug.Assert(m_IndexMapping[src] == s_UnmappedChunk);
-
-            m_MappingNeedsReupload = true;
-            m_IndexMapping[src] = (uint)dst;
-
-            m_MappedChunks++;
+                m_ChunkList[m_MappedChunks++] = new Vector4(chunk.x, chunk.y, chunk.z, dst);
+            }
         }
 
         internal void Clear()
-            => m_State0.Clear();
-
-        public int GetRemainingChunkCount()
-            => m_State0.GetRemainingChunkCount();
+            => m_State0?.Clear();
 
         internal bool Allocate(int numberOfBrickChunks, List<ProbeBrickPool.BrickChunkAlloc> outAllocations)
-            => m_State0.Allocate(numberOfBrickChunks, outAllocations, false);
+        {
+            AllocateResourcesIfNeeded();
+            if (numberOfBrickChunks > m_State0.GetRemainingChunkCount())
+                return false;
+
+            return m_State0.Allocate(numberOfBrickChunks, outAllocations, false);
+        }
 
         internal void Deallocate(List<ProbeBrickPool.BrickChunkAlloc> allocations)
         {
+            if (allocations.Count == 0)
+                return;
+
             m_State0.Deallocate(allocations);
-
-            m_MappingNeedsReupload |= allocations.Count != 0;
-            foreach (var brick in allocations)
-            {
-                int index = GetChunkIndex(brick);
-                Debug.Assert(m_IndexMapping[index] != s_UnmappedChunk);
-                m_IndexMapping[index] = s_UnmappedChunk;
-            }
-
-            m_MappedChunks -= allocations.Count;
         }
 
         internal void EnsureTextureValidity()
         {
-            m_State0.EnsureTextureValidity();
-            m_State1.EnsureTextureValidity();
+            if (isAllocated)
+            {
+                m_State0.EnsureTextureValidity();
+                m_State1.EnsureTextureValidity();
+            }
         }
 
         internal void Cleanup()
         {
-            m_State0.Cleanup();
-            m_State1.Cleanup();
-            m_ChunkMapping.Release();
+            if (isAllocated)
+            {
+                m_State0.Cleanup();
+                m_State1.Cleanup();
+            }
         }
     }
 }

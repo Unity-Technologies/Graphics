@@ -1016,7 +1016,7 @@ namespace UnityEngine.Rendering
                     bakingCellsList = new(); // Can happen if no cell is baked for the scene
 
                 WriteBakingCells(data, bakingCellsList);
-                data.ResolveCells();
+                data.ResolveSharedCellData();
             }
 
             writeScope.Dispose();
