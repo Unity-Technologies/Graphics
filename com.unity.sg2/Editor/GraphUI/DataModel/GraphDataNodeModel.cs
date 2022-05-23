@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.Defs;
@@ -30,6 +31,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get => m_GraphDataName;
             set => m_GraphDataName = value;
+        }
+
+        public override string DisplayTitle
+        {
+            get
+            {
+                var baseDisplayTitle = base.DisplayTitle;
+                if (latestAvailableVersion > currentVersion)
+                {
+                    baseDisplayTitle += $" (Legacy v{currentVersion})";
+                }
+
+                return baseDisplayTitle;
+            }
         }
 
         RegistryKey m_PreviewRegistryKey;
@@ -146,6 +161,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get => m_IsPreviewExpanded;
             set => m_IsPreviewExpanded = value;
+        }
+
+        int m_DismissedUpgradeVersion;
+        public int dismissedUpgradeVersion
+        {
+            get => m_DismissedUpgradeVersion;
+            set => m_DismissedUpgradeVersion = value;
+        }
+
+        internal int currentVersion => registryKey.Version;
+
+        internal int latestAvailableVersion => graphHandler.registry.BrowseRegistryKeys()
+            .Where(otherKey => otherKey.Name == registryKey.Name)
+            .Select(otherKey => otherKey.Version)
+            .Max();
+
+        public void UpgradeToLatestVersion()
+        {
+            var nodeHandler = graphHandler.GetNode(graphDataName);
+
+            if (latestAvailableVersion < currentVersion)
+            {
+                Debug.LogError($"Node version ({currentVersion}) is greater than latest version in registry ({latestAvailableVersion})");
+                return;
+            }
+
+            if (latestAvailableVersion == currentVersion)
+            {
+                return;
+            }
+
+            var newKey = new RegistryKey {Name = registryKey.Name, Version = latestAvailableVersion};
+            nodeHandler.SetMetadata(GraphDelta.GraphDelta.kRegistryKeyName, newKey);
+            graphHandler.ReconcretizeNode(graphDataName);
+            DefineNode();
         }
 
         /// <summary>

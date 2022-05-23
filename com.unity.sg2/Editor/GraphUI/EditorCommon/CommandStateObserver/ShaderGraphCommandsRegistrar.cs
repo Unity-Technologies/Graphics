@@ -120,6 +120,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 ChangeNodeFunctionCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphView.GraphModelState);
+
+            // Node upgrade commands
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, DismissNodeUpgradeCommand>(
+                DismissNodeUpgradeCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphModelState);
+
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, UpgradeNodeCommand>(
+                UpgradeNodeCommand.DefaultCommandHandler,
+                graphTool.UndoStateComponent,
+                graphView.GraphModelState);
         }
     }
 }
