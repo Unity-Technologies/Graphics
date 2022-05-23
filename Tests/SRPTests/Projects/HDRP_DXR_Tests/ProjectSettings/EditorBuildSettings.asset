@@ -216,6 +216,9 @@ EditorBuildSettings:
     path: Assets/Scenes/702_PunctualShadowFiltering.unity
     guid: 0a4486ce519fe6c459180d0438847319
   - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowPrecision.unity
+    guid: a2c9532d06c8d8843ae5ab61044f48a6
+  - enabled: 1
     path: Assets/Scenes/703_PointShadow.unity
     guid: 85d29280c924e314aa9bbe4130570252
   - enabled: 1

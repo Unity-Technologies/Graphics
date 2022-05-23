@@ -84,4 +84,18 @@ bool RayTracingGBufferIsLit(float rayDistance)
 {
     return rayDistance > 0.0;
 }
+
+// This has been experimentally defined.
+#define RAY_TRACING_DEPTH_BUFFER_OFFSET 1e-9
+
+// This function apply an offset (precison level of the depth buffer to )
+void ApplyRayTracingDepthOffset(inout float depthValue)
+{
+#if UNITY_REVERSED_Z
+    depthValue = depthValue != UNITY_RAW_FAR_CLIP_VALUE ? saturate(depthValue + RAY_TRACING_DEPTH_BUFFER_OFFSET) : depthValue;
+#else
+    depthValue = depthValue != UNITY_RAW_FAR_CLIP_VALUE ? saturate(depthValue - RAY_TRACING_DEPTH_BUFFER_OFFSET) : depthValue;
+#endif
+}
+
 #endif // RAY_TRACING_COMMON_HLSL

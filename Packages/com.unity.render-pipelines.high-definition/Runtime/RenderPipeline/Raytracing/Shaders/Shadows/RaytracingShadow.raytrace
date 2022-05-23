@@ -34,6 +34,7 @@
 
 // Raytracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
@@ -83,6 +84,8 @@ void RayGenAreaShadows()
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+    ApplyRayTracingDepthOffset(depthValue);
+    
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
@@ -295,6 +298,7 @@ void RayGenAreaShadowSingle()
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+    ApplyRayTracingDepthOffset(depthValue);
 
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || currentSample.y == 0.0 || _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].y < 0.0)
@@ -377,6 +381,7 @@ void RayGenDirectionalShadowSingle()
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+    ApplyRayTracingDepthOffset(depthValue);
 
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -446,6 +451,7 @@ void RayGenDirectionalColorShadowSingle()
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+    ApplyRayTracingDepthOffset(depthValue);
 
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -521,6 +527,7 @@ void RayGenShadowSegmentSingle()
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+    ApplyRayTracingDepthOffset(depthValue);
 
     // If this is the background, we do not need to do anything
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -611,6 +618,7 @@ void RayGenSemiTransparentShadowSegmentSingle()
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+    ApplyRayTracingDepthOffset(depthValue);
 
     // If this is the background, we do not need to do anything
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)

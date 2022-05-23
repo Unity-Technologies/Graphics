@@ -74,7 +74,8 @@ struct PixelCoordinates
 void TraceGBuffer(PixelCoordinates coords)
 {
     // Read the depth value
-    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, coords.geometryCoords);
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, coords.geometryCoords);
+    ApplyRayTracingDepthOffset(depthValue);
 
     // Read the direction
     float4 direction = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, coords.directionCoords);
