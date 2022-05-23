@@ -45,6 +45,14 @@ namespace UnityEditor.VFX.UI
             s_Instance.PasteBlocks(viewController, (data as SerializableGraph).operators, targetModelContext, targetIndex, blocksInTheSameOrder);
         }
 
+        public static void PasteStickyNotes(VFXViewController viewController, object data)
+        {
+            if (s_Instance == null)
+                s_Instance = new VFXPaste();
+
+            s_Instance.PasteStickyNotes(data as SerializableGraph, Vector2.zero, viewController.graph.UIInfos);
+        }
+
         static bool CanPasteSubgraph(VisualEffectSubgraph subgraph, string openedAssetPath)
         {
             var path = AssetDatabase.GetAssetPath(subgraph);

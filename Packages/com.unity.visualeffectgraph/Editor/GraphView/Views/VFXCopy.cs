@@ -39,11 +39,17 @@ namespace UnityEditor.VFX.UI
             return JsonUtility.ToJson(serializableGraph);
         }
 
-        public static object CopyBlocks(IEnumerable<VFXBlockController> blocks)
+        public static object CopyBlocks(IEnumerable<VFXBlockController> blocks, IEnumerable<Controller> elements = null)
         {
             if (s_Instance == null)
                 s_Instance = new VFXCopy();
-            return s_Instance.DoCopyBlocks(blocks);
+            var serializableGraph = s_Instance.DoCopyBlocks(blocks);
+            if (elements != null)
+            {
+                s_Instance.CopyGroupNodesAndStickyNotes(ref serializableGraph, elements);
+            }
+
+            return serializableGraph;
         }
 
         object CreateCopy(IEnumerable<Controller> elements, Rect bounds)
