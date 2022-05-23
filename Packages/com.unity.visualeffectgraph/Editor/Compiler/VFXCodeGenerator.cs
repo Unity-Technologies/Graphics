@@ -827,6 +827,12 @@ namespace UnityEditor.VFX
 
         private static void BuildBlock(VFXContextCompiledData contextData, List<VFXSlot> linkedEventOut, VFXShaderWriter blockFunction, VFXShaderWriter blockCallFunction, HashSet<string> blockDeclared, Dictionary<VFXExpression, string> expressionToName, VFXBlock block, ref int blockIndex)
         {
+            // Check enabled state
+            VFXExpression enabledExp = contextData.gpuMapper.FromNameAndId(VFXBlock.activationSlotName, blockIndex);
+            bool needsEnabledCheck = enabledExp != null && !enabledExp.Is(VFXExpression.Flags.Constant);
+            if (enabledExp != null && !needsEnabledCheck && !enabledExp.Get<bool>())
+                throw new ArgumentException("This method should not be called on a disabled block");
+
             var parameters = block.mergedAttributes.Select(o =>
             {
                 return new VFXShaderWriter.FunctionParameter
@@ -863,19 +869,34 @@ namespace UnityEditor.VFX
                     commentMethod);
             }
 
-            //< Parameters (computed and/or extracted from uniform)
             var expressionToNameLocal = expressionToName;
-            bool needScope = parameters.Any(o => !expressionToNameLocal.ContainsKey(o.expression));
-            if (needScope)
+            bool needsEnabledScope = needsEnabledCheck && !expressionToNameLocal.ContainsKey(enabledExp);
+            bool hasParameterTransformation = parameters.Any(o => !expressionToNameLocal.ContainsKey(o.expression));
+            bool needsParametersScope = needsEnabledCheck || hasParameterTransformation;
+
+            if (needsEnabledScope || hasParameterTransformation)
             {
                 expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToNameLocal);
+            }
+
+            if (needsEnabledScope)
+            {
+                blockCallFunction.EnterScope();
+                blockCallFunction.WriteVariable(enabledExp, expressionToNameLocal);
+            }
+
+            if (needsEnabledCheck)
+            {
+                blockCallFunction.WriteLineFormat("if ({0})", expressionToNameLocal[enabledExp]);
+            }
+
+            if (needsParametersScope)
+            {
                 blockCallFunction.EnterScope();
                 foreach (var exp in parameters.Select(o => o.expression))
                 {
                     if (expressionToNameLocal.ContainsKey(exp))
-                    {
                         continue;
-                    }
                     blockCallFunction.WriteVariable(exp, expressionToNameLocal);
                 }
             }
@@ -885,7 +906,7 @@ namespace UnityEditor.VFX
             {
                 if ((parameters[indexEventCount].mode & VFXAttributeMode.Read) != 0)
                     throw new InvalidOperationException(string.Format("{0} isn't expected as read (special case)", VFXAttribute.EventCount.name));
-                blockCallFunction.WriteLine(string.Format("{0} = 0u;", VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current)));
+                blockCallFunction.WriteLineFormat("{0} = 0u;", VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current));
             }
 
             blockCallFunction.WriteCallFunction(methodName,
@@ -902,7 +923,11 @@ namespace UnityEditor.VFX
                         blockCallFunction.WriteLineFormat("{0}_{1} += {2};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex), VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current));
                 }
             }
-            if (needScope)
+
+            if (needsParametersScope)
+                blockCallFunction.ExitScope();
+
+            if (needsEnabledScope)
                 blockCallFunction.ExitScope();
 
             blockIndex++;

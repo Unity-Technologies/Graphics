@@ -317,6 +317,9 @@ namespace UnityEditor.VFX.UI
             //Copy settings value
             CopyModelSettings(ref node.settings, model);
 
+            var activationSlot = (model as IVFXSlotContainer).activationSlot;
+            node.activationSlotValue = activationSlot ? (bool)activationSlot.value : false;
+
             var inputSlots = (model as IVFXSlotContainer).inputSlots;
             node.inputSlots = new Property[inputSlots.Count];
             for (int i = 0; i < inputSlots.Count; i++)
@@ -416,7 +419,13 @@ namespace UnityEditor.VFX.UI
                 slotPath.Add(slot.GetParent().GetIndex(slot));
                 slot = slot.GetParent();
             }
-            slotPath.Add((input ? (slot.owner as IVFXSlotContainer).inputSlots : (slot.owner as IVFXSlotContainer).outputSlots).IndexOf(slot));
+
+            int indexInOwner = -1;
+            if (ReferenceEquals(slot,slot.owner.activationSlot))
+                indexInOwner = -2; // activation slot
+            else
+                indexInOwner = (input ? slot.owner.inputSlots : slot.owner.outputSlots).IndexOf(slot);
+            slotPath.Add(indexInOwner);
 
             return slotPath.ToArray();
         }

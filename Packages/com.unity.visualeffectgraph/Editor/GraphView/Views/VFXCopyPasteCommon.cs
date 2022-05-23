@@ -90,6 +90,7 @@ namespace UnityEditor.VFX.UI
             public string[] expandedInputs;
             public string[] expandedOutputs;
             public int indexInClipboard;
+            public bool activationSlotValue;
         }
 
 

@@ -730,6 +730,7 @@ namespace UnityEditor.VFX
                 for (int i = 0; i < m_ExprSlots.Length; ++i)
                 {
                     m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
+                    m_ExprSlots[i].Invalidate(InvalidationCause.kExpressionValueInvalidated);
                 }
             }
         }

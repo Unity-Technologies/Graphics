@@ -190,4 +190,104 @@ namespace UnityEditor.VFX
             return string.Format("(int){0}", parents[0]);
         }
     }
+
+    class VFXExpressionCastIntToBool : VFXExpression
+    {
+        public VFXExpressionCastIntToBool() : this(VFXValue<bool>.Default) {}
+        public VFXExpressionCastIntToBool(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from }) {}
+        sealed public override VFXExpressionOperation operation => VFXExpressionOperation.CastIntToBool;
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        {
+            return VFXValue.Constant(reducedParents[0].Get<int>() != 0);
+        }
+
+        sealed public override string GetCodeString(string[] parents)
+        {
+            return string.Format("(bool){0}", parents[0]);
+        }
+    }
+
+    class VFXExpressionCastUintToBool : VFXExpression
+    {
+        public VFXExpressionCastUintToBool() : this(VFXValue<bool>.Default) { }
+        public VFXExpressionCastUintToBool(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from }) { }
+        sealed public override VFXExpressionOperation operation => VFXExpressionOperation.CastUintToBool;
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        {
+            return VFXValue.Constant(reducedParents[0].Get<uint>() != 0u);
+        }
+
+        sealed public override string GetCodeString(string[] parents)
+        {
+            return string.Format("(bool){0}", parents[0]);
+        }
+    }
+
+    class VFXExpressionCastFloatToBool : VFXExpression
+    {
+        public VFXExpressionCastFloatToBool() : this(VFXValue<bool>.Default) { }
+        public VFXExpressionCastFloatToBool(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from }) { }
+        sealed public override VFXExpressionOperation operation => VFXExpressionOperation.CastFloatToBool;
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        {
+            return VFXValue.Constant(reducedParents[0].Get<float>() != 0.0f);
+        }
+
+        sealed public override string GetCodeString(string[] parents)
+        {
+            return string.Format("(bool){0}", parents[0]);
+        }
+    }
+
+    class VFXExpressionCastBoolToInt : VFXExpression
+    {
+        public VFXExpressionCastBoolToInt() : this(VFXValue<int>.Default) { }
+        public VFXExpressionCastBoolToInt(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from }) { }
+        sealed public override VFXExpressionOperation operation => VFXExpressionOperation.CastBoolToInt;
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        {
+            return VFXValue.Constant(reducedParents[0].Get<bool>() ? 1 : 0);
+        }
+
+        sealed public override string GetCodeString(string[] parents)
+        {
+            return string.Format("(int){0}", parents[0]);
+        }
+    }
+    class VFXExpressionCastBoolToUint : VFXExpression
+    {
+        public VFXExpressionCastBoolToUint() : this(VFXValue<uint>.Default) { }
+        public VFXExpressionCastBoolToUint(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from }) { }
+        sealed public override VFXExpressionOperation operation => VFXExpressionOperation.CastBoolToUint;
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        {
+            return VFXValue.Constant(reducedParents[0].Get<bool>() ? 1u : 0u);
+        }
+
+        sealed public override string GetCodeString(string[] parents)
+        {
+            return string.Format("(uint){0}", parents[0]);
+        }
+    }
+    class VFXExpressionCastBoolToFloat : VFXExpression
+    {
+        public VFXExpressionCastBoolToFloat() : this(VFXValue<float>.Default) { }
+        public VFXExpressionCastBoolToFloat(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from }) { }
+        sealed public override VFXExpressionOperation operation => VFXExpressionOperation.CastBoolToFloat;
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        {
+            return VFXValue.Constant(reducedParents[0].Get<bool>() ? 1.0f : 0.0f);
+        }
+
+        sealed public override string GetCodeString(string[] parents)
+        {
+            return string.Format("(float){0}", parents[0]);
+        }
+    }
 }

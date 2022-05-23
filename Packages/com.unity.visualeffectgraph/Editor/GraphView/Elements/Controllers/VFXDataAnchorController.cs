@@ -92,6 +92,8 @@ namespace UnityEditor.VFX.UI
 
             if (model != null)
             {
+                isSubgraphActivation = sourceNode.model is VFXSubgraphBlock && model.name == VFXBlock.activationSlotName;
+
                 portType = model.property.type;
 
                 if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
@@ -159,6 +161,9 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
+        // Used to hide activation slot and forbid linking
+        public bool isSubgraphActivation { get; }
+
         public virtual bool HasLink()
         {
             return model.HasLink();
@@ -172,6 +177,9 @@ namespace UnityEditor.VFX.UI
 
         public bool CanLinkToNode(VFXNodeController nodeController, CanLinkCache cache)
         {
+            if (isSubgraphActivation)
+                return false;
+
             if (nodeController == sourceNode)
                 return false;
 
@@ -198,6 +206,9 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
+            if (isSubgraphActivation)
+                return false;
+
             if (controller.model != null)
             {
                 if (model.CanLink(controller.model) && controller.model.CanLink(model))
@@ -610,6 +621,9 @@ namespace UnityEditor.VFX.UI
         }
         public override bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
+            if (isSubgraphActivation)
+                return false;
+
             var op = (sourceNode as VFXCascadedOperatorController);
 
             if (op == null)

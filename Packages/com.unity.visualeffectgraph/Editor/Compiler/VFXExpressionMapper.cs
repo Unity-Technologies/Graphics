@@ -35,6 +35,8 @@ namespace UnityEditor.VFX
 
         public void AddExpressionsFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
         {
+            if (slotContainer.activationSlot != null)
+                AddExpressionsFromSlot(slotContainer.activationSlot, blockId);
             foreach (var master in slotContainer.inputSlots)
                 AddExpressionsFromSlot(master, blockId);
         }
@@ -55,6 +57,7 @@ namespace UnityEditor.VFX
             int cpt = 0;
             foreach (var block in blocks)
             {
+                mapper.AddExpression(block.activationExpression, VFXBlock.activationSlotName, cpt);
                 mapper.AddExpressions(block.parameters, cpt++);
             }
             return mapper;

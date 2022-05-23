@@ -1842,15 +1842,18 @@ namespace UnityEditor.VFX.UI
             if (controller == null) return null;
 
 
-            if (startAnchor is VFXDataAnchor)
+            if (startAnchor is VFXDataAnchor anchor)
             {
-                var controllers = controller.GetCompatiblePorts((startAnchor as VFXDataAnchor).controller, nodeAdapter);
-                return controllers.Select(t => (Port)GetDataAnchorByController(t as VFXDataAnchorController)).ToList();
+                var controllers = controller.GetCompatiblePorts(anchor.controller, nodeAdapter);
+                return controllers
+                    .Where(x => !x.isSubgraphActivation)
+                    .Select(t => (Port)GetDataAnchorByController(t))
+                    .ToList();
             }
             else
             {
                 var controllers = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
-                return controllers.Select(t => (Port)GetFlowAnchorByController(t as VFXFlowAnchorController)).ToList();
+                return controllers.Select(t => (Port)GetFlowAnchorByController(t)).ToList();
             }
         }
 

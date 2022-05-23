@@ -1237,6 +1237,9 @@ namespace UnityEditor.VFX
 
         public void UpdateValues()
         {
+            if (m_ExpressionGraph == null)
+                return;
+
             var flatGraph = m_ExpressionGraph.FlattenedExpressions;
             var numFlattenedExpressions = flatGraph.Count;
 

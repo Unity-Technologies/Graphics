@@ -100,3 +100,49 @@ VFXBlockUI.node > #node-border
     margin-top:0;
     margin-bottom:0;
 }
+
+VFXEditableDataAnchor.activationslot
+{
+    flex-grow: 1;
+    margin-right: 24px;
+}
+
+VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label
+{
+    display: none;
+}
+
+VFXContextUI VFXBlockUI.node #node-border #title.activationslot > #title-label
+{
+    margin-left: 44px;
+}
+
+#title.activationslot > #collapse-button
+{
+    flex-grow: 1;
+}
+
+#title.activationslot > #collapse-button > #icon
+{
+    align-self: flex-end;
+}
+
+VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
+{
+    padding: 0px;
+}
+
+VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #divider
+{
+    display: none;
+}
+
+VFXBlockUI.nosettings.VFXNodeUI.node #contents > #settings-divider
+{
+    display: none;
+}
+
+VFXBlockUI.collapsed.VFXNodeUI.node #contents > #top > #input > VFXEditableDataAnchor.activationslot
+{
+    margin-top: 1px;
+}

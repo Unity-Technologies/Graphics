@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
@@ -228,10 +229,12 @@ namespace UnityEditor.VFX.UI
 
                 if (hasSettings)
                 {
+                    RemoveFromClassList("nosettings");
                     settingsContainer.RemoveFromClassList("nosettings");
                 }
                 else
                 {
+                    AddToClassList("nosettings");
                     settingsContainer.AddToClassList("nosettings");
                 }
             }
@@ -250,65 +253,85 @@ namespace UnityEditor.VFX.UI
         void SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
-
-            SyncAnchors(controller.inputPorts, inputContainer);
-            SyncAnchors(controller.outputPorts, outputContainer);
+            SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
+            SyncAnchors(controller.outputPorts, outputContainer, false);
             Profiler.EndSample();
         }
 
-        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container)
+        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool hasActivationPort)
         {
-            var existingAnchors = container.Children()
-                .Cast<VFXDataAnchor>()
-                .ToDictionary(t => t.controller, t => t);
-
-            Profiler.BeginSample("VFXNodeUI.SyncAnchors Delete");
-            var view = GetFirstAncestorOfType<VFXView>();
-            foreach (var deletedController in existingAnchors.Keys.Except(ports))
+            // Check whether resync is needed
+            bool needsResync = false;
+            if (ports.Count != container.childCount) // first check expected number match
+                needsResync = true;
+            else
             {
-                var anchor = existingAnchors[deletedController];
-                //Explicitly remove edges before removing anchor.
-                view.RemoveAnchorEdges(anchor);
-                container.Remove(anchor);
-                existingAnchors.Remove(deletedController);
-            }
-            Profiler.EndSample();
-
-            Profiler.BeginSample("VFXNodeUI.SyncAnchors New");
-            var index = 0;
-            var order = ports.ToDictionary(x => x, x => index++);
-
-            foreach (var newController in ports.Except(existingAnchors.Keys))
-            {
-                Profiler.BeginSample("VFXNodeUI.InstantiateDataAnchor");
-                var newElement = InstantiateDataAnchor(newController, this);
-                Profiler.EndSample();
-
-                container.Add(newElement);
-                existingAnchors[newController] = newElement;
-            }
-
-            Profiler.EndSample();
-
-            Profiler.BeginSample("VFXNodeUI.SyncAnchors Reorder");
-            //Reorder anchors.
-            if (ports.Count > 0)
-            {
-                var sortedAnchors = existingAnchors
-                    .OrderBy(x => order[x.Key])
-                    .Select(x => x.Value)
-                    .ToArray();
-
-                sortedAnchors[0].SendToBack();
-                sortedAnchors[0].AddToClassList("first");
-                for (int i = 1; i < sortedAnchors.Length; ++i)
+                for (int i = 0; i < ports.Count; ++i) // Then compare expected anchor one by one
                 {
-                    if (container.ElementAt(i) != sortedAnchors[i])
-                        sortedAnchors[i].PlaceInFront(sortedAnchors[i - 1]);
-                    sortedAnchors[i].RemoveFromClassList("first");
+                    VFXDataAnchor anchor = container[i] as VFXDataAnchor;
+
+                    if (ports[i] == null)
+                        throw new NullReferenceException("VFXDataAnchorController should not be null at index " + i);
+
+                    if (anchor?.controller != ports[i])
+                    {
+                        needsResync = true;
+                        break;
+                    }
                 }
             }
-            Profiler.EndSample();
+
+            if (needsResync)
+            {
+                var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
+                container.Clear();
+                for (int i = 0; i < ports.Count; ++i)
+                {
+                    VFXDataAnchor anchor = null;
+                    VFXDataAnchorController portController = ports[i];
+
+                    if (existingAnchors.TryGetValue(portController, out anchor))
+                        existingAnchors.Remove(portController);
+                    else
+                        anchor = InstantiateDataAnchor(portController, this); // new anchor
+
+                    if (hasActivationPort && i == 0) // activation anchor
+                    {
+                        anchor.alwaysVisible = true;
+                        this.UpdateActivationPortPosition(anchor);
+                    }
+
+                    if (hasActivationPort && i == 1 || !hasActivationPort && i == 0)
+                    {
+                        anchor.AddToClassList("first");
+                    }
+                    else
+                    {
+                        anchor.RemoveFromClassList("first");
+                    }
+
+                    container.Add(anchor);
+                }
+
+                // delete no longer used anchors
+                foreach (var anchor in existingAnchors.Values)
+                {
+                    GetFirstAncestorOfType<VFXView>()?.RemoveAnchorEdges(anchor);
+                    anchor.parent?.Remove(anchor);
+                }
+            }
+        }
+
+        private void UpdateActivationPortPosition(VFXDataAnchor anchor)
+        {
+            if (anchor.controller.isSubgraphActivation)
+                anchor.AddToClassList("subgraphblock");
+
+            var settingsCount = expanded ? settingsContainer.childCount : 0;
+            anchor.style.top = -30 - settingsCount * 17 - (settingsCount > 0 ? 17 : 0);
+            titleContainer.AddToClassList("activationslot");
+            anchor.AddToClassList("activationslot");
+            AddToClassList("activationslot");
         }
 
         public void ForceUpdate()
@@ -387,9 +410,19 @@ namespace UnityEditor.VFX.UI
 
                 base.expanded = value;
                 controller.expanded = value;
+                if (controller.HasActivationAnchor)
+                {
+                    var anchorController = controller.inputPorts[0];
+                    var anchor = inputContainer.Children()
+                        .Cast<VFXDataAnchor>()
+                        .SingleOrDefault(x => x.controller == anchorController);
+                    if (anchor != null)
+                    {
+                        this.UpdateActivationPortPosition(anchor);
+                    }
+                }
             }
         }
-
 
         public virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {

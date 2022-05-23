@@ -228,17 +228,17 @@ namespace UnityEditor.VFX.UI
         {
             if (isRecording)
             {
-                if (cause == VFXModel.InvalidationCause.kParamChanged)
+                if (cause == VFXModel.InvalidationCause.kParamChanged || cause == VFXModel.InvalidationCause.kExpressionValueInvalidated)
                 {
                     if (model is VFXSlot)
                     {
                         var slot = model as VFXSlot;
                         if (slot.name == "bounds" || slot.name == "boundsPadding")
                             return;
-                        foreach (var data in GetAffectedData(slot))
+
+                        if (slot.owner is IVFXDataGetter)
                         {
-                            var particleData = data as VFXDataParticle;
-                            if (particleData != null)
+                            if (((IVFXDataGetter)slot.owner).GetData() is VFXDataParticle particleData)
                             {
                                 string systemName = m_Graph.systemNames.GetUniqueSystemName(particleData);
                                 m_FirstBound[systemName] = true;
@@ -246,55 +246,7 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-
-                if (cause == VFXModel.InvalidationCause.kEnableChanged)
-                {
-                    if (model is VFXBlock)
-                    {
-                        var block = model as VFXBlock;
-                        var particleData = block.GetData();
-                        if (particleData != null)
-                        {
-                            string systemName = m_Graph.systemNames.GetUniqueSystemName(particleData);
-                            m_FirstBound[systemName] = true;
-                        }
-                    }
-                }
             }
-        }
-
-        IEnumerable<VFXData> GetAffectedData(VFXSlot slot)
-        {
-            var owner = slot.owner;
-            var block = owner as VFXBlock;
-            if (block != null && block.enabled)
-            {
-                yield return block.GetData();
-                yield break;
-            }
-            var ctx = owner as VFXContext;
-            if (ctx != null)
-            {
-                yield return ctx.GetData();
-                yield break;
-            }
-
-            var op = owner as VFXOperator;
-            if (op != null)
-            {
-                var outSlots = op.outputSlots;
-                foreach (var outSlot in outSlots)
-                {
-                    foreach (var linkedSlot in outSlot.LinkedSlots)
-                    {
-                        foreach (var data in GetAffectedData(linkedSlot))
-                        {
-                            yield return data;
-                        }
-                    }
-                }
-            }
-            //otherwise the owner is a VFXParameter, and we do not want to reset the bounds in this case
         }
 
         internal void UpdateBounds()
