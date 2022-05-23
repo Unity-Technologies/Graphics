@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// The asset that contains the URP setting.
     /// You can use this asset as a graphics quality level.
-    /// <see cref="RenderPipelineAsset"\>
+    /// <see cref="RenderPipelineAsset"/>
     /// <see cref="UniversalRenderPipeline"/>
     /// </summary>
     [ExcludeFromPreset]
@@ -486,14 +486,33 @@ namespace UnityEngine.Rendering.Universal
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
+
+        /// <summary>
+        /// The minimum size of the color grading LUT.
+        /// </summary>
         public const int k_MinLutSize = 16;
+
+        /// <summary>
+        /// The maximum size of the color grading LUT.
+        /// </summary>
         public const int k_MaxLutSize = 65;
 
         internal const int k_ShadowCascadeMinCount = 1;
         internal const int k_ShadowCascadeMaxCount = 4;
 
+        /// <summary>
+        /// The default value of `additionalLightsShadowResolutionTierLow`.
+        /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
+
+        /// <summary>
+        /// The default value of `additionalLightsShadowResolutionTierMedium`.
+        /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
+
+        /// <summary>
+        /// The default value of `additionalLightsShadowResolutionTierHigh`.
+        /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
 #if UNITY_EDITOR
@@ -668,7 +687,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Unity calls this function when it loads the asset or when the asset is changed with the Inspector.
+        /// </summary>
         protected override void OnValidate()
         {
             DestroyRenderers();
@@ -678,7 +699,9 @@ namespace UnityEngine.Rendering.Universal
             base.OnValidate();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Unity calls this function when the asset is disabled.
+        /// </summary>
         protected override void OnDisable()
         {
             DestroyRenderers();
@@ -972,11 +995,17 @@ namespace UnityEngine.Rendering.Universal
             set { m_RenderScale = ValidateRenderScale(value); }
         }
 
+        /// <summary>
+        /// Returns true if the cross-fade style blending between the current LOD and the next LOD is enabled.
+        /// </summary>
         public bool enableLODCrossFade
         {
             get { return m_EnableLODCrossFade; }
         }
 
+        /// <summary>
+        /// Returns the type of active LOD cross-fade.
+        /// </summary>
         public LODCrossFadeDitheringType lodCrossFadeDitheringType
         {
             get { return m_LODCrossFadeDitheringType; }
@@ -1019,7 +1048,6 @@ namespace UnityEngine.Rendering.Universal
         /// Specifies the <c>LightRenderingMode</c> for the main light used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         /// <see cref="LightRenderingMode"/>
-        /// </summary>
         public LightRenderingMode mainLightRenderingMode
         {
             get { return m_MainLightRenderingMode; }
@@ -1338,43 +1366,64 @@ namespace UnityEngine.Rendering.Universal
             set { m_NumIterationsEnclosingSphere = value; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default Material.
+        /// </summary>
+        /// <returns>Returns the default Material.</returns>
         public override Material defaultMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Standard); }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default particle Material.
+        /// </summary>
+        /// <returns>Returns the default particle Material.</returns>
         public override Material defaultParticleMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Particle); }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default line Material.
+        /// </summary>
+        /// <returns>Returns the default line Material.</returns>
         public override Material defaultLineMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Particle); }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default terrain Material.
+        /// </summary>
+        /// <returns>Returns the default terrain Material.</returns>
         public override Material defaultTerrainMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Terrain); }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default UI Material.
+        /// </summary>
+        /// <returns>Returns the default UI Material.</returns>
         public override Material defaultUIMaterial
         {
             get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default UI overdraw Material.
+        /// </summary>
+        /// <returns>Returns the default UI overdraw Material.</returns>
         public override Material defaultUIOverdrawMaterial
         {
             get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default UIETC1 supported Material for this asset.
+        /// </summary>
+        /// <returns>Returns the default UIETC1 supported Material.</returns>
         public override Material defaultUIETC1SupportedMaterial
         {
             get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
@@ -1398,7 +1447,10 @@ namespace UnityEngine.Rendering.Universal
             get { return GetMaterial(DefaultMaterialType.SpriteMask); }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the Material that Unity uses to render decals.
+        /// </summary>
+        /// <returns>Returns the Material containing the Unity decal shader.</returns>
         public Material decalMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Decal); }
@@ -1440,49 +1492,73 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the Autodesk Interactive shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the Autodesk Interactive shader that this asset uses.</returns>
         public override Shader autodeskInteractiveShader
         {
             get { return editorResources?.shaders.autodeskInteractivePS; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the Autodesk Interactive transparent shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the Autodesk Interactive transparent shader that this asset uses.</returns>
         public override Shader autodeskInteractiveTransparentShader
         {
             get { return editorResources?.shaders.autodeskInteractiveTransparentPS; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the Autodesk Interactive mask shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the Autodesk Interactive mask shader that this asset uses</returns>
         public override Shader autodeskInteractiveMaskedShader
         {
             get { return editorResources?.shaders.autodeskInteractiveMaskedPS; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the terrain detail lit shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the terrain detail lit shader that this asset uses.</returns>
         public override Shader terrainDetailLitShader
         {
             get { return editorResources?.shaders.terrainDetailLitPS; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the terrain detail grass shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the terrain detail grass shader that this asset uses.</returns>
         public override Shader terrainDetailGrassShader
         {
             get { return editorResources?.shaders.terrainDetailGrassPS; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the terrain detail grass billboard shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the terrain detail grass billboard shader that this asset uses.</returns>
         public override Shader terrainDetailGrassBillboardShader
         {
             get { return editorResources?.shaders.terrainDetailGrassBillboardPS; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default SpeedTree7 shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the default SpeedTree7 shader that this asset uses.</returns>
         public override Shader defaultSpeedTree7Shader
         {
             get { return editorResources?.shaders.defaultSpeedTree7PS; }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the default SpeedTree8 shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the default SpeedTree8 shader that this asset uses.</returns>
         public override Shader defaultSpeedTree8Shader
         {
             get { return editorResources?.shaders.defaultSpeedTree8PS; }
@@ -1519,12 +1595,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Unity raises a callback to this method before it serializes the asset.
+        /// </summary>
         public void OnBeforeSerialize()
         {
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Unity raises a callback to this method after it deserializes the asset.
+        /// </summary>
         public void OnAfterDeserialize()
         {
             if (k_AssetVersion < 3)
