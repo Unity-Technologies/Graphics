@@ -1584,7 +1584,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         getter = () => data.screenSpaceShadowIndex,
                         setter = value => data.screenSpaceShadowIndex = value,
                         min = () => 0u,
-                        max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows(),
+                        max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() - 1,
                         isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.ScreenSpaceShadows
                     }
                 }

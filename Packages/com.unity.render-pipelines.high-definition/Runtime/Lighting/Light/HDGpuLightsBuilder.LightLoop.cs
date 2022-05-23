@@ -270,7 +270,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (willRenderRtShadows)
                         lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
 
-                    m_ScreenSpaceShadowChannelSlot++;
+                    // increment the number of screen space shadows
+                    m_ScreenSpaceShadowIndex++;
+
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
