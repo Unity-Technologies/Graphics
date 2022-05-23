@@ -193,7 +193,7 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
 
 // Assume that bsdfData.diffusionProfileIndex is init
-void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout BSDFData bsdfData)
+void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, float transmissionMask, inout BSDFData bsdfData)
 {
     float2 remap = _WorldScalesAndFilterRadiiAndThicknessRemaps[diffusionProfileIndex].zw;
 
@@ -219,7 +219,12 @@ void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout
     // in the auto-thickness mode (but is always used for indirect lighting).
     bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParamsAndMaxScatterDists[diffusionProfileIndex].rgb,
                                                         _TransmissionTintsAndFresnel0[diffusionProfileIndex].rgb,
-                                                        bsdfData.thickness);
+                                                        bsdfData.thickness) * transmissionMask;
+}
+
+void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout BSDFData bsdfData)
+{
+    FillMaterialTransmission(diffusionProfileIndex, thickness, 1.0f, bsdfData);
 }
 
 #endif

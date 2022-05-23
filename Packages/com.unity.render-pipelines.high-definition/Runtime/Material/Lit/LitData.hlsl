@@ -105,6 +105,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
 
 #define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap
 
 // include LitDataIndividualLayer to define GetSurfaceData
@@ -122,6 +123,9 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #endif
 #ifdef _SUBSURFACE_MASK_MAP
 #define _SUBSURFACE_MASK_MAP_IDX
+#endif
+#ifdef _TRANSMISSION_MASK_MAP
+#define _TRANSMISSION_MASK_MAP_IDX
 #endif
 #ifdef _THICKNESSMAP
 #define _THICKNESSMAP_IDX

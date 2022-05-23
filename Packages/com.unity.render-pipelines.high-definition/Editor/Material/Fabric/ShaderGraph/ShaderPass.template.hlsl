@@ -34,6 +34,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
     $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
     $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
+    $SurfaceDescription.TransmissionMask:           surfaceData.transmissionMask =          surfaceDescription.TransmissionMask;
     $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
     $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
 

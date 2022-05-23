@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: defaultDiffusionProfile
   m_EditorClassIdentifier: 
   profile:
-    scatteringDistance: {r: 60.37055, g: 0, b: 60.37055, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0, b: 0.7490196, a: 1}
+    scatteringDistanceMultiplier: 80.59942
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 1
     transmissionMode: 1
@@ -21,4 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1
     hash: 1080714638
-  m_Version: 1
+  m_Version: 2

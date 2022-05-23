@@ -28,6 +28,15 @@ Shaders of the fullscreen type can be used in fullscreen custom passes, custom p
 
 For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
 
+### Transmission Mask
+
+HDRP 14.0 introduces a new parameter on Lit shaders and shadergraphs to mask out the transmitted light on specific regions of a material.
+This parameter is only available for Materials using **Translucent** or **Subsurface Scattering** with **Transmission**.
+
+### Diffusion Profile Scattering Distance
+
+The HDR picker used to control the scattering distance on diffusion profiles was replaced by a LDR color picker and a multiplier was added. The migration of existing profiles is automatic.
+
 ### Materials and Diffusion Profiles
 
 When importing a material with a diffusion profile that is not referenced in the HDRP Global Settings, rendering cannot be made correctly. With HDRP 14, these diffusion profiles are automatically registered in the Global Settings to ease importing of external assets. This can be disabled by unticking the box **Auto Register Diffusion Profiles** in the **Miscellaneaous** section of the Global Settings.

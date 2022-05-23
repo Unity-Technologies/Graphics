@@ -13,7 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent transmittancePreview0 = new GUIContent("Transmittance Preview");
             public readonly GUIContent transmittancePreview1 = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
             public readonly GUIContent transmittancePreview2 = new GUIContent("Can be viewed as a cross section of a slab of material illuminated by white light from the left.");
-            public readonly GUIContent profileScatteringDistance = new GUIContent("Scattering Distance", "Determines the shape of the profile, and the blur radius of the filter per color channel. Alpha is ignored.");
+            public readonly GUIContent profileScatteringColor = new GUIContent("Scattering Color", "Determines the shape of the profile. It should be similar to the diffuse color of the material.");
+            public readonly GUIContent profileScatteringDistanceMultiplier = new GUIContent("Multiplier", "Multiplier applied to the Scattering Color. Determines the effective radius of the filter.");
             public readonly GUIContent profileTransmissionTint = new GUIContent("Transmission tint", "Color which tints transmitted light. Alpha is ignored.");
             public readonly GUIContent profileMaxRadius = new GUIContent("Max Radius", "Effective radius of the filter (in millimeters). The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Reducing the distance increases the sharpness of the result.");
             public readonly GUIContent texturingMode = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");

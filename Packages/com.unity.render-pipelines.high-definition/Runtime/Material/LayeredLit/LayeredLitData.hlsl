@@ -99,6 +99,16 @@
 #define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap3
 #endif
 
+#if defined(_TRANSMISSION_MASK_MAP0)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap0
+#elif defined(_TRANSMISSION_MASK_MAP1)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap1
+#elif defined(_TRANSMISSION_MASK_MAP2)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap2
+#elif defined(_TRANSMISSION_MASK_MAP3)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap3
+#endif
+
 #if defined(_THICKNESSMAP0)
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap0
 #elif defined(_THICKNESSMAP1)
@@ -128,6 +138,9 @@
 #ifdef _SUBSURFACE_MASK_MAP0
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP0
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP0
 #define _THICKNESSMAP_IDX
 #endif
@@ -144,6 +157,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -162,6 +176,9 @@
 #ifdef _SUBSURFACE_MASK_MAP1
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP1
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP1
 #define _THICKNESSMAP_IDX
 #endif
@@ -178,6 +195,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -196,6 +214,9 @@
 #ifdef _SUBSURFACE_MASK_MAP2
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP2
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP2
 #define _THICKNESSMAP_IDX
 #endif
@@ -212,6 +233,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -230,6 +252,9 @@
 #ifdef _SUBSURFACE_MASK_MAP3
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP3
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP3
 #define _THICKNESSMAP_IDX
 #endif
@@ -246,6 +271,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -744,6 +770,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceMask, weights);
+    surfaceData.transmissionMask = SURFACEDATA_BLEND_SCALAR(surfaceData, transmissionMask, weights);
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
     surfaceData.diffusionProfileHash = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfileHash, weights); // We don't need the hash as we only use it to compute the diffusion profile index
 

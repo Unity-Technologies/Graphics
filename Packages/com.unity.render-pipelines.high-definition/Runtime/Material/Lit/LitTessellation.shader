@@ -60,6 +60,8 @@ Shader "HDRP/LitTessellation"
 
         _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
+        _TransmissionMask("Transmission Mask", Range(0.0, 1.0)) = 1.0
+        _TransmissionMaskMap("Transmission Mask Map", 2D) = "white" {}
         _Thickness("Thickness", Float) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
@@ -280,6 +282,7 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local_fragment _ANISOTROPYMAP
     #pragma shader_feature_local_fragment _DETAIL_MAP
     #pragma shader_feature_local_fragment _SUBSURFACE_MASK_MAP
+    #pragma shader_feature_local_fragment _TRANSMISSION_MASK_MAP
     #pragma shader_feature_local_fragment _THICKNESSMAP
     #pragma shader_feature_local_fragment _IRIDESCENCE_THICKNESSMAP
     #pragma shader_feature_local_fragment _SPECULARCOLORMAP

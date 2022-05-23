@@ -32,6 +32,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // Copy graph values to surfaceData, if defined
     $SurfaceDescription.BaseColor:                 surfaceData.baseColor =                surfaceDescription.BaseColor;
     $SurfaceDescription.SubsurfaceMask:            surfaceData.subsurfaceMask =           surfaceDescription.SubsurfaceMask;
+    $SurfaceDescription.TransmissionMask:          surfaceData.transmissionMask =         surfaceDescription.TransmissionMask;
     $SurfaceDescription.Thickness:                 surfaceData.thickness =                surfaceDescription.Thickness;
     $SurfaceDescription.DiffusionProfileHash:      surfaceData.diffusionProfileHash =     asuint(surfaceDescription.DiffusionProfileHash);
     $SurfaceDescription.IridescenceMask:           surfaceData.iridescenceMask =          surfaceDescription.IridescenceMask;

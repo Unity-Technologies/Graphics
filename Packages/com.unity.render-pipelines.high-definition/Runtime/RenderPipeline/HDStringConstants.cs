@@ -1295,6 +1295,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kTangentMapOS = "_TangentMapOS";
 
         internal const string kSubsurfaceMaskMap = "_SubsurfaceMaskMap";
+        internal const string kTransmissionMaskMap = "_TransmissionMaskMap";
         internal const string kThicknessMap = "_ThicknessMap";
         internal const string kSpecularColorMap = "_SpecularColorMap";
 

@@ -83,6 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Specular);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, fabricData.subsurfaceScattering || fabricData.transmission);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, fabricData.subsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionMask, fabricData.transmission);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, fabricData.transmission);
 
             // Fabric Silk

@@ -34,8 +34,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ThinObject = 1
         }
 
-        [ColorUsage(false, true)]
-        public Color scatteringDistance;         // Per color channel (no meaningful units)
+        [ColorUsage(false, false)]
+        public Color scatteringDistance; // Per color channel (no meaningful units)
+        [Min(0.0f)]
+        public float scatteringDistanceMultiplier = 1.0f;
         [ColorUsage(false, true)]
         public Color transmissionTint;           // HDR color
         public TexturingMode texturingMode;
@@ -60,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ResetToDefault()
         {
             scatteringDistance = Color.grey;
+            scatteringDistanceMultiplier = 1;
             transmissionTint = Color.white;
             texturingMode = TexturingMode.PreAndPostScatter;
             transmissionMode = TransmissionMode.ThinObject;
@@ -81,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar.
         void UpdateKernel()
         {
-            Vector3 sd = (Vector3)(Vector4)scatteringDistance;
+            Vector3 sd = scatteringDistanceMultiplier * (Vector3)(Vector4)scatteringDistance;
 
             // Rather inconvenient to support (S = Inf).
             shapeParam = new Vector3(Mathf.Min(16777216, 1.0f / sd.x),
@@ -186,6 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             return scatteringDistance == other.scatteringDistance &&
+                scatteringDistanceMultiplier == other.scatteringDistanceMultiplier &&
                 transmissionTint == other.transmissionTint &&
                 texturingMode == other.texturingMode &&
                 transmissionMode == other.transmissionMode &&
@@ -215,8 +219,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public Color scatteringDistance
         {
-            get => profile.scatteringDistance;
-            set { profile.scatteringDistance = value; profile.Validate(); UpdateCache(); }
+            get
+            {
+                return profile.scatteringDistance * profile.scatteringDistanceMultiplier;
+            }
+            set
+            {
+                HDUtils.ConvertHDRColorToLDR(value, out profile.scatteringDistance, out profile.scatteringDistanceMultiplier);
+                profile.Validate(); UpdateCache();
+            }
         }
 
         /// <summary>
@@ -262,11 +273,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (m_Version != MigrationDescription.LastVersion<Version>())
             {
+                // Initial migration step requires creating assets
                 // We delay the upgrade of the diffusion profile because in the OnEnable we are still
                 // in the import of the current diffusion profile, so we can't create new assets of the same
                 // type from here otherwise it will freeze the editor in an infinite import loop.
                 // Thus we delay the upgrade of one editor frame so the import of this asset is finished.
-                UnityEditor.EditorApplication.delayCall += TryToUpgrade;
+                if (m_Version == Version.Initial)
+                    UnityEditor.EditorApplication.delayCall += TryToUpgrade;
+                else
+                    k_Migration.Migrate(this);
             }
 
             UnityEditor.Rendering.HighDefinition.DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(this);

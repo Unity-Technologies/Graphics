@@ -259,9 +259,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.diffusionProfileHash = asuint(ADD_IDX(_DiffusionProfileHash));
     surfaceData.subsurfaceMask = ADD_IDX(_SubsurfaceMask);
+    surfaceData.transmissionMask = ADD_IDX(_TransmissionMask);
 
 #ifdef _SUBSURFACE_MASK_MAP_IDX
     surfaceData.subsurfaceMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceMaskMap), SAMPLER_SUBSURFACE_MASK_MAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+#endif
+#ifdef _TRANSMISSION_MASK_MAP_IDX
+    surfaceData.transmissionMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_TransmissionMaskMap), SAMPLER_TRANSMISSION_MASK_MAP_IDX, ADD_IDX(layerTexCoord.base)).r;
 #endif
 
 #ifdef _THICKNESSMAP_IDX

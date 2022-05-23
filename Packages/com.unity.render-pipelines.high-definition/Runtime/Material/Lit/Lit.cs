@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask", precision = FieldPrecision.Real)]
             public float subsurfaceMask;
+            [SurfaceDataAttributes("Transmission Mask", precision = FieldPrecision.Real)]
+            public float transmissionMask;
 
             // Transmission
             // + Diffusion Profile

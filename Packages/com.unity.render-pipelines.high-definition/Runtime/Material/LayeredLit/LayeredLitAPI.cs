@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
 
                 CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP" + i, material.GetTexture(kSubsurfaceMaskMap + i));
+                CoreUtils.SetKeyword(material, "_TRANSMISSION_MASK_MAP" + i, material.GetTexture(kTransmissionMaskMap + i));
                 CoreUtils.SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
             }
 

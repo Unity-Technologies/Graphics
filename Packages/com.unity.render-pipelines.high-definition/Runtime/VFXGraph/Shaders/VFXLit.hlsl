@@ -183,6 +183,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #endif
     surfaceData.diffusionProfileHash = diffusionProfileHash;
     surfaceData.subsurfaceMask = 1.0f;
+    surfaceData.transmissionMask = 1.0f;
     #endif
 
     surfaceData.normalWS = normalWS;
