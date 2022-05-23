@@ -23,11 +23,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.SpriteLit(target));
+            context.AddSubShader(PostProcessSubShader(SubShaders.SpriteLit(target)));
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
+
             SpriteSubTargetUtility.AddDefaultFields(ref context, target);
         }
 

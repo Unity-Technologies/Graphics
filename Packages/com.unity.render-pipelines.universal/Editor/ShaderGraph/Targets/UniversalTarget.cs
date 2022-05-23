@@ -719,11 +719,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (m_ActiveSubTarget.value is UniversalLitSubTarget)
                 return true;
 
+            if (m_ActiveSubTarget.value is UniversalSpriteLitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalSpriteUnlitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalSpriteCustomLitSubTarget)
+                return true;
+
             //It excludes:
             // - UniversalDecalSubTarget
-            // - UniversalSpriteLitSubTarget
-            // - UniversalSpriteUnlitSubTarget
-            // - UniversalSpriteCustomLitSubTarget
             return false;
         }
 
