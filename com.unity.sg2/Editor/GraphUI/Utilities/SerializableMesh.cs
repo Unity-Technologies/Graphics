@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -21,6 +21,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 #pragma warning disable 649
             public Mesh mesh;
 #pragma warning restore 649
+        }
+
+        public SerializableMesh()
+        {
+            Mesh sphereMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
+            mesh = sphereMesh;
         }
 
         public bool IsNotInitialized

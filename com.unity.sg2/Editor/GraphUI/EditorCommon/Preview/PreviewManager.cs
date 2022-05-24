@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Initialize the main preview
             m_MainPreviewView = mainPreviewView;
-            m_MainPreviewData = graphModel.mainPreviewData;
+            m_MainPreviewData = graphModel.MainPreviewData;
             m_MainPreviewView.Initialize(m_MainPreviewData);
 
             // Initialize the headless preview
@@ -99,14 +99,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 if (!m_NodeLookupTable.TryGetValue(nodeName, out var nodeGuid))
                     continue;
-                
+
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
                 if (IsMainContextNode(nodeModel))
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
                         m_MainPreviewData.width,
                         m_MainPreviewData.height,
-                        m_MainPreviewData.serializedMesh.mesh,
+                        m_MainPreviewData.mesh,
                         m_MainPreviewData.scale,
                         m_MainPreviewData.preventRotation,
                         m_MainPreviewData.rotation,
