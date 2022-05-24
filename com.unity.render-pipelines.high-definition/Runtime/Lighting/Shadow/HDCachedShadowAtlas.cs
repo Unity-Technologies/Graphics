@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -102,13 +104,17 @@ namespace UnityEngine.Rendering.HighDefinition
         //          Functions for mixed cached shadows that need to live in cached atlas
         // ------------------------------------------------------------------------------------------
 
-        public void AddBlitRequestsForUpdatedShadows(HDDynamicShadowAtlas dynamicAtlas)
+        public unsafe void AddBlitRequestsForUpdatedShadows(HDDynamicShadowAtlas dynamicAtlas)
         {
-            foreach (var request in m_ShadowRequests)
+            NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
+            ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
+
+            foreach (var requestHandle in m_ShadowRequests)
             {
+                ref var request = ref requestStorageUnsafe.ElementAt(requestHandle.storageIndexForShadowRequest);
                 if(request.shouldRenderCachedComponent) // meaning it has been updated this time frame
                 {
-                    dynamicAtlas.AddRequestToPendingBlitFromCache(request);
+                    dynamicAtlas.AddRequestToPendingBlitFromCache(requestHandle, request.isMixedCached);
                 }
             }
         }
