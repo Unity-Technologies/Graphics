@@ -483,10 +483,11 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
-        // TODO: remove useRenderPassEnabled parameter when depth resolve support is added to RenderPass (URP-1009)
-        internal static bool MultisampleDepthResolveSupported(bool useRenderPassEnabled)
+        internal static bool MultisampleDepthResolveSupported()
         {
-            if (useRenderPassEnabled)
+            // Temporarily disabling depth resolve a driver bug on OSX when using some AMD graphics cards. Temporarily disabling depth resolve on that platform
+            // TODO: re-enable once the issue is investigated/fixed
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
                 return false;
 
             // Should we also check if the format has stencil and check stencil resolve capability only in that case?

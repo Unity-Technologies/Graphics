@@ -1,10 +1,8 @@
-# What's new in version 10
+# What's new in version 10 / Unity 2020.2
 
-This page contains an overview of new features, improvements, and issues resolved in version 10 of the High Definition Render Pipeline (HDRP).
+This page contains an overview of new features, improvements, and issues resolved in version 10 of the High Definition Render Pipeline (HDRP), embedded in Unity 2020.2.
 
-## Features
-
-The following is a list of features Unity added to version 10 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
+## Added
 
 ### Added support for the PlayStation 5 platform.
 
@@ -182,12 +180,66 @@ For information on fog in HDRP, see [fog](Override-Fog.md).
 
 Path tracing now supports Lit and Unlit Shader Graph nodes.
 
-Note that the graph should not contain nodes that rely on screen-space differentials (ddx, ddy). Nodes that compute the differences between the current pixel and a neighboring one do not compute correctly when you use ray tracing.
+**Note**: The graph shouldn't contain nodes that rely on screen-space differentials (ddx, ddy). Nodes that compute the differences between the current pixel and a neighboring one do not compute correctly when you use ray tracing.
 
-## Improvements
+### Shadows
 
-The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
+Contact shadows in HDRP 10.x introduce the following new properties:
 
+* **Bias**
+* **Thickness**
+
+These properties might change to the appearance of contact shadows that use the default parameters.
+
+For more information, see [Contact shadows](Override-Contact-Shadows.md).
+
+### Shader Code
+
+#### New vertex normal property
+
+HDRP 10.x adds the new vertex normal, `float3 vtxNormal` to the following decal function prototypes so you HDRP can perform angle-based fading:
+
+* The prototype for the function `GetDecalSurfaceData()` has changed from: `DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)` to: `DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)`
+* The prototype for the function `ApplyDecalToSurfaceData()` has changed from: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)` to: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)`
+
+#### New full screen debug pass
+
+From 10.x, HDRP includes a new full screen debug pass named `FullScreenDebug`. For HDRP to render a GameObject during the fullscreen debug pass, the shader that the GameObject's Material uses must contain this pass.
+
+#### positionNDC parameter
+
+Unity 2020.2, adds the  parameter, `positionNDC`,to the function `SampleEnv()`. Its prototype changes from:
+
+`float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)`
+
+to:
+
+`float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, float2 positionNDC, int sliceIdx = 0)`.
+
+For example, the call in the Lit shader is now: `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
+
+#### Fake distance based roughness
+
+HDRP 10.x adds new functionality for fake distance based roughness on Reflection Probes and introduces a new helper function. For example, this is how you use the function in the Lit shader:
+
+`float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance);`
+
+The parameter, `intersectionDistance`, is the return value of the `EvaluateLight_EnvIntersection()` function.
+
+#### Metallic range remapping
+
+From 10.x, HDRP uses range remapping for the metallic property when using a mask map. In the Lit, LitTessellation, LayeredLit, and LayeredLitTesselation shaders, HDRP adds two new properties:
+
+* `_MetallicRemapMin`
+* `_MetallicRemapMax`.
+
+In the Decal shader, HDRP adds the `_MetallicRemapMin` property.
+
+This version renames `_MetallicScale` to `_MetallicRemapMax`.
+
+HDRP 10.x adds a new pass, `ScenePickingPass`, to all the shader and master nodes to allow the editor to correctly handle picking with tessellated objects and backfaced objects.
+
+## Updated
 
 ### Scene view Camera properties
 
@@ -326,6 +378,174 @@ More information see [RenderGraph](https://docs.unity3d.com/Packages/com.unity.r
 ### Metallic Remapping
 
 HDRP now uses range remapping for the metallic value when using a mask map on Lit Materials as well as Decals.
+
+### Frame Settings
+
+From 10.x, when you create a new [HDRP Asset](HDRP-Asset), HDRP enables the **Frame Setting** option **MSAA Within Forward** by default.
+
+### Menu
+
+HDRP 10.x renames various HDRP menu items in **Assets** > **Create** > **Shader** to **HD Render Pipeline** for consistency.
+
+### Lighting
+
+#### Spot Lights
+
+From 10.x, when you create a Spot Light from the Editor menu, HDRP enables the **Reflector** property by default.
+
+**Note**: If you create a Spot Light via a C# script HDRP automatically disables the **Reflector** property.
+
+#### Backplate rendering
+
+From 10.x, HDRP disables [Backplate rendering](Override-HDRI-Sky) for lighting cubemaps that aren’t compatible.
+
+#### Reflection Probe interaction
+
+From 10.x, [Screen Space Ambient Occlusion](Override-Ambient-Occlusion), [Screen Space Global Illumination](Override-Screen-Space-GI), [Screen Space Reflection](Override-Screen-Space-Reflection), [Ray Tracing Effects](Ray-Tracing-Getting-Started), and [Volumetric Reprojection](Override-Fog) don’t interact with Reflection Probes. This is because these effects take many frames to render correctly which makes the Reflection Probe’s cubemap appear incorrectly.
+
+#### Static Lighting Sky
+
+From 10.x, the Sky doesn’t affect baked lighting when you disable the sky override your project uses as the **Static Lighting Sky** in the **Lighting** window.
+
+#### Cookies
+
+From 10.x, HDRP includes aCubemap Array for Point Light cookies, and uses octahedral projection with a regular 2D-Cookie atlas. This is to allow a single path for light cookies and IES profiles. However, a low-resolution cube-cookie might create visual artifacts. For example, when you project pixel art data.
+
+#### Color buffer texture format
+
+From 10.x, the Texture format of the color buffer in the HDRP Asset also applies to [Planar Reflection Probes](Planar-Reflection-Probe). In earlier HDRP versions Planar Reflection Probes use a float16 rendertarget.
+
+#### Light layer properties
+
+HDRP 10.x moves the light layer properties from the **HDRP settings** to the **HDRP Default Settings** tab.
+
+#### Sun disk intensity
+
+From 10.x, when you use Physically Based Sky, the sun disk intensity is proportional to its size. In previous versions, the sun disk is incorrectly not driven by the sun disk size.
+
+#### Screen Space Reflection color pyramid
+
+From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type). In previous versions, the content depends on whether the Distortion effect is active.
+
+### Shader config file
+
+HDRP 10.x moves the `HDShadowFilteringQuality` enum to `HDShadowManager.cs`.
+
+10.x adds a new option named **ColoredShadow**. It allows you to control whether a shadow is chromatic or monochrome. HDRP enables **ColoredShadow** by default and currently only works with [Ray-traced shadows](Ray-Traced-Shadows).
+
+**Note**: Colored shadows are more resource-intensive to process than standard shadows.
+
+### Shader code
+
+#### ModifyBakedDiffuseLighting()
+
+In 10.x, the prototype for the function `ModifyBakedDiffuseLighting()` in the various materials changes from: `void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)` to: `void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)`.
+
+#### Rectangular area shadow evaluation
+
+From 10.x, HDRP includes a new rectangular area shadow evaluation function, `EvaluateShadow_RectArea`.
+
+HDRP renames the `GetAreaLightAttenuation()` function to `GetRectAreaShadowAttenuation()`.
+
+HDRP renames the type `DirectionalShadowType` to `SHADOW_TYPE`.
+
+#### Ray tracing multi-compile
+
+HDRP 10.x introduces a new multi-compile for forward pass: `SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON`. This allows you to enable ray tracing without a shader config file.
+
+#### SHADERPASS
+
+From 10.x, `SHADERPASS` for `TransparentDepthPrepass` and `TransparentDepthPostpass` identification uses `SHADERPASS_TRANSPARENT_DEPTH_PREPASS` and `SHADERPASS_TRANSPARENT_DEPTH_POSTPASS`. Previous versions of  `SHADERPASS` use `SHADERPASS_DEPTH_ONLY`.
+
+#### Decal.shader
+
+10.x changes the shader code for the `Decal.shader`. It now uses four, rather than 16, passes to handle how HDRP renders different decal attributes:
+
+* `DBufferProjector`
+* `DecalProjectorForwardEmissive`
+* `DBufferMesh`
+* `DecalMeshForwardEmissive`
+
+`DBufferProjector` and `DBufferMesh` use `multi_compile DECALS_3RT DECALS_4RT` to handle the different decal attributes.
+
+#### <a name="shader-decal-properties"></a> Shader decal properties
+
+HDRP 10.x renames various shader decal properties to match a new set of AffectXXX properties. This version changes:
+
+* `_AlbedoMode` to `_AffectAlbedo`
+* `_MaskBlendMode` to `_AffectNormal`
+* `_MaskmapMetal` to `_AffectMetal`
+* `_MaskmapAO` to `_AffectAO`
+* `_MaskmapSmoothness` to `_AffectSmoothness`
+* `_Emissive` to `_AffectEmission`
+
+HDRP 10.x renames the keyword, `_ALBEDOCONTRIBUTION`, to `_MATERIAL_AFFECTS_ALBEDO` and adds two new keywords, `_MATERIAL_AFFECTS_NORMAL`, `_MATERIAL_AFFECTS_MASKMAP`.
+
+These new properties match properties from the Decal Shader Graph, which you expose in the Material.
+
+#### Raytracing Quality
+
+HDRP 10.x renames the Raytracing keyword in Shader Graph to **Raytracing Quality**. This version also renames the defines:
+
+* `RAYTRACING_SHADER_GRAPH_LOW` to `RAYTRACING_SHADER_GRAPH_DEFAULT`
+* `RAYTRACING_SHADER_GRAPH_HIGH` to `RAYTRACING_SHADER_GRAPH_RAYTRACED`
+
+### Raytracing
+
+From Unity 2020.2, the Raytracing Node in shader graph applies the raytraced path (previously the low path) to all raytraced effects except path tracing.
+
+### Local Volumetric Fog Mask Texture
+
+From Unity 2020.2, you can use the **Texture Importer** to convert a 2D flipbook texture to the 3D format that Density Mask Textures require. For information on how to use the importer to convert the flipbook texture, see the [Local Volumetric Fog documentation](Local-Volumetric-Fog).
+
+### Post Processing
+
+From 2020.2, the Camera rotation clamp in the Motion Blur volume override isn’t active by default. To enable the Camera rotation clamp:
+
+1. Open a GameObject with a volume component in the Inspector and add a **Motion Blur** override.
+2. In the **Motion Blur** override, go to **Camera Velocity** and enable **Camera Clamp Mode**.
+3. Set **Camera Clamp Mode** to **Rotation** and enable **Rotation Clamp**.
+
+In previous versions of HDRP, the Camera rotation clamp is active by default.
+
+## Removed
+
+### Shader config file
+
+From 10.x, HDRP removes `ShaderConfig.s_DeferredShadowFiltering` and `ShaderOptions.DeferredShadowFiltering` from the source code because they have no effect anymore.
+
+HDRP 10.x removes the Ray Tracing option and equivalent shader macro `SHADEROPTIONS_RAYTRACING`. You no longer need to edit the shader config file to use raytraced effects in HDRP.
+
+### Shader code
+
+HDRP 10.x removes
+
+* the defines `CUTOFF_TRANSPARENT_DEPTH_PREPASS` and `CUTOFF_TRANSPARENT_DEPTH_POSTPASS`.
+* the macros `ENABLE_RAYTRACING`, `SHADEROPTIONS_RAYTRACING`, and `RAYTRACING_ENABLED`.
+* the shader keywords `_BLENDMODE_ALPHA`, `_BLENDMODE_ADD` and `_BLENDMODE_PRE_MULTIPLY` and replaces them with `_Blendmode`.
+* the shader keyword `_BLENDMODE_PRESERVE_SPECULAR_LIGHTING` and replaces it with `_EnableBlendModePreserveSpecularLighting`.
+
+For example in Material.hlsl, this version replaces the following lines:
+
+```C#
+#if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
+        return float4(diffuseLighting * opacity + specularLighting, opacity);
+```
+
+with
+
+```C#
+   if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
+        return float4(diffuseLighting * opacity + specularLighting * (
+#ifdef SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+        _EnableBlendModePreserveSpecularLighting ? 1.0f :
+#endif
+            opacity), opacity);
+```
+
+This reduces the number of shader variants. If you are using custom shaders, you might have to move the include of Material.hlsl after the declaration of the property `_Blendmode`.
+
+If you want the custom shader to support the blend mode preserve specular option, you need to define the `_EnableBlendModePreserveSpecularLighting` property and the `SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING` compile time constant.
 
 ## Issues resolved
 
