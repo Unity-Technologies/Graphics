@@ -33,9 +33,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             reg.Register<SimpleSampleTexture2DNode>();
             reg.Register<ShaderGraphContext>();
 
-            reg.Register<Defs.ShaderSubGraphInputContext>();
-            reg.Register<Defs.ShaderSubGraphOutputContext>();
-
             // Register nodes from IStandardNode implementers.
             var interfaceType = typeof(IStandardNode);
             var types = AppDomain.CurrentDomain.GetAssemblies()
