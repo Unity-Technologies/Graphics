@@ -290,6 +290,9 @@ class VisualEffectAssetEditor : Editor
             prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
             prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
             initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
+            instancingModeProperty = resourceObject.FindProperty("m_Infos.m_InstancingMode");
+            instancingCapacityProperty = resourceObject.FindProperty("m_Infos.m_InstancingCapacity");
+            instancingDisabledReasonProperty = resourceObject.FindProperty("m_Infos.m_InstancingDisabledReason");
         }
     }
 
@@ -498,10 +501,9 @@ class VisualEffectAssetEditor : Editor
         VFXCullingFlags.CullNone,
     };
 
-    private string UpdateModeToString(VFXUpdateMode mode)
-    {
-        return ObjectNames.NicifyVariableName(mode.ToString());
-    }
+    private static readonly GUIContent k_InstancingContent = EditorGUIUtility.TrTextContent("Instancing");
+    private static readonly GUIContent k_InstancingModeContent = EditorGUIUtility.TrTextContent("Instancing Mode", "Selects how the visual effect will be handled regarding instancing.");
+    private static readonly GUIContent k_InstancingCapacityContent = EditorGUIUtility.TrTextContent("Max Batch Capacity", "Max number of instances that can be grouped together in a single batch.");
 
     SerializedObject resourceObject;
     SerializedProperty resourceUpdateModeProperty;
@@ -510,6 +512,9 @@ class VisualEffectAssetEditor : Editor
     SerializedProperty prewarmDeltaTime;
     SerializedProperty prewarmStepCount;
     SerializedProperty initialEventName;
+    SerializedProperty instancingModeProperty;
+    SerializedProperty instancingCapacityProperty;
+    SerializedProperty instancingDisabledReasonProperty;
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
@@ -740,6 +745,8 @@ class VisualEffectAssetEditor : Editor
 
         EditorGUILayout.EndHorizontal();
 
+        DrawInstancingGUI();
+
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
         if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
@@ -847,6 +854,38 @@ class VisualEffectAssetEditor : Editor
             }
         }
         GUI.enabled = false;
+    }
+
+    private void DrawInstancingGUI()
+    {
+        VisualEffectEditor.ShowHeader(k_InstancingContent, false, false);
+
+        EditorGUI.BeginChangeCheck();
+
+        VFXInstancingDisabledReason disabledReason = (VFXInstancingDisabledReason)instancingDisabledReasonProperty.intValue;
+        bool forceDisabled = disabledReason != VFXInstancingDisabledReason.None;
+        if (forceDisabled)
+        {
+            EditorGUILayout.HelpBox("Instancing not available:\n- Unknown reason", MessageType.Info);
+        }
+
+        VFXInstancingMode instancingMode = forceDisabled ? VFXInstancingMode.Disabled : (VFXInstancingMode)instancingModeProperty.intValue;
+        EditorGUI.BeginDisabled(forceDisabled);
+        instancingMode = (VFXInstancingMode)EditorGUILayout.EnumPopup(k_InstancingModeContent, instancingMode);
+        EditorGUI.EndDisabled();
+
+        int instancingCapacity = instancingCapacityProperty.intValue;
+        if (instancingMode == VFXInstancingMode.Custom)
+        {
+            instancingCapacity = EditorGUILayout.DelayedIntField(k_InstancingCapacityContent, instancingCapacity);
+        }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            instancingModeProperty.intValue = (int)instancingMode;
+            instancingCapacityProperty.intValue = System.Math.Max(instancingCapacity, 1);
+            resourceObject.ApplyModifiedProperties();
+        }
     }
 }
 

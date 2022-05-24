@@ -18,8 +18,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
-    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
-    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+    SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
     half4 color = surfaceDescription.SpriteColor;
@@ -46,6 +45,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     }
     #endif
 
+#ifndef HAVE_VFX_MODIFICATION
     color *= unpacked.color * _RendererColor;
+#endif
+
     return color;
 }

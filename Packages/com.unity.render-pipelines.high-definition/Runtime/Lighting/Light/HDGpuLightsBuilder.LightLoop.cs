@@ -270,7 +270,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (willRenderRtShadows)
                         lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
 
-                    m_ScreenSpaceShadowChannelSlot++;
+                    // increment the number of screen space shadows
+                    m_ScreenSpaceShadowIndex++;
+
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
@@ -292,7 +294,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 //TODO: move out of rendering pipeline locals.
                 // If this is the current sun light and volumetric cloud shadows are enabled we need to render the shadows
                 if (HDRenderPipeline.currentPipeline.HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
+                {
                     cookieParams = HDRenderPipeline.currentPipeline.RenderVolumetricCloudsShadows(cmd, hdCamera);
+
+                    lightData.positionRWS = cookieParams.position;
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        lightData.positionRWS -= hdCamera.mainViewConstants.worldSpaceCameraPos;
+                    }
+                }
                 else if (HDRenderPipeline.currentPipeline.skyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
                 {
                     if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
@@ -321,11 +331,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.right = light.GetRight() * 2 / Mathf.Max(cookieParams.size.x, 0.001f);
             lightData.up = light.GetUp() * 2 / Mathf.Max(cookieParams.size.y, 0.001f);
-            lightData.positionRWS = cookieParams.position;
-            if (ShaderConfig.s_CameraRelativeRendering != 0)
-            {
-                lightData.positionRWS -= hdCamera.mainViewConstants.worldSpaceCameraPos;
-            }
 
             if (additionalLightData.surfaceTexture == null)
             {

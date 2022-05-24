@@ -16,19 +16,37 @@ namespace UnityEngine.Rendering.Universal
     internal interface ILight2DCullResult
     {
         List<Light2D> visibleLights { get; }
+        List<ShadowCasterGroup2D> visibleShadows { get; }
         LightStats GetLightStatsByLayer(int layer);
         bool IsSceneLit();
+
+#if UNITY_EDITOR
+        // Determine if culling result is based of game camera
+        bool IsGameView();
+#endif
     }
 
     internal class Light2DCullResult : ILight2DCullResult
     {
         private List<Light2D> m_VisibleLights = new List<Light2D>();
         public List<Light2D> visibleLights => m_VisibleLights;
+        private List<ShadowCasterGroup2D> m_VisibleShadows = new List<ShadowCasterGroup2D>();
+        public List<ShadowCasterGroup2D> visibleShadows => m_VisibleShadows;
+#if UNITY_EDITOR
+        bool m_IsGameView;
+#endif
 
         public bool IsSceneLit()
         {
             return Light2DManager.lights.Count > 0;
         }
+
+#if UNITY_EDITOR
+        public bool IsGameView()
+        {
+            return m_IsGameView;
+        }
+#endif
 
         public LightStats GetLightStatsByLayer(int layer)
         {
@@ -54,7 +72,11 @@ namespace UnityEngine.Rendering.Universal
 
         public void SetupCulling(ref ScriptableCullingParameters cullingParameters, Camera camera)
         {
-            Profiler.BeginSample("Cull 2D Lights");
+#if UNITY_EDITOR
+            m_IsGameView = UniversalRenderPipeline.IsGameCamera(camera);
+#endif
+
+            Profiler.BeginSample("Cull 2D Lights and Shadow Casters");
             m_VisibleLights.Clear();
             foreach (var light in Light2DManager.lights)
             {
@@ -95,6 +117,34 @@ namespace UnityEngine.Rendering.Universal
 
             // must be sorted here because light order could change
             m_VisibleLights.Sort((l1, l2) => l1.lightOrder - l2.lightOrder);
+
+            m_VisibleShadows.Clear();
+            if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
+            {
+                foreach(var group in ShadowCasterGroup2DManager.shadowCasterGroups)
+                {
+                    var shadowCasters = group.GetShadowCasters();
+                    if (shadowCasters != null)
+                    {
+                        foreach (var shadowCaster in shadowCasters)
+                        {
+                            // Cull against visible lights in the scene
+                            foreach (var light in m_VisibleLights)
+                            {
+                                if(shadowCaster.IsLit(light) && !m_VisibleShadows.Contains(group))
+                                {
+                                    m_VisibleShadows.Add(group);
+                                    break;
+                                }
+                            }
+
+                            if (m_VisibleShadows.Contains(group))
+                                break;
+                        }
+                    }
+                }
+            }
+
             Profiler.EndSample();
         }
     }

@@ -1,15 +1,15 @@
 // Shadow pass
 Pass
-{		
+{
 	Tags { "LightMode"=${VFXPassShadow} }
 
 	ZClip [_ZClip]
 	ZWrite On
 	Blend Off
-	
+
 	HLSLPROGRAM
 	#pragma target 4.5
-	
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
@@ -18,8 +18,10 @@ Pass
 		float4 sphereInfo : TEXCOORD2;
 
 		UNITY_VERTEX_OUTPUT_STEREO
+
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 	};
-	
+
 	struct ps_output
 	{
 		float depth : SV_DepthLessEqual;
@@ -28,7 +30,7 @@ Pass
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
-#define VFX_VARYING_POSWS posWS	
+#define VFX_VARYING_POSWS posWS
 #define VFX_VARYING_SPHERECENTER sphereInfo.xyz
 #define VFX_VARYING_SPHERERADIUS sphereInfo.w
 
@@ -39,7 +41,7 @@ ${VFXEnd}
 
 	${VFXPassShadowDefine}
 	${VFXInclude("Shaders/ParticleSpheres/Pass.template")}
-		
+
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{

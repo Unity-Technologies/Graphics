@@ -4,6 +4,7 @@ using Unity.Collections;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -52,12 +53,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct RenderingData
     {
-        /// <summary>
-        /// Global CommandBuffer for the pipeline to be used instead of local command buffers inside ScriptableRenderPass.
-        /// This buffer is automatically executed after <c>ScriptableRenderPass.Execute</c>
-        /// </summary>
-        /// <seealso cref="ScriptableRenderPass.Execute(ScriptableRenderContext, ref RenderingData)"/>
-        public CommandBuffer commandBuffer;
+        internal CommandBuffer commandBuffer;
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -215,6 +211,11 @@ namespace UnityEngine.Rendering.Universal
             return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), IsCameraProjectionMatrixFlipped());
         }
 
+        internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
+        {
+            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
+        }
+
         /// <summary>
         /// The camera component.
         /// </summary>
@@ -249,7 +250,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool fsrOverrideSharpness;
         internal float fsrSharpness;
         internal HDRColorBufferPrecision hdrColorBufferPrecision;
-
 
         /// <summary>
         /// True if this camera should clear depth buffer. This setting only applies to cameras of type <c>CameraRenderType.Overlay</c>
@@ -330,18 +330,33 @@ namespace UnityEngine.Rendering.Universal
             if (renderer != null)
             {
 #pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
-                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraDepthTarget;
+                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraColorTarget;
 #pragma warning restore 0618
                 bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= targetId == xr.renderTarget;
+                    renderingToBackBufferTarget |= targetId == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
             }
 
             return true;
+        }
+
+        public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
+        {
+
+#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
+            var targetId = color?.nameID ?? depth?.nameID;
+#pragma warning restore 0618
+            bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                renderingToBackBufferTarget |= targetId == xr.renderTarget;
+#endif
+            bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
+            return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
         }
 
         /// <summary>
@@ -520,6 +535,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");
+        public static readonly int alphaToMaskAvailable = Shader.PropertyToID("_AlphaToMaskAvailable");
         public static readonly int projectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
@@ -546,6 +562,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int billboardTangent = Shader.PropertyToID("unity_BillboardTangent");
         public static readonly int billboardCameraParams = Shader.PropertyToID("unity_BillboardCameraParams");
 
+        public static readonly int blitTexture = Shader.PropertyToID("_BlitTexture");
+        public static readonly int blitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
@@ -590,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
-        internal static readonly string ClusteredRendering = "_CLUSTERED_RENDERING";
+        internal static readonly string ForwardPlus = "_FORWARD_PLUS";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
         public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
@@ -678,9 +696,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _NORMALMAP = "_NORMALMAP";
 
         public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
-
-        // XR
-        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
     }
 
     public sealed partial class UniversalRenderPipeline

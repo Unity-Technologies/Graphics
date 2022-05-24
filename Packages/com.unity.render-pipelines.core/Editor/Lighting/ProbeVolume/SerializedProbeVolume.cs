@@ -2,10 +2,9 @@ namespace UnityEditor.Rendering
 {
     internal class SerializedProbeVolume
     {
-        internal SerializedProperty probeVolumeParams;
-
         internal SerializedProperty globalVolume;
         internal SerializedProperty size;
+        internal SerializedProperty fillEmptySpaces;
         internal SerializedProperty overridesSubdivision;
         internal SerializedProperty highestSubdivisionLevelOverride;
         internal SerializedProperty lowestSubdivisionLevelOverride;
@@ -27,6 +26,7 @@ namespace UnityEditor.Rendering
             highestSubdivisionLevelOverride = serializedObject.FindProperty("highestSubdivLevelOverride");
             lowestSubdivisionLevelOverride = serializedObject.FindProperty("lowestSubdivLevelOverride");
             overridesSubdivision = serializedObject.FindProperty("overridesSubdivLevels");
+            fillEmptySpaces = serializedObject.FindProperty("fillEmptySpaces");
         }
 
         internal void Apply()

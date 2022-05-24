@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -174,8 +175,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that computes the delta time for the frame
         public void Update(float totalTime, float timeMultiplier)
         {
-            deltaTime = (totalTime - m_Time) * timeMultiplier;
-            simulationTime += deltaTime;
+#if UNITY_EDITOR
+            if (!EditorApplication.isPaused)
+#endif
+            {
+                deltaTime = (totalTime - m_Time) * timeMultiplier;
+                simulationTime += deltaTime;
+            }
             m_Time = totalTime;
         }
 

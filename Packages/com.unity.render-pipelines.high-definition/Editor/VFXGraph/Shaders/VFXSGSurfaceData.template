@@ -7,6 +7,7 @@ surface.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 surface.specularOcclusion = 1.0f;
 surface.ambientOcclusion = 1.0f;
 surface.subsurfaceMask = 1.0f;
+surface.tranmissionMask = 1.0f;
 
 #if HAS_SHADERGRAPH_PARAM_ALPHA
     builtinOpacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};

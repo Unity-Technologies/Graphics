@@ -2,28 +2,26 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 {
     HLSLINCLUDE
         #pragma multi_compile_local_fragment _ _FXAA
-        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
         #pragma multi_compile_local_fragment _ _GAMMA_20
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D_X(_SourceTex);
         float4 _SourceSize;
 
         half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
             float2 positionNDC = uv;
             int2   positionSS = uv * _SourceSize.xy;
 
-            half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv).xyz;
 
 #if _FXAA
-            color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _SourceTex);
+            color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _BlitTexture);
 #endif
 
 #if _GAMMA_20 && !UNITY_COLORSPACE_GAMMA
@@ -60,7 +58,7 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
             Name "ScalingSetup"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment Frag
             ENDHLSL
         }

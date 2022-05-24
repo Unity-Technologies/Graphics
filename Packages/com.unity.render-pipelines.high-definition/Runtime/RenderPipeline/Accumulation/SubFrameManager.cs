@@ -14,6 +14,23 @@ using UnityEngine.Rendering.Denoising;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // Struct storing size-related information coming from the ray tracing acceleration structure
+    internal struct AccelerationStructureSize
+    {
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || !(obj is AccelerationStructureSize rhs))
+                return false;
+            return memUsage == rhs.memUsage && instCount == rhs.instCount;
+        }
+        public override int GetHashCode() { return base.GetHashCode(); }
+        public static bool operator ==(AccelerationStructureSize lhs, AccelerationStructureSize rhs) { return lhs.Equals(rhs); }
+        public static bool operator !=(AccelerationStructureSize lhs, AccelerationStructureSize rhs) => !(lhs == rhs);
+
+        public ulong memUsage;
+        public uint  instCount;
+    }
+
     // Struct storing per-camera data, to handle accumulation and dirtiness
     internal struct CameraData
     {
@@ -31,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint height;
         public bool skyEnabled;
         public bool fogEnabled;
-        public ulong accelSize;
+        public AccelerationStructureSize accelSize;
 
         public float accumulatedWeight;
         public uint currentIteration;
@@ -56,6 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal state
         float m_OriginalCaptureDeltaTime = 0;
         float m_OriginalFixedDeltaTime = 0;
+        float m_OriginalTimeScale = 0;
 
         // Per-camera data cache
         Dictionary<int, CameraData> m_CameraCache = new Dictionary<int, CameraData>();
@@ -153,11 +171,21 @@ namespace UnityEngine.Rendering.HighDefinition
             Clear();
 
             m_OriginalCaptureDeltaTime = Time.captureDeltaTime;
-            Time.captureDeltaTime = m_OriginalCaptureDeltaTime / m_AccumulationSamples;
-
-            // This is required for physics simulations
             m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
-            Time.fixedDeltaTime = m_OriginalFixedDeltaTime / m_AccumulationSamples;
+
+            if (shutterInterval > 0)
+            {
+                Time.captureDeltaTime = m_OriginalCaptureDeltaTime / m_AccumulationSamples;
+
+                // This is required for physics simulations
+                Time.fixedDeltaTime = m_OriginalFixedDeltaTime / m_AccumulationSamples;
+            }
+            else
+            {
+                Time.captureDeltaTime = 0;
+                // This is required for physics simulations
+                Time.fixedDeltaTime = 0;
+            }
         }
 
         internal void BeginRecording(int samples, float shutterInterval, float shutterFullyOpen = 0.0f, float shutterBeginsClosing = 1.0f)
@@ -177,10 +205,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EndRecording()
         {
-            m_IsRecording = false;
+            m_IsRecording  = false;
+            m_ShutterCurve = null;
+
+            // Reset the time-related values that we have adjusted
             Time.captureDeltaTime = m_OriginalCaptureDeltaTime;
             Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
-            m_ShutterCurve = null;
+
+            if (m_OriginalTimeScale != 0.0)
+            {
+                Time.timeScale = m_OriginalTimeScale;
+                m_OriginalTimeScale = 0.0f;
+            }
         }
 
         // Should be called before rendering a new frame in a sequence (when accumulation is desired)
@@ -189,6 +225,27 @@ namespace UnityEngine.Rendering.HighDefinition
             uint maxIteration = 0;
             foreach (int camID in m_CameraCache.Keys.ToList())
                 maxIteration = Math.Max(maxIteration, GetCameraData(camID).currentIteration);
+
+            if (m_ShutterInterval == 0)
+            {
+                if (maxIteration == m_AccumulationSamples - 1)
+                {
+                    Time.captureDeltaTime = m_OriginalCaptureDeltaTime;
+                    Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
+                    Time.timeScale = m_OriginalTimeScale;
+                }
+                else
+                {
+                    // Save the original timescale. We cannot do that in Init because the recorder always set the timescale to 0, so we do it here
+                    if (m_OriginalTimeScale == 0)
+                    {
+                        m_OriginalTimeScale = Time.timeScale;
+                    }
+                    Time.captureDeltaTime = 0;
+                    Time.fixedDeltaTime = 0;
+                    Time.timeScale = 0;
+                }
+            }
 
             if (maxIteration >= m_AccumulationSamples)
             {
@@ -242,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float totalWeight = camData.accumulatedWeight;
             float time = m_AccumulationSamples > 0 ? (float)camData.currentIteration / m_AccumulationSamples : 0.0f;
 
-            float weight = isRecording ? ShutterProfile(time) : 1.0f;
+            float weight = (isRecording && m_ShutterInterval > 0) ? ShutterProfile(time) : 1.0f;
 
             if (camData.currentIteration < m_AccumulationSamples)
                 camData.accumulatedWeight += weight;

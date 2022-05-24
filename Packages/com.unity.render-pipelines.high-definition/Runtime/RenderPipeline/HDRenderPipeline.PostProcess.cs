@@ -479,14 +479,14 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle sunOcclusionTexture,
             CullingResults cullResults,
             HDCamera hdCamera,
-            CubemapFace cubemapFace)
+            CubemapFace cubemapFace,
+            bool postProcessIsFinalPass)
         {
-            bool postPRocessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
-            TextureHandle dest = postPRocessIsFinalPass ? backBuffer : renderGraph.CreateTexture(
+            TextureHandle dest = postProcessIsFinalPass ? backBuffer : renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, false, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
 
             var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : renderGraph.defaultResources.blackTextureXR;
-            bool flipYInPostProcess = postPRocessIsFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
+            bool flipYInPostProcess = postProcessIsFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
 
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
@@ -604,7 +604,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess, cubemapFace);
+            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess, cubemapFace, postProcessIsFinalPass);
 
             bool currFrameIsTAAUpsampled = hdCamera.IsTAAUEnabled();
             bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
@@ -2205,6 +2205,21 @@ namespace UnityEngine.Rendering.HighDefinition
             // Note: The DoF sampling is performed in normalized space in the shader, so we don't need any scaling for half/quarter resoltion.
         }
 
+        static float GetDoFResolutionMaxMip(in DepthOfFieldParameters dofParameters)
+        {
+            // For low sample counts & resolution scales, the DoF result looks very different from base resolutions (even if we scale the sample distance).
+            // Thus, here we try to enforce a maximum mip to clamp to depending on the the resolution scale.
+            switch (dofParameters.resolution)
+            {
+                case DepthOfFieldResolution.Full:
+                    return 4.0f;
+                case DepthOfFieldResolution.Half:
+                    return 3.0f;
+                default:
+                    return 2.0f;
+            }
+        }
+
         static int GetDoFDilationPassCount(in DepthOfFieldParameters dofParameters, in float dofScale, in float nearMaxBlur)
         {
             return Mathf.CeilToInt((nearMaxBlur * dofScale + 2) / 4f);
@@ -2547,7 +2562,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherFarKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farMaxBlur * scale, barrelClipping, farMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params1, new Vector4(farSamples, farMaxBlur * scale, barrelClipping, farMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(GetDoFResolutionMaxMip(dofParameters), 0, 0, 0));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
@@ -2610,7 +2626,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherNearKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearMaxBlur * scale, barrelClipping, nearMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params1, new Vector4(nearSamples, nearMaxBlur * scale, barrelClipping, nearMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
@@ -4946,9 +4962,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
 
             public CubemapFace cubemapFace;
+            public bool postProcessIsFinalPass;
         }
 
-        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, TextureHandle uiBuffer, BlueNoise blueNoise, bool flipY, CubemapFace cubemapFace)
+        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, TextureHandle uiBuffer, BlueNoise blueNoise, bool flipY, CubemapFace cubemapFace, bool postProcessIsFinalPass)
         {
             using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
@@ -4985,6 +5002,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(finalRT);
                 passData.uiBuffer = builder.ReadTexture(uiBuffer);
                 passData.cubemapFace = cubemapFace;
+                passData.postProcessIsFinalPass = postProcessIsFinalPass;
 
                 passData.outputColorSpace = 0;
                 if (HDROutputIsActive())
@@ -5107,7 +5125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
-                        bool processHDR = HDROutputIsActive() && HDUtils.PostProcessIsFinalPass(data.hdCamera);
+                        bool processHDR = HDROutputIsActive() && data.postProcessIsFinalPass;
                         if (processHDR)
                         {
                             if (data.hdroutParameters.w == 1)
@@ -5136,7 +5154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // When post process is not the final pass, we render at (0,0) so that subsequent rendering does not have to bother about viewports.
                         // Final viewport is handled in the final blit in this case
-                        if (!HDUtils.PostProcessIsFinalPass(data.hdCamera))
+                        if (!data.postProcessIsFinalPass)
                         {
                             backBufferRect.x = backBufferRect.y = 0;
                         }

@@ -88,7 +88,7 @@ class VFXSlotContainerEditor : Editor
                         foreach (int val in filteredValues)
                             values.Remove(val);
                 }
-                enumNames = values.Select(t => new GUIContent(Enum.GetName(fieldInfo.FieldType, t))).ToArray();
+                enumNames = values.Select(t => new GUIContent(ObjectNames.NicifyVariableName(Enum.GetName(fieldInfo.FieldType, t)))).ToArray();
                 enumValues = values.ToArray();
 
                 HeaderAttribute attr = fieldInfo.GetCustomAttributes<HeaderAttribute>().FirstOrDefault();

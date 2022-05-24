@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -17,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private GraphicsFormat depthStencilFormat;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
+        private PassData m_PassData;
         FilteringSettings m_FilteringSettings;
 
         /// <summary>
@@ -31,9 +33,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
+            m_PassData = new PassData();
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
             useNativeRenderPass = false;
+            this.shaderTagId = k_ShaderTagId;
         }
 
         /// <summary>
@@ -50,7 +54,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.destination = depthAttachmentHandle;
             this.depthStencilFormat = baseDescriptor.depthStencilFormat;
-            this.shaderTagId = k_ShaderTagId;
         }
 
         /// <inheritdoc />
@@ -74,20 +77,69 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        /// <inheritdoc/>
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = renderingData.commandBuffer;
+            var cmd = renderingData.commandBuffer;
+            var shaderTagId = passData.shaderTagId;
+            var filteringSettings = passData.filteringSettings;
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
+                var drawSettings = RenderingUtils.CreateDrawingSettings(shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            m_PassData.shaderTagId = this.shaderTagId;
+            m_PassData.filteringSettings = m_FilteringSettings;
+            ExecutePass(context, m_PassData, ref renderingData);
+        }
+
+        private class PassData
+        {
+            internal TextureHandle cameraDepthTexture;
+            internal RenderingData renderingData;
+            internal ShaderTagId shaderTagId;
+            internal FilteringSettings filteringSettings;
+        }
+
+        internal void Render(RenderGraph renderGraph, out TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        {
+            const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
+            const int k_DepthBufferBits = 32;
+
+            using (var builder = renderGraph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
+            {
+                var depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+                depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthTexture", true);
+
+                passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
+                passData.renderingData = renderingData;
+                passData.shaderTagId = this.shaderTagId;
+                passData.filteringSettings = m_FilteringSettings;
+
+                //  TODO RENDERGRAPH: culling? force culling off for testing
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    ExecutePass(context.renderContext, data, ref data.renderingData);
+                });
+
+                return;
             }
         }
     }

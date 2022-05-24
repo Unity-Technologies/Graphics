@@ -96,6 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 deviceProjectionYFlip;
         public Matrix4x4 deviceProjection;
         public Matrix4x4 projection;
+        public BatchCullingProjectionType projectionType;
         public Matrix4x4 shadowToWorld;
         public Vector3 position;
         public Vector4 zBufferParam;

@@ -60,6 +60,8 @@ Shader "HDRP/Lit"
 
         _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
+        _TransmissionMask("Transmission Mask", Range(0.0, 1.0)) = 1.0
+        _TransmissionMaskMap("Transmission Mask Map", 2D) = "white" {}
         _Thickness("Thickness", Float) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
@@ -104,7 +106,7 @@ Shader "HDRP/Lit"
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Transparency
-        [Enum(None, 0, Box, 1, Sphere, 2, Thin, 3)]_RefractionModel("Refraction Model", Int) = 0
+        [Enum(None, 0, Planar, 1, Sphere, 2, Thin, 3)]_RefractionModel("Refraction Model", Int) = 0
         _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.5
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
         _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
@@ -270,6 +272,7 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_fragment _ANISOTROPYMAP
     #pragma shader_feature_local_fragment _DETAIL_MAP
     #pragma shader_feature_local_fragment _SUBSURFACE_MASK_MAP
+    #pragma shader_feature_local_fragment _TRANSMISSION_MASK_MAP
     #pragma shader_feature_local_fragment _THICKNESSMAP
     #pragma shader_feature_local_fragment _IRIDESCENCE_THICKNESSMAP
     #pragma shader_feature_local_fragment _SPECULARCOLORMAP
@@ -1008,7 +1011,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1060,7 +1063,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1109,7 +1112,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1147,7 +1150,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
@@ -1176,7 +1179,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1210,7 +1213,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_DEBUG
@@ -1234,7 +1237,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1248,6 +1251,13 @@ Shader "HDRP/Lit"
 
             // This is just because it needs to be defined, shadow maps are not used.
             #define SHADOW_LOW
+
+            // For all single-sided, refractive materials, we want to force a thin refraction model.
+            #if !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+                #undef  _REFRACTION_PLANE
+                #undef  _REFRACTION_SPHERE
+                #define _REFRACTION_THIN
+            #endif
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 

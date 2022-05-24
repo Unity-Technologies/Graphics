@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float historyValidity = EvaluateHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
-                TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
+                TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(renderGraph, hdCamera));
                 HDTemporalFilter.TemporalFilterParameters filterParams;
                 filterParams.singleChannel = true;
                 filterParams.historyValidity = historyValidity;
@@ -240,11 +240,35 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static RTHandle RequestAmbientOcclusionHistoryTexture(HDCamera hdCamera)
+        class ClearRTAOHistoryData
         {
-            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion,
-                AmbientOcclusionHistoryBufferAllocatorFunction, 1);
+            public TextureHandle aoTexture;
+        }
+
+        static RTHandle RequestAmbientOcclusionHistoryTexture(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            var aoHistoryTex = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion);
+            if (aoHistoryTex == null)
+            {
+                var newHistoryTexture = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
+                using (var builder = renderGraph.AddRenderPass<ClearRTAOHistoryData>("Clearing the AO History Texture", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingClearHistoryAmbientOcclusion)))
+                {
+                    builder.EnableAsyncCompute(false);
+                    passData.aoTexture = builder.ReadWriteTexture(renderGraph.ImportTexture(newHistoryTexture));
+
+                    builder.SetRenderFunc(
+                        (ClearRTAOHistoryData data, RenderGraphContext ctx) =>
+                        {
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.aoTexture, clearFlag: ClearFlag.Color, Color.black);
+                        });
+
+                    return newHistoryTexture;
+                }
+            }
+            else
+            {
+                return aoHistoryTex;
+            }
         }
     }
 }

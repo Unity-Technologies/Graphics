@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal enum RefractionModel
         {
             None = 0,
-            Box = 1,
+            Planar = 1,
             Sphere = 2,
             Thin = 3
         };

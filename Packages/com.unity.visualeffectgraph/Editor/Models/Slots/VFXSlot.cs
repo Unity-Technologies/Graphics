@@ -768,24 +768,10 @@ namespace UnityEditor.VFX
         }
 
         public int GetNbLinks() { return m_LinkedSlots.Count; }
-        public bool HasLink(bool rescursive = false)
+        public bool HasLink(bool recursive = false)
         {
-            if (GetNbLinks() != 0)
-            {
-                return true;
-            }
-
-            if (rescursive)
-            {
-                foreach (var child in children)
-                {
-                    if (child.HasLink(rescursive))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return GetNbLinks() > 0
+                || recursive && children.Any(x => x.HasLink(true));
         }
 
         public bool CanLink(VFXSlot other)
@@ -1093,7 +1079,7 @@ namespace UnityEditor.VFX
             }
 
             if (owner != null && direction == Direction.kInput)
-                owner.Invalidate(InvalidationCause.kExpressionInvalidated);
+                owner.Invalidate(this, InvalidationCause.kExpressionInvalidated);
         }
 
         public void UnlinkAll(bool recursive = false, bool notify = true)
@@ -1140,6 +1126,18 @@ namespace UnityEditor.VFX
                     });
                 }
             }
+
+            if (direction == Direction.kOutput &&
+                ((cause == InvalidationCause.kParamChanged && m_LinkedInExpression == null) || // only propagate param changed if no linkedin expression is set
+                 cause == InvalidationCause.kExpressionValueInvalidated))
+            {
+                PropagateToTree(s =>
+                {
+                    foreach (var slot in s.m_LinkedSlots)
+                        slot.Invalidate(InvalidationCause.kExpressionValueInvalidated);
+                });
+            }
+
             base.OnInvalidate(model, cause);
         }
 

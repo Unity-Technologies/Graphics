@@ -397,6 +397,12 @@ namespace UnityEditor.VFX.Block
                     speedRangeComponents[1] = VFXOperatorUtility.OneExpression[VFXValueType.Float] / speedRangeDelta;
                     yield return new VFXNamedExpression(new VFXExpressionCombine(speedRangeComponents), "SpeedRange");
                 }
+
+                if (SampleMode == CurveSampleMode.RandomConstantPerParticle)
+                {
+                    yield return new VFXNamedExpression(VFXBuiltInExpression.SystemSeed, "systemSeed");
+                }
+
             }
         }
 

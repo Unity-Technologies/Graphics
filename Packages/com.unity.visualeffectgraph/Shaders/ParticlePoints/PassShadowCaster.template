@@ -1,8 +1,8 @@
 // Shadow pass
 Pass
-{		
+{
 	Tags { "LightMode"=${VFXPassShadow} }
-	
+
 	ZClip [_ZClip]
 	ZWrite On
 	Blend Off
@@ -12,7 +12,7 @@ Pass
 	#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE
 	#define USE_ALPHA_TEST 1
 	#endif
-	
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
@@ -23,13 +23,14 @@ Pass
 		float pointSize : PSIZE;
 
 		UNITY_VERTEX_OUTPUT_STEREO
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_ALPHA builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
-	
+
 ${VFXBegin:VFXVertexAdditionalProcess}
 float3 posWS = TransformPositionVFXToWorld(vPos);
 VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS);
@@ -37,7 +38,7 @@ ${VFXEnd}
 
 	${VFXPassShadowDefine}
 	${VFXInclude("Shaders/ParticlePoints/Pass.template")}
-		
+
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{

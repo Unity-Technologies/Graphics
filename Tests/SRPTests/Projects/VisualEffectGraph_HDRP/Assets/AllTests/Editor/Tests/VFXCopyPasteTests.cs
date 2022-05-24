@@ -98,7 +98,9 @@ namespace UnityEditor.VFX.Test
             minValueSlot.value = originalMinValue;
 
             // Copy selection
-            string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
+            var elements = view.selection.OfType<GraphElement>().ToArray();
+            var bounds = view.GetElementsBounds(elements);
+            string copyData = view.SerializeElements(elements);
             // Than change value to check the original value is pasted (not the modified one after copy)
             boundsSlot.value = new AABox { center = Vector3.zero, size = Vector3.zero };
             minValueSlot.value = 789f;
@@ -118,7 +120,8 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual((AABox)copyBoundsSlot.value, originalBounds);
             Assert.AreEqual((float)copyMinSlot.value, originalMinValue);
-            Assert.AreEqual(view.pasteCenter + newContext.position, copyContextModel.position);
+            Assert.AreEqual(view.pasteCenter + newContext.position - bounds.min, copyContextModel.position);
+
         }
 
         [Test]
@@ -134,6 +137,7 @@ namespace UnityEditor.VFX.Test
             // Select the newly created operator
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView;
+
             view.controller = m_ViewController;
             view.ClearSelection();
             foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
@@ -148,7 +152,9 @@ namespace UnityEditor.VFX.Test
             aSlot.value = originalA;
 
             // Copy selection and modify operator slot value afterwards
-            string copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
+            var elements = view.selection.OfType<GraphElement>().ToArray();
+            var bounds = view.GetElementsBounds(elements);
+            string copyData = view.SerializeElements(elements);
             aSlot.value = Vector3.one * 456;
 
             // Paste selection
@@ -163,7 +169,7 @@ namespace UnityEditor.VFX.Test
 
             var copyASlot = copyOperator.controller.model.GetInputSlot(0);
             Assert.AreEqual(originalA, (Vector3)copyASlot.value);
-            Assert.AreEqual(view.pasteCenter + newOperator.position, copyOperator.controller.model.position);
+            Assert.AreEqual(view.pasteCenter + newOperator.position - bounds.min, copyOperator.controller.model.position);
         }
 
         [Test]

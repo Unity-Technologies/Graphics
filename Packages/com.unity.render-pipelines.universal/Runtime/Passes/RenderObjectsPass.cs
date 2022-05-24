@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -15,6 +16,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public Material overrideMaterial { get; set; }
         public int overrideMaterialPassIndex { get; set; }
+        public Shader overrideShader { get; set; }
+        public int overrideShaderPassIndex { get; set; }
 
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
@@ -50,6 +53,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             this.renderQueueType = renderQueueType;
             this.overrideMaterial = null;
             this.overrideMaterialPassIndex = 0;
+            this.overrideShader = null;
+            this.overrideShaderPassIndex = 0;
             RenderQueueRange renderQueueRange = (renderQueueType == RenderQueueType.Transparent)
                 ? RenderQueueRange.transparent
                 : RenderQueueRange.opaque;
@@ -77,6 +82,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            ScriptableRenderer renderer = renderingData.cameraData.renderer;
+            ConfigureTarget(renderer.cameraColorTargetHandle, renderer.cameraDepthTargetHandle);
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -87,6 +98,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
             drawingSettings.overrideMaterial = overrideMaterial;
             drawingSettings.overrideMaterialPassIndex = overrideMaterialPassIndex;
+            drawingSettings.overrideShader = overrideShader;
+            drawingSettings.overrideShaderPassIndex = overrideShaderPassIndex;
 
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
@@ -141,6 +154,35 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.GetViewMatrix(), cameraData.GetGPUProjectionMatrix(), false);
                 }
+            }
+        }
+
+        private class PassData
+        {
+            internal RenderObjectsPass pass;
+            internal RenderingData renderingData;
+        }
+
+        internal override void RecordRenderGraph(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+
+            using (var builder = renderGraph.AddRenderPass<PassData>("Render Objects Pass", out var passData, m_ProfilingSampler))
+            {
+                TextureHandle color = UniversalRenderer.m_ActiveRenderGraphColor;
+                builder.UseColorBuffer(color, 0);
+                builder.UseDepthBuffer(UniversalRenderer.m_ActiveRenderGraphDepth, DepthAccess.Write);
+                builder.ReadTexture(renderer.frameResources.mainShadowsTexture);
+
+                builder.AllowPassCulling(false);
+
+                passData.pass = this;
+                passData.renderingData = renderingData;
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                {
+                    data.pass.Execute(rgContext.renderContext, ref data.renderingData);
+                });
             }
         }
     }

@@ -73,6 +73,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             if (material.HasProperty(kSubsurfaceMaskMap))
                 CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
+            if (material.HasProperty(kTransmissionMaskMap))
+                CoreUtils.SetKeyword(material, "_TRANSMISSION_MASK_MAP", material.GetTexture(kTransmissionMaskMap));
             if (material.HasProperty(kThicknessMap))
                 CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             if (material.HasProperty(kIridescenceThicknessMap))

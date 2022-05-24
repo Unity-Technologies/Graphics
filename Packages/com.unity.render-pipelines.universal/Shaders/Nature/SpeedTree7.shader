@@ -31,6 +31,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
 
+            AlphaToMask On
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7Vert
@@ -46,7 +48,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _FORWARD_PLUS
 
             #pragma multi_compile_fog
 

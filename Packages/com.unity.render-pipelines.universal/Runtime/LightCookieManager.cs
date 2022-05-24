@@ -456,6 +456,10 @@ namespace UnityEngine.Rendering.Universal
         int m_CookieSizeDivisor = 1;
         uint m_PrevCookieRequestPixelCount = 0xFFFFFFFF;
 
+        // TODO: replace with a proper error system
+        // Frame "timestamp" of last warning to throttle warn messages.
+        int m_PrevWarnFrame = -1;
+
         internal bool IsKeywordLightCookieEnabled { get; private set; }
 
         public LightCookieManager(ref Settings settings)
@@ -547,7 +551,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_VisibleLightIndexToShaderDataIndex != null &&
                     m_AdditionalLightsCookieShaderData.isUploaded)
                 {
-                    int len = Math.Min(m_VisibleLightIndexToShaderDataIndex.Length, lightData.visibleLights.Length);
+                    int len = m_VisibleLightIndexToShaderDataIndex.Length;
                     for (int i = 0; i < len; i++)
                         m_VisibleLightIndexToShaderDataIndex[i] = -1;
                 }
@@ -672,10 +676,8 @@ namespace UnityEngine.Rendering.Universal
             int lightBufferOffset = 0;
             int validLightCount = 0;
 
-            // Warn on dropped lights
-
-            int maxLights = Math.Min(lightData.visibleLights.Length, validLightMappings.Length);
-            for (int i = 0; i < maxLights; i++)
+            int visibleLightCount = lightData.visibleLights.Length;
+            for (int i = 0; i < visibleLightCount; i++)
             {
                 if (i == skipMainLightIndex)
                 {
@@ -690,9 +692,9 @@ namespace UnityEngine.Rendering.Universal
                     continue;
 
                 // Only spot and point lights are supported.
-                // Directional lights basically work,
-                // but would require a lot of constants for the uv transform parameters
-                // and there are very few use cases for multiple global cookies.
+                // Directional lights are not currently supported,
+                // they have very few use cases for multiple global cookies.
+                // Warn on dropped lights
                 var lightType = lightData.visibleLights[i].lightType;
                 if (!(lightType == LightType.Spot ||
                       lightType == LightType.Point))
@@ -709,6 +711,20 @@ namespace UnityEngine.Rendering.Universal
                 lp.light = light;
 
                 validLightMappings[validLightCount++] = lp;
+
+                if (validLightCount >= validLightMappings.Length)
+                {
+                    // TODO: Better error system
+                    if (visibleLightCount > m_Settings.maxAdditionalLights &&
+                        Time.frameCount - m_PrevWarnFrame > 60 * 60 * 30) // warn throttling: ~60 FPS * 60 secs * 30 mins
+                    {
+                        m_PrevWarnFrame = Time.frameCount;
+                        Debug.LogWarning($"Max light cookies ({validLightMappings.Length.ToString()}) reached. Some visible lights ({(visibleLightCount - i - 1).ToString()}) might skip light cookie rendering.");
+                    }
+
+                    // Always break, buffer full.
+                    break;
+                }
             }
 
             return validLightCount;

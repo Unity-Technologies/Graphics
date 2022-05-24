@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.Universal
         DecalNormalBlendLow = (1 << 21),
         DecalNormalBlendMedium = (1 << 22),
         DecalNormalBlendHigh = (1 << 23),
-        ClusteredRendering = (1 << 24),
+        ForwardPlus = (1 << 24),
         RenderPassEnabled = (1 << 25),
         MainLightShadowsCascade = (1 << 26),
         DrawProcedural = (1 << 27),
@@ -99,7 +99,6 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_AlphaTestOn;
         LocalKeyword m_DeferredStencil;
         LocalKeyword m_GbufferNormalsOct;
-        LocalKeyword m_UseDrawProcedural;
         LocalKeyword m_ScreenSpaceOcclusion;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
@@ -113,7 +112,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendLow;
         LocalKeyword m_DecalNormalBlendMedium;
         LocalKeyword m_DecalNormalBlendHigh;
-        LocalKeyword m_ClusteredRendering;
+        LocalKeyword m_ForwardPlus;
         LocalKeyword m_EditorVisualization;
         LocalKeyword m_LODFadeCrossFade;
 
@@ -167,7 +166,6 @@ namespace UnityEditor.Rendering.Universal
             m_AlphaTestOn = TryGetLocalKeyword(shader, ShaderKeywordStrings._ALPHATEST_ON);
             m_DeferredStencil = TryGetLocalKeyword(shader, ShaderKeywordStrings._DEFERRED_STENCIL);
             m_GbufferNormalsOct = TryGetLocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-            m_UseDrawProcedural = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseDrawProcedural);
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
@@ -181,7 +179,7 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendLow);
             m_DecalNormalBlendMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendMedium);
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
-            m_ClusteredRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
+            m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
             m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
 
@@ -265,20 +263,22 @@ namespace UnityEditor.Rendering.Universal
             Shader m_Shader;
             ShaderKeywordSet m_KeywordSet;
             ShaderSnippetData m_SnippetData;
+            ShaderCompilerPlatform m_ShaderCompilerPlatform;
             bool m_stripUnusedVariants;
 
-            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripUnusedVariants)
+            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripUnusedVariants, ShaderCompilerPlatform shaderCompilerPlatform)
             {
                 m_Features = features;
                 m_Shader = shader;
                 m_SnippetData = snippetData;
                 m_KeywordSet = keywordSet;
                 m_stripUnusedVariants = stripUnusedVariants;
+                m_ShaderCompilerPlatform = shaderCompilerPlatform;
             }
 
             bool ContainsKeyword(in LocalKeyword kw)
             {
-                return ShaderUtil.PassHasKeyword(m_Shader, m_SnippetData.pass, kw, m_SnippetData.shaderType);
+                return ShaderUtil.PassHasKeyword(m_Shader, m_SnippetData.pass, kw, m_SnippetData.shaderType, m_ShaderCompilerPlatform);
             }
 
             public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2, in LocalKeyword kw3, T feature3)
@@ -370,7 +370,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
-            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
+            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants, compilerData.shaderCompilerPlatform);
 
             // strip main light shadows, cascade and screen variants
             if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants, features))
@@ -443,7 +443,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             // Shadow caster punctual light strip
-            if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_CastingPunctualLightShadow, snippetData.shaderType))
+            if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_CastingPunctualLightShadow, snippetData.shaderType, compilerData.shaderCompilerPlatform))
             {
                 if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
                     return true;
@@ -470,7 +470,7 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            if (stripTool.StripMultiCompile(m_ClusteredRendering, ShaderFeatures.ClusteredRendering))
+            if (stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus))
                 return true;
 
             // Screen Space Occlusion
@@ -516,10 +516,6 @@ namespace UnityEditor.Rendering.Universal
             // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
             if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan &&
                 stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals))
-                return true;
-
-            if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural) &&
-                !IsFeatureEnabled(features, ShaderFeatures.DrawProcedural))
                 return true;
 
             // Decal Normal Blend
@@ -572,7 +568,7 @@ namespace UnityEditor.Rendering.Universal
         bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
-            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
+            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants, compilerData.shaderCompilerPlatform);
 
             if (stripTool.StripMultiCompileKeepOffVariant(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
@@ -624,10 +620,6 @@ namespace UnityEditor.Rendering.Universal
             // As GLES2 has low amount of registers, we strip:
             if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
             {
-                // VertexID - as GLES2 does not support VertexID that is required for full screen draw procedural pass;
-                if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural))
-                    return true;
-
                 // Cascade shadows
                 if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
                     return true;
@@ -660,7 +652,7 @@ namespace UnityEditor.Rendering.Universal
             bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
 
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering) || compilerData.shaderKeywordSet.IsEnabled(m_DeferredStencil)))
+            if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ForwardPlus) || compilerData.shaderKeywordSet.IsEnabled(m_DeferredStencil)))
                 return true;
 
             bool isShadowVariant = isMainShadow || isAdditionalShadow;
@@ -923,11 +915,6 @@ namespace UnityEditor.Rendering.Universal
                 shaderFeatures |= ShaderFeatures.AdditionalLights;
             }
 
-            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
-                (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
-            if (pipelineAsset.supportsSoftShadows && anyShadows)
-                shaderFeatures |= ShaderFeatures.SoftShadows;
-
             if (pipelineAsset.supportsMixedLighting)
                 shaderFeatures |= ShaderFeatures.MixedLighting;
 
@@ -947,8 +934,7 @@ namespace UnityEditor.Rendering.Universal
             bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;
             bool accurateGbufferNormals = false;
-            bool clusteredRendering = false;
-            bool onlyClusteredRendering = false;
+            bool forwardPlus = false;
             bool usesRenderPass = false;
 
             {
@@ -974,8 +960,6 @@ namespace UnityEditor.Rendering.Universal
 
                 if (!renderer.stripAdditionalLightOffVariants)
                     shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
-
-                var rendererClustered = false;
 
                 ScriptableRendererData rendererData = pipelineAsset.m_RendererDataList[rendererIndex];
                 if (rendererData != null)
@@ -1021,8 +1005,7 @@ namespace UnityEditor.Rendering.Universal
 
                     if (rendererData is UniversalRendererData universalRendererData)
                     {
-                        rendererClustered = universalRendererData.renderingMode == RenderingMode.Forward &&
-                            universalRendererData.clusteredRendering;
+                        forwardPlus = universalRendererData.renderingMode == RenderingMode.ForwardPlus;
 
                         if (RenderingLayerUtils.RequireRenderingLayers(universalRendererData,
                             pipelineAsset.msaaSampleCount,
@@ -1051,9 +1034,6 @@ namespace UnityEditor.Rendering.Universal
 #endif
                     }
                 }
-
-                clusteredRendering |= rendererClustered;
-                onlyClusteredRendering &= rendererClustered;
             }
 
             if (hasDeferredRenderer)
@@ -1077,23 +1057,26 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.reflectionProbeBoxProjection)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
 
-            if (clusteredRendering)
+            if (forwardPlus)
             {
-                shaderFeatures |= ShaderFeatures.ClusteredRendering;
+                shaderFeatures |= ShaderFeatures.ForwardPlus;
+                {
+                    shaderFeatures &= ~(ShaderFeatures.AdditionalLights | ShaderFeatures.VertexLighting);
+                }
             }
 
-            if (onlyClusteredRendering)
-            {
-                shaderFeatures &= ~(ShaderFeatures.AdditionalLights | ShaderFeatures.VertexLighting);
-            }
-
-            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || clusteredRendering)
+            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || forwardPlus)
             {
                 if (pipelineAsset.supportsAdditionalLightShadows)
                 {
                     shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
                 }
             }
+
+            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
+                (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
+            if (pipelineAsset.supportsSoftShadows && anyShadows)
+                shaderFeatures |= ShaderFeatures.SoftShadows;
 
             return shaderFeatures;
         }

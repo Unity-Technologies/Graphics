@@ -1842,15 +1842,18 @@ namespace UnityEditor.VFX.UI
             if (controller == null) return null;
 
 
-            if (startAnchor is VFXDataAnchor)
+            if (startAnchor is VFXDataAnchor anchor)
             {
-                var controllers = controller.GetCompatiblePorts((startAnchor as VFXDataAnchor).controller, nodeAdapter);
-                return controllers.Select(t => (Port)GetDataAnchorByController(t as VFXDataAnchorController)).ToList();
+                var controllers = controller.GetCompatiblePorts(anchor.controller, nodeAdapter);
+                return controllers
+                    .Where(x => !x.isSubgraphActivation)
+                    .Select(t => (Port)GetDataAnchorByController(t))
+                    .ToList();
             }
             else
             {
                 var controllers = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
-                return controllers.Select(t => (Port)GetFlowAnchorByController(t as VFXFlowAnchorController)).ToList();
+                return controllers.Select(t => (Port)GetFlowAnchorByController(t)).ToList();
             }
         }
 
@@ -2116,7 +2119,7 @@ namespace UnityEditor.VFX.UI
             (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
         }
 
-        private void AddRangeToSelection(List<ISelectable> selectables)
+        public void AddRangeToSelection(List<ISelectable> selectables)
         {
             selectables.ForEach(base.AddToSelection);
             UpdateGlobalSelection();
@@ -2264,7 +2267,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Rect GetElementsBounds(IEnumerable<GraphElement> elements)
+        internal Rect GetElementsBounds(IEnumerable<GraphElement> elements)
         {
             Rect[] elementBounds = elements.Where(t => !(t is VFXEdge)).Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
             if (elementBounds.Length < 1) return Rect.zero;

@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_Normalize = false;
+        bool m_Normalize = true;
         public bool normalize
         {
             get { return m_Normalize; }

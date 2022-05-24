@@ -26,12 +26,12 @@ struct Light
     #define _USE_WEBGL1_LIGHTS 0
 #endif
 
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     ClusteredLightLoop cll = ClusteredLightLoopInit(inputData.normalizedScreenSpaceUV, inputData.positionWS); \
-    while (ClusteredLightLoopNextWord(cll)) { while (ClusteredLightLoopNextLight(cll)) { \
+    [loop] while (ClusteredLightLoopNext(cll)) { \
         uint lightIndex = ClusteredLightLoopGetLightIndex(cll);
-    #define LIGHT_LOOP_END } }
+    #define LIGHT_LOOP_END }
 #elif !_USE_WEBGL1_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
@@ -90,7 +90,7 @@ Light GetMainLight()
 {
     Light light;
     light.direction = half3(_MainLightPosition.xyz);
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     light.distanceAttenuation = 1.0;
 #else
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
@@ -236,7 +236,7 @@ int GetPerObjectLightIndex(uint index)
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
 {
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -246,7 +246,7 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 
 Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -283,7 +283,7 @@ Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientO
 
 int GetAdditionalLightsCount()
 {
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     // Counting the number of lights in clustered requires traversing the bit list, and is not needed up front.
     return 0;
 #else

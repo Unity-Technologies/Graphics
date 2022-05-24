@@ -81,7 +81,18 @@ namespace UnityEditor.VFX
 
             if (cause == InvalidationCause.kConnectionChanged)
             {
-                ResyncSlots(true);
+                if (model is VFXSlot slot && slot.direction == VFXSlot.Direction.kInput)
+                    ResyncSlots(true);
+            }
+
+            if (cause == InvalidationCause.kParamChanged ||
+                cause == InvalidationCause.kExpressionValueInvalidated)
+            {
+                if (model is VFXSlot && ((VFXSlot)model).direction == VFXSlot.Direction.kInput)
+                {
+                    foreach (var slot in outputSlots)
+                        slot.Invalidate(InvalidationCause.kExpressionValueInvalidated);
+                }
             }
 
             base.OnInvalidate(model, cause);

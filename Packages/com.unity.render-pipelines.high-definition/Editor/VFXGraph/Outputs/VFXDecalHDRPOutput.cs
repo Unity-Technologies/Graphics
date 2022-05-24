@@ -268,7 +268,7 @@ namespace UnityEditor.VFX.HDRP
                     yield return "AFFECT_AMBIENT_OCCLUSION";
                 if (affectSmoothness)
                     yield return "AFFECT_SMOOTHNESS";
-                if (useEmissive || useEmissiveMap)
+                if (useEmissiveColor || useEmissiveMap)
                     yield return "NEEDS_FORWARD_EMISSIVE_PASS";
             }
         }

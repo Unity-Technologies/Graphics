@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering
 
         internal bool ResolveCells() => ResolveSharedCellData() && ResolvePerScenarioCellData();
 
-        bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
+        internal bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
         bool ResolvePerScenarioCellData()
         {
             int loadedCount = 0, targetLoaded = otherScenario == null ? 1 : 2;
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering
 
             QueueAssetRemoval();
             activeScenario = ProbeReferenceVolume.instance.sceneData.lightingScenario;
-            otherScenario = null;
+            otherScenario = ProbeReferenceVolume.instance.sceneData.otherScenario;
             QueueAssetLoading();
         }
 

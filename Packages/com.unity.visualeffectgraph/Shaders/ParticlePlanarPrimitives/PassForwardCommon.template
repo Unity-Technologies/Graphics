@@ -9,7 +9,7 @@ struct ps_input
 	#if USE_FLIPBOOK_ARRAY_LAYOUT
 	float3 uv : TEXCOORD0;
 	#else
-	float2 uv : TEXCOORD0;	
+	float2 uv : TEXCOORD0;
 	#endif
 	#endif
 	#if VFX_NEEDS_COLOR_INTERPOLATOR
@@ -30,11 +30,11 @@ struct ps_input
 	#if VFX_NEEDS_POSWS_INTERPOLATOR
 	float3 posWS : TEXCOORD3;
 	#endif
-	
+
 	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 	VFX_DECLARE_MOTION_VECTORS_STORAGE(4,5)
 	#endif
-	
+
 	#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
 	float3 normal : TEXCOORD6;
 	#endif
@@ -43,8 +43,10 @@ struct ps_input
 	#endif
 
 	${VFXAdditionalInterpolantsDeclaration}
-	
+
 	UNITY_VERTEX_OUTPUT_STEREO
+
+    VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 };
 
 struct ps_output
@@ -83,26 +85,28 @@ ${VFXPassForwardDefine}
 #if SHADERGRAPH_NEEDS_TANGENT_FORWARD
 #define VFX_VARYING_TANGENT tangent
 #endif
-	
-${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
+
+${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
 #if VFX_SHADERGRAPH
 ${SHADERGRAPH_PIXEL_CODE_FORWARD}
 #endif
-	
+
 #pragma fragment frag
-ps_output frag(ps_input i,	
+ps_output frag(ps_input i,
 	bool frontFace : SV_IsFrontFace)
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	ps_output o = (ps_output)0;
 	VFXTransformPSInputs(i);
 	${VFXComputeNormalWS}
-	
+#if VFX_USE_GRAPH_VALUES
+    GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+#endif
 #if VFX_SHADERGRAPH
 	${VFXAdditionalInterpolantsPreparation}
-	
+
 	${SHADERGRAPH_PIXEL_CALL_FORWARD}
-	
+
 	#if HAS_SHADERGRAPH_PARAM_BASECOLOR
 		o.color.rgb = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR}.rgb;
 		o.color = VFXApplyPreExposure(o.color, i);
@@ -113,8 +117,8 @@ ps_output frag(ps_input i,
 		emission = VFXApplyPreExposure(emission, 1.0f);
 		o.color.rgb += emission.rgb;
 	#endif
-	
-	#if HAS_SHADERGRAPH_PARAM_ALPHA 
+
+	#if HAS_SHADERGRAPH_PARAM_ALPHA
 		o.color.a = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
 	#endif
 #else
@@ -128,7 +132,7 @@ ps_output frag(ps_input i,
 	VFXClipFragmentColor(o.color.a,i);
 	o.color.a = saturate(o.color.a);
 	o.color = VFXTransformFinalColor(o.color);
-	
+
 #if VFX_FEATURE_MOTION_VECTORS_FORWARD
 	${VFXComputeOutputMotionVector}
 	o.outMotionVector = encodedMotionVector;

@@ -144,7 +144,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
-        AlphaDiscard(diffuse.a, _Cutoff);
+        diffuse.a = AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
     #ifdef LOD_FADE_CROSSFADE

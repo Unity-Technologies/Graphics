@@ -53,7 +53,7 @@ inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurface
 
     half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     outSurfaceData.alpha = albedoAlpha.a * _BaseColor.a;
-    AlphaDiscard(outSurfaceData.alpha, _Cutoff);
+    outSurfaceData.alpha = AlphaDiscard(outSurfaceData.alpha, _Cutoff);
 
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
     outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, outSurfaceData.alpha);

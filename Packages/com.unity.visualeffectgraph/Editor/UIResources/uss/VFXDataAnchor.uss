@@ -191,3 +191,18 @@ VFXContextUI #output .VFXDataAnchor.port #connector
     {
         opacity: 0.5;
     }
+
+VFXEditableDataAnchor.activationslot
+{
+    position: absolute;
+}
+
+VFXEditableDataAnchor.activationslot.subgraphblock #connector
+{
+    display: none;
+}
+
+VFXEditableDataAnchor.activationslot.subgraphblock > BoolPropertyRM
+{
+    margin-left: 12px;
+}

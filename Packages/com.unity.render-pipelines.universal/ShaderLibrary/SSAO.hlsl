@@ -8,10 +8,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
 // Textures & Samplers
-TEXTURE2D_X(_BaseMap);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
-SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_BlitTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
@@ -89,7 +88,7 @@ static half SSAORandomUV[40] =
 
 // Function defines
 #define SCREEN_PARAMS        GetScaledScreenParams()
-#define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
+#define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_BlitTexture, UnityStereoTransformScreenSpaceTex(uv));
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
@@ -305,7 +304,7 @@ void SampleDepthNormalView(float2 uv, out float depth, out half3 normal, out hal
 half4 SSAO(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 uv = input.uv;
+    float2 uv = input.texcoord;
 
     // Parameters used in coordinate conversion
     half3x3 camTransform = (half3x3)_CameraViewProjections[unity_eyeIndex]; // camera viewProjection matrix
@@ -436,7 +435,7 @@ half4 HorizontalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    const float2 uv = input.uv;
+    const float2 uv = input.texcoord;
     const float2 delta = float2(_SourceSize.z, 0.0);
     return Blur(uv, delta);
 }
@@ -445,7 +444,7 @@ half4 VerticalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    const float2 uv = input.uv;
+    const float2 uv = input.texcoord;
     const float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE));
     return Blur(uv, delta);
 }
@@ -454,7 +453,7 @@ half4 FinalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    const float2 uv = input.uv;
+    const float2 uv = input.texcoord;
     const float2 delta = _SourceSize.zw;
     return half(1.0) - BlurSmall(uv, delta );
 }

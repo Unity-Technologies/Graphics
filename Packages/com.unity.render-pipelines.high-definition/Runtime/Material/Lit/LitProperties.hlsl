@@ -43,6 +43,8 @@ SAMPLER(sampler_AnisotropyMap);
 
 TEXTURE2D(_SubsurfaceMaskMap);
 SAMPLER(sampler_SubsurfaceMaskMap);
+TEXTURE2D(_TransmissionMaskMap);
+SAMPLER(sampler_TransmissionMaskMap);
 TEXTURE2D(_ThicknessMap);
 SAMPLER(sampler_ThicknessMap);
 
@@ -87,6 +89,7 @@ PROP_DECL_TEX2D(_DetailMap);
 PROP_DECL_TEX2D(_HeightMap);
 
 PROP_DECL_TEX2D(_SubsurfaceMaskMap);
+PROP_DECL_TEX2D(_TransmissionMaskMap);
 PROP_DECL_TEX2D(_ThicknessMap);
 
 TEXTURE2D(_LayerMaskMap);
@@ -178,6 +181,7 @@ float _Anisotropy;
 
 float _DiffusionProfileHash;
 float _SubsurfaceMask;
+float _TransmissionMask;
 float _Thickness;
 float4 _ThicknessRemap;
 
@@ -243,6 +247,7 @@ PROP_DECL(float, _HeightCenter);
 
 PROP_DECL(float, _DiffusionProfileHash);
 PROP_DECL(float, _SubsurfaceMask);
+PROP_DECL(float, _TransmissionMask);
 PROP_DECL(float, _Thickness);
 PROP_DECL(float4, _ThicknessRemap);
 

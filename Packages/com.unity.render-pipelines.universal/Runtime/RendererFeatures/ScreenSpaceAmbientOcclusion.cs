@@ -129,9 +129,8 @@ namespace UnityEngine.Rendering.Universal
             private Matrix4x4[] m_CameraViewProjections = new Matrix4x4[2];
             private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.SSAO);
             private ScriptableRenderer m_Renderer = null;
-            private RTHandle m_SSAOTexture1;
-            private RTHandle m_SSAOTexture2;
-            private RTHandle m_SSAOTexture3;
+            private RTHandle m_AOPassTexture;
+            private RTHandle[] m_BlurPassTextures = new RTHandle[2];
             private RTHandle m_SSAOTextureFinal;
             private RenderTextureDescriptor m_AOPassDescriptor;
             private RenderTextureDescriptor m_BlurPassesDescriptor;
@@ -143,12 +142,7 @@ namespace UnityEngine.Rendering.Universal
             private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
 
             // Statics
-            private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
-            private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
-            private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
-            private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
-            private static readonly int s_SSAOTextureFinalID = Shader.PropertyToID("_SSAO_OcclusionTexture");
             private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
             private static readonly int s_CameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent");
             private static readonly int s_CameraViewZExtentID = Shader.PropertyToID("_CameraViewZExtent");
@@ -168,19 +162,14 @@ namespace UnityEngine.Rendering.Universal
             internal ScreenSpaceAmbientOcclusionPass()
             {
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
-
-                m_SSAOTexture1 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture1");
-                m_SSAOTexture2 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture2");
-                m_SSAOTexture3 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture3");
-                m_SSAOTextureFinal = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTextureFinalID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture");
             }
 
             public void Dispose()
             {
-                m_SSAOTexture1.Release();
-                m_SSAOTexture2.Release();
-                m_SSAOTexture3.Release();
-                m_SSAOTextureFinal.Release();
+                m_AOPassTexture?.Release();
+                m_BlurPassTextures[0]?.Release();
+                m_BlurPassTextures[1]?.Release();
+                m_SSAOTextureFinal?.Release();
             }
 
             internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material)
@@ -330,14 +319,13 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalDescriptor = descriptor;
                 m_FinalDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
-                // Get temporary render textures
-                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_AOPassDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture3ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor, FilterMode.Bilinear);
+                RenderingUtils.ReAllocateIfNeeded(ref m_AOPassTexture, m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture1");
+                RenderingUtils.ReAllocateIfNeeded(ref m_BlurPassTextures[0], m_BlurPassesDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture2");
+                RenderingUtils.ReAllocateIfNeeded(ref m_BlurPassTextures[1], m_BlurPassesDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture3");
+                RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextureFinal, m_FinalDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
 
                 // Configure targets and clear color
-                ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_SSAOTexture2);
+                ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_BlurPassTextures[0]);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
 
@@ -353,6 +341,8 @@ namespace UnityEngine.Rendering.Universal
                 var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
+                    var cameraData = renderingData.cameraData;
+
                     if (!m_CurrentSettings.AfterOpaque)
                     {
                         CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
@@ -363,14 +353,14 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
 
                     // Execute the SSAO
-                    Render(cmd, m_SSAOTexture1, ShaderPasses.AO);
+                    RenderAndSetBaseMap(cmd, cameraData.renderer.cameraDepthTargetHandle, m_AOPassTexture, ShaderPasses.AO);
 
                     // Execute the Blur Passes
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture1, m_SSAOTexture2, ShaderPasses.BlurHorizontal);
+                    RenderAndSetBaseMap(cmd, m_AOPassTexture, m_BlurPassTextures[0], ShaderPasses.BlurHorizontal);
 
                     PostProcessUtils.SetSourceSize(cmd, m_BlurPassesDescriptor);
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture2, m_SSAOTexture3, ShaderPasses.BlurVertical);
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture3, m_SSAOTextureFinal, ShaderPasses.BlurFinal);
+                    RenderAndSetBaseMap(cmd, m_BlurPassTextures[0], m_BlurPassTextures[1], ShaderPasses.BlurVertical);
+                    RenderAndSetBaseMap(cmd, m_BlurPassTextures[1], m_SSAOTextureFinal, ShaderPasses.BlurFinal);
 
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextureFinal);
@@ -379,49 +369,26 @@ namespace UnityEngine.Rendering.Universal
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)
                     {
-                        // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
-                        CameraData cameraData = renderingData.cameraData;
-                        bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && m_Renderer.cameraColorTargetHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
-                        bool yflip = !isCameraColorFinalTarget;
-                        float flipSign = yflip ? -1.0f : 1.0f;
-                        scaleBiasRt = (flipSign < 0.0f)
-                            ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                            : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                        cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
-
-                        CoreUtils.SetRenderTarget(
-                            cmd,
-                            m_Renderer.cameraColorTargetHandle,
-                            RenderBufferLoadAction.Load,
-                            RenderBufferStoreAction.Store,
-                            m_Renderer.cameraDepthTargetHandle,
-                            RenderBufferLoadAction.Load,
-                            RenderBufferStoreAction.Store,
-                            ClearFlag.None,
-                            Color.clear
-                        );
-                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, (int)ShaderPasses.AfterOpaque);
+                        RenderingUtils.FinalBlit(
+                            cmd, cameraData, m_SSAOTextureFinal,
+                            m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
+                            m_Material, (int)ShaderPasses.AfterOpaque);
                     }
                 }
             }
 
-            private void Render(CommandBuffer cmd, RTHandle target, ShaderPasses pass)
-            {
-                CoreUtils.SetRenderTarget(
-                    cmd,
-                    target,
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store,
-                    ClearFlag.None,
-                    Color.clear
-                );
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, (int)pass);
-            }
-
             private void RenderAndSetBaseMap(CommandBuffer cmd, RTHandle baseMap, RTHandle target, ShaderPasses pass)
             {
-                cmd.SetGlobalTexture(s_BaseMapID, baseMap.nameID);
-                Render(cmd, target, pass);
+                if (baseMap.rt == null)
+                {
+                    // Obsolete usage of RTHandle aliasing a RenderTargetIdentifier
+                    Vector2 viewportScale = baseMap.useScaling ? new Vector2(baseMap.rtHandleProperties.rtHandleScale.x, baseMap.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                    // Will set the correct camera viewport as well.
+                    CoreUtils.SetRenderTarget(cmd, target);
+                    Blitter.BlitTexture(cmd, baseMap.nameID, viewportScale, m_Material, (int)pass);
+                }
+                else
+                    Blitter.BlitCameraTexture(cmd, baseMap, target, m_Material, (int)pass);
             }
 
             /// <inheritdoc/>
@@ -436,11 +403,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
                 }
-
-                cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
-                cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
-                cmd.ReleaseTemporaryRT(s_SSAOTexture3ID);
-                cmd.ReleaseTemporaryRT(s_SSAOTextureFinalID);
             }
         }
     }

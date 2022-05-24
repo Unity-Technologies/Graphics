@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
         private FilteringSettings m_FilteringSettings;
         private List<ShaderTagId> m_ShaderTagIdList;
         private ProfilingSampler m_ProfilingSampler;
+        private ProfilingSampler m_DBufferClearSampler;
 
         private bool m_DecalLayers;
 
@@ -42,6 +43,7 @@ namespace UnityEngine.Rendering.Universal
             m_Settings = settings;
             m_DBufferClear = dBufferClear;
             m_ProfilingSampler = new ProfilingSampler("DBuffer Render");
+            m_DBufferClearSampler = new ProfilingSampler("Clear");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
             m_DecalLayers = decalLayers;
 
@@ -138,7 +140,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // TODO: This should be replace with mrt clear once we support it
                 // Clear render targets
-                ClearDBuffers(cmd, renderingData.cameraData);
+                using (new ProfilingScope(cmd, m_DBufferClearSampler))
+                {
+                    // for alpha compositing, color is cleared to 0, alpha to 1
+                    // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+                    Blitter.BlitTexture(cmd, dBufferColorHandles[0], new Vector4(1, 1, 0, 0), m_DBufferClear, 0);
+                }
 
                 // Split here allows clear to be executed before DrawRenderers
                 context.ExecuteCommandBuffer(cmd);
@@ -148,29 +155,6 @@ namespace UnityEngine.Rendering.Universal
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }
-        }
-
-        private void ClearDBuffers(CommandBuffer cmd, in CameraData cameraData)
-        {
-            // for alpha compositing, color is cleared to 0, alpha to 1
-            // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-            var clearSampleName = "Clear";
-            cmd.BeginSample(clearSampleName);
-
-            Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-            cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-            if (cameraData.xr.enabled)
-            {
-                cmd.DrawProcedural(Matrix4x4.identity, m_DBufferClear, 0, MeshTopology.Quads, 4, 1, null);
-            }
-            else
-            {
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity); // Prepare for manual blit
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_DBufferClear, 0, 0);
-                cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
-            }
-
-            cmd.EndSample(clearSampleName);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)

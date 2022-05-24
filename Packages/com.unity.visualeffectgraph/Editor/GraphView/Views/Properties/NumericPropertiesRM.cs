@@ -8,6 +8,8 @@ namespace UnityEditor.VFX.UI
 {
     abstract class NumericPropertyRM<T, U> : SimpleUIPropertyRM<T, U>
     {
+        const string SimpleFieldControlName = "VFXSimpleFieldControlName";
+
         readonly VisualElement m_IndeterminateLabel;
 
         protected NumericPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
@@ -58,7 +60,7 @@ namespace UnityEditor.VFX.UI
         private VFXBaseSliderField<U> m_Slider;
         private TextValueField<U> m_TextField;
 
-        protected abstract VisualElement CreateSimpleField();
+        protected abstract VisualElement CreateSimpleField(string controlName);
         protected abstract (VisualElement, VFXBaseSliderField<U>) CreateSliderField();
 
         public override INotifyValueChanged<U> CreateField()
@@ -67,18 +69,18 @@ namespace UnityEditor.VFX.UI
             VisualElement result;
             if (!HasValidRange(range))
             {
-                result = CreateSimpleField();
+                result = CreateSimpleField(SimpleFieldControlName);
                 if (result is IVFXDraggedElement draggedElement)
                 {
                     draggedElement.SetOnValueDragFinished(ValueDragStarted);
                     draggedElement.SetOnValueDragFinished(ValueDragFinished);
                 }
 
-                m_TextField = result.Q(null, typeof(TextValueField<U>).ToString()) as TextValueField<U>;
+                m_TextField = result.Q(SimpleFieldControlName) as TextValueField<U>;
                 if (m_TextField != null)
                 {
-                    m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
-                    m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
+                    m_TextField.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
+                    m_TextField.RegisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
                 }
             }
             else
@@ -223,11 +225,11 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        protected override VisualElement CreateSimpleField()
+        protected override VisualElement CreateSimpleField(string controlName)
         {
             return m_Provider.attributes.Is(VFXPropertyAttributes.Type.BitField)
-                ? new VFXLabeledField<VFX32BitField, long>(m_Label)
-                : new VFXLabeledField<LongField, long>(m_Label);
+                ? new VFXLabeledField<VFX32BitField, long>(m_Label, controlName)
+                : new VFXLabeledField<LongField, long>(m_Label, controlName);
         }
 
         protected override (VisualElement, VFXBaseSliderField<long>) CreateSliderField()
@@ -255,9 +257,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected override VisualElement CreateSimpleField()
+        protected override VisualElement CreateSimpleField(string controlName)
         {
-            return new VFXLabeledField<IntegerField, int>(m_Label);
+            return new VFXLabeledField<IntegerField, int>(m_Label, controlName);
         }
 
         protected override (VisualElement, VFXBaseSliderField<int>) CreateSliderField()
@@ -273,9 +275,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected override VisualElement CreateSimpleField()
+        protected override VisualElement CreateSimpleField(string controlName)
         {
-            return new VFXLabeledField<FloatField, float>(m_Label);
+            return new VFXLabeledField<FloatField, float>(m_Label, controlName);
         }
 
         protected override (VisualElement, VFXBaseSliderField<float>) CreateSliderField()

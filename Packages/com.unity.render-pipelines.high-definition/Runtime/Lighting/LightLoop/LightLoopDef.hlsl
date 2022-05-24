@@ -18,6 +18,9 @@ struct HDShadowContext { float unused; };
 struct LightLoopContext
 {
     int sampleReflection;
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+    float3 positionWS; // For sky reflection, we need position to evalute height base fog
+#endif
 
     HDShadowContext shadowContext;
 
@@ -178,6 +181,14 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         color.rgb = SampleSkyTexture(texCoord, lod, sliceIdx).rgb;
         // Sky isn't pre-expose, so best to clamp to max16 here in case of inf
         color.rgb = ClampToFloat16Max(color.rgb);
+
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+        if (_FogEnabled)
+        {
+            float4 fogAttenuation = EvaluateFogForSkyReflections(lightLoopContext.positionWS, texCoord);
+            color.rgb = color.rgb * fogAttenuation.a + fogAttenuation.rgb;
+        }
+#endif
     }
 
 

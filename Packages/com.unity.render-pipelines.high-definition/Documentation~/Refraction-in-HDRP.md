@@ -81,7 +81,7 @@ For more information on Reflection Probes, see:
 HDRP uses simple shapes to approximate the surface of GameObjects:
 
 - **Sphere**: Approximates the surface as a sphere.
-- **Box**: Approximates the surface as a hollow box. In this case think of the thickness as being the distance between two parallel faces of the box.
+- **Planar**: Approximates the surface as two parallel planes. In this case, the [Thickness Map](Surface-Type.md#transparency-inputs) plus the Thickness value determines the distance between the parallel faces.
 - **Thin**: Approximates the surface as a hollow box with a fixed thickness of 5cm.
 
 ### Examples

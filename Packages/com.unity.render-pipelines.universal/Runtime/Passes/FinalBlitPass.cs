@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -12,7 +13,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class FinalBlitPass : ScriptableRenderPass
     {
         RTHandle m_Source;
-        Material m_BlitMaterial;
+        static Material m_BlitMaterial;
+        RTHandle m_CameraTargetHandle;
 
         /// <summary>
         /// Creates a new <c>FinalBlitPass</c> instance.
@@ -27,6 +29,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
+        }
+
+        public void Dispose()
+        {
+            m_CameraTargetHandle?.Release();
         }
 
         /// <summary>
@@ -63,9 +70,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
             // Overlay cameras need to output to the target described in the base camera while doing camera stack.
             ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice();
+                cameraTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
+            }
+#endif
+            // Create RTHandle alias to use RTHandle apis
+            if (m_CameraTargetHandle != cameraTarget)
+            {
+                m_CameraTargetHandle?.Release();
+                m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+            }
+
             var cmd = renderingData.commandBuffer;
 
             if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
@@ -80,66 +100,61 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.nameID);
+                FinalBlitPass.ExecutePass(ref renderingData, m_CameraTargetHandle, m_Source);
+                cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
+            }
+        }
 
+        private static void ExecutePass(ref RenderingData renderingData, RTHandle cameraTarget, RTHandle source)
+        {
+            var cameraData = renderingData.cameraData;
+            var cmd = renderingData.commandBuffer;
+
+            // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
+            // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
+            // meanwhile we set to load so split screen case works.
+            var loadAction = RenderBufferLoadAction.DontCare;
+            if (!cameraData.isSceneViewCamera && !cameraData.isDefaultViewport)
+                loadAction = RenderBufferLoadAction.Load;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                {
-                    int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice();
-                    cameraTarget =
-                        new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
-
-                    CoreUtils.SetRenderTarget(
-                        cmd,
-                        cameraTarget,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        ClearFlag.None,
-                        Color.black);
-
-                    cmd.SetViewport(cameraData.pixelRect);
-
-                    // We y-flip if
-                    // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
-                    // 2) renderTexture starts UV at top
-                    bool yflip = SystemInfo.graphicsUVStartsAtTop;
-                    Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4);
-                }
-                else
+            if (cameraData.xr.enabled)
+                loadAction = RenderBufferLoadAction.Load;
 #endif
-                if (isSceneViewCamera || cameraData.isDefaultViewport)
-                {
-                    // This set render target is necessary so we change the LOAD state to DontCare.
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.nameID, cameraTarget, m_BlitMaterial);
-                }
-                else
-                {
-                    // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
-                    // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
-                    // meanwhile we set to load so split screen case works.
-                    CoreUtils.SetRenderTarget(
-                        cmd,
-                        cameraTarget,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        ClearFlag.Depth,
-                        Color.black);
 
-                    Camera camera = cameraData.camera;
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                    cmd.SetViewport(cameraData.pixelRect);
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-                }
-#pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
-                cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
-#pragma warning restore 0618
+            RenderingUtils.FinalBlit(cmd, cameraData, source, cameraTarget, loadAction, RenderBufferStoreAction.Store, m_BlitMaterial, source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+        }
+
+        private class PassData
+        {
+            internal TextureHandle source;
+            internal TextureHandle destination;
+
+            internal int sourceID;
+
+            internal RenderingData renderingData;
+        }
+
+        internal void Render(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle src, TextureHandle dest)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
+            {
+                passData.source = src;
+                passData.destination = dest;
+                passData.renderingData = renderingData;
+                passData.sourceID = ShaderPropertyId.sourceTex;
+
+                builder.UseColorBuffer(passData.destination, 0);
+                builder.ReadTexture(passData.source);
+
+                CoreUtils.SetKeyword(renderingData.commandBuffer, ShaderKeywordStrings.LinearToSRGBConversion,
+                    renderingData.cameraData.requireSrgbConversion);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    m_BlitMaterial.SetTexture(data.sourceID, data.source);
+
+                    ExecutePass(ref data.renderingData, data.destination, data.source);
+                });
             }
         }
     }

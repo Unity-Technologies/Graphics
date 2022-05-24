@@ -26,9 +26,10 @@
 #define DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_TINT (1309)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE_HASH (1310)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK (1311)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS (1312)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT (1313)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY (1314)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_TRANSMISSION_MASK (1312)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS (1313)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT (1314)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY (1315)
 
 //
 // UnityEngine.Rendering.HighDefinition.Fabric+BSDFData:  static fields
@@ -68,6 +69,7 @@ struct SurfaceData
     float3 specularColor;
     uint diffusionProfileHash;
     float subsurfaceMask;
+    float transmissionMask;
     float thickness;
     float3 tangentWS;
     float anisotropy;
@@ -141,6 +143,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK:
             result = surfacedata.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_TRANSMISSION_MASK:
+            result = surfacedata.transmissionMask.xxx;
             break;
         case DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS:
             result = surfacedata.thickness.xxx;

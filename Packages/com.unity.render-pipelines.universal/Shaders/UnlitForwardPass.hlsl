@@ -108,7 +108,7 @@ void UnlitPassFragment(
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
 
-    AlphaDiscard(alpha, _Cutoff);
+    alpha = AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
 
 #ifdef LOD_FADE_CROSSFADE
@@ -143,6 +143,7 @@ void UnlitPassFragment(
     half fogFactor = input.fogCoord;
 #endif
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
+    finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent(_Surface));
 
     outColor = finalColor;
 

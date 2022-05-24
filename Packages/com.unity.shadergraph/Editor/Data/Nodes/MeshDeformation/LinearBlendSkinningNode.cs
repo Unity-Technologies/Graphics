@@ -38,6 +38,14 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kPositionSlotId, kNormalSlotId, kTangentSlotId, kPositionOutputSlotId, kNormalOutputSlotId, kTangentOutputSlotId });
         }
 
+        protected override void CalculateNodeHasError()
+        {
+#if !(HYBRID_RENDERER_0_6_0_OR_NEWER || ENTITIES_GRAPHICS_0_60_0_OR_NEWER)
+            owner.AddSetupError(objectId, "Could not find a supported version (0.60.0 or newer) of the com.unity.entities.graphics package installed in the project.");
+            hasError = true;
+#endif
+        }
+
         public bool RequiresVertexSkinning(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             return true;
@@ -69,7 +77,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-#if (HYBRID_RENDERER_0_6_0_OR_NEWER || ENTITIES_GRAPHICS_0_60_0_OR_NEWER)
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 displayName = "Skin Matrix Index Offset",
@@ -79,18 +86,6 @@ namespace UnityEditor.ShaderGraph
                 hidden = true,
                 value = 0
             });
-
-#else
-            properties.AddShaderProperty(new Vector1ShaderProperty()
-            {
-                overrideReferenceName = "_SkinMatricesOffset",
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
-                hidden = true,
-                value = 0
-            });
-#endif
-
 
             base.CollectShaderProperties(properties, generationMode);
         }
@@ -124,7 +119,27 @@ namespace UnityEditor.ShaderGraph
         {
             registry.ProvideFunction("SkinMatrices", sb =>
             {
-                sb.AppendLine("uniform StructuredBuffer<float3x4> _SkinMatrices;");
+                sb.AppendLine("uniform ByteAddressBuffer _SkinMatrices;");
+            });
+
+            registry.ProvideFunction("LoadSkinMatrix", sb =>
+            {
+                sb.AppendLine($"float3x4 LoadSkinMatrix(uint index)");
+                sb.AppendLine("{");
+                using (sb.IndentScope())
+                {
+                    sb.AppendLine("uint offset = index * 48;");
+                    sb.AppendLine("// Read in 4 columns of float3 data each.");
+                    sb.AppendLine("// Done in 3 load4 and then repacking into final 3x4 matrix");
+                    sb.AppendLine("// _SkinMatrices consists of float32");
+                    sb.AppendLine("float4 p1 = asfloat(_SkinMatrices.Load4(offset + 0 * 16));");
+                    sb.AppendLine("float4 p2 = asfloat(_SkinMatrices.Load4(offset + 1 * 16));");
+                    sb.AppendLine("float4 p3 = asfloat(_SkinMatrices.Load4(offset + 2 * 16));");
+
+                    sb.AppendLine("return float3x4(p1.x, p1.w, p2.z, p3.y,p1.y, p2.x, p2.w, p3.z,p1.z, p2.y, p3.x, p3.w);");
+
+                }
+                sb.AppendLine("}");
             });
 
             registry.ProvideFunction(GetFunctionName(), sb =>
@@ -148,7 +163,8 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("{");
                     using (sb.IndentScope())
                     {
-                        sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + asint(UNITY_ACCESS_HYBRID_INSTANCED_PROP(_SkinMatrixIndex,float))];");
+                        sb.AppendLine("uint skinMatrixIndex = indices[i] + asint(UNITY_ACCESS_HYBRID_INSTANCED_PROP(_SkinMatrixIndex,float));");
+                        sb.AppendLine("$precision3x4 skinMatrix = LoadSkinMatrix(skinMatrixIndex);");
                         sb.AppendLine("$precision3 vtransformed = mul(skinMatrix, $precision4(positionIn, 1));");
                         sb.AppendLine("$precision3 ntransformed = mul(skinMatrix, $precision4(normalIn, 0));");
                         sb.AppendLine("$precision3 ttransformed = mul(skinMatrix, $precision4(tangentIn, 0));");

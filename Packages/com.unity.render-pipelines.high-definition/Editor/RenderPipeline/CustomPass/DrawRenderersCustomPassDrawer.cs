@@ -37,8 +37,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Chose the Callback position for this render pass object.");
 
             //Render Options
-            public static GUIContent overrideMaterial = new GUIContent("Material", "Chose an override material, every renderer will be rendered with this material.");
+            public static GUIContent overrideMaterial = new GUIContent("Material", "Choose an override material, every renderer will be rendered with this material.");
             public static GUIContent overrideMaterialPass = new GUIContent("Pass Name", "The pass for the override material to use.");
+            public static GUIContent overrideShader = new GUIContent("Shader", "Choose an override shader, every renderer will be rendered with this shader and it's current material properties");
+            public static GUIContent overrideShaderPass = new GUIContent("Pass Name", "The pass for the override material to use.");
+            public static GUIContent overrideMode = new GUIContent("Override Mode", "Choose the material override mode. Material: override the material and all properties. Shader: override the shader and maintain current properties.");
             public static GUIContent sortingCriteria = new GUIContent("Sorting", "Sorting settings used to render objects in a certain order.");
             public static GUIContent shaderPass = new GUIContent("Shader Pass", "Sets which pass will be used to render the materials. If the pass does not exist, the material will not be rendered.");
 
@@ -119,6 +122,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // Render
         SerializedProperty m_OverrideMaterial;
         SerializedProperty m_OverrideMaterialPassName;
+        SerializedProperty m_OverrideShader;
+        SerializedProperty m_OverrideShaderPassName;
+        SerializedProperty m_OverrideMode;
         SerializedProperty m_SortingCriteria;
         SerializedProperty m_ShaderPass;
 
@@ -163,6 +169,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Render options
             m_OverrideMaterial = customPass.FindPropertyRelative("overrideMaterial");
             m_OverrideMaterialPassName = customPass.FindPropertyRelative("overrideMaterialPassName");
+            m_OverrideShader = customPass.FindPropertyRelative("overrideShader");
+            m_OverrideShaderPassName = customPass.FindPropertyRelative("overrideShaderPassName");
+            m_OverrideMode = customPass.FindPropertyRelative("overrideMode");
             m_SortingCriteria = customPass.FindPropertyRelative("sortingCriteria");
 
             // Depth options
@@ -294,38 +303,95 @@ namespace UnityEditor.Rendering.HighDefinition
             //Override material
             if (showMaterialOverride)
             {
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    var mat = m_OverrideMaterial.objectReferenceValue as Material;
-                    // Fixup pass name in case the shader/material changes
-                    if (mat != null && mat.FindPass(m_OverrideMaterialPassName.stringValue) == -1)
-                        m_OverrideMaterialPassName.stringValue = mat.GetPassName(0);
-                }
-
-                rect.y += Styles.defaultLineSpace;
-
+                EditorGUI.PropertyField(rect, m_OverrideMode, Styles.overrideMode);
                 EditorGUI.indentLevel++;
-                if (m_OverrideMaterial.objectReferenceValue)
+
+                switch(m_OverrideMode.intValue)
                 {
-                    EditorGUI.BeginProperty(rect, Styles.overrideMaterialPass, m_OverrideMaterialPassName);
-                    {
-                        var mat = m_OverrideMaterial.objectReferenceValue as Material;
+                    case (int)DrawRenderersCustomPass.OverrideMaterialMode.None:
+                        m_MaterialLines = 1;
+                        break;
+                    case (int)DrawRenderersCustomPass.OverrideMaterialMode.Material:
+                        m_MaterialLines = 3;
+                        rect.y += Styles.defaultLineSpace;
                         EditorGUI.BeginChangeCheck();
-                        int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
-                        index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+                        EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
                         if (EditorGUI.EndChangeCheck())
-                            m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
-                    }
-                    EditorGUI.EndProperty();
+                        {
+                            var mat = m_OverrideMaterial.objectReferenceValue as Material;
+                            // Fixup pass name in case the shader/material changes
+                            if (mat != null && mat.FindPass(m_OverrideMaterialPassName.stringValue) == -1)
+                                m_OverrideMaterialPassName.stringValue = mat.GetPassName(0);
+                        }
+
+                        rect.y += Styles.defaultLineSpace;
+
+                        EditorGUI.indentLevel++;
+                        if (m_OverrideMaterial.objectReferenceValue)
+                        {
+                            EditorGUI.BeginProperty(rect, Styles.overrideMaterialPass, m_OverrideMaterialPassName);
+                            {
+                                var mat = m_OverrideMaterial.objectReferenceValue as Material;
+                                EditorGUI.BeginChangeCheck();
+                                int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
+                                index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+                                if (EditorGUI.EndChangeCheck())
+                                    m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
+                            }
+                            EditorGUI.EndProperty();
+                        }
+                        else
+                        {
+                            EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
+                            EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
+                            EditorGUI.EndProperty();
+                        }
+                        EditorGUI.indentLevel--;
+                        break;
+                    case (int)DrawRenderersCustomPass.OverrideMaterialMode.Shader:
+                        m_MaterialLines = 2;
+                        rect.y += Styles.defaultLineSpace;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUI.PropertyField(rect, m_OverrideShader, Styles.overrideShader);
+                        if(EditorGUI.EndChangeCheck())
+                        {
+                            var shader = m_OverrideShader.objectReferenceValue as Shader;
+                            if(shader != null)
+                            {
+                                var overrideShaderMaterial = new Material(shader);
+
+                                if (overrideShaderMaterial.FindPass(m_OverrideShaderPassName.stringValue) == -1)
+                                    m_OverrideShaderPassName.stringValue = overrideShaderMaterial.GetPassName(0);
+
+                                UnityEngine.Object.DestroyImmediate(overrideShaderMaterial);
+                            }
+                        }
+
+                        EditorGUI.indentLevel++;
+                        if(m_OverrideShader.objectReferenceValue)
+                        {
+                            rect.y += Styles.defaultLineSpace;
+                            m_MaterialLines = 3;
+                            EditorGUI.BeginProperty(rect, Styles.overrideShaderPass, m_OverrideShaderPassName);
+                            {
+                                var shader = m_OverrideShader.objectReferenceValue as Shader;
+                                var overrideShaderMaterial = new Material(shader);
+
+                                EditorGUI.BeginChangeCheck();
+                                int index = overrideShaderMaterial.FindPass(m_OverrideShaderPassName.stringValue);
+                                index = EditorGUI.IntPopup(rect, Styles.overrideShaderPass, index, GetMaterialPassNames(overrideShaderMaterial), Enumerable.Range(0, overrideShaderMaterial.passCount).ToArray());
+                                if (EditorGUI.EndChangeCheck())
+                                    m_OverrideShaderPassName.stringValue = overrideShaderMaterial.GetPassName(index);
+
+                                UnityEngine.Object.DestroyImmediate(overrideShaderMaterial);
+                            }
+                            EditorGUI.EndProperty();
+                        }
+                        EditorGUI.indentLevel--;
+                        break;
                 }
-                else
-                {
-                    EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
-                    EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
-                    EditorGUI.EndProperty();
-                }
+
+
                 EditorGUI.indentLevel--;
 
                 rect.y += Styles.defaultLineSpace;

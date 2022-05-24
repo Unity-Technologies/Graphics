@@ -85,8 +85,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Subsurface
             public static GUIContent diffusionProfileText = new GUIContent("Diffusion Profile", "Specifies the Diffusion Profie HDRP uses to determine the behavior of the subsurface scattering/transmission effect.");
             public static GUIContent subsurfaceEnableText = new GUIContent("Subsurface Scattering", "Enables the subsurface scattering on the material.");
-            public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface Mask", "Controls the overall strength of the subsurface scattering effect.");
-            public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface Mask Map", "Specifies the Subsurface mask map (R) for this Material - This map controls the strength of the subsurface scattering effect.");
+            public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface Mask", "Specifies the Subsurface mask map (R) for this Material and controls the overall strength of the subsurface scattering effect.");
+            public static GUIContent transmissionMaskText = new GUIContent("Transmission Mask", "Specifies the Transmission mask map (R) for this Material and controls the overall strength of the transmission effect.\nThis has no effect when using raytracing.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "Controls the strength of the Thickness Map, low values allow some light to transmit through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness Map", "Specifies the Thickness Map (R) for this Material - This map describes the thickness of the object. When subsurface scattering is enabled, low values allow some light to transmit through the object.");
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remapping", "Controls a remap for the Thickness Map from [0, 1] to the specified range.");
@@ -182,6 +182,9 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty[] subsurfaceMask = new MaterialProperty[kMaxLayerCount];
         const string kSubsurfaceMask = "_SubsurfaceMask";
         MaterialProperty[] subsurfaceMaskMap = new MaterialProperty[kMaxLayerCount];
+        MaterialProperty[] transmissionMask = new MaterialProperty[kMaxLayerCount];
+        const string kTransmissionMask = "_TransmissionMask";
+        MaterialProperty[] transmissionMaskMap = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] thickness = new MaterialProperty[kMaxLayerCount];
         const string kThickness = "_Thickness";
         MaterialProperty[] thicknessMap = new MaterialProperty[kMaxLayerCount];
@@ -328,6 +331,8 @@ namespace UnityEditor.Rendering.HighDefinition
             diffusionProfileAsset = FindPropertyLayered(kDiffusionProfileAsset, m_LayerCount);
             subsurfaceMask = FindPropertyLayered(kSubsurfaceMask, m_LayerCount);
             subsurfaceMaskMap = FindPropertyLayered(kSubsurfaceMaskMap, m_LayerCount);
+            transmissionMask = FindPropertyLayered(kTransmissionMask, m_LayerCount);
+            transmissionMaskMap = FindPropertyLayered(kTransmissionMaskMap, m_LayerCount);
             thickness = FindPropertyLayered(kThickness, m_LayerCount);
             thicknessMap = FindPropertyLayered(kThicknessMap, m_LayerCount);
             thicknessRemap = FindPropertyLayered(kThicknessRemap, m_LayerCount);
@@ -554,13 +559,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials.All(m => m.GetSurfaceType() != SurfaceType.Transparent))
             {
-                materialEditor.ShaderProperty(subsurfaceMask[m_LayerIndex], Styles.subsurfaceMaskText);
-                materialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[m_LayerIndex]);
+                materialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskText, subsurfaceMaskMap[m_LayerIndex], subsurfaceMask[m_LayerIndex]);
             }
 
             if ((int)materialID.floatValue == (int)MaterialId.LitTranslucent ||
                 ((int)materialID.floatValue == (int)MaterialId.LitSSS && transmissionEnable.floatValue > 0.0f))
             {
+                materialEditor.TexturePropertySingleLine(Styles.transmissionMaskText, transmissionMaskMap[m_LayerIndex], transmissionMask[m_LayerIndex]);
+
                 if (thicknessMap[m_LayerIndex].textureValue != null)
                 {
                     materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);

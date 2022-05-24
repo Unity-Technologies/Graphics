@@ -28,7 +28,7 @@ ${VFXBegin:VFXPassForwardLitAdditionalPragma}
 #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 #pragma multi_compile_fragment _ _LIGHT_LAYERS
 #pragma multi_compile_fragment _ _LIGHT_COOKIES
-#pragma multi_compile _ _CLUSTERED_RENDERING
+#pragma multi_compile _ _FORWARD_PLUS
 #pragma multi_compile_fog
 #pragma multi_compile _ DEBUG_DISPLAY
 ${VFXEnd}
@@ -100,7 +100,7 @@ void frag(ps_input i
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
     VFXTransformPSInputs(i);
     ${VFXComputeNormalWS}
-    
+
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
 
@@ -112,15 +112,15 @@ void frag(ps_input i
 
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
         #else
-        
+
         float alpha = VFXGetFragmentColor(i).a;
         #if URP_USE_BASE_COLOR_MAP_ALPHA
             alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
         #endif
     #endif
-    
+
     VFXClipFragmentColor(alpha,i);
-    
+
     #if defined(WRITE_NORMAL_BUFFER)
         #ifdef VFX_SHADERGRAPH
             #if HAS_SHADERGRAPH_PARAM_NORMALTS

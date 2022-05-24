@@ -4,11 +4,37 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 float4x4 unity_ObjectToWorld;
 
+#ifdef PROCEDURAL_INSTANCING_ON
+// We have to use procedural instancing because we don't have data outside transform matrix
+// But because of that a lot of useful macros are not defined, so force defining them here
+#undef PROCEDURAL_INSTANCING_ON
+#define INSTANCING_ON
+#define UNITY_DONT_INSTANCE_OBJECT_MATRICES
+#endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+#ifdef INSTANCING_ON
+CBUFFER_START(UnityInstancing_PerTree)
+    float4x4 _TreeInstanceToWorld[1000]; // Max buffer size is 64KB, matrix is 64B
+CBUFFER_END
+
+#undef unity_ObjectToWorld
+#define unity_ObjectToWorld _TreeInstanceToWorld[unity_InstanceID]
+#endif
+
 RWTexture3D<float>  _Output : register(u4);
 float3              _OutputSize;
 float3              _VolumeWorldOffset;
 float3              _VolumeSize;
 uint                _AxisSwizzle;
+float4x4            _TreePrototypeTransform;
+
+struct VertexInput
+{
+    float4 vertex : POSITION;
+    uint instanceID : SV_InstanceID;
+};
 
 struct VertexToGeometry
 {
@@ -25,11 +51,21 @@ struct GeometryToFragment
     nointerpolation float2 minMaxZ : TEXCOORD3;
 };
 
-VertexToGeometry ConservativeVertex(float4 vertex : POSITION)
+float3 VertexToCellPos(float4 vertex)
 {
+#ifdef INSTANCING_ON
+    // For tree instance, first transform vertex with prefab matrix
+    vertex = mul(_TreePrototypeTransform, vertex);
+#endif
+    return mul(unity_ObjectToWorld, vertex).xyz;
+}
+
+VertexToGeometry ConservativeVertex(VertexInput input)
+{
+    UNITY_SETUP_INSTANCE_ID(input);
     VertexToGeometry o;
 
-    float3 cellPos = mul(unity_ObjectToWorld, vertex).xyz;
+    float3 cellPos = VertexToCellPos(input.vertex);
     cellPos -= _VolumeWorldOffset;
     o.cellPos01 = (cellPos / _VolumeSize);
 
@@ -176,11 +212,12 @@ struct VertexToFragment
     float3 cellPos01 : TEXCOORD0;
 };
 
-VertexToFragment MeshVert(float4 vertex : POSITION)
+VertexToFragment MeshVert(VertexInput input)
 {
+    UNITY_SETUP_INSTANCE_ID(input);
     VertexToFragment o;
 
-    float3 cellPos = mul(unity_ObjectToWorld, vertex).xyz;
+    float3 cellPos = VertexToCellPos(input.vertex);
     cellPos -= _VolumeWorldOffset;
     o.cellPos01 = (cellPos / _VolumeSize);
 

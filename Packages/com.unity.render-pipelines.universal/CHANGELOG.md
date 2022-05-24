@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed spot light distance attenuation artefact on some platforms due to fp16 precision issue.
 
+## [14.0.3] - 2021-05-09
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 
 ## [14.0.2] - 2021-02-04
 
@@ -21,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
 - Add #pragma editor_sync_compilation directive to FallbackError.shader
 - Added commandBuffer variable to RenderingData struct and switched all of the renderer to use that buffer instead of creating local command buffers.
+- Added automatic Alpha-To-Coverage feature which improves visual quality for alpha-clipped opaque geometry when MSAA is enabled
 
 ### Changed
 - PostProcessPass to internal visibility since it's in Internal namespace.

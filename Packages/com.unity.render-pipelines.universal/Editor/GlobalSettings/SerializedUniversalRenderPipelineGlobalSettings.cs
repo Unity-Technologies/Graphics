@@ -36,6 +36,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty stripUnusedVariants;
         public SerializedProperty stripUnusedLODCrossFadeVariants;
 
+        public SerializedProperty enableRenderGraph;
+
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
@@ -74,6 +76,8 @@ namespace UnityEditor.Rendering.Universal
             stripUnusedLODCrossFadeVariants = serializedObject.FindProperty("m_StripUnusedLODCrossFadeVariants");
             shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
+
+            enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
         }
     }
 }

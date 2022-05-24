@@ -109,6 +109,21 @@ namespace UnityEditor.VFX.Migration
                     var newAsset = newClip.asset as VisualEffectControlClip;
                     var oldAsset = oldClip.asset as VisualEffectActivationClip;
 
+                    if (newAsset == null)
+                        throw new InvalidOperationException("Cannot create a new VisualEffectControlClip for migration. Please reimport.");
+
+                    if (oldAsset == null)
+                        throw new InvalidOperationException(string.Format("Unexpected clip {0} in VisualEffectControlTrack, expecting either VisualEffectControlClip or VisualEffectActivationClip. Please reimport.", oldClip.asset == null ? "null" : oldClip.asset.GetType().ToString()));
+
+                    if (oldAsset.activationBehavior == null)
+                        throw new NullReferenceException("VisualEffectActivationClip unexpected null activationBehavior. Please reimport.");
+
+                    if (oldAsset.activationBehavior.onClipEnter == null)
+                        throw new NullReferenceException("VisualEffectActivationClip unexpected null onClipEnter. Please reimport.");
+
+                    if (oldAsset.activationBehavior.onClipExit == null)
+                        throw new NullReferenceException("VisualEffectActivationClip unexpected null onClipExit. Please reimport.");
+
                     newAsset.clipStart = oldClip.start;
                     newAsset.clipEnd = oldClip.end;
 

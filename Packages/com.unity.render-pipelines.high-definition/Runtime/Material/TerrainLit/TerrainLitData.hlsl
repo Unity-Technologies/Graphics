@@ -180,6 +180,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.ambientOcclusion = terrainLitSurfaceData.ao;
 
     surfaceData.subsurfaceMask = 0;
+    surfaceData.transmissionMask = 0;
     surfaceData.thickness = 1;
     surfaceData.diffusionProfileHash = 0;
 

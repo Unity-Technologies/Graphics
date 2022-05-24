@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Block
         };
     }
 
-    [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionMeshProvider), experimental = true)]
+    [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionMeshProvider))]
     class PositionMesh : PositionBase
     {
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
@@ -29,6 +29,20 @@ namespace UnityEditor.VFX.Block
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the kind of geometry to sample from.")]
         private SampleMesh.SourceType sourceMesh = SampleMesh.SourceType.Mesh;
+
+        [VFXSetting, SerializeField, Tooltip("Specifies the transform to apply to the root bone retrieved from the Skinned Mesh Renderer.")]
+        private SampleMesh.SkinnedRootTransform skinnedTransform = SampleMesh.SkinnedRootTransform.ApplyLocalRootTransform;
+
+        [Flags]
+        enum Orientation
+        {
+            None = 0,
+            Direction = 1,
+            Axes = 2,
+        }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Orient particles conform to the geometry of the mesh they are sampled from.\nThe AxisX/AxisY/AxisZ attributes and/or the attribute direction can be written.")]
+        private Orientation applyOrientation = Orientation.Direction;
 
         public override string name
         {
@@ -86,8 +100,29 @@ namespace UnityEditor.VFX.Block
             public Vector2 square;
         }
 
-        protected override bool needDirectionWrite { get { return true; } }
+        public class TransformProperties
+        {
+            [Tooltip("Sets the transform of the sampled Mesh. If used with a Skinned Mesh, it is applied after the transform of the root bone.")]
+            public Transform transform = Transform.defaultValue;
+        }
+
+        protected override bool needDirectionWrite { get { return applyOrientation.HasFlag(Orientation.Direction); } }
+        protected override bool needAxesWrite { get { return applyOrientation.HasFlag(Orientation.Axes); } }
         protected override bool supportsVolumeSpawning { get { return false; } }
+
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+
+            if (version < 10)
+            {
+                Debug.Log("Sanitize Graph: Position Mesh & Skinned Mesh");
+                //Insure SkinnedTransform is set to none and the transform will lead to identity
+                SetSettingValue(nameof(skinnedTransform), SampleMesh.SkinnedRootTransform.None);
+                var transformSlot = inputSlots.Last();
+                transformSlot.space = GetOwnerSpace();
+            }
+        }
 
         private VFXExpression BuildRandomUIntPerParticle(VFXExpression max, int id)
         {
@@ -98,6 +133,47 @@ namespace UnityEditor.VFX.Block
             return r;
         }
 
+        private SampleMesh.SkinnedRootTransform actualSkinnedTransform
+        {
+            get
+            {
+                if (sourceMesh == SampleMesh.SourceType.SkinnedMeshRenderer)
+                    return skinnedTransform;
+                return SampleMesh.SkinnedRootTransform.None;
+            }
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            var transformSlot = inputSlots.Last();
+            if (actualSkinnedTransform == SampleMesh.SkinnedRootTransform.ApplyWorldRootTransform &&
+                transformSlot.space == VFXCoordinateSpace.Local)
+            {
+                manager.RegisterError("MixingSMRWorldAndLocalPostTransformBlock", VFXErrorType.Warning, SampleMesh.kMixingSMRWorldAndLocalPostTransformMsg);
+            }
+        }
+
+        private VFXCoordinateSpace GetWantedOutputSpace()
+        {
+            //If we are applying the skinned mesh in world, using a local transform afterwards looks unexpected, forcing conversion of inputs to world.
+            if (actualSkinnedTransform == SampleMesh.SkinnedRootTransform.ApplyWorldRootTransform)
+                return VFXCoordinateSpace.World;
+
+            //Otherwise, the input slot transform control the owner space.
+            return GetOwnerSpace();
+        }
+
+        //Warning: if GetOwnerSpace() != GetOutputSpaceFromSlot(), then, conversion *must* be handled in parameters computation
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        {
+            if (outputSlot.spaceable)
+                return GetWantedOutputSpace();
+
+            return (VFXCoordinateSpace)int.MaxValue;
+        }
+
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
@@ -105,6 +181,7 @@ namespace UnityEditor.VFX.Block
                 VFXExpression source = null;
                 VFXExpression index = null;
                 VFXExpression coordinate = null;
+                VFXExpression postTransform = null;
                 foreach (var parameter in base.parameters)
                 {
                     if (parameter.name == nameof(CustomPropertiesMesh.mesh)
@@ -119,6 +196,8 @@ namespace UnityEditor.VFX.Block
                              || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.triangle)
                              || parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.triangle))
                         index = parameter.exp;
+                    else if (parameter.name == nameof(TransformProperties.transform))
+                        postTransform = parameter.exp;
                     else
                         yield return parameter;
                 }
@@ -158,17 +237,66 @@ namespace UnityEditor.VFX.Block
                     }
                 }
 
-                var vertexAttributes = new[] { VertexAttribute.Position, VertexAttribute.Normal };
+                var transform = SampleMesh.ComputeTransformMatrix(source, actualSkinnedTransform, postTransform);
+
+                var ownerSpace = GetOwnerSpace();
+                var outputSpaceExpression = GetWantedOutputSpace();
+                if (ownerSpace != outputSpaceExpression
+                    && outputSpaceExpression != (VFXCoordinateSpace)int.MaxValue
+                    && ownerSpace != (VFXCoordinateSpace)int.MaxValue)
+                {
+                    transform.current = ConvertSpace(transform.current, SpaceableType.Matrix, outputSpaceExpression);
+                    transform.previous = ConvertSpace(transform.previous, SpaceableType.Matrix, outputSpaceExpression);
+                }
+
+                SampleMesh.VertexAttributeFlag[] vertexAttributes;
+                if (applyOrientation.HasFlag(Orientation.Axes))
+                    vertexAttributes = new[] { SampleMesh.VertexAttributeFlag.Transform };
+                else if (applyOrientation.HasFlag(Orientation.Direction))
+                    vertexAttributes = new[] { SampleMesh.VertexAttributeFlag.Position, SampleMesh.VertexAttributeFlag.Normal };
+                else
+                    vertexAttributes = new[] { SampleMesh.VertexAttributeFlag.Position };
+
                 VFXExpression[] sampling = null;
                 if (placementMode == SampleMesh.PlacementMode.Vertex)
-                    sampling = SampleMesh.SampleVertexAttribute(source, index, vertexAttributes).ToArray();
+                    sampling = SampleMesh.SampleVertexAttribute(source, index, vertexAttributes, transform).ToArray();
                 else if (placementMode == SampleMesh.PlacementMode.Edge)
-                    sampling = SampleMesh.SampleEdgeAttribute(source, index, coordinate, vertexAttributes).ToArray();
+                    sampling = SampleMesh.SampleEdgeAttribute(source, index, coordinate, vertexAttributes, transform).ToArray();
                 else if (placementMode == SampleMesh.PlacementMode.Surface)
-                    sampling = SampleMesh.SampleTriangleAttribute(source, index, coordinate, surfaceCoordinates, vertexAttributes).ToArray();
+                    sampling = SampleMesh.SampleTriangleAttribute(source, index, coordinate, surfaceCoordinates, vertexAttributes, transform).ToArray();
 
-                yield return new VFXNamedExpression(sampling[0], "readPosition");
-                yield return new VFXNamedExpression(sampling[1], "readDirection");
+                if (applyOrientation.HasFlag(Orientation.Axes))
+                {
+                    var sourceTransform = sampling[0];
+
+                    var i = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(0));
+                    var j = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(1));
+                    var k = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(2));
+                    var p = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(3));
+
+                    yield return new VFXNamedExpression(i, "readAxisX");
+                    yield return new VFXNamedExpression(j, "readAxisY");
+                    yield return new VFXNamedExpression(k, "readAxisZ");
+                    yield return new VFXNamedExpression(p, "readPosition");
+                }
+                else if (applyOrientation.HasFlag(Orientation.Direction))
+                {
+                    yield return new VFXNamedExpression(sampling[0], "readPosition");
+                    yield return new VFXNamedExpression(sampling[1], "readAxisY");
+                }
+                else
+                {
+                    yield return new VFXNamedExpression(sampling[0], "readPosition");
+                }
+            }
+        }
+
+        public override IEnumerable<int> GetFilteredOutEnumerators(string name)
+        {
+            if (name == nameof(compositionAxes))
+            {
+                yield return (int)AttributeCompositionMode.Add;
+                yield return (int)AttributeCompositionMode.Multiply;
             }
         }
 
@@ -184,6 +312,9 @@ namespace UnityEditor.VFX.Block
 
                 if (spawnMode != SpawnMode.Custom)
                     yield return nameof(mode);
+
+                if (sourceMesh != SampleMesh.SourceType.SkinnedMeshRenderer)
+                    yield return nameof(skinnedTransform);
             }
         }
 
@@ -217,11 +348,7 @@ namespace UnityEditor.VFX.Block
                         throw new InvalidOperationException("Unexpected placement mode : " + placementMode);
                 }
 
-                if (compositionPosition == AttributeCompositionMode.Blend)
-                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesBlendPosition)));
-
-                if (compositionDirection == AttributeCompositionMode.Blend)
-                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesBlendDirection)));
+                properties = properties.Concat(PropertiesFromType(nameof(TransformProperties)));
 
                 return properties;
             }
@@ -233,7 +360,19 @@ namespace UnityEditor.VFX.Block
             {
                 string source = "";
                 source += "\n" + VFXBlockUtility.GetComposeString(compositionPosition, "position", "readPosition", "blendPosition");
-                source += "\n" + VFXBlockUtility.GetComposeString(compositionDirection, "direction", "readDirection", "blendDirection");
+
+                if (applyOrientation.HasFlag(Orientation.Axes))
+                {
+                    source += "\n" + VFXBlockUtility.GetComposeString(compositionAxes, "axisX", "readAxisX", "blendAxes");
+                    source += "\n" + VFXBlockUtility.GetComposeString(compositionAxes, "axisY", "readAxisY", "blendAxes");
+                    source += "\n" + VFXBlockUtility.GetComposeString(compositionAxes, "axisZ", "readAxisZ", "blendAxes");
+                }
+
+                if (applyOrientation.HasFlag(Orientation.Direction))
+                {
+                    source += "\n" + VFXBlockUtility.GetComposeString(compositionDirection, "direction", "readAxisY", "blendDirection");
+                }
+
                 return source;
             }
         }

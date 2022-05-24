@@ -192,6 +192,13 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #endif
             );
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && defined(DOTS_DEFORMED)
+            // Deformed vertices in DOTS are not cumulative with built-in Unity skinning/blend shapes
+            // Needs to be called after vertex modification has been applied otherwise it will be
+            // overwritten by Compute Deform node
+            ApplyPreviousFrameDeformedVertexPosition(inputMesh.vertexID, previousMesh.positionOS);
+#endif
+
 #if defined(HAVE_VFX_MODIFICATION)
             // Only handle the VFX case here since it is only used with ShaderGraph (and ShaderGraph always has mesh modification enabled).
             previousMesh = VFXTransformMeshToPreviousElement(previousMesh, inputElement);

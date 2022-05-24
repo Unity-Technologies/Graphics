@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
 {
     interface IVFXSlotContainer
     {
+        VFXSlot activationSlot { get; } // Return the activation slot if any, null otherwise
         ReadOnlyCollection<VFXSlot> inputSlots { get; }
         ReadOnlyCollection<VFXSlot> outputSlots { get; }
 
@@ -50,6 +51,7 @@ namespace UnityEditor.VFX
         where ParentType : VFXModel
         where ChildrenType : VFXModel
     {
+        public virtual VFXSlot activationSlot => null;
         public virtual ReadOnlyCollection<VFXSlot> inputSlots { get { return m_InputSlots.AsReadOnly(); } }
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
 

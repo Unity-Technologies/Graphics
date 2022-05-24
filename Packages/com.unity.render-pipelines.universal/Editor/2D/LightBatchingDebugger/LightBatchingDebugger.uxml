@@ -1,0 +1,57 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement name="ParentElement" style="flex-direction:column">
+    <Style src="LightBatchingDebugger.uss" />
+
+        <Box class="InfoView Header Bottom">
+            <Label name="InfoTitle"/>
+        </Box>
+
+        <TwoPaneSplitView fixed-pane-initial-dimension="200">
+            <!--Left Split View Layer Batch Info-->
+            <VisualElement class="MinSize">
+                <Box class="BatchList HeaderContainer">
+                    <Label class="BatchList IndexColumn Header" text="Batch ID"/>
+                    <VisualElement class="BatchList ColorColumn Container">
+                        <Label text="|" class="BatchList ColorColumn Splitter"/>
+                    </VisualElement>
+                    <Label class="BatchList NameColumn Header" text="Layer Names"/>
+                </Box>
+                <ListView name="BatchList" class="BatchList List"/>
+            </VisualElement>
+            <!--Right Split View Lights and Shadows-->
+            <VisualElement name="InfoContainer" class="InfoContainer">
+                <Label name="InitialPrompt" text="Open Game View and select a batch to begin." class="InitialPrompt"/>
+                <TwoPaneSplitView name="InfoView" fixed-pane-initial-dimension="500" orientation="Vertical">
+                    <!--Light Split View Top-->
+                    <VisualElement class="MinSize">
+                        <Box class="BatchList HeaderContainer">
+                            <Label name="LightHeader" class="BatchList IndexColumn Header"/>
+                        </Box>
+                        <ScrollView class="InfoScroller">
+                            <Label name="LightLabel1" class="InfoView Content"/>
+                            <VisualElement name="LightBubble1" class="InfoView Content PillContainer"/>
+                            <Label name="LightLabel2" class="InfoView Content"/>
+                            <VisualElement name="LightBubble2" class="InfoView Content PillContainer"/>
+                        </ScrollView>
+                    </VisualElement>
+                    <!--Shadow Caster Split View Bottom-->
+                    <VisualElement class="MinSize">
+                        <Box class="BatchList HeaderContainer">
+                            <Label name="ShadowHeader" class="BatchList IndexColumn Header"/>
+                        </Box>
+                        <ScrollView class="InfoScroller">
+                            <Label name="ShadowLabel1" class="InfoView Content"/>
+                            <VisualElement name="ShadowBubble1" class="InfoView Content PillContainer"/>
+                            <Label name="ShadowLabel2" class="InfoView Content"/>
+                            <VisualElement name="ShadowBubble2" class="InfoView Content PillContainer"/>
+                        </ScrollView>
+                    </VisualElement>
+                </TwoPaneSplitView>
+            </VisualElement>
+        </TwoPaneSplitView>
+
+        <Box class="InfoView Header Top">
+            <Label name="InfoTitle2"/>
+        </Box>
+    </VisualElement>
+</UXML>

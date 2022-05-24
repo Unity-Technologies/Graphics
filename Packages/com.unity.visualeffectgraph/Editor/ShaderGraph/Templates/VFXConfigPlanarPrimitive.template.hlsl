@@ -39,7 +39,13 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
 
-    if (ShouldCullElement(index))
+    $splice(VFXInitInstancingCompute)
+
+    ContextData contextData = instancingContextData[instanceActiveIndex];
+    uint systemSeed = contextData.systemSeed;
+    uint nbMax = contextData.maxParticleCount;
+
+    if (ShouldCullElement(index, instanceIndex, nbMax))
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW
@@ -47,6 +53,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     #endif
 
     element.index = index;
+    element.instanceIndex = instanceIndex;
 
     // Configure planar Primitive
     float4 uv = 0;
@@ -104,6 +111,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         const InternalAttributesElement attributes = element.attributes;
 
         // Here we have to explicitly splice in the crop factor.
+        GraphValues graphValues = graphValuesBuffer[instanceIndex];
         $splice(VFXLoadCropFactorParameter)
 
         const float correctedCropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;

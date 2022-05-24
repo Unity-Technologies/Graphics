@@ -1,21 +1,20 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEngine.Rendering;
-using UnityEngine.TestTools;
 using System.Linq;
 using System.Collections;
-using UnityEditor.VFX.Block.Test;
 using System.Collections.Generic;
-using System.IO;
+
+using NUnit.Framework;
+
+using UnityEngine;
+using UnityEngine.VFX;
+using UnityEngine.TestTools;
+
 
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VisualEffectPrefabTest
+    public class VisualEffectPrefabTest : VFXPlayModeTest
     {
         GameObject m_mainCamera;
         List<string> m_assetToDelete = new List<string>();

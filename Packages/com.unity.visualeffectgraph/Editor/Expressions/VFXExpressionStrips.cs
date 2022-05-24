@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("GetStripTangent(attributes.position, relativeIndexInStrip, stripData)");
+            return string.Format("GetStripTangent(attributes.position, instanceIndex, relativeIndexInStrip, stripData)");
         }
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()

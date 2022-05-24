@@ -719,11 +719,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (m_ActiveSubTarget.value is UniversalLitSubTarget)
                 return true;
 
+            if (m_ActiveSubTarget.value is UniversalSpriteLitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalSpriteUnlitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalSpriteCustomLitSubTarget)
+                return true;
+
             //It excludes:
             // - UniversalDecalSubTarget
-            // - UniversalSpriteLitSubTarget
-            // - UniversalSpriteUnlitSubTarget
-            // - UniversalSpriteCustomLitSubTarget
             return false;
         }
 
@@ -788,6 +794,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region Passes
     static class CorePasses
     {
+        /// <summary>
+        ///  Automatically enables Alpha-To-Coverage in the provided opaque pass targets using alpha clipping
+        /// </summary>
+        /// <param name="pass">The pass to modify</param>
+        /// <param name="target">The target to query</param>
+        internal static void AddAlphaToMaskControlToPass(ref PassDescriptor pass, UniversalTarget target)
+        {
+            if (target.allowMaterialOverride)
+            {
+                // When material overrides are allowed, we have to rely on the _AlphaToMask material property since we can't be
+                // sure of the surface type and alpha clip state based on the target alone.
+                pass.renderStates.Add(RenderState.AlphaToMask("[_AlphaToMask]"));
+            }
+            else if (target.alphaClip && (target.surfaceType == SurfaceType.Opaque))
+            {
+                pass.renderStates.Add(RenderState.AlphaToMask("On"));
+            }
+        }
+
         internal static void AddAlphaClipControlToPass(ref PassDescriptor pass, UniversalTarget target)
         {
             if (target.allowMaterialOverride)
@@ -1967,10 +1992,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static readonly KeywordDescriptor ClusteredRendering = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ForwardPlus = new KeywordDescriptor()
         {
-            displayName = "Clustered Rendering",
-            referenceName = "_CLUSTERED_RENDERING",
+            displayName = "Forward+",
+            referenceName = "_FORWARD_PLUS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

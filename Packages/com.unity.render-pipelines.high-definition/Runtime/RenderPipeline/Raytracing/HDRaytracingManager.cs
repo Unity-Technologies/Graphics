@@ -700,7 +700,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal bool ValidRayTracingHistory(HDCamera hdCamera)
         {
             return hdCamera.historyRTHandleProperties.previousViewportSize.x == hdCamera.actualWidth
-                && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
+                && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight
+                && ((int)hdCamera.GetCameraFrameCount() > 1);
         }
 
         internal static int RayTracingFrameIndex(HDCamera hdCamera)
@@ -836,9 +837,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal bool currentSystemSupportsRayTracing => SystemInfo.supportsRayTracing
 #if UNITY_EDITOR
-            && ((UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
-            || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5);
+            && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.GameCoreXboxSeries
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5);
 #else
             ;
 #endif

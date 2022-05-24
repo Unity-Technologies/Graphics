@@ -292,6 +292,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
             /// <summary>Current color picker debug settings.</summary>
             public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
+            /// <summary>Current monitors debug settings.</summary>
+            public MonitorsDebugSettings monitorsDebugSettings = new MonitorsDebugSettings();
             /// <summary>Current false color debug settings.</summary>
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
             /// <summary>Current decals debug settings.</summary>
@@ -825,7 +827,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightingDebugSettings.hdrDebugMode = value;
         }
 
-
         /// <summary>
         /// Set the current Mip Map Debug Mode.
         /// </summary>
@@ -967,11 +968,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     displayName = sampler.name,
                     values = new[]
-                {
+                    {
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.CPU),
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.InlineCPU),
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.GPU),
-                }
+                    }
                 });
             }
 
@@ -1583,7 +1584,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         getter = () => data.screenSpaceShadowIndex,
                         setter = value => data.screenSpaceShadowIndex = value,
                         min = () => 0u,
-                        max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows(),
+                        max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetMaxScreenSpaceShadows() - 1,
                         isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.ScreenSpaceShadows
                     }
                 }
@@ -1766,6 +1767,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip FalseColorRangeThreshold3 = new() { name = "Range Threshold 3", tooltip = "Set the split for the intensity range." };
 
             public static readonly NameAndTooltip FreezeCameraForCulling = new() { name = "Freeze Camera For Culling", tooltip = "Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it." };
+
+            // Monitors
+            public static readonly NameAndTooltip MonitorsSize        = new() { name = "Size"       , tooltip = "Sets the size ratio of the displayed monitors" };
+            public static readonly NameAndTooltip WaveformToggle      = new() { name = "Waveform"   , tooltip = "Toggles the waveform monitor, displaying the full range of luma information in the render." };
+            public static readonly NameAndTooltip WaveformExposure    = new() { name = "Exposure"   , tooltip = "Set the exposure of the waveform monitor." };
+            public static readonly NameAndTooltip WaveformParade      = new() { name = "Parade mode", tooltip = "Toggles the parade mode of the waveform monitor, splitting the waveform into the red, green and blue channels separately." };
+            public static readonly NameAndTooltip VectorscopeToggle   = new() { name = "Vectorscope", tooltip = "Toggles the vectorscope monitor, allowing to measure the overall range of hue and saturation within the image." };
+            public static readonly NameAndTooltip VectorscopeExposure = new() { name = "Exposure"   , tooltip = "Set the exposure of the vectorscope monitor." };
         }
 
         void RegisterRenderingDebug()
@@ -1871,6 +1880,68 @@ namespace UnityEngine.Rendering.HighDefinition
             widgetList.AddRange(new DebugUI.Widget[]
             {
                 new DebugUI.EnumField { nameAndTooltip = RenderingStrings.FreezeCameraForCulling, getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value },
+            });
+
+            widgetList.Add(new DebugUI.Container
+            {
+                displayName = "Color Monitors",
+                children    =
+                {
+                    new DebugUI.BoolField
+                    {
+                        nameAndTooltip = RenderingStrings.WaveformToggle,
+                        getter = ()    =>   data.monitorsDebugSettings.waveformToggle,
+                        setter = value => { data.monitorsDebugSettings.waveformToggle = value; }
+                    },
+                    new DebugUI.Container("WaveformContainer")
+                    {
+                        isHiddenCallback = () => !data.monitorsDebugSettings.waveformToggle,
+                        children =
+                        {
+                            new DebugUI.FloatField
+                            {
+                                nameAndTooltip = RenderingStrings.WaveformExposure,
+                                getter = ()    =>   data.monitorsDebugSettings.waveformExposure,
+                                setter = value => { data.monitorsDebugSettings.waveformExposure = value; },
+                                min    = ()    => 0f
+                            },
+                            new DebugUI.BoolField
+                            {
+                                nameAndTooltip = RenderingStrings.WaveformParade,
+                                getter = ()    =>   data.monitorsDebugSettings.waveformParade,
+                                setter = value => { data.monitorsDebugSettings.waveformParade = value; }
+                            }
+                        }
+                    },
+                    new DebugUI.BoolField
+                    {
+                        nameAndTooltip = RenderingStrings.VectorscopeToggle,
+                        getter = ()    =>   data.monitorsDebugSettings.vectorscopeToggle,
+                        setter = value => { data.monitorsDebugSettings.vectorscopeToggle = value; }
+                    },
+                    new DebugUI.Container("VectorscopeContainer")
+                    {
+                        isHiddenCallback = () => !data.monitorsDebugSettings.vectorscopeToggle,
+                        children =
+                        {
+                            new DebugUI.FloatField
+                            {
+                                nameAndTooltip = RenderingStrings.VectorscopeExposure,
+                                getter         = () => data.monitorsDebugSettings.vectorscopeExposure,
+                                setter         = value => { data.monitorsDebugSettings.vectorscopeExposure = value; },
+                                min            = ()    => 0f
+                            }
+                        }
+                    },
+                    new DebugUI.FloatField
+                    {
+                        nameAndTooltip = RenderingStrings.MonitorsSize,
+                        getter = ()    =>   data.monitorsDebugSettings.monitorsSize,
+                        setter = value => { data.monitorsDebugSettings.monitorsSize = value; },
+                        min    = ()    => 0.1f,
+                        max    = ()    => 0.8f
+                    }
+                }
             });
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
@@ -2048,8 +2119,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.VolumetricClouds ||
-                data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection ||
-                data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
+                    data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection ||
+                    data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
         }
     }
 }

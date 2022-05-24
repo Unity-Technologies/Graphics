@@ -110,6 +110,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/specular-color.md)]
 [!include[](snippets/shader-graph-blocks/specular-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/subsurface-mask.md)]
+[!include[](snippets/shader-graph-blocks/transmission-mask.md)]
 [!include[](snippets/shader-graph-blocks/tangent-object-space.md)]
 [!include[](snippets/shader-graph-blocks/tangent-tangent-space.md)]
 [!include[](snippets/shader-graph-blocks/tangent-world-space.md)]

@@ -2,6 +2,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -19,16 +20,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         DeferredLights m_DeferredLights;
 
-        ShaderTagId[] m_ShaderTagValues;
-        RenderStateBlock[] m_RenderStateBlocks;
+        static ShaderTagId[] s_ShaderTagValues;
+        static RenderStateBlock[] s_RenderStateBlocks;
 
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
+        private PassData m_PassData;
 
         public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, DeferredLights deferredLights)
         {
             base.profilingSampler = new ProfilingSampler(nameof(GBufferPass));
             base.renderPassEvent = evt;
+            m_PassData = new PassData();
 
             m_DeferredLights = deferredLights;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
@@ -38,17 +41,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlock.stencilReference = stencilReference;
             m_RenderStateBlock.mask = RenderStateMask.Stencil;
 
-            m_ShaderTagValues = new ShaderTagId[4];
-            m_ShaderTagValues[0] = s_ShaderTagLit;
-            m_ShaderTagValues[1] = s_ShaderTagSimpleLit;
-            m_ShaderTagValues[2] = s_ShaderTagUnlit;
-            m_ShaderTagValues[3] = new ShaderTagId(); // Special catch all case for materials where UniversalMaterialType is not defined or the tag value doesn't match anything we know.
+            if (s_ShaderTagValues == null)
+            {
+                s_ShaderTagValues = new ShaderTagId[4];
+                s_ShaderTagValues[0] = s_ShaderTagLit;
+                s_ShaderTagValues[1] = s_ShaderTagSimpleLit;
+                s_ShaderTagValues[2] = s_ShaderTagUnlit;
+                s_ShaderTagValues[3] = new ShaderTagId(); // Special catch all case for materials where UniversalMaterialType is not defined or the tag value doesn't match anything we know.
+            }
 
-            m_RenderStateBlocks = new RenderStateBlock[4];
-            m_RenderStateBlocks[0] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialLit);
-            m_RenderStateBlocks[1] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialSimpleLit);
-            m_RenderStateBlocks[2] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialUnlit);
-            m_RenderStateBlocks[3] = m_RenderStateBlocks[0];
+            if (s_RenderStateBlocks == null)
+            {
+                s_RenderStateBlocks = new RenderStateBlock[4];
+                s_RenderStateBlocks[0] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialLit);
+                s_RenderStateBlocks[1] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialSimpleLit);
+                s_RenderStateBlocks[2] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialUnlit);
+                s_RenderStateBlocks[3] = s_RenderStateBlocks[0];
+            }
         }
 
         public void Dispose()
@@ -113,6 +122,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;
+            m_PassData.filteringSettings = m_FilteringSettings;
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, m_DeferredLights.UseRenderingLayers);
@@ -120,32 +130,127 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                m_PassData.deferredLights = m_DeferredLights;
+
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
                 // If we detect we are in such case (camera is in overlay mode), we clear the highest bits of stencil we have control of and use them to
                 // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
-                if (m_DeferredLights.IsOverlay)
-                {
-                    m_DeferredLights.ClearStencilPartial(cmd);
-                    context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-                }
+
 
                 ref CameraData cameraData = ref renderingData.cameraData;
-                Camera camera = cameraData.camera;
                 ShaderTagId lightModeTag = s_ShaderTagUniversalGBuffer;
-                DrawingSettings drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
-                ShaderTagId universalMaterialTypeTag = s_ShaderTagUniversalMaterialType;
+                m_PassData.drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
 
-                NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
-                NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
+                ExecutePass(context, m_PassData, ref renderingData);
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+                // If any sub-system needs camera normal texture, make it available.
+                // Input attachments will only be used when this is not needed so safe to skip in that case
+                if (!m_DeferredLights.UseRenderPass)
+                    renderingData.commandBuffer.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex]);
+            }
+        }
 
-                tagValues.Dispose();
-                stateBlocks.Dispose();
+        static void ExecutePass(ScriptableRenderContext context, PassData data, ref RenderingData renderingData, bool useRenderGraph = false)
+        {
+            if (data.deferredLights.IsOverlay)
+            {
+                data.deferredLights.ClearStencilPartial(renderingData.commandBuffer);
+                context.ExecuteCommandBuffer(renderingData.commandBuffer);
+                renderingData.commandBuffer.Clear();
+            }
 
-                // Render objects that did not match any shader pass with error shader
-                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
+            NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(s_ShaderTagValues, Allocator.Temp);
+            NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(s_RenderStateBlocks, Allocator.Temp);
+
+            context.DrawRenderers(renderingData.cullResults, ref data.drawingSettings, ref data.filteringSettings, s_ShaderTagUniversalMaterialType, false, tagValues, stateBlocks);
+
+            tagValues.Dispose();
+            stateBlocks.Dispose();
+
+            // Render objects that did not match any shader pass with error shader
+            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, renderingData.cameraData.camera, data.filteringSettings, SortingCriteria.None);
+
+            // If any sub-system needs camera normal texture, make it available.
+            // Input attachments will only be used when this is not needed so safe to skip in that case
+            if (!data.deferredLights.UseRenderPass)
+                renderingData.commandBuffer.SetGlobalTexture(s_CameraNormalsTextureID, data.deferredLights.GbufferAttachments[data.deferredLights.GBufferNormalSmoothnessIndex]);
+
+        }
+
+        private class PassData
+        {
+            internal TextureHandle[] gbuffer;
+            internal TextureHandle depth;
+
+            internal RenderingData renderingData;
+
+            internal DeferredLights deferredLights;
+            internal FilteringSettings filteringSettings;
+            internal DrawingSettings drawingSettings;
+        }
+
+        internal void Render(RenderGraph renderGraph, TextureHandle cameraColor, TextureHandle cameraDepth,
+            ref RenderingData renderingData, ref UniversalRenderer.RenderGraphFrameResources frameResources)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("GBuffer Pass", out var passData, m_ProfilingSampler))
+            {
+                passData.gbuffer = frameResources.gbuffer = m_DeferredLights.GbufferTextureHandles;
+                for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
+                {
+                    var gbufferSlice = renderingData.cameraData.cameraTargetDescriptor;
+                    gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                    gbufferSlice.stencilFormat = GraphicsFormat.None;
+
+                    if (i != m_DeferredLights.GBufferLightingIndex)
+                    {
+                        gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
+                        frameResources.gbuffer[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, gbufferSlice, DeferredLights.k_GBufferNames[i], true);
+                    }
+                    else
+                    {
+                        frameResources.gbuffer[i] = cameraColor;
+                    }
+                    passData.gbuffer[i] = builder.UseColorBuffer(frameResources.gbuffer[i], i);
+                }
+
+                passData.deferredLights = m_DeferredLights;
+                passData.depth = builder.UseDepthBuffer(cameraDepth, DepthAccess.Write);
+
+                passData.renderingData = renderingData;
+
+                builder.AllowPassCulling(false);
+
+                passData.filteringSettings = m_FilteringSettings;
+                ShaderTagId lightModeTag = s_ShaderTagUniversalGBuffer;
+                passData.drawingSettings = CreateDrawingSettings(lightModeTag, ref passData.renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    ExecutePass(context.renderContext, data, ref data.renderingData, true);
+                });
+
+            }
+            using (var builder = renderGraph.AddRenderPass<PassData>("Set GBuffer Globals", out var passData, m_ProfilingSampler))
+            {
+                passData.gbuffer = frameResources.gbuffer = m_DeferredLights.GbufferTextureHandles;
+                for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
+                {
+                    passData.gbuffer[i] = builder.UseColorBuffer(frameResources.gbuffer[i], i);
+                }
+                passData.depth = builder.UseDepthBuffer(cameraDepth, DepthAccess.Read);
+                passData.renderingData = renderingData;
+                passData.deferredLights = m_DeferredLights;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    for (int i = 0; i < data.gbuffer.Length; i++)
+                    {
+                        if (i != data.deferredLights.GBufferLightingIndex)
+                            data.renderingData.commandBuffer.SetGlobalTexture(DeferredLights.k_GBufferNames[i], data.gbuffer[i]);
+                    }
+                });
             }
         }
     }

@@ -275,6 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(tangentBlock);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy, stackLitData.anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, stackLitData.subsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionMask, stackLitData.transmission);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, stackLitData.transmission);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, stackLitData.subsurfaceScattering || stackLitData.transmission);
 

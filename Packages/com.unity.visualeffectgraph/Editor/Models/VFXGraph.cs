@@ -364,7 +364,8 @@ namespace UnityEditor.VFX
         // 7: Add CameraBuffer type
         // 8: Bounds computation introduces a BoundsSettingMode for VFXDataParticles
         // 9: Update HDRP decal angle fade encoding
-        public static readonly int CurrentVersion = 9;
+        // 10: Position Mesh and Skinned Mesh out of experimental (changing the list of flag and output types)
+        public static readonly int CurrentVersion = 10;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
@@ -669,6 +670,7 @@ namespace UnityEditor.VFX
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
+                cause != VFXModel.InvalidationCause.kExpressionValueInvalidated &&
                 cause != VFXModel.InvalidationCause.kUIChangedTransient &&
                 (model.hideFlags & HideFlags.DontSave) == 0)
             {

@@ -29,7 +29,7 @@ StructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if USE_DEAD_LIST_COUNT
-ByteAddressBuffer deadListCount;
+StructuredBuffer<uint> deadListCount;
 #endif
 
 #if HAS_STRIPS
@@ -41,10 +41,14 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 #endif
 
 CBUFFER_START(outputParams)
-    float nbMax;
-    float systemSeed;
+    float4 instancingConstants;
     float3 cameraXRSettings;
 CBUFFER_END
+
+UNITY_INSTANCING_BUFFER_START(PerInstance)
+UNITY_DEFINE_INSTANCED_PROP(float, _InstanceIndex)
+UNITY_DEFINE_INSTANCED_PROP(float, _InstanceActiveIndex)
+UNITY_INSTANCING_BUFFER_END(PerInstance)
 
 // Helper macros to always use a valid instanceID
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
@@ -67,7 +71,7 @@ $splice(VFXGeneratedBlockFunction)
 struct AttributesElement
 {
     uint index;
-
+    uint instanceIndex;
     // Internal attributes sub-struct used by VFX code-gen property mapping.
     InternalAttributesElement attributes;
 
@@ -76,15 +80,20 @@ struct AttributesElement
     uint relativeIndexInStrip;
     StripData stripData;
 #endif
+
+    // Additional parameter information for motion vectors
+#if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS)
+    uint currentFrameIndex;
+#endif
 };
 
-bool ShouldCullElement(uint index)
+bool ShouldCullElement(uint index, uint vfxInstanceIndex, uint nbMax)
 {
     uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
-    deadCount = deadListCount.Load(0);
+    deadCount = deadListCount[vfxInstanceIndex];
 #endif
-    return (index >= asuint(nbMax) - deadCount);
+    return (index >= nbMax - deadCount);
 }
 
 float3 GetElementSize(InternalAttributesElement attributes)
@@ -112,7 +121,7 @@ float3 GetElementSize(InternalAttributesElement attributes)
 
 #if HAS_STRIPS
 #define PARTICLE_IN_EDGE (id & 1)
-float3 GetParticlePosition(uint index)
+float3 GetParticlePosition(uint index, uint instanceIndex)
 {
     InternalAttributesElement attributes;
     ZERO_INITIALIZE(InternalAttributesElement, attributes);
@@ -123,20 +132,20 @@ float3 GetParticlePosition(uint index)
     return attributes.position;
 }
 
-float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
+float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex, const StripData stripData)
 {
     float3 prevTangent = (float3)0.0f;
     if (relativeIndex > 0)
     {
         uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
-        prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
+        prevTangent = normalize(currentPos - GetParticlePosition(prevIndex,instanceIndex));
     }
 
     float3 nextTangent = (float3)0.0f;
     if (relativeIndex < stripData.nextIndex - 1)
     {
         uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
-        nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
+        nextTangent = normalize(GetParticlePosition(nextIndex, instanceIndex) - currentPos);
     }
 
     return normalize(prevTangent + nextTangent);
@@ -146,6 +155,10 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 void GetElementData(inout AttributesElement element)
 {
     uint index = element.index;
+    uint instanceIndex = element.instanceIndex;
+#if VFX_USE_GRAPH_VALUES
+    GraphValues graphValues = graphValuesBuffer[instanceIndex];
+#endif
 
     InternalAttributesElement attributes;
     ZERO_INITIALIZE(InternalAttributesElement, attributes);
@@ -157,6 +170,11 @@ void GetElementData(inout AttributesElement element)
     const uint relativeIndexInStrip = element.relativeIndexInStrip;
     InitStripAttributes(index, attributes, element.stripData);
     #endif
+
+#if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS)
+    $splice(VFXLoadCurrentFrameIndexParameter)
+    element.currentFrameIndex = currentFrameIndex;
+#endif
 
     $splice(VFXProcessBlocks)
 
@@ -171,7 +189,9 @@ $OutputType.PlanarPrimitive: $include("VFXConfigPlanarPrimitive.template.hlsl")
 bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout AttributesElement element)
 {
     GetElementData(element);
-
+    #if VFX_USE_GRAPH_VALUES
+    GraphValues graphValues = graphValuesBuffer[element.instanceIndex];
+    #endif
     InternalAttributesElement attributes = element.attributes;
 
     #if !HAS_STRIPS
@@ -276,7 +296,7 @@ float4 VFXGetPreviousClipPosition(VFX_SRP_ATTRIBUTES input, AttributesElement el
     uint elementIndex = element.index;
     uint vertexId = input.vertexID;
     uint elementToVFXBaseIndex;
-    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex))
+    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex, element.currentFrameIndex))
     {
         cPreviousPos = VFXGetPreviousClipPosition(elementToVFXBaseIndex, vertexId);
     }
@@ -290,7 +310,7 @@ VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, A
 #if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS)
     uint elementIndex = element.index;
     uint elementToVFXBaseIndex;
-    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex))
+    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex, element.currentFrameIndex))
     {
         float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
         input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
@@ -301,7 +321,11 @@ VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, A
 }
 
 // Vertex + Pixel Graph Properties Generation
-void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)
+void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties
+#if VFX_USE_GRAPH_VALUES
+    ,GraphValues graphValues
+#endif
+    )
 {
     InternalAttributesElement attributes = element.attributes;
     $splice(VFXVertexPropertiesGeneration)

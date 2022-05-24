@@ -33,7 +33,7 @@ struct ps_input
 	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 	VFX_DECLARE_MOTION_VECTORS_STORAGE(7, 8)
 	#endif
-	
+	VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -70,25 +70,28 @@ struct ps_output
 #endif
 #endif
 #if USE_FLIPBOOK_MOTIONVECTORS
-#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy	
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #endif
-							
+
 #if VFX_FEATURE_MOTION_VECTORS_FORWARD
 #define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
 #endif
 
 ${VFXPassForwardDefine}
-${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
-	
+${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+
 #pragma fragment frag
 ps_output frag(ps_input i)
 {
+#if VFX_USE_GRAPH_VALUES
+    GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+#endif
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	ps_output o = (ps_output)0;
 	VFXTransformPSInputs(i);
 	o.color = VFXGetFragmentColor(i);
-	
+
 	o.color *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));
 	o.color = VFXApplyFog(o.color,i);
 	VFXClipFragmentColor(o.color.a,i);

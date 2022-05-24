@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal DiffusionProfile objReference;
 
             internal SerializedProperty scatteringDistance;
+            internal SerializedProperty scatteringDistanceMultiplier;
             internal SerializedProperty transmissionTint;
             internal SerializedProperty texturingMode;
             internal SerializedProperty transmissionMode;
@@ -61,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 objReference = m_Target.profile,
 
                 scatteringDistance = rp.Find(x => x.scatteringDistance),
+                scatteringDistanceMultiplier = rp.Find(x => x.scatteringDistanceMultiplier),
                 transmissionTint = rp.Find(x => x.transmissionTint),
                 texturingMode = rp.Find(x => x.texturingMode),
                 transmissionMode = rp.Find(x => x.transmissionMode),
@@ -98,10 +100,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.PropertyField(profile.scatteringDistance, s_Styles.profileScatteringDistance);
+                EditorGUI.BeginChangeCheck();
+                // For some reason the HDR picker is in gamma space, so convert to maintain same visual
+                var color = EditorGUILayout.ColorField(s_Styles.profileScatteringColor, profile.scatteringDistance.colorValue.gamma, true, false, false);
+                if (EditorGUI.EndChangeCheck())
+                    profile.scatteringDistance.colorValue = color.linear;
+
+                using (new EditorGUI.IndentLevelScope())
+                    EditorGUILayout.PropertyField(profile.scatteringDistanceMultiplier, s_Styles.profileScatteringDistanceMultiplier);
 
                 using (new EditorGUI.DisabledScope(true))
                     EditorGUILayout.FloatField(s_Styles.profileMaxRadius, profile.objReference.filterRadius);
+
+                EditorGUILayout.Space();
 
                 EditorGUILayout.Slider(profile.ior, 1.0f, 2.0f, s_Styles.profileIor);
                 EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);

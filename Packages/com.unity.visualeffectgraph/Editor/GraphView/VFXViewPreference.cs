@@ -16,6 +16,7 @@ namespace UnityEditor.VFX
         private static bool m_AdvancedLogs = false;
         private static VFXMainCameraBufferFallback m_CameraBuffersFallback = VFXMainCameraBufferFallback.PreferMainCamera;
         private static bool m_MultithreadUpdateEnabled = true;
+        private static bool m_InstancingEnabled = true;
 
         public static bool generateOutputContextWithShaderGraph
         {
@@ -80,6 +81,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static bool instancingEnabled
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_InstancingEnabled;
+            }
+        }
+
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
@@ -87,6 +97,7 @@ namespace UnityEditor.VFX
         public const string advancedLogsKey = "VFX.AdvancedLogs";
         public const string cameraBuffersFallbackKey = "VFX.CameraBuffersFallback";
         public const string multithreadUpdateEnabledKey = "VFX.MultithreadUpdateEnabled";
+        public const string instancingEnabledKey = "VFX.InstancingEnabled";
 
         private static void LoadIfNeeded()
         {
@@ -100,6 +111,7 @@ namespace UnityEditor.VFX
                 m_AdvancedLogs = EditorPrefs.GetBool(advancedLogsKey, false);
                 m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorPrefs.GetInt(cameraBuffersFallbackKey, (int)VFXMainCameraBufferFallback.PreferMainCamera);
                 m_MultithreadUpdateEnabled = EditorPrefs.GetBool(multithreadUpdateEnabledKey, true);
+                m_InstancingEnabled = EditorPrefs.GetBool(instancingEnabledKey, true);
                 m_Loaded = true;
             }
         }
@@ -150,6 +162,7 @@ namespace UnityEditor.VFX
                     if (Unsupported.IsDeveloperMode())
                     {
                         m_MultithreadUpdateEnabled = EditorGUILayout.Toggle(new GUIContent("Multithread Update Enabled", "When enabled, visual effects will be updated in parallel when possible."), m_MultithreadUpdateEnabled);
+                        m_InstancingEnabled = EditorGUILayout.Toggle(new GUIContent("Instancing Enabled", "When enabled, visual effects will be processed in batches when possible."), m_InstancingEnabled);
                     }
 #endif
 
@@ -166,6 +179,7 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(allowShaderExternalizationKey, m_AllowShaderExternalization);
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
+                        EditorPrefs.SetBool(instancingEnabledKey, m_InstancingEnabled);
                         userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');
                         userTemplateDirectory = userTemplateDirectory.TrimEnd(new char[] { '/' });
                         userTemplateDirectory = userTemplateDirectory.TrimStart(new char[] { '/' });

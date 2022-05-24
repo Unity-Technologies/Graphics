@@ -38,7 +38,7 @@ public class HDRPEditorPerformanceTests : EditorPerformanceTests
     [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Build([ValueSource(nameof(GetBuildTests))] BuildTestDescription testDescription)
     {
-        HDRPreprocessShaders.shaderPreprocessed += ReportShaderStrippingData;
+        ShaderStrippingWatcher.shaderProcessed += ReportShaderStrippingData;
 
         using (new EditorLogWatcher(OnEditorLogWritten))
         {
@@ -48,12 +48,12 @@ public class HDRPEditorPerformanceTests : EditorPerformanceTests
             EditorPerformanceTests.ReportShaderSize(buildReport, k_ShaderNameFilter);
         }
 
-        HDRPreprocessShaders.shaderPreprocessed -= ReportShaderStrippingData;
+        ShaderStrippingWatcher.shaderProcessed -= ReportShaderStrippingData;
 
         yield return null;
     }
 
-    static void ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
+    void ReportShaderStrippingData(Shader shader, ShaderSnippetData data, uint currentVariantCount, double strippingTime)
     {
         if (!shader.name.Contains(k_ShaderNameFilter))
             return;

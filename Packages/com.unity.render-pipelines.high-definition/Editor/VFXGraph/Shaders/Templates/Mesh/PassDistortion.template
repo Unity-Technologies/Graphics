@@ -1,6 +1,6 @@
 // Distortion pass
 Pass
-{		
+{
 	Tags { "LightMode"="DistortionVectors" }
 
     ${VFXStencilDistortionVectors}
@@ -8,7 +8,7 @@ Pass
 	HLSLPROGRAM
 	#pragma target 4.5
 	${VFXPassForwardAdditionalPragma}
-	
+
 	#define USE_NORMAL_MAP DISTORTION_NORMALBASED
 
 	struct ps_input
@@ -21,7 +21,7 @@ Pass
 			float3 uv : TEXCOORD0;
 			#else
 			float2 uv : TEXCOORD0;
-			#endif	
+			#endif
 		#endif
 
 		#if USE_SOFT_PARTICLE || VFX_USE_ALPHA_CURRENT || USE_FLIPBOOK_INTERPOLATION
@@ -39,7 +39,7 @@ Pass
 		#endif
 
 		// x: horizontal value / normal scale
-		// y: vertical value 
+		// y: vertical value
 		// z: blur scale
 		nointerpolation float3 distortionInterpolants : TEXCOORD3;
 
@@ -53,6 +53,8 @@ Pass
 		#endif
 
 		UNITY_VERTEX_OUTPUT_STEREO
+
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 	};
 
 	struct ps_output
@@ -73,7 +75,7 @@ Pass
 	#define VFX_VARYING_TANGENT tangent
 #endif
 	#define VFX_VARYING_UV uv
-	
+
 	${VFXIncludeRP("VFXDistortion.template")}
 
 	${VFXBegin:VFXVertexAdditionalProcess}

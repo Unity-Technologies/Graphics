@@ -47,11 +47,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_EYE_CINEMATIC;
     #endif
 
-    #ifdef _DOUBLESIDED_ON
-        float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-    #else
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-    #endif
+    float3 doubleSidedConstants = GetDoubleSidedConstants();
 
     // Note: It is assume that user in the shader graph provide a normal map with flat normal at the Cornea location
     // and an iris normal map. Same for smoothness, IOR and for subsurface mask. So we don't do any operation here.

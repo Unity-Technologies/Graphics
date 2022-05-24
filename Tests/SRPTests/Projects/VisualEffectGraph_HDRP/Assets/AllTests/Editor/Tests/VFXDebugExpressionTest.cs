@@ -14,7 +14,7 @@ using System.IO;
 
 namespace UnityEditor.VFX.Test
 {
-    public class VFXDebugExpressionTest
+    public class VFXDebugExpressionTest : VFXPlayModeTest
     {
         private float m_previousFixedTimeStep;
         private float m_previousMaxDeltaTime;

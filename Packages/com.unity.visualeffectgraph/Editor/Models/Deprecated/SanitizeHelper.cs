@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
@@ -442,6 +443,135 @@ namespace UnityEditor.VFX
                 VFXSlot.CopyLinksAndValue(to_topRadius, radius, true);
                 VFXSlot.CopyLinksAndValue(to_height, height, true);
             }
+        }
+
+        [Flags]
+        enum SampleMesh_VertexAttributeFlag_Before_Version_9
+        {
+            None = 0,
+            Position = 1 << 0,
+            Normal = 1 << 1,
+            Tangent = 1 << 2,
+            Color = 1 << 3,
+            TexCoord0 = 1 << 4,
+            TexCoord1 = 1 << 5,
+            TexCoord2 = 1 << 6,
+            TexCoord3 = 1 << 7,
+            TexCoord4 = 1 << 8,
+            TexCoord5 = 1 << 9,
+            TexCoord6 = 1 << 10,
+            TexCoord7 = 1 << 11,
+            BlendWeight = 1 << 12,
+            BlendIndices = 1 << 13,
+        }
+
+        public static void MigrateSampleMeshFrom9To10(Operator.SampleMesh op)
+        {
+            Debug.Log("Sanitize Graph: Sample Mesh & Skinned Mesh");
+
+            //Starting copying everything to a new instance
+            var newSampleMesh = ScriptableObject.CreateInstance<Operator.SampleMesh>();
+            var settings = op.GetSettings(true);
+            newSampleMesh.SetSettingValues(settings.Select(o => new KeyValuePair<string, object>(o.name, o.value)));
+
+            //Migrate newly added settings, SkinnedTransform.None to keep the previous behavior
+            newSampleMesh.SetSettingValue(nameof(Operator.SampleMesh.skinnedTransform), Operator.SampleMesh.SkinnedRootTransform.None);
+
+            var vertexOutputName = "output";
+
+            //Start with empty output, will migrate output slot one by one
+            var currentFlag = Operator.SampleMesh.VertexAttributeFlag.None;
+            newSampleMesh.SetSettingValue(vertexOutputName, currentFlag);
+
+            //Skip newly added transform slot
+            var toInputSlots = newSampleMesh.inputSlots.Take(newSampleMesh.inputSlots.Count - 1).ToList();
+            var fromInputSlots = op.inputSlots;
+
+            if (fromInputSlots.Count != toInputSlots.Count)
+                throw new InvalidOperationException();
+
+            for (int i = 0; i < fromInputSlots.Count; ++i)
+            {
+                var fromInputSlot = fromInputSlots[i];
+                var toInputSlot = toInputSlots[i];
+                VFXSlot.CopyLinksAndValue(toInputSlot, fromInputSlot, true);
+            }
+
+            var previousFlag = (SampleMesh_VertexAttributeFlag_Before_Version_9)op.GetSettingValue(vertexOutputName);
+            var oldVertexAttributes = Enum.GetValues(typeof(SampleMesh_VertexAttributeFlag_Before_Version_9))
+                .Cast<SampleMesh_VertexAttributeFlag_Before_Version_9>()
+                .Where(o => previousFlag.HasFlag(o) && o != SampleMesh_VertexAttributeFlag_Before_Version_9.None)
+                .ToArray();
+
+            foreach (var oldVertexAttribute in oldVertexAttributes)
+            {
+                if (oldVertexAttribute == SampleMesh_VertexAttributeFlag_Before_Version_9.Tangent)
+                {
+                    //Special case: The old tangent as vector4 as been split in Vector & independent float
+                    currentFlag = currentFlag | Operator.SampleMesh.VertexAttributeFlag.Tangent | Operator.SampleMesh.VertexAttributeFlag.BitangentSign;
+                }
+                else
+                {
+                    var name = Enum.GetName(typeof(SampleMesh_VertexAttributeFlag_Before_Version_9), oldVertexAttribute);
+                    if (!Enum.TryParse<Operator.SampleMesh.VertexAttributeFlag>(name, out var newVertexAttribute))
+                        throw new InvalidOperationException();
+
+                    currentFlag = currentFlag | newVertexAttribute;
+                }
+            }
+            newSampleMesh.SetSettingValue(vertexOutputName, currentFlag);
+
+            foreach (var oldVertexAttribute in oldVertexAttributes)
+            {
+                var name = Enum.GetName(typeof(SampleMesh_VertexAttributeFlag_Before_Version_9), oldVertexAttribute);
+                var fromOutputSlot = op.outputSlots.FirstOrDefault(o => o.name == name);
+                var toOutputSlot = newSampleMesh.outputSlots.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName(name));
+                if (fromOutputSlot == null || toOutputSlot == null)
+                    throw new InvalidOperationException();
+
+                var invalidate = false; //calling invalidate at the end, prevent event propagation
+                if (fromOutputSlot.property.type == toOutputSlot.property.type)
+                {
+                    VFXSlot.CopyLinks(toOutputSlot, fromOutputSlot, invalidate);
+                }
+                else
+                {
+                    if (oldVertexAttribute == SampleMesh_VertexAttributeFlag_Before_Version_9.Position || oldVertexAttribute == SampleMesh_VertexAttributeFlag_Before_Version_9.Normal)
+                    {
+                        //Converting back to not spaceable Vector3 output
+                        var newVector3 = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                        newVector3.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
+                        toOutputSlot.Link(newVector3.inputSlots[0]);
+                        newVector3.position = op.position + new Vector2(100, 0);
+                        VFXSlot.CopyLinks(newVector3.outputSlots[0], fromOutputSlot, invalidate);
+                        op.GetParent().AddChild(newVector3);
+                    }
+                    else if (oldVertexAttribute == SampleMesh_VertexAttributeFlag_Before_Version_9.Tangent)
+                    {
+                        var tangent = toOutputSlot;
+                        var bitangentSign = newSampleMesh.outputSlots.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName(Operator.SampleMesh.VertexAttributeFlag.BitangentSign.ToString()));
+                        if (bitangentSign == null)
+                            throw new InvalidOperationException();
+
+                        var newVector4 = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                        newVector4.SetSettingValue("m_Type", (SerializableType)typeof(Vector4));
+                        newVector4.inputSlots[0][0].Link(tangent[0][0]);
+                        newVector4.inputSlots[0][1].Link(tangent[0][1]);
+                        newVector4.inputSlots[0][2].Link(tangent[0][2]);
+                        newVector4.inputSlots[0][3].Link(bitangentSign);
+                        newVector4.position = op.position + new Vector2(110, 0);
+                        VFXSlot.CopyLinks(newVector4.outputSlots[0], fromOutputSlot, invalidate);
+                        op.GetParent().AddChild(newVector4);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+            }
+
+            newSampleMesh.Invalidate(VFXModel.InvalidationCause.kConnectionChanged);
+            VFXModel.ReplaceModel(newSampleMesh, op);
         }
     }
 }

@@ -124,6 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
         RaytracingComposeAmbientOcclusion,
+        RaytracingClearHistoryAmbientOcclusion,
         // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,

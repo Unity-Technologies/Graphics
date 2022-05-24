@@ -323,7 +323,25 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
+            // Detect if we are targeting GLES2, so we can warn users about the lack of cascades on that platform
+
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+
+            bool usingGLES2 = false;
+            for (int apiIndex = 0; apiIndex < graphicsAPIs.Length; apiIndex++)
+            {
+                if (graphicsAPIs[apiIndex] == GraphicsDeviceType.OpenGLES2)
+                {
+                    usingGLES2 = true;
+                    break;
+                }
+            }
+
             EditorGUILayout.IntSlider(serialized.shadowCascadeCountProp, UniversalRenderPipelineAsset.k_ShadowCascadeMinCount, UniversalRenderPipelineAsset.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
+
+            if (usingGLES2)
+                EditorGUILayout.HelpBox(Styles.shadowCascadesUnsupportedMessage.text, MessageType.Info);
 
             int cascadeCount = serialized.shadowCascadeCountProp.intValue;
             EditorGUI.indentLevel++;

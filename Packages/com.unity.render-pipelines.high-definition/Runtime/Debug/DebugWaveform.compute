@@ -1,0 +1,50 @@
+#pragma warning(disable : 3568) // Warning: Unknown pragma
+#pragma kernel KWaveformGather
+#pragma kernel KWaveformClear
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+// Inputs
+RWStructuredBuffer<uint4> _WaveformBuffer;
+Texture2D _Source;
+float4    _Params; // Width, height, exposure, parade mode
+
+#define GROUP_SIZE_X 16
+#define GROUP_SIZE_Y 16
+
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void KWaveformGather(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint2 size = uint2(_Params.xy);
+
+    // Gather local group histogram
+    if (dispatchThreadId.x >= size.x || dispatchThreadId.y >= size.y)
+        return;
+
+    // We want a gamma-corrected histogram (like Photoshop & all)
+    const float3 color = LinearToSRGB(saturate(_Source[dispatchThreadId].rgb));
+    uint3 id;
+
+    // Convert channel values to histogram bins
+    if (_Params.w > 0.f)
+    {
+        // With parade enabled, each of the components gets offset from one another
+        id.x = (uint)round(color.r * (size.y - 1)) +  dispatchThreadId.x / 3u                     * size.y;
+        id.y = (uint)round(color.g * (size.y - 1)) + (dispatchThreadId.x / 3u + size.x / 3u * 1u) * size.y;
+        id.z = (uint)round(color.b * (size.y - 1)) + (dispatchThreadId.x / 3u + size.x / 3u * 2u) * size.y;
+    }
+    else
+        id = (uint3)round(color * (size.y - 1)) + dispatchThreadId.x * size.y;
+
+    InterlockedAdd(_WaveformBuffer[id.x].x, 1u); // Red
+    InterlockedAdd(_WaveformBuffer[id.y].y, 1u); // Green
+    InterlockedAdd(_WaveformBuffer[id.z].z, 1u); // Blue
+}
+
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void KWaveformClear(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    if (dispatchThreadId.x < uint(_Params.x) && dispatchThreadId.y < uint(_Params.y))
+        _WaveformBuffer[dispatchThreadId.y * uint(_Params.x) + dispatchThreadId.x] = uint4(0u, 0u, 0u, 0u);
+}

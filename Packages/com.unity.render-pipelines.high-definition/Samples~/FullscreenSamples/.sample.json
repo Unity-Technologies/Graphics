@@ -1,0 +1,5 @@
+{
+    "displayName":"Fullscreen Samples",
+    "description": "Add a set of examples using the Fullscreen Shadergraph to create Custom Pass, Custom Post Process or Custom Render Target.",
+    "createSeparatePackage": false
+}

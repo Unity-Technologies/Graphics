@@ -195,7 +195,6 @@ namespace UnityEditor.VFX.UI
                 object result = VFXCopy.Copy(m_SourceControllers, m_Rect);
 
                 VFXPaste.Paste(m_TargetController, m_Rect.center, result, null, null, m_TargetControllers);
-                List<VFXParameterController> targetParameters = new List<VFXParameterController>();
             }
 
             List<VFXNodeController> m_SourceOperatorAndParameters;
@@ -310,7 +309,7 @@ namespace UnityEditor.VFX.UI
 
                 VFXContextController sourceContextController = m_SourceBlockControllers.First().contextController;
 
-                object copyData = VFXCopy.CopyBlocks(m_SourceBlockControllers);
+                object copyData = VFXCopy.CopyBlocks(m_SourceBlockControllers, m_SourceControllers);
 
                 var targetContext = m_TargetController.graph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
                 if (targetContext == null)
@@ -324,7 +323,7 @@ namespace UnityEditor.VFX.UI
                 m_TargetBlocks = new List<VFXBlockController>();
 
                 VFXPaste.PasteBlocks(m_TargetController, copyData, targetContext, 0, m_TargetBlocks);
-
+                VFXPaste.PasteStickyNotes(m_TargetController, copyData);
 
                 Dictionary<VFXNodeController, VFXNodeController> targetControllers = new Dictionary<VFXNodeController, VFXNodeController>();
                 CopyPasteOperators(targetControllers);

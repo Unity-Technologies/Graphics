@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.Test
         {
             TestExpressionGraph(
                 null,
-                (g) => BasicTest(g.exp, 3, 5, 5),
+                (g) => BasicTest(g.exp, 4, 6, 6),
                 VFXExpressionContextOption.None
             );
         }
@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.Test
             TestExpressionGraph(
                 null,
                 (g) => {
-                    BasicTest(g.exp, 3, 3, 3);
+                    BasicTest(g.exp, 4, 4, 4);
                     var context = (VFXContext)g.vfx[0];
                     CheckExpressionValue(g.exp, context.GetInputSlot(0), 1.0f);
                     CheckExpressionValue(g.exp, context[0].GetInputSlot(0), 2.0f);
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.Test
                 },
                 (g) =>
                 {
-                    BasicTest(g.exp, 3, 5, 4);
+                    BasicTest(g.exp, 4, 6, 5);
 
                     var context = (VFXContext)g.vfx[0];
                     var slot = context.GetInputSlot(0);

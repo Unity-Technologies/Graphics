@@ -12,6 +12,7 @@ namespace UnityEditor.VFX.UI
     class VFXBlockController : VFXNodeController
     {
         VFXContextController m_ContextController;
+
         public VFXBlockController(VFXBlock model, VFXContextController contextController) : base(model, contextController.viewController)
         {
             m_ContextController = contextController;

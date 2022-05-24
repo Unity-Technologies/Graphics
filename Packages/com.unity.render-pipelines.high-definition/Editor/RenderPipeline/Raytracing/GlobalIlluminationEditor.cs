@@ -190,6 +190,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (rayTracingSettingsDisplayed)
                 {
+                    if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                        HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
                     PropertyField(m_LayerMask);
                     PropertyField(m_TextureLodBias);
 

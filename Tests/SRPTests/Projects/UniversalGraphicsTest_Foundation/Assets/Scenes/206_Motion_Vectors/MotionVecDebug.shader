@@ -11,10 +11,11 @@ Shader "MotionVecDebug"
 
             HLSLPROGRAM
             #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-            #pragma vertex FullscreenVert
+            #pragma vertex Vert
             #pragma fragment frag
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
             TEXTURE2D(_MotionVectorTexture);
             SAMPLER(sampler_MotionVectorTexture);
@@ -25,7 +26,7 @@ Shader "MotionVecDebug"
             half4 frag (Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float4 vel = SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_MotionVectorTexture, input.uv);
+                float4 vel = SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_MotionVectorTexture, input.texcoord);
 
                 return vel * _Intensity;
             }

@@ -52,6 +52,16 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
             public ComputeShader probeVolumeBlendStatesCS;
 
+            [Reload("Runtime/Debug/DebugWaveform.shader")]
+            public Shader debugWaveformPS;
+            [Reload("Runtime/Debug/DebugWaveform.compute")]
+            public ComputeShader debugWaveformCS;
+
+            [Reload("Runtime/Debug/DebugVectorscope.shader")]
+            public Shader debugVectorscopePS;
+            [Reload("Runtime/Debug/DebugVectorscope.compute")]
+            public ComputeShader debugVectorscopeCS;
+
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
             public Shader deferredPS;

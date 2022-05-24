@@ -87,24 +87,8 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         private void Render(CommandBuffer cmd, in CameraData cameraData)
         {
             cmd.SetGlobalVectorArray("_RenderingLayersColors", m_RenderingLayerColors);
-
             cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1, 1, 0, 0));
-#if ENABLE_VR && ENABLE_XR_MODULE
-            bool useDrawProcedural =  cameraData.xrRendering;
-#else
-            bool useDrawProcedural = false;
-#endif
-
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity); // Prepare for manual blit
-            if (useDrawProcedural)
-            {
-                cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1, null);
-            }
-            else
-            {
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);
-            }
-            cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+            Blitter.BlitCameraTexture(cmd, m_ColoredRenderingLayersTextureHandle, m_ColoredRenderingLayersTextureHandle, m_Material, 0);
         }
     }
 

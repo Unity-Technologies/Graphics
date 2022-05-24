@@ -16,6 +16,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowValue      = 1.0;
     context.splineVisibility = -1;
     context.sampleReflection = 0;
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+    context.positionWS       = posInput.positionWS;
+#endif
 
     // Initialize the contactShadow and contactShadowFade fields
     InvalidateConctactShadow(posInput, context);
@@ -101,6 +104,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         refractionHierarchyWeight = 1.0;
     }
 #endif
+
+    // Make sure the baked diffuse lighting is tinted with the diffuse color
+    ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
 
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...

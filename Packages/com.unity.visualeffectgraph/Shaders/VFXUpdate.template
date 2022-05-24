@@ -12,6 +12,7 @@ RWByteAddressBuffer attributeBuffer;
 
 #if USE_DEAD_LIST
 RWStructuredBuffer<uint> deadListOut;
+RWStructuredBuffer<uint> deadListCount;
 #endif
 
 #if VFX_HAS_INDIRECT_DRAW
@@ -26,10 +27,10 @@ RWStructuredBuffer<uint> stripDataBuffer;
 StructuredBuffer<uint> attachedStripDataBuffer;
 #endif
 
-CBUFFER_START(updateParams)
-    uint nbMax;
-	uint dispatchWidth;
-	uint systemSeed;
+CBUFFER_START(updateParamsConst)
+    uint dispatchWidth;
+    ${VFXInstancingConstants}
+    float3 cameraXRSettings;
 CBUFFER_END
 
 ${VFXPerPassInclude}
@@ -40,14 +41,24 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
-	uint index = id;
+	uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
+
+	uint index = GetThreadId(groupId, 0, dispatchWidth);
+	${VFXInitInstancingCompute}
+	index += groupThreadId.x;
+
+	ContextData contextData = instancingContextData[instanceActiveIndex];
+	uint systemSeed = contextData.systemSeed;
+	uint nbMax = contextData.maxParticleCount;
+
 #if VFX_COMPUTE_BOUNDS
 	uint tid = groupThreadId.x;
 #endif
 
-	if (id < nbMax)
+	if (index < nbMax)
 	{
+        ${VFXLoadGraphValues}
+
         VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
@@ -88,7 +99,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			{
 				${VFXStoreAttributes:{alive|eventCount}}
 #if USE_DEAD_LIST && !VFX_USE_STRIPALIVE_CURRENT
-				uint deadIndex = deadListOut.IncrementCounter();
+	            uint deadIndex;
+		        InterlockedAdd(deadListCount[instanceIndex], 1, deadIndex);
+				deadIndex += instanceIndex * RAW_CAPACITY;
 				deadListOut[deadIndex] = index;
 #endif
 			}
@@ -98,7 +111,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
         {
             if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
             {
-                uint deadIndex = deadListOut.IncrementCounter();
+	            uint deadIndex;
+		        InterlockedAdd(deadListCount[instanceIndex], 1, deadIndex);
+				deadIndex += instanceIndex * RAW_CAPACITY;
 				deadListOut[deadIndex] = index;
                 attributes.stripAlive = false;
                 ${VFXStoreAttributes:{stripAlive}}
@@ -137,6 +152,6 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 	}
 	#if VFX_COMPUTE_BOUNDS
-	PerformBoundsReduction(id, tid);
+	PerformBoundsReduction(index, tid, nbMax);
 	#endif
 }

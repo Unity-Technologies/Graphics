@@ -2,42 +2,7 @@
 #define UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
-
-// ----------------------------------------------------------------------------------
-// Render fullscreen mesh by using a matrix set directly by the pipeline instead of
-// relying on the matrix set by the C++ engine to avoid issues with XR
-
-float4x4 _FullscreenProjMat;
-
-float4 TransformFullscreenMesh(half3 positionOS)
-{
-    return mul(_FullscreenProjMat, half4(positionOS, 1));
-}
-
-Varyings VertFullscreenMesh(Attributes input)
-{
-    Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-#if _USE_DRAW_PROCEDURAL
-    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
-#else
-    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
-    output.uv = input.uv;
-#endif
-
-    return output;
-}
-
-// ----------------------------------------------------------------------------------
-// Samplers
-
-SAMPLER(sampler_LinearClamp);
-SAMPLER(sampler_LinearRepeat);
-SAMPLER(sampler_PointClamp);
-SAMPLER(sampler_PointRepeat);
+#include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
 // ----------------------------------------------------------------------------------
 // Utility functions

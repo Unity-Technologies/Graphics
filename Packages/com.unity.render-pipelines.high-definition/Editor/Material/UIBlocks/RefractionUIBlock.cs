@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var mode = (ScreenSpaceRefraction.RefractionModel)refractionModel.floatValue;
                 switch (mode)
                 {
-                    case ScreenSpaceRefraction.RefractionModel.Box:
+                    case ScreenSpaceRefraction.RefractionModel.Planar:
                     case ScreenSpaceRefraction.RefractionModel.Sphere:
                     {
                         if (ior != null)

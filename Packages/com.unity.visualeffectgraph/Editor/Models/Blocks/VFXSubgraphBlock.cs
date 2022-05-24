@@ -280,6 +280,20 @@ namespace UnityEditor.VFX
                 else if (m_UsedSubgraph != null)
                     RecreateCopy();
             }
+            else if (cause == InvalidationCause.kParamChanged || cause == InvalidationCause.kExpressionValueInvalidated)
+            {
+                VFXSlot slot = model as VFXSlot;
+                if (slot != null && slot.IsMasterSlot())
+                {
+                    int slotIndex = GetSlotIndex(slot);
+                    if (slotIndex >= 0) // Not a toggle slot
+                    {
+                        var parameter = m_SubChildren.OfType<VFXParameter>().FirstOrDefault(m => m.order == slotIndex);
+                        if (parameter != null)
+                            parameter.GetOutputSlot(0).Invalidate(InvalidationCause.kExpressionValueInvalidated); // Propagate value change event to subblock parameter
+                    }
+                }
+            }
 
             base.Invalidate(model, cause);
         }

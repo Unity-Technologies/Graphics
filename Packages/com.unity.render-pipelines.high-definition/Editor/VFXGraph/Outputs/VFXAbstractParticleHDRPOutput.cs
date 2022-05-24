@@ -103,6 +103,7 @@ namespace UnityEditor.VFX.HDRP
             return (VFXLibrary.currentSRPBinder is VFXHDRPBinder) && base.CanBeCompiled();
         }
 
+        protected virtual bool useEmissiveColor { get { return useEmissive; } }
         protected override bool needsExposureWeight { get { return GetOrRefreshShaderGraphObject() == null && ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap); } }
 
         protected override bool bypassExposure { get { return false; } }
@@ -134,7 +135,7 @@ namespace UnityEditor.VFX.HDRP
                             properties = properties.Concat(emissiveMapsProperties);
                     }
 
-                    if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
+                    if (((colorMode & ColorMode.Emissive) == 0) && useEmissiveColor)
                         properties = properties.Concat(PropertiesFromType("EmissiveColorProperties"));
                 }
 
@@ -170,7 +171,7 @@ namespace UnityEditor.VFX.HDRP
                 if ((colorMode & ColorMode.BaseColor) == 0)
                     yield return slotExpressions.First(o => o.name == "baseColor");
 
-                if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
+                if (((colorMode & ColorMode.Emissive) == 0) && useEmissiveColor)
                     yield return slotExpressions.First(o => o.name == "emissiveColor");
             }
         }
@@ -209,7 +210,7 @@ namespace UnityEditor.VFX.HDRP
 
                     if ((colorMode & ColorMode.Emissive) != 0)
                         yield return "HDRP_USE_EMISSIVE_COLOR";
-                    else if (useEmissive)
+                    else if (useEmissiveColor)
                         yield return "HDRP_USE_ADDITIONAL_EMISSIVE_COLOR";
                 }
             }

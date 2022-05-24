@@ -1,0 +1,138 @@
+:root {
+    --border-color-custom: rgb(161, 154, 154);
+}
+
+.BatchList {
+
+}
+
+.BatchList.HeaderContainer {
+    flex-direction: row;
+    height: auto;
+    background-color: var(--unity-colors-inspector_titlebar-background);
+}
+
+.BatchList.IndexColumn {
+    margin-left: 5px;
+    width: 65px;
+}
+
+.BatchList.ColorColumn {
+    width: 3px;
+}
+
+.BatchList.NameColumn {
+    flex-grow: 2;
+    margin-left: 5px;
+}
+
+.BatchList.BatchContainer {
+    flex-direction: row;
+}
+
+.BatchList.ColorColumn.Container {
+    align-items: center;
+}
+
+.BatchList.ColorColumn.Splitter {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+}
+
+.BatchList.IndexColumn.Header {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.BatchList.NameColumn.Header {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.BatchList.IndexColumn.Batch {
+    margin-top: 5px;
+}
+
+.BatchList.NameColumn.Batch {
+    margin-top: 5px;
+    flex-direction: column;
+}
+
+.BatchList.List {
+    flex-grow: 1;
+}
+
+.LayerNameLabel {
+    margin-bottom: 5px;
+}
+
+.InfoView {
+}
+
+.InfoView.Content {
+    border-bottom-width: 10px;
+    white-space: normal;
+}
+
+.InfoView.Content.PillContainer {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.InfoView.Content.Spacer {
+    flex-grow: 1;
+}
+
+.InfoView.Footer {
+    padding: 10px;
+    white-space: normal;
+}
+
+.InfoView.Header {
+    padding: 5px;
+    align-items: flex-start;
+    justify-content: space-around;
+    background-color: var(--unity-colors-window-background);
+}
+
+.InfoView.Header.Bottom {
+    border-bottom-color: var(--unity-colors-default-border);
+}
+
+.InfoView.Header.Top {
+    border-top-color: var(--unity-colors-default-border);
+}
+
+.InfoScroller {
+    flex-grow: 1;
+    padding: 10px;
+}
+
+.MinSize {
+    min-width: 160px;
+    min-height: 160px;
+}
+
+.InfoContainer{
+    min-width: 160px;
+    flex-grow: 1;
+    background-color: var(--unity-colors-default-background);
+    justify-content: center;
+}
+
+.InitialPrompt {
+    align-self: center;
+}
+
+.Pill {
+    border-color: var(--border-color-custom);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}

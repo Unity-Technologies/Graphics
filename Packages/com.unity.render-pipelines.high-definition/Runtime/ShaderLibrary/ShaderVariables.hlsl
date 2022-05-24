@@ -483,6 +483,30 @@ void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
     maxBounds = unity_RendererBounds_Max.xyz;
 }
 
+// Define Model Matrix Macro
+// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
+// We need to declare inline function. Using uniform directly mean they are expand with the macro
+float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
+
+#define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
+#define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
+#define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
+#define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
+
+#else
+
+// Not yet supported by BRG
+void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    minBounds = 0;
+    maxBounds = 0;
+}
+
+#endif
+
 void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
 {
     GetAbsoluteWorldRendererBounds(minBounds, maxBounds);
@@ -499,21 +523,6 @@ float3 GetRendererExtents()
     GetRendererBounds(minBounds, maxBounds);
     return (maxBounds - minBounds) * 0.5;
 }
-
-// Define Model Matrix Macro
-// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
-// We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
-float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
-float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
-
-#define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
-#define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
-#define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
-#define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
-
-#endif
 
 // To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld

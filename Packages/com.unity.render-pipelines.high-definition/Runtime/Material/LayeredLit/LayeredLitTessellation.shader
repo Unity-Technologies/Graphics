@@ -199,6 +199,16 @@ Shader "HDRP/LayeredLitTessellation"
         _SubsurfaceMaskMap2("Subsurface Mask Map2", 2D) = "white" {}
         _SubsurfaceMaskMap3("Subsurface Mask Map3", 2D) = "white" {}
 
+        _TransmissionMask0("Transmission Mask0", Range(0.0, 1.0)) = 1.0
+        _TransmissionMask1("Transmission Mask1", Range(0.0, 1.0)) = 1.0
+        _TransmissionMask2("Transmission Mask2", Range(0.0, 1.0)) = 1.0
+        _TransmissionMask3("Transmission Mask3", Range(0.0, 1.0)) = 1.0
+
+        _TransmissionMaskMap0("Transmission Mask Map0", 2D) = "white" {}
+        _TransmissionMaskMap1("Transmission Mask Map1", 2D) = "white" {}
+        _TransmissionMaskMap2("Transmission Mask Map2", 2D) = "white" {}
+        _TransmissionMaskMap3("Transmission Mask Map3", 2D) = "white" {}
+
         _Thickness0("Thickness", Float) = 1.0
         _Thickness1("Thickness", Float) = 1.0
         _Thickness2("Thickness", Float) = 1.0
@@ -491,6 +501,10 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP1               // Non-local
     #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP2               // Non-local
     #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP3               // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP0             // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP1             // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP2             // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP3             // Non-local
     #pragma shader_feature_fragment _THICKNESSMAP0                      // Non-local
     #pragma shader_feature_fragment _THICKNESSMAP1                      // Non-local
     #pragma shader_feature_fragment _THICKNESSMAP2                      // Non-local
@@ -1096,7 +1110,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1144,7 +1158,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1189,7 +1203,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1228,7 +1242,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1257,7 +1271,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1294,7 +1308,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_DEBUG
@@ -1318,7 +1332,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 

@@ -12,8 +12,9 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP 
 | Property| Description |
 |:---|:---|
 | **Name** | The name of the Diffusion Profile. |
-| **Scattering Distance** | Use the color picker (circle icon) to define how far each light channel in the Diffusion Profile travels below the surface:<br/><br/>**R**: Defines how far the red light channel travels below the surface.<br/>**G**: Controls how far the green light channel travels below the surface.<br/>**B**: Controls how far the blue light channel travels below the surface.<br/><br/>The overall color affects the Transmission tint. |
-| **Max Radius** | The maximum radius of the effect you define in **Scattering Distance**. The size of this value depends on the world scale. For example, when the world scale is 1, this value is in meters. When the world scale is 0.001, this value is in millimeters.<br/><br/>When the size of this radius is smaller than a pixel on the screen, HDRP doesn't apply Subsurface Scattering. |
+| **Scattering Color** | Use the color picker to define the shape of the Diffusion Profile. It should be similar to the diffuse color of the material.<br/>This affects the Transmission color. |
+| **Multiplier** | Acts as a multiplier on the scattering color to control how far light travels below the surface. Controls the effective radius of the filter.<br/>This affects the Transmission color. |
+| **Max Radius** | The maximum radius of the effect you define in **Scattering Color** and **Multiplier**. The size of this value depends on the world scale. For example, when the world scale is 1, this value is in millimeters. When the world scale is 1000, this value is in meters.<br/><br/>When the size of this radius is smaller than a pixel on the screen, HDRP doesn't apply Subsurface Scattering. |
 | **Index of Refraction** | This value is controlled by the highest of the **Scattering Distance** RGB values. Use the slider to set the refractive behavior of the Material. Larger values increase the intensity of specular reflection. For example, the index of refraction of skin is about 1.4. For more example values for the index of refraction of different materials, see Pixel and Poly’s [list of indexes of refraction values](https://pixelandpoly.com/ior.html). |
 | **World Scale** | Controls the scale of Unity’s world units for this Diffusion Profile. By default, HDRP assumes that 1 Unity unit is 1 meter. This property only affects the subsurface scattering pass. |
 
@@ -25,6 +26,10 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP 
 |:---|:---|
 | **Texturing Mode** | Use the drop-down to select when HDRP applies the albedo of the Material.<br />&#8226; **Post-Scatter**: HDRP applies the albedo to the Material after the subsurface scattering pass. This means that the contents of the albedo texture aren't blurred. Use this mode for scanned data and photographs that already contain some blur due to subsurface scattering. <br />&#8226; **Pre- and Post-Scatter**: Albedo is partially applied twice, before and after the subsurface scattering pass. Effectively, this blurs the albedo, resulting in a softer, more natural look. |
 
+The following image displays the effect of each Texturing Mode option on a human face model:
+
+![](Images/profile_texturing_mode.png)
+
 
 
 ### Transmission only
@@ -32,10 +37,14 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP 
 | Property| Description |
 |:---|:---|
 | **Transmission Mode** | Use the drop-down to select a method for calculating light transmission. <br />&#8226; **Thick Object**: is for geometrically thick objects. Note that since this mode makes use of shadow maps, directional lights automatically fall back to the thin object mode that relies solely on thickness maps (since shadow maps of directional lights don't offer enough precision for thickness estimation). <br />&#8226; **Thin Object**: is for thin, double-sided, geometry. |
-| **Transmission Tint** | Specifies the tint of the translucent lighting (that's transmitted through objects). |
+| **Transmission Tint** | Specifies the tint of the translucent lighting (that's transmitted through objects). The color of transmitted light depends on the **Scattering Color**. |
 | **Min-Max Thickness (mm)** | Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map. This range corresponds to the minimum and maximum values of the Thickness Remap (mm) slider below. |
 | **Thickness Remap (mm)** | Sets the range of thickness values (in millimeters) corresponding to the [0, 1] range of texel values stored in the Thickness Map. This range is displayed by the Min-Max Thickness (mm) fields above. |
 
+
+The image below displays a human ear model without transmission (left) and with a configured **Thickness Remap** value (right):
+
+![](Images/transmission_thick.png)
 
 
 ### Profile Previews

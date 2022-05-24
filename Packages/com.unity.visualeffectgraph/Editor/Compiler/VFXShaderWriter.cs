@@ -348,16 +348,17 @@ namespace UnityEditor.VFX
             {
                 var names = mapper.GetNames(texture);
                 // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
-                for (int i = 0; i < names.Count; ++i)
+                // TODO : Investigate why we need Distinct in the first place
+                foreach (var name in names.Distinct())
                 {
-                    if (skipNames != null && skipNames.Contains(names[i]))
+                    if (skipNames != null && skipNames.Contains(name))
                         continue;
 
-                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), name);
                     if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
                     {
-                        WriteLineFormat("SamplerState sampler{0};", names[i]);
-                        WriteLineFormat("float4 {0}_TexelSize;", names[i]); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                        WriteLineFormat("SamplerState sampler{0};", name);
+                        WriteLineFormat("float4 {0}_TexelSize;", name); // TODO This is not very good to add a uniform for each texture that is hardly ever used
                     }
                     WriteLine();
                 }
@@ -416,6 +417,45 @@ namespace UnityEditor.VFX
                 Deindent();
                 WriteLine("CBUFFER_END");
             }
+        }
+
+        public bool WriteGraphValuesStruct(VFXDataParticle.GraphValuesLayout graphValuesLayout, VFXUniformMapper mapper, string bufferName)
+        {
+            bool needsGraphValueStruct = false;
+            var uniformBlocks = graphValuesLayout.uniformBlocks;
+            if (uniformBlocks.Count > 0)
+            {
+                WriteLineFormat("struct {0}", bufferName);
+                WriteLine("{");
+                Indent();
+
+                int paddingIndex = 0;
+                foreach (var block in uniformBlocks)
+                {
+                    int currentSize = 0;
+                    foreach (var value in block)
+                    {
+                        string type = VFXExpression.TypeToUniformCode(value.valueType);
+                        string name = mapper.GetName(value);
+                        if (name.StartsWith("unity_")) //Reserved unity variable name (could be filled manually see : VFXCameraUpdate)
+                            continue;
+
+                        currentSize += VFXExpression.TypeToSize(value.valueType);
+                        WriteLineFormat("{0} {1};", type, name);
+                        needsGraphValueStruct = true;
+                    }
+                    WritePadding(4, currentSize, ref paddingIndex);
+                }
+                Deindent();
+                WriteLine("};");
+            }
+
+            if (needsGraphValueStruct)
+            {
+                WriteLine("StructuredBuffer<GraphValues> graphValuesBuffer;");
+                WriteLine();
+            }
+            return needsGraphValueStruct;
         }
 
         public void WriteAttributeStruct(IEnumerable<VFXAttribute> attributes, string name)

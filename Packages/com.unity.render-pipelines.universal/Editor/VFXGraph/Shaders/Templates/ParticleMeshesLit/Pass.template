@@ -36,8 +36,15 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
     UNITY_SETUP_INSTANCE_ID(i);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    uint index = VFX_GET_INSTANCE_ID(i);    
+    uint index = VFX_GET_INSTANCE_ID(i);
+	
+    ${VFXInitInstancingOutput}
+    ${VFXLoadGraphValues}
 
+    ContextData contextData = instancingContextData[instanceActiveIndex];
+    uint systemSeed = contextData.systemSeed;
+    uint nbMax = contextData.maxParticleCount;
+	
     ${VFXLoadAttributesOrCull}
     ${VFXProcessBlocks}
             

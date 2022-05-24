@@ -1,8 +1,8 @@
 ${VFXShaderTags}
 
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
-${VFXOutputRenderState}	
-	
+${VFXOutputRenderState}
+
 HLSLINCLUDE
 ${VFXPragmaRequire}
 ${VFXGlobalInclude}
@@ -10,19 +10,25 @@ ${VFXGlobalDeclaration}
 
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 #if HAS_STRIPS
-#define VFX_OPTIONAL_INTERPOLATION 
+#define VFX_OPTIONAL_INTERPOLATION
 #else
 #define VFX_OPTIONAL_INTERPOLATION nointerpolation
 #endif
 
-ByteAddressBuffer attributeBuffer;	
+#if VFX_USE_INSTANCING
+#define VFX_VERTEX_OUTPUT_INSTANCE_INDEX uint instanceIndex : INDEX0;
+#else
+#define VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+#endif
+
+ByteAddressBuffer attributeBuffer;
 
 #if VFX_HAS_INDIRECT_DRAW
-StructuredBuffer<uint> indirectBuffer;	
-#endif	
+StructuredBuffer<uint> indirectBuffer;
+#endif
 
 #if USE_DEAD_LIST_COUNT
-ByteAddressBuffer deadListCount;
+StructuredBuffer<uint> deadListCount;
 #endif
 
 #if HAS_STRIPS
@@ -52,11 +58,15 @@ float4 cPosNonJiterred : TEXCOORD##coordB;
 #endif
 #endif
 
-CBUFFER_START(outputParams)
-	float nbMax;
-	float systemSeed;
-	float3 cameraXRSettings;
+CBUFFER_START(outputParamsConst)
+    ${VFXInstancingConstants}
+    float3 cameraXRSettings;
 CBUFFER_END
+
+UNITY_INSTANCING_BUFFER_START(PerInstance)
+    UNITY_DEFINE_INSTANCED_PROP(float, _InstanceIndex)
+    UNITY_DEFINE_INSTANCED_PROP(float, _InstanceActiveIndex)
+UNITY_INSTANCING_BUFFER_END(PerInstance)
 
 // Helper macros to always use a valid instanceID
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)

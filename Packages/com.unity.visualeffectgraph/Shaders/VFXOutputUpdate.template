@@ -9,7 +9,6 @@ ${VFXGlobalDeclaration}
 RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 
-${VFXPerPassInclude}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
 ByteAddressBuffer attributeBuffer;
@@ -45,12 +44,13 @@ RWStructuredBuffer<OutputType> outputBuffer3;
 #error Too many indirect buffers defined.
 #endif
 
-CBUFFER_START(updateParams)
-	uint nbMax;
-	uint dispatchWidth;
-	uint systemSeed;
-	float3 cameraXRSettings;
+CBUFFER_START(updateParamsConst)
+    uint dispatchWidth;
+    ${VFXInstancingConstants}
+    float3 cameraXRSettings;
 CBUFFER_END
+
+${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
 
@@ -75,14 +75,22 @@ ${VFXDeclareGetStripTangent}
 void CSMain(uint3 groupId		: SV_GroupID,
 			uint3 groupThreadId	: SV_GroupThreadID)
 {
-	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+	uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
+
+	uint index = GetThreadId(groupId, 0, dispatchWidth);
+	${VFXInitInstancingCompute}
+	index += groupThreadId.x;
+
+    ContextData contextData = instancingContextData[instanceActiveIndex];
+    uint systemSeed = contextData.systemSeed;
+    uint nbMax = contextData.maxParticleCount;
+
 	if (id < nbMax)
 	{
+        ${VFXLoadGraphValues}
+
 		VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
-
-        uint index = id;
-
 		${VFXLoadAttributes:{alive}}
 		if (attributes.alive)
 		{
@@ -209,6 +217,7 @@ ${VFXFeedSortingKeys}
 #else
                 uint elementToVFXIndex = index * 13;
 #endif
+                ${VFXLoadParameter:{currentFrameIndex}}
                 elementToVFXBuffer.Store(elementToVFXIndex++ << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
                 elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;

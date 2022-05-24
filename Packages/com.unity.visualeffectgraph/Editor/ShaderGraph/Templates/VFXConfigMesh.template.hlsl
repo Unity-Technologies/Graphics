@@ -4,7 +4,12 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 {
     uint index = VFX_GET_INSTANCE_ID(input);
 
-    if (ShouldCullElement(index))
+    $splice(VFXInitInstancingCompute)
+
+    ContextData contextData = instancingContextData[instanceActiveIndex];
+    uint systemSeed = contextData.systemSeed;
+    uint nbMax = contextData.maxParticleCount;
+    if (ShouldCullElement(index, instanceIndex, nbMax))
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW
@@ -12,6 +17,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     #endif
 
     element.index = index;
+    element.instanceIndex = instanceIndex;
 
     // Mesh requires no preliminary configuration.
     return true;

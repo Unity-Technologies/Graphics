@@ -278,4 +278,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/38_SortingKeys/38_SortingKeys.unity
     guid: 6623485c0c7102b40a316709d58099dc
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/39_SmokeLighting/39_SmokeLighting.unity
+    guid: 9a3f325e5c930ca4f8a9c0645aeb6ccb
+    enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/38_ActivationSlots.unity
+    guid: 8aced075b2dfd7c45ac17a7a25368937
   m_configObjects: {}

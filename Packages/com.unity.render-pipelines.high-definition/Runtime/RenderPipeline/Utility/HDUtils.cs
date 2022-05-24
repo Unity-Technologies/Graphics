@@ -935,12 +935,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
-        internal static bool PostProcessIsFinalPass(HDCamera hdCamera)
+        internal static bool PostProcessIsFinalPass(HDCamera hdCamera, AOVRequestData aovRequest)
         {
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
-            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess) && !hdCamera.hasCaptureActions;
+            return !aovRequest.isValid && !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess) && !hdCamera.hasCaptureActions;
         }
 
         // These two convertion functions are used to store GUID assets inside materials,
@@ -1258,6 +1258,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return outputValue;
+        }
+
+        internal static void ConvertHDRColorToLDR(Color hdr, out Color ldr, out float intensity)
+        {
+            // specifies the max byte value to use when decomposing a float color into bytes with exposure
+            // this is the value used by Photoshop
+            const float k_MaxByteForOverexposedColor = 191;
+
+            hdr.a = 1.0f;
+            ldr = hdr;
+            intensity = 1.0f;
+
+            var maxColorComponent = hdr.maxColorComponent;
+            if (maxColorComponent != 0f)
+            {
+                // calibrate exposure to the max float color component
+                var scaleFactor = k_MaxByteForOverexposedColor / maxColorComponent;
+
+                ldr.r = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.r) / 255f;
+                ldr.g = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.g) / 255f;
+                ldr.b = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.b) / 255f;
+
+                intensity = 255f / scaleFactor;
+            }
         }
     }
 }

@@ -15,6 +15,24 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: fa67b2fbe49c15849b97a5a382f4d223, type: 3}
+    - {fileID: 102900000, guid: f276d4cfd8f87134aa5844076d660c74, type: 3}
+    - {fileID: 102900000, guid: 8d7899854dadd944e808fa7275489d1b, type: 3}
+    - {fileID: 102900000, guid: ea59d2ffbfa6ae44184cb3c419551cf1, type: 3}
+    - {fileID: 102900000, guid: 5c9d14f073d4f914cb8f32c841b9a1ee, type: 3}
+    - {fileID: 102900000, guid: 827c090b62971674ba95418bc420df4f, type: 3}
+    - {fileID: 102900000, guid: 163e04c0245b93648808a42b7f45ce0d, type: 3}
+    - {fileID: 102900000, guid: 7370a32694f72f146851c3347ef04385, type: 3}
+    - {fileID: 102900000, guid: 5fd2fada5be46b04898ce4c60cd49a90, type: 3}
+    - {fileID: 102900000, guid: 57e38207c84f9e943b0202ebdece2187, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1423476/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 056c6092c4cc1d046ae735b88ac44337, type: 3}
     - {fileID: 102900000, guid: 9d32afd44c7a74e458fb78b75a84f166, type: 3}
     - {fileID: 102900000, guid: b5dbda28632484a409651e54abc8dbae, type: 3}
@@ -24,3 +42,31 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1404219/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3666dc8006745714997c368c4375f316, type: 3}
+    - {fileID: 102900000, guid: 0ab35aa39f371ab4c8d53b46c225d0a5, type: 3}
+    - {fileID: 102900000, guid: 1f55baf6eaf625e4fab7fa2e4228a3d0, type: 3}
+    - {fileID: 102900000, guid: 0bd00ddb543475c41bdd787c636d904f, type: 3}
+    - {fileID: 102900000, guid: 9f38d7cbc64ad534485db5107427e269, type: 3}
+    - {fileID: 102900000, guid: c163eeeb7af1c194590ab367fb84a376, type: 3}
+    - {fileID: 102900000, guid: 94394be5b934f2543b05529545e764f9, type: 3}
+    - {fileID: 102900000, guid: a8836a288e8e4ae49abdf5d23fedb3c8, type: 3}
+    - {fileID: 102900000, guid: 60e44083164c9624981e1911ec554d14, type: 3}
+    - {fileID: 102900000, guid: 7c5e1446f931c184aaa07d7dd2f03616, type: 3}
+    - {fileID: 102900000, guid: a3bbd23b214970c48b64c949a4bf476b, type: 3}
+    - {fileID: 102900000, guid: 0aa69ee950a3fa049b5220e96247f794, type: 3}
+    - {fileID: 102900000, guid: 99680d74d8a49be44bd19065fae3d569, type: 3}
+    - {fileID: 102900000, guid: a2a018bd807332e419183347eebc8a0c, type: 3}
+    - {fileID: 102900000, guid: f57e109fb28741a4297f1895438fff8d, type: 3}
+    - {fileID: 102900000, guid: 7f50fe57b3dd3c34988a18361fb72be8, type: 3}
+    - {fileID: 102900000, guid: f203d44025933174baacc2d0fe75d528, type: 3}
+    - {fileID: 102900000, guid: 9fc75d906f08e784ab1183b8153659f0, type: 3}
+    - {fileID: 102900000, guid: 59b393015a21d114d908a93adc455494, type: 3}
+    - {fileID: 102900000, guid: 80273b12646e091409e2665bd76196ff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Unsupported

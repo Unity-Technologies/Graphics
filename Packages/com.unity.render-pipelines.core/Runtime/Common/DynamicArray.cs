@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering
 {
@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering
     /// Generic growable array.
     /// </summary>
     /// <typeparam name="T">Type of the array.</typeparam>
+    [DebuggerDisplay("Size = {size} Capacity = {capacity}")]
     public class DynamicArray<T> where T : new()
     {
         T[] m_Array = null;

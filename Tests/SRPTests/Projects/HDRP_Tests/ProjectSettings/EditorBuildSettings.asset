@@ -660,6 +660,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5015_VolumetricCloudsProbeAndSky.unity
     guid: aa9d69ba302c00f418067837b25922c9
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5020_SkyOverride.unity
+    guid: 1a304fd03c51d6a4b96925d57b934e3f
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
     guid: 3f9e911b4dbc9464e85add595c37cb89
   - enabled: 1

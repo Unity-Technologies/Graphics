@@ -12,8 +12,6 @@ namespace UnityEditor.VFX.UI
 {
     class VFXBlockUI : VFXNodeUI
     {
-        Toggle m_EnableToggle;
-
         public new VFXBlockController controller
         {
             get { return base.controller as VFXBlockController; }
@@ -35,9 +33,6 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXBlockUI.VFXBlockUI");
             this.AddStyleSheetPath("VFXBlock");
             pickingMode = PickingMode.Position;
-            m_EnableToggle = new Toggle();
-            m_EnableToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleEnable);
-            titleContainer.Insert(1, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
             capabilities |= Capabilities.Selectable | Capabilities.Droppable;
@@ -53,11 +48,6 @@ namespace UnityEditor.VFX.UI
             style.position = PositionType.Relative;
         }
 
-        void OnToggleEnable(ChangeEvent<bool> e)
-        {
-            controller.model.enabled = !controller.model.enabled;
-        }
-
         protected override void SelfChange()
         {
             base.SelfChange();
@@ -66,8 +56,6 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("block-disabled");
             else
                 AddToClassList("block-disabled");
-
-            m_EnableToggle.SetValueWithoutNotify(controller.model.enabled);
 
             if (!controller.model.isValid)
                 AddToClassList("invalid");

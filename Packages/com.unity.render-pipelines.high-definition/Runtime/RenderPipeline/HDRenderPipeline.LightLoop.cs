@@ -337,14 +337,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeTextureParam(data.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], data.gBuffer[i]);
 
                     RTHandle stencilTexture = data.stencilTexture;
-                    if (stencilTexture == null ||
-                        stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
-                    {
-                        cmd.SetComputeTextureParam(data.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, data.stencilTexture);
-                    }
-                    else
+                    if (stencilTexture?.rt != null && stencilTexture.rt.stencilFormat != GraphicsFormat.None)
                     {
                         cmd.SetComputeTextureParam(data.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, data.stencilTexture, 0, RenderTextureSubElement.Stencil);
+                    }
+                    else // We are accessing MSAA resolved version or default black texture and not the depth stencil buffer directly.
+                    {
+                        cmd.SetComputeTextureParam(data.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, data.stencilTexture);
                     }
 
                     ConstantBuffer.Push(cmd, localLightListCB, data.buildMaterialFlagsShader, HDShaderIDs._ShaderVariablesLightList);
@@ -557,8 +556,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.buildDispatchIndirectShader.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
             }
 
-            // Depending on frame setting configurations we might not have written to a depth buffer yet.
-            if (depthStencilBuffer.IsValid())
+            // Depending on frame setting configurations we might not have written to a depth buffer yet so when executing the pass it might not be valid.
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
@@ -571,9 +570,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (passData.computeMaterialVariants && passData.enableFeatureVariants)
             {
+                // When opaques are disabled, gbuffer count is zero.
+                // Unfortunately, compute shader will then complains some textures aren't bound, so we need to use black textures instead.
                 for (int i = 0; i < gBuffer.gBufferCount; ++i)
                     passData.gBuffer[i] = builder.ReadTexture(gBuffer.mrt[i]);
-                passData.gBufferCount = gBuffer.gBufferCount;
+                for (int i = gBuffer.gBufferCount; i < 7; ++i)
+                    passData.gBuffer[i] = renderGraph.defaultResources.blackTextureXR;
+                passData.gBufferCount = 7;
             }
 
             // Here we use m_MaxViewCount/m_MaxWidthHeight to avoid always allocating buffers of different sizes for each camera.

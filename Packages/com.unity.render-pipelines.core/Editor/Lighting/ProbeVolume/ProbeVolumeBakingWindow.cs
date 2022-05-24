@@ -8,6 +8,8 @@ using UnityEditor.Rendering;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
+using UnityEditor.Overlays;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering
 {
@@ -317,7 +319,7 @@ namespace UnityEngine.Rendering
 
                                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                                 {
-                                    if (bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
+                                    if (bakingSet.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
                                         data.RenameScenario(scenarioName, name);
                                 }
                                 bakingSet.lightingScenarios[index] = name;
@@ -345,8 +347,8 @@ namespace UnityEngine.Rendering
 
             m_Scenarios.onAddCallback = (list) =>
             {
-                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking state");
-                var state = GetCurrentBakingSet().CreateScenario("New Baking State");
+                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new lighting scenario");
+                var state = GetCurrentBakingSet().CreateScenario("New Lighting Scenario");
                 m_Scenarios.index = GetCurrentBakingSet().lightingScenarios.IndexOf(state);
                 m_Scenarios.onSelectCallback(m_Scenarios);
                 UpdateScenariosStatuses();
@@ -356,10 +358,10 @@ namespace UnityEngine.Rendering
             {
                 if (m_Scenarios.count == 1)
                 {
-                    EditorUtility.DisplayDialog("Can't delete baking state", "You can't delete the last Baking state. You need to have at least one.", "Ok");
+                    EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "Ok");
                     return;
                 }
-                if (!EditorUtility.DisplayDialog("Delete the selected baking state?", $"Deleting the baking state will also delete corresponding baked data on disk.\nDo you really want to delete the baking state '{GetCurrentBakingSet().lightingScenarios[list.index]}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
+                if (!EditorUtility.DisplayDialog("Delete the selected scenario?", $"Deleting the scenario will also delete corresponding baked data on disk.\nDo you really want to delete the scenario '{GetCurrentBakingSet().lightingScenarios[list.index]}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
                     return;
                 var set = GetCurrentBakingSet();
                 var state = set.lightingScenarios[list.index];
@@ -370,7 +372,7 @@ namespace UnityEngine.Rendering
                     AssetDatabase.StartAssetEditing();
                     foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                     {
-                        if (set.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
+                        if (set.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
                             data.RemoveScenario(state);
                     }
                 }
@@ -391,7 +393,7 @@ namespace UnityEngine.Rendering
             {
                 // Find the set in which the new active scene belongs
                 // If the active baking state does not exist for this set, load the default state of the set
-                string sceneGUID = sceneData.GetSceneGUID(scene);
+                string sceneGUID = ProbeVolumeSceneData.GetSceneGUID(scene);
                 var set = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(sceneGUID));
                 if (set != null && !set.lightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
                     SetActiveScenario(set.lightingScenarios[0]);
@@ -416,7 +418,7 @@ namespace UnityEngine.Rendering
             string mostRecentState = null;
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
-                if (!bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
+                if (!bakingSet.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
                     continue;
 
                 foreach (var state in bakingSet.lightingScenarios)
@@ -459,7 +461,7 @@ namespace UnityEngine.Rendering
 
                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 {
-                    if (!bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)) || !sceneData.SceneHasProbeVolumes(data.gameObject.scene))
+                    if (!bakingSet.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)) || !sceneData.SceneHasProbeVolumes(data.gameObject.scene))
                         continue;
 
                     if (!data.scenarios.TryGetValue(bakingSet.lightingScenarios[i], out var stateData) || stateData.cellDataAsset == null)
@@ -548,7 +550,7 @@ namespace UnityEngine.Rendering
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
                 probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
-                if (sceneData.hasProbeVolumes.TryGetValue(scene.guid, out bool hasProbeVolumes) && hasProbeVolumes)
+                if (sceneData.SceneHasProbeVolumes(scene.guid))
                     EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
@@ -633,7 +635,7 @@ namespace UnityEngine.Rendering
 
             foreach (var guid in set.sceneGUIDs)
             {
-                if (!sceneData.hasProbeVolumes.TryGetValue(guid, out bool hasProbeVolumes) || !hasProbeVolumes)
+                if (!sceneData.SceneHasProbeVolumes(guid))
                     continue;
                 var scenePath = AssetDatabase.GUIDToAssetPath(guid);
                 if (dataList.All(data => data.gameObject.scene.path != scenePath))
@@ -767,7 +769,8 @@ namespace UnityEngine.Rendering
 
                 EditorGUILayout.LabelField("Probe Placement", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
-                m_ProbeVolumeProfileEditor.OnInspectorGUI();
+                using (new EditorGUI.DisabledScope(Lightmapping.isRunning))
+                    m_ProbeVolumeProfileEditor.OnInspectorGUI();
                 EditorGUILayout.Space(3, true);
                 EditorGUILayout.PropertyField(probeVolumeBakingSettings);
                 EditorGUI.indentLevel--;
@@ -785,7 +788,7 @@ namespace UnityEngine.Rendering
                         long sharedCost = 0, scenarioCost = 0;
                         foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                         {
-                            if (!set.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
+                            if (!set.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
                                 continue;
                             scenarioCost += data.GetDiskSizeOfScenarioData(ProbeReferenceVolume.instance.lightingScenario);
 
@@ -840,17 +843,21 @@ namespace UnityEngine.Rendering
             int option = (int)data;
             if (option == 0) // Bake the set
             {
-                ProbeGIBaking.isBakingOnlyActiveScene = false;
+                // Make sure we don't have a partial list as we are loading and baking the whole set.
+                ProbeGIBaking.partialBakeSceneList.Clear();
                 BakeLightingForSet(GetCurrentBakingSet());
             }
             else if (option == 1) // Bake loaded scenes
             {
-                ProbeGIBaking.isBakingOnlyActiveScene = false;
+                // Make sure we don't have a partial list as we are baking all the loaded scenes.
+                ProbeGIBaking.partialBakeSceneList.Clear();
                 Lightmapping.BakeAsync();
             }
             else if (option == 2) // Bake active scene
             {
-                ProbeGIBaking.isBakingOnlyActiveScene = true;
+                ProbeGIBaking.partialBakeSceneList.Clear();
+                // We are only baking the active scene, so we need the GUID for the active scene
+                ProbeGIBaking.partialBakeSceneList.Add(ProbeVolumeSceneData.GetSceneGUID(SceneManager.GetActiveScene()));
                 Lightmapping.BakeAsync();
             }
         }
@@ -983,6 +990,107 @@ namespace UnityEngine.Rendering
             m_SearchString = m_SearchField.OnToolbarGUI(searchRect, m_SearchString);
 
             GUILayout.EndHorizontal();
+        }
+
+
+
+        [Overlay(typeof(SceneView), k_OverlayID)]
+        [Icon("LightProbeGroup Icon")]
+        class ProbeVolumeOverlay : Overlay, ITransientOverlay
+        {
+            const string k_OverlayID = "APV Overlay";
+
+            Label[] m_Labels = null;
+
+            int maxSubdiv;
+            float minDistance;
+
+            public bool visible => IsVisible();
+
+            (int maxSubdiv, float minDistance) GetSettings()
+            {
+                if (ProbeReferenceVolume.instance.probeVolumeDebug.realtimeSubdivision && ProbeReferenceVolume.instance.sceneData != null)
+                {
+                    var probeVolume = GameObject.FindObjectOfType<ProbeVolume>();
+                    if (probeVolume != null && probeVolume.isActiveAndEnabled)
+                    {
+                        var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(probeVolume.gameObject.scene);
+                        if (profile != null)
+                            return (profile.maxSubdivision - 1, profile.minDistanceBetweenProbes);
+                    }
+                }
+
+                return (ProbeReferenceVolume.instance.GetMaxSubdivision(), ProbeReferenceVolume.instance.MinDistanceBetweenProbes());
+            }
+
+            bool IsVisible()
+            {
+                // Include some state tracking here because it's the only function called at each repaint
+                if (!ProbeReferenceVolume.instance.probeVolumeDebug.drawBricks)
+                {
+                    m_Labels = null;
+                    return false;
+                }
+                if (m_Labels == null) return true;
+
+                (int max, float min) = GetSettings();
+                if (maxSubdiv != max)
+                {
+                    maxSubdiv = max;
+                    for (int i = 0; i < m_Labels.Length; i++)
+                        m_Labels[i].parent.EnableInClassList("unity-pbr-validation-hidden", i >= maxSubdiv);
+                }
+                if (minDistance != min)
+                {
+                    minDistance = min;
+                    for (int i = 0; i < m_Labels.Length; i++)
+                        m_Labels[i].text = (minDistance * ProbeReferenceVolume.CellSize(i)) + " meters";
+                }
+                return true;
+            }
+
+            public override void OnCreated()
+            {
+                if (containerWindow is not SceneView)
+                    throw new Exception("APV Overlay is only valid in the Scene View");
+            }
+
+            VisualElement CreateColorSwatch(Color color)
+            {
+                var swatchContainer = new VisualElement();
+                swatchContainer.AddToClassList("unity-base-field__label");
+                swatchContainer.AddToClassList("unity-pbr-validation-color-swatch");
+
+                var colorContent = new VisualElement() { name = "color-content" };
+                colorContent.style.backgroundColor = new StyleColor(color);
+                swatchContainer.Add(colorContent);
+
+                return swatchContainer;
+            }
+
+            public override VisualElement CreatePanelContent()
+            {
+                displayName = "Distance Between probes";
+                maxSubdiv = 0;
+                minDistance = -1;
+
+                var root = new VisualElement();
+
+                m_Labels = new Label[6];
+                for (int i = 0; i < m_Labels.Length; i++)
+                {
+                    var row = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
+                    root.Add(row);
+
+                    row.Add(CreateColorSwatch(ProbeReferenceVolume.instance.subdivisionDebugColors[i]));
+
+                    m_Labels[i] = new Label() { name = "color-label" };
+                    m_Labels[i].AddToClassList("unity-base-field__label");
+                    row.Add(m_Labels[i]);
+                }
+
+                return root;
+            }
         }
     }
 }

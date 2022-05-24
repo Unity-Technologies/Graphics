@@ -17,19 +17,12 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
-        /// <summary>
-        /// Configure the pass
-        /// </summary>
-        /// <param name="actions"></param>
-        public void Setup(RTHandle colorHandle)
-        {
-            m_CameraColorHandle = colorHandle;
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmdBuf = renderingData.commandBuffer;
+
+            m_CameraColorHandle = renderingData.cameraData.renderer.GetCameraColorBackBuffer(cmdBuf);
 
             using (new ProfilingScope(cmdBuf, m_ProfilingSampler))
             {

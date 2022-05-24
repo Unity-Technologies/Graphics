@@ -1,25 +1,25 @@
 // Forward pass
 Pass
-{		
+{
 	Tags { "LightMode"="GBuffer" }
-	
-    ${VFXStencilGBuffer}	
-		
+
+    ${VFXStencilGBuffer}
+
 	HLSLPROGRAM
 	#pragma target 4.5
-	
+
 	#pragma multi_compile _ LIGHT_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
 	#define UNITY_MATERIAL_LIT
-	
-	${VFXIncludeRP("VFXLitVaryings.template")}	
-	
+
+	${VFXIncludeRP("VFXLitVaryings.template")}
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
-		
+
 		${VFXHDRPLitDeclareVaryings}
 
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
@@ -27,24 +27,24 @@ Pass
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
 		#endif
-		
+
 		float3 offsets : TEXCOORD3;
 		nointerpolation float3 rotX : TEXCOORD4;
-		nointerpolation float3 rotY : TEXCOORD5;		
-		
+		nointerpolation float3 rotY : TEXCOORD5;
+
 		#if HDRP_NEEDS_UVS
 		nointerpolation uint faceID : TEXCOORD6;
 		#endif
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
-	
+
 	struct ps_output
 	{
 		float4 color : SV_Target0;
 	};
-	
-${VFXHDRPLitVaryingsMacros}	
+
+${VFXHDRPLitVaryingsMacros}
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
@@ -56,15 +56,15 @@ ${VFXHDRPLitVaryingsMacros}
 #if HDRP_NEEDS_UVS
 #define VFX_VARYING_FACEID faceID
 #endif
-				
+
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
-	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
-	#define SHADERPASS SHADERPASS_GBUFFER	
-	${VFXIncludeRP("VFXLit.template")}	
-		
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+	#define SHADERPASS SHADERPASS_GBUFFER
+	${VFXIncludeRP("VFXLit.template")}
+
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
 #if USE_DOUBLE_SIDED
@@ -74,15 +74,19 @@ ${VFXEnd}
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
-		
-#if !USE_DOUBLE_SIDED	
+
+    #if VFX_USE_GRAPH_VALUES
+        GraphValues graphValues = graphValuesBuffer[i.instanceIndex];
+    #endif
+
+#if !USE_DOUBLE_SIDED
 		const bool frontFace = true;
 #endif
 		const float faceMul = frontFace ? 1.0f : -1.0f;
 
 		float3 normalWS;
 		const VFXUVData uvData = GetUVData(i,VFXCubeGetUV(i));
-		
+
 		#if USE_NORMAL_MAP
 		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
 		normalWS = VFXCubeTransformNormalTS(i,n,frontFace);

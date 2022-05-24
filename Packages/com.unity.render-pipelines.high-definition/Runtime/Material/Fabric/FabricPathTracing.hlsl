@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
@@ -15,11 +15,11 @@
 // bsdfWeight1  Spec GGX BRDF
 // bsdfWeight2  Diffuse BTDF
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathPayload payload, BuiltinData builtinData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
-    bsdfData.roughnessT = max(pathIntersection.maxRoughness, bsdfData.roughnessT);
-    bsdfData.roughnessB = max(pathIntersection.maxRoughness, bsdfData.roughnessB);
+    bsdfData.roughnessT = max(payload.maxRoughness, bsdfData.roughnessT);
+    bsdfData.roughnessB = max(payload.maxRoughness, bsdfData.roughnessB);
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
@@ -28,11 +28,11 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
     }
 }
 
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathPayload payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData.bsdfData);
+    ProcessBSDFData(payload, builtinData, mtlData.bsdfData);
 
     mtlData.bsdfWeight = 0.0;
     mtlData.V = -WorldRayDirection();
@@ -67,7 +67,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
     if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
     {
-        float subsurfaceWeight = mtlData.bsdfWeight[0] * mtlData.bsdfData.subsurfaceMask * (1.0 - pathIntersection.maxRoughness);
+        float subsurfaceWeight = mtlData.bsdfWeight[0] * mtlData.bsdfData.subsurfaceMask * (1.0 - payload.maxRoughness);
 
         mtlData.isSubsurface = theSample < subsurfaceWeight;
         if (mtlData.isSubsurface)
@@ -79,7 +79,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
             SSS::Result subsurfaceResult;
             float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-            if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult, hasTransmission))
+            if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, payload.pixelCoord, subsurfaceResult, hasTransmission))
                 return false;
 
             shadingPosition = subsurfaceResult.exitPosition;
@@ -280,14 +280,14 @@ float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool i
     return (mtlResult.specPdf * max(mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB) + mtlResult.diffPdf) / (mtlResult.diffPdf + mtlResult.specPdf);
 }
 
-float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow, float3 value)
+float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow)
 {
     // No absorption here
-    return value;
+    return 1.0;
 }
 
-void GetAOVData(MaterialData mtlData, out AOVData aovData)
+void GetAOVData(BSDFData bsdfData, out AOVData aovData)
 {
-    aovData.albedo = mtlData.bsdfData.diffuseColor;
-    aovData.normal = mtlData.bsdfData.normalWS;
+    aovData.albedo = bsdfData.diffuseColor;
+    aovData.normal = bsdfData.normalWS;
 }

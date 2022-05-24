@@ -421,7 +421,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
+        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, surfaceData.transmissionMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
@@ -484,7 +484,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 //FeatureName   Subsurface Scattering + Transmission
 //GBuffer0      baseColor.r,    baseColor.g,    baseColor.b,   diffusionProfile(4) / subsurfaceMask(4)
 //GBuffer1      normal.xy (1212),   perceptualRoughness
-//GBuffer2      specularOcclusion(7) / IsLightmap(1),  thickness,  diffusionProfile(4) / subsurfaceMask(4), featureID(3) / coatMask(5)
+//GBuffer2      specularOcclusion(7) / IsLightmap(1),  thickness,  diffusionProfile(4) / transmissionMask(4), featureID(3) / coatMask(5)
 //GBuffer3      bakedDiffuseLighting.rgb
 
 //FeatureName   Anisotropic
@@ -505,9 +505,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
 // For SSS, we move diffusionProfile(4) / subsurfaceMask(4) in GBuffer0.a so the forward SSS code only need to write into one RT
 // and the SSS postprocess only need to read one RT
-// We duplicate diffusionProfile / subsurfaceMask in GBuffer2.b so the compiler don't need to read the GBuffer0 before PostEvaluateBSDF
+// We duplicate diffusionProfile in GBuffer2.b so the compiler doesn't need to read the GBuffer0 before PostEvaluateBSDF
 // The lighting code have been adapted to only apply diffuseColor at the end.
-// This save VGPR as we don' need to keep the GBuffer0 value in register.
+// This save VGPR as we don't need to keep the GBuffer0 value in register.
 
 // The layout is also design to only require one RT for the material classification. All the material feature flags are deduced from GBuffer2.
 
@@ -566,11 +566,13 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // For the SSS feature, the alpha channel is overwritten with (diffusionProfile | subsurfaceMask).
         // It is done so that the SSS pass only has to read a single G-Buffer 0.
         // We move specular occlusion to the red channel of the G-Buffer 2.
-        EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(surfaceData), positionSS, outGBuffer0);
+        SSSData sssData = ConvertSurfaceDataToSSSData(surfaceData);
+        EncodeIntoSSSBuffer(sssData, positionSS, outGBuffer0);
 
-        // We duplicate the alpha channel of the G-Buffer 0 (for diffusion profile).
+        // We duplicate storage of diffusion profile in G-Buffer 2.
         // It allows us to delay reading the G-Buffer 0 until the end of the deferred lighting shader.
-        outGBuffer2.rgb = float3(encodedSpecularOcclusion, surfaceData.thickness, outGBuffer0.a);
+        float transmissionMaskProfile = PackFloatInt8bit(surfaceData.transmissionMask, sssData.diffusionProfileIndex, 16);
+        outGBuffer2.rgb = float3(encodedSpecularOcclusion, surfaceData.thickness, transmissionMaskProfile);
     }
     else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
@@ -842,15 +844,19 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         SSSData sssData;
+        float transmissionMask;
 
-        // We don't need to do this call, see comment below
-        // DecodeFromSSSBuffer(inGBuffer0, positionSS, sssData);
+        #ifdef DEBUG_DISPLAY
+        // Note that we don't use sssData.subsurfaceMask here. But it is still assign so we can have
+        // the information in the material debug view.
+        UnpackFloatInt8bit(inGBuffer0.a, 16, sssData.subsurfaceMask, sssData.diffusionProfileIndex);
+        #else
+        sssData.subsurfaceMask = 0.0f; // Initialize to prevent compiler error, but value is never used
+        #endif
 
-        // Overwrite the diffusion profile/subsurfaceMask extracted by DecodeFromSSSBuffer().
+        // Overwrite the diffusion profile extracted just above.
         // We must do this so the compiler can optimize away the read from the G-Buffer 0 to the very end (in PostEvaluateBSDF)
-        // Note that we don't use sssData.subsurfaceMask here. But it is still assign so we can have the information in the
-        // material debug view + If we require it in the future.
-        UnpackFloatInt8bit(inGBuffer2.b, 16, sssData.subsurfaceMask, sssData.diffusionProfileIndex);
+        UnpackFloatInt8bit(inGBuffer2.b, 16, transmissionMask, sssData.diffusionProfileIndex);
 
         // Reminder: when using SSS we exchange specular occlusion and subsurfaceMask/profileID
         bsdfData.specularOcclusion = inGBuffer2.r;
@@ -867,7 +873,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         // The neutral value of thickness and transmittance is 0 (handled by ZERO_INITIALIZE).
         if (HasFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
-            FillMaterialTransmission(sssData.diffusionProfileIndex, inGBuffer2.g, bsdfData);
+            FillMaterialTransmission(sssData.diffusionProfileIndex, inGBuffer2.g, transmissionMask, bsdfData);
         }
     }
     else

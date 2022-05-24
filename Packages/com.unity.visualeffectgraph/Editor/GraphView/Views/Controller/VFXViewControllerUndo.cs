@@ -129,7 +129,9 @@ namespace UnityEditor.VFX.UI
             }
 
             if (cause == VFXModel.InvalidationCause.kExpressionInvalidated ||   // Ignore invalidation which doesn't modify model
-                cause == VFXModel.InvalidationCause.kExpressionGraphChanged)
+                cause == VFXModel.InvalidationCause.kExpressionGraphChanged ||
+                cause == VFXModel.InvalidationCause.kExpressionValueInvalidated ||
+                cause == VFXModel.InvalidationCause.kUIChangedTransient)
                 return;
 
             if (m_reentrant)
@@ -226,7 +228,9 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var element in AllSlotContainerControllers)
                     {
-                        foreach (var slot in (element.model as IVFXSlotContainer).inputSlots)
+                        var slotContainer = element.model as IVFXSlotContainer;
+                        slotContainer.activationSlot?.UpdateDefaultExpressionValue();
+                        foreach (var slot in slotContainer.inputSlots)
                         {
                             slot.UpdateDefaultExpressionValue();
                         }

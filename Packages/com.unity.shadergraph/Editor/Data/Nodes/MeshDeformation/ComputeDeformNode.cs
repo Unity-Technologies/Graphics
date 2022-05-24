@@ -35,10 +35,6 @@ namespace UnityEditor.ShaderGraph
             owner.AddSetupError(objectId, "Could not find a supported version (0.60.0 or newer) of the com.unity.entities.graphics package installed in the project.");
             hasError = true;
 #endif
-#if !ENABLE_COMPUTE_DEFORMATIONS
-            owner.AddSetupError(objectId, "For the Compute Deformation node to work, you must go to Project Settings>Player>Other Settings and add the ENABLE_COMPUTE_DEFORMATIONS define to Scripting Define Symbols.");
-            hasError = true;
-#endif
         }
 
         public bool RequiresVertexID(ShaderStageCapability stageCapability = ShaderStageCapability.All)
@@ -72,6 +68,17 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
+#if ENABLE_DOTS_DEFORMATION_MOTION_VECTORS
+            properties.AddShaderProperty(new Vector4ShaderProperty()
+            {
+                displayName = "Compute Mesh Buffer Index Offset",
+                overrideReferenceName = "_DotsDeformationParams",
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
+                hidden = true,
+                value = new Vector4(0, 0, 0, 0)
+            });
+#else
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 displayName = "Compute Mesh Buffer Index Offset",
@@ -81,7 +88,7 @@ namespace UnityEditor.ShaderGraph
                 hidden = true,
                 value = 0
             });
-
+#endif
             base.CollectShaderProperties(properties, generationMode);
         }
 
@@ -93,8 +100,12 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kTangentOutputSlotId));
             if (generationMode == GenerationMode.ForReals)
             {
+#if ENABLE_DOTS_DEFORMATION_MOTION_VECTORS
+                sb.AppendLine("ApplyDeformedVertexData(" +
+#else
                 sb.AppendLine($"{GetFunctionName()}(" +
-                    $"IN.VertexID, " +
+#endif
+                $"IN.VertexID, " +
                     $"{GetVariableNameForSlot(kPositionOutputSlotId)}, " +
                     $"{GetVariableNameForSlot(kNormalOutputSlotId)}, " +
                     $"{GetVariableNameForSlot(kTangentOutputSlotId)});");
@@ -103,12 +114,22 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("$precision3 {0} = IN.ObjectSpacePosition;", GetVariableNameForSlot(kPositionOutputSlotId));
             sb.AppendLine("$precision3 {0} = IN.ObjectSpaceNormal;", GetVariableNameForSlot(kNormalOutputSlotId));
             sb.AppendLine("$precision3 {0} = IN.ObjectSpaceTangent;", GetVariableNameForSlot(kTangentOutputSlotId));
+
             sb.AppendLine("#endif");
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction("DeformedMeshData", sb =>
+#if ENABLE_DOTS_DEFORMATION_MOTION_VECTORS
+            registry.ProvideFunction("define", sb =>
+            {
+                sb.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)"); // start of UNITY_DOTS_INSTANCING_ENABLED
+                sb.AppendLine("#define DOTS_DEFORMED");
+                sb.AppendLine("#include \"Packages/com.unity.entities.graphics/Unity.Entities.Graphics/Deformations/ShaderLibrary/DotsDeformation.hlsl\"");
+                sb.AppendLine("#endif");
+            });
+#else
+            registry.ProvideFunction("DeformedVertexData", sb =>
             {
                 sb.AppendLine("struct DeformedVertexData");
                 sb.AppendLine("{");
@@ -120,6 +141,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 sb.AppendLine("};");
                 sb.AppendLine("uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData : register(t1);");
+
             });
 
             registry.ProvideFunction(GetFunctionName(), sb =>
@@ -129,7 +151,6 @@ namespace UnityEditor.ShaderGraph
                     "out $precision3 positionOut, " +
                     "out $precision3 normalOut, " +
                     "out $precision3 tangentOut)");
-
                 sb.AppendLine("{");
                 using (sb.IndentScope())
                 {
@@ -140,6 +161,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 sb.AppendLine("}");
             });
+#endif
         }
 
         string GetFunctionName()

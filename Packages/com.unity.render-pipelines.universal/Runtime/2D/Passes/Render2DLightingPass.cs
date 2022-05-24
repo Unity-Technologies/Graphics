@@ -80,8 +80,15 @@ namespace UnityEngine.Rendering.Universal
 
             this.CreateCameraSortingLayerRenderTexture(renderingData, cmd, m_Renderer2DData.cameraSortingLayerDownsamplingMethod);
 
-            Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
-            RenderingUtils.Blit(cmd, colorAttachmentHandle, m_Renderer2DData.cameraSortingLayerRenderTarget, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            Material copyMaterial = m_SamplingMaterial;
+            int passIndex = 0;
+            if (m_Renderer2DData.cameraSortingLayerDownsamplingMethod != Downsampling._4xBox)
+            {
+                copyMaterial = m_BlitMaterial;
+                passIndex = colorAttachmentHandle.rt.filterMode == FilterMode.Bilinear ? 1 : 0;
+            }
+
+            Blitter.BlitCameraTexture(cmd, colorAttachmentHandle, m_Renderer2DData.cameraSortingLayerRenderTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, copyMaterial, passIndex);
             CoreUtils.SetRenderTarget(cmd,
                 colorAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
                 depthAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
