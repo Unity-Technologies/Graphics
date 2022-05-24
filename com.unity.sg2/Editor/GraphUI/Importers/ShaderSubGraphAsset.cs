@@ -17,11 +17,7 @@ namespace UnityEditor.ShaderGraph
         public static GraphHandler CreateBlankSubGraphHandler()
         {
             var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
-            var inputKey = Registry.ResolveKey<Defs.ShaderSubGraphInputContext>();
-            var outputKey = Registry.ResolveKey<Defs.ShaderSubGraphOutputContext>();
             var graph = new GraphHandler(reg);
-            graph.AddContextNode(inputKey, reg);
-            graph.AddContextNode(outputKey, reg);
             return graph;
         }
 
