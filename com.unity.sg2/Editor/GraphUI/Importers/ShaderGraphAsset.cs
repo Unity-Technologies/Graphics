@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor.AssetImporters;
@@ -109,6 +110,67 @@ namespace UnityEditor.ShaderGraph
             var assetModel = AssetDatabase.LoadAssetAtPath(path, typeof(ShaderGraphAssetModel)) as ShaderGraphAssetModel;
             assetModel.Init(); // trust that we'll find the GraphHandler through our OnEnable...
             return assetModel;
+        }
+    }
+
+
+
+
+
+
+    [Serializable]
+    internal class GraphBox : ISerializationCallbackReceiver
+    {
+        string json;
+
+        [NonSerialized]
+        GraphHandler m_graph;
+
+        // Provide a previously initialized graphHandler-- round-trip it for ownership.
+        public void Init(GraphHandler value)
+        {
+            json = value.ToSerializedFormat();
+            var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry(); // TODO: Singleton?
+            m_graph = GraphHandler.FromSerializedFormat(json, reg);
+            m_graph.ReconcretizeAll();
+        }
+
+        public GraphHandler Graph => m_graph;
+
+        public void OnBeforeSerialize() => json = m_graph.ToSerializedFormat();
+
+        public void OnAfterDeserialize()
+        {
+            var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
+            m_graph = GraphHandler.FromSerializedFormat(json, reg);
+            m_graph.ReconcretizeAll();
+        }
+    }
+
+    [Serializable]
+    internal class TargetBox : ISerializationCallbackReceiver
+    {
+        string json;
+
+        [NonSerialized]
+        TargetSettingsObject m_tso;
+
+        class TargetSettingsObject : JsonObject
+        {
+            [SerializeField]
+            public List<JsonData<Target>> m_GraphTargets = new();
+        }
+
+        public List<JsonData<Target>> Targets => m_tso.m_GraphTargets;
+
+        public void OnBeforeSerialize()
+        {
+            json = MultiJson.Serialize(m_tso);
+        }
+
+        public void OnAfterDeserialize()
+        {
+            MultiJson.Deserialize(m_tso, json);
         }
     }
 }
