@@ -138,11 +138,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// The name of the context node on the graph that the Blackboard should modify.
         /// </summary>
-        public string BlackboardContextName => (
-            IsSubGraph
-                ? Registry.ResolveKey<ShaderSubGraphInputContext>().Name
-                : Registry.ResolveKey<PropertyContext>().Name
-        );
+        public string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
 
         public bool IsSubGraph => ShaderGraphAssetModel.IsSubGraph;
         public override bool CanBeSubgraph() => IsSubGraph;
