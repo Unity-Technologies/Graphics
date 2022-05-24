@@ -79,6 +79,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 return hash;
             }
+
+            public static readonly HybridRendererCommandBufferSystemHandle zero = new HybridRendererCommandBufferSystemHandle()
+            {
+                systemID = 0,
+                worldID = 0
+            };
         }
 
         private class HybridRendererCommandBufferData
@@ -88,6 +94,10 @@ namespace UnityEngine.Rendering.HighDefinition
             private CommandBuffer cmd = null;
             private bool immediateModeEnabled = false;
             private bool immediateModeEnabledNext = false;
+
+#if !UNITY_EDITOR
+            private HybridRendererCommandBufferSystemHandle commandBufferSubmissionStickyWarningHandle = HybridRendererCommandBufferSystemHandle.zero;
+#endif
 
             public void EnsureProfilingSampler(string name, HybridRendererCommandBufferSystemHandle handle)
             {
@@ -120,9 +130,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     SubmitImmediate();
 
 #if !UNITY_EDITOR
-                    Debug.LogWarning("Warning: HybridRendererCommandBuffer: Encountered unexpected case of a command buffer having not been submitted between Simulation Update loops. It should have been submitted in the HDRenderPipeline::Render() loop.");
+                    if (commandBufferSubmissionStickyWarningHandle != handle)
+                    {
+                        commandBufferSubmissionStickyWarningHandle = handle;
+                        Debug.LogWarning("Warning: HybridRendererCommandBuffer: Encountered unexpected case of a command buffer having not been submitted between Simulation Update loops. It should have been submitted in the HDRenderPipeline::Render() loop.");
+                    }
 #endif
                 }
+#if !UNITY_EDITOR
+                else if (handle == commandBufferSubmissionStickyWarningHandle)
+                {
+                    commandBufferSubmissionStickyWarningHandle = HybridRendererCommandBufferSystemHandle.zero;
+                }
+#endif
                 debugSubmittedSystemState.Add(handle, false);
 
                 var cmd = EnsureCommandBuffer();
@@ -134,7 +154,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (debugSubmittedSystemState.TryGetValue(handle, out bool submitted))
                 {
-                    Debug.AssertFormat(submitted == false, "Error: Encountered Hybrid Rendering System {0} with an already submitted command buffer. Was End() already called in this Simulation Update?", profilingSamplers[handle.systemID].name);
+                    if (submitted)
+                    {
+                        // Guard assert in if block so that we do not pay the GC.Alloc cost of accessing a ProfilingSampler.name.
+                        Debug.AssertFormat(false, "Error: Encountered Hybrid Rendering System {0} with an already submitted command buffer. Was End() already called in this Simulation Update?", profilingSamplers[handle.systemID].name);
+                    }
+                    
                 }
                 else
                 {

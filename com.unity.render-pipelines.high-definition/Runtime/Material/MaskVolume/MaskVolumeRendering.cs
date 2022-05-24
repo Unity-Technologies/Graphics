@@ -828,8 +828,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (UnityEditor.Selection.activeGameObject != null)
             {
-                var selectedMaskVolume = UnityEditor.Selection.activeGameObject.GetComponent<MaskVolume>();
-                if (selectedMaskVolume != null)
+                if (UnityEditor.Selection.activeGameObject.TryGetComponent(out MaskVolume selectedMaskVolume))
                 {
                     // User currently has a probe volume selected.
                     // Compute a scaleBias term so that atlas view automatically zooms into selected probe volume.
