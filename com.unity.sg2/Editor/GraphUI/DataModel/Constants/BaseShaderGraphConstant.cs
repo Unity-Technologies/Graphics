@@ -8,12 +8,15 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Serializable]
-    public abstract class BaseShaderGraphConstant : IConstant, ISerializationCallbackReceiver
+    public abstract class BaseShaderGraphConstant : IConstant //, ISerializationCallbackReceiver
     {
         [SerializeField]
         private object tempSerializedValue;
 
-        protected GraphHandler graphHandler;
+        [SerializeReference]
+        protected ShaderGraphModel graphModel;
+
+        GraphHandler graphHandler => graphModel.GraphHandler;
 
         [SerializeField]
         protected string nodeName, portName;
@@ -27,11 +30,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
         public string NodeName => nodeName;
         public string PortName => portName;
-        public void Initialize(GraphHandler handler, string nodeName, string portName)
+        public void Initialize(ShaderGraphModel graphModel, string nodeName, string portName)
         {
             if (!IsInitialized)
             {
-                this.graphHandler = handler;
+                this.graphModel = graphModel;
                 this.nodeName = nodeName;
                 this.portName = portName;
             }
@@ -53,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void Initialize(TypeHandle constantTypeHandle) { }
         public IConstant Clone() { return null; }
 
-        public void OnBeforeSerialize() => tempSerializedValue = ObjectValue;
-        public void OnAfterDeserialize() => ObjectValue = tempSerializedValue;
+        //public void OnBeforeSerialize() => tempSerializedValue = ObjectValue;
+        //public void OnAfterDeserialize() => ObjectValue = tempSerializedValue;
     }
 }

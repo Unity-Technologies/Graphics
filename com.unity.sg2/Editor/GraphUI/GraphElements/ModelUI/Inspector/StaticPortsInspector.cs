@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var constant = stencil.CreateConstantValue(ShaderGraphExampleTypes.GetGraphType(port));
                 if (constant is BaseShaderGraphConstant cldsConstant)
                 {
-                    cldsConstant.Initialize(graphModel.GraphHandler, nodeModel.graphDataName, portName);
+                    cldsConstant.Initialize(graphModel, nodeModel.graphDataName, portName);
                 }
 
                 // TODO: Last argument is label text, should come from UI strings
