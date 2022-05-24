@@ -2,7 +2,7 @@
 
 The **Motion Blur** effect blurs the image in the direction of the **Camera’s** movement. This simulates the blur effect a real-world camera creates when it moves with the lens aperture open, or when it captures an object moving faster than the camera’s exposure time.
 
-![Scene using the Motion Blur effect](images\screenshot-motionblur.png)
+![Scene using the Motion Blur effect](images/screenshot-motionblur.png)
 
 ### Properties
 

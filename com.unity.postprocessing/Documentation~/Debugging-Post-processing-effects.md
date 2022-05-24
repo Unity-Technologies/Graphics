@@ -4,7 +4,7 @@ The **Post-process Debug** component displays real-time data about post-processi
 
 When you attach the Post-Process Debug component to a GameObject with a Camera component, the Post-Process Debug component displays its data on top of that Camera's output. You can use the Post-process Debug component in the Unity Editor, or when your application is running on a device.
 
-![The Histogram monitor as it appears in the Game window.](images\Ppv2_Debugging_Histogram.png)  
+![The Histogram monitor as it appears in the Game window.](images/Ppv2_Debugging_Histogram.png)  
 
 ## Using the Post-Process Debug component
 
@@ -48,7 +48,7 @@ The **Light Meter monitor** displays a logarithmic histogram in the Game window 
 - A thin pink bar that indicates the current exposure value.
 - A translucent blue bar that indicates the area between the maximum and minimum exposure values.
 
-![The Light Meter Histogram](images\Ppv2-Debugging-Light-Meter-Graph.png)  
+![The Light Meter Histogram](images/Ppv2-Debugging-Light-Meter-Graph.png)  
 The **Light Meter Histogram** that Unity shows in the Game window.
 
 | **Property** | **Description**                                                                             |
@@ -60,7 +60,7 @@ The **Light Meter Histogram** that Unity shows in the Game window.
 ### Histogram
 The **Histogram** monitor displays a gamma histogram in the Game. A histogram graphs the number of pixels at each color intensity level, to illustrate how pixels in an image are distributed. It can help you determine whether an image is properly exposed or not.
 
-![The Debugging Histogram](images\Ppv2-Debugging-Histogram-Graph.png)  
+![The Debugging Histogram](images/Ppv2-Debugging-Histogram-Graph.png)  
 
 The **Histogram** that Unity shows in the Game window.
 
@@ -74,7 +74,7 @@ The **Histogram** that Unity shows in the Game window.
 
 The **Waveform** monitor displays the full range of Luma (brightness) information in the Camera’s output. Unity displays the Waveform in the Game window. The horizontal axis of the graph corresponds to the render (from left to right) and the vertical axis is the brightness value.
 
-![The Debugging Waveform Graph](images\Ppv2-Debugging-Waveform-Graph.png)  
+![The Debugging Waveform Graph](images/Ppv2-Debugging-Waveform-Graph.png)  
 
 The **Waveform** that Unity shows in the Game window.
 
@@ -91,7 +91,7 @@ The Vectorscope measures hue values between yellow, red, magenta, blue, cyan and
 
 To identify whether there is a color imbalance in the image, look at how close the middle of the Vectorscope graph is to the absolute center. If the Vectorscope graph is off-center, this indicates that there is a color cast (tint) in the image.
 
-![The Debugging Vectorscope Graph](images\Ppv2-Debugging-Vectorscope-Graph.png)  
+![The Debugging Vectorscope Graph](images/Ppv2-Debugging-Vectorscope-Graph.png)  
 
 The **Vectorscope** that Unity displays in the Game window.
 
