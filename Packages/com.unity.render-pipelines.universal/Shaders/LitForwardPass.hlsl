@@ -33,7 +33,7 @@ struct Varyings
     float3 positionWS               : TEXCOORD1;
 #endif
 
-    half3 normalWS                 : TEXCOORD2;
+    float3 normalWS                 : TEXCOORD2;
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     half4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: sign
 #endif

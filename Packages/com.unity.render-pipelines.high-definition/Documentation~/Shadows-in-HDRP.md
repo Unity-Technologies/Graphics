@@ -183,8 +183,6 @@ In HDRP it's possible to cache only some of the shadow map for non-directional l
 3. Enable **Always draw dynamic**.
 4. Enable **Static Shadow Caster** for all Renderers to cache shadows for.
 
-**Note**: For Directional Lights, you need to enable the feature on the HDRP asset: **Lighting** > **Shadows** > **Directional Light Shadows** > **Allow Mixed Cached Shadows**.
-
 With this set up, HDRP renders static shadow casters into the shadow map depending on the Light's Update Mode, but it renders dynamic shadow casters into their respective shadow maps each frame. If you set the Update Mode to **OnEnable**, HDRP only renders static shadow casters when you enable the Light component. If the Update Mode is to **OnDemand**, HDRP only renders static shadow casters when you explicitly request an update.
 
 This setup is particularly useful if your environment consists of mostly static GameObjects and the lights don't move, but there are few dynamic GameObjects that you want the static lights to cast shadows for. In such scenarios, setting the light to have a mixed cached shadow map greatly improves performance both on the CPU and GPU.
