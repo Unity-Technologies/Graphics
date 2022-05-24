@@ -5,6 +5,7 @@ using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [Serializable]
     class MainPreviewData
     {
-        public SerializableMesh serializedMesh = new ();
+        private SerializableMesh serializedMesh = new ();
         public bool preventRotation;
 
         public int width = 125;
@@ -31,93 +32,40 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [NonSerialized]
         public float scale = 1f;
 
-        public void Initialize()
+        public Mesh mesh
         {
-            if (serializedMesh.IsNotInitialized)
-            {
-                // Initialize the sphere mesh as the default
-                Mesh sphereMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
-                serializedMesh.mesh = sphereMesh;
-            }
+            get => serializedMesh.mesh;
+            set => serializedMesh.mesh = value;
         }
     }
 
     public class ShaderGraphModel : GraphModel
     {
-        public GraphHandler GraphHandler => ShaderGraphAssetModel.GraphHandler;
+        [SerializeField]
+        private SerializableGraphHandler graphHandlerBox = new();
+        [SerializeField]
+        private SerializableTargetSettings targetSettingsBox = new();
+        [SerializeField]
+        private MainPreviewData mainPreviewData = new();
+        [SerializeField]
+        private bool isSubGraph = false;
 
-        public ShaderGraphAssetModel ShaderGraphAssetModel => Asset as ShaderGraphAssetModel;
+        internal GraphHandler GraphHandler => graphHandlerBox.Graph;
+        internal Registry RegistryInstance => graphHandlerBox.Graph.registry;
+        internal List<JsonData<Target>> Targets => targetSettingsBox.Targets;
+        internal MainPreviewData MainPreviewData => mainPreviewData;
+        internal bool IsSubGraph => CanBeSubgraph();
 
-        public Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
-
-        #region MainPreviewData
-        MainPreviewData m_MainPreviewData = new ();
-
-        internal MainPreviewData mainPreviewData => m_MainPreviewData;
-
-        public void SetPreviewMesh(Mesh newPreviewMesh)
+        public void Init(GraphHandler graph, bool isSubGraph)
         {
-            m_MainPreviewData.serializedMesh.mesh = newPreviewMesh;
-        }
-
-        public void SetPreviewScale(float newPreviewScale)
-        {
-            m_MainPreviewData.scale = newPreviewScale;
-        }
-
-        public void SetPreviewRotation(Quaternion newRotation)
-        {
-            m_MainPreviewData.rotation = newRotation;
-        }
-
-        public void SetPreviewSize(Vector2 newPreviewSize)
-        {
-            m_MainPreviewData.width = Mathf.FloorToInt(newPreviewSize.x);
-            m_MainPreviewData.height = Mathf.FloorToInt(newPreviewSize.y);
-        }
-
-        public void SetPreviewRotationLocked(bool preventRotation)
-        {
-            m_MainPreviewData.preventRotation = preventRotation;
-        }
-
-        #endregion
-
-        protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
-        {
-            return typeof(GraphDataEdgeModel);
-        }
-
-        public override Type GetSectionModelType()
-        {
-            return typeof(SectionModel);
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-
-            // Assigning this value manually as section models are setup by default to have the asset model reference serialized in, but we modified GTF to prevent that
-            foreach (var sectionModel in SectionModels)
-            {
-                // sectionModel.AssetModel = AssetModel;
-            }
-
-            foreach (var variableDeclarationModel in VariableDeclarations)
-            {
-                // Variable declarations need to be given a valid GraphHandler now so the blackboard can build the
-                // correct fields.
-                if (variableDeclarationModel.InitializationModel is BaseShaderGraphConstant cldsConstant)
-                {
-                    cldsConstant.Initialize(GraphHandler, cldsConstant.NodeName, cldsConstant.PortName);
-                }
-            }
+            graphHandlerBox.Init(graph);
+            this.isSubGraph = isSubGraph;
 
             var contextNames = GraphHandler
-                .GetNodes()
-                .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
-                .Select(nodeHandler => nodeHandler.ID.LocalPath)
-                .ToList();
+            .GetNodes()
+            .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
+            .Select(nodeHandler => nodeHandler.ID.LocalPath)
+            .ToList();
 
             foreach (var localPath in contextNames)
             {
@@ -130,12 +78,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     this.CreateGraphDataContextNode(localPath);
                 }
             }
-
-            m_MainPreviewData.Initialize();
         }
 
-        public bool IsSubGraph => ShaderGraphAssetModel.IsSubGraph;
-        public override bool CanBeSubgraph() => IsSubGraph;
+        public override bool CanBeSubgraph() => isSubGraph;
+        protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
+        {
+            return typeof(GraphDataEdgeModel);
+        }
+        public override Type GetSectionModelType()
+        {
+            return typeof(SectionModel);
+        }
 
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.

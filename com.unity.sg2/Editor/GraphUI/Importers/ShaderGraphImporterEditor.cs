@@ -22,13 +22,11 @@ namespace UnityEditor.ShaderGraph
             {
                 AssetImporter importer = target as AssetImporter;
                 var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
-                var graph = asset.ResolveGraph();
+                var graph = asset.ShaderGraphModel.GraphHandler;
 
-
-                var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
                 var key = Registry.ResolveKey<ShaderGraphContext>();
-                var node = graph.GetNodeReader(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, reg, out _);
+                var node = graph.GetNode(key.Name);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
                 if (FileHelpers.WriteToFile(path, shaderCode))
@@ -67,11 +65,11 @@ namespace UnityEditor.ShaderGraph
             {
                 return false;
             }
-            var assetModel = ShaderGraphAsset.HandleLoad(path);
-            return ShowWindow(path, assetModel);
+            var asset = ShaderGraphAssetUtils.HandleLoad(path);
+            return ShowWindow(path, asset);
         }
 
-        private static bool ShowWindow(string path, ShaderGraphAssetModel model)
+        private static bool ShowWindow(string path, ShaderGraphAsset model)
         {
             // Prevents the same graph asset from being opened in two separate editor windows
             var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));

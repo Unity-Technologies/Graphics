@@ -14,16 +14,16 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderSubGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
-            if (!AssetDatabase.LoadAssetAtPath<ShaderSubGraphAsset>(path))
+            if (!AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path))
             {
                 return false;
             }
 
-            var assetModel = ShaderSubGraphAsset.HandleLoad(path);
+            var assetModel = ShaderGraphAssetUtils.HandleLoad(path);
             return ShowWindow(path, assetModel);
         }
 
-        private static bool ShowWindow(string path, ShaderGraphAssetModel model)
+        private static bool ShowWindow(string path, ShaderGraphAsset model)
         {
             // Prevents the same graph asset from being opened in two separate editor windows
             var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));

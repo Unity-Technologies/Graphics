@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ChangePreviewMeshCommand command
         )
         {
-            graphModel.SetPreviewMesh(command.m_NewPreviewMesh);
+            graphModel.MainPreviewData.mesh = command.m_NewPreviewMesh;
             // Lets the preview manager know to re-render the main preview output
             previewManager.OnPreviewMeshChanged();
         }

@@ -58,7 +58,7 @@ Shader ""Hidden/GraphErrorShader2""
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            ShaderGraphAsset.HandleImport(ctx);
+            ShaderGraphAssetUtils.HandleImport(ctx);
         }
     }
 }
