@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     SubmitImmediate();
 
 #if !UNITY_EDITOR
-                    if (commandBufferSubmissionStickyWarningHandle != handle)
+                    if (!commandBufferSubmissionStickyWarningHandle.Equals(handle))
                     {
                         commandBufferSubmissionStickyWarningHandle = handle;
                         Debug.LogWarning("Warning: HybridRendererCommandBuffer: Encountered unexpected case of a command buffer having not been submitted between Simulation Update loops. It should have been submitted in the HDRenderPipeline::Render() loop.");
@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 }
 #if !UNITY_EDITOR
-                else if (handle == commandBufferSubmissionStickyWarningHandle)
+                else if (handle.Equals(commandBufferSubmissionStickyWarningHandle))
                 {
                     commandBufferSubmissionStickyWarningHandle = HybridRendererCommandBufferSystemHandle.zero;
                 }
