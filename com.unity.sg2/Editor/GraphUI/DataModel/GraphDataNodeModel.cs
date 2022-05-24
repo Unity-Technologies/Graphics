@@ -277,7 +277,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // don't do this, we should have a fixed way of pathing into a port's type information as opposed to its header/port data.
                     // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.
                     // Not sure how that's going to work for data that's from a connection!
-                    constant.Initialize(handler, nodeId.LocalPath, portReader.LocalID);
+                    constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
                 IPortModel newPortModel = null;
@@ -286,7 +286,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((ShaderGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
                 }
                 else
                     newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);

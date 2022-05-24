@@ -34,7 +34,6 @@ namespace UnityEditor.ShaderGraph
         {
             var json = EditorJsonUtility.ToJson(asset, true);
             File.WriteAllText(path, json);
-            AssetDatabase.ImportAsset(path);
         }
         public static ShaderGraphAsset HandleLoad(string path)
         {
@@ -52,6 +51,7 @@ namespace UnityEditor.ShaderGraph
             string json = File.ReadAllText(path, Encoding.UTF8);
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             EditorJsonUtility.FromJsonOverwrite(json, asset);
+            asset.ShaderGraphModel.OnEnable();
 
             if (!asset.ShaderGraphModel.IsSubGraph)
             {
@@ -88,7 +88,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     internal class SerializableGraphHandler : ISerializationCallbackReceiver
     {
-        string json;
+        [SerializeField]
+        string json = "";
 
         [NonSerialized]
         GraphHandler m_graph;
@@ -104,9 +105,14 @@ namespace UnityEditor.ShaderGraph
 
         public GraphHandler Graph => m_graph;
 
-        public void OnBeforeSerialize() => json = m_graph.ToSerializedFormat();
+        public void OnBeforeSerialize()
+        {
+            json = m_graph.ToSerializedFormat();
+        }
 
-        public void OnAfterDeserialize()
+        public void OnAfterDeserialize() { }
+
+        public void OnEnable()
         {
             var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
@@ -117,10 +123,11 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     internal class SerializableTargetSettings : ISerializationCallbackReceiver
     {
-        string json;
+        [SerializeField]
+        string json = "";
 
         [NonSerialized]
-        TargetSettingsObject m_tso;
+        TargetSettingsObject m_tso = new();
 
         class TargetSettingsObject : JsonObject
         {
@@ -135,7 +142,9 @@ namespace UnityEditor.ShaderGraph
             json = MultiJson.Serialize(m_tso);
         }
 
-        public void OnAfterDeserialize()
+        public void OnAfterDeserialize() { }
+
+        public void OnEnable()
         {
             MultiJson.Deserialize(m_tso, json);
         }

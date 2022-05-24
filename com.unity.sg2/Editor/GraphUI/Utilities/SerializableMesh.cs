@@ -22,13 +22,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public Mesh mesh;
 #pragma warning restore 649
         }
-
-        public SerializableMesh()
-        {
-            Mesh sphereMesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
-            mesh = sphereMesh;
-        }
-
         public bool IsNotInitialized
             => string.IsNullOrEmpty(m_SerializedMesh)
                 && string.IsNullOrEmpty(m_Guid)
@@ -52,6 +45,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     m_Mesh = AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(m_Guid));
                     m_Guid = null;
+                }
+                else
+                {
+                    m_Mesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
                 }
 
                 return m_Mesh;

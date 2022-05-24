@@ -80,6 +80,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        public override void OnEnable()
+        {
+            graphHandlerBox.OnEnable();
+            targetSettingsBox.OnEnable();
+            base.OnEnable();
+        }
         public override bool CanBeSubgraph() => isSubGraph;
         protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
         {
