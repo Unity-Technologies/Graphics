@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -7,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     partial class HDDynamicShadowAtlas : HDShadowAtlas
     {
         readonly List<HDShadowResolutionRequest>    m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
-        readonly List<HDShadowRequest>              m_MixedRequestsPendingBlits = new List<HDShadowRequest>();
+        readonly List<HDShadowRequestHandle>              m_MixedRequestsPendingBlits = new List<HDShadowRequestHandle>();
 
         float m_RcpScaleFactor = 1;
         HDShadowResolutionRequest[] m_SortedRequestsCache;
@@ -165,9 +168,9 @@ namespace UnityEngine.Rendering.HighDefinition
             base.DisplayAtlas(atlasTexture, cmd, debugMaterial, atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb, m_RcpScaleFactor);
         }
 
-        public void AddRequestToPendingBlitFromCache(HDShadowRequest request)
+        public void AddRequestToPendingBlitFromCache(HDShadowRequestHandle request, bool isMixedCache)
         {
-            if (request.isMixedCached)
+            if (isMixedCache)
                 m_MixedRequestsPendingBlits.Add(request);
         }
 
@@ -183,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal struct ShadowBlitParameters
         {
-            public List<HDShadowRequest> requestsWaitingBlits;
+            public List<HDShadowRequestHandle> requestsWaitingBlits;
             public Material              blitMaterial;
             public MaterialPropertyBlock blitMaterialPropertyBlock;
             public Vector2Int            cachedShadowAtlasSize;
@@ -200,10 +203,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static internal void BlitCachedIntoAtlas(in ShadowBlitParameters parameters, RTHandle dynamicTexture, RTHandle cachedTexture, CommandBuffer cmd)
+        static internal unsafe void BlitCachedIntoAtlas(in ShadowBlitParameters parameters, RTHandle dynamicTexture, RTHandle cachedTexture, CommandBuffer cmd)
         {
-            foreach (var request in parameters.requestsWaitingBlits)
+            NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
+            ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
+            foreach (var requestHandle in parameters.requestsWaitingBlits)
             {
+                ref var request = ref requestStorageUnsafe.ElementAt(requestHandle.storageIndexForShadowRequest);
                 cmd.SetRenderTarget(dynamicTexture);
 
                 cmd.SetViewport(request.dynamicAtlasViewport);
