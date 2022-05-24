@@ -1,13 +1,12 @@
 using UnityEngine.Rendering;
-using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     // TODO remove every occurrence of ShadowSplitData in function parameters when we'll have scriptable culling
     static class HDShadowUtils
     {
-        public const float k_MinShadowNearPlane = 0.0001f;
-        public const float k_MaxShadowNearPlane = 10.0f;
+        public static readonly float k_MinShadowNearPlane = 0.0001f;
+        public static readonly float k_MaxShadowNearPlane = 10.0f;
 
         public static float Asfloat(uint val) { unsafe { return *((float*)&val); } }
         public static float Asfloat(int val)  { unsafe { return *((float*)&val); } }
@@ -31,17 +30,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static void ExtractPointLightData(NativeArray<Matrix4x4> cubeMapFaces, VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, HDShadowFilteringQuality filteringQuality, bool usesReversedZInfo,
+        public static void ExtractPointLightData(VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, HDShadowFilteringQuality filteringQuality,
             out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
             float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 79.0f);
-            ExtractPointLightMatrix(cubeMapFaces, visibleLight, faceIndex, nearPlane, guardAngle, usesReversedZInfo, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            ExtractPointLightMatrix(visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
-        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality, bool reverseZ,
+        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
             out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
@@ -51,40 +50,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 aspectRatio = 1.0f;
 
             float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - spotAngle);
-            ExtractSpotLightMatrix(visibleLight, spotAngle, nearPlane, guardAngle, aspectRatio, reverseZ, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            ExtractSpotLightMatrix(visibleLight, spotAngle, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
 
             if (shape == SpotLightShape.Box)
             {
                 projection = ExtractBoxLightProjectionMatrix(visibleLight.range, shapeWidth, shapeHeight, nearPlane);
-                deviceProjection = GetGPUProjectionMatrix(projection, false, reverseZ);
-                deviceProjectionYFlip = GetGPUProjectionMatrix(projection, true, reverseZ);
+                deviceProjection = GL.GetGPUProjectionMatrix(projection, false);
+                deviceProjectionYFlip = GL.GetGPUProjectionMatrix(projection, true);
                 InvertOrthographic(ref deviceProjectionYFlip, ref view, out invViewProjection);
             }
-        }
-
-        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix, bool invertY, bool reverseZ)
-        {
-            Matrix4x4 gpuProjectionMatrix = projectionMatrix;
-            if (invertY)
-            {
-                gpuProjectionMatrix.m10 = -gpuProjectionMatrix.m10;
-                gpuProjectionMatrix.m11 = -gpuProjectionMatrix.m11;
-                gpuProjectionMatrix.m12 = -gpuProjectionMatrix.m12;
-                gpuProjectionMatrix.m13 = -gpuProjectionMatrix.m13;
-            }
-
-            // Now scale&bias to get Z range from -1..1 to 0..1 or 1..0
-            // matrix = scaleBias * matrix
-            //  1   0   0   0
-            //  0   1   0   0
-            //  0   0 0.5 0.5
-            //  0   0   0   1
-            gpuProjectionMatrix.m20 = gpuProjectionMatrix.m20 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m30 * 0.5f;
-            gpuProjectionMatrix.m21 = gpuProjectionMatrix.m21 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m31 * 0.5f;
-            gpuProjectionMatrix.m22 = gpuProjectionMatrix.m22 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m32 * 0.5f;
-            gpuProjectionMatrix.m23 = gpuProjectionMatrix.m23 * (reverseZ ? -0.5f : 0.5f) + gpuProjectionMatrix.m33 * 0.5f;
-
-            return gpuProjectionMatrix;
         }
 
         public static void ExtractDirectionalLightData(VisibleLight visibleLight, Vector2 viewportSize, uint cascadeIndex, int cascadeCount, float[] cascadeRatios, float nearPlaneOffset, CullingResults cullResults, int lightIndex,
@@ -116,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Currently area light shadows are not supported
-        public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, Vector3 shadowPosition, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality, bool reverseZ,
+        public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, Vector3 shadowPosition, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
             out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
@@ -125,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             visibleLight.spotAngle = spotAngle;
             float guardAngle = CalcGuardAnglePerspective(visibleLight.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - visibleLight.spotAngle);
 
-            ExtractSpotLightMatrix(visibleLight, visibleLight.spotAngle, shadowNearPlane, guardAngle, aspectRatio, reverseZ, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            ExtractSpotLightMatrix(visibleLight, visibleLight.spotAngle, shadowNearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
         }
 
         // Cubemap faces with flipped z coordinate.
@@ -272,7 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Ortho(-width / 2, width / 2, -height / 2, height / 2, nearZ, range);
         }
 
-        static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float spotAngle, float nearPlane, float guardAngle, float aspectRatio, bool reverseZ, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        static Matrix4x4 ExtractSpotLightMatrix(VisibleLight vl, float spotAngle, float nearPlane, float guardAngle, float aspectRatio, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
         {
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
@@ -289,16 +263,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // calculate projection
             proj = ExtractSpotLightProjectionMatrix(vl.range, spotAngle, nearPlane, aspectRatio, guardAngle);
             // and the compound (deviceProj will potentially inverse-Z)
-            deviceProj = GetGPUProjectionMatrix(proj, false, reverseZ);
-            deviceProjYFlip = GetGPUProjectionMatrix(proj, true, reverseZ);
+            deviceProj = GL.GetGPUProjectionMatrix(proj, false);
+            deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
             return  CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
         }
 
-        static unsafe Matrix4x4 ExtractPointLightMatrix(NativeArray<Matrix4x4> cubemapFaces, VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, bool usesReversedZInfo, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
         {
             if (faceIdx > (uint)CubemapFace.NegativeZ)
-                Debug.LogError($"Tried to extract cubemap face {faceIdx}.");
+                Debug.LogError("Tried to extract cubemap face " + faceIdx + ".");
 
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
@@ -307,268 +281,32 @@ namespace UnityEngine.Rendering.HighDefinition
             lightDir = vl.GetForward();
             // calculate the view matrices
             Vector3 lpos = vl.GetPosition();
-            view = cubemapFaces[(int)faceIdx];
-            Vector3 inverted_viewpos = cubemapFaces[(int)faceIdx].MultiplyPoint(-lpos);
+            view = kCubemapFaces[faceIdx];
+            Vector3 inverted_viewpos = kCubemapFaces[faceIdx].MultiplyPoint(-lpos);
             view.SetColumn(3, new Vector4(inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f));
 
             float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
             proj = Matrix4x4.Perspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
             // and the compound (deviceProj will potentially inverse-Z)
-            deviceProj = GetGPUProjectionMatrix(proj, false, usesReversedZInfo);
-            deviceProjYFlip = GetGPUProjectionMatrix(proj, true, usesReversedZInfo);
+            deviceProj = GL.GetGPUProjectionMatrix(proj, false);
+            deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
             Matrix4x4 devProjView = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
-
-            Plane* planes = stackalloc Plane[6];
             // We can avoid computing proj * view for frustum planes, if device has reversed Z we flip the culling planes as we should have computed them with proj
-            CalculateFrustumPlanes(ref devProjView, planes);
-            if (usesReversedZInfo)
+            GeometryUtility.CalculateFrustumPlanes(devProjView, s_CachedPlanes);
+            if (SystemInfo.usesReversedZBuffer)
             {
-                var tmpPlane = planes[2];
-                planes[2] = planes[3];
-                planes[3] = tmpPlane;
+                var tmpPlane = s_CachedPlanes[2];
+                s_CachedPlanes[2] = s_CachedPlanes[3];
+                s_CachedPlanes[3] = tmpPlane;
             }
             splitData.cullingPlaneCount = 6;
             for (int i = 0; i < 6; i++)
-                splitData.SetCullingPlane(i, planes[i]);
+                splitData.SetCullingPlane(i, s_CachedPlanes[i]);
 
             return devProjView;
         }
-
-         public static unsafe void CalculateFrustumPlanes(ref Matrix4x4 finalMatrix, Plane* outPlanes)
-         {
-            const int kPlaneFrustumLeft = 0;
-            const int kPlaneFrustumRight = 1;
-            const int kPlaneFrustumBottom = 2;
-            const int kPlaneFrustumTop = 3;
-            const int kPlaneFrustumNear = 4;
-            const int kPlaneFrustumFar = 5;
-
-            Vector4 tmpVec = default;
-            Vector4 otherVec = default;
-
-            tmpVec[0] = finalMatrix.m30;
-            tmpVec[1] = finalMatrix.m31;
-            tmpVec[2] = finalMatrix.m32;
-            tmpVec[3] = finalMatrix.m33;
-
-            otherVec[0] = finalMatrix.m00;
-            otherVec[1] = finalMatrix.m01;
-            otherVec[2] = finalMatrix.m02;
-            otherVec[3] = finalMatrix.m03;
-
-            // left & right
-            float leftNormalX = otherVec[0] + tmpVec[0];
-            float leftNormalY = otherVec[1] + tmpVec[1];
-            float leftNormalZ = otherVec[2] + tmpVec[2];
-            float leftDistance = otherVec[3] + tmpVec[3];
-            float leftDot = leftNormalX * leftNormalX + leftNormalY * leftNormalY + leftNormalZ * leftNormalZ;
-            float leftMagnitude = Mathf.Sqrt(leftDot);
-            float leftInvMagnitude = 1.0f / leftMagnitude;
-            leftNormalX *= leftInvMagnitude;
-            leftNormalY *= leftInvMagnitude;
-            leftNormalZ *= leftInvMagnitude;
-            leftDistance *= leftInvMagnitude;
-            outPlanes[kPlaneFrustumLeft].normal = new Vector3(leftNormalX, leftNormalY, leftNormalZ);
-            outPlanes[kPlaneFrustumLeft].distance = leftDistance;
-
-            float rightNormalX = -otherVec[0] + tmpVec[0];
-            float rightNormalY = -otherVec[1] + tmpVec[1];
-            float rightNormalZ = -otherVec[2] + tmpVec[2];
-            float rightDistance = -otherVec[3] + tmpVec[3];
-            float rightDot = rightNormalX * rightNormalX + rightNormalY * rightNormalY + rightNormalZ * rightNormalZ;
-            float rightMagnitude = Mathf.Sqrt(rightDot);
-            float rightInvMagnitude = 1.0f / rightMagnitude;
-            rightNormalX *= rightInvMagnitude;
-            rightNormalY *= rightInvMagnitude;
-            rightNormalZ *= rightInvMagnitude;
-            rightDistance *= rightInvMagnitude;
-            outPlanes[kPlaneFrustumRight].normal = new Vector3(rightNormalX, rightNormalY, rightNormalZ);
-            outPlanes[kPlaneFrustumRight].distance = rightDistance;
-
-            // bottom & top
-            otherVec[0] = finalMatrix.m10;
-            otherVec[1] = finalMatrix.m11;
-            otherVec[2] = finalMatrix.m12;
-            otherVec[3] = finalMatrix.m13;
-
-            float bottomNormalX = otherVec[0] + tmpVec[0];
-            float bottomNormalY = otherVec[1] + tmpVec[1];
-            float bottomNormalZ = otherVec[2] + tmpVec[2];
-            float bottomDistance = otherVec[3] + tmpVec[3];
-            float bottomDot = bottomNormalX * bottomNormalX + bottomNormalY * bottomNormalY + bottomNormalZ * bottomNormalZ;
-            float bottomMagnitude = Mathf.Sqrt(bottomDot);
-            float bottomInvMagnitude = 1.0f / bottomMagnitude;
-            bottomNormalX *= bottomInvMagnitude;
-            bottomNormalY *= bottomInvMagnitude;
-            bottomNormalZ *= bottomInvMagnitude;
-            bottomDistance *= bottomInvMagnitude;
-            outPlanes[kPlaneFrustumBottom].normal = new Vector3(bottomNormalX, bottomNormalY, bottomNormalZ);
-            outPlanes[kPlaneFrustumBottom].distance = bottomDistance;
-
-            float topNormalX = -otherVec[0] + tmpVec[0];
-            float topNormalY = -otherVec[1] + tmpVec[1];
-            float topNormalZ = -otherVec[2] + tmpVec[2];
-            float topDistance = -otherVec[3] + tmpVec[3];
-            float topDot = topNormalX * topNormalX + topNormalY * topNormalY + topNormalZ * topNormalZ;
-            float topMagnitude = Mathf.Sqrt(topDot);
-            float topInvMagnitude = 1.0f / topMagnitude;
-            topNormalX *= topInvMagnitude;
-            topNormalY *= topInvMagnitude;
-            topNormalZ *= topInvMagnitude;
-            topDistance *= topInvMagnitude;
-            outPlanes[kPlaneFrustumTop].normal = new Vector3(topNormalX, topNormalY, topNormalZ);
-            outPlanes[kPlaneFrustumTop].distance = topDistance;
-
-            // near & far
-            otherVec[0] = finalMatrix.m20;
-            otherVec[1] = finalMatrix.m21;
-            otherVec[2] = finalMatrix.m22;
-            otherVec[3] = finalMatrix.m23;
-
-            float nearNormalX = otherVec[0] + tmpVec[0];
-            float nearNormalY = otherVec[1] + tmpVec[1];
-            float nearNormalZ = otherVec[2] + tmpVec[2];
-            float nearDistance = otherVec[3] + tmpVec[3];
-            float nearDot = nearNormalX * nearNormalX + nearNormalY * nearNormalY + nearNormalZ * nearNormalZ;
-            float nearMagnitude = Mathf.Sqrt(nearDot);
-            float nearInvMagnitude = 1.0f / nearMagnitude;
-            nearNormalX *= nearInvMagnitude;
-            nearNormalY *= nearInvMagnitude;
-            nearNormalZ *= nearInvMagnitude;
-            nearDistance *= nearInvMagnitude;
-            outPlanes[kPlaneFrustumNear].normal = new Vector3(nearNormalX, nearNormalY, nearNormalZ);
-            outPlanes[kPlaneFrustumNear].distance = nearDistance;
-
-            float farNormalX = -otherVec[0] + tmpVec[0];
-            float farNormalY = -otherVec[1] + tmpVec[1];
-            float farNormalZ = -otherVec[2] + tmpVec[2];
-            float farDistance = -otherVec[3] + tmpVec[3];
-            float farDot = farNormalX * farNormalX + farNormalY * farNormalY + farNormalZ * farNormalZ;
-            float farMagnitude = Mathf.Sqrt(farDot);
-            float farInvMagnitude = 1.0f / farMagnitude;
-            farNormalX *= farInvMagnitude;
-            farNormalY *= farInvMagnitude;
-            farNormalZ *= farInvMagnitude;
-            farDistance *= farInvMagnitude;
-            outPlanes[kPlaneFrustumFar].normal = new Vector3(farNormalX, farNormalY, farNormalZ);
-            outPlanes[kPlaneFrustumFar].distance = farDistance;
-        }
-
-         public static unsafe void CalculateFrustumPlanes(ref Matrix4x4 finalMatrix, Vector4* outPlanes)
-         {
-            const int kPlaneFrustumLeft = 0;
-            const int kPlaneFrustumRight = 1;
-            const int kPlaneFrustumBottom = 2;
-            const int kPlaneFrustumTop = 3;
-            const int kPlaneFrustumNear = 4;
-            const int kPlaneFrustumFar = 5;
-
-            Vector4 tmpVec = default;
-            Vector4 otherVec = default;
-
-            tmpVec[0] = finalMatrix.m30;
-            tmpVec[1] = finalMatrix.m31;
-            tmpVec[2] = finalMatrix.m32;
-            tmpVec[3] = finalMatrix.m33;
-
-            otherVec[0] = finalMatrix.m00;
-            otherVec[1] = finalMatrix.m01;
-            otherVec[2] = finalMatrix.m02;
-            otherVec[3] = finalMatrix.m03;
-
-            // left & right
-            float leftNormalX = otherVec[0] + tmpVec[0];
-            float leftNormalY = otherVec[1] + tmpVec[1];
-            float leftNormalZ = otherVec[2] + tmpVec[2];
-            float leftDistance = otherVec[3] + tmpVec[3];
-            float leftDot = leftNormalX * leftNormalX + leftNormalY * leftNormalY + leftNormalZ * leftNormalZ;
-            float leftMagnitude = Mathf.Sqrt(leftDot);
-            float leftInvMagnitude = 1.0f / leftMagnitude;
-            leftNormalX *= leftInvMagnitude;
-            leftNormalY *= leftInvMagnitude;
-            leftNormalZ *= leftInvMagnitude;
-            leftDistance *= leftInvMagnitude;
-            outPlanes[kPlaneFrustumLeft] = new Vector4(leftNormalX, leftNormalY, leftNormalZ, leftDistance);
-
-            float rightNormalX = -otherVec[0] + tmpVec[0];
-            float rightNormalY = -otherVec[1] + tmpVec[1];
-            float rightNormalZ = -otherVec[2] + tmpVec[2];
-            float rightDistance = -otherVec[3] + tmpVec[3];
-            float rightDot = rightNormalX * rightNormalX + rightNormalY * rightNormalY + rightNormalZ * rightNormalZ;
-            float rightMagnitude = Mathf.Sqrt(rightDot);
-            float rightInvMagnitude = 1.0f / rightMagnitude;
-            rightNormalX *= rightInvMagnitude;
-            rightNormalY *= rightInvMagnitude;
-            rightNormalZ *= rightInvMagnitude;
-            rightDistance *= rightInvMagnitude;
-            outPlanes[kPlaneFrustumRight] = new Vector4(rightNormalX, rightNormalY, rightNormalZ, rightDistance);
-
-            // bottom & top
-            otherVec[0] = finalMatrix.m10;
-            otherVec[1] = finalMatrix.m11;
-            otherVec[2] = finalMatrix.m12;
-            otherVec[3] = finalMatrix.m13;
-
-            float bottomNormalX = otherVec[0] + tmpVec[0];
-            float bottomNormalY = otherVec[1] + tmpVec[1];
-            float bottomNormalZ = otherVec[2] + tmpVec[2];
-            float bottomDistance = otherVec[3] + tmpVec[3];
-            float bottomDot = bottomNormalX * bottomNormalX + bottomNormalY * bottomNormalY + bottomNormalZ * bottomNormalZ;
-            float bottomMagnitude = Mathf.Sqrt(bottomDot);
-            float bottomInvMagnitude = 1.0f / bottomMagnitude;
-            bottomNormalX *= bottomInvMagnitude;
-            bottomNormalY *= bottomInvMagnitude;
-            bottomNormalZ *= bottomInvMagnitude;
-            bottomDistance *= bottomInvMagnitude;
-            outPlanes[kPlaneFrustumBottom] = new Vector4(bottomNormalX, bottomNormalY, bottomNormalZ, bottomDistance);
-
-            float topNormalX = -otherVec[0] + tmpVec[0];
-            float topNormalY = -otherVec[1] + tmpVec[1];
-            float topNormalZ = -otherVec[2] + tmpVec[2];
-            float topDistance = -otherVec[3] + tmpVec[3];
-            float topDot = topNormalX * topNormalX + topNormalY * topNormalY + topNormalZ * topNormalZ;
-            float topMagnitude = Mathf.Sqrt(topDot);
-            float topInvMagnitude = 1.0f / topMagnitude;
-            topNormalX *= topInvMagnitude;
-            topNormalY *= topInvMagnitude;
-            topNormalZ *= topInvMagnitude;
-            topDistance *= topInvMagnitude;
-            outPlanes[kPlaneFrustumTop] = new Vector4(topNormalX, topNormalY, topNormalZ, topDistance);
-
-            // near & far
-            otherVec[0] = finalMatrix.m20;
-            otherVec[1] = finalMatrix.m21;
-            otherVec[2] = finalMatrix.m22;
-            otherVec[3] = finalMatrix.m23;
-
-            float nearNormalX = otherVec[0] + tmpVec[0];
-            float nearNormalY = otherVec[1] + tmpVec[1];
-            float nearNormalZ = otherVec[2] + tmpVec[2];
-            float nearDistance = otherVec[3] + tmpVec[3];
-            float nearDot = nearNormalX * nearNormalX + nearNormalY * nearNormalY + nearNormalZ * nearNormalZ;
-            float nearMagnitude = Mathf.Sqrt(nearDot);
-            float nearInvMagnitude = 1.0f / nearMagnitude;
-            nearNormalX *= nearInvMagnitude;
-            nearNormalY *= nearInvMagnitude;
-            nearNormalZ *= nearInvMagnitude;
-            nearDistance *= nearInvMagnitude;
-            outPlanes[kPlaneFrustumNear] = new Vector4(nearNormalX, nearNormalY, nearNormalZ, nearDistance);
-
-            float farNormalX = -otherVec[0] + tmpVec[0];
-            float farNormalY = -otherVec[1] + tmpVec[1];
-            float farNormalZ = -otherVec[2] + tmpVec[2];
-            float farDistance = -otherVec[3] + tmpVec[3];
-            float farDot = farNormalX * farNormalX + farNormalY * farNormalY + farNormalZ * farNormalZ;
-            float farMagnitude = Mathf.Sqrt(farDot);
-            float farInvMagnitude = 1.0f / farMagnitude;
-            farNormalX *= farInvMagnitude;
-            farNormalY *= farInvMagnitude;
-            farNormalZ *= farInvMagnitude;
-            farDistance *= farInvMagnitude;
-            outPlanes[kPlaneFrustumFar] = new Vector4(farNormalX, farNormalY, farNormalZ, farDistance);
-         }
 
         static float CalcGuardAnglePerspective(float angleInDeg, float resolution, float filterWidth, float normalBiasMax, float guardAngleMaxInDeg)
         {

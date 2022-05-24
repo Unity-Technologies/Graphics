@@ -297,8 +297,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!supportedUnits.Any(u => u == lightUnit))
                     lightUnit = supportedUnits.First();
                 UpdateAllLightValues();
-
-                HDLightRenderDatabase.instance.GetShadowRequestUpdateInfoAsRef(lightEntity).spotLightShape = m_SpotLightShape;
             }
         }
 
@@ -319,8 +317,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (type == HDLightType.Area)
                     ResolveAreaShape();
                 UpdateAllLightValues();
-
-                HDLightRenderDatabase.instance.GetShadowRequestUpdateInfoAsRef(lightEntity).areaLightShape = m_AreaLightShape;
             }
         }
 

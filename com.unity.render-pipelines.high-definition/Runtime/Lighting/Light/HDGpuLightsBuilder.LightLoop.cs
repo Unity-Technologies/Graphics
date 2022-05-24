@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Profiling;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -373,8 +372,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static Unity.Profiling.ProfilerMarker calculateLightDataTextureInfoMarker = new ProfilerMarker("CalculateLightDataTextureInfo");
-
         private unsafe void CalculateAllLightDataTextureInfo(
             CommandBuffer cmd,
             HDCamera hdCamera,
@@ -397,100 +394,108 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int directionalLightCount = visibleLights.sortedDirectionalLightCounts;
             int lightCounts = visibleLights.sortedLightCounts;
-            NativeArray<int> shadowIndices = new NativeArray<int>(lightCounts, Allocator.Temp);
-            HDAdditionalLightData.CalculateShadowIndices(cmd, hdCamera, in cullResults, visibleLights, lightEntities, hdShadowSettings, in shadowInitParams, debugDisplaySettings,
-                hierarchicalVarianceScreenSpaceShadowsData, m_ShadowManager, m_Asset,
-                m_DirectionalLights, m_Lights, shadowIndices, ref m_DebugSelectedLightShadowIndex, ref m_DebugSelectedLightShadowCount);
-
-            using (calculateLightDataTextureInfoMarker.Auto())
+            for (int sortKeyIndex = 0; sortKeyIndex < lightCounts; ++sortKeyIndex)
             {
-                for (int sortKeyIndex = 0; sortKeyIndex < lightCounts; ++sortKeyIndex)
+                uint sortKey = visibleLights.sortKeys[sortKeyIndex];
+                LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
+                GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
+                LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+                int lightIndex = (int)(sortKey & 0xFFFF);
+
+                int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
+                if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                    continue;
+
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
+                if (additionalLightData == null)
+                    continue;
+
+                //We utilize a raw light data pointer to avoid copying the entire structure
+                HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
+                ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
+                HDLightType lightType = processedEntity.lightType;
+
+                Light lightComponent = additionalLightData.legacyLight;
+
+                int shadowIndex = -1;
+
+                // Manage shadow requests
+                if (lightComponent != null && (processedEntity.shadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderShadowMap) != 0)
                 {
-                    uint sortKey = visibleLights.sortKeys[sortKeyIndex];
-                    LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
-                    GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-                    LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
-                    int lightIndex = (int)(sortKey & 0xFFFF);
+                    VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
+                    ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
+                    int shadowRequestCount;
+                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
 
-                    int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
-                    if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
-                        continue;
-
-                    HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
-                    if (additionalLightData == null)
-                        continue;
-
-                    //We utilize a raw light data pointer to avoid copying the entire structure
-                    HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
-                    ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
-                    HDLightType lightType = processedEntity.lightType;
-
-                    Light lightComponent = additionalLightData.legacyLight;
-
-                    int shadowIndex = shadowIndices[sortKeyIndex];
-                    if (gpuLightType == GPULightType.Directional)
+#if UNITY_EDITOR
+                    if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
+                            || debugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                        && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
                     {
-                        VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
-                        ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
-                        int directionalLightDataIndex = sortKeyIndex;
-                        DirectionalLightData* lightDataPtr = directionalLightArrayPtr + directionalLightDataIndex;
-                        ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
-                        CalculateDirectionalLightDataTextureInfo(
-                            ref lightData, cmd, light, lightComponent, additionalLightData,
-                            hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
+                        m_DebugSelectedLightShadowIndex = shadowIndex;
+                        m_DebugSelectedLightShadowCount = shadowRequestCount;
                     }
-                    else
-                    {
-                        int lightDataIndex = sortKeyIndex - directionalLightCount;
-                        LightData* lightDataPtr = lightArrayPtr + lightDataIndex;
-                        ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
-                        CalculateLightDataTextureInfo(
-                            ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
-                            hdCamera, contactShadowScalableSetting,
-                            lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
-                    }
+#endif
                 }
 
-                int dgiLightCounts = visibleLights.sortedDGILightCounts;
-                for (int sortKeyIndex = 0; sortKeyIndex < dgiLightCounts; ++sortKeyIndex)
+                if (gpuLightType == GPULightType.Directional)
                 {
-                    uint sortKey = visibleLights.sortKeysDGI[sortKeyIndex];
-                    HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var lightCategory, out var gpuLightType, out var lightVolumeType, out var lightIndex);
-
-                    int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
-                    if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
-                        continue;
-
-                    HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
-                    if (additionalLightData == null)
-                        continue;
-
-                    //We utilize a raw light data pointer to avoid copying the entire structure
-                    HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
-                    ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
-                    HDLightType lightType = processedEntity.lightType;
-
-                    Light lightComponent = additionalLightData.legacyLight;
-
-                    // use the same shadow index from the previously computed one for visible lights
-                    int shadowIndex = additionalLightData.shadowIndex;
-
-                    if (gpuLightType != GPULightType.Directional)
-                    {
-                        int lightDataIndex = sortKeyIndex;
-                        LightData* lightDataPtr = dgiLightArrayPtr + lightDataIndex;
-                        ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
-                        CalculateLightDataTextureInfo(
-                            ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
-                            hdCamera, contactShadowScalableSetting,
-                            lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
-                    }
+                    VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
+                    ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
+                    int directionalLightDataIndex = sortKeyIndex;
+                    DirectionalLightData* lightDataPtr = directionalLightArrayPtr + directionalLightDataIndex;
+                    ref DirectionalLightData lightData = ref UnsafeUtility.AsRef<DirectionalLightData>(lightDataPtr);
+                    CalculateDirectionalLightDataTextureInfo(
+                        ref lightData, cmd, light, lightComponent, additionalLightData,
+                        hdCamera, processedEntity.shadowMapFlags, directionalLightDataIndex, shadowIndex);
+                }
+                else
+                {
+                    int lightDataIndex = sortKeyIndex - directionalLightCount;
+                    LightData* lightDataPtr = lightArrayPtr + lightDataIndex;
+                    ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
+                    CalculateLightDataTextureInfo(
+                        ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
+                        hdCamera, contactShadowScalableSetting,
+                        lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
                 }
             }
 
-            shadowIndices.Dispose();
+            int dgiLightCounts = visibleLights.sortedDGILightCounts;
+            for (int sortKeyIndex = 0; sortKeyIndex < dgiLightCounts; ++sortKeyIndex)
+            {
+                uint sortKey = visibleLights.sortKeysDGI[sortKeyIndex];
+                HDGpuLightsBuilder.UnpackLightSortKey(sortKey, out var lightCategory, out var gpuLightType, out var lightVolumeType, out var lightIndex);
+
+                int dataIndex = visibleLights.visibleLightEntityDataIndices[lightIndex];
+                if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                    continue;
+
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
+                if (additionalLightData == null)
+                    continue;
+
+                //We utilize a raw light data pointer to avoid copying the entire structure
+                HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
+                ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
+                HDLightType lightType = processedEntity.lightType;
+
+                Light lightComponent = additionalLightData.legacyLight;
+
+                // use the same shadow index from the previously computed one for visible lights
+                int shadowIndex = additionalLightData.shadowIndex;
+
+                if (gpuLightType != GPULightType.Directional)
+                {
+                    int lightDataIndex = sortKeyIndex;
+                    LightData* lightDataPtr = dgiLightArrayPtr + lightDataIndex;
+                    ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
+                    CalculateLightDataTextureInfo(
+                        ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
+                        hdCamera, contactShadowScalableSetting,
+                        lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex, gpuLightType, hierarchicalVarianceScreenSpaceShadowsData);
+                }
+            }
         }
     }
-
-
 }

@@ -5,10 +5,7 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ugui",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
-        "Unity.VisualEffectGraph.Runtime",
-		"Unity.Collections",
-		"Unity.Burst",
-		"Unity.Mathematics"
+        "Unity.VisualEffectGraph.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

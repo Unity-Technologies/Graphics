@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -60,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public RTHandle                             renderTarget { get { return m_Atlas; } }
-        protected List<HDShadowRequestHandle>             m_ShadowRequests = new List<HDShadowRequestHandle>();
+        protected List<HDShadowRequest>             m_ShadowRequests = new List<HDShadowRequest>();
 
         public int                  width { get; private set; }
         public int                  height  { get; private set; }
@@ -166,7 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void AddShadowRequest(HDShadowRequestHandle shadowRequest)
+        internal void AddShadowRequest(HDShadowRequest shadowRequest)
         {
             m_ShadowRequests.Add(shadowRequest);
         }
@@ -200,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct RenderShadowsParameters
         {
             public ShaderVariablesGlobal    globalCB;
-            public List<HDShadowRequestHandle>    shadowRequests;
+            public List<HDShadowRequest>    shadowRequests;
             public Material                 clearMaterial;
             public bool                     debugClearAtlas;
             public int                      atlasShaderID;
@@ -232,8 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        public static Vector4[] frustumPlanesScratchpad = new Vector4[HDShadowRequest.frustumPlanesCount];
-        static unsafe void RenderShadows(  in RenderShadowsParameters  parameters,
+        static void RenderShadows(  in RenderShadowsParameters  parameters,
                                     RTHandle                    atlasRenderTexture,
                                     ShadowDrawingSettings       shadowDrawSettings,
                                     ScriptableRenderContext     renderContext,
@@ -247,76 +244,59 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.debugClearAtlas)
                 CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
 
-            NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
-            ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
-            NativeList<Vector4> frustumPlanesStorage = HDLightRenderDatabase.instance.frustumPlanesStorage;
-            ref UnsafeList<Vector4> frustumPlanesStorageUnsafe = ref *frustumPlanesStorage.GetUnsafeList();
-
-            Vector4[] planesScratchpad = frustumPlanesScratchpad;
-
-            int planesMemcpyByteCount = UnsafeUtility.SizeOf<Vector4>() * HDShadowRequest.frustumPlanesCount;
-
-            fixed (Vector4* planesScratchpadPtr = frustumPlanesScratchpad)
+            foreach (var shadowRequest in parameters.shadowRequests)
             {
-                foreach (var shadowRequestHandle in parameters.shadowRequests)
-                {
-                    ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
-                    bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && renderingOnAShadowCache :
-                                                                                                                shadowRequest.shouldUseCachedShadowData;
+                bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && renderingOnAShadowCache :
+                                                                                                            shadowRequest.shouldUseCachedShadowData;
 
-                    if (shouldSkipRequest)
-                        continue;
+                if (shouldSkipRequest)
+                    continue;
 
-                    bool mixedInDynamicAtlas = false;
+                bool mixedInDynamicAtlas = false;
 #if MIXED_CACHED_SHADOW
-                    if (shadowRequest.isMixedCached)
-                    {
-                        mixedInDynamicAtlas = !renderingOnAShadowCache;
-                        shadowDrawSettings.objectsFilter = mixedInDynamicAtlas ? ShadowObjectsFilter.DynamicOnly : ShadowObjectsFilter.StaticOnly;
-                    }
-                    else
-                    {
-                        shadowDrawSettings.objectsFilter = ShadowObjectsFilter.AllObjects;
-                    }
+                if (shadowRequest.isMixedCached)
+                {
+                    mixedInDynamicAtlas = !renderingOnAShadowCache;
+                    shadowDrawSettings.objectsFilter = mixedInDynamicAtlas ? ShadowObjectsFilter.DynamicOnly : ShadowObjectsFilter.StaticOnly;
+                }
+                else
+                {
+                    shadowDrawSettings.objectsFilter = ShadowObjectsFilter.AllObjects;
+                }
 #endif
 
-                    cmd.SetGlobalDepthBias(1.0f, shadowRequest.slopeBias);
-                    cmd.SetViewport(renderingOnAShadowCache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport);
+                cmd.SetGlobalDepthBias(1.0f, shadowRequest.slopeBias);
+                cmd.SetViewport(renderingOnAShadowCache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport);
 
-                    cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
+                cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
 
-                    if (!mixedInDynamicAtlas)
-                        CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
+                if (!mixedInDynamicAtlas)
+                    CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
 
-                    shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
-                    shadowDrawSettings.splitData = shadowRequest.splitData;
+                shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
+                shadowDrawSettings.splitData = shadowRequest.splitData;
 
-                    var globalCB = parameters.globalCB;
-                    // Setup matrices for shadow rendering:
-                    Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
-                    globalCB._ViewMatrix = shadowRequest.view;
-                    globalCB._InvViewMatrix = shadowRequest.view.inverse;
-                    globalCB._ProjMatrix = shadowRequest.deviceProjectionYFlip;
-                    globalCB._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
-                    globalCB._ViewProjMatrix = viewProjection;
-                    globalCB._InvViewProjMatrix = viewProjection.inverse;
-                    globalCB._SlopeScaleDepthBias = -shadowRequest.slopeBias;
+                var globalCB = parameters.globalCB;
+                // Setup matrices for shadow rendering:
+                Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
+                globalCB._ViewMatrix = shadowRequest.view;
+                globalCB._InvViewMatrix = shadowRequest.view.inverse;
+                globalCB._ProjMatrix = shadowRequest.deviceProjectionYFlip;
+                globalCB._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
+                globalCB._ViewProjMatrix = viewProjection;
+                globalCB._InvViewProjMatrix = viewProjection.inverse;
+                globalCB._SlopeScaleDepthBias = -shadowRequest.slopeBias;
 
-                    constantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                constantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
-                    UnsafeUtility.MemCpy(planesScratchpadPtr, frustumPlanesStorageUnsafe.Ptr + shadowRequestHandle.storageIndexForFrustumPlanes, planesMemcpyByteCount);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
-                    cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, planesScratchpad);
+                // TODO: remove this execute when DrawShadows will use a CommandBuffer
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
-                    // TODO: remove this execute when DrawShadows will use a CommandBuffer
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    renderContext.DrawShadows(ref shadowDrawSettings);
-                }
+                renderContext.DrawShadows(ref shadowDrawSettings);
             }
-
-
             cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
             cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.
 
@@ -354,13 +334,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We need to store in which of the two moment texture a request will have its last version stored in for a final patch up at the end.
                 var finalAtlasTexture = stackalloc int[parameters.shadowRequests.Count];
 
-                NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
-                ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
-
                 int requestIdx = 0;
-                foreach (var shadowRequestHandle in parameters.shadowRequests)
+                foreach (var shadowRequest in parameters.shadowRequests)
                 {
-                    ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
                     bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && blurOnACache :
                                                                                             shadowRequest.shouldUseCachedShadowData;
 
@@ -412,8 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMapsCopyToAtlas)))
                         {
-                            var shadowRequestHandle = parameters.shadowRequests[i];
-                            ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
+                            var shadowRequest = parameters.shadowRequests[i];
                             var viewport = blurOnACache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport;
                             int downsampledWidth = Mathf.CeilToInt(viewport.width * 0.5f);
                             int downsampledHeight = Mathf.CeilToInt(viewport.height * 0.5f);
@@ -432,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static unsafe void IMBlurMoment(   RenderShadowsParameters parameters,
+        static void IMBlurMoment(   RenderShadowsParameters parameters,
                                     RTHandle atlas,
                                     RTHandle atlasMoment,
                                     RTHandle intermediateSummedAreaTexture,
@@ -454,14 +429,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, intermediateSummedAreaTexture, ClearFlag.Color, Color.black);
                 CoreUtils.SetRenderTarget(cmd, summedAreaTexture, ClearFlag.Color, Color.black);
 
-                NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
-                ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
 
                 // Alright, so the thing here is that for every sub-shadow map of the atlas, we need to generate the moment shadow map
-                foreach (var shadowRequestHandle in parameters.shadowRequests)
+                foreach (var shadowRequest in parameters.shadowRequests)
                 {
-                    ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
-
                     // Let's bind the resources of this
                     cmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._ShadowmapAtlas, atlas);
                     cmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._MomentShadowAtlas, atlasMoment);
