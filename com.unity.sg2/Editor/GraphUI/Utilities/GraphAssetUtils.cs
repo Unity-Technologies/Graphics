@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                ShaderGraphAssetUtils.HandleCreate(pathName); // TODO: HandleCreateSubGraph
+                ShaderGraphAssetUtils.HandleCreate(pathName, true);
                 var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(pathName);
                 Selection.activeObject = obj;
             }
