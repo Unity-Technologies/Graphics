@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph
         public static void HandleCreate(string path) // TODO: HandleCreateSubGraph
         {
             HandleSave(path, CreateNewAssetGraph());
+            AssetDatabase.Refresh();
         }
         public static void HandleImport(AssetImportContext ctx)
         {
