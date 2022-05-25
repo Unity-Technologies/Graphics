@@ -862,6 +862,79 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
+        internal void DispatchPropagationOutputDynamicSH(
+            CommandBuffer cmd,
+            Vector3Int size,
+            ProbeVolumePipelineData pipelineData,
+            ProbeVolumePropagationPipelineData propagationPipelineData,
+            RTHandle probeVolumeAtlasSHRTHandle)
+        {
+            int numProbes = size.x * size.y * size.z;
+            var kernel = _PropagationCombineShader.FindKernel("CombinePropagationAxis");
+            var shader = _PropagationCombineShader;
+
+            SetBasisKeywords(
+                ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp,
+                ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft,
+                shader
+            );
+
+            var obb = pipelineData.BoundingBox;
+
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, (Vector3)size);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolutionInverse, new Vector3(
+                1.0f / size.x,
+                1.0f / size.y,
+                1.0f / size.z
+            ));
+
+            var sliceCount = HDRenderPipeline.GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+            var resolutionAndSliceCount = new Vector4(
+                size.x,
+                size.y,
+                size.z,
+                sliceCount
+            );
+            var resolutionAndSliceCountInverse = new Vector4(
+                1.0f / size.x,
+                1.0f / size.y,
+                1.0f / size.z,
+                1.0f / sliceCount
+            );
+            
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, resolutionAndSliceCount);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCountInverse, resolutionAndSliceCountInverse);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateRight, Vector3.right);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateUp, Vector3.up);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateForward, Vector3.forward);
+
+            cmd.SetComputeIntParam(shader, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, numProbes);
+
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasScale, Vector3.one);
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasBias, pipelineData.Bias);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL01Buffer, pipelineData.SHL01Buffer);
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadSHL2Buffer, pipelineData.SHL2Buffer);
+
+            cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasReadValidityBuffer, pipelineData.ValidityBuffer);
+            cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._ProbeVolumeAtlasWriteTextureSH, probeVolumeAtlasSHRTHandle);
+
+            cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", propagationPipelineData.GetWriteRadianceCacheAxis());
+            cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
+
+            cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", 1f);
+            cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", 0f);
+            cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
+
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
+
+            cmd.SetComputeFloatParam(shader, "_PropagationSharpness", 2f);
+            cmd.SetComputeFloatParam(shader, "_Sharpness", 6f);
+
+            int dispatchX = (numProbes + 63) / 64;
+            cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+        }
+        
         internal bool CleanupPropagation(ProbeVolumeHandle probeVolume)
         {
             ref var propagationPipelineData = ref probeVolume.GetPropagationPipelineData();

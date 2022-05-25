@@ -133,6 +133,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     probeVolume.CopyDirectLightingToMixed();
                 }
             }
+            
+            EditorGUILayout.Space();
+            GUI.enabled = true;
+            if (GUILayout.Button("Bake current radiance"))
+            {
+                var targets = serialized.GetTargetObjects();
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    var probeVolume = (ProbeVolume)targets[i];
+                    probeVolume.CopyDynamicSHToAsset();
+                }
+            }
         }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)

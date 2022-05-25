@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VisibleProbeVolumeDataBufferDefault = new ComputeBuffer(1, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
         }
 
-        static internal int GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes encodingMode)
+        internal static int GetDepthSliceCountFromEncodingMode(ProbeVolumesEncodingModes encodingMode)
         {
             switch (encodingMode)
             {
