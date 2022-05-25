@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<ReceiveData>("Receive Color Buffer", out var passData))
             {
-                passData.userCount = Const.userCount;
+                passData.userCount = SocketServer.Instance.userCount;
 
                 passData.layout = GetViewportLayout(passData.userCount);
 
@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (SendData data, RenderGraphContext context) =>
                     {
                         int currentFrameID = CurrentFrameID;
-                        int rendererId = Const.userID;
+                        int rendererId = SocketClient.Instance.UserInfo.userID;
 
                         RttTestUtilities.BeginEncodeYuv(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
 

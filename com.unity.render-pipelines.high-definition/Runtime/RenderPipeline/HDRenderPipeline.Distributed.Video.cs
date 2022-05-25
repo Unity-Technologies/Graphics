@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         s_videoCodecs ??= new Codec[1];
                         break;
                     case DistributedMode.Merger:
-                        s_videoCodecs ??= new Codec[Const.userCount];
+                        s_videoCodecs ??= new Codec[SocketServer.Instance.userCount];
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void SendEncodedData(IntPtr data, int size, int frameId)
         {
-            var rendererId = Const.userID;
+            var rendererId = SocketClient.Instance.UserInfo.userID;
             Profiling.Profiler.BeginSample("Send Encoded Data");
 
             RttTestUtilities.FinishReadBack(RttTestUtilities.Role.Renderer, (uint)frameId, rendererId);
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<ReceiveDataVideo>("Receive Color Buffer (Video Decode)", out var passData))
             {
-                passData.userCount = Const.userCount;
+                passData.userCount = SocketServer.Instance.userCount;
 
                 passData.layout = GetViewportLayout(passData.userCount);
 
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (SendDataVideo data, RenderGraphContext context) =>
                     {
                         int currentFrameID = CurrentFrameID;
-                        int rendererId = Const.userID;
+                        int rendererId = SocketClient.Instance.UserInfo.userID;
 
                         RttTestUtilities.BeginEncodeYuv(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
 
