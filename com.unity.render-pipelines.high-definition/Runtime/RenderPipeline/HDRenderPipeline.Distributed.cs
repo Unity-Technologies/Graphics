@@ -30,6 +30,13 @@ namespace UnityEngine.Rendering.HighDefinition
             s_distributedMode = renderingMode;
             // Video encoding only supports vulkan at this point
             s_videoMode = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan && useVideoEncoding;
+
+            if (s_distributedMode == DistributedMode.Renderer)
+            {
+                Const.UserInfo info = SocketClient.Instance.UserInfo;
+                var layout = GetViewportLayout(info.userCount);
+                Screen.SetResolution(info.mergerWidth / layout.x, info.mergerHeight / layout.y, Screen.fullScreenMode);
+            }
 #endif
         }
 
