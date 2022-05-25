@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             foreach (var port in nodeReader.GetPorts())
             {
-                var staticField = port.GetTypeField().GetSubField<bool>("IsStatic");
+                var staticField = port.GetTypeField()?.GetSubField<bool>("IsStatic");
                 var isStatic = staticField?.GetData() ?? false;
                 if (!isStatic) continue;
 

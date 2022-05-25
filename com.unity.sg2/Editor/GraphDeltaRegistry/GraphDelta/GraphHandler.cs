@@ -115,6 +115,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         {
                             ReconcretizeNode(node.ID.FullPath);
                         }
+                        if (builder.GetRegistryKey().Name == ContextBuilder.kRegistryKey.Name)
+                        {
+                            ReconcretizeNode(node.ID.FullPath);
+                        }
                     }
 
                 }

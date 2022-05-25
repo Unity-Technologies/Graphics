@@ -7,24 +7,44 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    [Serializable]
-    public abstract class BaseShaderGraphConstant : IConstant //, ISerializationCallbackReceiver
-    {
-        [SerializeField]
-        private object tempSerializedValue;
+    //public bool TryGetNodeReader(out NodeHandler reader)
+    //{
+    //    try
+    //    {
+    //        if (graphDataName == null)
+    //        {
+    //            reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
+    //            return true;
+    //        }
 
+    //        reader = graphHandler.GetNode(graphDataName);
+
+    //        return reader != null;
+    //    }
+    //    catch (Exception exception)
+    //    {
+    //        AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
+    //        reader = null;
+    //        return false;
+    //    }
+
+
+    [Serializable]
+    public abstract class BaseShaderGraphConstant : IConstant
+    {
         [SerializeReference]
         protected ShaderGraphModel graphModel;
-
+        [SerializeField]
+        protected string nodeName;
+        [SerializeField]
+        protected string portName;
         GraphHandler graphHandler => graphModel.GraphHandler;
 
-        [SerializeField]
-        protected string nodeName, portName;
         public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null;
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;
-            var nodeReader = graphHandler.GetNode(nodeName);
+            var nodeReader = graphHandler.GetNode(nodeName) ?? graphModel.RegistryInstance.defaultTopologies.GetNode(nodeName);
             var portReader = nodeReader.GetPort(portName);
             return portReader.GetTypeField();
         }
