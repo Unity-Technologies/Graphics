@@ -294,10 +294,10 @@ To write vertex shader code in the Custom Renderers Pass shader, use the ApplyMe
 
 For its input, this method takes:
 
-1. An AttributeMesh structure that contains the current vertex and its properties. For information about the properties in this structure, and which defines they map to, see [AttributeMesh](#AtrributeMesh).
+1. An AttributesMesh structure that contains the current vertex and its properties. For information about the properties in this structure, and which defines they map to, see [AttributesMesh](#AttributesMesh).
 2. A float3 that contains the current `timeParameters`. In this float, the **x** value refers to time in seconds, the **y** value is sin(x) and the **z** value is cos(x).
 
-For its output, this method returns an `AttributeMesh` that represents the modified vertex. The usual workflow is to modify the input `AttributeMesh` and return that.
+For its output, this method returns an `AttributesMesh` that represents the modified vertex. The usual workflow is to modify the input `AttributesMesh` and return that.
 
 Note that transformations in this method are in object space. If you want to apply transformations in world space:
 
@@ -316,9 +316,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 }
 ```
 
-<a name="AtrributeMesh"></a>
+<a name="AttributesMesh"></a>
 
-#### AtrributeMesh
+#### AttributesMesh
 
 The `AttributesMesh` structure has the following definitions:
 
