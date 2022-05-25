@@ -12,8 +12,8 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [CustomEditor(typeof(NewShaderGraphImporter))]
-    class NewShaderGraphImporterEditor : ScriptedImporterEditor
+    [CustomEditor(typeof(ShaderGraphAssetImpoter))]
+    class ShaderGraphAssetImporterEditor : ScriptedImporterEditor
     {
         MaterialEditor materialEditor = null;
         public override void OnInspectorGUI()

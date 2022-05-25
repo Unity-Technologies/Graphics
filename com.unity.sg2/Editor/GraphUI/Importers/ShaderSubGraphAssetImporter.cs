@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
     [ScriptedImporter(1, Extension, -903)]
-    class NewShaderSubGraphImporter : ScriptedImporter
+    class ShaderSubGraphAssetImporter : ScriptedImporter
     {
         public const string Extension = ShaderGraphStencil.SubGraphExtension;
 

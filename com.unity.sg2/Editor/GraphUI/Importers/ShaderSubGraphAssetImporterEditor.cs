@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [CustomEditor(typeof(ShaderSubGraphImporter))]
-    public class ShaderSubGraphEditor : AssetImporterEditor
+    [CustomEditor(typeof(ShaderSubGraphAssetImporter))]
+    public class ShaderSubGraphAssetImporterEditor : AssetImporterEditor
     {
         [OnOpenAsset(0)]
         public static bool OnOpenShaderSubGraph(int instanceID, int line)
