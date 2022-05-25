@@ -14,8 +14,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private static readonly string GET_FD_METHOD_NAME = "get_FunctionDescriptor";
         private static readonly string GET_ND_METHOD_NAME = "get_NodeDescriptor";
 
+        private static Registry s_registry = null;
+
         public static Registry CreateDefaultRegistry(Action<RegistryKey, Type> afterNodeRegistered = null)
         {
+            if (s_registry != null) return s_registry;
+
             var reg = new Registry();
             reg.Register<GraphType>();
             reg.Register<GraphTypeAssignment>();
@@ -69,7 +73,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                 }
             }
-            return reg;
+            return s_registry = reg;
         }
     }
 }
