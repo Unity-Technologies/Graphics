@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
                 }
 
-                if (cullingResults.GetShadowCasterBounds(shadowRequest.lightIndex, out Bounds boundsUnused))
+                if (!cullingResults.GetShadowCasterBounds(shadowRequest.lightIndex, out Bounds boundsUnused))
                 {
                     // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Rendering.CullingResults.GetShadowCasterBounds.html
                     // returns true if the light affects at least one shadow casting object in the Scene.
