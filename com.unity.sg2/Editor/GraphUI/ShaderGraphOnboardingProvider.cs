@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var promptTitle = string.Format(k_PromptToCreateTitle, template.GraphTypeName);
             var prompt = string.Format(k_PromptToCreate, template.GraphTypeName);
 
-            var path = EditorUtility.SaveFilePanelInProject(promptTitle, template.DefaultAssetName, NewShaderGraphImporter.Extension, prompt);
+            var path = EditorUtility.SaveFilePanelInProject(promptTitle, template.DefaultAssetName, ShaderGraphImporter.Extension, prompt);
             if (path.Length != 0)
             {
                 ShaderGraphAssetUtils.HandleCreate(path);
