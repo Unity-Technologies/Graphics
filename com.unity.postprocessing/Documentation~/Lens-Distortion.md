@@ -2,10 +2,10 @@
 
 The **Lens Distortion** effect simulates distortion caused by the shape of a real-world camera lens. You can adjust the intensity of this effect between barrel distortion and pincushion distortion.
 
-![Scene without Lens Distortion effect](images/no-lens-distortion.png)  
+![Scene without Lens Distortion effect](images/no-lens-distortion.png)
 Scene without **Lens Distortion**.
 
-![Scene with Lens Distortion effect](images/lens-distortion.png)  
+![Scene with Lens Distortion effect](images/lens-distortion.png)
 Scene with **Lens Distortion**.
 
 ### Properties

@@ -36,7 +36,7 @@ Always apply **Tonemapping** when using an HDR camera, otherwise color intensity
 
 ### Properties
 
-![Tonemapping UI](images/tonemapping.png)  
+![Tonemapping UI](images/tonemapping.png)
 
 | Property          | Function                                                     |
 | :----------------- | :------------------------------------------------------------ |
@@ -111,31 +111,31 @@ Use **Trackballs** to perform three-way color grading. Adjust the position of th
 
 **YRGB Curves** are only available in the **Low Definition Range (LDR)** mode. These curves, also called `Master`, `Red`, `Green` and `Blue` affect the selected input channel's intensity across the whole image. The X axis of the graph represents input intensity and the Y axis represents output intensity for the selected channel. Use these curves to adjust the appearance of attributes such as contrast and brightness.
 
-![YRGB Curves UI](images/yrgb-curves.png)  
+![YRGB Curves UI](images/yrgb-curves.png)
 
 ### Hue vs Hue
 
 Use **Hue vs Hue** to shift hues within specific ranges. This curve shifts the input hue (X axis) according to the output hue (Y axis). Use this setting to fine tune hues of specific ranges or perform color replacement.
 
-![Hue vs Hue UI](images/hue-vs-hue.png)  
+![Hue vs Hue UI](images/hue-vs-hue.png)
 
 ### Hue vs Sat
 
 Use **Hue vs Sat** to adjust the saturation of hues within specific ranges. This curve adjusts saturation (Y axis) according to the input hue (X axis). Use this setting to tone down particularly bright areas or create artistic effects.
 
-![Hue vs Sat UI](images/hue-vs-sat.png)  
+![Hue vs Sat UI](images/hue-vs-sat.png)
 
 ### Sat vs Sat
 
 Use **Sat vs Sat** to adjust the saturation of areas of certain saturation. This curve adjusts saturation (Y axis) according to the input saturation (X axis). Use this setting to fine tune saturation adjustments made with settings from the [**Tone**](#tone) section.
 
-![Sat vs Sat UI](images/sat-vs-sat.png)  
+![Sat vs Sat UI](images/sat-vs-sat.png)
 
 ### Lum vs Sat
 
 Use **Lum vs Sat** to adjust the saturation of areas of certain luminance. This curve adjusts saturation (Y axis) according to the input luminance (X axis). use this setting to desaturate areas of darkness to provide an interesting visual contrast.
 
-![Lum vs Sat UI](images/lum-vs-sat.png)  
+![Lum vs Sat UI](images/lum-vs-sat.png)
 
 ### Requirements
 
