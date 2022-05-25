@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 {
     public static class ShaderGraphAssetUtils
     {
-        public static ShaderGraphAsset CreateNewAssetGraph()
+        public static ShaderGraphAsset CreateNewAssetGraph(bool isSubGraph)
         {
             var defaultRegistry = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
             var contextKey = Registry.ResolveKey<ShaderGraphContext>();
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
 
             var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             asset.CreateGraph(typeof(ShaderGraphStencil));
-            asset.ShaderGraphModel.Init(graph, false);
+            asset.ShaderGraphModel.Init(graph, isSubGraph);
             return asset;
         }
 
@@ -40,9 +40,9 @@ namespace UnityEditor.ShaderGraph
             var asset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
             return asset;
         }
-        public static void HandleCreate(string path) // TODO: HandleCreateSubGraph
+        public static void HandleCreate(string path, bool isSubGraph = false) // TODO: HandleCreateSubGraph
         {
-            HandleSave(path, CreateNewAssetGraph());
+            HandleSave(path, CreateNewAssetGraph(isSubGraph));
             AssetDatabase.Refresh();
         }
         public static void HandleImport(AssetImportContext ctx)
