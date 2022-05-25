@@ -61,11 +61,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphHandlerBox.Init(graph);
             this.isSubGraph = isSubGraph;
 
+            // Generate context nodes as needed.
+            // TODO: This should be handled by a more generalized synchronization step.
             var contextNames = GraphHandler
-            .GetNodes()
-            .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
-            .Select(nodeHandler => nodeHandler.ID.LocalPath)
-            .ToList();
+                .GetNodes()
+                .Where(nodeHandler => nodeHandler.GetRegistryKey().Name == Registry.ResolveKey<ContextBuilder>().Name)
+                .Select(nodeHandler => nodeHandler.ID.LocalPath)
+                .ToList();
 
             foreach (var localPath in contextNames)
             {
