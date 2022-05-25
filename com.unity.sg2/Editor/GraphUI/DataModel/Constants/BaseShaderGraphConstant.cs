@@ -7,28 +7,6 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    //public bool TryGetNodeReader(out NodeHandler reader)
-    //{
-    //    try
-    //    {
-    //        if (graphDataName == null)
-    //        {
-    //            reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
-    //            return true;
-    //        }
-
-    //        reader = graphHandler.GetNode(graphDataName);
-
-    //        return reader != null;
-    //    }
-    //    catch (Exception exception)
-    //    {
-    //        AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
-    //        reader = null;
-    //        return false;
-    //    }
-
-
     [Serializable]
     public abstract class BaseShaderGraphConstant : IConstant
     {
@@ -44,7 +22,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;
-            var nodeReader = graphHandler.GetNode(nodeName) ?? graphModel.RegistryInstance.defaultTopologies.GetNode(nodeName);
+            var nodeReader = graphHandler.GetNode(nodeName)
+                ?? graphModel.RegistryInstance.defaultTopologies.GetNode(nodeName); // TODO: shouldn't need to special case if we're a searcher preview.
             var portReader = nodeReader.GetPort(portName);
             return portReader.GetTypeField();
         }
@@ -75,8 +54,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void Initialize(TypeHandle constantTypeHandle) { }
         public IConstant Clone() { return null; }
-
-        //public void OnBeforeSerialize() => tempSerializedValue = ObjectValue;
-        //public void OnAfterDeserialize() => ObjectValue = tempSerializedValue;
     }
 }
