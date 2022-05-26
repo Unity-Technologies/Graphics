@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
             }
             foreach (var port in output.GetPorts())
             {
-                if (!port.IsInput)
+                if (!port.IsInput && !port.LocalID.StartsWith("out_")) //temp: Filter context outputs.
                     INodeDefinitionBuilder.CopyPort(port, node, registry);
             }
 
