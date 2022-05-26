@@ -21,20 +21,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         No messaging or error state handling or checking on Registry actions.
         Need an error handler for definition interface that can be used for concretization as well.
     */
-    //public struct Box<T> : ISerializable
-    //{
-    //    public T data;
-
-    //    Box(SerializationInfo info, StreamingContext context)
-    //    {
-    //        data = (T)info.GetValue("value", typeof(T));
-    //    }
-    //    public void GetObjectData(SerializationInfo info, StreamingContext context)
-    //    {
-    //        info.AddValue("value", data);
-    //    }
-    //}
-
 
     [Serializable]
     public struct RegistryKey : ISerializable
@@ -163,13 +149,5 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private IRegistryEntry GetBuilder(RegistryKey key) => builders.TryGetValue(key, out var builder) ? builder : null;
         public static RegistryKey ResolveKey<T>() where T : IRegistryEntry => Activator.CreateInstance<T>().GetRegistryKey();
-
-        public bool IsLatestVersion(RegistryKey key)
-        {
-            int version = 0;
-            foreach (var versions in builders.Where(kv => kv.Key.Name == key.Name))
-                version = Math.Max(version, versions.Key.Version);
-            return key.Version >= version;
-        }
     }
 }

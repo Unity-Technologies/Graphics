@@ -81,7 +81,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal IContextDescriptor GetContextDescriptor(RegistryKey key) => Registry.GetContextDescriptor(key);
 
         internal RegistryKey ResolveKey<T>() where T : IRegistryEntry => Registry.ResolveKey<T>();
-        internal bool IsLatestVersion(RegistryKey key) => Registry.IsLatestVersion(key);
 
         internal void InitializeDefaults()
         {
