@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // custom-begin:
     public
     // custom-end
-    abstract partial class HDShadowAtlas
+    abstract partial class HDShadowAtlas : IDisposable
     {
         // custom-begin
         public
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public RTHandle                             renderTarget { get { return m_Atlas; } }
-        protected List<HDShadowRequestHandle>             m_ShadowRequests = new List<HDShadowRequestHandle>();
+        protected NativeList<HDShadowRequestHandle>             m_ShadowRequests; // Lifetime handled by HDShadowManager
 
         public int                  width { get; private set; }
         public int                  height  { get; private set; }
@@ -88,6 +88,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // This is only a reference that is hold by the atlas, but its lifetime is responsibility of the shadow manager.
         ConstantBuffer<ShaderVariablesGlobal> m_GlobalConstantBuffer;
 
+        internal NativeList<HDShadowResolutionRequest> shadowResolutionRequestStorage => HDShadowManager.instance.shadowResolutionRequestStorage;
+
         // This must be true for atlas that contain cached data (effectively this
         // drives what to do with mixed cached shadow map -> if true we filter with only static
         // if false we filter only for dynamic)
@@ -97,6 +99,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual void InitAtlas(HDShadowAtlasInitParameters initParams)
         {
+            if (!m_ShadowRequests.IsCreated)
+                m_ShadowRequests = new NativeList<HDShadowRequestHandle>(Allocator.Persistent);
+            else
+                m_ShadowRequests.Clear();
+
             this.width = initParams.width;
             this.height = initParams.height;
             m_FilterMode = initParams.filterMode;
@@ -171,6 +178,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowRequests.Add(shadowRequest);
         }
 
+        internal static void AddShadowRequest(ref HDDynamicShadowAtlasUnmanaged shadowAtlas, HDShadowRequestHandle shadowRequest)
+        {
+            shadowAtlas.shadowRequests.Add(shadowRequest);
+        }
+
+        internal static void AddShadowRequest(ref HDCachedShadowAtlasUnmanaged shadowAtlas, HDShadowRequestHandle shadowRequest)
+        {
+            shadowAtlas.shadowRequests.Add(shadowRequest);
+        }
+
         public void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
         {
             m_LightingDebugSettings = lightingDebugSettings;
@@ -178,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderShadows(CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (m_ShadowRequests.Count == 0)
+            if (m_ShadowRequests.Length == 0)
                 return;
 
             ShadowDrawingSettings shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
@@ -200,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct RenderShadowsParameters
         {
             public ShaderVariablesGlobal    globalCB;
-            public List<HDShadowRequestHandle>    shadowRequests;
+            public NativeList<HDShadowRequestHandle>    shadowRequests;
             public Material                 clearMaterial;
             public bool                     debugClearAtlas;
             public int                      atlasShaderID;
@@ -352,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorArrayParam(shadowBlurMomentsCS, HDShaderIDs._BlurWeightsStorage, evsmBlurWeights);
 
                 // We need to store in which of the two moment texture a request will have its last version stored in for a final patch up at the end.
-                var finalAtlasTexture = stackalloc int[parameters.shadowRequests.Count];
+                var finalAtlasTexture = stackalloc int[parameters.shadowRequests.Length];
 
                 NativeList<HDShadowRequest> requestStorage = HDLightRenderDatabase.instance.hdShadowRequestStorage;
                 ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
@@ -406,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // We patch up the atlas with the requests that, due to different count of blur passes, remained in the copy
-                for (int i = 0; i < parameters.shadowRequests.Count; ++i)
+                for (int i = 0; i < parameters.shadowRequests.Length; ++i)
                 {
                     if (finalAtlasTexture[i] != 0)
                     {
@@ -547,6 +564,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RTHandles.Release(m_SummedAreaTexture);
                 m_SummedAreaTexture = null;
+            }
+        }
+
+        public virtual void Dispose()
+        {
+            if (m_ShadowRequests.IsCreated)
+            {
+                m_ShadowRequests.Dispose();
+                m_ShadowRequests = default;
             }
         }
     }

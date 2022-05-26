@@ -9,56 +9,75 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class HDDynamicShadowAtlas : HDShadowAtlas
     {
-        readonly List<HDShadowResolutionRequest>    m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
-        readonly List<HDShadowRequestHandle>              m_MixedRequestsPendingBlits = new List<HDShadowRequestHandle>();
+        NativeList<HDShadowResolutionRequestHandle>    m_ShadowResolutionRequests;
+        NativeList<HDShadowRequestHandle>              m_MixedRequestsPendingBlits;
 
         float m_RcpScaleFactor = 1;
-        HDShadowResolutionRequest[] m_SortedRequestsCache;
+        HDShadowResolutionRequestHandle[] m_SortedRequestsCache;
 
         public HDDynamicShadowAtlas(HDShadowAtlasInitParameters atlaInitParams)
             : base(atlaInitParams)
         {
-            m_SortedRequestsCache = new HDShadowResolutionRequest[Mathf.CeilToInt(atlaInitParams.maxShadowRequests)];
+            m_SortedRequestsCache = new HDShadowResolutionRequestHandle[Mathf.CeilToInt(atlaInitParams.maxShadowRequests)];
         }
 
+        public override void InitAtlas(HDShadowAtlasInitParameters initParams)
+        {
+            if (!m_ShadowResolutionRequests.IsCreated)
+                m_ShadowResolutionRequests = new NativeList<HDShadowResolutionRequestHandle>(Allocator.Persistent);
+            else
+                m_ShadowResolutionRequests.Clear();
 
-        internal void ReserveResolution(HDShadowResolutionRequest shadowRequest)
+            if (!m_MixedRequestsPendingBlits.IsCreated)
+                m_MixedRequestsPendingBlits = new NativeList<HDShadowRequestHandle>(Allocator.Persistent);
+            else
+                m_MixedRequestsPendingBlits.Clear();
+
+            base.InitAtlas(initParams);
+        }
+
+        internal void ReserveResolution(HDShadowResolutionRequestHandle shadowRequest)
         {
             m_ShadowResolutionRequests.Add(shadowRequest);
         }
 
         // Stable (unlike List.Sort) sorting algorithm which, unlike Linq's, doesn't use JIT (lol).
         // Sorts in place. Very efficient (O(n)) for already sorted data.
-        void InsertionSort(HDShadowResolutionRequest[] array, int startIndex, int lastIndex)
+        unsafe void InsertionSort(HDShadowResolutionRequestHandle[] array, NativeList<HDShadowResolutionRequest> requestStorage, int startIndex, int lastIndex)
         {
+            ref UnsafeList<HDShadowResolutionRequest> resolutionRequests = ref *shadowResolutionRequestStorage.GetUnsafeList();
+
             int i = startIndex + 1;
 
             while (i < lastIndex)
             {
-                var curr = array[i];
+                var currHandle = array[i];
+                ref var curr = ref resolutionRequests.ElementAt(currHandle.index);
 
                 int j = i - 1;
 
                 // Sort in descending order.
-                while ((j >= 0) && ((curr.resolution.x > array[j].resolution.x) ||
-                                    (curr.resolution.y > array[j].resolution.y)))
+                while ((j >= 0) && ((curr.resolution.x > resolutionRequests.ElementAt(array[j].index).resolution.x) ||
+                                    (curr.resolution.y > resolutionRequests.ElementAt(array[j].index).resolution.y)))
                 {
                     array[j + 1] = array[j];
                     j--;
                 }
 
-                array[j + 1] = curr;
+                array[j + 1] = currHandle;
                 i++;
             }
         }
 
-        private bool AtlasLayout(bool allowResize, HDShadowResolutionRequest[] fullShadowList, int requestsCount)
+        private unsafe bool AtlasLayout(bool allowResize, HDShadowResolutionRequestHandle[] fullShadowList, NativeList<HDShadowResolutionRequest> resolutionRequestStorage, int requestsCount)
         {
+            ref UnsafeList<HDShadowResolutionRequest> resolutionRequests = ref *shadowResolutionRequestStorage.GetUnsafeList();
+
             float curX = 0, curY = 0, curH = 0, xMax = width, yMax = height;
             m_RcpScaleFactor = 1;
             for (int i = 0; i < requestsCount; ++i)
             {
-                var shadowRequest = fullShadowList[i];
+                ref var shadowRequest = ref resolutionRequests.ElementAt(fullShadowList[i].index);
                 // shadow atlas layouting
                 Rect viewport = new Rect(Vector2.zero, shadowRequest.resolution);
                 curH = Mathf.Max(curH, viewport.height);
@@ -91,19 +110,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool Layout(bool allowResize = true)
         {
-            int n = (m_ShadowResolutionRequests != null) ? m_ShadowResolutionRequests.Count : 0;
+            int n = m_ShadowResolutionRequests.Length;
             int i = 0;
-            for (; i < m_ShadowResolutionRequests.Count; ++i)
+            for (; i < m_ShadowResolutionRequests.Length; ++i)
             {
                 m_SortedRequestsCache[i] = m_ShadowResolutionRequests[i];
             }
 
-            InsertionSort(m_SortedRequestsCache, 0, i);
+            InsertionSort(m_SortedRequestsCache, shadowResolutionRequestStorage, 0, i);
 
-            return AtlasLayout(allowResize, m_SortedRequestsCache, requestsCount: i);
+            return AtlasLayout(allowResize, m_SortedRequestsCache, shadowResolutionRequestStorage, requestsCount: i);
         }
 
-        void LayoutResize()
+        unsafe void LayoutResize()
         {
             int index = 0;
             float currentX = 0;
@@ -111,39 +130,45 @@ namespace UnityEngine.Rendering.HighDefinition
             float currentMaxY = 0;
             float currentMaxX = 0;
 
+            ref UnsafeList<HDShadowResolutionRequest> resolutionRequests = ref *shadowResolutionRequestStorage.GetUnsafeList();
+
             // Place shadows in a square shape
-            while (index < m_ShadowResolutionRequests.Count)
+            while (index < m_ShadowResolutionRequests.Length)
             {
                 float y = 0;
                 float currentMaxXCache = currentMaxX;
                 do
                 {
-                    Rect r = new Rect(Vector2.zero, m_ShadowResolutionRequests[index].resolution);
+                    var resolutionRequestHandle = m_ShadowResolutionRequests[index];
+                    ref var resolutionRequest = ref resolutionRequests.ElementAt(resolutionRequestHandle.index);
+                    Rect r = new Rect(Vector2.zero, resolutionRequest.resolution);
                     r.x = currentMaxX;
                     r.y = y;
                     y += r.height;
                     currentY = Mathf.Max(currentY, y);
                     currentMaxXCache = Mathf.Max(currentMaxXCache, currentMaxX + r.width);
-                    m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
+                    resolutionRequest.dynamicAtlasViewport = r;
                     index++;
-                } while (y < currentMaxY && index < m_ShadowResolutionRequests.Count);
+                } while (y < currentMaxY && index < m_ShadowResolutionRequests.Length);
                 currentMaxY = Mathf.Max(currentMaxY, currentY);
                 currentMaxX = currentMaxXCache;
-                if (index >= m_ShadowResolutionRequests.Count)
+                if (index >= m_ShadowResolutionRequests.Length)
                     continue;
                 float x = 0;
                 float currentMaxYCache = currentMaxY;
                 do
                 {
-                    Rect r = new Rect(Vector2.zero, m_ShadowResolutionRequests[index].resolution);
+                    var resolutionRequestHandle = m_ShadowResolutionRequests[index];
+                    ref var resolutionRequest = ref resolutionRequests.ElementAt(resolutionRequestHandle.index);
+                    Rect r = new Rect(Vector2.zero, resolutionRequest.resolution);
                     r.x = x;
                     r.y = currentMaxY;
                     x += r.width;
                     currentX = Mathf.Max(currentX, x);
                     currentMaxYCache = Mathf.Max(currentMaxYCache, currentMaxY + r.height);
-                    m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
+                    resolutionRequest.dynamicAtlasViewport = r;
                     index++;
-                } while (x < currentMaxX && index < m_ShadowResolutionRequests.Count);
+                } while (x < currentMaxX && index < m_ShadowResolutionRequests.Length);
                 currentMaxX = Mathf.Max(currentMaxX, currentX);
                 currentMaxY = currentMaxYCache;
             }
@@ -153,8 +178,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RcpScaleFactor = Mathf.Min(scale.x, scale.y);
 
             // Scale down every shadow rects to fit with the current atlas size
-            foreach (var r in m_ShadowResolutionRequests)
+            foreach (var handle in m_ShadowResolutionRequests)
             {
+                ref var r = ref resolutionRequests.ElementAt(handle.index);
                 Vector4 s = new Vector4(r.dynamicAtlasViewport.x, r.dynamicAtlasViewport.y, r.dynamicAtlasViewport.width, r.dynamicAtlasViewport.height);
                 Vector4 reScaled = Vector4.Scale(s, scale);
 
@@ -174,6 +200,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MixedRequestsPendingBlits.Add(request);
         }
 
+        public static void AddRequestToPendingBlitFromCache(ref HDDynamicShadowAtlasUnmanaged shadowAtlas, HDShadowRequestHandle request, bool isMixedCache)
+        {
+            if (isMixedCache)
+                shadowAtlas.mixedRequestsPendingBlits.Add(request);
+        }
+
         public void ClearPendingBlitsRequests()
         {
             m_MixedRequestsPendingBlits.Clear();
@@ -181,12 +213,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool HasPendingBlitsRequests()
         {
-            return m_MixedRequestsPendingBlits.Count > 0;
+            return m_MixedRequestsPendingBlits.Length > 0;
+        }
+
+        internal void GetUnmanageDataForShadowRequestJobs(ref HDDynamicShadowAtlasUnmanaged unmanagedData)
+        {
+            unmanagedData.shadowRequests = m_ShadowRequests;
+            unmanagedData.shadowResolutionRequests = m_ShadowResolutionRequests;
+            unmanagedData.mixedRequestsPendingBlits = m_MixedRequestsPendingBlits;
         }
 
         internal struct ShadowBlitParameters
         {
-            public List<HDShadowRequestHandle> requestsWaitingBlits;
+            public NativeList<HDShadowRequestHandle> requestsWaitingBlits;
             public Material              blitMaterial;
             public MaterialPropertyBlock blitMaterialPropertyBlock;
             public Vector2Int            cachedShadowAtlasSize;
@@ -232,6 +271,23 @@ namespace UnityEngine.Rendering.HighDefinition
             base.Clear();
             m_ShadowResolutionRequests.Clear();
             m_MixedRequestsPendingBlits.Clear();
+        }
+
+        public override void Dispose()
+        {
+            if (m_ShadowResolutionRequests.IsCreated)
+            {
+                m_ShadowResolutionRequests.Dispose();
+                m_ShadowResolutionRequests = default;
+            }
+
+            if (m_MixedRequestsPendingBlits.IsCreated)
+            {
+                m_MixedRequestsPendingBlits.Dispose();
+                m_MixedRequestsPendingBlits = default;
+            }
+
+            base.Dispose();
         }
     }
 }
