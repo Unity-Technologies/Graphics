@@ -339,11 +339,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var nodeBuilder = shaderGraphModel.RegistryInstance.GetNodeBuilder(elementRegistryKey);
                 var registryFlags = nodeBuilder.GetRegistryFlags();
 
-                // this is overkill, but will list only the latest version-- I think having versions in a category make sense, but for now...
-                bool isLatestVersion = ShaderGraphRegistryBuilder.CreateDefaultRegistry().IsLatestVersion(elementRegistryKey);
-
                 // commented out that bit cause it throws an exception for some elements at the moment
-                return registryFlags.HasFlag(RegistryFlags.Func) && isLatestVersion /*|| registry.GetDefaultTopology(elementRegistryKey) == null*/;
+                return registryFlags.HasFlag(RegistryFlags.Func) /*|| registry.GetDefaultTopology(elementRegistryKey) == null*/;
             }
             catch (Exception exception)
             {
