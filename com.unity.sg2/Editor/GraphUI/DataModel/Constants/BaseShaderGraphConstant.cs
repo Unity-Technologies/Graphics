@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (!IsInitialized) return null;
             var nodeReader = graphHandler.GetNode(nodeName)
-                ?? graphModel.RegistryInstance.defaultTopologies.GetNode(nodeName); // TODO: shouldn't need to special case if we're a searcher preview.
+                ?? graphModel.RegistryInstance.DefaultTopologies.GetNode(nodeName); // TODO: shouldn't need to special case if we're a searcher preview.
             var portReader = nodeReader.GetPort(portName);
             return portReader.GetTypeField();
         }

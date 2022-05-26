@@ -88,23 +88,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        public Registry GetRegistry()
+        internal ShaderGraphRegistry GetRegistry()
         {
-            if (RegistryInstance == null)
-            {
-                void ReadUIInfo(RegistryKey key, Type type)
-                {
-                    const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
-                    var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
-                    if (getNodeUIDescriptor != null)
-                    {
-                        NodeUIInfo.Register(key, (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null));
-                    }
-                }
-                RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
-            }
-
-            return RegistryInstance;
+            return ShaderGraphRegistry.Instance;
         }
 
         internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey, NodeHandler node)
@@ -181,8 +167,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     initialValue = Matrix4x4.zero,
                 };
 
-                ContextBuilder.AddReferableEntry(propertyContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: variableDeclarationName);
-                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry);
+                ContextBuilder.AddReferableEntry(propertyContext, entry, registry.Registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: variableDeclarationName);
+                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry.Registry);
 
                 graphDataVar.contextNodeName = contextName;
                 graphDataVar.graphDataName = variableDeclarationName;

@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             registry.Register<TestAddNode>();
             registry.Register<GraphTypeAssignment>();
             registry.Register<PropertyContext>();
-            registry.Register<ShaderGraphContext>();
-            var contextKey = Registry.ResolveKey<ShaderGraphContext>();
+            registry.Register<Defs.ShaderGraphContext>();
+            var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             graph = new GraphHandler(registry);
 
@@ -135,9 +135,9 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
                 primitive = GraphType.Primitive.Float
             };
 
-            var contextKey = Registry.ResolveKey<ShaderGraphContext>();
+            var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             ContextBuilder.AddReferableEntry(propContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: "Foo_Var");
-            
+
             graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName, registry);
             graph.AddEdge("Foo_Ref.Output", contextKey.Name + ".BaseColor");
 

@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private bool isSubGraph = false;
 
         internal GraphHandler GraphHandler => graphHandlerBox.Graph;
-        internal Registry RegistryInstance => graphHandlerBox.Graph.registry;
+        internal ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
         internal List<JsonData<Target>> Targets => targetSettingsBox.Targets;
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             return GraphHandler.TestConnection(dst.owner.graphDataName,
                 dst.graphDataName, src.owner.graphDataName,
-                src.graphDataName, RegistryInstance);
+                src.graphDataName, RegistryInstance.Registry);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return GraphHandler.TryConnect(
                 src.owner.graphDataName, src.graphDataName,
                 dst.owner.graphDataName, dst.graphDataName,
-                RegistryInstance);
+                RegistryInstance.Registry);
         }
 
         static bool PortsFormCycle(IPortModel fromPort, IPortModel toPort)
@@ -362,7 +362,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     variableNodeModel.VariableDeclarationModel = model;
 
                     // Every time a variable node is added to the graph, add a reference node pointing back to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
-                    GraphHandler.AddReferenceNode(guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance);
+                    GraphHandler.AddReferenceNode(guid.ToString(), model.contextNodeName, model.graphDataName, RegistryInstance.Registry);
 
                     // Currently using GTF guid of the variable node as its graph data name
                     graphDataVariable.graphDataName = guid.ToString();
