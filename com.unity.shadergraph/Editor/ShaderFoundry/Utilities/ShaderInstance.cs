@@ -48,13 +48,15 @@ namespace UnityEditor.ShaderFoundry
                     }
                 }
 
-                customEditors.AddRange(templateInstance.Template.ShaderCustomEditors);
+                if (templateInstance.Template.CustomEditor.IsValid)
+                    customEditors.Add(templateInstance.Template.CustomEditor);
+
                 dependencies.AddRange(templateInstance.Template.ShaderDependencies);
             }
 
             // sort these lists to a deterministic order
             customEditors.Sort();
-            dependencies.Sort(new DependencySorter());
+            dependencies.Sort();
 
             // filter out conflicting custom editors (relies on sort order)
             m_CustomEditors = new List<ShaderCustomEditor>();
@@ -103,19 +105,6 @@ namespace UnityEditor.ShaderFoundry
             {
                 return new ShaderInstance(Name, AdditionalShaderID, TemplateInstances);
             }
-        }
-    }
-
-    // we must declare this sorter class, instead of making ShaderDependency implement IComparable, because
-    // declaring a CompareTo function in ShaderDependency crashes the bindings generation somehow...
-    class DependencySorter : IComparer<ShaderDependency>
-    {
-        public int Compare(ShaderDependency a, ShaderDependency b)
-        {
-            int result = string.CompareOrdinal(a.DependencyName, b.DependencyName);
-            if (result == 0)
-                result = string.CompareOrdinal(a.ShaderName, b.ShaderName);
-            return result;
         }
     }
 }

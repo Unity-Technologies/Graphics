@@ -59,8 +59,11 @@ namespace UnityEditor.ShaderFoundry
                 var legacyEntryPointsList = new List<LegacyEntryPoints>();
                 foreach (var pass in template.Passes)
                 {
-                    var entryPoints = GeneratePassBlocks(template, pass, templateInstance.CustomizationPointInstances);
-                    legacyEntryPointsList.Add(entryPoints);
+                    if (pass.IsNormalPass)
+                    {
+                        var entryPoints = GeneratePassBlocks(template, pass, templateInstance.CustomizationPointInstances);
+                        legacyEntryPointsList.Add(entryPoints);
+                    }
                 }
 
                 var shaderProperties = new ShaderPropertyCollection();
@@ -70,13 +73,17 @@ namespace UnityEditor.ShaderFoundry
                 var passIndex = 0;
                 foreach (var pass in template.Passes)
                 {
-                    var entryPoints = legacyEntryPointsList[passIndex];
-                    GenerateShaderPass(template, pass, entryPoints, shaderProperties, builder);
-                    ++passIndex;
+                    if (pass.IsUsePass)
+                    {
+                        builder.AppendLine($"UsePass \"{pass.UsePassName}\"");
+                    }
+                    else if (pass.IsNormalPass)
+                    {
+                        var entryPoints = legacyEntryPointsList[passIndex];
+                        GenerateShaderPass(template, pass, entryPoints, shaderProperties, builder);
+                        ++passIndex;
+                    }
                 }
-
-                foreach (var usePass in template.ShaderUsePasses)
-                    builder.AppendLine($"UsePass \"{usePass}\"");
             }
         }
 
@@ -115,6 +122,9 @@ namespace UnityEditor.ShaderFoundry
                 if (!blockInstance.IsValid)
                     return;
 
+                // this looks through block inputs, looking for any with a [Property] attribute, and assumes it is a property.
+                // this may need to be changed for VFX support, that replaces per-instance properties with override values
+                // Add will only add if it isn't already added.
                 foreach (var property in blockInstance.Block.Properties())
                     shaderProperties.Add(property);
             }
@@ -546,9 +556,9 @@ namespace UnityEditor.ShaderFoundry
             var sharedFunctions = "// GraphFunctions: <None>";
             var shaderCommands = new List<CommandDescriptor>();
             var shaderDefines = new List<DefineDescriptor>();
-            var shaderIncludes = new List<UnityEditor.ShaderFoundry.IncludeDescriptor>();
-            var shaderKeywords = new List<UnityEditor.ShaderFoundry.KeywordDescriptor>();
-            var shaderPragmas = new List<UnityEditor.ShaderFoundry.PragmaDescriptor>();
+            var shaderIncludes = new List<IncludeDescriptor>();
+            var shaderKeywords = new List<KeywordDescriptor>();
+            var shaderPragmas = new List<PragmaDescriptor>();
 
             var shaderUniforms = new ShaderUniformCollection();
             shaderUniforms.Add(shaderProperties);
@@ -566,6 +576,11 @@ namespace UnityEditor.ShaderFoundry
                     shaderCommands.AddRange(block.Commands);
                     shaderDefines.AddRange(block.Defines);
                     shaderIncludes.AddRange(block.Includes);
+
+                    // TODO: there's probably a better way to gather includes from all functions -- like put this gathering in the visitor
+                    foreach (var f in block.Functions)
+                        shaderIncludes.AddRange(f.Includes);
+
                     shaderKeywords.AddRange(block.Keywords);
                     shaderPragmas.AddRange(block.Pragmas);
                     ExtractKeywordDescriptors(block, shaderKeywords);
