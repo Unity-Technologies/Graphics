@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderFoundry
                     {
                         if (m_FallbackShader != templateInstance.Template.ShaderFallback)
                         {
-                            // TODO @ SHADERS ERROR - conflicting shader fallbacks defined...
+                            ErrorHandling.ReportError($"Conflicting shader fallbacks defined: {m_FallbackShader} != {templateInstance.Template.ShaderFallback}");
                         }
                     }
                 }
@@ -60,30 +60,32 @@ namespace UnityEditor.ShaderFoundry
 
             // filter out conflicting custom editors (relies on sort order)
             m_CustomEditors = new List<ShaderCustomEditor>();
-            string lastRenderPipelineAssetClassName = null;
+            ShaderCustomEditor lastEditor = default;
             foreach (var customEditor in customEditors)
             {
-                if (customEditor.RenderPipelineAssetClassName != lastRenderPipelineAssetClassName)
+                if (customEditor.RenderPipelineAssetClassName != lastEditor.RenderPipelineAssetClassName)
                     m_CustomEditors.Add(customEditor);
                 else
                 {
-                    // TODO @ SHADERS ERROR potentially conflicting custom editors defined... (if the CustomEditorClassNames are different)
+                    if (customEditor.CustomEditorClassName != lastEditor.CustomEditorClassName)
+                        ErrorHandling.ReportError($"Conflicting custom editor defined for render pipeline '{customEditor.RenderPipelineAssetClassName}' : {customEditor.CustomEditorClassName} != {lastEditor.CustomEditorClassName}");
                 }
-                lastRenderPipelineAssetClassName = customEditor.RenderPipelineAssetClassName;
+                lastEditor = customEditor;
             }
 
             // filter out conflicting dependencies (relies on sort order)
             m_Dependencies = new List<ShaderDependency>();
-            string lastDependencyName = null;
+            ShaderDependency lastDependency = default;
             foreach (var dependency in dependencies)
             {
-                if (dependency.DependencyName != lastDependencyName)
+                if (dependency.DependencyName != lastDependency.DependencyName)
                     m_Dependencies.Add(dependency);
                 else
                 {
-                    // TODO @ SHADERS ERROR potentially conflicting dependencies defined... (if the ShaderNames are different)
+                    if (dependency.ShaderName != lastDependency.ShaderName)
+                        ErrorHandling.ReportError($"Conflicting dependency defined '{dependency.DependencyName}' : {dependency.ShaderName} != {lastDependency.ShaderName}");
                 }
-                lastDependencyName = dependency.DependencyName;
+                lastDependency = dependency;
             }
         }
 

@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
         }
 
         // Builds a simple shader with multiple blocks added to the surface customization point.
-        internal static string BuildSimpleSurfaceShader(ShaderContainer container, string shaderName, IEnumerable<Block> blocks)
+        internal static string BuildSimpleSurfaceShader(ShaderContainer container, string shaderName, IEnumerable<Block> blocks, UnityEditor.Rendering.Foundry.ModifySubShaderCallback modifySubShaderCallback = null)
         {
             var builder = new ShaderFoundry.ShaderBuilder();
             SimpleBlockShaderBuilder.BuildCallback callback = (ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst) =>
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderFoundry.UnitTests
 
                 surfaceCPInst = cpDescBuilder.Build();
             };
-            SimpleBlockShaderBuilder.Build(container, shaderName, callback, builder);
+            SimpleBlockShaderBuilder.Build(container, shaderName, callback, builder, modifySubShaderCallback);
             return builder.ToString();
         }
 

@@ -8,11 +8,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Foundry
 {
+    internal delegate SubShaderDescriptor ModifySubShaderCallback(SubShaderDescriptor subShader);
+
     sealed class FoundryTestTarget : Target
     {
         public override int latestVersion => 1;
 
         static readonly GUID kSourceCodeGuid = new GUID("4e0e689008cd7684a925a2949bee42c6"); // FoundryTestTarget.cs
+
         // Constants
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
         {
@@ -26,6 +29,8 @@ namespace UnityEditor.Rendering.Foundry
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
+
+        public ModifySubShaderCallback modifySubShaderCallback;
 
         public SubTarget activeSubTarget
         {
@@ -68,6 +73,10 @@ namespace UnityEditor.Rendering.Foundry
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
+
+            if (m_ActiveSubTarget.value is FoundryTestSubTarget sub)
+                sub.modifySubShaderCallback = modifySubShaderCallback;
+
             m_ActiveSubTarget.value.Setup(ref context);
         }
 
