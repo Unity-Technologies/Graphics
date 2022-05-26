@@ -80,13 +80,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public class Registry
     {
         readonly Dictionary<RegistryKey, IRegistryEntry> builders = new Dictionary<RegistryKey, IRegistryEntry>();
-        public GraphHandler defaultTopologies = null; // TODO: this can live somewhere else.
 
         public Registry()
         {
             Register<ContextBuilder>();
             Register<PropertyContext>();
-            defaultTopologies = new GraphHandler(this);
             Register<ReferenceNodeBuilder>();
         }
 
@@ -97,7 +95,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
-        public NodeHandler GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNode(key.ToString());
 
         public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 
@@ -147,8 +144,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             if (builders.ContainsKey(key))
                 return false;
             builders.Add(key, builder);
-            if(builder is INodeDefinitionBuilder && builder.GetRegistryFlags() == RegistryFlags.Func)
-                defaultTopologies.AddNode(key, key.ToString(),this);
             return true;
         }
 

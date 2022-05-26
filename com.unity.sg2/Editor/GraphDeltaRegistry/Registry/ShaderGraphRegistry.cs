@@ -3,57 +3,163 @@ using System.Runtime.Serialization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     class ShaderGraphRegistry
     {
-        Registry registry;
-        NodeUIInfo descriptors;
-        GraphHandler topologies;
+        private static readonly string GET_FD_METHOD_NAME = "get_FunctionDescriptor";
+        private static readonly string GET_ND_METHOD_NAME = "get_NodeDescriptor";
+        private static readonly string GET_UD_METHOD_NAME = "get_NodeUIDescriptor";
 
-        void Register(RegistryKey key, INodeUIDescriptorBuilder descriptor) => descriptors.Register(key, descriptor);
-        void Register(NodeDescriptor node, NodeUIDescriptor descriptor)
+        internal static ShaderGraphRegistry Instance
         {
-            var key = registry.Register(node);
-            descriptors.Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
-            topologies.AddNode(key, key.ToString());
+            get
+            {
+                if (s_instance == null)
+                {
+                    s_instance = new();
+                    s_instance.InitializeDefaults();
+                }
+                return s_instance;
+            }
         }
-        void Register(FunctionDescriptor function, NodeUIDescriptor descriptor)
+        private static ShaderGraphRegistry s_instance = null;
+
+        private ShaderGraphRegistry()
         {
-            var key = registry.Register(function);
-            descriptors.Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
-            topologies.AddNode(key, key.ToString());
+            Registry = new();
+            NodeUIInfo = new();
+            DefaultTopologies = new(Registry);
         }
-        void Register(FunctionDescriptor func)
+
+        // TODO: remove direct access of these in GraphUI and from API.
+        internal Registry Registry;
+        internal NodeUIInfo NodeUIInfo;
+        internal GraphHandler DefaultTopologies;
+
+        internal void Register(RegistryKey key, INodeUIDescriptorBuilder descriptor) => NodeUIInfo.Register(key, descriptor);
+        internal void Register(NodeDescriptor node, NodeUIDescriptor descriptor)
         {
-            var key = registry.Register(func);
-            topologies.AddNode(key, key.ToString());
+            var key = Registry.Register(node);
+            NodeUIInfo.Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
+            DefaultTopologies.AddNode(key, key.ToString());
         }
-        void Register(NodeDescriptor node)
+        internal void Register(FunctionDescriptor function, NodeUIDescriptor descriptor)
         {
-            var key = registry.Register(node);
-            topologies.AddNode(key, key.ToString());
+            var key = Registry.Register(function);
+            NodeUIInfo.Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
+            DefaultTopologies.AddNode(key, key.ToString());
         }
-        void Register(INodeDefinitionBuilder builder, INodeUIDescriptorBuilder descriptor = null)
+        internal void Register(FunctionDescriptor func)
+        {
+            var key = Registry.Register(func);
+            DefaultTopologies.AddNode(key, key.ToString());
+        }
+        internal void Register(NodeDescriptor node)
+        {
+            var key = Registry.Register(node);
+            DefaultTopologies.AddNode(key, key.ToString());
+        }
+        internal void Register(INodeDefinitionBuilder builder, INodeUIDescriptorBuilder descriptor = null)
         {
             var key = builder.GetRegistryKey();
-            registry.Register(builder);
+            Registry.Register(builder);
             if (descriptor != null)
-                descriptors.Register(key, descriptor);
-            topologies.AddNode(key, key.ToString());
+                NodeUIInfo.Register(key, descriptor);
+            DefaultTopologies.AddNode(key, key.ToString());
         }
-        void Register<T>() where T : IRegistryEntry => registry.Register<T>();
+        internal void Register<T>() where T : IRegistryEntry => Registry.Register<T>();
 
-        RegistryKey ResolveKey<T>() where T : IRegistryEntry => Registry.ResolveKey<T>();
 
-        NodeHandler GetDefaultTopology(RegistryKey key) => registry.GetDefaultTopology(key);
-        NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) => descriptors.GetNodeUIDescriptor(key, node);
-        INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) => registry.GetNodeBuilder(key);
-        ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) => registry.GetTypeBuilder(key);
-        ICastDefinitionBuilder GetCastBuilder(RegistryKey key) => registry.GetCastBuilder(key);
-        IContextDescriptor GetContextDescriptor(RegistryKey key) => registry.GetContextDescriptor(key);
+        internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) => NodeUIInfo.GetNodeUIDescriptor(key, node);
+        internal NodeHandler GetDefaultTopology(RegistryKey key) => DefaultTopologies.GetNode(key.ToString());
+        internal INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) => Registry.GetNodeBuilder(key);
+        internal ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) => Registry.GetTypeBuilder(key);
+        internal ICastDefinitionBuilder GetCastBuilder(RegistryKey key) => Registry.GetCastBuilder(key);
+        internal IContextDescriptor GetContextDescriptor(RegistryKey key) => Registry.GetContextDescriptor(key);
 
-        bool IsLatestVersion(RegistryKey key) => registry.IsLatestVersion(key);
+        internal RegistryKey ResolveKey<T>() where T : IRegistryEntry => Registry.ResolveKey<T>();
+        internal bool IsLatestVersion(RegistryKey key) => Registry.IsLatestVersion(key);
+
+        internal void InitializeDefaults()
+        {
+            #region CoreTypes
+            Register<GraphType>();
+            Register<GraphTypeAssignment>();
+            Register<GradientType>();
+            Register<GradientTypeAssignment>();
+            Register<GradientNode>(); // TODO: Needs descriptor or IStandardNode implementation.
+
+            Register<BaseTextureType>();
+            Register<BaseTextureTypeAssignment>();
+            Register<SamplerStateType>();
+            Register<SamplerStateAssignment>();
+            #endregion
+
+            // TODO: remove these, but keep until equivalents are working correctly.
+            Register<SampleGradientNode>();
+            Register<SamplerStateExampleNode>();
+            Register<SimpleTextureNode>();
+            Register<SimpleSampleTexture2DNode>();
+            Register<ShaderGraphContext>();
+
+
+            #region IStandardNode
+            // Register nodes from IStandardNode implementers.
+            var interfaceType = typeof(IStandardNode);
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => interfaceType.IsAssignableFrom(p));
+            foreach (Type t in types)
+            {
+                if (t != interfaceType)
+                {
+                    var ndMethod = t.GetMethod(GET_ND_METHOD_NAME);
+                    var fdMethod = t.GetMethod(GET_FD_METHOD_NAME);
+                    var udMethod = t.GetMethod(GET_UD_METHOD_NAME);
+
+                    if (ndMethod != null)
+                    {
+                        var nd = (NodeDescriptor)ndMethod.Invoke(null, null);
+                        if (!nd.Equals(default(NodeDescriptor)))
+                        { // use the NodeDescriptor
+                            if (udMethod != null)
+                            {
+                                var ui = (NodeUIDescriptor)udMethod.Invoke(null, null);
+                                Register(nd, ui);
+                            }
+                            else Register(nd);
+                        }
+                    }
+                    else if (fdMethod != null)
+                    {
+                        var fd = (FunctionDescriptor)fdMethod.Invoke(null, null);
+                        if (!fd.Equals(default(NodeDescriptor)))
+                        {  // use the FunctionDescriptor
+                            if (udMethod != null)
+                            {
+                                var ui = (NodeUIDescriptor)udMethod.Invoke(null, null);
+                                Register(fd, ui);
+                            }
+                            else Register(fd);
+                        }
+                    }
+                    else
+                    {
+                        var msg = $"IStandard node {t} has no node or function descriptor. It was not registered.";
+                        Debug.LogWarning(msg);
+                    }
+
+                }
+            }
+            #endregion
+        }
+
+        // TODO: Initialize SubGraphs from files
+        // TODO: Register SubGraph
+        // TODO: Refresh this registry w/subgraphs are modified
+        // TODO: Refresh dependent graphs ^^
     }
 }

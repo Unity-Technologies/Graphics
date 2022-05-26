@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         MainPreviewView m_MainPreviewView;
         MainPreviewData m_MainPreviewData;
 
-        string m_MainContextNodeName = new ShaderGraphContext().GetRegistryKey().Name;
+        string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
 
         internal PreviewManager(GraphModelStateComponent graphModelStateComponent)
         {
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 new Vector2(m_MainPreviewData.width, m_MainPreviewData.height));
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
-            m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance);
+            m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
 
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)
@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         static bool IsMainContextNode(IGraphElementModel nodeModel)
         {
-            return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new ShaderGraphContext().GetRegistryKey().Name;
+            return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
         }
 
         public void Update()

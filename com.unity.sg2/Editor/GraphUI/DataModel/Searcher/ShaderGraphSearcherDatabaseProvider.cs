@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
             {
                 var registry = shaderGraphStencil.GetRegistry();
-                foreach (var registryKey in registry.BrowseRegistryKeys())
+                foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
                 {
                     if (ShaderGraphModel.ShouldElementBeVisibleToSearcher(shaderGraphModel, registryKey))
                     {

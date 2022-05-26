@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         GraphHandler graphHandler =>
             ((ShaderGraphModel)GraphModel).GraphHandler;
 
-        Registry registry =>
+        ShaderGraphRegistry registry =>
             ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,
@@ -213,7 +213,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             nodeHandler.SetMetadata(
                 NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME,
                 newFunctionName);
-            graphHandler.ReconcretizeNode(graphDataName, registry);
+            graphHandler.ReconcretizeNode(graphDataName, registry.Registry);
             DefineNode();
         }
 
@@ -272,7 +272,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                     catch
                     {
-                        handler = shaderGraphModel.RegistryInstance.defaultTopologies;
+                        handler = shaderGraphModel.RegistryInstance.DefaultTopologies;
                     }
                     // don't do this, we should have a fixed way of pathing into a port's type information as opposed to its header/port data.
                     // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.

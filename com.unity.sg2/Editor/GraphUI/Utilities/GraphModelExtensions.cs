@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                     else
                     {
-                        var registry = ((ShaderGraphStencil)graphModel.Stencil).GetRegistry();
+                        var registry = ((ShaderGraphStencil)graphModel.Stencil).GetRegistry().Registry;
 
                         // Use this node's generated guid to bind it to an underlying element in the graph data.
                         var graphDataName = nodeModel.Guid.ToString();

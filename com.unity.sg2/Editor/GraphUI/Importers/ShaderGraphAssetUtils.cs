@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         public static ShaderGraphAsset CreateNewAssetGraph(bool isSubGraph)
         {
             var defaultRegistry = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
-            var contextKey = Registry.ResolveKey<ShaderGraphContext>();
+            var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             GraphHandler graph = new(defaultRegistry);
             graph.AddContextNode(propertyKey);
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
             if (!asset.ShaderGraphModel.IsSubGraph)
             {
                 // build shader and setup supplementary assets
-                var key = Registry.ResolveKey<ShaderGraphContext>();
+                var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
                 var node = asset.ShaderGraphModel.GraphHandler.GetNode(key.Name);
                 string shaderCode = Interpreter.GetShaderForNode(node, asset.ShaderGraphModel.GraphHandler, asset.ShaderGraphModel.GraphHandler.registry, out var defaultTextures);
                 var shader = ShaderUtil.CreateShaderAsset(ctx, shaderCode, false);
