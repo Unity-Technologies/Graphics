@@ -19,13 +19,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string DefaultSubGraphAssetName = "NewShaderSubGraph";
         public const string SubGraphExtension = "sg2subgraph";
 
-        private Registry RegistryInstance = null;
-        private readonly NodeUIInfo NodeUIInfo = null;
-
         public string ToolName =>
             Name;
-
-        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
         // TODO: (Sai) When subgraphs come in, add support for dropdown section
         internal static readonly string[] sections = {"Properties", "Keywords"};
@@ -36,7 +31,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ShaderGraphStencil()
         {
-            NodeUIInfo = new ();
         }
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel) =>
@@ -95,7 +89,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey, NodeHandler node)
         {
-            return NodeUIInfo.GetNodeUIDescriptor(nodeKey, node);
+            return ShaderGraphRegistry.Instance.GetNodeUIDescriptor(nodeKey, node);
         }
 
         protected override void CreateGraphProcessors()
