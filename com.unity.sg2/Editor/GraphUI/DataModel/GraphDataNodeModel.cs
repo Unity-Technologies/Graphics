@@ -280,16 +280,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
+                var displayName = nodeUIDescriptor.GetParameterInfo(portReader.LocalID).DisplayName;
+                if (String.IsNullOrEmpty(displayName))
+                    displayName = portReader.LocalID;
+
                 IPortModel newPortModel = null;
                 if (isInput)
                 {
-                    newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
+                    newPortModel = this.AddDataInputPort(displayName, type, portId: portReader.LocalID, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
                         ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((ShaderGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
                 }
                 else
-                    newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
+                    newPortModel = this.AddDataOutputPort(displayName, type, portId: portReader.LocalID, orientation: orientation);
 
                 m_PortMappings.Add(portReader, newPortModel);
             }

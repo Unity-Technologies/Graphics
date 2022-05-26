@@ -88,6 +88,14 @@ namespace UnityEditor.ShaderGraph
                 var name = Path.GetFileNameWithoutExtension(ctx.assetPath);
                 var key = new RegistryKey { Name = AssetDatabase.AssetPathToGUID(ctx.assetPath), Version = 1 };
 
+                List<ParameterUIDescriptor> paramDesc = new();
+                foreach (var dec in asset.ShaderGraphModel.VariableDeclarations)
+                {
+                    var displayName = dec.GetVariableName();
+                    var identifierName = ((BaseShaderGraphConstant)dec.InitializationModel).PortName;
+                    paramDesc.Add(new ParameterUIDescriptor(identifierName, displayName));
+                }
+
                 var desc = new NodeUIDescriptor(
                     key.Version,
                     key.Name,
@@ -97,7 +105,7 @@ namespace UnityEditor.ShaderGraph
                     name,
                     true,
                     new Dictionary<string, string> { },
-                    new ParameterUIDescriptor[] { }
+                    paramDesc.ToArray()
                 );
 
                 ShaderGraphRegistry.Instance.RefreshSubGraph(key, asset.ShaderGraphModel.GraphHandler, desc);
