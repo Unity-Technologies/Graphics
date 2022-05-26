@@ -125,6 +125,35 @@ namespace UnityEditor.ShaderFoundry.UnitTests
             return blockBuilder;
         }
 
+        internal static Block.Builder DefineSimpleBlock(ShaderContainer container, string blockName, ShaderType inputType, string inputName, ShaderType outputType, string outputName, string outputValue)
+        {
+            var blockBuilder = new Block.Builder(container, blockName);
+
+            // Build the input type
+            var inTypeBuilder = new ShaderType.StructBuilder(blockBuilder, "Input");
+            inTypeBuilder.AddField(inputType, inputName);
+            var inStruct = inTypeBuilder.Build();
+
+            // Build the output type
+            var outTypeBuilder = new ShaderType.StructBuilder(blockBuilder, "Output");
+            outTypeBuilder.AddField(outputType, outputName);
+            var outStruct = outTypeBuilder.Build();
+
+            // Build the entry point
+            var entryPointFnBuilder = new ShaderFunction.Builder(blockBuilder, "Apply", outStruct);
+            entryPointFnBuilder.AddInput(inStruct, "inputs");
+            entryPointFnBuilder.DeclareVariable(outStruct, "outputs");
+            entryPointFnBuilder.AddLine($"outputs.{outputName} = {outputValue};");
+            entryPointFnBuilder.AddLine("return outputs;");
+            var entryPointFn = entryPointFnBuilder.Build();
+
+            blockBuilder.AddType(inputType);
+            blockBuilder.AddType(outputType);
+            blockBuilder.SetEntryPointFunction(entryPointFn);
+
+            return blockBuilder;
+        }
+
         internal static Block CreateSimplePropertyBlock(ShaderContainer container, string blockName, PropertyDeclarationData propertyData)
         {
             return CreateSimplePropertyBlockBuilder(container, blockName, propertyData).Build();

@@ -49,9 +49,7 @@ namespace UnityEditor.Rendering.Foundry
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,
-                    passes = new PassCollection(),
-                    shaderCustomEditor = "MyCustomEditor",
-                    shaderCustomEditors = new List<ShaderCustomEditor>() { }
+                    passes = new PassCollection()
                 };
 
                 result.passes.Add(UnlitPasses.Forward(target));
