@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnEnable()
         {
             Name = Path.GetFileNameWithoutExtension(FilePath);
-            //Name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this));
             base.OnEnable();
         }
     }
