@@ -34,6 +34,7 @@ namespace UnityEditor.ShaderGraph
         {
             var json = EditorJsonUtility.ToJson(asset, true);
             File.WriteAllText(path, json);
+            AssetDatabase.ImportAsset(path); // Is this necessary?
         }
 
         public static ShaderGraphAsset HandleLoad(string path)
@@ -42,10 +43,9 @@ namespace UnityEditor.ShaderGraph
             return asset;
         }
 
-        public static void HandleCreate(string path, bool isSubGraph = false) // TODO: HandleCreateSubGraph
+        public static void HandleCreate(string path, bool isSubGraph = false) // TODO: TargetSettingsObject as param
         {
             HandleSave(path, CreateNewAssetGraph(isSubGraph));
-            AssetDatabase.Refresh();
         }
 
         public static void HandleImport(AssetImportContext ctx)

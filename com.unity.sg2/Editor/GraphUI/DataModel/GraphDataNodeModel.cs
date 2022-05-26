@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             NodeUIDescriptor nodeUIDescriptor = new();
             if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
-                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey);
+                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
 
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
             m_PortMappings.Clear();
