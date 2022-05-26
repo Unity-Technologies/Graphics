@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     {
         public static ShaderGraphAsset CreateNewAssetGraph(bool isSubGraph)
         {
-            var defaultRegistry = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
+            var defaultRegistry = ShaderGraphRegistry.Instance.Registry;
             var contextKey = Registry.ResolveKey<Defs.ShaderGraphContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             GraphHandler graph = new(defaultRegistry);
@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
         public void Init(GraphHandler value)
         {
             json = value.ToSerializedFormat();
-            var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry(); // TODO: Singleton?
+            var reg = ShaderGraphRegistry.Instance.Registry; // TODO: Singleton?
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
             m_graph.ReconcretizeAll();
         }
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph
 
         public void OnEnable()
         {
-            var reg = ShaderGraphRegistryBuilder.CreateDefaultRegistry();
+            var reg = ShaderGraphRegistry.Instance.Registry;
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
             m_graph.ReconcretizeAll();
         }
