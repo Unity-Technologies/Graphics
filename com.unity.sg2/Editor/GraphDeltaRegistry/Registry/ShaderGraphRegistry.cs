@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEngine;
+using System.IO;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -70,8 +71,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 NodeUIInfo.Register(key, descriptor);
             DefaultTopologies.AddNode(key, key.ToString());
         }
-        internal void Register<T>() where T : IRegistryEntry => Registry.Register<T>();
 
+        internal void RefreshSubGraph(RegistryKey key, GraphHandler subgraph, NodeUIDescriptor desc)
+        {
+            Registry.Unregister(key);
+            Register(new SubGraphNodeBuilder(key, subgraph), new StaticNodeUIDescriptorBuilder(desc));
+            DefaultTopologies.ReconcretizeNode(key.ToString());
+        }
+
+        internal void Register<T>() where T : IRegistryEntry => Registry.Register<T>();
 
         internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) => NodeUIInfo.GetNodeUIDescriptor(key, node);
         internal NodeHandler GetDefaultTopology(RegistryKey key) => DefaultTopologies.GetNode(key.ToString());
@@ -104,7 +112,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             Register<SimpleSampleTexture2DNode>();
             Register<ShaderGraphContext>();
 
-
+            // Use reflection to grab all of these.
             #region IStandardNode
             // Register nodes from IStandardNode implementers.
             var interfaceType = typeof(IStandardNode);
@@ -154,11 +162,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
             }
             #endregion
-        }
 
-        // TODO: Initialize SubGraphs from files
-        // TODO: Register SubGraph
-        // TODO: Refresh this registry w/subgraphs are modified
-        // TODO: Refresh dependent graphs for subgraphs ^^
+            // On domain reload, not all subgraphs may have been imported.
+            #region SubGraphs
+
+            foreach (var assetGUID in AssetDatabase.FindAssets("t:ShaderGraphAsset"))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(assetGUID);
+                if (Path.GetExtension(path) == ".sg2subgraph")
+                    AssetDatabase.ImportAsset(path);
+            }
+
+            #endregion
+        }
     }
 }

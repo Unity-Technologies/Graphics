@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-
+using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -9,7 +9,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         protected override Type GraphModelType => typeof(ShaderGraphModel);
         public ShaderGraphModel ShaderGraphModel => GraphModel as ShaderGraphModel;
-
         protected override void OnEnable()
         {
             Name = Path.GetFileNameWithoutExtension(FilePath);

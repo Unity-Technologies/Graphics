@@ -30,17 +30,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             => builders[key] = descriptor;
 
         public NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler nodeInstance)
-            => builders.ContainsKey(key) ? builders[key].CreateDescriptor(nodeInstance) : CreateDefaultDescriptor();
+            => builders.ContainsKey(key) ? builders[key].CreateDescriptor(nodeInstance) : CreateDefaultDescriptor(key);
 
-        private static NodeUIDescriptor CreateDefaultDescriptor()
+        private static NodeUIDescriptor CreateDefaultDescriptor(RegistryKey key)
         {
             return new NodeUIDescriptor(
                 1,
-                 "DEFAULT_NAME",
+                 key.Name,
                  "DEFAULT_TOOLTIP",
                 new string[] { "DEFAULT_CATEGORY" },
                 new string[] { },
-                "DEFAULT_DISPLAY_NAME",
+                key.Name,
                 true,
                 new Dictionary<string, string> { },
                 new ParameterUIDescriptor[] {}

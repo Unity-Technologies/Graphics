@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -43,7 +44,8 @@ namespace UnityEditor.ShaderGraph
             return asset;
         }
 
-        public static void HandleCreate(string path, bool isSubGraph = false) // TODO: TargetSettingsObject as param
+        // TODO: TargetSettingsObject as param, so that we can initialize with a target.
+        public static void HandleCreate(string path, bool isSubGraph = false)
         {
             HandleSave(path, CreateNewAssetGraph(isSubGraph));
         }
@@ -74,14 +76,31 @@ namespace UnityEditor.ShaderGraph
                 ctx.AddObjectToAsset("Shader", shader, texture);
                 ctx.SetMainObject(shader);
                 ctx.AddObjectToAsset("Material", mat);
-                ctx.AddObjectToAsset("Asset", asset);
+                ctx.AddObjectToAsset("Data", asset);
             }
             else // is subgraph
             {
                 Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");
 
-                ctx.AddObjectToAsset("AssetHelper", asset, texture);
+                ctx.AddObjectToAsset("Data", asset, texture);
                 ctx.SetMainObject(asset);
+
+                var name = Path.GetFileNameWithoutExtension(ctx.assetPath);
+                var key = new RegistryKey { Name = AssetDatabase.AssetPathToGUID(ctx.assetPath), Version = 1 };
+
+                var desc = new NodeUIDescriptor(
+                    key.Version,
+                    key.Name,
+                    "DEFAULT_TOOLTIP",
+                    new string[] { "SubGraph" },
+                    new string[] { "SubGraph" },
+                    name,
+                    true,
+                    new Dictionary<string, string> { },
+                    new ParameterUIDescriptor[] { }
+                );
+
+                ShaderGraphRegistry.Instance.RefreshSubGraph(key, asset.ShaderGraphModel.GraphHandler, desc);
             }
         }
     }
@@ -95,11 +114,10 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         GraphHandler m_graph;
 
-        // Provide a previously initialized graphHandler-- round-trip it for ownership.
         public void Init(GraphHandler value)
         {
             json = value.ToSerializedFormat();
-            var reg = ShaderGraphRegistry.Instance.Registry; // TODO: Singleton?
+            var reg = ShaderGraphRegistry.Instance.Registry;
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
             m_graph.ReconcretizeAll();
         }
@@ -135,6 +153,8 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             public List<JsonData<Target>> m_GraphTargets = new();
         }
+
+        // TODO: Init method for providing initial state (see HandleCreate).
 
         public List<JsonData<Target>> Targets => m_tso.m_GraphTargets;
 
