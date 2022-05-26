@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
         }
 
-        static readonly TypeHandle[] k_SupportedBlackboardTypes = {
+        public static readonly TypeHandle[] k_SupportedBlackboardTypes = {
             TypeHandle.Int,
             TypeHandle.Float,
             TypeHandle.Bool,

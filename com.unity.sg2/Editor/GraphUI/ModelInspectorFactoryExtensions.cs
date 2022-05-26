@@ -1,5 +1,7 @@
 using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Defs;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -7,6 +9,49 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [GraphElementsExtensionMethodsCache(typeof(ModelInspectorView))]
     public static class ModelInspectorViewFactoryExtensions
     {
+        public static IModelView CreateContextSectionInspector(this ElementBuilder elementBuilder, GraphDataContextNodeModel model)
+        {
+            var ui = new ShaderGraphModelInspector();
+
+            ui.Setup(model, elementBuilder.View, elementBuilder.Context);
+
+            if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
+            {
+                switch (inspectorSectionContext.Section.SectionType)
+                {
+                    case SectionType.Settings:
+                    {
+                        if (model.GraphModel is not ShaderGraphModel {IsSubGraph: true})
+                        {
+                            break;
+                        }
+
+                        if (!model.TryGetNodeReader(out var reader))
+                        {
+                            break;
+                        }
+
+                        var contextDescriptor = reader.GetMetadata<RegistryKey>("_contextDescriptor");
+                        var outputContext = Registry.ResolveKey<ShaderGraphContext>();
+                        if (contextDescriptor.Name != outputContext.Name)
+                        {
+                            break;
+                        }
+
+                        var subgraphOutputs = new SubgraphOutputsInspector(ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                        ui.PartList.AppendPart(subgraphOutputs);
+
+                        break;
+                    }
+                }
+            }
+
+            ui.BuildUI();
+            ui.UpdateFromModel();
+
+            return ui;
+        }
+
         public static IModelView CreateSectionInspector(this ElementBuilder elementBuilder, GraphDataNodeModel model)
         {
             var ui = new ShaderGraphModelInspector();

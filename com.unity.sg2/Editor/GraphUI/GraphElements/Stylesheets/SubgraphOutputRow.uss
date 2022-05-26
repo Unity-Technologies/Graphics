@@ -1,0 +1,11 @@
+.sg-subgraph-output-row {
+    flex-direction: row;
+}
+
+.sg-subgraph-output-row TextField {
+    width: 50%;
+}
+
+.sg-subgraph-output-row DropdownField {
+    flex-grow: 1;
+}
