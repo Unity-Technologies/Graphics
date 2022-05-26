@@ -11,10 +11,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             "    Out = UnsignedBase ? pow(abs(Base), Exp) : pow(Base, Exp);",
-            new ParameterDescriptor("Base", TYPE.Any, Usage.In),
-            new ParameterDescriptor("Exp", TYPE.Any, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
+            new ParameterDescriptor("Base", TYPE.Vector, Usage.In),
+            new ParameterDescriptor("Exp", TYPE.Vector, Usage.In, new float[] { 2f, 2f, 2f, 2f }),
             new ParameterDescriptor("UnsignedBase", TYPE.Bool, Usage.Static, new float[] { 1f }),
-            new ParameterDescriptor("Out", TYPE.Any, Usage.Out)
+            new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
         );
 
         public static NodeUIDescriptor NodeUIDescriptor => new(
