@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     internal class SubGraphNodeBuilder : INodeDefinitionBuilder
     {
-        string displayName;
         RegistryKey key;
         GraphHandler subgraph;
 
@@ -22,8 +21,6 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            node.SetMetadata<string>("name", displayName);
-
             // TODO: Replace with Subgraph contexts instead if that's safe to use.
             var inputContextName = Registry.ResolveKey<PropertyContext>().Name;
             var outputContextName = Registry.ResolveKey<ShaderGraphContext>().Name;
@@ -33,11 +30,13 @@ namespace UnityEditor.ShaderGraph.Defs
 
             foreach(var port in input.GetPorts())
             {
-                INodeDefinitionBuilder.CopyPort(port, node, registry);
+                if (port.IsInput)
+                    INodeDefinitionBuilder.CopyPort(port, node, registry);
             }
             foreach (var port in output.GetPorts())
             {
-                INodeDefinitionBuilder.CopyPort(port, node, registry);
+                if (!port.IsInput)
+                    INodeDefinitionBuilder.CopyPort(port, node, registry);
             }
 
             // Dropdowns will need to be some kind of switch type probably, can easily make an editor/driver for that.

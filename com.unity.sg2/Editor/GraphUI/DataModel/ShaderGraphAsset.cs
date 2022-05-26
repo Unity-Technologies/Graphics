@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
