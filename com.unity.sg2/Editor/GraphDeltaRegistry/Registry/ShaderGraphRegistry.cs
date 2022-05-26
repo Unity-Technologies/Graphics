@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         internal void InitializeDefaults()
         {
-            #region CoreTypes
+            #region Core
             Register<GraphType>();
             Register<GraphTypeAssignment>();
             Register<GradientType>();
@@ -160,6 +160,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         // TODO: Initialize SubGraphs from files
         // TODO: Register SubGraph
         // TODO: Refresh this registry w/subgraphs are modified
-        // TODO: Refresh dependent graphs ^^
+        // TODO: Refresh dependent graphs for subgraphs ^^
     }
 }

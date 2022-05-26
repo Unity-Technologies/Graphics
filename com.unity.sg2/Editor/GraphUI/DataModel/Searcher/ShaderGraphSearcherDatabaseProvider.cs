@@ -48,7 +48,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         var uiHints = m_Stencil.GetUIHints(registryKey, registry.GetDefaultTopology(registryKey));
                         var categoryPath = GetCategoryPath(uiHints);
-
                         var searcherItem = new RegistryNodeSearcherItem(graphModel, registryKey, registryKey.Name);
                         searcherItem.CategoryPath = categoryPath;
                         searcherItem.Synonyms = uiHints.Synonyms.ToArray();
