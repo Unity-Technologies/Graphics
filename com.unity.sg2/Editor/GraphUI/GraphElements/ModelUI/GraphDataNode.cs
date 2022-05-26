@@ -25,10 +25,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (NodeModel is not GraphDataNodeModel)
                 return;
 
+            if (!m_GraphDataNodeModel.TryGetNodeReader(out var nodeReader))
+                return;
+
             // Retrieve the UI information about this node from its
             // NodeUIDescriptor, stored in the ShaderGraphStencil.
             var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
-            var nodeUIDescriptor = stencil.GetUIHints(m_GraphDataNodeModel.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(m_GraphDataNodeModel.registryKey, nodeReader);
 
             // If the node has multiple possible topologies,
             // show the selector
@@ -43,8 +46,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 PartList.InsertPartAfter(portContainerPartName, part);
             }
 
-            if (!m_GraphDataNodeModel.TryGetNodeReader(out var nodeReader))
-                return;
+
 
             m_StaticFieldParts = new(name, m_GraphDataNodeModel, this, ussClassName);
 

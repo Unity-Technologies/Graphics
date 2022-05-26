@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     if (ShaderGraphModel.ShouldElementBeVisibleToSearcher(shaderGraphModel, registryKey))
                     {
-                        var uiHints = m_Stencil.GetUIHints(registryKey);
+                        var uiHints = m_Stencil.GetUIHints(registryKey, registry.GetDefaultTopology(registryKey));
                         var categoryPath = GetCategoryPath(uiHints);
 
                         var searcherItem = new RegistryNodeSearcherItem(graphModel, registryKey, registryKey.Name);

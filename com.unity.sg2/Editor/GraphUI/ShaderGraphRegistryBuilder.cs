@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// Creates and sets up a shader graph Registry.
     /// </summary>
-    public static class ShaderGraphRegistryBuilder
+    internal static class ShaderGraphRegistryBuilder
     {
         private static readonly string GET_FD_METHOD_NAME = "get_FunctionDescriptor";
         private static readonly string GET_ND_METHOD_NAME = "get_NodeDescriptor";

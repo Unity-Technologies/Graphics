@@ -92,15 +92,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (RegistryInstance == null)
             {
-                NodeUIInfo.Clear();
-
                 void ReadUIInfo(RegistryKey key, Type type)
                 {
                     const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
                     var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
                     if (getNodeUIDescriptor != null)
                     {
-                        NodeUIInfo[key] = (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null);
+                        NodeUIInfo.Register(key, (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null));
                     }
                 }
                 RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
@@ -109,9 +107,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return RegistryInstance;
         }
 
-        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey)
+        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey, NodeHandler node)
         {
-            return NodeUIInfo[nodeKey];
+            return NodeUIInfo.GetNodeUIDescriptor(nodeKey, node);
         }
 
         protected override void CreateGraphProcessors()
