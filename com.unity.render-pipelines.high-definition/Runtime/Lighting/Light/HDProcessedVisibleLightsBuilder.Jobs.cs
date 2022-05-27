@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public NativeArray<VisibleLight> visibleLights;
             [ReadOnly]
-            public NativeArray<VisibleLight> visibleOffscreenVertexLights;
+            public NativeArray<VisibleLight> offscreenLights;
             [ReadOnly]
             public NativeArray<int> visibleLightEntityDataIndices;
             [ReadOnly]
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public void Execute(int index)
             {
                 bool isFromVisibleList = index < visibleLightFromVisibleListCutoffIndex;
-                VisibleLight visibleLight = isFromVisibleList ? visibleLights[index] : visibleOffscreenVertexLights[index - visibleLightFromVisibleListCutoffIndex];
+                VisibleLight visibleLight = isFromVisibleList ? visibleLights[index] : offscreenLights[index - visibleLightFromVisibleListCutoffIndex];
                 int dataIndex = visibleLightEntityDataIndices[index];
                 LightBakingOutput bakingOutput = visibleLightBakingOutput[index];
                 LightShadows shadows = visibleLightShadows[index];
@@ -376,7 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void StartProcessVisibleLightJob(
             HDCamera hdCamera,
             NativeArray<VisibleLight> visibleLights,
-            NativeArray<VisibleLight> visibleOffscreenVertexLights,
+            NativeArray<VisibleLight> offscreenLights,
             in GlobalLightLoopSettings lightLoopSettings,
             DebugDisplaySettings debugDisplaySettings,
             bool processDynamicGI)
@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //data of all visible light entities.
                 visibleLights = visibleLights,
-                visibleOffscreenVertexLights = visibleOffscreenVertexLights,
+                offscreenLights = offscreenLights,
                 visibleLightEntityDataIndices = m_VisibleLightEntityDataIndices,
                 visibleLightBakingOutput = m_VisibleLightBakingOutput,
                 visibleLightShadows = m_VisibleLightShadows,

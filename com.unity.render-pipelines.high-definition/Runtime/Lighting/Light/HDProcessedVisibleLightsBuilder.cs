@@ -51,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public NativeArray<uint> sortSupportArray => m_SortSupportArray;
         public NativeArray<int> shadowLightsDataIndices => m_ShadowLightsDataIndices;
 
+        //Other
+        public NativeArray<VisibleLight> offscreenDynamicGILights => m_OffscreenDynamicGILights;
+
         //Resets internal size of processed lights.
         public void Reset()
         {
@@ -61,6 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Build(
             HDCamera hdCamera,
             in CullingResults cullingResult,
+            in SortedList<uint, Light> allDGIEnabledLights,
             HDShadowManager shadowManager,
             in HDShadowInitParameters inShadowInitParameters,
             in AOVRequestData aovRequestData,
@@ -68,13 +72,13 @@ namespace UnityEngine.Rendering.HighDefinition
             DebugDisplaySettings debugDisplaySettings,
             bool processDynamicGI)
         {
-            BuildVisibleLightEntities(cullingResult, processDynamicGI);
+            BuildVisibleLightEntities(cullingResult, allDGIEnabledLights, processDynamicGI);
 
             if (m_Size == 0)
                 return;
 
             FilterVisibleLightsByAOV(aovRequestData);
-            StartProcessVisibleLightJob(hdCamera, cullingResult.visibleLights, cullingResult.visibleOffscreenVertexLights, lightLoopSettings, debugDisplaySettings, processDynamicGI);
+            StartProcessVisibleLightJob(hdCamera, cullingResult.visibleLights, m_OffscreenDynamicGILights, lightLoopSettings, debugDisplaySettings, processDynamicGI);
             CompleteProcessVisibleLightJob();
             SortLightKeys();
             ProcessShadows(hdCamera, shadowManager, inShadowInitParameters, cullingResult);
@@ -99,6 +103,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeArray<int> m_ProcessVisibleLightCounts;
         private NativeArray<int> m_ProcessDynamicGILightCounts;
         private NativeArray<int> m_VisibleLightEntityDataIndices;
+        private NativeArray<uint> m_VisibleLightIDs;
+        private NativeArray<VisibleLight> m_OffscreenDynamicGILights;
         private NativeArray<LightBakingOutput> m_VisibleLightBakingOutput;
         private NativeArray<LightShadowCasterMode> m_VisibleLightShadowCasterMode;
         private NativeArray<LightShadows> m_VisibleLightShadows;
@@ -107,6 +113,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int m_Capacity = 0;
         private int m_Size = 0;
+
+
+        private int m_OffscreenDgiIndicesCapacity;
+        private int m_OffscreenDgiIndicesSize;
 
         private NativeArray<uint> m_SortKeys;
         private NativeArray<uint> m_SortKeysDGI;
@@ -117,6 +127,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Capacity = Math.Max(Math.Max(newCapacity, ArrayCapacity), m_Capacity * 2);
             m_VisibleLightEntityDataIndices.ResizeArray(m_Capacity);
+            m_VisibleLightIDs.ResizeArray(m_Capacity);
+            m_OffscreenDynamicGILights.ResizeArray(m_Capacity);
             m_VisibleLightBakingOutput.ResizeArray(m_Capacity);
             m_VisibleLightShadowCasterMode.ResizeArray(m_Capacity);
             m_VisibleLightShadows.ResizeArray(m_Capacity);
@@ -143,6 +155,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_VisibleLightEntityDataIndices.Dispose();
+            m_VisibleLightIDs.Dispose();
+            m_OffscreenDynamicGILights.Dispose();
             m_VisibleLightBakingOutput.Dispose();
             m_VisibleLightShadowCasterMode.Dispose();
             m_VisibleLightShadows.Dispose();

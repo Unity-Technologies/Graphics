@@ -1204,6 +1204,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AffectDynamicGI = value;
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).affectDynamicGI = m_AffectDynamicGI;
+
+                if (m_AffectDynamicGI)
+                {
+                    int index = s_InstancesHDAdditionalLightData.IndexOf(this);
+                    if (index != -1)
+                    {
+                        var light = this.GetComponent<Light>();
+                        s_DynamicGILights.Add((uint)light.GetInstanceID(), light);
+                    }
+                }
+                else
+                {
+                    var light = this.GetComponent<Light>();
+                    s_DynamicGILights.Remove((uint)light.GetInstanceID());
+                }
             }
         }
         
@@ -3684,11 +3699,19 @@ namespace UnityEngine.Rendering.HighDefinition
         // custom-begin:
         [System.NonSerialized] public static List<HDAdditionalLightData> s_InstancesHDAdditionalLightData = new List<HDAdditionalLightData>();
         [System.NonSerialized] public static List<Light> s_InstancesLight = new List<Light>();
+        [System.NonSerialized] public static SortedList<uint, Light> s_DynamicGILights = new SortedList<uint, Light>();
 
         private void InstanceAdd()
         {
+            var light = this.GetComponent<Light>();
+
             s_InstancesHDAdditionalLightData.Add(this);
-            s_InstancesLight.Add(this.GetComponent<Light>());
+            s_InstancesLight.Add(light);
+
+            if (affectDynamicGI)
+            {
+                s_DynamicGILights.Add((uint)light.GetInstanceID(), light);
+            }
         }
 
         private void InstanceRemove()
@@ -3699,6 +3722,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_InstancesHDAdditionalLightData.RemoveAt(index);
                 s_InstancesLight.RemoveAt(index);
             }
+
+            var light = this.GetComponent<Light>();
+            s_DynamicGILights.Remove((uint)light.GetInstanceID());
         }
 
         public static List<Light> GetLightInstances()
