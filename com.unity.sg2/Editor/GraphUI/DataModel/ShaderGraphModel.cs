@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [Serializable]
     class MainPreviewData
     {
+        [SerializeField]
         private SerializableMesh serializedMesh = new ();
         public bool preventRotation;
 
@@ -46,7 +47,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [SerializeField]
         private SerializableTargetSettings targetSettingsBox = new();
         [SerializeField]
-        private MainPreviewData mainPreviewData = new();
+        private MainPreviewData mainPreviewData = new(); // TODO: This should wrap a UserPrefs entry instead of being stored here.
         [SerializeField]
         private bool isSubGraph = false;
 
