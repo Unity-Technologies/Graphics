@@ -19,11 +19,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var graphModel = (ShaderGraphModel)nodeModel.GraphModel;
             var stencil = (ShaderGraphStencil)graphModel.Stencil;
-            var nodeUIDescriptor = stencil.GetUIHints(nodeModel.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(nodeModel.registryKey, nodeReader);
 
             foreach (var port in nodeReader.GetPorts())
             {
-                var staticField = port.GetTypeField().GetSubField<bool>("IsStatic");
+                var staticField = port.GetTypeField()?.GetSubField<bool>("IsStatic");
                 var isStatic = staticField?.GetData() ?? false;
                 if (!isStatic) continue;
 
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var constant = stencil.CreateConstantValue(ShaderGraphExampleTypes.GetGraphType(port));
                 if (constant is BaseShaderGraphConstant cldsConstant)
                 {
-                    cldsConstant.Initialize(graphModel.GraphHandler, nodeModel.graphDataName, portName);
+                    cldsConstant.Initialize(graphModel, nodeModel.graphDataName, portName);
                 }
 
                 // TODO: Last argument is label text, should come from UI strings

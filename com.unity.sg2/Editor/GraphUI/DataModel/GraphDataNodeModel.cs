@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         GraphHandler graphHandler =>
             ((ShaderGraphModel)GraphModel).GraphHandler;
 
-        Registry registry =>
+        ShaderGraphRegistry registry =>
             ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,
@@ -213,7 +213,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             nodeHandler.SetMetadata(
                 NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME,
                 newFunctionName);
-            graphHandler.ReconcretizeNode(graphDataName, registry);
+            graphHandler.ReconcretizeNode(graphDataName, registry.Registry);
             DefineNode();
         }
 
@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             NodeUIDescriptor nodeUIDescriptor = new();
             if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
-                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey);
+                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
 
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
             m_PortMappings.Clear();
@@ -272,12 +272,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     }
                     catch
                     {
-                        handler = shaderGraphModel.RegistryInstance.defaultTopologies;
+                        handler = shaderGraphModel.RegistryInstance.DefaultTopologies;
                     }
                     // don't do this, we should have a fixed way of pathing into a port's type information as opposed to its header/port data.
                     // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.
                     // Not sure how that's going to work for data that's from a connection!
-                    constant.Initialize(handler, nodeId.LocalPath, portReader.LocalID);
+                    constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
                 IPortModel newPortModel = null;
@@ -286,7 +286,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(graphHandler, nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((ShaderGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
                 }
                 else
                     newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);

@@ -124,9 +124,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (builder.ConstantOwner is not GraphDataPortModel graphDataPort)
                 return builder.BuildDefaultConstantEditor(constant);
 
+
+            // Try/Catch maybe.
+            ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeReader(out var nodeReader);
+
             var length = constant.GetLength();
             var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-            var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey);
+            var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey, nodeReader);
             var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
 
             if ((int)length >= 3 && parameterUIDescriptor.UseColor)

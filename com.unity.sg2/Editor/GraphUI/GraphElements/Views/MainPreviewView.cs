@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         void ChangeMeshCustom()
         {
             MethodInfo showMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] { typeof(Object), typeof(Type), typeof(Object), typeof(bool), typeof(List<int>), typeof(Action<Object>), typeof(Action<Object>) }, new ParameterModifier[7]);
-            m_PreviousMesh = m_MainPreviewData.serializedMesh.mesh;
+            m_PreviousMesh = m_MainPreviewData.mesh;
             showMethod?.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnObjectSelectorClosed, (Action<Object>)OnObjectSelectionUpdated });
         }
 

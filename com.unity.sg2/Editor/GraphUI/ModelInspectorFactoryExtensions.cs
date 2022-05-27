@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var view = elementBuilder.View as ModelInspectorView;
             ui.Setup(model, view, elementBuilder.Context);
 
-            if (model.Asset is ShaderGraphAssetModel graphAsset && !graphAsset.IsSubGraph)
+            if (model.Asset is ShaderGraphAsset graphAsset && !graphAsset.ShaderGraphModel.IsSubGraph)
             {
                 if (elementBuilder.Context is InspectorSectionContext inspectorSectionContext)
                 {
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     {
                         case SectionType.Settings:
                         {
-                            var targetSettingsField = new TargetSettingsInspector(graphAsset.ActiveTargets, ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
+                            var targetSettingsField = new TargetSettingsInspector(graphAsset.ShaderGraphModel.Targets, ModelInspector.fieldsPartName, model, ui, ModelInspector.ussClassName);
                             ui.PartList.AppendPart(targetSettingsField);
                             break;
                         }
