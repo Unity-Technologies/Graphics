@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if DEBUG
                 if (outputIndex < 0 || outputIndex >= maxLightCount)
-                    throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + outputLightCounts);
+                    throw new Exception("Trying to access an output index out of bounds. Output index is " + outputIndex + "and max length is " + maxLightCount);
 #endif
                 outputArray[outputIndex] = lightData;
             }

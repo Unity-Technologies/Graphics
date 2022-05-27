@@ -378,7 +378,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeBuffer    directionalLightData { get; private set; }
             public ComputeBuffer    lightData { get; private set; }
-            public ComputeBuffer    dynamicGILightData { get; private set; }
             public ComputeBuffer    envLightData { get; private set; }
             public ComputeBuffer    decalData { get; private set; }
 
@@ -386,7 +385,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 directionalLightData = new ComputeBuffer(directionalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                dynamicGILightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
             }
@@ -395,7 +393,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SafeRelease(directionalLightData);
                 CoreUtils.SafeRelease(lightData);
-                CoreUtils.SafeRelease(dynamicGILightData);
                 CoreUtils.SafeRelease(envLightData);
                 CoreUtils.SafeRelease(decalData);
             }
@@ -786,9 +783,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
 
-        // Data needed for the PrepareGPULightdata
-        List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
-
         static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
 
         // custom-begin:
@@ -1040,7 +1034,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitShadowSystem(asset, defaultResources);
 
-            m_GpuLightsBuilder.Initialize(m_Asset, m_ShadowManager, m_TextureCaches);
+            m_GpuLightsBuilder.Initialize(
+                m_Asset,
+                m_ShadowManager,
+                m_TextureCaches,
+                m_MaxDirectionalLightsOnScreen,
+                m_MaxPunctualLightsOnScreen,
+                m_MaxAreaLightsOnScreen);
 
             s_lightVolumes = new DebugLightVolumes();
             s_lightVolumes.InitData(defaultResources);
@@ -1113,13 +1113,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ContactShadowIndex = 0;
 
             m_TextureCaches.NewFrame();
-
-            m_WorldToViewMatrices.Clear();
-            int viewCount = hdCamera.viewCount;
-            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
-            {
-                m_WorldToViewMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
-            }
 
             // Clear the cookie atlas if needed at the beginning of the frame.
             if (m_DebugDisplaySettings.data.lightingDebugSettings.clearCookieAtlas)
@@ -3159,8 +3152,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (dynamicGIEnabled)
             {
-                m_LightLoopLightData.dynamicGILightData.SetData(m_GpuLightsBuilder.dgiLights, 0, 0, m_GpuLightsBuilder.dgiLightsCount);
-                cmd.SetGlobalBuffer(HDShaderIDs._DynamicGILightDatas, m_LightLoopLightData.dynamicGILightData);
+                cmd.SetGlobalBuffer(HDShaderIDs._DynamicGILightDatas, m_GpuLightsBuilder.dgiLightsBuffer);
                 cmd.SetGlobalInt(HDShaderIDs._DynamicGIPunctualLightCount, m_GpuLightsBuilder.dgiPunctualLightCount);
                 cmd.SetGlobalInt(HDShaderIDs._DynamicGIAreaLightCount, m_GpuLightsBuilder.dgiAreaLightCount);
             }

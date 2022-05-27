@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_LightCount = 0;
             m_DGILightCount = 0;
+            m_DGILightsBuffer = null;
             m_ContactShadowIndex = 0;
             m_ScreenSpaceShadowIndex = 0;
             m_ScreenSpaceShadowChannelSlot = 0;
@@ -120,6 +121,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 StartCreateGpuLightDataJob(hdCamera, cullingResult, hdShadowSettings, visibleLights, lightEntities);
                 CompleteGpuLightDataJob();
                 CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings, hierarchicalVarianceScreenSpaceShadowsData);
+            }
+
+            if (dgiLightsCount > 0)
+            {
+                m_DGILightsBuffer = m_DGILightsData.EndWrite(m_DGILightCount);
             }
 
             //Sanity check

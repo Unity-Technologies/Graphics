@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -26,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int punctualLightCount => m_LightTypeCounters.IsCreated ? m_LightTypeCounters[(int)GPULightTypeCountSlots.Punctual] : 0;
         public int areaLightCount => m_LightTypeCounters.IsCreated ? m_LightTypeCounters[(int)GPULightTypeCountSlots.Area] : 0;
 
-        public NativeArray<LightData> dgiLights => m_DGILights;
+        public ComputeBuffer dgiLightsBuffer => m_DGILightsBuffer;
         public int dgiLightsCount => m_DGILightCount;
         public int dgiPunctualLightCount => m_DGILightTypeCounters.IsCreated ? m_DGILightTypeCounters[(int)GPULightTypeCountSlots.Punctual] : 0;
         public int dgiAreaLightCount => m_DGILightTypeCounters.IsCreated ? m_DGILightTypeCounters[(int)GPULightTypeCountSlots.Area] : 0;
@@ -73,7 +74,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         //Initialization of builder
-        public void Initialize(HDRenderPipelineAsset asset, HDShadowManager shadowManager, HDRenderPipeline.LightLoopTextureCaches textureCaches)
+        public void Initialize(
+            HDRenderPipelineAsset asset,
+            HDShadowManager shadowManager,
+            HDRenderPipeline.LightLoopTextureCaches textureCaches,
+            int maxDirectionalCount,
+            int maxPunctualCount,
+            int maxAreaCount)
         {
             m_Asset = asset;
             m_TextureCaches = textureCaches;
@@ -85,6 +92,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //Allocate all the GPU critical buffers, for the case were there are no lights.
             //This ensures we can bind an empty buffer on ComputeBuffer SetData() call
+            m_DGILightsData = new StructuredFencedComputeBuffer<LightData>(maxPunctualCount + maxAreaCount);
+
             AllocateLightData(0, 0, 0);
         }
 
@@ -107,8 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DirectionalLights.IsCreated)
                 m_DirectionalLights.Dispose();
 
-            if (m_DGILights.IsCreated)
-                m_DGILights.Dispose();
+            m_DGILightsData?.Dispose();
 
             if (m_LightsPerView.IsCreated)
                 m_LightsPerView.Dispose();
@@ -153,9 +161,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_DirectionalLightCapacity = 0;
         private int m_DirectionalLightCount = 0;
 
+        private StructuredFencedComputeBuffer<LightData> m_DGILightsData;
         private NativeArray<LightData> m_DGILights;
-        private int m_DGILightCapacity = 0;
         private int m_DGILightCount = 0;
+        private ComputeBuffer m_DGILightsBuffer = null;
 
         private NativeArray<int> m_LightTypeCounters;
         private NativeArray<int> m_DGILightTypeCounters;
@@ -197,13 +206,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             m_DirectionalLightCount = directionalLightCount;
 
-            int requestedDGILightCount = Math.Max(1, dgiLightCount);
-            if (requestedDGILightCount > m_DGILightCapacity)
+            if (dgiLightCount > 0)
             {
-                m_DGILightCapacity = Math.Max(Math.Max(m_DGILightCapacity * 2, requestedDGILightCount), ArrayCapacity);
-                m_DGILights.ResizeArray(m_DGILightCapacity);
+                m_DGILights = m_DGILightsData.BeginWrite(dgiLightCount);
+                m_DGILightCount = dgiLightCount;
             }
-            m_DGILightCount = dgiLightCount;
         }
 
         #endregion
