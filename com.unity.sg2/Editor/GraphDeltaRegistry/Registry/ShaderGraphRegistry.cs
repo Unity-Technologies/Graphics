@@ -175,5 +175,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             #endregion
         }
+        }
+
+        // TODO: Initialize SubGraphs from files
+        // TODO: Register SubGraph
+        // TODO: Refresh this registry w/subgraphs are modified
+        // TODO: Refresh dependent graphs for subgraphs ^^
     }
 }

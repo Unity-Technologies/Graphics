@@ -40,12 +40,12 @@ namespace UnityEditor.ShaderGraph
 
         public static ShaderGraphAsset HandleLoad(string path)
         {
+            AssetDatabase.ImportAsset(path);
             var asset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
             return asset;
         }
 
-        // TODO: TargetSettingsObject as param, so that we can initialize with a target.
-        public static void HandleCreate(string path, bool isSubGraph = false)
+        public static void HandleCreate(string path, bool isSubGraph = false) // TODO: TargetSettingsObject as param
         {
             HandleSave(path, CreateNewAssetGraph(isSubGraph));
         }
@@ -76,13 +76,13 @@ namespace UnityEditor.ShaderGraph
                 ctx.AddObjectToAsset("Shader", shader, texture);
                 ctx.SetMainObject(shader);
                 ctx.AddObjectToAsset("Material", mat);
-                ctx.AddObjectToAsset("Data", asset);
+                ctx.AddObjectToAsset("Asset", asset);
             }
             else // is subgraph
             {
                 Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");
 
-                ctx.AddObjectToAsset("Data", asset, texture);
+                ctx.AddObjectToAsset("Asset", asset, texture);
                 ctx.SetMainObject(asset);
 
                 var name = Path.GetFileNameWithoutExtension(ctx.assetPath);
@@ -122,10 +122,11 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         GraphHandler m_graph;
 
+        // Provide a previously initialized graphHandler-- round-trip it for ownership.
         public void Init(GraphHandler value)
         {
             json = value.ToSerializedFormat();
-            var reg = ShaderGraphRegistry.Instance.Registry;
+            var reg = ShaderGraphRegistry.Instance.Registry; // TODO: Singleton?
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
             m_graph.ReconcretizeAll();
         }
@@ -161,8 +162,6 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             public List<JsonData<Target>> m_GraphTargets = new();
         }
-
-        // TODO: Init method for providing initial state (see HandleCreate).
 
         public List<JsonData<Target>> Targets => m_tso.m_GraphTargets;
 

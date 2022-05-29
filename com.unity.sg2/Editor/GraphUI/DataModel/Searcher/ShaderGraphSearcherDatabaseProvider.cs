@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
 
 
-                        // TODO: it's possible for searcher names to collides, which will prevent the searcher from functioning.
+                        // TODO: We should use displayName if it's valid, not just on subgraphs...
                         var searcherItem = new RegistryNodeSearcherItem(graphModel, registryKey, uiHints.Categories.Contains("SubGraph") ? uiHints.DisplayName : uiHints.Name);
                         searcherItem.CategoryPath = categoryPath;
 
