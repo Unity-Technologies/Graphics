@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
 using RttTest;
 using Unity.Rendering.VideoCodec;
@@ -20,6 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 if (!GetVideoMode()) return null;
+                if (GetDistributedMode() != DistributedMode.None && s_videoCodecs == null)
+                {
+                    Codec.RegisterDebugLogFunction(Codec.DebugLogDefaultFunc);
+                }
                 switch (GetDistributedMode())
                 {
                     case DistributedMode.None:
@@ -43,7 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!GetVideoMode()) return null;
                 if (GetDistributedMode() != DistributedMode.Renderer) return null;
-                Vector2Int viewportSize = GetCurrentSubViewportSize(Vector2Int.one);
+                Const.UserInfo userInfo = SocketClient.Instance.UserInfo;
+                ScreenSubsection subsection =
+                    new ScreenSubsection(userInfo.userCount, userInfo.userID, userInfo.mergerWidth, userInfo.mergerHeight);
+                Vector2Int viewportSize = subsection.GetPaddedSlicedResolution();
                 if (VideoCodecs[0] == null)
                 {
                     // lazy initialization
@@ -78,10 +84,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!GetVideoMode()) return null;
                 if (GetDistributedMode() != DistributedMode.Merger) return null;
-                Vector2Int layout = GetViewportLayout(VideoCodecs.Length);
-                Vector2Int viewportSize = GetCurrentSubViewportSize(layout);
                 for (int i = 0; i < VideoCodecs.Length; ++i)
                 {
+                    ScreenSubsection subsection =
+                        new ScreenSubsection(SocketServer.Instance.userCount, i, Screen.width, Screen.height);
+                    Vector2Int viewportSize = subsection.GetPaddedSlicedResolution();
+
                     if (VideoCodecs[i] == null)
                     {
                         // lazy initialization
@@ -204,7 +212,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
 
             public int userCount;
-            public Vector2Int layout;
+            public int userIndex;
+            public ScreenSubsection subsection;
         }
 
         class SendDataVideo
@@ -215,164 +224,163 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle tempYTexture;
             public TextureHandle tempUVTexture;
+
+            public ScreenSubsection subsection;
         }
 
-        void CreateNV12Texture(RenderGraphBuilder builder, Vector2Int layout,
+        void CreateNV12Texture(RenderGraphBuilder builder, Vector2Int size,
             out TextureHandle yTex,
             out TextureHandle uvTex)
         {
-            if (GetDistributedMode() == DistributedMode.Renderer)
-                layout = Vector2Int.one;
-
-            Vector2 fullSize = Vector2.one / layout;
-            Vector2 halfSize = fullSize * 0.5f;
-
-            yTex = builder.CreateTransientTexture(GetDistributedIntermediateTextureDesc(fullSize, GraphicsFormat.R16_SFloat));
-            uvTex = builder.CreateTransientTexture(GetDistributedIntermediateTextureDesc(halfSize, GraphicsFormat.R16G16_SFloat));
+            yTex = builder.CreateTransientTexture(GetDistributedIntermediateTextureDesc(size, GraphicsFormat.R16_SFloat));
+            uvTex = builder.CreateTransientTexture(GetDistributedIntermediateTextureDesc(size / 2, GraphicsFormat.R16G16_SFloat));
         }
 
-        void ReceiveColorBufferVideo(RenderGraph renderGraph, TextureHandle colorBuffer)
+        bool ReceiveColorBufferVideo(RenderGraph renderGraph, TextureHandle colorBuffer, int userIndex)
         {
-            using (var builder = renderGraph.AddRenderPass<ReceiveDataVideo>("Receive Color Buffer (Video Decode)", out var passData))
-            {
-                passData.userCount = SocketServer.Instance.userCount;
+            if (!SocketServer.Instance.Connected(userIndex))
+                return false;
 
-                passData.layout = GetViewportLayout(passData.userCount);
+            using var builder = renderGraph.AddRenderPass<ReceiveDataVideo>($"Receive Color Buffer (Video Decode) {userIndex}", out var passData);
 
-                passData.whiteTexture = builder.ReadTexture(renderGraph.defaultResources.whiteTexture);
+            passData.userCount = SocketServer.Instance.userCount;
+            passData.userIndex = userIndex;
+            // TODO: We don't have a good place to store this for now so we create a new one each frame
+            passData.subsection = new ScreenSubsection(passData.userCount, userIndex, Screen.width, Screen.height);
 
-                CreateNV12Texture(builder, passData.layout,
-                    out passData.tempYTexture, out passData.tempUVTexture);
+            passData.whiteTexture = builder.ReadTexture(renderGraph.defaultResources.whiteTexture);
 
-                passData.blitYUVToRGBMaterial = GetBlitYUVToRGBMaterial(TextureXR.dimension);
+            Vector2Int textureSize = passData.subsection.GetPaddedSlicedResolution();
 
-                passData.colorBufferSection =
-                    builder.CreateTransientTexture(
-                        GetDistributedIntermediateTextureDesc(Vector2.one / passData.layout, GraphicsFormat.R16G16B16A16_SFloat));
+            CreateNV12Texture(builder, textureSize,
+                out passData.tempYTexture, out passData.tempUVTexture);
 
-                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+            passData.blitYUVToRGBMaterial = GetBlitYUVToRGBMaterial(TextureXR.dimension);
 
-                builder.SetRenderFunc(
-                    (ReceiveDataVideo data, RenderGraphContext context) =>
+            passData.colorBufferSection = builder.CreateTransientTexture(
+                GetDistributedIntermediateTextureDesc(textureSize, GraphicsFormat.R16G16B16A16_SFloat));
+
+            passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+
+            builder.SetRenderFunc(
+                (ReceiveDataVideo data, RenderGraphContext context) =>
+                {
+                    // Blit YUV textures to a RGB temp texture
+                    using (new ProfilingScope(context.cmd,
+                               new ProfilingSampler($"Blit NV12 Textures to RGB Section")))
                     {
-                        bool hasConnection = false;
-                        for (int i = 0; i < data.userCount; i++)
-                        {
-                            if (!SocketServer.Instance.Connected(i))
-                                continue;
-                            hasConnection = true;
+                        RttTestUtilities.BeginDecodeYuv(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, passData.userIndex);
 
-                            Rect subsection = GetViewportSubsection(data.layout, i, data.userCount);
+                        // Blit to Unity Texture First
+                        VideoDecoders[passData.userIndex].SetTextures(new Texture[] {passData.tempYTexture, passData.tempUVTexture},
+                            new[] {1.0f, 0.5f});
+                        VideoDecoders[passData.userIndex].BlitTexture(context.cmd);
 
-                            // Blit YUV textures to a RGB temp texture
-                            using (new ProfilingScope(context.cmd,
-                                       new ProfilingSampler($"Blit YUV Textures {i} to RGB Section")))
-                            {
-                                RttTestUtilities.BeginDecodeYuv(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
+                        var mpbYUVToRGB = context.renderGraphPool.GetTempMaterialPropertyBlock();
 
-                                // Blit to Unity Texture First
-                                VideoDecoders[i].SetTextures(new Texture[] {passData.tempYTexture, passData.tempUVTexture},
-                                    new[] {1.0f, 0.5f});
-                                VideoDecoders[i].BlitTexture(context.cmd);
+                        mpbYUVToRGB.SetTexture(HDShaderIDs._BlitTextureY, data.tempYTexture);
+                        mpbYUVToRGB.SetTexture(HDShaderIDs._BlitTextureU, data.tempUVTexture);
 
-                                var mpbYUVToRGB = context.renderGraphPool.GetTempMaterialPropertyBlock();
-
-                                mpbYUVToRGB.SetTexture(HDShaderIDs._BlitTextureY, data.tempYTexture);
-                                mpbYUVToRGB.SetTexture(HDShaderIDs._BlitTextureU, data.tempUVTexture);
-
-                                context.cmd.SetRenderTarget(data.colorBufferSection);
-                                CoreUtils.DrawFullScreen(context.cmd, data.blitYUVToRGBMaterial, mpbYUVToRGB, 1);
-                            }
-
-                            // Blit the temp texture to part of the color buffer
-                            using (new ProfilingScope(context.cmd,
-                                       new ProfilingSampler($"Copy Section {i} to Color Buffer")))
-                            {
-                                RttTestUtilities.CombineFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, i);
-
-                                context.cmd.SetRenderTarget(data.colorBuffer);
-                                HDUtils.BlitQuadWithPadding(
-                                    context.cmd,
-                                    data.colorBufferSection,
-                                    new Vector2(960, 540), // TODO: hardcode
-                                    new Vector4(1, 1, 0, 0),
-                                    new Vector4(1.0f / data.layout.x, 1.0f / data.layout.y, subsection.xMin,
-                                        subsection.yMin),
-                                    0,
-                                    false,
-                                    0);
-                            }
-                        }
-
-                        if (!hasConnection)
-                        {
-                            HDUtils.BlitCameraTexture(context.cmd, data.whiteTexture, data.colorBuffer);
-                        }
+                        context.cmd.SetRenderTarget(data.colorBufferSection);
+                        CoreUtils.DrawFullScreen(context.cmd, data.blitYUVToRGBMaterial, mpbYUVToRGB, 1);
                     }
-                );
-            }
+
+                    // Blit the temp texture to part of the color buffer
+                    using (new ProfilingScope(context.cmd,
+                               new ProfilingSampler($"Copy Section to Color Buffer")))
+                    {
+                        RttTestUtilities.CombineFrame(RttTestUtilities.Role.Merger, (uint)CurrentFrameID, passData.userIndex);
+
+                        context.cmd.SetRenderTarget(data.colorBuffer);
+
+                        Rect activeSubSection = data.subsection.activeSubsection;
+                        Vector2Int paddedResolution = data.subsection.GetPaddedSlicedResolution();
+                        Vector2 scaleBias = activeSubSection.size / data.subsection.fullResolution;
+                        Vector2 scaleOffset = activeSubSection.min / data.subsection.fullResolution;
+
+                        Vector2 blitScale = activeSubSection.size / paddedResolution;
+                        Vector2 blitOffset = Vector2.one * data.subsection.padding / paddedResolution;
+
+                        HDUtils.BlitQuadWithPadding(
+                            context.cmd,
+                            data.colorBufferSection,
+                            activeSubSection.size,
+                            new Vector4(blitScale.x, blitScale.y, blitOffset.x, blitOffset.y),
+                            new Vector4(scaleBias.x, scaleBias.y, scaleOffset.x, scaleOffset.y),
+                            0,
+                            false,
+                            0);
+                    }
+                }
+            );
+
+            return true;
         }
 
         void SendColorBufferVideo(RenderGraph renderGraph, TextureHandle colorBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<SendDataVideo>("Send Color Buffer (Video Encode)", out var passData))
-            {
-                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+            using var builder = renderGraph.AddRenderPass<SendDataVideo>("Send Color Buffer (Video Encode)", out var passData);
 
-                passData.blitRGBToYUVMaterial = GetBlitRGBToYUVMaterial(TextureXR.dimension);
+            passData.colorBuffer = builder.ReadTexture(colorBuffer);
 
-                CreateNV12Texture(builder, Vector2Int.one,
-                    out passData.tempYTexture, out passData.tempUVTexture);
+            passData.blitRGBToYUVMaterial = GetBlitRGBToYUVMaterial(TextureXR.dimension);
 
-                builder.SetRenderFunc(
-                    (SendDataVideo data, RenderGraphContext context) =>
+            Const.UserInfo userInfo = SocketClient.Instance.UserInfo;
+            // TODO: We don't have a good place to store this for now so we create a new one each frame
+            passData.subsection =
+                new ScreenSubsection(userInfo.userCount, userInfo.userID, userInfo.mergerWidth, userInfo.mergerHeight);
+
+            CreateNV12Texture(builder, passData.subsection.GetPaddedSlicedResolution(),
+                out passData.tempYTexture, out passData.tempUVTexture);
+
+            builder.SetRenderFunc(
+                (SendDataVideo data, RenderGraphContext context) =>
+                {
+                    int currentFrameID = CurrentFrameID;
+                    int rendererId = SocketClient.Instance.UserInfo.userID;
+
+                    RttTestUtilities.BeginEncodeYuv(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
+
+                    // Blit color buffer to NV12 Textures
+                    using (new ProfilingScope(context.cmd,
+                               new ProfilingSampler("Blit Color Buffer to NV12 Textures")))
                     {
-                        int currentFrameID = CurrentFrameID;
-                        int rendererId = SocketClient.Instance.UserInfo.userID;
+                        var mpbRGBToYUV = context.renderGraphPool.GetTempMaterialPropertyBlock();
+                        mpbRGBToYUV.SetTexture(HDShaderIDs._BlitTexture, data.colorBuffer);
 
-                        RttTestUtilities.BeginEncodeYuv(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
+                        context.cmd.SetRenderTarget(data.tempYTexture);
+                        CoreUtils.DrawFullScreen(context.cmd, data.blitRGBToYUVMaterial, mpbRGBToYUV, 0);
 
-                        // Blit color buffer to NV12 Textures
-                        using (new ProfilingScope(context.cmd,
-                                   new ProfilingSampler("Blit Color Buffer to NV12 Textures")))
-                        {
-                            var mpbRGBToYUV = context.renderGraphPool.GetTempMaterialPropertyBlock();
-                            mpbRGBToYUV.SetTexture(HDShaderIDs._BlitTexture, data.colorBuffer);
-
-                            context.cmd.SetRenderTarget(data.tempYTexture);
-                            CoreUtils.DrawFullScreen(context.cmd, data.blitRGBToYUVMaterial, mpbRGBToYUV, 0);
-
-                            context.cmd.SetRenderTarget(data.tempUVTexture);
-                            CoreUtils.DrawFullScreen(context.cmd, data.blitRGBToYUVMaterial, mpbRGBToYUV, 3);
-                        }
-
-                        // Blit NV12 textures to Encoder
-                        using (new ProfilingScope(context.cmd,
-                                   new ProfilingSampler("Blit NV12 Textures to Encoder")))
-                        {
-                            // TODO: this executes earilier than it looks!
-                            VideoEncoder.SetTextures(new Texture[] {passData.tempYTexture, passData.tempUVTexture}, new []{1.0f, 0.5f});
-                            VideoEncoder.FrameID = currentFrameID;
-                            VideoEncoder.BlitTexture(context.cmd);
-                        }
-
-                        // Transfer Encoder texture to Video frame
-                        using (new ProfilingScope(context.cmd,
-                                   new ProfilingSampler("Transfer Graphics Data To Video")))
-                        {
-                            VideoEncoder.TransferData(context.cmd);
-                        }
-
-                        // Tell the encoding thread that we are ready
-                        using (new ProfilingScope(context.cmd,
-                                   new ProfilingSampler("Signal Encoder Thread")))
-                        {
-                            VideoEncoder.SignalCodecThread(context.cmd);
-                            RttTestUtilities.BeginReadBack(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
-                        }
+                        context.cmd.SetRenderTarget(data.tempUVTexture);
+                        CoreUtils.DrawFullScreen(context.cmd, data.blitRGBToYUVMaterial, mpbRGBToYUV, 3);
                     }
-                );
-            }
+
+                    // Blit NV12 textures to Encoder
+                    using (new ProfilingScope(context.cmd,
+                               new ProfilingSampler("Blit NV12 Textures to Encoder")))
+                    {
+                        // TODO: this executes earilier than it looks!
+                        VideoEncoder.SetTextures(new Texture[] {passData.tempYTexture, passData.tempUVTexture}, new []{1.0f, 0.5f});
+                        VideoEncoder.FrameID = currentFrameID;
+                        VideoEncoder.BlitTexture(context.cmd);
+                    }
+
+                    // Transfer Encoder texture to Video frame
+                    using (new ProfilingScope(context.cmd,
+                               new ProfilingSampler("Transfer Graphics Data To Video")))
+                    {
+                        VideoEncoder.TransferData(context.cmd);
+                    }
+
+                    // Tell the encoding thread that we are ready
+                    using (new ProfilingScope(context.cmd,
+                               new ProfilingSampler("Signal Encoder Thread")))
+                    {
+                        VideoEncoder.SignalCodecThread(context.cmd);
+                        RttTestUtilities.BeginReadBack(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
+                    }
+                }
+            );
         }
     }
 }

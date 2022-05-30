@@ -36,16 +36,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameIndex = m_FrameCount
             };
 
-            // TODO: Fix the hard coded values
             if (GetDistributedMode() == DistributedMode.Renderer)
             {
                 Const.UserInfo userInfo = SocketClient.Instance.UserInfo;
-                var layout = GetViewportLayout(userInfo.userCount);
+                // TODO: We don't have a good place to store this for now so we create a new one each frame
+                var subsection =
+                    new ScreenSubsection(userInfo.userCount, userInfo.userID, userInfo.mergerWidth, userInfo.mergerHeight);
                 camera.ResetProjectionMatrix();
-                camera.aspect = 16.0f / 9.0f;
-                // camera.aspect = Screen.width / Screen.height;
-                camera.projectionMatrix = GetFrustumSlicingAsymmetricProjection(camera.projectionMatrix,
-                    GetViewportSubsection(layout, userInfo.userID, userInfo.userCount));
+                camera.aspect = (float) userInfo.mergerWidth / userInfo.mergerHeight;
+                camera.projectionMatrix = subsection.GetSlicedAsymmetricProjection(camera.projectionMatrix);
             }
 
             m_RenderGraph.Begin(renderGraphParams);
@@ -287,10 +286,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (GetDistributedMode() == DistributedMode.Merger)
                 {
-                    if (GetVideoMode())
-                        ReceiveColorBufferVideo(m_RenderGraph, colorBuffer);
-                    else
-                        ReceiveColorBuffer(m_RenderGraph, colorBuffer);
+                    bool hasConnection = false;
+                    for (int i = 0; i < SocketServer.Instance.userCount; ++i)
+                    {
+                        if (GetVideoMode())
+                            hasConnection |= ReceiveColorBufferVideo(m_RenderGraph, colorBuffer, i);
+                        else
+                            hasConnection |= ReceiveColorBuffer(m_RenderGraph, colorBuffer, i);
+                    }
+
+                    if (!hasConnection)
+                        BlitWhiteBuffer(m_RenderGraph, colorBuffer);
                 }
 
                 if (GetDistributedMode() == DistributedMode.Merger || GetDistributedMode() == DistributedMode.None)
