@@ -16,9 +16,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected string nodeName;
         [SerializeField]
         protected string portName;
-        GraphHandler graphHandler => graphModel.GraphHandler;
+        GraphHandler graphHandler => graphModel?.GraphHandler;
 
-        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null;
+        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null; // TODO: Init order stuff should b
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;
@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
         public string NodeName => nodeName;
         public string PortName => portName;
+
         public void Initialize(ShaderGraphModel graphModel, string nodeName, string portName)
         {
             if (!IsInitialized)

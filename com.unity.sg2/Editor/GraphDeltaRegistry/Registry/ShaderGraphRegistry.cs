@@ -70,7 +70,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 NodeUIInfo.Register(key, descriptor);
             DefaultTopologies.AddNode(key, key.ToString());
         }
-        internal void Register<T>() where T : IRegistryEntry => Registry.Register<T>();
+        internal void Register<T>() where T : IRegistryEntry
+        {
+            var registryEntry = Activator.CreateInstance<T>();
+            if (registryEntry is INodeDefinitionBuilder nodeDef)
+            {
+                Register(nodeDef);
+            }
+            else
+            {
+                Registry.Register<T>();
+            }
+        }
 
 
         internal NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler node) => NodeUIInfo.GetNodeUIDescriptor(key, node);

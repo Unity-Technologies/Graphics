@@ -237,9 +237,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             NodeUIDescriptor nodeUIDescriptor = new();
+
             if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
                 nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
 
+            this.Title = nodeUIDescriptor.DisplayName;
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
             m_PortMappings.Clear();
 
@@ -256,7 +258,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var isInput = portReader.IsInput;
                 var orientation = portReader.IsHorizontal ? PortOrientation.Horizontal : PortOrientation.Vertical;
 
-                // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
                 var nodeId = nodeReader.ID;
                 void initCallback(IConstant e)
@@ -265,31 +266,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     if (e == null)
                         return;
                     var shaderGraphModel = ((ShaderGraphModel)GraphModel);
-                    var handler = shaderGraphModel.GraphHandler;
-                    try
-                    {
-                        var possiblyNodeReader = handler.GetNode(nodeId);
-                    }
-                    catch
-                    {
-                        handler = shaderGraphModel.RegistryInstance.DefaultTopologies;
-                    }
-                    // don't do this, we should have a fixed way of pathing into a port's type information as opposed to its header/port data.
-                    // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.
-                    // Not sure how that's going to work for data that's from a connection!
+                    // TODO: Ask GTF to make it so Constants are initialized, by default, with their owning portModel, then we shouldn't need this.
                     constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
+                var paramDesc = nodeUIDescriptor.GetParameterInfo(portReader.LocalID);
                 IPortModel newPortModel = null;
                 if (isInput)
                 {
-                    newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
-                    // If we were deserialized, the InitCallback doesn't get triggered.
-                    if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((ShaderGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
+                    newPortModel = this.AddDataInputPort(paramDesc.DisplayName, type, portId: portReader.LocalID, orientation: orientation, initializationCallback: initCallback);
                 }
                 else
-                    newPortModel = this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
+                    newPortModel = this.AddDataOutputPort(paramDesc.DisplayName, type, portId: portReader.LocalID, orientation: orientation);
 
                 m_PortMappings.Add(portReader, newPortModel);
             }

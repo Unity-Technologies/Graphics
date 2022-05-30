@@ -49,13 +49,13 @@ namespace UnityEditor.ShaderGraph.Defs
         public ParameterUIDescriptor GetParameterInfo(string parameterName)
         {
             if(Parameters == null)
-                return new ParameterUIDescriptor();
+                return new ParameterUIDescriptor(parameterName);
 
             foreach(var parameter in Parameters)
                 if (parameter.Name == parameterName)
                     return parameter;
 
-			return new ParameterUIDescriptor();
+			return new ParameterUIDescriptor(parameterName);
         }
 
     }
