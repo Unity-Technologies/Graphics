@@ -146,6 +146,8 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
             probeVolumeParams.y, probeVolumeParams.z, probeVolumeMin.xyz, probeVolumeSizeInv.xyz,
             bakeDiffuseLighting, backBakeDiffuseLighting);
     }
+    if (AnyIsNaN(bakeDiffuseLighting))
+        bakeDiffuseLighting.xyz = 0.0f;
 }
 
 // No need to initialize bakeDiffuseLighting and backBakeDiffuseLighting must be initialize outside the function
