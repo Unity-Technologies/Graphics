@@ -19,10 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 if (!GetVideoMode()) return null;
-                if (GetDistributedMode() != DistributedMode.None && s_videoCodecs == null)
-                {
-                    Codec.RegisterDebugLogFunction(Codec.DebugLogDefaultFunc);
-                }
                 switch (GetDistributedMode())
                 {
                     case DistributedMode.None:
