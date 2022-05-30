@@ -1072,7 +1072,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CleanupNonRenderGraphResources()
         {
-            DestroyCodecs();
             DestroyRenderTextures();
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
@@ -1151,6 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Graphics.ClearRandomWriteTargets();
             Graphics.SetRenderTarget(null);
 
+            DestroyCodecs();
             if (GetDistributedMode() == DistributedMode.Renderer)
                 SocketClient.Instance.CloseSocket();
             if (GetDistributedMode() == DistributedMode.Merger)

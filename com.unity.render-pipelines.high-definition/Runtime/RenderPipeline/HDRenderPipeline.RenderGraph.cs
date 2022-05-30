@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.TCPTransmissionDatagrams;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -38,12 +39,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Fix the hard coded values
             if (GetDistributedMode() == DistributedMode.Renderer)
             {
-                var layout = GetViewportLayout(TCPTransmissionDatagrams.Const.userCount);
+                Const.UserInfo userInfo = SocketClient.Instance.UserInfo;
+                var layout = GetViewportLayout(userInfo.userCount);
                 camera.ResetProjectionMatrix();
                 camera.aspect = 16.0f / 9.0f;
                 // camera.aspect = Screen.width / Screen.height;
                 camera.projectionMatrix = GetFrustumSlicingAsymmetricProjection(camera.projectionMatrix,
-                    GetViewportSubsection(layout, TCPTransmissionDatagrams.Const.userID, TCPTransmissionDatagrams.Const.userCount));
+                    GetViewportSubsection(layout, userInfo.userID, userInfo.userCount));
             }
 
             m_RenderGraph.Begin(renderGraphParams);

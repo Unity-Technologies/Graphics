@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using RttTest;
 using Unity.Rendering.VideoCodec;
@@ -27,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         s_videoCodecs ??= new Codec[1];
                         break;
                     case DistributedMode.Merger:
-                        s_videoCodecs ??= new Codec[Const.userCount];
+                        s_videoCodecs ??= new Codec[SocketServer.Instance.userCount];
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -139,10 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_videoCodecs = null;
         }
 
-        // Note: this "ready" does not mean that the video frame is transferred to the renderer,
-        // but rather an indicator of the data is "received and being processed", and the render pass can be executed.
-        // Whether it's finished processing is decided by the native lock.
-        private static Dictionary<int, bool> s_videoFrameReady = new Dictionary<int, bool>();
+        private static Dictionary<int, int> s_lastFrameID = new Dictionary<int, int>();
 
         private static void ProcessReceivedDataVideoFrame(int frameID, int userID, Datagram datagram)
         {
@@ -152,15 +150,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Profiler.BeginSample($"Load Data {userID} to Video Packet");
 
+            if (s_lastFrameID.TryGetValue(userID, out var lastFrameID))
+            {
+                if (lastFrameID == frameID) return;
+            }
+            else
+            {
+                s_lastFrameID.Add(userID, -1);
+            }
+
+            s_lastFrameID[userID] = frameID;
+
             RttTestUtilities.ReceiveFrame(RttTestUtilities.Role.Merger, (uint)frameID, userID);
             VideoDecoders[userID].SetPacketData(datagram.data);
             VideoDecoders[userID].FrameID = frameID;
             VideoDecoders[userID].SignalCodecThread();
-
-            if (s_videoFrameReady.ContainsKey(userID))
-                s_videoFrameReady[userID] = true;
-            else
-                s_videoFrameReady.Add(userID, true);
 
             Profiler.EndSample();
 
@@ -171,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void SendEncodedData(IntPtr data, int size, int frameId)
         {
-            var rendererId = Const.userID;
+            var rendererId = SocketClient.Instance.UserInfo.userID;
             Profiling.Profiler.BeginSample("Send Encoded Data");
 
             RttTestUtilities.FinishReadBack(RttTestUtilities.Role.Renderer, (uint)frameId, rendererId);
@@ -231,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<ReceiveDataVideo>("Receive Color Buffer (Video Decode)", out var passData))
             {
-                passData.userCount = Const.userCount;
+                passData.userCount = SocketServer.Instance.userCount;
 
                 passData.layout = GetViewportLayout(passData.userCount);
 
@@ -260,11 +264,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             Rect subsection = GetViewportSubsection(data.layout, i, data.userCount);
 
-                            // Check if this part of the data is ready
-                            bool hasKey = s_videoFrameReady.TryGetValue(i, out var dataReady);
-                            if (!hasKey || !dataReady)
-                                continue;
-
                             // Blit YUV textures to a RGB temp texture
                             using (new ProfilingScope(context.cmd,
                                        new ProfilingSampler($"Blit YUV Textures {i} to RGB Section")))
@@ -275,9 +274,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 VideoDecoders[i].SetTextures(new Texture[] {passData.tempYTexture, passData.tempUVTexture},
                                     new[] {1.0f, 0.5f});
                                 VideoDecoders[i].BlitTexture(context.cmd);
-
-                                // The video frame is used, mark it as consumed
-                                s_videoFrameReady[i] = false;
 
                                 var mpbYUVToRGB = context.renderGraphPool.GetTempMaterialPropertyBlock();
 
@@ -332,7 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (SendDataVideo data, RenderGraphContext context) =>
                     {
                         int currentFrameID = CurrentFrameID;
-                        int rendererId = Const.userID;
+                        int rendererId = SocketClient.Instance.UserInfo.userID;
 
                         RttTestUtilities.BeginEncodeYuv(RttTestUtilities.Role.Renderer, (uint)currentFrameID, rendererId);
 

@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/Distributed/BlitRGBToYUV"
 
         float3 RGBToYUV(float3 rgb)
         {
-            //rgb = pow(rgb, 1.0f / 2.2f);
+            rgb = pow(max(float3(0, 0, 0), rgb) / 16, 1.0f / 2.2f);
             // BT.2020
             float a = 0.2627f;
             float b = 0.6780f;
