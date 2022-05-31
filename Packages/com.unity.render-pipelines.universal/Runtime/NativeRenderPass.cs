@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetupNativeRenderPassFrameData(CameraData cameraData, bool isRenderPassEnabled)
+        internal void SetupNativeRenderPassFrameData(ref CameraData cameraData, bool isRenderPassEnabled)
         {
             //TODO: edge cases to detect that should affect possible passes to merge
             // - total number of color attachment > 8
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
                     if (!RPEnabled)
                         continue;
 
-                    var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
+                    var rpDesc = InitializeRenderPassDescriptor(ref cameraData, renderPass);
 
                     Hash128 hash = CreateRenderPassHash(rpDesc, currentHashIndex);
 
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void UpdateFinalStoreActions(int[] currentMergeablePasses, CameraData cameraData)
+        internal void UpdateFinalStoreActions(int[] currentMergeablePasses, ref CameraData cameraData)
         {
             for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
                 m_FinalColorStoreAction[i] = RenderBufferStoreAction.Store;
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
-                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
+                UpdateFinalStoreActions(currentMergeablePasses, ref cameraData);
 
                 int currentAttachmentIdx = 0;
                 bool hasInput = false;
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
-                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
+                UpdateFinalStoreActions(currentMergeablePasses, ref cameraData);
 
                 int currentAttachmentIdx = 0;
                 foreach (var passIdx in currentMergeablePasses)
@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void ExecuteNativeRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData)
+        internal void ExecuteNativeRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref CameraData cameraData, ref RenderingData renderingData)
         {
             using (new ProfilingScope(null, Profiling.execute))
             {
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering.Universal
                 if (useDepth && !depthOnly)
                     attachments[validColorBuffersCount] = m_ActiveDepthAttachmentDescriptor;
 
-                var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
+                var rpDesc = InitializeRenderPassDescriptor(ref cameraData, renderPass);
 
                 int validPassCount = GetValidPassIndexCount(currentMergeablePasses);
 
@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
             return CreateRenderPassHash(desc.w, desc.h, desc.depthID, desc.samples, hashIndex);
         }
 
-        private RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
+        private RenderPassDescriptor InitializeRenderPassDescriptor(ref CameraData cameraData, ScriptableRenderPass renderPass)
         {
             RenderTextureDescriptor targetRT;
             if (!renderPass.overrideCameraTarget || (renderPass.colorAttachmentHandle.rt == null && renderPass.depthAttachmentHandle.rt == null))

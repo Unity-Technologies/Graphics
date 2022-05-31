@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        static internal DebugHandler GetActiveDebugHandler(RenderingData renderingData)
+        static internal DebugHandler GetActiveDebugHandler(ref RenderingData renderingData)
         {
             var debugHandler = renderingData.cameraData.renderer.DebugHandler;
             if ((debugHandler != null) && debugHandler.IsActiveForCamera(ref renderingData.cameraData))

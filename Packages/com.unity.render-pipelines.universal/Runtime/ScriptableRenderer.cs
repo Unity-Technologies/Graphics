@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraXZAngle += 2 * Mathf.PI;
         }
 
-        private void SetPerCameraClippingPlaneProperties(CommandBuffer cmd, in CameraData cameraData)
+        private void SetPerCameraClippingPlaneProperties(CommandBuffer cmd, ref CameraData cameraData)
         {
             SetPerCameraClippingPlaneProperties(cmd, in cameraData, cameraData.IsCameraProjectionMatrixFlipped());
         }
@@ -869,7 +869,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc((DrawGizmosPassData data, RenderGraphContext rgContext) =>
                 {
                     Camera camera = data.renderingData.cameraData.camera;
-                    data.renderer.DrawGizmos(rgContext.renderContext, camera, data.gizmoSubset, data.renderingData);
+                    data.renderer.DrawGizmos(rgContext.renderContext, camera, data.gizmoSubset, ref data.renderingData);
                 });
             }
         }
@@ -1073,7 +1073,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.Clear();
                 }
 
-                SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
+                SetupNativeRenderPassFrameData(ref cameraData, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
@@ -1113,7 +1113,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Set new properties
                         SetPerCameraShaderVariables(cmd, ref cameraData);
-                        SetPerCameraClippingPlaneProperties(cmd, in cameraData);
+                        SetPerCameraClippingPlaneProperties(cmd, ref cameraData);
                         SetPerCameraBillboardProperties(cmd, ref cameraData);
                     }
 
@@ -1159,7 +1159,7 @@ namespace UnityEngine.Rendering.Universal
                 // Draw Gizmos...
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects, renderingData);
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects, ref renderingData);
                 }
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
@@ -1175,7 +1175,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects, renderingData);
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects, ref renderingData);
                 }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget, renderingData);
@@ -1396,7 +1396,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
 
             if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
-                ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData); // cmdBuffer is executed inside
+                ExecuteNativeRenderPass(context, renderPass, ref cameraData, ref renderingData); // cmdBuffer is executed inside
             else
             {
                 renderPass.Execute(context, ref renderingData);
@@ -1933,7 +1933,7 @@ namespace UnityEngine.Rendering.Universal
         internal virtual void EnableSwapBufferMSAA(bool enable) { }
 
         [Conditional("UNITY_EDITOR")]
-        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset, RenderingData renderingData)
+        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset, ref RenderingData renderingData)
         {
 #if UNITY_EDITOR
             if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)

@@ -24,10 +24,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CameraData cameraData = renderingData.cameraData;
+            ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
-            var activeDebugHandler = GetActiveDebugHandler(renderingData);
+            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
             if (activeDebugHandler != null)
             {
                 // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it

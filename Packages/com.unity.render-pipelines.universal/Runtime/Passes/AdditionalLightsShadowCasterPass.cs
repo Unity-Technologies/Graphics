@@ -458,9 +458,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (!IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex))
                     continue;
-                if (visibleLights[visibleLightIndex].lightType == LightType.Point)
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visibleLightIndex);
+                if (vl.lightType == LightType.Point)
                     ++numberOfShadowedPointLights;
-                if (visibleLights[visibleLightIndex].light.shadows == LightShadows.Soft)
+                if (vl.light.shadows == LightShadows.Soft)
                     ++numberOfSoftShadowedLights;
                 if (renderingData.shadowData.resolution[visibleLightIndex] == 0128)
                     ++numberOfShadowsWithResolution0128;
@@ -560,16 +561,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex))
                 {
-                    int shadowSlicesCountForThisLight = GetPunctualLightShadowSlicesCount(visibleLights[visibleLightIndex].lightType);
+                    ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visibleLightIndex);
+
+                    int shadowSlicesCountForThisLight = GetPunctualLightShadowSlicesCount(vl.lightType);
                     totalShadowResolutionRequestsCount += shadowSlicesCountForThisLight;
 
                     for (int perLightShadowSliceIndex = 0; perLightShadowSliceIndex < shadowSlicesCountForThisLight; ++perLightShadowSliceIndex)
                     {
                         m_ShadowResolutionRequests.Add(new ShadowResolutionRequest(visibleLightIndex, perLightShadowSliceIndex, renderingData.shadowData.resolution[visibleLightIndex],
-                            (visibleLights[visibleLightIndex].light.shadows == LightShadows.Soft), (visibleLights[visibleLightIndex].lightType == LightType.Point)));
+                            (vl.light.shadows == LightShadows.Soft), (vl.lightType == LightType.Point)));
                     }
                     // mark this light as casting shadows
-                    m_VisibleLightIndexToCameraSquareDistance[visibleLightIndex] = (renderingData.cameraData.camera.transform.position - visibleLights[visibleLightIndex].light.transform.position).sqrMagnitude;
+                    m_VisibleLightIndexToCameraSquareDistance[visibleLightIndex] = (renderingData.cameraData.camera.transform.position - vl.light.transform.position).sqrMagnitude;
                 }
             }
 
@@ -637,7 +640,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int additionalLightCount = 0;
             for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length && m_ShadowSliceToAdditionalLightIndex.Count < totalShadowSlicesCount && additionalLightCount < maxAdditionalLightShadowParams; ++visibleLightIndex)
             {
-                VisibleLight shadowLight = visibleLights[visibleLightIndex];
+                ref VisibleLight shadowLight = ref visibleLights.UnsafeElementAtMutable(visibleLightIndex);
 
                 // Skip main directional light as it is not packed into the shadow atlas
                 if (visibleLightIndex == renderingData.lightData.mainLightIndex)
@@ -917,7 +920,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     int visibleLightIndex = m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex];
                     var originalLightIndex = lightData.originalIndices[visibleLightIndex];
 
-                    VisibleLight shadowLight = visibleLights[visibleLightIndex];
+                    ref VisibleLight shadowLight = ref visibleLights.UnsafeElementAtMutable(visibleLightIndex);
 
                     ShadowSliceData shadowSliceData = m_AdditionalLightsShadowSlices[globalShadowSliceIndex];
 
@@ -1003,7 +1006,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (i == lightData.mainLightIndex)
                 return false;
 
-            VisibleLight shadowLight = lightData.visibleLights[i];
+            ref VisibleLight shadowLight = ref lightData.visibleLights.UnsafeElementAtMutable(i);
 
             // Directional and light shadows are not supported in the shadow map atlas
             if (shadowLight.lightType == LightType.Directional)

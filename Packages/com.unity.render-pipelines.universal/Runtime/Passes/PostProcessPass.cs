@@ -361,7 +361,7 @@ namespace UnityEngine.Rendering.Universal
             return desc;
         }
 
-        bool RequireSRGBConversionBlitToBackBuffer(CameraData cameraData)
+        bool RequireSRGBConversionBlitToBackBuffer(ref CameraData cameraData)
         {
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
+                    DoMotionBlur(ref cameraData, cmd, GetSource(), GetDestination());
                     Swap(ref renderer);
                 }
             }
@@ -537,10 +537,10 @@ namespace UnityEngine.Rendering.Universal
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
-                SetupGrain(cameraData, m_Materials.uber);
-                SetupDithering(cameraData, m_Materials.uber);
+                SetupGrain(ref cameraData, m_Materials.uber);
+                SetupDithering(ref cameraData, m_Materials.uber);
 
-                if (RequireSRGBConversionBlitToBackBuffer(cameraData))
+                if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // When we're running FSR upscaling and there's no passes after this (including the FXAA pass), we can safely perform color conversion as part of uber post
@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering.Universal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
-                GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
+                GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
 
                 // Done with Uber, blit it
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
@@ -607,7 +607,7 @@ namespace UnityEngine.Rendering.Universal
                         m_CameraTargetHandle?.Release();
                         m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
                     }
-                    RenderingUtils.FinalBlit(cmd, cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                    RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                 }
             }
         }
@@ -904,7 +904,7 @@ namespace UnityEngine.Rendering.Universal
         // Hold the stereo matrices to avoid allocating arrays every frame
         internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
 #endif
-        void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
+        void DoMotionBlur(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
             var material = m_Materials.cameraMotionBlur;
 
@@ -1271,7 +1271,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region Film Grain
 
-        void SetupGrain(in CameraData cameraData, Material material)
+        void SetupGrain(ref CameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && m_FilmGrain.IsActive())
             {
@@ -1289,7 +1289,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region 8-bit Dithering
 
-        void SetupDithering(in CameraData cameraData, Material material)
+        void SetupDithering(ref CameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && cameraData.isDitheringEnabled)
             {
@@ -1315,13 +1315,13 @@ namespace UnityEngine.Rendering.Universal
 
             PostProcessUtils.SetSourceSize(cmd, cameraData.cameraTargetDescriptor);
 
-            SetupGrain(cameraData, material);
-            SetupDithering(cameraData, material);
+            SetupGrain(ref cameraData, material);
+            SetupDithering(ref cameraData, material);
 
-            if (RequireSRGBConversionBlitToBackBuffer(cameraData))
+            if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
+            GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
 
             if (m_UseSwapBuffer)
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
@@ -1460,7 +1460,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CameraTargetHandle?.Release();
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
-            RenderingUtils.FinalBlit(cmd, cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+            RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
         }
 
         #endregion

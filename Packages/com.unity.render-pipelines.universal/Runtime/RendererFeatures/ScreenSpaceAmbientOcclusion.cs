@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.Universal
                 var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    var cameraData = renderingData.cameraData;
+                    ref var cameraData = ref renderingData.cameraData;
 
                     if (!m_CurrentSettings.AfterOpaque)
                     {
@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.Universal
                     if (m_CurrentSettings.AfterOpaque)
                     {
                         RenderingUtils.FinalBlit(
-                            cmd, cameraData, m_SSAOTextureFinal,
+                            cmd, ref cameraData, m_SSAOTextureFinal,
                             m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
                             m_Material, (int)ShaderPasses.AfterOpaque);
                     }

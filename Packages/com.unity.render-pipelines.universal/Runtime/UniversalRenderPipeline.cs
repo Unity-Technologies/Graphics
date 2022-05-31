@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.Universal
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref cameraData);
 #endif
-            RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
+            RenderSingleCamera(context, ref cameraData, cameraData.postProcessEnabled);
         }
 
         static bool TryGetCullingParameters(CameraData cameraData, out ScriptableCullingParameters cullingParams)
@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="cameraData">Camera rendering data. This might contain data inherited from a base camera.</param>
         /// <param name="anyPostProcessingEnabled">True if at least one camera has post-processing enabled in the stack, false otherwise.</param>
-        static void RenderSingleCamera(ScriptableRenderContext context, CameraData cameraData, bool anyPostProcessingEnabled)
+        static void RenderSingleCamera(ScriptableRenderContext context, ref CameraData cameraData, bool anyPostProcessingEnabled)
         {
             Camera camera = cameraData.camera;
             var renderer = cameraData.renderer;
@@ -633,7 +633,7 @@ namespace UnityEngine.Rendering.Universal
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
 
-                RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+                RenderSingleCamera(context, ref baseCameraData, anyPostProcessingEnabled);
                 using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
                 {
                     EndCameraRendering(context, baseCamera);
@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.Universal
 
                             xrLayout.ReconfigurePass(overlayCameraData.xr, currCamera);
 
-                            RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
+                            RenderSingleCamera(context, ref overlayCameraData, anyPostProcessingEnabled);
 
                             using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
                             {
@@ -777,7 +777,7 @@ namespace UnityEngine.Rendering.Universal
             VolumeManager.instance.Update(trigger, layerMask);
         }
 
-        static bool CheckPostProcessForDepth(in CameraData cameraData)
+        static bool CheckPostProcessForDepth(ref CameraData cameraData)
         {
             if (!cameraData.postProcessEnabled)
                 return false;
@@ -1013,7 +1013,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= isSceneViewCamera;
-            cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
+            cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(ref cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
@@ -1079,10 +1079,11 @@ namespace UnityEngine.Rendering.Universal
                         if (i == mainLightIndex)
                             continue;
 
-                        Light light = visibleLights[i].light;
+                        ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+                        Light light = vl.light;
 
                         // UniversalRP doesn't support additional directional light shadows yet
-                        if ((visibleLights[i].lightType == LightType.Spot || visibleLights[i].lightType == LightType.Point) && light != null && light.shadows != LightShadows.None)
+                        if ((vl.lightType == LightType.Spot || vl.lightType == LightType.Point) && light != null && light.shadows != LightShadows.None)
                         {
                             additionalLightsCastShadows = true;
                             break;
@@ -1113,7 +1114,8 @@ namespace UnityEngine.Rendering.Universal
 
             for (int i = 0; i < visibleLights.Length; ++i)
             {
-                Light light = visibleLights[i].light;
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+                Light light = vl.light;
                 UniversalAdditionalLightData data = null;
                 if (light != null)
                 {
@@ -1292,7 +1294,7 @@ namespace UnityEngine.Rendering.Universal
             float brightestLightIntensity = 0.0f;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
-                VisibleLight currVisibleLight = visibleLights[i];
+                ref VisibleLight currVisibleLight = ref visibleLights.UnsafeElementAtMutable(i);
                 Light currLight = currVisibleLight.light;
 
                 // Particle system lights have the light property as null. We sort lights so all particles lights

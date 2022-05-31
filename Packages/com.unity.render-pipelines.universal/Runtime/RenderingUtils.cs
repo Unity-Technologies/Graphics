@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void FinalBlit(
             CommandBuffer cmd,
-            CameraData cameraData,
+            ref CameraData cameraData,
             RTHandle source,
             RTHandle destination,
             RenderBufferLoadAction loadAction,

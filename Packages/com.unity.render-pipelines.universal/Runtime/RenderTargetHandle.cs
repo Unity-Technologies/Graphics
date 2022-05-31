@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
                 id = -2;
         }
 
-        internal static RenderTargetHandle GetCameraTarget(CameraData cameraData)
+        internal static RenderTargetHandle GetCameraTarget(ref CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)

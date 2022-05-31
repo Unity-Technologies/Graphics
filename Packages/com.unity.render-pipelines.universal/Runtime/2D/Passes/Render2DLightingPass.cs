@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings)
         {
-            var activeDebugHandler = GetActiveDebugHandler(renderingData);
+            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
             if (activeDebugHandler != null)
             {
                 RenderStateBlock renderStateBlock = new RenderStateBlock();
@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
             ref DrawingSettings drawSettings,
             ref RenderTextureDescriptor desc)
         {
-            var debugHandler = GetActiveDebugHandler(renderingData);
+            var debugHandler = GetActiveDebugHandler(ref renderingData);
             bool drawLights = debugHandler?.IsLightingActive ?? true;
             var batchesDrawn = 0;
             var rtCount = 0U;

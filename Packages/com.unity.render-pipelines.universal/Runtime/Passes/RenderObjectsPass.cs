@@ -131,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
                 if (activeDebugHandler != null)
                 {
                     activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock,

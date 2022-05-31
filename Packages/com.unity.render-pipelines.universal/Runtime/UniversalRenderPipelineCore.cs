@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
@@ -9,6 +10,19 @@ using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
 {
+    static class NativeArrayExtensions
+    {
+        public static unsafe ref readonly T UnsafeElementAt<T>(this NativeArray<T> array, int index) where T : struct
+        {
+            return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafeReadOnlyPtr(), index);
+        }
+
+        public static unsafe ref T UnsafeElementAtMutable<T>(this NativeArray<T> array, int index) where T : struct
+        {
+            return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafePtr(), index);
+        }
+    }
+
     public enum MixedLightingSetup
     {
         None,
@@ -972,62 +986,78 @@ namespace UnityEngine.Rendering.Universal
 #endif
         };
 
-        // called from DeferredLights.cs too
         public static void GetLightAttenuationAndSpotDirection(
             LightType lightType, float lightRange, Matrix4x4 lightLocalToWorldMatrix,
             float spotAngle, float? innerSpotAngle,
             out Vector4 lightAttenuation, out Vector4 lightSpotDir)
         {
+            // Default is directional
             lightAttenuation = k_DefaultLightAttenuation;
             lightSpotDir = k_DefaultLightSpotDirection;
 
-            // Directional Light attenuation is initialize so distance attenuation always be 1.0
             if (lightType != LightType.Directional)
             {
-                // Light attenuation in universal matches the unity vanilla one (HINT_NICE_QUALITY).
-                // attenuation = 1.0 / distanceToLightSqr
-                // The smoothing factor makes sure that the light intensity is zero at the light range limit.
-                // (We used to offer two different smoothing factors.)
+                GetPunctualLightDistanceAttenuation(lightRange, ref lightAttenuation);
 
-                // The current smoothing factor matches the one used in the Unity lightmapper.
-                // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightRangeSqr)^2))^2
-                float lightRangeSqr = lightRange * lightRange;
-                float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
-                float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
-                float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
-                float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRange * lightRange);
-
-                // On all devices: Use the smoothing factor that matches the GI.
-                lightAttenuation.x = oneOverLightRangeSqr;
-                lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
+                if (lightType == LightType.Spot)
+                {
+                    GetSpotDirection(ref lightLocalToWorldMatrix, out lightSpotDir);
+                    GetSpotAngleAttenuation(spotAngle, innerSpotAngle, ref lightAttenuation);
+                }
             }
+        }
 
-            if (lightType == LightType.Spot)
-            {
-                Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
-                lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+        internal static void GetPunctualLightDistanceAttenuation(float lightRange, ref Vector4 lightAttenuation)
+        {
+            // Light attenuation in universal matches the unity vanilla one (HINT_NICE_QUALITY).
+            // attenuation = 1.0 / distanceToLightSqr
+            // The smoothing factor makes sure that the light intensity is zero at the light range limit.
+            // (We used to offer two different smoothing factors.)
 
-                // Spot Attenuation with a linear falloff can be defined as
-                // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
-                // This can be rewritten as
-                // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
-                // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
-                // If we precompute the terms in a MAD instruction
-                float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * spotAngle * 0.5f);
-                // We neeed to do a null check for particle lights
-                // This should be changed in the future
-                // Particle lights will use an inline function
-                float cosInnerAngle;
-                if (innerSpotAngle.HasValue)
-                    cosInnerAngle = Mathf.Cos(innerSpotAngle.Value * Mathf.Deg2Rad * 0.5f);
-                else
-                    cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
-                float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
-                float invAngleRange = 1.0f / smoothAngleRange;
-                float add = -cosOuterAngle * invAngleRange;
-                lightAttenuation.z = invAngleRange;
-                lightAttenuation.w = add;
-            }
+            // The current smoothing factor matches the one used in the Unity lightmapper.
+            // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightRangeSqr)^2))^2
+            float lightRangeSqr = lightRange * lightRange;
+            float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
+            float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
+            float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
+            float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRangeSqr);
+
+            // On all devices: Use the smoothing factor that matches the GI.
+            lightAttenuation.x = oneOverLightRangeSqr;
+            lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
+        }
+
+        internal static void GetSpotAngleAttenuation(
+            float spotAngle, float? innerSpotAngle,
+            ref Vector4 lightAttenuation)
+        {
+            // Spot Attenuation with a linear falloff can be defined as
+            // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+            // This can be rewritten as
+            // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+            // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+            // If we precompute the terms in a MAD instruction
+            float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * spotAngle * 0.5f);
+            // We need to do a null check for particle lights
+            // This should be changed in the future
+            // Particle lights will use an inline function
+            float cosInnerAngle;
+            if (innerSpotAngle.HasValue)
+                cosInnerAngle = Mathf.Cos(innerSpotAngle.Value * Mathf.Deg2Rad * 0.5f);
+            else
+                cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
+            float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
+            float invAngleRange = 1.0f / smoothAngleRange;
+            float add = -cosOuterAngle * invAngleRange;
+
+            lightAttenuation.z = invAngleRange;
+            lightAttenuation.w = add;
+        }
+
+        internal static void GetSpotDirection(ref Matrix4x4 lightLocalToWorldMatrix, out Vector4 lightSpotDir)
+        {
+            Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
+            lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
         }
 
         public static void InitializeLightConstants_Common(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
@@ -1035,7 +1065,7 @@ namespace UnityEngine.Rendering.Universal
             lightPos = k_DefaultLightPosition;
             lightColor = k_DefaultLightColor;
             lightOcclusionProbeChannel = k_DefaultLightsProbeChannel;
-            lightAttenuation = k_DefaultLightAttenuation;
+            lightAttenuation = k_DefaultLightAttenuation;  // Directional by default.
             lightSpotDir = k_DefaultLightSpotDirection;
 
             // When no lights are visible, main light will be set to -1.
@@ -1043,27 +1073,33 @@ namespace UnityEngine.Rendering.Universal
             if (lightIndex < 0)
                 return;
 
-            VisibleLight lightData = lights[lightIndex];
-            if (lightData.lightType == LightType.Directional)
+            // Avoid memcpys. Pass by ref and locals for multiple uses.
+            ref VisibleLight lightData = ref lights.UnsafeElementAtMutable(lightIndex);
+            var light = lightData.light;
+            var lightLocalToWorld = lightData.localToWorldMatrix;
+            var lightType = lightData.lightType;
+
+            if (lightType == LightType.Directional)
             {
-                Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
+                Vector4 dir = -lightLocalToWorld.GetColumn(2);
                 lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
-                Vector4 pos = lightData.localToWorldMatrix.GetColumn(3);
+                Vector4 pos = lightLocalToWorld.GetColumn(3);
                 lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+
+                GetPunctualLightDistanceAttenuation(lightData.range, ref lightAttenuation);
+
+                if (lightType == LightType.Spot)
+                {
+                    GetSpotAngleAttenuation(lightData.spotAngle, light?.innerSpotAngle, ref lightAttenuation);
+                    GetSpotDirection(ref lightLocalToWorld, out lightSpotDir);
+                }
             }
 
             // VisibleLight.finalColor already returns color in active color space
             lightColor = lightData.finalColor;
-
-            GetLightAttenuationAndSpotDirection(
-                lightData.lightType, lightData.range, lightData.localToWorldMatrix,
-                lightData.spotAngle, lightData.light?.innerSpotAngle,
-                out lightAttenuation, out lightSpotDir);
-
-            Light light = lightData.light;
 
             if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                 0 <= light.bakingOutput.occlusionMaskChannel &&

@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightIndex < 0)
                 return;
 
-            VisibleLight lightData = lights[lightIndex];
+            ref VisibleLight lightData = ref lights.UnsafeElementAtMutable(lightIndex);
             Light light = lightData.light;
 
             if (light == null)
@@ -607,19 +607,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightData.additionalLightsCount == 0 || m_UseForwardPlus)
                 return lightData.additionalLightsCount;
 
-            var visibleLights = lightData.visibleLights;
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
             int globalDirectionalLightsCount = 0;
             int additionalLightsCount = 0;
 
             // Disable all directional lights from the perobject light indices
             // Pipeline handles main light globally and there's no support for additional directional lights atm.
-            for (int i = 0; i < visibleLights.Length; ++i)
+            int maxVisibleAdditionalLightsCount = UniversalRenderPipeline.maxVisibleAdditionalLights;
+            int len = lightData.visibleLights.Length;
+            for (int i = 0; i < len; ++i)
             {
-                if (additionalLightsCount >= UniversalRenderPipeline.maxVisibleAdditionalLights)
+                if (additionalLightsCount >= maxVisibleAdditionalLightsCount)
                     break;
 
-                VisibleLight light = visibleLights[i];
                 if (i == lightData.mainLightIndex)
                 {
                     perObjectLightIndexMap[i] = -1;
