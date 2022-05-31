@@ -493,7 +493,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // get current screen FPS, clamp to what we consider a valid range
             // this is probably not accurate for multi-monitor.. but should be relevant to at least one of the monitors
-            double monitorFPS = Screen.currentResolution.refreshRate + 1.0;  // +1 to round up, since it is an integer and rounded down
+            double monitorFPS = Screen.currentResolution.refreshRateRatio.value;
             if (Double.IsInfinity(monitorFPS) || Double.IsNaN(monitorFPS))
                 monitorFPS = 60.0f;
             monitorFPS = Math.Min(monitorFPS, 144.0);
