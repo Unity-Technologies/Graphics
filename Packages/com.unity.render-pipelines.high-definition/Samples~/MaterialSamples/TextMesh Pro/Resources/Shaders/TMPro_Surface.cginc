@@ -25,8 +25,6 @@ void VertShader(inout appdata_full v, out Input data)
     data.param.y = scale;
 #endif
 
-    //float opacity = v.color.a;
-
     data.param.x = (lerp(_WeightNormal, _WeightBold, bold) / 4.0 + _FaceDilate) * _ScaleRatioA * 0.5; //
 
     v.texcoord1.xy = UnpackUV(v.texcoord1.x);
@@ -36,26 +34,10 @@ void VertShader(inout appdata_full v, out Input data)
 void PixShader(Input input, inout SurfaceOutput o)
 {
 
-#if USE_DERIVATIVE | BEVEL_ON
-    float3 delta = float3(1.0 / _TextureWidth, 1.0 / _TextureHeight, 0.0);
-
-    float4 smp4x = { tex2D(_MainTex, input.uv_MainTex - delta.xz).a,
-                    tex2D(_MainTex, input.uv_MainTex + delta.xz).a,
-                    tex2D(_MainTex, input.uv_MainTex - delta.zy).a,
-                    tex2D(_MainTex, input.uv_MainTex + delta.zy).a };
-#endif
-
 #if USE_DERIVATIVE
-    // Screen space scaling reciprocal with anisotropic correction
-    float2 edgeNormal = Normalize(float2(smp4x.x - smp4x.y, smp4x.z - smp4x.w));
-    float2 res = float2(_TextureWidth * input.param.y, _TextureHeight);
-    float2 tdx = ddx(input.uv_MainTex)*res;
-    float2 tdy = ddy(input.uv_MainTex)*res;
-    float lx = length(tdx);
-    float ly = length(tdy);
-    float s = sqrt(min(lx, ly) / max(lx, ly));
-    s = lerp(1, s, abs(dot(normalize(tdx + tdy), edgeNormal)));
-    float scale = rsqrt(abs(tdx.x * tdy.y - tdx.y * tdy.x)) * (_GradientScale * 2) * s;
+    float2 pixelSize = float2(ddx(input.uv_MainTex.y), ddy(input.uv_MainTex.y));
+    pixelSize *= _TextureWidth * .75;
+    float scale = rsqrt(dot(pixelSize, pixelSize)) * _GradientScale * (_Sharpness + 1);
 #else
     float scale = input.param.y;
 #endif
@@ -76,8 +58,14 @@ void PixShader(Input input, inout SurfaceOutput o)
     faceColor = GetColor(sd, faceColor, outlineColor, outline, softness);
     faceColor.rgb /= max(faceColor.a, 0.0001);
 
-
 #if BEVEL_ON
+    float3 delta = float3(1.0 / _TextureWidth, 1.0 / _TextureHeight, 0.0);
+
+    float4 smp4x = {tex2D(_MainTex, input.uv_MainTex - delta.xz).a,
+                    tex2D(_MainTex, input.uv_MainTex + delta.xz).a,
+                    tex2D(_MainTex, input.uv_MainTex - delta.zy).a,
+                    tex2D(_MainTex, input.uv_MainTex + delta.zy).a };
+
     // Face Normal
     float3 n = GetSurfaceNormal(smp4x, input.param.x);
 
@@ -94,8 +82,6 @@ void PixShader(Input input, inout SurfaceOutput o)
     float3 n = float3(0, 0, -1);
     float3 emission = float3(0, 0, 0);
 #endif
-
-
 
 #if GLOW_ON
     float4 glowColor = GetGlowColor(sd, scale);

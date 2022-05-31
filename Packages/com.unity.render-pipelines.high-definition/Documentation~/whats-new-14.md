@@ -6,7 +6,11 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ### Material Samples Transparency Scenes
 
+Transparent Shadows
 ![](Images/HDRP-MaterialSample-ShadowsTransparency.png)
+
+Transparent Stacking
+![](Images/HDRP-MaterialSample-StackingTransparency.png)
 
 These new scenes include examples and informations on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
 To take advantage of all the content of the sample, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
