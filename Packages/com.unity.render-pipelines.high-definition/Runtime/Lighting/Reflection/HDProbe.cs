@@ -223,6 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeRenderSteps m_RemainingRenderSteps = ProbeRenderSteps.None;
         bool m_HasPendingRenderRequest = false;
         uint m_RealtimeRenderCount = 0;
+        int m_LastStepFrameCount = -1;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
 #endif
@@ -276,6 +277,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // pick one bit or all remaining bits
                 ProbeRenderSteps nextSteps = timeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+
+                // limit work to once per frame if necessary
+                bool limitToOncePerFrame = (realtimeMode == ProbeSettings.RealtimeMode.EveryFrame || timeSlicing);
+                if (!nextSteps.IsNone() && limitToOncePerFrame)
+                {
+                    int frameCount = Time.frameCount;
+                    if (m_LastStepFrameCount == frameCount)
+                        nextSteps = ProbeRenderSteps.None;
+                    else
+                        m_LastStepFrameCount = frameCount;
+                }
+
                 m_RemainingRenderSteps &= ~nextSteps;
                 return nextSteps;
             }
