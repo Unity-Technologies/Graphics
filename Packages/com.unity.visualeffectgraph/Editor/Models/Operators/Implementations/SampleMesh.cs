@@ -214,6 +214,17 @@ To avoid this, change the input Transform space from Local to World or None.";
             }
         }
 
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+
+            //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
+            if (cause == InvalidationCause.kExpressionInvalidated)
+            {
+                model.RefreshErrors(GetGraph());
+            }
+        }
+
         private VFXCoordinateSpace GetWantedOutputSpace()
         {
             //If we are applying the skinned mesh in world, using a local transform afterwards looks unexpected, forcing conversion of inputs to world.

@@ -117,6 +117,16 @@ namespace UnityEditor.VFX
 
         protected void ApplyVariant(VFXModel m, bool notify)
         {
+            if (!notify
+                && m_Variants.Length > 0
+                && m is IVFXSlotContainer slotContainer)
+            {
+                //If we don't notify change in library, then, we should clear slot.
+                //See ProviderFilter in VFXDataAnchor, this code relies on slot count to detect if ResyncSlot should be called
+                //If variant is empty, keep the initial slot, it saves the later ResyncSlot in VFXDataAnchor
+                slotContainer.ClearSlots();
+            }
+
             m.SetSettingValues(m_Variants, notify);
         }
 

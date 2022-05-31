@@ -520,6 +520,40 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Check_VFXNodeProvider_Listing_SkinnedMeshSampling_From_SkinnedMeshRenderer()
+        {
+            var vfxController = StartEditTestAsset();
+
+            var op = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            op.SetSettingValue("m_Type", (SerializableType)typeof(SkinnedMeshRenderer));
+
+            var inlineSkinnedMeshRendererDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.model is VFXInlineOperator && o.name == VFXTypeExtension.UserFriendlyName(typeof(SkinnedMeshRenderer)));
+            Assert.IsNotNull(inlineSkinnedMeshRendererDesc);
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var skinnedMeshInlineOperator = vfxController.AddVFXOperator(new Vector2(4, 4), inlineSkinnedMeshRendererDesc);
+
+            vfxController.ApplyChanges();
+            yield return null;
+
+            var skinnedMeshInlineUI = window.graphView.GetAllNodes().FirstOrDefault(o => o.controller.model == skinnedMeshInlineOperator);
+            Assert.IsNotNull(skinnedMeshInlineUI);
+
+            var dataAnchor = skinnedMeshInlineUI.outputContainer.Children().OfType<VFXDataAnchor>().FirstOrDefault();
+            Assert.IsNotNull(dataAnchor);
+
+            var nodeProvider = dataAnchor.BuildNodeProviderForInternalTest(vfxController, new[] { typeof(VFXOperator) });
+            var descriptors = nodeProvider.GetDescriptorsForInternalTest().ToArray();
+            Assert.IsNotEmpty(descriptors);
+
+            var operatorDescriptors = descriptors.Select(o => o.modelDescriptor).OfType<VFXModelDescriptor<VFXOperator>>().ToArray();
+            Assert.IsNotEmpty(operatorDescriptors);
+
+            var skinnedMeshSampleDescriptor = operatorDescriptors.Where(o => o.model is Operator.SampleMesh).ToArray();
+            Assert.AreEqual(1u, skinnedMeshSampleDescriptor.Length);
+            Assert.IsTrue(skinnedMeshSampleDescriptor[0].name.Contains("Skin"));
+        }
+
+        [UnityTest]
         public IEnumerator Check_Focus_On_Clear_Selection_When_No_Selection()
         {
             // Prepare

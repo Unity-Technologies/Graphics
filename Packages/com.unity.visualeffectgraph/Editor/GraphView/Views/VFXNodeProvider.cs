@@ -168,6 +168,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+#if VFX_HAS_UNIT_TEST
+        public IEnumerable<Descriptor> GetDescriptorsForInternalTest()
+        {
+            return GetDescriptors();
+        }
+#endif
+
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
             IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();

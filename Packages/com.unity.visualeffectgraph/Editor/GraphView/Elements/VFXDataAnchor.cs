@@ -318,10 +318,22 @@ namespace UnityEditor.VFX.UI
                 var window = VFXViewWindow.GetWindow(view);
 
                 if (direction == Direction.Input || viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock) // no context for subgraph operators.
-                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
                 else
-                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                    VFXFilterWindow.Show(window, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
+        }
+
+#if VFX_HAS_UNIT_TEST
+        public VFXNodeProvider BuildNodeProviderForInternalTest(VFXViewController viewController, IEnumerable<Type> acceptedType)
+        {
+            return BuildNodeProvider(viewController, acceptedType);
+        }
+#endif
+
+        VFXNodeProvider BuildNodeProvider(VFXViewController viewController, IEnumerable<Type> acceptedType)
+        {
+            return new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, acceptedType);
         }
 
         bool ProviderFilter(VFXNodeProvider.Descriptor d)
@@ -375,6 +387,7 @@ namespace UnityEditor.VFX.UI
             var count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
             // Template containers are not sync initially to save time during loading
             // For container with no input or output this can be called everytime, but should also be very fast
+            // In VFXLibrary, the initial apply variant is supposed to clear the slot list (see ClearSlots invocation)
             if (count == 0)
             {
                 container.ResyncSlots(false);
