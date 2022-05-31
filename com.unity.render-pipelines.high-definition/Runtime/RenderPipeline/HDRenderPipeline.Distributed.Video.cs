@@ -82,8 +82,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (GetDistributedMode() != DistributedMode.Merger) return null;
                 for (int i = 0; i < VideoCodecs.Length; ++i)
                 {
+                    var screenSize = RTHandles.rtHandleProperties.currentViewportSize;
                     ScreenSubsection subsection =
-                        new ScreenSubsection(SocketServer.Instance.userCount, i, Screen.width, Screen.height);
+                        new ScreenSubsection(SocketServer.Instance.userCount, i, screenSize.x, screenSize.y);
                     Vector2Int viewportSize = subsection.GetPaddedSlicedResolution();
 
                     if (VideoCodecs[i] == null)
@@ -241,8 +242,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             passData.userCount = SocketServer.Instance.userCount;
             passData.userIndex = userIndex;
+            var screenSize = RTHandles.rtHandleProperties.currentViewportSize;
             // TODO: We don't have a good place to store this for now so we create a new one each frame
-            passData.subsection = new ScreenSubsection(passData.userCount, userIndex, Screen.width, Screen.height);
+            passData.subsection = new ScreenSubsection(passData.userCount, userIndex, screenSize.x, screenSize.y);
 
             passData.whiteTexture = builder.ReadTexture(renderGraph.defaultResources.whiteTexture);
 
@@ -341,14 +343,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (new ProfilingScope(context.cmd,
                                new ProfilingSampler("Blit Color Buffer to NV12 Textures")))
                     {
-                        var mpbRGBToYUV = context.renderGraphPool.GetTempMaterialPropertyBlock();
-                        mpbRGBToYUV.SetTexture(HDShaderIDs._BlitTexture, data.colorBuffer);
-
-                        context.cmd.SetRenderTarget(data.tempYTexture);
-                        CoreUtils.DrawFullScreen(context.cmd, data.blitRGBToYUVMaterial, mpbRGBToYUV, 0);
-
-                        context.cmd.SetRenderTarget(data.tempUVTexture);
-                        CoreUtils.DrawFullScreen(context.cmd, data.blitRGBToYUVMaterial, mpbRGBToYUV, 3);
+                        HDUtils.BlitCameraTexture(context.cmd, data.colorBuffer, data.tempYTexture, data.blitRGBToYUVMaterial, 0);
+                        HDUtils.BlitCameraTexture(context.cmd, data.colorBuffer, data.tempUVTexture, data.blitRGBToYUVMaterial, 3);
                     }
 
                     // Blit NV12 textures to Encoder

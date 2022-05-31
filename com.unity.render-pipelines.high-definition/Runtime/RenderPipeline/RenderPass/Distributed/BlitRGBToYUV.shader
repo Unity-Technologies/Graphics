@@ -16,6 +16,7 @@ Shader "Hidden/HDRP/Distributed/BlitRGBToYUV"
         SamplerState sampler_PointRepeat;
         SamplerState sampler_LinearRepeat;
         uniform int _BlitTexArraySlice;
+        uniform float4 _BlitScaleBias;
 
         struct Attributes
         {
@@ -36,7 +37,7 @@ Shader "Hidden/HDRP/Distributed/BlitRGBToYUV"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID);
+            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
 
