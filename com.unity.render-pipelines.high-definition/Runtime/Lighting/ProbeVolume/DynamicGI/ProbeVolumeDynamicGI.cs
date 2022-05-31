@@ -626,6 +626,20 @@ namespace UnityEngine.Rendering.HighDefinition
             else
 #endif
             {
+#if UNITY_EDITOR
+                if (ProbeVolume.preparingMixedRadiance)
+                {
+                    mixedLightMode = ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
+                    cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
+                    cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
+                }
+                else
+#endif
+                {
+                    cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
+                    cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+                }
+
                 cmd.SetComputeFloatParam(shader, "_IndirectScale", mixedLightMode != ProbeVolumeDynamicGIMixedLightMode.MixedOnly ? giSettings.indirectMultiplier.value : 0f);
                 cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
 
@@ -634,11 +648,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(shader, "_MixedLightsAsRealtimeEnabled", forceRealtime || !probeVolume.DynamicGIMixedLightsBaked() ? 1 : 0);
 
                 infBounce = infiniteBounces ? giSettings.infiniteBounce.value : 0f;
-
-                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
-                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
             }
-            
+
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", propagationPipelineData.GetReadRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
@@ -692,6 +703,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+#if UNITY_EDITOR
+            if (ProbeVolume.preparingMixedRadiance)
+            {
+                propagationQuality = PropagationQuality.High;
+                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
+                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
+            }
+            else
+#endif
+            {
+                cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
+                cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+            }
+
             int propagationAxisAmount;
             switch (propagationQuality)
             {
@@ -741,9 +766,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.HitNeighborAxisLength);
-
-            cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
-            cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
 
             UpdateAmbientProbe(ambientProbe, giSettings.skyMultiplier.value);
             cmd.SetComputeVectorArrayParam(shader, "_AmbientProbe", s_AmbientProbe);

@@ -120,10 +120,9 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.EndHorizontal();
             
             EditorGUILayout.Space();
-            
             ProbeVolume.preparingMixedLights = EditorGUILayout.Toggle(Styles.k_PrepareMixedLightsText, ProbeVolume.preparingMixedLights);
-            GUI.enabled = ProbeVolume.preparingMixedLights;
 
+            GUI.enabled = ProbeVolume.preparingMixedLights;
             if (GUILayout.Button(Styles.k_BakeMixedLightsText))
             {
                 var targets = serialized.GetTargetObjects();
@@ -133,10 +132,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     probeVolume.CopyDirectLightingToMixed();
                 }
             }
-            
-            EditorGUILayout.Space();
             GUI.enabled = true;
-            if (GUILayout.Button("Bake current radiance"))
+
+            EditorGUILayout.Space();
+            ProbeVolume.preparingMixedRadiance = EditorGUILayout.Toggle("Prepare Mixed Radiance", ProbeVolume.preparingMixedRadiance);
+
+            if (GUILayout.Button("Bake Radiance"))
             {
                 var targets = serialized.GetTargetObjects();
                 for (int i = 0; i < targets.Length; i++)
