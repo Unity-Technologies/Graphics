@@ -193,4 +193,6 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
 [!include[](snippets/shader-properties/advanced-options/geometry-type.md)]
 [!include[](snippets/shader-properties/advanced-options/scattering-mode.md)]
+[!include[](snippets/shader-properties/advanced-options/multiple-scattering-mode.md)]
+
 </table>

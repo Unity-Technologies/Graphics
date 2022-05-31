@@ -821,7 +821,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
 // Hair used precomputed transmittance, no thick transmittance required
 #define MATERIAL_INCLUDE_PRECOMPUTED_TRANSMISSION
-
 #if _USE_ADVANCED_MULTIPLE_SCATTERING
 
     // Disable the contact shadow in case of multiple scattering.
@@ -830,8 +829,10 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     // Hair requires shadow biasing toward light for splines while in advanced scattering mode.
     #define LIGHT_EVALUATION_SPLINE_SHADOW_BIAS
 
-    // Secondary shadow tap that can provide a higher quality occlusion information for the multiple scattering.
-    #define LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+    #if _USE_SPLINE_VISIBILITY_FOR_MULTIPLE_SCATTERING
+        // Secondary shadow tap that can provide a higher quality occlusion information for the multiple scattering.
+        #define LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+    #endif
 
 #else
 
@@ -1209,8 +1210,23 @@ DirectLighting EvaluateBSDF_Rect_MRP(LightLoopContext lightLoopContext,
             posInput.positionWS += -lightData.forward * GetSplineOffsetForShadowBias(bsdfData);
         #endif
 
-            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+            float distToLC = length(lightData.positionRWS);
+            float3 dirToLC = lightData.positionRWS / distToLC;
+
+            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, dirToLC, distToLC);
             lightColor *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+
+            #ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+            if ((lightData.shadowIndex >= 0) && (lightData.shadowDimmer > 0))
+            {
+                // Evaluate the shadow map a second time (this time unbiased for the spline).
+                bsdfData.splineVisibility = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, GetNormalForShadowBias(bsdfData), dirToLC, distToLC).x;
+            }
+            else
+            {
+                bsdfData.splineVisibility = -1;
+            }
+            #endif
         }
     #endif
 

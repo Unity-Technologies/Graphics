@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static FieldDescriptor ScatteringAdvanced = new FieldDescriptor(string.Empty, "ScatteringAdvanced", "_USE_ADVANCED_MULTIPLE_SCATTERING 1");
         public static FieldDescriptor AbsorptionFromColor = new FieldDescriptor(string.Empty, "AbsorptionFromColor", "_ABSORPTION_FROM_COLOR 1");
         public static FieldDescriptor AbsorptionFromMelanin = new FieldDescriptor(string.Empty, "AbsorptionFromMelanin", "_ABSORPTION_FROM_MELANIN 1");
+        public static FieldDescriptor UseSplineVisibilityForScattering = new FieldDescriptor(string.Empty, "UseSplineVisibilityForScattering", "_USE_SPLINE_VISIBILITY_FOR_MULTIPLE_SCATTERING 1");
 
         public override void GetFields(ref TargetFieldContext context)
         {
@@ -76,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(ScatteringAdvanced, useAdvancedMultipleScattering);
             context.AddField(AbsorptionFromColor, hairData.colorParameterization == HairData.ColorParameterization.BaseColor);
             context.AddField(AbsorptionFromMelanin, hairData.colorParameterization == HairData.ColorParameterization.Melanin);
-
+            context.AddField(UseSplineVisibilityForScattering, useAdvancedMultipleScattering && hairData.directionalFractionMode == HairData.DirectionalFractionMode.Shadowmap);
             // Misc
             context.AddField(SpecularAA, lightingData.specularAA &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
