@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Defs;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -21,29 +22,38 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     internal class NodeUIInfo
     {
-        readonly Dictionary<RegistryKey, INodeUIDescriptorBuilder> builders = new ();
+        readonly Dictionary<RegistryKey, INodeUIDescriptorBuilder> factories = new ();
 
         public void Register(RegistryKey key, NodeUIDescriptor descriptor)
             => Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
 
         public void Register(RegistryKey key, INodeUIDescriptorBuilder descriptor)
-            => builders[key] = descriptor;
+            => factories[key] = descriptor;
 
         public NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler nodeInstance)
-            => builders.ContainsKey(key) ? builders[key].CreateDescriptor(nodeInstance) : CreateDefaultDescriptor();
+            => factories.ContainsKey(key) ? factories[key].CreateDescriptor(nodeInstance) : CreateDefaultDescriptor(key);
 
-        private static NodeUIDescriptor CreateDefaultDescriptor()
+        private static NodeUIDescriptor CreateDefaultDescriptor(RegistryKey key, NodeHandler nodeInstance = null)
         {
+            List<ParameterUIDescriptor> parameters = new();
+            if (nodeInstance != null)
+            {
+                foreach(var port in nodeInstance.GetPorts())
+                {
+                    parameters.Add(new(port.LocalID));
+                }
+            }
+
             return new NodeUIDescriptor(
                 1,
-                 "DEFAULT_NAME",
+                 key.ToString(),
                  "DEFAULT_TOOLTIP",
                 new string[] { "DEFAULT_CATEGORY" },
                 new string[] { },
-                "DEFAULT_DISPLAY_NAME",
+                key.Name,
                 true,
                 new Dictionary<string, string> { },
-                new ParameterUIDescriptor[] {}
+                parameters.ToArray()
                 );
         }
     }

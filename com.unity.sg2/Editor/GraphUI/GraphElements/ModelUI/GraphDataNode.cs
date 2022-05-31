@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdateElementFromModel()
         {
             base.UpdateElementFromModel();
-            Debug.Log("GraphDataNode.UpdateElementFromModel override");
+            // Is this needed? Debug.Log("GraphDataNode.UpdateElementFromModel override");
         }
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)

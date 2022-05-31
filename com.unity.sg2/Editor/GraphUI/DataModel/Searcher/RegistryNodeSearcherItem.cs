@@ -14,7 +14,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public readonly RegistryKey registryKey;
 
-        public override string Name => registryKey.Name;
+        string DisplayName;
+        public override string Name => DisplayName;
 
         public RegistryNodeSearcherItem(
             IGraphModel graphModel,
@@ -26,7 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             string help = null
         ) : base(graphModel, data,  creationData => graphModel.CreateGraphDataNode(registryKey, name, creationData.Position, creationData.Guid, creationData.SpawnFlags), name, children, getName, help)
         {
-
+            DisplayName = name.Nicify();
             // Func<IGraphNodeCreationData, IGraphElementModel> createElement,
             this.registryKey = registryKey;
         }
