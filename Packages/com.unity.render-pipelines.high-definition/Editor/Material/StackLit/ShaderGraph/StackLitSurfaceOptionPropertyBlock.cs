@@ -30,10 +30,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CreatePropertyGUI();
 
+            bool hasDiffusionProfile = (systemData.surfaceType != SurfaceType.Transparent && stackLitData.subsurfaceScattering) || stackLitData.transmission;
+
             // StackLit specific properties:
 
             AddProperty("Base Color Parametrization", () => stackLitData.baseParametrization, (newValue) => stackLitData.baseParametrization = newValue);
-            if (stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor)
+            if (stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor && (!hasDiffusionProfile || !stackLitData.useProfileIOR))
             {
                 AddProperty("Energy Conserving Specular", () => stackLitData.energyConservingSpecular, (newValue) => stackLitData.energyConservingSpecular = newValue, 1);
             }
@@ -51,6 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (systemData.surfaceType != SurfaceType.Transparent)
                 AddProperty("Subsurface Scattering", () => stackLitData.subsurfaceScattering, (newValue) => stackLitData.subsurfaceScattering = newValue, 1);
             AddProperty("Transmission", () => stackLitData.transmission, (newValue) => stackLitData.transmission = newValue, 1);
+            if (hasDiffusionProfile)
+                AddProperty("Use IOR From Diffusion Profile", () => stackLitData.useProfileIOR, (newValue) => stackLitData.useProfileIOR = newValue, 1);
 
             // SpecularOcclusion from SSAO
             if (stackLitData.devMode)

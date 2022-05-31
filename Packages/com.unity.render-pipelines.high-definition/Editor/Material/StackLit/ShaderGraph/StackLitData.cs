@@ -281,5 +281,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_SubsurfaceScattering;
             set => m_SubsurfaceScattering = value;
         }
+
+        [SerializeField]
+        bool m_UseProfileIOR = true;
+        public bool useProfileIOR
+        {
+            get => m_UseProfileIOR;
+            set => m_UseProfileIOR = value;
+        }
     }
 }

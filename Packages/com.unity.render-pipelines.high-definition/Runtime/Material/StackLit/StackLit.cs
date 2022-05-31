@@ -65,6 +65,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Dielectric IOR")]
             public float dielectricIor;
 
+            [SurfaceDataAttributes("Use Profile IOR")]
+            public bool useProfileIor;
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;

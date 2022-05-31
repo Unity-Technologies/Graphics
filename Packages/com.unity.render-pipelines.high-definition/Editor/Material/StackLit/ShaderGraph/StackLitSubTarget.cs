@@ -131,6 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetFields(ref context);
             AddDistortionFields(ref context);
             var descs = context.blocks.Select(x => x.descriptor);
+            bool hasDiffusionProfile = (systemData.surfaceType != SurfaceType.Transparent && stackLitData.subsurfaceScattering) || stackLitData.transmission;
 
             // StackLit specific properties
             // Material
@@ -162,7 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss);
 
             // Misc
-            context.AddField(EnergyConservingSpecular, stackLitData.energyConservingSpecular);
+            context.AddField(EnergyConservingSpecular, stackLitData.energyConservingSpecular && (!hasDiffusionProfile || !stackLitData.useProfileIOR));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
             // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
             // if capHazinessWrtMetallic.isOn.
@@ -195,6 +196,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
             context.AddField(SpecularOcclusion, stackLitData.screenSpaceSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off ||
                 stackLitData.dataBasedSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off);
+
+            context.AddField(UseProfileIor, stackLitData.useProfileIOR && hasDiffusionProfile);
 
             // Advanced
             context.AddField(AnisotropyForAreaLights, stackLitData.anisotropyForAreaLights);
@@ -281,10 +284,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Base Metallic
             context.AddBlock(BlockFields.SurfaceDescription.Metallic, stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DielectricIor, stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic);
 
-            // Base Specular
-            context.AddBlock(BlockFields.SurfaceDescription.Specular, stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor);
+            bool hasDiffusionProfile = (systemData.surfaceType != SurfaceType.Transparent && stackLitData.subsurfaceScattering) || stackLitData.transmission;
+            if (!(hasDiffusionProfile && stackLitData.useProfileIOR))
+            {
+                context.AddBlock(HDBlockFields.SurfaceDescription.DielectricIor, stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic);
+                context.AddBlock(BlockFields.SurfaceDescription.Specular, stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor);
+            }
 
             // Specular Occlusion
             // for custom (external) SO replacing data based SO (which normally comes from some func of DataBasedSOMode(dataAO, optional bent normal))
