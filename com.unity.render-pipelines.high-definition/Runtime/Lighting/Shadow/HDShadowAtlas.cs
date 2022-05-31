@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
 
             var parameters = PrepareRenderShadowsParameters(globalCB);
-            RenderShadows(parameters, m_Atlas, shadowDrawSettings, renderContext, m_IsACacheForShadows, m_GlobalConstantBuffer, cmd);
+            RenderShadows(parameters, m_Atlas, shadowDrawSettings, renderContext, cullResults, m_IsACacheForShadows, m_GlobalConstantBuffer, cmd);
 
             if (parameters.blurAlgorithm == BlurAlgorithm.IM)
             {
@@ -234,6 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     RTHandle                    atlasRenderTexture,
                                     ShadowDrawingSettings       shadowDrawSettings,
                                     ScriptableRenderContext     renderContext,
+                                    CullingResults              cullingResults,
                                     bool                        renderingOnAShadowCache,
                                     ConstantBuffer<ShaderVariablesGlobal> constantBuffer,
                                     CommandBuffer               cmd)
@@ -270,8 +271,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
 
+                bool cmdNeedsExecutionWithNoCasters = false;
                 if (!mixedInDynamicAtlas)
+                {
+                    cmdNeedsExecutionWithNoCasters = true;
                     CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
+                }
+
+                if (!cullingResults.GetShadowCasterBounds(shadowRequest.lightIndex, out Bounds boundsUnused))
+                {
+                    // https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Rendering.CullingResults.GetShadowCasterBounds.html
+                    // returns true if the light affects at least one shadow casting object in the Scene.
+                    //
+                    // If we do not handle this early out here, unity will error with:
+                    // No valid shadow casters, use CullResults.GetShadowCasterBounds to determine if there are visible shadow caster for the light
+                    if (cmdNeedsExecutionWithNoCasters)
+                    {
+                        renderContext.ExecuteCommandBuffer(cmd);
+                    }
+                    cmd.Clear();
+                    continue;
+                }
 
                 shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
                 shadowDrawSettings.splitData = shadowRequest.splitData;
