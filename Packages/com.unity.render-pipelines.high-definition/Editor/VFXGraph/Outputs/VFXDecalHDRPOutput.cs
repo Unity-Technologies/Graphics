@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.VFX.HDRP
 {
+    [VFXInfo]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
         public override string name
