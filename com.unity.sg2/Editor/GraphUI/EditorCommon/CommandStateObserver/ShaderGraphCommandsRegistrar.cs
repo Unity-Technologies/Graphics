@@ -103,13 +103,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphViewModel.GraphModelState,
                 previewManager);
 
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, UndoRedoCommand>(
-                ShaderGraphCommandOverrides.HandleUndoRedo,
-                graphTool.UndoStateComponent,
-                graphViewModel.GraphModelState,
-                previewManager);
-
-
             // Node UI commands
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewManager, SetGraphTypeValueCommand>(
                 SetGraphTypeValueCommand.DefaultCommandHandler,
