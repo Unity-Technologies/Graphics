@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Improvements
+- Reduced RenderGraph CPU overhead
+
 ## [10.8.0] - 2021-09-20
 
 ### Fixed
