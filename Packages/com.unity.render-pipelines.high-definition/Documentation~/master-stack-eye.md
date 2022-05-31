@@ -38,7 +38,7 @@ When you create a new Eye Master Stack, the Vertex Context contains the followin
 
 #### Relevant
 
-Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following locks to the Vertex Context:
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following Blocks to the Vertex Context:
 
 <table>
 <tr>
@@ -103,6 +103,10 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/specular-aa-threshold.md)]
 [!include[](snippets/shader-graph-blocks/specular-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/subsurface-mask.md)]
+[!include[](snippets/shader-graph-blocks/iris-plane-offset.md)]
+[!include[](snippets/shader-graph-blocks/iris-radius.md)]
+[!include[](snippets/shader-graph-blocks/iris-caustic-intensity-multiplier.md)]
+[!include[](snippets/shader-graph-blocks/iris-caustic-blend.md)]
 </table>
 
 ## Graph Settings

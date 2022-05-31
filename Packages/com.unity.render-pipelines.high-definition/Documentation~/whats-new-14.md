@@ -85,6 +85,12 @@ Shaders of the fullscreen type can be used in fullscreen custom passes, custom p
 
 For more details on how to use fulscreen shaders, see [FullScreen Shader Graph](Fullscreen-Shader-Graph.md).
 
+### New Eye Shader Subtype
+
+![](Images/EyeCaustic.gif)
+
+HDRP 14.0 includes a new Eye Shader type called **Eye Cinematic with Caustic**. This Eye Shader uses caustics to give a more realistic effect. This makes it more resource-intensive than other HDRP Eye Shaders.
+
 ### Renderer bounds access in ShaderGraph
 
 The [Object Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Object-Node.html) in Shader Graph has been updated to give access to the bounds of the current object being rendered. This information can be useful to compute refraction effect and such. Note that these bounds are available in world space.
