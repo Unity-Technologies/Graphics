@@ -14,7 +14,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma multi_compile_local_fragment _ USE_FLOWMAP
 
     #pragma multi_compile_fragment _ DEBUG_DISPLAY
-    #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+    #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+    #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 
     #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 

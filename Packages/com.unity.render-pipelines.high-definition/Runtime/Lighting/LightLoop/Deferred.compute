@@ -35,7 +35,8 @@
 #pragma multi_compile _ SHADOWS_SHADOWMASK
 #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
 #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
-#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+#pragma multi_compile AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 
 #ifdef DEBUG_DISPLAY
     // Don't care about this warning in debug

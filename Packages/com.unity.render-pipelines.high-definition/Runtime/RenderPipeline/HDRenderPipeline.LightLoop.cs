@@ -780,11 +780,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     case HDShadowFilteringQuality.High:
                         data.deferredComputeShader.EnableKeyword("SHADOW_HIGH");
                         break;
-                    case HDShadowFilteringQuality.VeryHigh:
-                        data.deferredComputeShader.EnableKeyword("SHADOW_VERY_HIGH");
-                        break;
                     default:
                         data.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");
+                        break;
+                }
+
+                switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality)
+                {
+                    case HDAreaShadowFilteringQuality.Medium:
+                        data.deferredComputeShader.EnableKeyword("AREA_SHADOW_MEDIUM");
+                        break;
+                    case HDAreaShadowFilteringQuality.High:
+                        data.deferredComputeShader.EnableKeyword("AREA_SHADOW_HIGH");
+                        break;
+                    default:
+                        data.deferredComputeShader.EnableKeyword("AREA_SHADOW_MEDIUM");
                         break;
                 }
 

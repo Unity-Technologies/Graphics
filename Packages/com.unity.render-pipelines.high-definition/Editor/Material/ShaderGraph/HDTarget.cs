@@ -1305,8 +1305,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
                 new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
-                new KeywordEntry() { displayName = "High", referenceName = "HIGH" },
-                new KeywordEntry() { displayName = "VeryHigh", referenceName = "VERY_HIGH" },
+                new KeywordEntry() { displayName = "High", referenceName = "HIGH" }
+            },
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor AreaShadow = new KeywordDescriptor()
+        {
+            displayName = "AreaShadow",
+            referenceName = "AREA_SHADOW",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
+                new KeywordEntry() { displayName = "High", referenceName = "HIGH" }
             },
             stages = KeywordShaderStage.Fragment,
         };

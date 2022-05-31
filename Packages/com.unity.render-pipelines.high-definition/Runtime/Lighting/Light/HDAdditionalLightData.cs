@@ -2213,7 +2213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void UpdateShadowRequestData(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
-            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality,
+            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, HDAreaShadowFilteringQuality areaFilteringQuality,
             Vector2 viewportSize, HDLightType lightType, int shadowIndex, ref HDShadowRequest shadowRequest)
         {
             Matrix4x4 invViewProjection = Matrix4x4.identity;
@@ -2258,7 +2258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case AreaLightShape.Rectangle:
                             Vector2 shapeSize = new Vector2(shapeWidth, m_ShapeHeight);
                             forwardOffset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
-                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
+                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, areaFilteringQuality,
                                 out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                             shadowRequest.projectionType = BatchCullingProjectionType.Perspective;
                             break;
@@ -2271,11 +2271,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Assign all setting common to every lights
-            SetCommonShadowRequestSettings(shadowRequest, visibleLight, forwardOffset, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
+            SetCommonShadowRequestSettings(shadowRequest, visibleLight, forwardOffset, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality, areaFilteringQuality);
         }
 
         internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
-            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, out int shadowRequestCount)
+            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, HDAreaShadowFilteringQuality areaFilteringQuality, out int shadowRequestCount)
         {
             int firstShadowRequestIndex = -1;
             Vector3 cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
@@ -2339,7 +2339,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                     // Write per light type matrices, splitDatas and culling parameters
-                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, areaFilteringQuality, viewportSize, lightType, index, ref shadowRequest);
 
                     hasUpdatedRequestData = true;
                     shadowRequest.shouldUseCachedShadowData = false;
@@ -2375,7 +2375,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
                     // Write per light type matrices, splitDatas and culling parameters
-                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, areaFilteringQuality, viewportSize, lightType, index, ref shadowRequest);
                 }
 
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
@@ -2398,7 +2398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowHasAtlasPlacement ? firstShadowRequestIndex : -1;
         }
 
-        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, float forwardOffset, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
+        void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, float forwardOffset, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality, HDAreaShadowFilteringQuality areaFilteringQuality)
         {
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
@@ -2493,7 +2493,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias with the width of our PCF.
             float baseBias = 5.0f;
             // If we are PCSS, the blur radius can be quite big, hence we need to tweak up the slope bias
-            if (filteringQuality == HDShadowFilteringQuality.High || filteringQuality == HDShadowFilteringQuality.VeryHigh)
+            if ((lightType != HDLightType.Area && filteringQuality == HDShadowFilteringQuality.High) ||
+                (lightType == HDLightType.Area && areaFilteringQuality == HDAreaShadowFilteringQuality.High))
             {
                 if (softness > 0.01f)
                 {

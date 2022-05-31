@@ -831,10 +831,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            var shadowKeywords = new[] { "SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH", "SHADOW_VERY_HIGH" };
+            var shadowKeywords = new[] { "SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH" };
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
+
+            var areaShadowKeywords = new[] { "AREA_SHADOW_MEDIUM", "AREA_SHADOW_HIGH" };
+            foreach (var p in areaShadowKeywords)
+                Shader.DisableKeyword(p);
+            Shader.EnableKeyword(areaShadowKeywords[(int)shadowParams.areaShadowFilteringQuality]);
 
             // Setup screen space shadow map usage.
             // Screen space shadow map are currently only used with Raytracing and are a global keyword.

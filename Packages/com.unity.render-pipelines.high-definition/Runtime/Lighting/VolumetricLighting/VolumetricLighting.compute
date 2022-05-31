@@ -31,6 +31,7 @@
 #define GROUP_SIZE_1D           8
 #define SHADOW_USE_DEPTH_BIAS   0 // Too expensive, not particularly effective
 #define SHADOW_ULTRA_LOW          // Different options are too expensive.
+#define AREA_SHADOW_LOW           // Different options are too expensive.
 #define SHADOW_AUTO_FLIP_NORMAL 0 // No normal information, so no need to flip
 #define SHADOW_VIEW_BIAS        1 // Prevents light leaking through thin geometry. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
 #define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray

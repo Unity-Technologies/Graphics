@@ -429,6 +429,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2405_EnlightenDynamicAreaLights.unity
     guid: 5fe2db8e1b1f1b3448bdcc75bea0e2b8
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2406_Area_Rect_Shadow_PCSS.unity
+    guid: 83ba1453f6583e241a881c38de7ef746
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2501_LightLayers.unity
     guid: 100c0e304d8aba84186dcd9bf48e5b85
   - enabled: 1

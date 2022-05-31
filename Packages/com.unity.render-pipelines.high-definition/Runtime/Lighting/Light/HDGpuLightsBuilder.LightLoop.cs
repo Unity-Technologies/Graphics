@@ -415,6 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DirectionalLightData* directionalLightArrayPtr = (DirectionalLightData*)m_DirectionalLights.GetUnsafePtr<DirectionalLightData>();
             VisibleLight* visibleLightsArrayPtr = (VisibleLight*)cullResults.visibleLights.GetUnsafePtr<VisibleLight>();
             var shadowFilteringQuality = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality;
+            var areaShadowFilteringQuality = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality;
 
             int directionalLightCount = visibleLights.sortedDirectionalLightCounts;
             int lightCounts = visibleLights.sortedLightCounts;
@@ -449,7 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     VisibleLight* visibleLightPtr = visibleLightsArrayPtr + lightIndex;
                     ref VisibleLight light = ref UnsafeUtility.AsRef<VisibleLight>(visibleLightPtr);
                     int shadowRequestCount;
-                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
+                    shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, debugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, areaShadowFilteringQuality, out shadowRequestCount);
 
 #if UNITY_EDITOR
                     if ((debugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
