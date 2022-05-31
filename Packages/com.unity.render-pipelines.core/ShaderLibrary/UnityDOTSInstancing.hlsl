@@ -220,8 +220,10 @@ void SetupDOTSInstanceSelectMasks()
     // Lowest 2 bits are zero, all accesses are aligned,
     // and base addresses are aligned by 16.
     // Bits 29 and 28 give the channel index.
-    unity_DOTSInstanceData_Select4_Mask0 = uint(int(offsetSingleChannel << 29) >> 31);
-    unity_DOTSInstanceData_Select4_Mask1 = uint(int(offsetSingleChannel << 28) >> 31);
+    // NOTE: Mask generation was rewritten to this form specifically to avoid codegen
+    // correctness issues on GLES.
+    unity_DOTSInstanceData_Select4_Mask0 = (offsetSingleChannel & 0x4) ? 0xffffffff : 0;
+    unity_DOTSInstanceData_Select4_Mask1 = (offsetSingleChannel & 0x8) ? 0xffffffff : 0;
     // Select2 mask is the same as the low bit mask of select4, since
     // (x << 3) << 28 == (x << 2) << 29
     unity_DOTSInstanceData_Select2_Mask = unity_DOTSInstanceData_Select4_Mask0;
@@ -300,8 +302,6 @@ uint2 DOTSInstanceData_Select2(uint addressOrOffset, uint4 v)
 
 uint DOTSInstanceData_Load(uint address)
 {
-    // NOTE: Indexing into a float4 is likely to generate bad code.
-    // Look into alternatives here.
     uint float4Index = address >> 4;
     uint4 raw = asuint(unity_DOTSInstanceDataRaw[float4Index]);
     return DOTSInstanceData_Select(address, raw);

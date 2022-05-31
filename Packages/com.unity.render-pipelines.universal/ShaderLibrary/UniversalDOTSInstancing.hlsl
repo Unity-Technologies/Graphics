@@ -57,6 +57,8 @@ static const float4 unity_SpecCube1_ProbePosition = float4(0,0,0,0);
 static const float4 unity_SpecCube1_HDR = float4(0,0,0,0);
 
 static const float4 unity_MotionVectorsParams = float4(0,1,0,1);
+static const float4 unity_RendererBounds_Min = float4(0,0,0,0);
+static const float4 unity_RendererBounds_Max = float4(0,0,0,0);
 
 // Set up by BRG picking/selection code
 int unity_SubmeshIndex;
