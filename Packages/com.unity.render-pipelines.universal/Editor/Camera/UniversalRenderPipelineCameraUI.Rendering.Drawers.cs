@@ -169,7 +169,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 int selectedRendererOption = p.renderer.intValue;
 
-                if (selectedRendererOption < -1 || selectedRendererOption > rpAsset.m_RendererDataList.Length || p.renderer.hasMultipleDifferentValues)
+                if (selectedRendererOption < -1 || selectedRendererOption >= rpAsset.m_RendererDataList.Length || p.renderer.hasMultipleDifferentValues)
                     return false;
 
                 var rendererData = selectedRendererOption == -1 ? rpAsset.m_RendererData : rpAsset.m_RendererDataList[selectedRendererOption];
