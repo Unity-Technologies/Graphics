@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNotNull(materialAsset);
             var shaderAsset = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
             Assert.IsNotNull(shaderAsset);
-            var assetModel = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(assetPath);
+            var assetModel = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(assetPath);
             Assert.IsNotNull(assetModel);
             var shaderGraphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(assetPath);
             Assert.IsNotNull(shaderGraphAsset);

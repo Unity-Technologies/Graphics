@@ -3,22 +3,36 @@ using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
+    interface INodeUIDescriptorBuilder
+    {
+        NodeUIDescriptor CreateDescriptor(NodeHandler handler);
+    }
+
+    internal class StaticNodeUIDescriptorBuilder : INodeUIDescriptorBuilder
+    {
+        private NodeUIDescriptor descriptor;
+        public StaticNodeUIDescriptorBuilder(NodeUIDescriptor descriptor) => this.descriptor = descriptor;
+        public NodeUIDescriptor CreateDescriptor(NodeHandler handler) => descriptor;
+    }
 
     /// <summary>
     /// NodeUIInfo is a registry for NodeUIDescriptors for all nodes that have
     /// been assigned a RegistryKey.
     /// </summary>
-    class NodeUIInfo
+    internal class NodeUIInfo
     {
-        readonly Dictionary<RegistryKey, NodeUIDescriptor> m_RegistryKeyToNodeUIDescriptor = new ();
+        readonly Dictionary<RegistryKey, INodeUIDescriptorBuilder> builders = new ();
 
-        public NodeUIDescriptor this[RegistryKey key]
-        {
-            get => m_RegistryKeyToNodeUIDescriptor.ContainsKey(key) ? m_RegistryKeyToNodeUIDescriptor[key] : CreateDefaultDescriptor();
-            set => m_RegistryKeyToNodeUIDescriptor[key] = value;
-        }
+        public void Register(RegistryKey key, NodeUIDescriptor descriptor)
+            => Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
 
-        static NodeUIDescriptor CreateDefaultDescriptor()
+        public void Register(RegistryKey key, INodeUIDescriptorBuilder descriptor)
+            => builders[key] = descriptor;
+
+        public NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler nodeInstance)
+            => builders.ContainsKey(key) ? builders[key].CreateDescriptor(nodeInstance) : CreateDefaultDescriptor();
+
+        private static NodeUIDescriptor CreateDefaultDescriptor()
         {
             return new NodeUIDescriptor(
                 1,
@@ -31,11 +45,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 new Dictionary<string, string> { },
                 new ParameterUIDescriptor[] {}
                 );
-        }
-
-        public void Clear()
-        {
-            m_RegistryKeyToNodeUIDescriptor.Clear();
         }
     }
 }

@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         MainPreviewView m_MainPreviewView;
         MainPreviewData m_MainPreviewData;
 
-        string m_MainContextNodeName = new ShaderGraphContext().GetRegistryKey().Name;
+        string m_MainContextNodeName = new Defs.ShaderGraphContext().GetRegistryKey().Name;
 
         internal PreviewManager(GraphModelStateComponent graphModelStateComponent)
         {
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Initialize the main preview
             m_MainPreviewView = mainPreviewView;
-            m_MainPreviewData = graphModel.mainPreviewData;
+            m_MainPreviewData = graphModel.MainPreviewData;
             m_MainPreviewView.Initialize(m_MainPreviewData);
 
             // Initialize the headless preview
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 new Vector2(m_MainPreviewData.width, m_MainPreviewData.height));
 
             m_PreviewHandlerInstance.SetActiveGraph(m_GraphModel.GraphHandler);
-            m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance);
+            m_PreviewHandlerInstance.SetActiveRegistry(m_GraphModel.RegistryInstance.Registry);
 
             // Initialize preview data for any nodes that exist on graph load
             foreach (var nodeModel in m_GraphModel.NodeModels)
@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         static bool IsMainContextNode(IGraphElementModel nodeModel)
         {
-            return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new ShaderGraphContext().GetRegistryKey().Name;
+            return nodeModel is GraphDataContextNodeModel contextNode && contextNode.graphDataName == new Defs.ShaderGraphContext().GetRegistryKey().Name;
         }
 
         public void Update()
@@ -99,14 +99,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 if (!m_NodeLookupTable.TryGetValue(nodeName, out var nodeGuid))
                     continue;
-                
+
                 m_GraphModel.TryGetModelFromGuid(nodeGuid, out var nodeModel);
                 if (IsMainContextNode(nodeModel))
                 {
                     var previewOutputState = m_PreviewHandlerInstance.RequestMainPreviewTexture(
                         m_MainPreviewData.width,
                         m_MainPreviewData.height,
-                        m_MainPreviewData.serializedMesh.mesh,
+                        m_MainPreviewData.mesh,
                         m_MainPreviewData.scale,
                         m_MainPreviewData.preventRotation,
                         m_MainPreviewData.rotation,

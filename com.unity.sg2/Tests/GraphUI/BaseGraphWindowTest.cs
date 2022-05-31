@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
             newGraphAction.Action(0, testAssetPath, "");
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(testAssetPath);
+            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(testAssetPath);
             m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             m_Window.GraphTool.Update();
 
@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             CloseWindow();
             yield return null;
 
-            var graphAsset = ShaderGraphAsset.HandleLoad(testAssetPath);
+            var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
             CreateWindow();
             m_Window.Show();
             m_Window.Focus();

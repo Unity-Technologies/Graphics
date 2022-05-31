@@ -8,30 +8,32 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Serializable]
-    public abstract class BaseShaderGraphConstant : IConstant, ISerializationCallbackReceiver
+    public abstract class BaseShaderGraphConstant : IConstant
     {
+        [SerializeReference]
+        protected ShaderGraphModel graphModel;
         [SerializeField]
-        private object tempSerializedValue;
-
-        protected GraphHandler graphHandler;
-
+        protected string nodeName;
         [SerializeField]
-        protected string nodeName, portName;
+        protected string portName;
+        GraphHandler graphHandler => graphModel.GraphHandler;
+
         public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null;
         public FieldHandler GetField()
         {
             if (!IsInitialized) return null;
-            var nodeReader = graphHandler.GetNode(nodeName);
+            var nodeReader = graphHandler.GetNode(nodeName)
+                ?? graphModel.RegistryInstance.DefaultTopologies.GetNode(nodeName); // TODO: shouldn't need to special case if we're a searcher preview.
             var portReader = nodeReader.GetPort(portName);
             return portReader.GetTypeField();
         }
         public string NodeName => nodeName;
         public string PortName => portName;
-        public void Initialize(GraphHandler handler, string nodeName, string portName)
+        public void Initialize(ShaderGraphModel graphModel, string nodeName, string portName)
         {
             if (!IsInitialized)
             {
-                this.graphHandler = handler;
+                this.graphModel = graphModel;
                 this.nodeName = nodeName;
                 this.portName = portName;
             }
@@ -52,8 +54,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void Initialize(TypeHandle constantTypeHandle) { }
         public IConstant Clone() { return null; }
-
-        public void OnBeforeSerialize() => tempSerializedValue = ObjectValue;
-        public void OnAfterDeserialize() => ObjectValue = tempSerializedValue;
     }
 }

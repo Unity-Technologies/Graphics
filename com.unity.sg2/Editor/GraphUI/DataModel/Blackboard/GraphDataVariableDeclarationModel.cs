@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 InitializationModel = GraphModel.Stencil.CreateConstantValue(DataType);
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
-                    cldsConstant.Initialize(shaderGraphModel.GraphHandler, contextNodeName, graphDataName);
+                    cldsConstant.Initialize(shaderGraphModel, contextNodeName, graphDataName);
                 }
             }
         }

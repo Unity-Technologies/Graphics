@@ -214,7 +214,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override bool CanHandleAssetType(IGraphAsset asset)
         {
-            return asset is ShaderGraphAssetModel;
+            return asset is ShaderGraphAsset;
         }
 
         protected override void Update()

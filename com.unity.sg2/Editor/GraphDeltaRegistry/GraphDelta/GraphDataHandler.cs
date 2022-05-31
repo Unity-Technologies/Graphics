@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public ChildNotFoundException(GraphDataHandler handler, string localID)
             : base($"Expected a child element with ID {localID} at {handler.ID.FullPath}, but no child was found")
         { }
-        
+
     }
 
     public class DataTypeMismatch : InvalidCastException
@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public NodeHandler ToNodeHandler()
         {
-            if(Reader.Element.Header is NodeHeader)
+            if(Reader?.Element?.Header is NodeHeader)
             {
                 return new NodeHandler(ID, Owner, Registry, DefaultLayer);
             }
