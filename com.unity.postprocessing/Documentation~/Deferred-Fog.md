@@ -2,15 +2,13 @@
 
 The **Deferred Fog** effect simulates the look of fog or mist in outdoor environments. To do this, it overlays a color onto objects depending on how far away they are from the Camera.
 
- ![screenshot-fog](/images/screenshot-fog.png)
+ ![Scene rendered with Deferred Fog enabled](images/screenshot-fog.png)
 
 You can also use the Deferred fog effect to hide object clipping. This is useful if you want to bring the Camera’s far clip plane forward to improve performance.
 
 The **Deferred Fog** effect creates a screen-space fog based on the camera’s [depth texture](https://docs.unity3d.com/Manual/SL-DepthTextures.html). It supports Linear, Exponential and Exponential Squared fog types. **Deferred Fog** settings are on the **Scene** tab of the [**Lighting window**](https://docs.unity3d.com/Manual/lighting-window.html) in **Window > Rendering > Lighting Settings**.
 
 ### Properties
-
-![](images/deferredfog.png)
 
 | Property       | Function                          |
 | :-------------- | :--------------------------------- |

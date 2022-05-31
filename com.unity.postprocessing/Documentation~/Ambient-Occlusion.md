@@ -9,6 +9,12 @@ The **Ambient Occlusion** effect in this package has two modes:
 - Scalable Ambient Obscurance
 - Multi-scale Volumetric Occlusion
 
+![Scene rendered without Ambient Occlusion effect](images/ao-off.png)
+Scene without **Ambient Occlusion**.
+
+![Scene rendered with Ambient Occlusion effect](images/ao-on.png)
+Scene with **Ambient Occlusion**.
+
 ## Scalable Ambient Obscurance
 
 This is a standard implementation of ambient obscurance that works on older platforms. If you need to target a compute-enabled platform, use the [**Multi-scale Volumetric Occlusion**](multi-scale-volumetric-occlusion) mode instead.
@@ -28,18 +34,15 @@ Dropping the `Quality` setting down will improve performance too.
 - Depth & Normals textures
 - Shader model 3
 
-
-![](images/ssao-1.png)
-
-
 ### Properties
 
 | Property     | Function                                                     |
-| :------------ | :------------------------------------------------------------ |
-| Intensity    | Adjust the degree of darkness **Ambient Occlusion** produces.                   |
+| :----------- | :------------------------------------------------------------ |
+| Mode         | Select the type of **Ambient Occlusion** to use. |
+| Intensity    | Adjust the degree of darkness **Ambient Occlusion** produces. |
 | Radius       | Set the radius of sample points, which controls the extent of darkened areas. |
 | Quality      | Define the number of sample points, which affects quality and performance. |
-| Color        | Set the tint color of the ambient occlusion.                               |
+| Color        | Set the tint color of the ambient occlusion. |
 | Ambient Only | Enable this checkbox to make the **Ambient Occlusion** effect only affect ambient lighting. This option is only available with the Deferred rendering path and HDR rendering. |
 
 <a name="multi-scale-volumetric-occlusion"></a>
@@ -53,14 +56,12 @@ This mode is optimized for consoles and desktop platforms. It has better graphic
 - Compute shader support
 - Shader model 4.5
 
-![](images/ssao-2.png)
-
-
 ### Properties
 
 | Property           | Function                                                     |
-| :------------------ | :------------------------------------------------------------ |
-| Intensity          | Adjust the degree of darkness **Ambient Occlusion** produces.                  |
+| :----------------- | :------------------------------------------------------------ |
+| Mode               | Select the type of **Ambient Occlusion** to use. |
+| Intensity          | Adjust the degree of darkness **Ambient Occlusion** produces. |
 | Thickness Modifier | Modify the thickness of occluders. This increases dark areas but can introduce dark halos around objects. |
-| Color              | Set the tint color of the ambient occlusion.                                 |
+| Color              | Set the tint color of the ambient occlusion. |
 | Ambient Only       | Enable this checkbox to make the **Ambient Occlusion** effect only affect ambient lighting. This option is only available with the Deferred rendering path and HDR rendering. |
