@@ -233,27 +233,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             //}
         }
 
-        //public static void HandleUpdateConstantValue(
-        //    GraphViewStateComponent graphViewState,
-        //    PreviewManager previewManager,
-        //    UpdateConstantValueCommand updateConstantValueCommand)
-        //{
-        //    // TODO: Handle Property values being changed when those come online
-        //    // using var previewUpdater = graphPreviewState.UpdateScope;
-        //    // {
-        //    //     // Find all property nodes backed by this constant
-        //    //     var graphNodes = graphViewState.GraphModel.NodeModels;
-        //    //     foreach (var graphNode in graphNodes)
-        //    //     {
-        //    //         if (graphNode is IVariableNodeModel variableNodeModel &&
-        //    //             Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
-        //    //         {
-        //    //             previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
-        //    //         }
-        //    //     }
-        //    // }
-        //}
-
         public static void HandleUpdateConstantValue(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
