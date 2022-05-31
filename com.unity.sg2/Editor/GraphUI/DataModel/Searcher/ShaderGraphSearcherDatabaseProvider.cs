@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         var categoryPath = GetCategoryPath(uiHints);
 
                         // TODO: it's possible for searcher names to collides, which will prevent the searcher from functioning.
-                        var searcherItem = new RegistryNodeSearcherItem(graphModel, registryKey, registryKey.Name);
+                        var searcherItem = new RegistryNodeSearcherItem(graphModel, registryKey, uiHints.Name);
                         searcherItem.CategoryPath = categoryPath;
 
                         searcherItem.Synonyms = uiHints.Synonyms.ToArray();
