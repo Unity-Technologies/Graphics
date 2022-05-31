@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 
@@ -70,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_UseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
-        Matrix4x4[] m_PrevViewProjM = new Matrix4x4[2];
+        private Dictionary<int, Matrix4x4[]> m_PrevVPMatricesMap = new Dictionary<int, Matrix4x4[]>();
         bool m_ResetHistory;
         int m_DitheringTextureIndex;
         RenderTargetIdentifier[] m_MRT2;
@@ -906,7 +907,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
         void DoMotionBlur(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            const int PREV_VP_MATRIX_SIZE = 2;
+#else
+            const int PREV_VP_MATRIX_SIZE = 1;
+#endif
             var material = m_Materials.cameraMotionBlur;
+            if (!m_PrevVPMatricesMap.TryGetValue(cameraData.camera.GetInstanceID(), out var prevVPMatricies))
+                m_PrevVPMatricesMap.Add(cameraData.camera.GetInstanceID(), new Matrix4x4[PREV_VP_MATRIX_SIZE]);
+
+            if (prevVPMatricies?.Length != PREV_VP_MATRIX_SIZE)
+                prevVPMatricies = new Matrix4x4[PREV_VP_MATRIX_SIZE];
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
@@ -920,10 +931,10 @@ namespace UnityEngine.Rendering.Universal
                     material.SetMatrixArray("_PrevViewProjMStereo", viewProjMatrixStereo);
                 }
                 else
-                    material.SetMatrixArray("_PrevViewProjMStereo", m_PrevViewProjM);
+                    material.SetMatrixArray("_PrevViewProjMStereo", prevVPMatricies);
 
-                m_PrevViewProjM[0] = viewProj0;
-                m_PrevViewProjM[1] = viewProj1;
+                prevVPMatricies[0] = viewProj0;
+                prevVPMatricies[1] = viewProj1;
             }
             else
 #endif
@@ -945,9 +956,9 @@ namespace UnityEngine.Rendering.Universal
                 if (m_ResetHistory)
                     material.SetMatrix("_PrevViewProjM", viewProj);
                 else
-                    material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
+                    material.SetMatrix("_PrevViewProjM", prevVPMatricies[prevViewProjMIdx]);
 
-                m_PrevViewProjM[prevViewProjMIdx] = viewProj;
+                prevVPMatricies[prevViewProjMIdx] = viewProj;
             }
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
@@ -958,9 +969,9 @@ namespace UnityEngine.Rendering.Universal
             Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, (int)m_MotionBlur.quality.value);
         }
 
-        #endregion
+#endregion
 
-        #region Panini Projection
+#region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
         void DoPaniniProjection(Camera camera, CommandBuffer cmd, RTHandle source, RTHandle destination)
@@ -1032,9 +1043,9 @@ namespace UnityEngine.Rendering.Universal
             return cylPos * (viewDist / cylDist);
         }
 
-        #endregion
+#endregion
 
-        #region Bloom
+#region Bloom
 
         void SetupBloom(CommandBuffer cmd, RTHandle source, Material uberMaterial)
         {
@@ -1149,9 +1160,9 @@ namespace UnityEngine.Rendering.Universal
                 uberMaterial.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomLQDirt : ShaderKeywordStrings.BloomLQ);
         }
 
-        #endregion
+#endregion
 
-        #region Lens Distortion
+#region Lens Distortion
 
         void SetupLensDistortion(Material material, bool isSceneView)
         {
@@ -1179,9 +1190,9 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.Distortion);
         }
 
-        #endregion
+#endregion
 
-        #region Chromatic Aberration
+#region Chromatic Aberration
 
         void SetupChromaticAberration(Material material)
         {
@@ -1191,9 +1202,9 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.ChromaticAberration);
         }
 
-        #endregion
+#endregion
 
-        #region Vignette
+#region Vignette
 
         void SetupVignette(Material material, XRPass xrPass)
         {
@@ -1228,9 +1239,9 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._Vignette_Params2, v2);
         }
 
-        #endregion
+#endregion
 
-        #region Color Grading
+#region Color Grading
 
         void SetupColorGrading(CommandBuffer cmd, ref RenderingData renderingData, Material material)
         {
@@ -1267,9 +1278,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Film Grain
+#region Film Grain
 
         void SetupGrain(ref CameraData cameraData, Material material)
         {
@@ -1285,9 +1296,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #endregion
+#endregion
 
-        #region 8-bit Dithering
+#region 8-bit Dithering
 
         void SetupDithering(ref CameraData cameraData, Material material)
         {
@@ -1303,9 +1314,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Final pass
+#region Final pass
 
         void RenderFinalPass(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -1463,9 +1474,9 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
         }
 
-        #endregion
+#endregion
 
-        #region Internal utilities
+#region Internal utilities
 
         class MaterialLibrary
         {
@@ -1591,6 +1602,6 @@ namespace UnityEngine.Rendering.Universal
             public static int[] _BloomMipDown;
         }
 
-        #endregion
+#endregion
     }
 }

@@ -104,4 +104,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/240_DepthPriming.unity
     guid: 06d3d04c77b97ba40969b415bc9a25dd
+  - enabled: 1
+    path: Assets/Scenes/241_MultiCamMotionBlur.unity
+    guid: 743d01f5817f118469f5095b0192f5ce
   m_configObjects: {}
