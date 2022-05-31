@@ -190,12 +190,17 @@ void DilateMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_Grou
 
     int dilationWidth = _DilationWidth;
 
+    // Make sure to convert the coordinate to signed for the kernel taps
+    int2 currentCoord = (int2)dispatchThreadId.xy;
+
     OUT_MASK_FORMAT dilatedMaxVals = -1;
     for (int i = -dilationWidth; i <= dilationWidth; ++i)
     {
         for (int j = -dilationWidth; j <= dilationWidth; ++j)
         {
-            OUT_MASK_FORMAT s = _InputTexture[COORD_TEXTURE2D_X(min(dispatchThreadId.xy + int2(i, j), _SrcLimit))].MASK_SWIZZLE;
+            // Evaluate the tap coordinate and clamp it to the texture
+            int2 tapCoordinate = clamp(currentCoord + int2(i, j), 0, _SrcLimit - 1);
+            OUT_MASK_FORMAT s = _InputTexture[COORD_TEXTURE2D_X(tapCoordinate)].MASK_SWIZZLE;
             dilatedMaxVals = DilateValue(dilatedMaxVals, s);
         }
     }

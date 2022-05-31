@@ -256,13 +256,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the cloud map - Coverage (R), Rain (G), Type (B).
         /// </summary>
         [Tooltip("Specifies the cloud map - Coverage (R), Rain (G), Type (B).")]
-        public TextureParameter cloudMap = new TextureParameter(null);
+        public TextureParameter cloudMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Specifies the lookup table for the clouds - Profile Coverage (R), Erosion (G), Ambient Occlusion (B).
         /// </summary>
         [Tooltip("Specifies the lookup table for the clouds - Profile Coverage (R), Erosion (G), Ambient Occlusion (B).")]
-        public TextureParameter cloudLut = new TextureParameter(null);
+        public TextureParameter cloudLut = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Specifies the cloud control Mode: Simple, Advanced or Manual.
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the lower cloud layer distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the lower cloud layer distribution in the advanced mode.")]
-        public TextureParameter cumulusMap = new TextureParameter(null);
+        public TextureParameter cumulusMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Overrides the coverage of the lower cloud layer specified in the cumulus map in the advanced mode.
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the higher cloud layer distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the higher cloud layer distribution in the advanced mode.")]
-        public TextureParameter altoStratusMap = new TextureParameter(null);
+        public TextureParameter altoStratusMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Overrides the coverage of the higher cloud layer specified in the alto stratus map in the advanced mode.
@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the anvil shaped clouds distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the anvil shaped clouds distribution in the advanced mode.")]
-        public TextureParameter cumulonimbusMap = new TextureParameter(null);
+        public TextureParameter cumulonimbusMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Overrides the coverage of the anvil shaped clouds specified in the cumulonimbus map in the advanced mode.
@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the rain distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the rain distribution in the advanced mode.")]
-        public TextureParameter rainMap = new TextureParameter(null);
+        public TextureParameter rainMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Specifies the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.
@@ -489,6 +489,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.")]
         public BoolParameter ghostingReduction = new BoolParameter(false);
+
+        /// <summary>
+        /// Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.
+        /// </summary>
+        [Tooltip("Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.")]
+        public ClampedFloatParameter perceptualBlending = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).

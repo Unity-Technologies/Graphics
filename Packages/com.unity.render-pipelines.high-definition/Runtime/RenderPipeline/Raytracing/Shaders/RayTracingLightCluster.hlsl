@@ -70,7 +70,7 @@ EnvLightData FetchClusterEnvLightIndex(int cellIndex, uint lightIndex)
     return _EnvLightDatasRT[absoluteLightIndex];
 }
 
-#ifdef HAS_LIGHTLOOP
+#if defined(HAS_LIGHTLOOP) && (SHADERPASS != SHADERPASS_PATH_TRACING)
 float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout float totalWeight)
 {
     float3 result = 0.0;

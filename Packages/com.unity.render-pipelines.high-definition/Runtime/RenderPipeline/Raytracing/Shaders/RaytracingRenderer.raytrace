@@ -3,6 +3,10 @@
 
 #define HAS_LIGHTLOOP
 
+// Include and define the shader pass
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_RAYTRACING
+
 // WARNING: This define must be kept in sync with the c# code
 #define RAYTRACING_MAX_RECURSION 10
 

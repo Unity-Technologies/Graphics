@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Quality
         SerializedDataParameter m_TemporalAccumulationFactor;
         SerializedDataParameter m_GhostingReduction;
+        SerializedDataParameter m_PerceptualBlending;
         SerializedDataParameter m_NumPrimarySteps;
         SerializedDataParameter m_NumLightSteps;
 
@@ -151,6 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Quality
             m_TemporalAccumulationFactor = Unpack(o.Find(x => x.temporalAccumulationFactor));
             m_GhostingReduction = Unpack(o.Find(x => x.ghostingReduction));
+            m_PerceptualBlending = Unpack(o.Find(x => x.perceptualBlending));
             m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
             m_NumLightSteps = Unpack(o.Find(x => x.numLightSteps));
 
@@ -166,6 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_CloudMapTilingText = EditorGUIUtility.TrTextContent("Cloud Map Tiling", "Tiling (x,y) of the cloud map.");
         static public readonly GUIContent k_CloudMapOffsetText = EditorGUIUtility.TrTextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.");
         static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
+        static public readonly GUIContent k_PerceptualBlending = EditorGUIUtility.TrTextContent("Perceptual Blending", "When enabled, the clouds will blend in a perceptual way with the environment. This may cause artifacts when the sky is over-exposed.");
 
         void AdvancedControlMode()
         {
@@ -463,6 +466,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_TemporalAccumulationFactor);
                 PropertyField(m_GhostingReduction);
+
+                // Here we intentionally choose to display the perceptual blending as a toggle and not as float value to prevent the user from inputing arbitrary values
+                // between 0.0f and 1.0f while preserving the ability to interpolate/blend between volumes.
+                using (var scope = new OverridablePropertyScope(m_PerceptualBlending, k_PerceptualBlending, this))
+                    m_PerceptualBlending.value.floatValue = EditorGUILayout.Toggle(k_PerceptualBlending, m_PerceptualBlending.value.floatValue == 1.0f) ? 1.0f : 0.0f;
+
                 PropertyField(m_NumPrimarySteps);
                 PropertyField(m_NumLightSteps);
                 PropertyField(m_FadeInMode);

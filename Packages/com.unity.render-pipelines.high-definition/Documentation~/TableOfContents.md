@@ -159,6 +159,7 @@
 * [Post-processing](Post-Processing-Main.md)
   * [Effect Execution Order](Post-Processing-Execution-Order.md)
   * [Effect List](post-processing-effect-list.md)
+  * [HDR Output](HDR-Output.md)
   * Authoring Lookup Textures
     * [Overview](Authoring-LUTs.md)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop.md)

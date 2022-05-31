@@ -149,9 +149,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that allows us to know if the maxZMask texture is valid
         public int _ValidMaxZMask;
         // Flag that allows to know if we should be using the improved transmittance blending
-        public int _ImprovedTransmittanceBlend;
+        public float _ImprovedTransmittanceBlend;
         // Flag that defines if the transmittance should follow a cubic profile (For MSAA)
-        public int _CubicTransmittance;
+        public float _CubicTransmittance;
         public int _Padding1;
 
         [HLSLArray(3 * 4, typeof(Vector4))]

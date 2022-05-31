@@ -1,8 +1,8 @@
 # Recursive rendering
 
-This feature is a replacement pipeline for rendering Meshes in the High Definition Render Pipeline (HDRP). GameObjects that use this rendering mode cast refraction and reflection rays recursively. This means that when a ray hits a surface, it reflects or refracts and carries on to hit other surfaces. You can control the maximum number of times that a ray does this to suit your Project.
+This feature is a replacement pipeline for rendering Meshes in the High Definition Render Pipeline (HDRP). GameObjects that use this rendering mode cast refraction and reflection rays recursively. This means that when a ray hits a surface, it reflects or refracts and carries on to hit other surfaces. You can increase the maximum number of times that a ray bounces. However, a higher number of rays is more resource-intensive.
 
-The smoothness of a Material does not affect the way a ray reflects or refracts, which makes this rendering mode useful for rendering multi-layered transparent GameObjects.
+Rays will ignore the smoothness of a Material when being reflected or refracted, which makes this rendering mode useful for rendering multi-layered transparent GameObjects. This forces the objects to have smooth reflections as long as their smoothness is above the minimum smoothness specified in the volume override. In the case the smoothness of the surface is below the minimum smoothness it will fallback on the following indirect specular approach.
 
 HDRP might display the sky color instead of a GameObject that has ray tracing applied. This happens when the GameObject is further away from the Camera than the Max Ray Length value set in the volume component. To make the GameObject appear correctly, increase the value of the Max Ray Length property.
 

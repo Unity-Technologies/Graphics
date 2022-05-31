@@ -43,7 +43,9 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
 
     float4 FragBaking(Varyings input) : SV_Target
     {
-        return RenderClouds(input.positionCS.xy);
+        float4 result = RenderClouds(input.positionCS.xy);
+        result.rgb = ClampToFloat16Max(result.rgb / result.a) * result.a;
+        return result;
     }
 
     float4 FragRender(Varyings input) : SV_Target
