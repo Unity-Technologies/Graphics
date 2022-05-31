@@ -45,24 +45,21 @@ RW_TEXTURE2D_X(float4, _MotionVectorAOV);
 [shader("miss")]
 void CameraMiss(inout PathPayload payload : SV_RayPayload)
 {
-    // Set initial "hit" to infinity (before potential volumetric scattering)
+    // Set initial "hit" to infinity (before potential volumetric scattering) and alpha to zero
     payload.rayTHit = FLT_INF;
+    payload.alpha = 0.0;
 
     // In indirect-only mode, it makes more sense to return a null value
     if (_RaytracingMinRecursion > 1)
     {
         payload.value = 0.0;
-        payload.throughput.x = 0.0;
         return;
     }
 
-    float4 missColor = IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
-        GetSkyBackground(payload.pixelCoord) : _PathTracingCameraClearColor * GetInverseCurrentExposureMultiplier();
+    payload.value = IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
+        GetSkyBackground(payload.pixelCoord).rgb : _PathTracingCameraClearColor.rgb * GetInverseCurrentExposureMultiplier();
 
-    payload.value = missColor.rgb;
-    payload.throughput.x = missColor.a;
-
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value, payload.throughput.x);
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value, payload.alpha);
 
     if (_EnableVolumetricFog)
     {
@@ -198,14 +195,11 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
 
     // These are the quantities we want to compute for the path
     float3 value = payload.value;
-    float alpha;
+    float alpha = payload.alpha;
 
     // Test if something was hit from our camera ray
     if (payload.rayTHit < FLT_INF)
     {
-        // If we hit something, always set alpha/presence to 1.0
-        alpha = 1.0;
-
         // Iterate over each path segments, up to a specified max recursion depth
         for (uint segmentID = 1; segmentID < _RaytracingMaxRecursion && any(payload.rayDirection); segmentID++)
         {
@@ -217,6 +211,7 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
 
             // Reset the payload (done after extracting continuation ray, because of data aliasing)
             payload.value = 0.0;
+            payload.alpha = 0.0;
             payload.rayDirection = 0.0;
             payload.pixelCoord = pixelCoord;
             payload.segmentID = segmentID;
@@ -225,14 +220,10 @@ void TracePath(uint2 pixelCoord, bool withAOV = false)
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
                      RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
-            // Add the segment contribution to our overall radiance value
+            // Add the segment contribution to our overall radiance and alpha values
             value += throughput * ClampValue(payload.value);
+            alpha += (1.0 - alpha) * payload.alpha;
         }
-    }
-    else
-    {
-        // Use the alpha of the background/sky
-        alpha = payload.throughput.x;
     }
 
     // Copy the full path radiance value (and alpha/presence) to our output buffer

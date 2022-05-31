@@ -38,6 +38,7 @@ struct PathPayload
     // Output
     //
     float3  value;           // Main value (radiance, or normal for random walk)
+    float   alpha;           // Opacity value (computed from transmittance)
     float3  rayDirection;    // Continuation ray direction, null means no continuation
     float   rayTHit;         // Ray parameter, used either for current or next hit
 
