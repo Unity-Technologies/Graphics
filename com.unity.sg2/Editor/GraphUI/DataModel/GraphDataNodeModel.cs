@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool existsInGraphData =>
             m_GraphDataName != null && TryGetNodeReader(out _);
 
-        GraphHandler graphHandler =>
+        protected GraphHandler graphHandler =>
             ((ShaderGraphModel)GraphModel).GraphHandler;
 
         Registry registry =>

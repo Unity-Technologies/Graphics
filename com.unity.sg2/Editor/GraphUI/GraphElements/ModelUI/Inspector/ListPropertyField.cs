@@ -88,10 +88,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_ListView.bindItem = bindItem;
             m_ListView.itemsSource = listItems.ToList();
             m_ListView.selectionType = SelectionType.Single;
-            m_ListView.reorderable = makeListReorderable;
             m_ListView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             m_ListView.showAddRemoveFooter = true;
-            m_ListView.reorderMode = ListViewReorderMode.Animated;
+
+            m_ListView.reorderable = makeListReorderable;
+            if (makeListReorderable)
+            {
+                m_ListView.reorderMode = ListViewReorderMode.Animated;
+            }
 
             m_ListView.selectionChanged += onSelectionChanged;
             m_ListView.itemsAdded += OnItemsAdded;

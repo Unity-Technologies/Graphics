@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
@@ -9,11 +10,17 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    // things to do:
-    //  - create field visual element (horizontal group: editable label, dropdown)
-    //      - expose context creation stuff - pull out of blackboard setup code in stencil
-    //      - no constants needed here
-    //
+    class SubgraphOutputListViewController : SGListViewController
+    {
+        public event Action<List<int>> beforeItemsRemoved;
+
+        public override void RemoveItems(List<int> indices)
+        {
+            beforeItemsRemoved?.Invoke(indices);
+            base.RemoveItems(indices);
+        }
+    }
+
     public class SubgraphOutputsInspector : SGFieldsInspector
     {
         List<(string name, int typeIndex)> m_Outputs;
@@ -23,24 +30,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
             : base(name, model, ownerElement, parentClassName)
         {
             m_Outputs = new List<(string name, int typeIndex)>();
+            if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
 
-            var stencil = (ShaderGraphStencil)((NodeModel)m_Model).GraphModel.Stencil;
+            var stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
             m_ListField = new ListPropertyField<(string name, int typeIndex)>(
                 m_OwnerElement.RootView,
                 m_Outputs,
                 getAddItemOptions: () => ShaderGraphStencil.k_SupportedBlackboardTypes.Select(t => stencil.TypeMetadataResolver.Resolve(t)?.FriendlyName ?? t.Name).ToList(),
                 getItemDisplayName: obj => obj.ToString(),
-                onAddItemClicked: AddItem,
+                onAddItemClicked: OnItemsAdded,
                 onSelectionChanged: _ => { },
                 onItemRemoved: () => { },
                 makeOptionsUnique: false,
                 makeListReorderable: false
             );
 
+            var controller = new SubgraphOutputListViewController();
+            controller.beforeItemsRemoved += ints =>
+            {
+                m_OwnerElement.RootView.Dispatch(new RemoveContextEntryCommand((GraphDataContextNodeModel)model, m_Outputs[ints[0]].name));
+            };
+            m_ListField.listView.SetViewController(controller);
+
             m_ListField.listView.makeItem = () =>
             {
                 var ve = new VisualElement();
                 GraphElementHelper.LoadTemplateAndStylesheet(ve, "SubgraphOutputRow", "sg-subgraph-output-row");
+
                 ve.Q<DropdownField>().choices = ShaderGraphStencil.k_SupportedBlackboardTypes
                     .Select(t => stencil.TypeMetadataResolver.Resolve(t)?.FriendlyName ?? t.Name)
                     .ToList();
@@ -50,16 +66,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             m_ListField.listView.bindItem = (ve, i) =>
             {
-                ve.Q<TextField>().value = m_Outputs[i].name;
-                ve.Q<DropdownField>().index = m_Outputs[i].typeIndex;
+                var textField = ve.Q<TextField>();
+                textField.value = m_Outputs[i].name;
+                textField.isDelayed = true;
+
+                textField.RegisterValueChangedCallback(evt =>
+                {
+                    m_OwnerElement.RootView.Dispatch(new RenameContextEntryCommand(contextNodeModel, evt.previousValue, evt.newValue));
+                });
+
+                var dropdownField = ve.Q<DropdownField>();
+                dropdownField.index = m_Outputs[i].typeIndex;
+                dropdownField.RegisterValueChangedCallback(evt =>
+                {
+                    m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_Outputs[i].name, ShaderGraphStencil.k_SupportedBlackboardTypes[dropdownField.index]));
+                });
             };
         }
 
-        private void AddItem(object selectedItemString)
+        void OnItemsAdded(object selectedItemString)
         {
-            // TODO: Increment name (ObjectNames.GetUniqueName)
-            // TODO: Create context entry with correct type
-            m_OwnerElement.RootView.Dispatch(new AddContextEntryCommand((GraphDataContextNodeModel)m_Model, "New", TypeHandle.Float));
+            if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
+            if (!contextNodeModel.TryGetNodeReader(out var nodeHandler)) return;
+
+            var stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
+
+            var existingNames = nodeHandler.GetPorts().Select(p => p.ID.LocalPath);
+            var entryName = ObjectNames.GetUniqueName(existingNames.ToArray(), "New");
+            var type = ShaderGraphStencil.k_SupportedBlackboardTypes.Select(t => stencil.TypeMetadataResolver.Resolve(t)?.FriendlyName ?? t.Name).ToList().IndexOf(selectedItemString.ToString());
+
+            m_OwnerElement.RootView.Dispatch(new AddContextEntryCommand(contextNodeModel, entryName, ShaderGraphStencil.k_SupportedBlackboardTypes[type]));
         }
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()

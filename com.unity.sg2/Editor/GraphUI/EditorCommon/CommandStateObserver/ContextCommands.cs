@@ -25,26 +25,77 @@ namespace UnityEditor.ShaderGraph.GraphUI
             AddContextEntryCommand command)
         {
             using var graphUpdater = graphModelState.UpdateScope;
+            command.m_Model.CreateEntry(command.m_Name, command.m_Type);
+            graphUpdater.MarkChanged(command.m_Model);
+        }
+    }
 
-            var graphModel = (ShaderGraphModel)command.m_Model.GraphModel;
-            var registry = graphModel.RegistryInstance;
+    public class RemoveContextEntryCommand : UndoableCommand
+    {
+        readonly GraphDataContextNodeModel m_Model;
+        readonly string m_Name;
 
-            if (!command.m_Model.TryGetNodeReader(out var nodeHandler)) return;
+        public RemoveContextEntryCommand(GraphDataContextNodeModel model, string name)
+        {
+            m_Model = model;
+            m_Name = name;
+        }
 
-            var entry = new IContextDescriptor.ContextEntry
-            {
-                fieldName = command.m_Name,
-                height = ShaderGraphExampleTypes.GetGraphTypeHeight(command.m_Type),
-                length = ShaderGraphExampleTypes.GetGraphTypeLength(command.m_Type),
-                primitive = ShaderGraphExampleTypes.GetGraphTypePrimitive(command.m_Type),
-                precision = GraphType.Precision.Any,
-                initialValue = Matrix4x4.zero,
-            };
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphModelStateComponent graphModelState,
+            RemoveContextEntryCommand command)
+        {
+            using var graphUpdater = graphModelState.UpdateScope;
+            command.m_Model.RemoveEntry(command.m_Name);
+            graphUpdater.MarkChanged(command.m_Model);
+        }
+    }
 
-            ContextBuilder.AddContextEntry(nodeHandler, entry, registry);
-            graphModel.GraphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
-            command.m_Model.DefineNode();
+    public class RenameContextEntryCommand : UndoableCommand
+    {
+        readonly GraphDataContextNodeModel m_Model;
+        readonly string m_OldName;
+        readonly string m_NewName;
 
+        public RenameContextEntryCommand(GraphDataContextNodeModel model, string oldName, string newName)
+        {
+            m_Model = model;
+            m_OldName = oldName;
+            m_NewName = newName;
+        }
+
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphModelStateComponent graphModelState,
+            RenameContextEntryCommand command)
+        {
+            using var graphUpdater = graphModelState.UpdateScope;
+            command.m_Model.RenameEntry(command.m_OldName, command.m_NewName);
+            graphUpdater.MarkChanged(command.m_Model);
+        }
+    }
+
+    public class ChangeContextEntryTypeCommand : UndoableCommand
+    {
+        readonly GraphDataContextNodeModel m_Model;
+        readonly string m_Name;
+        readonly TypeHandle m_NewType;
+
+        public ChangeContextEntryTypeCommand(GraphDataContextNodeModel model, string name, TypeHandle newType)
+        {
+            m_Model = model;
+            m_Name = name;
+            m_NewType = newType;
+        }
+
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphModelStateComponent graphModelState,
+            ChangeContextEntryTypeCommand command)
+        {
+            using var graphUpdater = graphModelState.UpdateScope;
+            command.m_Model.ChangeEntryType(command.m_Name, command.m_NewType);
             graphUpdater.MarkChanged(command.m_Model);
         }
     }
