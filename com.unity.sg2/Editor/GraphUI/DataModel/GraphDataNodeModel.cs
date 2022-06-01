@@ -172,10 +172,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal int currentVersion => registryKey.Version;
 
-        internal int latestAvailableVersion => graphHandler.registry.BrowseRegistryKeys()
-            .Where(otherKey => otherKey.Name == registryKey.Name)
-            .Select(otherKey => otherKey.Version)
-            .Max();
+        internal int latestAvailableVersion
+        {
+            get
+            {
+                try
+                {
+                    return graphHandler.registry.BrowseRegistryKeys()
+                        .Where(otherKey => otherKey.Name == registryKey.Name)
+                        .Select(otherKey => otherKey.Version)
+                        .Max();
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e + " thrown while trying to retrieve latestAvailableVersion");
+                    return 1;
+                }
+            }
+        }
 
         public void UpgradeToLatestVersion()
         {
