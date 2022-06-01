@@ -19,6 +19,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool HasPreview => false;
 
+        private IPortModel GetEntryInputPort(string name) => this.GetInputPorts().First(p => p.UniqueName == name);
+
         public void CreateEntry(string entryName, TypeHandle typeHandle)
         {
             if (!TryGetNodeReader(out var nodeHandler)) return;
@@ -50,10 +52,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void RenameEntry(string name, string newName)
         {
+            if (!TryGetNodeReader(out var nodeHandler)) return;
+
             var currentType = this.GetInputPorts().First(p => p.UniqueName == name).DataTypeHandle;
-            RemoveEntry(name);
             CreateEntry(newName, currentType);
-            DefineNode();
+
+            var oldPort = GetEntryInputPort(name);
+            var newPort = GetEntryInputPort(newName);
+            foreach (var edge in oldPort.GetConnectedEdges().ToList()) {
+                edge.ToPort = newPort;
+            }
+
+            RemoveEntry(name);
         }
 
         public void ChangeEntryType(string name, TypeHandle newType)
