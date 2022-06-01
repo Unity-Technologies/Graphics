@@ -185,12 +185,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
 
                 graphUpdater.MarkDeleted(deletedModels);
-
-                foreach (var nodeModel in command.Models)
-                {
-                    if (nodeModel is GraphDataNodeModel graphDataNodeModel)
-                        previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
-                }
             }
         }
 
