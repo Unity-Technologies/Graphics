@@ -173,12 +173,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Tries to connect two GraphData ports at the data level.
         /// </summary>
-        /// <param name="src">Source port.</param>
+        /// <param name="src">Source port.</paDram>
         /// <param name="dst">Destination port.</param>
         /// <returns>True if the connection was successful, false otherwise.</returns>
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
+                src.owner.graphDataName, src.graphDataName,
+                dst.owner.graphDataName, dst.graphDataName,
+                RegistryInstance.Registry);
+        }
+
+        /// <summary>
+        /// Disconnects two GraphData ports at the data level.
+        /// </summary>
+        /// <param name="src">Source port.</paDram>
+        /// <param name="dst">Destination port.</param>
+        public void Disconnect(GraphDataPortModel src, GraphDataPortModel dst)
+        {
+            GraphHandler.Disconnect(
                 src.owner.graphDataName, src.graphDataName,
                 dst.owner.graphDataName, dst.graphDataName,
                 RegistryInstance.Registry);

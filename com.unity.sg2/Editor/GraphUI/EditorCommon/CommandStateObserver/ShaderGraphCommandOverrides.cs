@@ -138,10 +138,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             else
                             {
                                 // If its an actual edge, remove from CLDS
-                                // TODO: Replace this with `GraphHandler.TryDisconnect` so we don't need to format port IDs like this, just can give node names instead
-                                var inputPortID = edge.FromPort.NodeModel.Guid + "." + edge.FromPortId;
-                                var outputPortID = edge.ToPort.NodeModel.Guid + "." + edge.ToPortId;
-                                graphModel.GraphHandler.RemoveEdge(outputPortID, inputPortID);
+                                if(edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
+                                    graphModel.Disconnect(sourcePort, destPort);
                             }
 
                             break;
