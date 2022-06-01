@@ -35,15 +35,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             using var graphUpdater = m_graphModelStateComponent.UpdateScope;
                             graphUpdater.MarkChanged(addedModel);
                         }
+                        else if (addedModel is GraphDataEdgeModel graphDataEdgeModel)
+                        {
+                            var nodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
+                            m_PreviewManagerInstance.OnNodeFlowChanged(nodeModel.graphDataName);
+                        }
                     }
 
-                    foreach (var addedModel in removedModels)
+                    // TODO: (Sai) This is currently handled by `ShaderGraphCommandOverrides.HandleDeleteElements
+                    // I think we want it to live here in the long run
+                    /*foreach (var removedModel in removedModels)
                     {
-                        if (addedModel is GraphDataNodeModel graphDataNodeModel)
+                        if (removedModel is GraphDataNodeModel graphDataNodeModel)
                         {
                             m_PreviewManagerInstance.OnNodeRemoved(graphDataNodeModel.graphDataName);
                         }
-                    }
+                        else if (removedModel is GraphDataEdgeModel graphDataEdgeModel)
+                        {
+                            var nodeModel = graphDataEdgeModel.ToPort.NodeModel as GraphDataNodeModel;
+                            m_PreviewManagerInstance.OnNodeFlowChanged(nodeModel.graphDataName);
+                        }
+                    }*/
                 }
             }
         }

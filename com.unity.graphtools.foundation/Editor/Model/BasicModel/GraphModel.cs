@@ -929,8 +929,9 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive.BasicModel
             return typeof(EdgeModel);
         }
 
+        /// GTF-EDIT: Added virtual modifier
         /// <inheritdoc />
-        public IEdgeModel CreateEdge(IPortModel toPort, IPortModel fromPort, SerializableGUID guid = default)
+        public virtual IEdgeModel CreateEdge(IPortModel toPort, IPortModel fromPort, SerializableGUID guid = default)
         {
             var existing = this.GetEdgeConnectedToPorts(toPort, fromPort);
             if (existing != null)

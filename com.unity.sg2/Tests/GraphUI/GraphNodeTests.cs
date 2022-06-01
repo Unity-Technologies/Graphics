@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, beforeContext));
             yield return null;
 
-            m_ShaderGraphWindowTestHelper.SimulateKeyPress(KeyCode.Delete);
+            Assert.IsTrue(m_ShaderGraphWindowTestHelper.SendDeleteCommand());
             yield return null;
 
             var afterContext = GetNodeModelFromGraphByName(beforeContext.Title);
@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             // Arbitrary node so that something other than a context exists in our graph.
             yield return AddNodeFromSearcherAndValidate("Add");
 
-            m_GraphView.Dispatch(new DeleteElementsCommand(m_GraphView.GraphModel.NodeModels));
+            Assert.IsTrue(m_ShaderGraphWindowTestHelper.SendDeleteCommand());
             Assert.IsFalse(FindNodeOnGraphByName("Add"), "Non-context node should be deleted from selection");
 
             var afterContexts = m_GraphView.GraphModel.NodeModels.OfType<GraphDataContextNodeModel>().ToList();
@@ -209,6 +209,25 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             var errors = m_GraphView.GraphTool.GraphProcessingState.Errors;
             Assert.IsTrue(errors.Count == 0, "Dismissing node upgrade should remove warning badges");
+        }
+
+        [UnityTest]
+        public IEnumerator TestNodeCanBeDeleted()
+        {
+            yield return AddNodeFromSearcherAndValidate("Add");
+
+            var nodeModel = GetNodeModelFromGraphByName("Add");
+            Assert.IsNotNull(nodeModel);
+
+            // Select element programmatically because it might be behind another one
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, nodeModel));
+            yield return null;
+
+            Assert.IsTrue(m_ShaderGraphWindowTestHelper.SendDeleteCommand());
+            yield return null;
+
+            var addNode = GetNodeModelFromGraphByName("Add");
+            Assert.IsNull(addNode, "Node should be null after delete operation");
         }
 
         /*

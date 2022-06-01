@@ -317,7 +317,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Request node preview image once the graph has been setup correctly
-            m_PreviewManager.RequestNodePreviewTexture("Add1", out var nodeRenderOutput, out var _);
+            m_PreviewManager.RequestNodePreviewTexture("Add1", out var nodeRenderOutput, out var _, forceRecompile:true);
             Assert.IsNotNull(nodeRenderOutput);
             Assert.AreEqual(new Color(1, 0, 0, 1), SampleTextureColor(nodeRenderOutput));
         }

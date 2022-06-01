@@ -7,6 +7,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -57,6 +58,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
 
+        [NonSerialized]
+        public GraphModelStateComponent graphModelStateComponent;
+        public Action<IGraphElementModel> OnGraphModelChanged;
+
         public void Init(GraphHandler graph, bool isSubGraph)
         {
             graphHandlerBox.Init(graph);
@@ -99,6 +104,55 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return typeof(SectionModel);
         }
 
+        public override IEdgeModel CreateEdge(IPortModel toPort, IPortModel fromPort, SerializableGUID guid = default)
+        {
+            IPortModel resolvedEdgeSource;
+            List<IPortModel> resolvedEdgeDestinations;
+            resolvedEdgeSource = HandleRedirectNodesCreation(toPort, fromPort, out resolvedEdgeDestinations);
+
+            var edgeModel = base.CreateEdge(toPort, fromPort, guid);
+            if (resolvedEdgeSource is not GraphDataPortModel fromDataPort)
+                return edgeModel;
+
+            // Make the corresponding connections in CLDS data model
+            foreach (var toDataPort in resolvedEdgeDestinations.OfType<GraphDataPortModel>())
+            {
+              // Validation should have already happened in GraphModel.IsCompatiblePort.
+              Assert.IsTrue(TryConnect(fromDataPort, toDataPort));
+            }
+
+            return edgeModel;
+        }
+
+        IPortModel HandleRedirectNodesCreation(IPortModel toPort, IPortModel fromPort, out List<IPortModel> resolvedDestinations)
+        {
+            var resolvedSource = fromPort;
+            resolvedDestinations = new List<IPortModel>();
+
+            if (toPort.NodeModel is RedirectNodeModel toRedir)
+            {
+                resolvedDestinations = toRedir.ResolveDestinations().ToList();
+
+                // Update types of descendant redirect nodes.
+                foreach (var child in toRedir.GetRedirectTree(true))
+                {
+                    child.UpdateTypeFrom(fromPort);
+                    OnGraphModelChanged(child);
+                }
+            }
+            else
+            {
+                resolvedDestinations.Add(toPort);
+            }
+
+            if (fromPort.NodeModel is RedirectNodeModel fromRedir)
+            {
+                resolvedSource = fromRedir.ResolveSource();
+            }
+
+            return resolvedSource;
+        }
+
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.
         /// </summary>
@@ -119,12 +173,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Tries to connect two GraphData ports at the data level.
         /// </summary>
-        /// <param name="src">Source port.</param>
+        /// <param name="src">Source port.</paDram>
         /// <param name="dst">Destination port.</param>
         /// <returns>True if the connection was successful, false otherwise.</returns>
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
+                src.owner.graphDataName, src.graphDataName,
+                dst.owner.graphDataName, dst.graphDataName,
+                RegistryInstance.Registry);
+        }
+
+        /// <summary>
+        /// Disconnects two GraphData ports at the data level.
+        /// </summary>
+        /// <param name="src">Source port.</paDram>
+        /// <param name="dst">Destination port.</param>
+        public void Disconnect(GraphDataPortModel src, GraphDataPortModel dst)
+        {
+            GraphHandler.Disconnect(
                 src.owner.graphDataName, src.graphDataName,
                 dst.owner.graphDataName, dst.graphDataName,
                 RegistryInstance.Registry);
