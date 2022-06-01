@@ -56,13 +56,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public NodeHandler AddNode(RegistryKey key, string name) =>
             graphDelta.AddNode(key, name, registry);
 
-        [Obsolete("AddContextNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+        [Obsolete("AddContextNode with a provided Registry is obselete; GraphHandler can now use its own Registry. " +
             "Use AddContextNode(RegistryKey key) for updated behavior")]
         public NodeHandler AddContextNode(RegistryKey key, Registry registry) =>
             graphDelta.AddContextNode(key, registry);
 
-        public NodeHandler AddContextNode(RegistryKey key) =>
-            graphDelta.AddContextNode(key, registry);
+        [Obsolete("AddContextNode with a RegistryKey is obselete; GraphHandler will now setup registry keys based " +
+            "on CustomizationPoints")]
+        public NodeHandler AddContextNode(RegistryKey key) => AddContextNode(key, registry);
+
+        public NodeHandler AddContextNode(string name) =>
+            graphDelta.AddContextNode(name, registry);
 
         [Obsolete("ReconcretizeNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
             "Use ReconcretizeNode(string name) for updated behavior")]
@@ -150,7 +154,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void RebuildContextData(ElementID contextNode, ITargetProvider target, string templateName, string cpName, bool input)
         {
-
             void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
             {
                 ContextBuilder.AddReferableEntry(context,
@@ -173,7 +176,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             context.ClearLayerData(GraphDelta.k_concrete);
             context.DefaultLayer = GraphDelta.k_concrete;
 
-            CPGraphDataProvider.GatherProviderCPIO(target, out var descriptors);
+            GatherProviderCPIO(target, out var descriptors);
             foreach(var descriptor in descriptors)
             {
                 if(descriptor.templateName.Equals(templateName, StringComparison.OrdinalIgnoreCase))
@@ -196,6 +199,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                     AddEntry(context, o);
                                 }
                             }
+                            context.AddField("_CustomizationPointName", cpName);
                             return;
                         }
                     }

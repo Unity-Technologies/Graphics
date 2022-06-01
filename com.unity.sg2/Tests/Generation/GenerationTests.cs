@@ -29,11 +29,19 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             graph = new GraphHandler(registry);
 
+            //graph.AddContextNode("VertIn");
+            //graph.AddContextNode("VertOut");
             graph.AddContextNode(propertyKey);
             graph.AddContextNode(contextKey);
 
+            //graph.RebuildContextData("VertIn", GetTarget(), "UniversalPipeline", "VertexDescription", true);
+            //graph.RebuildContextData("VertOut", GetTarget(), "UniversalPipeline", "VertexDescription", false);
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
             //graph.RebuildContextData(contextKey.Name, GetTarget(),  "UniversalPipeline", "SurfaceDescription", false);
+
+            //CPGraphDataProvider.GatherProviderCPIO(GetTarget(), out var descriptors);
+            //foreach(var descriptor in descriptors)
+            //    LogDescriptor(descriptor);
 
             graph.AddNode<TestAddNode>("Add1").SetPortField("In1", "c0", 1f); //(1,0,0,0)
             graph.AddNode<TestAddNode>("Add2").SetPortField("In2", "c1", 1f); //(0,1,0,0)
@@ -107,7 +115,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             propContext.AddPort<GraphType>("out_Foo", false, registry);
             graph.AddReferenceNode("FooReference", propertyKey.Name, "Foo", registry);
             graph.AddEdge("FooReference.Output", "Add1.In2");
-
+            graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
             var shaderString = Interpreter.GetShaderForNode(graph.GetNodeReader("Add1"), graph, registry, out _);
             var shader = MakeShader(shaderString);
             var rt = DrawToTex(shader);
@@ -144,6 +152,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             
             graph.AddReferenceNode("Foo_Ref", propertyKey.Name, entry.fieldName, registry);
             graph.AddEdge("Foo_Ref.Output", contextKey.Name + ".BaseColor");
+            graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
 
             var shaderString = Interpreter.GetShaderForNode(graph.GetNode(contextKey.Name), graph, registry, out _);
             var shader = MakeShader(shaderString);
@@ -196,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             return null;
         }
 
-        public void LogDescriptor(CPGraphDataProvider.TemplateDataDescriptor desc)
+        public static void LogDescriptor(CPGraphDataProvider.TemplateDataDescriptor desc)
         {
             Debug.Log(desc.templateName);
             foreach (var cpio in desc.CPIO)
@@ -217,7 +226,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
 
 
         [Test]
-        public void FooTest()
+        public void TestUV()
         {
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             var propContext = graph.GetNode(propertyKey.Name);
@@ -229,7 +238,22 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             var shader = MakeShader(shaderString);
             var material = new Material(shader);
             var rt = DrawToTex(material, 128, 128);
-            File.WriteAllBytes($"Assets/Foo.jpg", rt.EncodeToJPG());
+            try
+            {
+                var pixelColor = rt.GetPixel(127, 0);
+                Assert.IsTrue((new Color(1f, 0f, 0f) - pixelColor).maxColorComponent < 0.01f); 
+                pixelColor = rt.GetPixel(127, 127);
+                Assert.IsTrue((new Color(1f, 1f, 0f) - pixelColor).maxColorComponent < 0.01f);
+                pixelColor = rt.GetPixel(0, 0);
+                Assert.IsTrue(pixelColor.maxColorComponent < 0.01f);
+                pixelColor = rt.GetPixel(0, 127);
+                Assert.IsTrue((new Color(0f, 1f, 0f) - pixelColor).maxColorComponent < 0.01f);
+            }
+            catch (Exception e)
+            {
+                File.WriteAllBytes($"Assets/FailureBadUV.jpg", rt.EncodeToJPG());
+                throw e;
+            }
         }
 
     }

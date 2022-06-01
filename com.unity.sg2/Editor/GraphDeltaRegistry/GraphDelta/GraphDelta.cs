@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var builder = registry.GetNodeBuilder(key);
             if (builder is ContextBuilder)
             {
-                return AddContextNode(key, registry);
+                return AddContextNode(key.Name, registry);
             }
 
             var nodeHandler = m_data.AddNodeHandler(k_user, id, this, registry);
@@ -86,20 +86,30 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         }
 
-        public void SetupContextNodes(IEnumerable<IContextDescriptor> contextDescriptors, Registry registry)
+
+        public NodeHandler AddContextNode(string name, Registry registry)
         {
-            foreach(var descriptor in contextDescriptors)
+            var nodeHandler = m_data.AddNodeHandler(k_user, name, this, registry);
+            var contextKey = Registry.ResolveKey<ContextBuilder>();
+            var builder = registry.GetNodeBuilder(contextKey);
+
+            nodeHandler.SetMetadata("_contextDescriptor", true);
+
+            nodeHandler.SetMetadata(kRegistryKeyName, contextKey);
+
+            // Type nodes by default should have an output port of their own type.
+            if (builder.GetRegistryFlags() == RegistryFlags.Type)
             {
-                AppendContextBlockToStage(descriptor, registry);
+                nodeHandler.AddPort("Out", false, true).SetMetadata(kRegistryKeyName, contextKey);
             }
-        }
 
-        public void AppendContextBlockToStage(IContextDescriptor contextDescriptor, Registry registry)
-        {
-            var contextNodeHandler = AddContextNode(contextDescriptor.GetRegistryKey(), registry);
+            HookupToContextList(nodeHandler);
+            nodeHandler.DefaultLayer = k_concrete;
+            builder.BuildNode(nodeHandler, registry);
+            nodeHandler.DefaultLayer = k_user;
 
-            HookupToContextList(contextNodeHandler);
-            ReconcretizeNode(contextNodeHandler.ID, registry);
+            return nodeHandler;
+
         }
 
         private void HookupToContextList(NodeHandler newContextNode)
@@ -126,7 +136,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var nodeHandler = m_data.GetHandler(id, this, registry).ToNodeHandler();
             var key = nodeHandler.GetMetadata<RegistryKey>(kRegistryKeyName);
             var builder = registry.GetNodeBuilder(key);
-            if (!(builder is ContextBuilder))
+            if (!nodeHandler.HasMetadata("_CustomizationPointName"))
             {
                 nodeHandler.ClearLayerData(k_concrete);
                 nodeHandler.DefaultLayer = k_concrete;

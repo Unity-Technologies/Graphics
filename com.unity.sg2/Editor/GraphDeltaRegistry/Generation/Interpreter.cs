@@ -21,9 +21,10 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             var builder = new ShaderBuilder();
             var container = new ShaderContainer();
-            var cpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
-            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref cpBuilder, ref defaultTextures);
-            foreach (var b in cpBuilder.BlockInstances)
+            var scpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
+            var vcpBuilder = new CustomizationPointInstance.Builder(container, CustomizationPoint.Invalid);
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry,ref vcpBuilder, ref scpBuilder, ref defaultTextures, null, null);
+            foreach (var b in scpBuilder.BlockInstances)
                 foreach(var func in b.Block.Functions)
                     builder.AddDeclarationString(func);
             return builder.ConvertToString();
@@ -42,7 +43,8 @@ namespace UnityEditor.ShaderGraph.Generation
             vertexCPDesc = CustomizationPointInstance.Invalid; // we currently do not use the vertex customization point
 
             var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
-            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref surfaceDescBuilder, ref defaultTextures);
+            var vertexDescBuilder = new CustomizationPointInstance.Builder(container, vertexCP);
+            EvaluateGraphAndPopulateDescriptors(node, graph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexCP.Name, surfaceCP.Name);
             surfaceCPDesc = surfaceDescBuilder.Build();
         }
 
@@ -111,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Generation
             outputVariables.Add(varOutBuilder.Build());
         }
 
-        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder surfaceDescBuilder, ref List<(string, UnityEngine.Texture)> defaultTextures)
+        internal static void EvaluateGraphAndPopulateDescriptors(NodeHandler rootNode, GraphHandler shaderGraph, ShaderContainer container, Registry registry, ref CustomizationPointInstance.Builder vertexDescBuilder, ref CustomizationPointInstance.Builder surfaceDescBuilder, ref List<(string, UnityEngine.Texture)> defaultTextures, string vertexName, string surfaceName)
         {
 
             /* PSEDUOCODE
@@ -157,7 +159,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (!node.ID.Equals(rootNode.ID))
                     {
                         //evaluate the upstream context's block
-                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref surfaceDescBuilder, ref defaultTextures);
+                        EvaluateGraphAndPopulateDescriptors(node, shaderGraph, container, registry, ref vertexDescBuilder, ref surfaceDescBuilder, ref defaultTextures, vertexName, surfaceName);
                         //create inputs to our block based on the upstream context's outputs
                         foreach (var port in node.GetPorts())
                         {
@@ -236,7 +238,15 @@ namespace UnityEditor.ShaderGraph.Generation
             var block = blockBuilder.Build();
             var blockDescBuilder = new BlockInstance.Builder(container, block);
             var blockDesc = blockDescBuilder.Build();
-            surfaceDescBuilder.BlockInstances.Add(blockDesc);
+            var cpName = rootNode.GetField<string>("_CustomizationPointName");
+            if (!isContext || (cpName != null && cpName.GetData().Equals(surfaceName)))
+            {
+                surfaceDescBuilder.BlockInstances.Add(blockDesc);
+            }
+            else if(isContext && cpName != null && cpName.GetData().Equals(vertexName))
+            {
+                vertexDescBuilder.BlockInstances.Add(blockDesc);
+            }
 
             //if the root node was not a context node, then we need to remap an output to the expected customization point output
             if (!isContext)

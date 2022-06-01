@@ -46,10 +46,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
-            var context = registry.GetContextDescriptor(contextKey);
-            foreach (var entry in context.GetEntries())
-                AddContextEntry(node, entry, registry);
+            //This should do nothing, but temporarily keeping this in
+            try
+            {
+                var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
+                var context = registry.GetContextDescriptor(contextKey);
+                foreach (var entry in context.GetEntries())
+                    AddContextEntry(node, entry, registry);
+            }
+            catch
+            {
+
+            }
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)

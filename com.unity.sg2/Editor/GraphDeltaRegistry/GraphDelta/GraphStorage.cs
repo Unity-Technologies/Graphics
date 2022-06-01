@@ -135,6 +135,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         new internal Element AddElementToLayer<T>(string layer, ElementID elementID, T data)
         {
+            if(data is string s && s == null)
+            {
+                Debug.Log("HERE");
+            }
             return base.AddElementToLayer(layer, elementID, data);
         }
 

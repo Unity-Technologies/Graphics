@@ -62,9 +62,10 @@ namespace UnityEditor.ShaderGraph
             var contextKey = Registry.ResolveKey<ShaderGraphContext>();
             var propertyKey = Registry.ResolveKey<PropertyContext>();
             GraphHandler graph = new GraphHandler(defaultRegistry);
-            graph.AddContextNode(propertyKey);
-            graph.AddContextNode(contextKey);
+            graph.AddContextNode(propertyKey.Name);
+            graph.AddContextNode(contextKey.Name);
             graph.RebuildContextData(propertyKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", true);
+            graph.RebuildContextData(contextKey.Name, GetTarget(), "UniversalPipeline", "SurfaceDescription", false);
             return graph;
         }
 
