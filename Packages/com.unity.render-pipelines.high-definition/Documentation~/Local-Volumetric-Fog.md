@@ -7,7 +7,7 @@ HDRP voxelizes Local Volumetric Fog to enhance performance. This results in two 
 - Local Volumetric Fog does not support volumetric shadowing. If you place Local Volumetric Fog between a Light and a surface, the Volume does not decrease the intensity of light that reaches the surface.
 - Local Volumetric Fog is voxelized at a very coarse rate, with typically only 64 or 128 slices along the camera's focal axis. This can cause noticeable aliasing at the boundary of the Volume. You can hide the aliasing by using Local Volumetric Fog in conjunction with some global fog, if possible. You can also use a Density Mask and a non-zero Blend Distance to decrease the hardness of the edge.
 
-To create Local Volumetric Fog, right click in the Hierarchy and select __Volume > Local Volumetric Fog__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject > Volume > Local Volumetric Fog__.
+To create Local Volumetric Fog, right click in the Hierarchy and select __Volume > Local Volumetric Fog__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject__ > __Rendering__ > __Local Volumetric Fog__.
 
 
 # Properties
