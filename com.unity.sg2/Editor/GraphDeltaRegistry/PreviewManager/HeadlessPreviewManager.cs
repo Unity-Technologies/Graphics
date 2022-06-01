@@ -262,13 +262,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 {
                     // Node was deleted, get rid of the preview data associated with it
                     m_CachedPreviewData.Remove(nodeName);
-
-                    // TODO: How to get downstream nodes when the source node has been deleted? probably wont have the nodeReader hanging around after the nodes deleted right?
                 }
                 else
                 {
                     // TODO: Will we handle node bypassing directly in GetDownstreamNodes()?
-
                     var previewData = m_CachedPreviewData[nodeName];
                     previewData.isShaderOutOfDate = true;
 

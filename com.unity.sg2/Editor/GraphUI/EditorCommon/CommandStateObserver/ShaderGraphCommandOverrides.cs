@@ -128,29 +128,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     switch (model)
                     {
                         case IEdgeModel edge:
-                        {
                             if (edge.ToPort.NodeModel is RedirectNodeModel redirect)
                             {
                                 // Reset types on disconnected redirect nodes.
                                 redirect.ClearType();
                                 graphUpdater.MarkChanged(redirect);
                             }
-                            else
-                            {
-                                // If its an actual edge, remove from CLDS
-                                if(edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
-                                    graphModel.Disconnect(sourcePort, destPort);
-                            }
-
                             break;
-                        }
-
-                        // Delete backing data for graph data nodes.
-                        case GraphDataNodeModel graphDataNode:
-                        {
-                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
-                            break;
-                        }
                     }
                 }
 
@@ -166,6 +150,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     selectionUpdater.SelectElements(selectedModels, false);
                 }
 
+                foreach (var model in deletedModels)
+                {
+                    switch (model)
+                    {
+                        case IEdgeModel edge:
+                            // If its an actual edge, remove from CLDS
+                            if(edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
+                                graphModel.Disconnect(sourcePort, destPort);
+                            break;
+
+                        // Delete backing data for graph data nodes.
+                        case GraphDataNodeModel graphDataNode:
+                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
+                            break;
+                    }
+                }
+
                 // After all redirect nodes handling and deletion has been handled above, then process the new graph flow
                 foreach (var model in deletedModels)
                 {
@@ -176,9 +177,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
                             break;
                         case GraphDataNodeModel deletedNode:
-                            // TODO: (Sai) Make OnNodeFlowChanged() take a flag for deletion and collapse these two calls into one
-                            previewManager.OnNodeFlowChanged(deletedNode.graphDataName);
-                            previewManager.OnNodeRemoved(deletedNode.graphDataName);
+                            previewManager.OnNodeFlowChanged(deletedNode.graphDataName, true);
                             break;
                     }
                 }

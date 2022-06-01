@@ -176,13 +176,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void OnPreviewModeChanged(string nodeName, PreviewRenderMode newPreviewMode) { }
 
-        public void OnNodeFlowChanged(string nodeName)
+
+        /// <summary>
+        /// Used to notify when a node's connections have been changed
+        /// </summary>
+        /// <param name="nodeName"> Name of node whose connections were modified </param>
+        /// <param name="wasNodeDeleted"> Flag to set to true if this node was deleted in this modification </param>
+        public void OnNodeFlowChanged(string nodeName, bool wasNodeDeleted = false)
         {
-            m_DirtyNodes.Add(nodeName);
-            var impactedNodes = m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
-            foreach (var downstreamNode in impactedNodes)
+            if (wasNodeDeleted)
             {
-                m_DirtyNodes.Add(downstreamNode);
+                OnNodeRemoved(nodeName);
+                m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
+            }
+            else
+            {
+                m_DirtyNodes.Add(nodeName);
+                var impactedNodes = m_PreviewHandlerInstance.NotifyNodeFlowChanged(nodeName);
+                foreach (var downstreamNode in impactedNodes)
+                {
+                    m_DirtyNodes.Add(downstreamNode);
+                }
             }
         }
 
@@ -197,11 +211,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_NodeLookupTable.Add(nodeName, nodeGuid);
         }
 
+        // TODO: Make private and call this by OnNodeFlowChanged
         public void OnNodeRemoved(String nodeName)
         {
             m_DirtyNodes.Remove(nodeName);
             m_NodeLookupTable.Remove(nodeName);
-            // TODO: Dirty and notify any Upstream nodes
         }
 
         public void OnGlobalPropertyChanged(string propertyName, object newValue)
