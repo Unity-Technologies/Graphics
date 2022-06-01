@@ -221,6 +221,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         /* ---- */
 
+        public bool SendDeleteCommand()
+        {
+            return ExecuteCommand("Delete");
+        }
+
+        bool ExecuteCommand(string command)
+        {
+            return m_Window.SendEvent(new Event { type = EventType.ExecuteCommand, commandName = command });
+        }
+
         public static void TestAllElements(VisualElement container, Action<VisualElement> test)
         {
             test(container);

@@ -165,5 +165,23 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             return null;
         }
+
+        public IEdgeModel GetEdgeModelFromGraphByName(string sourceNodeName, string destinationNodeName)
+        {
+            var edgeModels = m_Window.GraphView.GraphModel.EdgeModels;
+            foreach (var edgeModel in edgeModels)
+            {
+                var fromPortNodeModel = (NodeModel)edgeModel.FromPort.NodeModel;
+                var toPortNodeModel = (NodeModel)edgeModel.ToPort.NodeModel;
+
+                if (fromPortNodeModel.DisplayTitle == sourceNodeName
+                    && toPortNodeModel.DisplayTitle == destinationNodeName)
+                {
+                    return edgeModel;
+                }
+            }
+
+            return null;
+        }
     }
 }

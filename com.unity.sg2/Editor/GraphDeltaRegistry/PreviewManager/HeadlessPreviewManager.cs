@@ -297,7 +297,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             string nodeName,
             out Texture nodeRenderOutput,
             out ShaderMessage[] errorMessages,
-            PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D)
+            PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D,
+            bool forceRecompile = false)
         {
             errorMessages = null;
 
@@ -307,7 +308,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 previewData.currentRenderMode = newPreviewMode;
 
                 // Still compiling the preview shader
-                if (previewData.isShaderOutOfDate)
+                if (previewData.isShaderOutOfDate || forceRecompile)
                 {
                     UpdateShaderData(previewData);
                     UpdateRenderData(previewData);

@@ -4,6 +4,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.Assertions;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -81,6 +82,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        // TODO: (Sai) Move this stuff into ShaderGraphModel as much as possible
+        // there are things that GTF is doing in the base command handler that we shouldn't be disabling or affecting at all
         public static void HandleDeleteElements(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
@@ -94,9 +97,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!command.Models.Any())
                 return;
 
-            using var undoStateUpdater = undoState.UpdateScope;
+            using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState, command);
+                undoStateUpdater.SaveStates(new IUndoableStateComponent[] { graphModelState, selectionState }, command);
             }
 
             var graphModel = (ShaderGraphModel)graphModelState.GraphModel;

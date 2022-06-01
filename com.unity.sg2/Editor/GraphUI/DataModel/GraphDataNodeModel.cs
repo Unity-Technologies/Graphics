@@ -186,7 +186,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 catch (Exception e)
                 {
                     Debug.Log(e + " thrown while trying to retrieve latestAvailableVersion");
-                    return 1;
+                    return -1;
                 }
             }
         }
