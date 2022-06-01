@@ -201,6 +201,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_DirtyNodes.Remove(nodeName);
             m_NodeLookupTable.Remove(nodeName);
+            // TODO: Dirty and notify any Upstream nodes
         }
 
         public void OnGlobalPropertyChanged(string propertyName, object newValue)

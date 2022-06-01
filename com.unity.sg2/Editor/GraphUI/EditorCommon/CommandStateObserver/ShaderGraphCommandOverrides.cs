@@ -55,9 +55,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 // Validation should have already happened in GraphModel.IsCompatiblePort.
                 Assert.IsTrue(shaderGraphModel.TryConnect(fromDataPort, toDataPort));
-
-                // Notify preview manager that this nodes connections have changed
-                previewManager.OnNodeFlowChanged(toDataPort.owner.graphDataName);
             }
         }
 
@@ -130,14 +127,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     switch (model)
                     {
-                        // Reset types on disconnected redirect nodes.
                         case IEdgeModel edge:
                         {
-                            if (edge.ToPort.NodeModel is not RedirectNodeModel redirect) continue;
+                            if (edge.ToPort.NodeModel is RedirectNodeModel redirect)
+                            {
+                                // Reset types on disconnected redirect nodes.
+                                redirect.ClearType();
+                                graphUpdater.MarkChanged(redirect);
+                            }
+                            else
+                            {
+                                // If its an actual edge, remove from CLDS
+                                // TODO: Replace this with `GraphHandler.TryDisconnect` so we don't need to format port IDs like this, just can give node names instead
+                                var inputPortID = edge.FromPort.NodeModel.Guid + "." + edge.FromPortId;
+                                var outputPortID = edge.ToPort.NodeModel.Guid + "." + edge.ToPortId;
+                                graphModel.GraphHandler.RemoveEdge(outputPortID, inputPortID);
+                            }
 
-                            redirect.ClearType();
-
-                            graphUpdater.MarkChanged(redirect);
                             break;
                         }
 
@@ -151,31 +157,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
 
                 // Bypass redirects in a similar manner to GTF's BypassNodesCommand.
-
-                foreach (var redirect in redirects)
-                {
-                    var inputEdgeModel = redirect.GetIncomingEdges().FirstOrDefault();
-                    var outputEdgeModels = redirect.GetOutgoingEdges().ToList();
-
-                    graphModel.DeleteEdge(inputEdgeModel);
-                    graphModel.DeleteEdges(outputEdgeModels);
-
-                    graphUpdater.MarkDeleted(inputEdgeModel);
-                    graphUpdater.MarkDeleted(outputEdgeModels);
-
-                    if (inputEdgeModel == null || !outputEdgeModels.Any()) continue;
-
-                    foreach (var outputEdgeModel in outputEdgeModels)
-                    {
-                        var edge = graphModel.CreateEdge(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
-                        graphUpdater.MarkNew(edge);
-                    }
-                }
-
-                // Don't delete connections for redirects, because we may have made
-                // edges we want to preserve. Edges we don't need were already
-                // deleted in the above loop.
-                var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
+                var deletedModels = HandleRedirectNodes(redirects, graphModel, graphUpdater);
 
                 // Delete everything else as usual.
                 deletedModels.AddRange(graphModel.DeleteElements(nonRedirects).DeletedModels);
@@ -210,6 +192,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
                 }
             }
+        }
+
+        static List<IGraphElementModel> HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
+        {
+            foreach (var redirect in redirects)
+            {
+                var inputEdgeModel = redirect.GetIncomingEdges().FirstOrDefault();
+                var outputEdgeModels = redirect.GetOutgoingEdges().ToList();
+
+                graphModel.DeleteEdge(inputEdgeModel);
+                graphModel.DeleteEdges(outputEdgeModels);
+
+                graphUpdater.MarkDeleted(inputEdgeModel);
+                graphUpdater.MarkDeleted(outputEdgeModels);
+
+                if (inputEdgeModel == null || !outputEdgeModels.Any()) continue;
+
+                foreach (var outputEdgeModel in outputEdgeModels)
+                {
+                    var edge = graphModel.CreateEdge(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
+                    graphUpdater.MarkNew(edge);
+                }
+            }
+
+            // Don't delete connections for redirects, because we may have made
+            // edges we want to preserve. Edges we don't need were already
+            // deleted in the above loop.
+            var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
+            return deletedModels;
         }
 
         public static void HandleGraphElementRenamed(

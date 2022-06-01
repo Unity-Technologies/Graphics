@@ -69,13 +69,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             //    previewManager
             //);
 
-            // Overrides for default GTF commands
-            dispatcher.RegisterCommandHandler<BaseGraphTool, GraphViewModel, PreviewManager, CreateEdgeCommand>(
-                ShaderGraphCommandOverrides.HandleCreateEdge,
-                graphTool,
-                graphViewModel,
-                previewManager);
-
             // Unregister the base GraphView command handling for this as we want to insert our own
             graphView.Dispatcher.UnregisterCommandHandler<DeleteElementsCommand>();
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
