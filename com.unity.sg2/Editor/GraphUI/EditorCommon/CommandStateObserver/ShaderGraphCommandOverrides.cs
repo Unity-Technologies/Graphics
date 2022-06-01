@@ -178,6 +178,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
                             break;
                         case GraphDataNodeModel deletedNode:
+                            // TODO: (Sai) Make OnNodeFlowChanged() take a flag for deletion and collapse these two calls into one
                             previewManager.OnNodeFlowChanged(deletedNode.graphDataName);
                             previewManager.OnNodeRemoved(deletedNode.graphDataName);
                             break;
