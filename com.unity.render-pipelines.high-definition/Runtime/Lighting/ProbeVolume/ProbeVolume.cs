@@ -639,13 +639,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 Scale;
         public Vector3 Bias;
         public Vector4 OctahedralDepthScaleBias;
-        
+
         public ProbeVolume.ProbeVolumeAtlasKey UsedAtlasKey;
-        
+
         public int EngineDataIndex;
         public OrientedBBox BoundingBox;
         public ProbeVolumeEngineData EngineData;
-        
+
         public static ProbeVolumePipelineData Empty => new ProbeVolumePipelineData
         {
             BuffersDataVersion = -1,
@@ -1208,7 +1208,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 IncrementDataVersion();
                 UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
-                
+
                 dataNeedsDilation = true;
             }
             else
@@ -1256,7 +1256,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
-            
+
             var bakeId = GetBakeID();
             if (probeVolumeAsset == null)
             {
@@ -1296,11 +1296,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var hits = probeVolumeAsset?.payload.hitNeighborAxis;
             if (hits == null || hits.Length == 0)
                 return;
-            
+
             var hitRadianceCache = propagationPipelineData.hitRadianceCache;
-            if (hitRadianceCache == null || hitRadianceCache.count != hits.Length)
+            if (hitRadianceCache == null || !hitRadianceCache.IsValid() || hitRadianceCache.count != hits.Length)
                 return;
-            
+
             var hitRandiance = new Vector3[hits.Length];
             hitRadianceCache.GetData(hitRandiance);
             for (int i = 0; i < hits.Length; i++)
@@ -1621,6 +1621,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public static bool preparingMixedLights;
+        public static bool preparingForBake;
 #endif
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline
