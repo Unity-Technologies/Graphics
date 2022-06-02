@@ -637,8 +637,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
                 cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+
+#if UNITY_EDITOR
+                if (ProbeVolume.preparingForBake)
+                {
+                    cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
+                    cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", float.MaxValue);
+                }
+#endif
             }
-            
+
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", propagationPipelineData.GetReadRadianceCacheAxis());
             cmd.SetComputeIntParam(shader, "_RadianceCacheAxisCount", propagationPipelineData.radianceCacheAxis0.count);
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", propagationPipelineData.hitRadianceCache);
