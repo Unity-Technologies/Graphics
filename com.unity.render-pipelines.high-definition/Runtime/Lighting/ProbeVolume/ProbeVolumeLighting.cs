@@ -1112,7 +1112,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Update Probe Volume Data via Dynamic GI Propagation
                     ProbeVolumeDynamicGI.instance.ResetSimulationRequests();
                     float maxRange = Mathf.Max(data.giSettings.rangeBehindCamera.value, data.giSettings.rangeInFrontOfCamera.value);
-
+                    int maxSimulationsPerFrame = data.maxSimulationsPerFrameOverride;
+                    
+#if UNITY_EDITOR
+                    if (ProbeVolume.preparingMixedLights)
+                    {
+                        maxSimulationsPerFrame = -1;
+                    }
+#endif
+                    
                     // add simulation requests
                     for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
@@ -1121,14 +1129,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         // basic distance check
                         var obb = volume.GetPipelineData().BoundingBox;
                         float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
+#if UNITY_EDITOR
+                        if (ProbeVolume.preparingMixedLights || obb.center.magnitude < (maxRange + maxExtent))
+#else
                         if (obb.center.magnitude < (maxRange + maxExtent))
+#endif
                         {
                             ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
                         }
                     }
 
                     // dispatch max number of simulation requests this frame
-                    var sortedRequests = ProbeVolumeDynamicGI.instance.SortSimulationRequests(data.maxSimulationsPerFrameOverride, out var numSimulationRequests);
+                    var sortedRequests = ProbeVolumeDynamicGI.instance.SortSimulationRequests(maxSimulationsPerFrame, out var numSimulationRequests);
                     for (int i = 0; i < numSimulationRequests; ++i)
                     {
                         var simulationRequest = sortedRequests[i];
