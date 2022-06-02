@@ -239,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Generation
             var blockDescBuilder = new BlockInstance.Builder(container, block);
             var blockDesc = blockDescBuilder.Build();
             var cpName = rootNode.GetField<string>("_CustomizationPointName");
-            if (!isContext || (cpName != null && cpName.GetData().Equals(surfaceName)))
+            if (!isContext || cpName == null || (cpName != null && cpName.GetData().Equals(surfaceName)))
             {
                 surfaceDescBuilder.BlockInstances.Add(blockDesc);
             }
