@@ -1248,7 +1248,7 @@ namespace UnityEngine.Rendering.HighDefinition
             dataNeedsDilation = false;
         }
 
-        internal void BakeDynamicGIOnly()
+        public void BakeDynamicGIOnly()
         {
             if (this.gameObject == null || !this.gameObject.activeInHierarchy)
             {
@@ -1620,7 +1620,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(probeOctahedralDepthScale2D.x, probeOctahedralDepthScale2D.y, probeOctahedralDepthIndex2D.x, probeOctahedralDepthIndex2D.y);
         }
 
-        internal static bool preparingMixedLights;
+        public static bool preparingMixedLights;
 #endif
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline
