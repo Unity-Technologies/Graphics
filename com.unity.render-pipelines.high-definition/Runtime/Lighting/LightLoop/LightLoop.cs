@@ -1619,7 +1619,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Support dynamic GI mixed mode for directional lights.
             // When baking mixed lights for dynamic GI we leave shadow distance not limited by settings.
             // This doesn't work well for directional light shadows, so mixed mode is not really supported for them.
-            if (!ProbeVolume.preparingMixedLights)
+            if (!ProbeVolume.preparingMixedLights && !ProbeVolume.preparingMixedLights)
 #endif
             {
                 var shadowMaxDistance = hdCamera.volumeStack.GetComponent<HDShadowSettings>().maxShadowDistance.value;

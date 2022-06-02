@@ -1221,10 +1221,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        
+
         [SerializeField]
         bool m_MixedDynamicGI = false;
-        
+
         /// <summary>
         /// Returns a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         /// </summary>
@@ -2148,7 +2148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // linear normalized distance between the light and camera with max shadow distance
                 float distance01;
 #if UNITY_EDITOR
-                if (ProbeVolume.preparingMixedLights)
+                if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake)
                 {
                     distance01 = 1.0f;
                 }
