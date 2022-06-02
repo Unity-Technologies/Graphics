@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             ShaderContainer container,
             Registry registry)
         {
-            return NodeHelpers.MathNodeFunctionBuilder("TestAdd", "+", node, container, registry);
+            return NodeHelpers.MathNodeFunctionBuilder(node.ID.LocalPath + "TestAdd", "+", node, container, registry);
         }
     }
 }

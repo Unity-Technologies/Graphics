@@ -7,37 +7,46 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [CustomEditor(typeof(ShaderSubGraphImporter))]
-    public class ShaderSubGraphEditor : AssetImporterEditor
+    [CustomEditor(typeof(ShaderSubGraphAssetImporter))]
+    public class ShaderSubGraphAssetImporterEditor : AssetImporterEditor
     {
         [OnOpenAsset(0)]
         public static bool OnOpenShaderSubGraph(int instanceID, int line)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
-            if (!AssetDatabase.LoadAssetAtPath<ShaderSubGraphAsset>(path))
+            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
+            if (!graphAsset)
             {
                 return false;
             }
-
-            var assetModel = ShaderSubGraphAsset.HandleLoad(path);
-            return ShowWindow(path, assetModel);
+            return ShowWindow(path, graphAsset);
         }
 
-        private static bool ShowWindow(string path, ShaderGraphAssetModel model)
+        private static bool ShowWindow(string path, ShaderGraphAsset model)
         {
+            ShaderGraphEditorWindow shaderGraphEditorWindow = null;
+
             // Prevents the same graph asset from being opened in two separate editor windows
             var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
             foreach (var existingEditorWindow in existingEditorWindows)
             {
                 if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.CurrentGraph.GetGraphAsset(), model))
-                    return true;
+                {
+                    shaderGraphEditorWindow = existingEditorWindow;
+                    break;
+                }
             }
 
-            var shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             if (shaderGraphEditorWindow == null)
             {
-                return false;
+                shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
+                if (shaderGraphEditorWindow == null)
+                {
+                    return false;
+                }
+                AssetDatabase.ImportAsset(path);
             }
+
             shaderGraphEditorWindow.Show();
             shaderGraphEditorWindow.Focus();
             shaderGraphEditorWindow.SetCurrentSelection(model, GraphViewEditorWindow.OpenMode.OpenAndFocus);

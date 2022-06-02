@@ -19,13 +19,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public const string DefaultSubGraphAssetName = "NewShaderSubGraph";
         public const string SubGraphExtension = "sg2subgraph";
 
-        private Registry RegistryInstance = null;
-        private readonly NodeUIInfo NodeUIInfo = null;
-
         public string ToolName =>
             Name;
-
-        Dictionary<RegistryKey, Dictionary<string, float>> m_NodeUIHints;
 
         // TODO: (Sai) When subgraphs come in, add support for dropdown section
         internal static readonly string[] sections = {"Properties", "Keywords"};
@@ -36,7 +31,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public ShaderGraphStencil()
         {
-            NodeUIInfo = new ();
         }
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphModel graphModel) =>
@@ -88,30 +82,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        public Registry GetRegistry()
+        internal ShaderGraphRegistry GetRegistry()
         {
-            if (RegistryInstance == null)
-            {
-                NodeUIInfo.Clear();
-
-                void ReadUIInfo(RegistryKey key, Type type)
-                {
-                    const string nodeUIDescriptorGetterName = "get_NodeUIDescriptor";
-                    var getNodeUIDescriptor = type.GetMethod(nodeUIDescriptorGetterName);
-                    if (getNodeUIDescriptor != null)
-                    {
-                        NodeUIInfo[key] = (NodeUIDescriptor)getNodeUIDescriptor.Invoke(null, null);
-                    }
-                }
-                RegistryInstance = ShaderGraphRegistryBuilder.CreateDefaultRegistry(afterNodeRegistered: ReadUIInfo);
-            }
-
-            return RegistryInstance;
+            return ShaderGraphRegistry.Instance;
         }
 
-        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey)
+        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey, NodeHandler node)
         {
-            return NodeUIInfo[nodeKey];
+            return ShaderGraphRegistry.Instance.GetNodeUIDescriptor(nodeKey, node);
         }
 
         protected override void CreateGraphProcessors()
@@ -185,8 +163,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     initialValue = Matrix4x4.zero,
                 };
 
-                ContextBuilder.AddReferableEntry(propertyContext, entry, registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: variableDeclarationName);
-                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry);
+                ContextBuilder.AddReferableEntry(propertyContext, entry, registry.Registry, ContextEntryEnumTags.PropertyBlockUsage.Included, displayName: variableDeclarationName);
+                graphHandler.ReconcretizeNode(propertyContext.ID.FullPath, registry.Registry);
 
                 graphDataVar.contextNodeName = contextName;
                 graphDataVar.graphDataName = variableDeclarationName;

@@ -1631,11 +1631,12 @@ namespace UnityEditor.GraphToolsFoundation.Overdrive
 
                 k_UpdateAllUIs.Clear();
 
+                // GTF-Edit: Commented this out because on deletion it tries to represent our port models and fails
                 // ToList is needed to bake the dependencies.
-                foreach (var ui in model.GetDependencies().ToList())
-                {
-                    ui.UpdateFromModel();
-                }
+                //foreach (var ui in model.GetDependencies().ToList())
+                //{
+                //    ui.UpdateFromModel();
+                //}
             }
         }
 

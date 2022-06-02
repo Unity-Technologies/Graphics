@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -22,7 +22,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public Mesh mesh;
 #pragma warning restore 649
         }
-
         public bool IsNotInitialized
             => string.IsNullOrEmpty(m_SerializedMesh)
                 && string.IsNullOrEmpty(m_Guid)
@@ -33,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             get
             {
                 // If using one of the preview meshes
-                if (!string.IsNullOrEmpty(m_SerializedMesh))
+                if (!string.IsNullOrEmpty(m_SerializedMesh) && m_Mesh == null)
                 {
                     var meshHelper = new MeshHelper();
                     EditorJsonUtility.FromJsonOverwrite(m_SerializedMesh, meshHelper);
@@ -46,6 +45,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     m_Mesh = AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(m_Guid));
                     m_Guid = null;
+                }
+                else if (m_Mesh == null)
+                {
+                    m_Mesh = Resources.GetBuiltinResource(typeof(Mesh), $"Sphere.fbx") as Mesh;
                 }
 
                 return m_Mesh;
