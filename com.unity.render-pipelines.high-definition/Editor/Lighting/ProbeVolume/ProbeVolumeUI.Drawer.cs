@@ -16,12 +16,21 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Volume = 1 << 0,
             Probes = 1 << 1,
-            Baking = 1 << 2
+            Baking = 1 << 2,
+            DynamicBaking = 1 << 3
+        }
+
+        enum DynamicGIBakingStage
+        {
+            Neighborhood,
+            MixedLights,
+            FallbackRadiance,
         }
 
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateVolume = new ExpandedState<Expandable, ProbeVolume>(Expandable.Volume, "HDRP");
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateProbes = new ExpandedState<Expandable, ProbeVolume>(Expandable.Probes, "HDRP");
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.Baking, "HDRP");
+        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateDynamicBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.DynamicBaking, "HDRP");
 
         internal static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
@@ -55,6 +64,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         Expandable.Baking,
                         k_ExpandedStateBaking,
                         Drawer_BakeToolBar
+                        ),
+                    CED.space,
+                    CED.FoldoutGroup(
+                        Styles.k_DynamicBakingHeader,
+                        Expandable.DynamicBaking,
+                        k_ExpandedStateDynamicBaking,
+                        Drawer_DynamicBakeToolBar
                         )
                     )
                 )
@@ -101,51 +117,126 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Slider(serialized.backfaceTolerance, 0.0f, 1.0f, Styles.s_BackfaceToleranceLabel);
             EditorGUILayout.PropertyField(serialized.dilationIterations, Styles.s_DilationIterationLabel);
 
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button(Styles.k_BakeSelectedText))
+            var bakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+            if (GUI.Button(bakeButtonRect, Styles.k_BakeSelectedText))
             {
                 ProbeVolumeManager.BakeSelected();
             }
-            if (GUILayout.Button(Styles.k_BakeDynamicGIOnlyText))
-            {
-                var targets = serialized.GetTargetObjects();
-                for (int i = 0; i < targets.Length; i++)
-                {
-                    var probeVolume = (ProbeVolume)targets[i];
-                    EditorUtility.DisplayProgressBar("Baking Dynamic GI", $"{i + 1}/{targets.Length} {probeVolume.name}", (i + 0.5f) / targets.Length);
-                    probeVolume.BakeDynamicGIOnly();
-                }
-                EditorUtility.ClearProgressBar();
-            }
-            GUILayout.EndHorizontal();
-            
-            EditorGUILayout.Space();
-            ProbeVolume.preparingMixedLights = EditorGUILayout.Toggle(Styles.k_PrepareMixedLightsText, ProbeVolume.preparingMixedLights);
+        }
 
-            GUI.enabled = ProbeVolume.preparingMixedLights;
-            if (GUILayout.Button(Styles.k_BakeMixedLightsText))
+        static void Drawer_DynamicBakeToolBar(SerializedProbeVolume serialized, Editor owner)
+        {
+            DynamicGIBakingStage dynamicGIBakingStage;
+            if (ProbeVolume.preparingMixedLights)
+                dynamicGIBakingStage = DynamicGIBakingStage.MixedLights;
+            else if (ProbeVolume.preparingMixedRadiance)
+                dynamicGIBakingStage = DynamicGIBakingStage.FallbackRadiance;
+            else
+                dynamicGIBakingStage = DynamicGIBakingStage.Neighborhood;
+
+            EditorGUI.BeginChangeCheck();
+            dynamicGIBakingStage = (DynamicGIBakingStage)EditorGUILayout.EnumPopup(Styles.k_DynamicBakingStageLabel, dynamicGIBakingStage);
+            if (EditorGUI.EndChangeCheck())
             {
-                var targets = serialized.GetTargetObjects();
-                for (int i = 0; i < targets.Length; i++)
-                {
-                    var probeVolume = (ProbeVolume)targets[i];
-                    probeVolume.CopyDirectLightingToMixed();
-                }
+                ProbeVolume.preparingMixedLights = dynamicGIBakingStage == DynamicGIBakingStage.MixedLights;
+                ProbeVolume.preparingMixedRadiance = dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance;
             }
-            GUI.enabled = true;
 
             EditorGUILayout.Space();
-            ProbeVolume.preparingMixedRadiance = EditorGUILayout.Toggle("Prepare Mixed Radiance", ProbeVolume.preparingMixedRadiance);
 
-            if (GUILayout.Button("Bake Radiance"))
+            var targets = serialized.GetTargetObjects();
+
+            if (dynamicGIBakingStage == DynamicGIBakingStage.Neighborhood)
             {
-                var targets = serialized.GetTargetObjects();
-                for (int i = 0; i < targets.Length; i++)
+                var dynamicBakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+                if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeNeighborhoodLabel))
                 {
-                    var probeVolume = (ProbeVolume)targets[i];
-                    probeVolume.CopyDynamicSHToAsset();
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        var probeVolume = (ProbeVolume)targets[i];
+                        EditorUtility.DisplayProgressBar("Baking Dynamic GI", $"{i + 1}/{targets.Length} {probeVolume.name}", (i + 0.5f) / targets.Length);
+                        probeVolume.BakeDynamicGIOnly();
+                    }
+                    EditorUtility.ClearProgressBar();
                 }
             }
+            else if (dynamicGIBakingStage == DynamicGIBakingStage.MixedLights)
+            {
+                GUI.enabled = !CheckAndWarnNoNeighborhoodBaked(targets);
+
+                var dynamicBakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+                if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeMixedLightsLabel))
+                {
+                    foreach (var target in targets)
+                    {
+                        var probeVolume = (ProbeVolume)target;
+                        probeVolume.CopyDirectLightingToMixed();
+                    }
+                }
+
+                GUI.enabled = true;
+            }
+            else if (dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance)
+            {
+                GUI.enabled = !CheckAndWarnNoNeighborhoodBaked(targets);
+
+                var someTargetsHaveNoMixedLights = false;
+                foreach (var target in targets)
+                {
+                    var probeVolume = (ProbeVolume)target;
+                    if (probeVolume.probeVolumeAsset != null && !probeVolume.probeVolumeAsset.dynamicGIMixedLightsBaked)
+                    {
+                        someTargetsHaveNoMixedLights = true;
+                        break;
+                    }
+                }
+                if (someTargetsHaveNoMixedLights)
+                    EditorGUILayout.HelpBox(Styles.k_DynamicNoMixedLightsWarning, MessageType.Warning);
+
+                var dynamicBakeButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+                if (GUI.Button(dynamicBakeButtonRect, Styles.k_DynamicBakeFallbackRadianceLabel))
+                {
+                    foreach (var target in targets)
+                    {
+                        var probeVolume = (ProbeVolume)target;
+                        probeVolume.CopyDynamicSHToAsset();
+                    }
+                }
+
+                GUI.enabled = true;
+            }
+
+            if (dynamicGIBakingStage != DynamicGIBakingStage.Neighborhood)
+            {
+                EditorGUILayout.Space();
+                
+                EditorGUILayout.HelpBox(Styles.k_DynamicPipelineOverridesWarning, MessageType.Warning);
+                var resetButtonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
+                if (GUI.Button(resetButtonRect, Styles.k_DynamicResetPipelineOverridesLabel))
+                {
+                    ProbeVolume.preparingMixedLights = false;
+                    ProbeVolume.preparingMixedRadiance = false;
+                }
+            }
+        }
+
+        static bool CheckAndWarnNoNeighborhoodBaked(Object[] targets)
+        {
+            var noNeighborhoodBaked = false;
+            foreach (var target in targets)
+            {
+                var probeVolume = (ProbeVolume)target;
+                if (probeVolume.probeVolumeAsset == null)
+                {
+                    noNeighborhoodBaked = true;
+                    break;
+                }
+            }
+
+            if (noNeighborhoodBaked)
+                EditorGUILayout.HelpBox(Styles.k_DynamicNoNeighborhoodWarning, MessageType.Error);
+
+            return noNeighborhoodBaked;
         }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)

@@ -1117,14 +1117,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
                     {
                         ProbeVolumeHandle volume = data.volumes[probeVolumeIndex];
-
-                        // basic distance check
-                        var obb = volume.GetPipelineData().BoundingBox;
-                        float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
-                        if (obb.center.magnitude < (maxRange + maxExtent))
+                        
+                        bool requiresSimulation;
+#if UNITY_EDITOR
+                        if (ProbeVolume.preparingMixedRadiance)
                         {
-                            ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
+                            // Force simulation at any distance when preparing for baking.
+                            requiresSimulation = true;
                         }
+                        else
+#endif
+                        {
+                            // basic distance check
+                            var obb = volume.GetPipelineData().BoundingBox;
+                            float maxExtent = Mathf.Max(obb.extentX, Mathf.Max(obb.extentY, obb.extentZ));
+                            // TODO: obb.center can be a world space position if rendering is not camera relative.
+                            requiresSimulation = obb.center.magnitude < (maxRange + maxExtent);
+                        }
+                        
+                        if (requiresSimulation)
+                            ProbeVolumeDynamicGI.instance.AddSimulationRequest(data.volumes, probeVolumeIndex);
                     }
 
                     // dispatch max number of simulation requests this frame
