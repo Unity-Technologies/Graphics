@@ -44,7 +44,7 @@ Use one of the following options to open the **Rendering Debugger** window.
 
 * On a mobile device, use a three-finger double tap.
 
-You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
+You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
 ## <a name="ui-sections"></a>Rendering Debugger window sections
 

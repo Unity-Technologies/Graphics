@@ -7,3 +7,4 @@ The list of pages is as follows:
 * [10 / Unity 2020.2](whats-new-10.md)
 * [11 / Unity 2021.1](whats-new-11.md)
 * [12 / Unity 2021.2](whats-new-12.md)
+* [13 / Unity 2022.1](whats-new-13.md)

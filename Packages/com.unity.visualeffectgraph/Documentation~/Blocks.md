@@ -21,10 +21,10 @@ Blocks are essentially Nodes that have a different workflow logic. Blocks are al
 
 * To move a Block, click the Block's header and drag it to another compatible Context.
 
-* To reorder a Block, click click the Block's header and drag it to a different position in the same Context.
+* To reorder a Block, click the Block's header and drag it to a different position in the same Context.
 
 * You can also cut, copy, paste, and duplicate Blocks. To do this:
-  * Right click on the Bode and select the command from the context menu.
+  * Right click on the Block and select the command from the context menu.
   * Select the Block and use the following Keyboard shortcuts:
         * On Windows
           * **Copy**: Ctrl+C.

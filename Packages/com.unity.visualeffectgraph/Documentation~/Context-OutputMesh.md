@@ -19,4 +19,4 @@ To specify a shader for this mesh, assign a [Shader Graph](https://docs.unity3d.
 | ----------------- | ------------------------------ | ------------------------------------------------------------ |
 | **Mesh**          | Mesh                           | The mesh this output renders.                                |
 | **Transform**     | [Transform](Type-Transform.md) | The transform to apply to the mesh. The transform can either be in world or local space. |
-| **Sub Mesh Mash** | uint                           | The sub mesh mask the output uses to render the mesh. The output only renders the sub meshes with their bit set. |
+| **Sub Mesh Mask** | uint                           | The sub mesh mask the output uses to render the mesh. The output only renders the sub meshes with their bit set. |

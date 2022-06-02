@@ -6,12 +6,10 @@ The **Smoothstep** Operator calculates the linear interpolation of a value betwe
 
 This Operator returns a value between **X** and **Y**. Where this value is between **X** and **Y** depends on the value of **S**:
 
-- If **S** is less than 1, the result is **Y**.
+- If **S** is greater than 1, the result is **Y**.
 - If **S** is less than 0 the result is **X.**
 
-- If **S** is between 0 and 1 then the result is a smooth transition between **X** and **Y**.
-
-- - The result = (Y - X) * ( 3S2 - 2S3 ) + **X**
+- If **S** is between 0 and 1 then the result is a smooth transition between **X** and **Y**. The result = (Y - X) * ( 3S2 - 2S3 ) + **X**
 
 This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). The **X** and **Y** input are always of the same type. **S** changes to be the same type as **X** and **Y**.
 

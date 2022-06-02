@@ -1,4 +1,4 @@
-# What's new in HDRP version 13 / Unity 2022.1
+# What's new in HDRP 13.x / Unity 2022.1
 
 This page contains an overview of new features, improvements, and issues resolved in version 12 of the High Definition Render Pipeline (HDRP), embedded in Unity 2021.2.
 
@@ -8,69 +8,92 @@ This page contains an overview of new features, improvements, and issues resolve
 
 #### Materials
 
-From this HDRP version, you can use new APIs to run shader validation steps from script at runtime, both in the editor and in standalone builds. You can use this to change the keyword state or one or more properties in order to enable or disable HDRP shader features on a Material.
-For more information, see the [Material Scripting API documentation](Material-API.md).
+From 13.x, you can use new APIs to run shader validation steps from a script at runtime, both in the editor and in standalone builds. You can use this to change the keyword state or properties of a Material, to enable or disable HDRP shader features on the Material.
+
+For more information, see the [Material Scripting API documentation](Material-API).
 
 #### Diffusion Profiles
 
-All properties of diffusion profile are now public and can be modified during runtime or in the editor.
-See all the available properties in the [scripting documentation](../api/UnityEngine.Rendering.HighDefinition.DiffusionProfileSettings.html).
+From 13.x, all properties of diffusion profiles are public. You can modify them at runtime or in the Editor.
+
+See all the available properties in the [scripting reference](xref:UnityEngine.Rendering.HighDefinition.DiffusionProfileSettings).
 
 #### Lights
 
-Access to a light IES profile is now available in the editor through the [HDLightUtils](../api/UnityEditor.Rendering.HighDefinition.HDLightUtils.html), as well as manually setting the [IES texture](../api/UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.html#UnityEngine_Rendering_HighDefinition_HDAdditionalLightData_IESTexture) during runtime or in the editor.
+![](Images/HDRPFeatures-IESProfile.png)
+
+From 13.x, you can access a light IES profile in the editor in the following ways:
+
+* Use [HDLightUtils](xref:UnityEditor.Rendering.HighDefinition.HDLightUtils)
+* Manually set the [IES texture](xref:UnityEngine.Rendering.HighDefinition.HDAdditionalLightData) at runtime or in the Editor.
 
 ### Material Variants
 
 ![](Images/material-variants.png)
 
-HDRP 13.0 comes with the support of Material Variants for all Shaders and Shader Graphs.
-Material Variants allow you to have a set of predefined variations of a Material, in which you can override specific properties.
-Additionally, Materials can put a lock on a property to prevent children from modifying the value.
+HDRP 13.x supports Material Variants for all Shaders and Shader Graphs. You can use Material Variants to create a set of predefined variations of a Material, in which you can override specific properties.
 
-### Access main directional light from ShaderGraph
+You can also put a lock on a Material property to prevent child GameObjects from being able to modify the value. To do this:
 
-From HDRP version 13.0, [ShaderGraph](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/index.html) includes a new node called *Main Light Direction* that you can use to control the direction of the main light.
+1. Open a Material in the Inspector window.
+2. Right-click on a property.
+3. Select **Lock in children** in the dropdown.
+
+For more information about Material Variants, see [Material Variants](materialvariant-HDRP).
+
+### Access main directional light from Shader Graph
+
+From version 13.x, [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/index.html) includes a new node called **Main Light Direction** that you can use to control the direction of the main light.
+
 For more information, see the [Main Light Direction Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html).
 
 ### HDR Output Support
 
-HDRP 13.0 introduces support for HDR display output, including both the HDR10 and scRGB standards.
+From 13.x, HDRP supports HDR display output, including both the HDR10 and scRGB standards.
 
-As a result, HDRP is now able to take advantage of the higher brightness contrast and wider color gamut capabilities of HDR displays.
+This means that HDRP can use the higher brightness contrast and wider color gamut capabilities of HDR displays.
 
-This functionality includes a variety of customization options for adapting content for a variety of displays based on device metadata or user preferences.
+You can use the customization options under **HDR Output** to adapt your project for a variety of displays based on device metadata or user preferences.
 
-For more information consult the [HDR Output](HDR-Output.md) documentation
-
-## Updated
-
-### Support for full ACES tone mapper
-
-HDRP 13.0 introduces an option to enable the usage of full ACES tonemapper rather than the default approximation.
-
-This will help projects that want to have a matching reference with other projects and that are not comfortable with the shortcomings of the approximation.
-
-### Depth Of Field
-HDRP version 13 includes optimizations in the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
-
-### Mixed Cached Shadows for Directional Lights
-
-HDRP 13.0 introduces the option to use the [Always Draw Dynamic](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.1/manual/Shadows-in-HDRP.html#mixed-cached-shadow-maps) option for directional light shadow maps.
-
-This effectively allow to have cached shadow maps for static objects, while allowing the shadow update for dynamic objects.
-Because this feature will require additional memory cost, it needs to be enabled in the HDRP Asset of your project.
-
-### Path Tracing
-
-HDRP 13.0 you can use new APIs to check the accumulation progress and reset it.
-
-The [SensorSDK package](https://docs.unity3d.com/Packages/com.unity.sensorsdk@1.0/manual/index.html) leverages the path tracer for its computations, in particular in Lidar mode, or to render images with specific camera lenses.
-
-Orthographic views are now fully supported by the path tracer.
-
-Last but not least, volumetric scattering now takes the fog color into account, adding scattered contribution on top of the non-scattered result. In addition, the sampling quality has been improved when dealing with multiple light sources.
+For more information, see [HDR Output](HDR-Output.md).
 
 ### Custom Pass
 
-Added new functions that sample the custom buffer in custom passes that deals with scaling automatically, it's recommended to use them over the standard texture sampling. Learn more about the **CustomPassSampleCustomColor** and **CustomPassLoadCustomColor** function in the [Creating a Custom Pass](Custom-Pass-Creating.md) documentation.
+When you sample the custom buffer, it sometimes results in incorrect scaling. HDRP 13.x adds the `CustomPassSampleCustomColor` and `CustomPassLoadCustomColor` functions, which fix incorrect scaling automatically. Use these functions instead of the standard texture sampling functions. For more information about the new functions, see the [Creating a Custom Pass](Custom-Pass-Creating.md) documentation.
+
+## Updated
+
+### Support for full ACES tonemapper
+
+From 13.x, you can enable the full ACES tonemapper rather than use the approximation, which is enabled by default. To enable the full ACES tonemapper:
+
+1. Open a Volume from your scene in the Inspector window and go to the **Tonemapping** override.
+2. Go to the More menu (&#8942;) and select **Show Additional Properties**.
+3. Enable **Use Full ACES**.
+
+The full ACES tonemapper is more resource intensive than the approximation but it helps the results from HDRP to match more closely with other renderers that use full ACES. This is important for projects in certain industries where color reproduction is crucial, such as the film or automotive industries.
+
+### Depth Of Field
+
+![](Images/depth-of-field.png)
+
+HDRP 13.x includes optimizations for the physically based depth of field effect that significantly speed up render GPU time, without visibly reducing the image quality. For example, HDRP computes image regions that are out-of-focus at a lower resolution, while in-focus regions keep the full resolution.
+
+**Note**: You can only see this improvement when you use the GPU Profiler. All profilers in Unity display CPU by default.
+
+### Mixed Cached Shadows for Directional Lights
+
+From 13.x, you can choose to cache only some of the shadow map for directional lights, using the [Always Draw Dynamic](Shadows-in-HDRP#mixed-cached-shadow-maps) option. This allows you to cache shadow maps for static objects, while allowing the shadow update for dynamic objects. In previous versions you can only do this for non-directional lights.
+
+To enable this feature for directional lights:
+
+1. Open your HDRP Asset in the Inspector window.
+2. Go to **Lighting** > **Shadows** > **Directional Light Shadows** > **Allow Mixed Cached Shadows**.
+
+### Path Tracing
+
+From 13.x, you can use the new `public bool IsFrameCompleted(HDCamera hdCamera)` and `public void ResetPathTracing()` functions to check the path accumulation progress and reset it. For more information about these functions, see [HDRenderPipeline](xref:UnityEngine.Rendering.HighDefinition.HDRenderPipeline)
+
+From 13.x, the path tracer fully supports Orthographic views.
+
+Volumetric scattering now takes the fog color into account and adds scattered contributions on top of the non-scattered result. This version also improves the sampling quality when you use multiple light sources.

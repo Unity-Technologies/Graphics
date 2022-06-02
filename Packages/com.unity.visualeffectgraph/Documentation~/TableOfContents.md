@@ -70,7 +70,7 @@
       * [Set](Block-SetAttribute.md)
     * Collision
       * [Collide with AABox](Block-CollideWithAABox.md)
-      * [Collide with Cylinder](Block-CollideWithCylinder.md)
+      * [Collide with Cone](Block-CollideWithCone.md)
       * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
       * [Collide with Plane](Block-CollideWithPlane.md)
       * [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
