@@ -57,6 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         internal List<JsonData<Target>> Targets => targetSettingsBox.Targets;
         internal MainPreviewData MainPreviewData => mainPreviewData;
         internal bool IsSubGraph => CanBeSubgraph();
+        internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
 
         [NonSerialized]
         public GraphModelStateComponent graphModelStateComponent;
