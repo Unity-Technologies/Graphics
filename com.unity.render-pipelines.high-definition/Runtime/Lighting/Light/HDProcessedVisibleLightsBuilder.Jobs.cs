@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             [ReadOnly]
             public bool dynamicGIPreparingMixedLights;
+            [ReadOnly]
+            public bool dynamicGIPreparingForBake;
 #endif
             [ReadOnly]
             public bool enableRayTracing;
@@ -191,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the shadow is too far away, we don't render it
                 bool isShadowInRange = lightType == HDLightType.Directional || distanceToCamera < shadowFadeDistanceVal;
 #if UNITY_EDITOR
-                isShadowInRange |= dynamicGIPreparingMixedLights;
+                isShadowInRange |= dynamicGIPreparingMixedLights || dynamicGIPreparingForBake;
 #endif
                 if (!isShadowInRange)
                     return flags;
@@ -292,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float lightDistanceFade;
 #if UNITY_EDITOR
-                if (dynamicGIPreparingMixedLights)
+                if (dynamicGIPreparingMixedLights || dynamicGIPreparingForBake)
                 {
                     lightDistanceFade = 1.0f;
                 }
@@ -396,6 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableDynamicGI = processDynamicGI,
 #if UNITY_EDITOR
                 dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+                dynamicGIPreparingForBake = ProbeVolume.preparingForBake,
 #endif
                 enableRayTracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing),
                 showDirectionalLight = debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight,
