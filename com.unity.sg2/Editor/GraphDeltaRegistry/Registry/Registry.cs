@@ -21,20 +21,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         No messaging or error state handling or checking on Registry actions.
         Need an error handler for definition interface that can be used for concretization as well.
     */
-    public struct Box<T> : ISerializable
-    {
-        public T data;
-
-        Box(SerializationInfo info, StreamingContext context)
-        {
-            data = (T)info.GetValue("value", typeof(T));
-        }
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("value", data);
-        }
-    }
-
 
     [Serializable]
     public struct RegistryKey : ISerializable
@@ -69,9 +55,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Base = 4,
     }
 
-    public class PropertyContext : IContextDescriptor
+    public class PropertyContext : IContextDescriptor // TODO: Delete me.
     {
-        // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor
+        // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor...
         public IEnumerable<ContextEntry> GetEntries() => new List<ContextEntry>();
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
@@ -80,13 +66,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public class Registry
     {
         readonly Dictionary<RegistryKey, IRegistryEntry> builders = new Dictionary<RegistryKey, IRegistryEntry>();
-        public GraphHandler defaultTopologies = null;
 
         public Registry()
         {
             Register<ContextBuilder>();
             Register<PropertyContext>();
-            defaultTopologies = new GraphHandler(this);
             Register<ReferenceNodeBuilder>();
         }
 
@@ -97,7 +81,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
-        public NodeHandler GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNode(key.ToString());
 
         public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 
@@ -142,13 +125,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return builder.GetRegistryKey();
         }
 
-        private bool Register(IRegistryEntry builder) {
+        internal bool Register(IRegistryEntry builder) {
             var key = builder.GetRegistryKey();
             if (builders.ContainsKey(key))
                 return false;
             builders.Add(key, builder);
-            if(builder is INodeDefinitionBuilder && builder.GetRegistryFlags() == RegistryFlags.Func)
-                defaultTopologies.AddNode(key, key.ToString(),this);
             return true;
         }
 
@@ -168,6 +149,5 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private IRegistryEntry GetBuilder(RegistryKey key) => builders.TryGetValue(key, out var builder) ? builder : null;
         public static RegistryKey ResolveKey<T>() where T : IRegistryEntry => Activator.CreateInstance<T>().GetRegistryKey();
-        public static RegistryFlags ResolveFlags<T>() where T : IRegistryEntry => Activator.CreateInstance<T>().GetRegistryFlags();
     }
 }

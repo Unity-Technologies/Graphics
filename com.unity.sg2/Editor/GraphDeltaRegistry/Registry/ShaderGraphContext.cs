@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.GraphUI
+namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// ShaderGraphContext manages and exposes the Context stored in the

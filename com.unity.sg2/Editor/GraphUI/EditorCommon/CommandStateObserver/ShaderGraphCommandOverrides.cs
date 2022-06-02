@@ -4,6 +4,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.Assertions;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -55,9 +56,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 // Validation should have already happened in GraphModel.IsCompatiblePort.
                 Assert.IsTrue(shaderGraphModel.TryConnect(fromDataPort, toDataPort));
-
-                // Notify preview manager that this nodes connections have changed
-                previewManager.OnNodeFlowChanged(toDataPort.owner.graphDataName);
             }
         }
 
@@ -84,6 +82,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        // TODO: (Sai) Move this stuff into ShaderGraphModel as much as possible
+        // there are things that GTF is doing in the base command handler that we shouldn't be disabling or affecting at all
         public static void HandleDeleteElements(
             UndoStateComponent undoState,
             GraphModelStateComponent graphModelState,
@@ -97,9 +97,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!command.Models.Any())
                 return;
 
-            using var undoStateUpdater = undoState.UpdateScope;
+            using (var undoStateUpdater = undoState.UpdateScope)
             {
-                undoStateUpdater.SaveSingleState(graphModelState, command);
+                undoStateUpdater.SaveStates(new IUndoableStateComponent[] { graphModelState, selectionState }, command);
             }
 
             var graphModel = (ShaderGraphModel)graphModelState.GraphModel;
@@ -130,52 +130,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     switch (model)
                     {
-                        // Reset types on disconnected redirect nodes.
                         case IEdgeModel edge:
-                        {
-                            if (edge.ToPort.NodeModel is not RedirectNodeModel redirect) continue;
-
-                            redirect.ClearType();
-
-                            graphUpdater.MarkChanged(redirect);
+                            if (edge.ToPort.NodeModel is RedirectNodeModel redirect)
+                            {
+                                // Reset types on disconnected redirect nodes.
+                                redirect.ClearType();
+                                graphUpdater.MarkChanged(redirect);
+                            }
                             break;
-                        }
-
-                        // Delete backing data for graph data nodes.
-                        case GraphDataNodeModel graphDataNode:
-                        {
-                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
-                            break;
-                        }
                     }
                 }
 
                 // Bypass redirects in a similar manner to GTF's BypassNodesCommand.
-
-                foreach (var redirect in redirects)
-                {
-                    var inputEdgeModel = redirect.GetIncomingEdges().FirstOrDefault();
-                    var outputEdgeModels = redirect.GetOutgoingEdges().ToList();
-
-                    graphModel.DeleteEdge(inputEdgeModel);
-                    graphModel.DeleteEdges(outputEdgeModels);
-
-                    graphUpdater.MarkDeleted(inputEdgeModel);
-                    graphUpdater.MarkDeleted(outputEdgeModels);
-
-                    if (inputEdgeModel == null || !outputEdgeModels.Any()) continue;
-
-                    foreach (var outputEdgeModel in outputEdgeModels)
-                    {
-                        var edge = graphModel.CreateEdge(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
-                        graphUpdater.MarkNew(edge);
-                    }
-                }
-
-                // Don't delete connections for redirects, because we may have made
-                // edges we want to preserve. Edges we don't need were already
-                // deleted in the above loop.
-                var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
+                var deletedModels = HandleRedirectNodes(redirects, graphModel, graphUpdater);
 
                 // Delete everything else as usual.
                 deletedModels.AddRange(graphModel.DeleteElements(nonRedirects).DeletedModels);
@@ -184,6 +151,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (selectedModels.Any())
                 {
                     selectionUpdater.SelectElements(selectedModels, false);
+                }
+
+                foreach (var model in deletedModels)
+                {
+                    switch (model)
+                    {
+                        case IEdgeModel edge:
+                            // If its an actual edge, remove from CLDS
+                            if(edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
+                                graphModel.Disconnect(sourcePort, destPort);
+                            break;
+
+                        // Delete backing data for graph data nodes.
+                        case GraphDataNodeModel graphDataNode:
+                            graphModel.GraphHandler.RemoveNode(graphDataNode.graphDataName);
+                            break;
+                    }
                 }
 
                 // After all redirect nodes handling and deletion has been handled above, then process the new graph flow
@@ -196,20 +180,42 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
                             break;
                         case GraphDataNodeModel deletedNode:
-                            previewManager.OnNodeFlowChanged(deletedNode.graphDataName);
-                            previewManager.OnNodeRemoved(deletedNode.graphDataName);
+                            previewManager.OnNodeFlowChanged(deletedNode.graphDataName, true);
                             break;
                     }
                 }
 
                 graphUpdater.MarkDeleted(deletedModels);
+            }
+        }
 
-                foreach (var nodeModel in command.Models)
+        static List<IGraphElementModel> HandleRedirectNodes(List<RedirectNodeModel> redirects, ShaderGraphModel graphModel, GraphModelStateComponent.StateUpdater graphUpdater)
+        {
+            foreach (var redirect in redirects)
+            {
+                var inputEdgeModel = redirect.GetIncomingEdges().FirstOrDefault();
+                var outputEdgeModels = redirect.GetOutgoingEdges().ToList();
+
+                graphModel.DeleteEdge(inputEdgeModel);
+                graphModel.DeleteEdges(outputEdgeModels);
+
+                graphUpdater.MarkDeleted(inputEdgeModel);
+                graphUpdater.MarkDeleted(outputEdgeModels);
+
+                if (inputEdgeModel == null || !outputEdgeModels.Any()) continue;
+
+                foreach (var outputEdgeModel in outputEdgeModels)
                 {
-                    if (nodeModel is GraphDataNodeModel graphDataNodeModel)
-                        previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
+                    var edge = graphModel.CreateEdge(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
+                    graphUpdater.MarkNew(edge);
                 }
             }
+
+            // Don't delete connections for redirects, because we may have made
+            // edges we want to preserve. Edges we don't need were already
+            // deleted in the above loop.
+            var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
+            return deletedModels;
         }
 
         public static void HandleGraphElementRenamed(
@@ -232,27 +238,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             //    }
             //}
         }
-
-        //public static void HandleUpdateConstantValue(
-        //    GraphViewStateComponent graphViewState,
-        //    PreviewManager previewManager,
-        //    UpdateConstantValueCommand updateConstantValueCommand)
-        //{
-        //    // TODO: Handle Property values being changed when those come online
-        //    // using var previewUpdater = graphPreviewState.UpdateScope;
-        //    // {
-        //    //     // Find all property nodes backed by this constant
-        //    //     var graphNodes = graphViewState.GraphModel.NodeModels;
-        //    //     foreach (var graphNode in graphNodes)
-        //    //     {
-        //    //         if (graphNode is IVariableNodeModel variableNodeModel &&
-        //    //             Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
-        //    //         {
-        //    //             previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
-        //    //         }
-        //    //     }
-        //    // }
-        //}
 
         public static void HandleUpdateConstantValue(
             UndoStateComponent undoState,

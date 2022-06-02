@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
     [ScriptedImporter(1, Extension, -902)]
-    class NewShaderGraphImporter : ScriptedImporter
+    class ShaderGraphAssetImpoter : ScriptedImporter
     {
         public const string Extension = ShaderGraphStencil.GraphExtension;
 
@@ -58,7 +58,7 @@ Shader ""Hidden/GraphErrorShader2""
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            ShaderGraphAsset.HandleImport(ctx);
+            ShaderGraphAssetUtils.HandleImport(ctx);
         }
     }
 }

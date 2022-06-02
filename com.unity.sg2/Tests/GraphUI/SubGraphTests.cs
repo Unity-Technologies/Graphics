@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateSubGraphAssetAction>();
             newGraphAction.Action(0, testAssetPath, "");
-            var graphAsset = ShaderSubGraphAsset.HandleLoad(testAssetPath);
+            var graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
             m_Window.GraphTool.Dispatch(new LoadGraphCommand(graphAsset.GraphModel));
             m_Window.GraphTool.Update();
 
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             // Wait till the graph model is loaded back up
             while (m_Window.GraphView.GraphModel == null)
                 yield return null;
-                
+
             Assert.IsTrue(FindNodeOnGraphByName("Add"));
         }
     }

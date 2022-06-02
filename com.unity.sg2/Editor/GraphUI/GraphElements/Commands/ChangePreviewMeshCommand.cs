@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -18,7 +18,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ChangePreviewMeshCommand command
         )
         {
-            graphModel.SetPreviewMesh(command.m_NewPreviewMesh);
+            graphModel.MainPreviewData.mesh = command.m_NewPreviewMesh;
+            graphModel.Asset.Dirty = true;
+            // TODO: The preview data should be stored in user prefs
+            // Otherwise this might ought to be undoable.
+
             // Lets the preview manager know to re-render the main preview output
             previewManager.OnPreviewMeshChanged();
         }
