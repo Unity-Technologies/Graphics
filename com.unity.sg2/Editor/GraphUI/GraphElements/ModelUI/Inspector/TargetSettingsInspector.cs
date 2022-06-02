@@ -37,10 +37,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return targetList;
         }
 
-        static IList<string> GetTargetDisplayNames()
+        static IList<object> GetTargetDisplayNames()
         {
             var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
-            var targetDisplayNames = new List<string>();
+            var targetDisplayNames = new List<object>();
             foreach (var type in targetTypes)
             {
                 if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")

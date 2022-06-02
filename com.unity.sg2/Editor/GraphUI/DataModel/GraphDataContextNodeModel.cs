@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool HasPreview => false;
 
-        private IPortModel GetEntryInputPort(string name) => this.GetInputPorts().First(p => p.UniqueName == name);
+        public IPortModel GetInputPortForEntry(string name) => this.GetInputPorts().FirstOrDefault(p => p.UniqueName == name);
 
         public void CreateEntry(string entryName, TypeHandle typeHandle)
         {
@@ -46,30 +46,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             nodeHandler.RemovePort(name);
             nodeHandler.RemovePort("out_" + name);
+
             graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
-            DefineNode();
-        }
-
-        public void RenameEntry(string name, string newName)
-        {
-            if (!TryGetNodeReader(out var nodeHandler)) return;
-
-            var currentType = this.GetInputPorts().First(p => p.UniqueName == name).DataTypeHandle;
-            CreateEntry(newName, currentType);
-
-            var oldPort = GetEntryInputPort(name);
-            var newPort = GetEntryInputPort(newName);
-            foreach (var edge in oldPort.GetConnectedEdges().ToList()) {
-                edge.ToPort = newPort;
-            }
-
-            RemoveEntry(name);
-        }
-
-        public void ChangeEntryType(string name, TypeHandle newType)
-        {
-            RemoveEntry(name);
-            CreateEntry(name, newType);
             DefineNode();
         }
     }

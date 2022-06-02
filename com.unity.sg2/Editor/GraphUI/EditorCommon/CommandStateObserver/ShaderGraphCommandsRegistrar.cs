@@ -128,22 +128,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, AddContextEntryCommand>(
                 AddContextEntryCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
-                graphView.GraphModelState);
+                graphViewModel.GraphModelState);
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, RemoveContextEntryCommand>(
                 RemoveContextEntryCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
-                graphView.GraphModelState);
+                graphViewModel.GraphModelState);
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, RenameContextEntryCommand>(
                 RenameContextEntryCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
-                graphView.GraphModelState);
+                graphViewModel.GraphModelState);
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeContextEntryTypeCommand>(
                 ChangeContextEntryTypeCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
-                graphView.GraphModelState);
+                graphViewModel.GraphModelState);
         }
     }
 }

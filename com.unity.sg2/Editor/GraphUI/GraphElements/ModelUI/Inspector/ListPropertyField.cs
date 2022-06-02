@@ -28,12 +28,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// Callback to populate the dropdown menu options when the '+' footer button to add an item is clicked
         /// </summary>
-        Func<IList<string>> m_GetAddItemOptions;
+        Func<IList<object>> m_GetAddItemData;
 
         /// <summary>
         /// Callback to invoke when the list needs to display a string label for a list item
         /// </summary>
-        Func<object, string> m_GetItemDisplayName;
+        Func<object, string> m_GetAddItemMenuString;
 
         /// <summary>
         /// Callback to invoke when an item is selected from the dropdown menu, to add to the list
@@ -58,8 +58,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public ListPropertyField(
             ICommandTarget commandTarget,
             IList<T> listItems,
-            Func<IList<string>> getAddItemOptions,
-            Func<object, string> getItemDisplayName,
+            Func<IList<object>> getAddItemData,
+            Func<object, string> getAddItemMenuString,
             GenericMenu.MenuFunction2 onAddItemClicked,
             Action<IEnumerable<object>> onSelectionChanged,
             Action onItemRemoved,
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // the element with the matching data item (specified as an index in the list)
             Action<VisualElement, int> bindItem = (e, i) =>
             {
-                ((Label)e).text = listItems.Count == 0 ? "Empty" : getItemDisplayName(listItems[i]);
+                ((Label)e).text = listItems.Count == 0 ? "Empty" : getAddItemMenuString(listItems[i]);
             };
 
             m_ListView.makeItem = makeItem;
@@ -105,8 +105,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             /* Store references to callbacks and other info. needed later */
 
-            m_GetAddItemOptions = getAddItemOptions;
-            m_GetItemDisplayName = getItemDisplayName;
+            m_GetAddItemData = getAddItemData;
+            m_GetAddItemMenuString = getAddItemMenuString;
             m_OnAddItemClicked = onAddItemClicked;
             m_OnItemRemoved = onItemRemoved;
 
@@ -120,24 +120,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // Create the dropdown menu, add items and show it
             GenericMenu menu = new GenericMenu();
 
-            var addItemOptions = m_GetAddItemOptions();
+            var addItemOptions = m_GetAddItemData();
 
             if (m_MakeOptionsUnique)
             {
                 foreach (var item in addItemOptions)
                 {
-                    var existsAlready = m_ListItems.Any(existingItem => m_GetItemDisplayName(existingItem) == m_GetItemDisplayName(item));
+                    var existsAlready = m_ListItems.Any(existingItem => m_GetAddItemMenuString(existingItem) == m_GetAddItemMenuString(item));
                     if(!existsAlready)
-                        menu.AddItem(new GUIContent(m_GetItemDisplayName(item)), false, m_OnAddItemClicked, userData: item);
+                        menu.AddItem(new GUIContent(m_GetAddItemMenuString(item)), false, m_OnAddItemClicked, userData: item);
                     else
-                        menu.AddDisabledItem(new GUIContent(m_GetItemDisplayName(item)), false);
+                        menu.AddDisabledItem(new GUIContent(m_GetAddItemMenuString(item)), false);
                 }
             }
             else
             {
                 foreach (var item in addItemOptions)
                 {
-                    menu.AddItem(new GUIContent(m_GetItemDisplayName(item)), false, m_OnAddItemClicked, userData: item);
+                    menu.AddItem(new GUIContent(m_GetAddItemMenuString(item)), false, m_OnAddItemClicked, userData: item);
                 }
             }
 

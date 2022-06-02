@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
@@ -16,6 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void RemoveItems(List<int> indices)
         {
+            // Used so we can remove the corresponding rows from the graph handler before the list deletes them.
             beforeItemsRemoved?.Invoke(indices);
             base.RemoveItems(indices);
         }
@@ -23,105 +22,129 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     public class SubgraphOutputsInspector : SGFieldsInspector
     {
-        List<(string name, int typeIndex)> m_Outputs;
-        ListPropertyField<(string name, int typeIndex)> m_ListField;
+        class SubgraphOutputRow
+        {
+            public string Name;
+            public int TypeIndex;
+        }
+
+        GraphDataContextNodeModel m_ContextNodeModel;
+        TypeHandle[] m_AvailableTypes;
+        ShaderGraphStencil m_Stencil;
+        List<SubgraphOutputRow> m_OutputRows;
+        ListPropertyField<SubgraphOutputRow> m_OutputRowListField;
 
         public SubgraphOutputsInspector(string name, IModel model, IModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
-            m_Outputs = new List<(string name, int typeIndex)>();
-            if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
+            m_OutputRows = new List<SubgraphOutputRow>();
+            m_AvailableTypes = ShaderGraphStencil.k_SupportedBlackboardTypes;
 
-            var stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
-            m_ListField = new ListPropertyField<(string name, int typeIndex)>(
+            if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
+            m_ContextNodeModel = contextNodeModel;
+            m_Stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
+
+            var typeNames = m_AvailableTypes.Select(GetTypeDisplayName).ToList();
+            m_OutputRowListField = new ListPropertyField<SubgraphOutputRow>(
                 m_OwnerElement.RootView,
-                m_Outputs,
-                getAddItemOptions: () => ShaderGraphStencil.k_SupportedBlackboardTypes.Select(t => stencil.TypeMetadataResolver.Resolve(t)?.FriendlyName ?? t.Name).ToList(),
-                getItemDisplayName: obj => obj.ToString(),
-                onAddItemClicked: OnItemsAdded,
-                onSelectionChanged: _ => { },
-                onItemRemoved: () => { },
+                m_OutputRows,
+                getAddItemData: () => m_AvailableTypes.Cast<object>().ToList(), // NOTE: OnAddMenuItemSelected will cast these back to TypeHandle.
+                getAddItemMenuString: obj => GetTypeDisplayName((TypeHandle)obj),
+                onAddItemClicked: OnAddMenuItemSelected,
+                onSelectionChanged: _ => { }, // Not used
+                onItemRemoved: () => { }, // Not used, see SubgraphOutputListViewController
                 makeOptionsUnique: false,
                 makeListReorderable: false
             );
 
             var controller = new SubgraphOutputListViewController();
-            controller.beforeItemsRemoved += ints =>
+            controller.beforeItemsRemoved += indices =>
             {
-                m_OwnerElement.RootView.Dispatch(new RemoveContextEntryCommand((GraphDataContextNodeModel)model, m_Outputs[ints[0]].name));
+                foreach (var i in indices)
+                {
+                    m_OwnerElement.RootView.Dispatch(new RemoveContextEntryCommand((GraphDataContextNodeModel)model, m_OutputRows[i].Name));
+                }
             };
-            m_ListField.listView.SetViewController(controller);
 
-            m_ListField.listView.makeItem = () =>
+            m_OutputRowListField.listView.SetViewController(controller);
+
+            m_OutputRowListField.listView.makeItem = () =>
             {
                 var ve = new VisualElement();
                 GraphElementHelper.LoadTemplateAndStylesheet(ve, "SubgraphOutputRow", "sg-subgraph-output-row");
-
-                ve.Q<DropdownField>().choices = ShaderGraphStencil.k_SupportedBlackboardTypes
-                    .Select(t => stencil.TypeMetadataResolver.Resolve(t)?.FriendlyName ?? t.Name)
-                    .ToList();
-
+                ve.Q<DropdownField>().choices = typeNames;
                 return ve;
             };
 
-            m_ListField.listView.bindItem = (ve, i) =>
+            m_OutputRowListField.listView.bindItem = (ve, i) =>
             {
                 var textField = ve.Q<TextField>();
-                textField.value = m_Outputs[i].name;
+                textField.SetValueWithoutNotify(m_OutputRows[i].Name);
                 textField.isDelayed = true;
-
                 textField.RegisterValueChangedCallback(evt =>
                 {
-                    m_OwnerElement.RootView.Dispatch(new RenameContextEntryCommand(contextNodeModel, evt.previousValue, evt.newValue));
+                    if (evt.newValue == evt.previousValue) return;
+                    var uniqueName = GetUniqueOutputName(evt.newValue);
+                    m_OwnerElement.RootView.Dispatch(new RenameContextEntryCommand(contextNodeModel, m_OutputRows[i].Name, uniqueName));
                 });
 
                 var dropdownField = ve.Q<DropdownField>();
-                dropdownField.index = m_Outputs[i].typeIndex;
-                dropdownField.RegisterValueChangedCallback(evt =>
+                dropdownField.SetValueWithoutNotify(dropdownField.choices[m_OutputRows[i].TypeIndex]);
+                dropdownField.RegisterValueChangedCallback(_ => // Event gives us a string, not the index
                 {
-                    m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_Outputs[i].name, ShaderGraphStencil.k_SupportedBlackboardTypes[dropdownField.index]));
+                    m_OwnerElement.RootView.Dispatch(new ChangeContextEntryTypeCommand(contextNodeModel, m_OutputRows[i].Name, m_AvailableTypes[dropdownField.index]));
                 });
             };
         }
 
-        void OnItemsAdded(object selectedItemString)
+        string GetTypeDisplayName(TypeHandle typeHandle)
         {
-            if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
-            if (!contextNodeModel.TryGetNodeReader(out var nodeHandler)) return;
+            return m_Stencil.TypeMetadataResolver.Resolve(typeHandle)?.FriendlyName ?? typeHandle.Name;
+        }
 
-            var stencil = (ShaderGraphStencil)contextNodeModel.GraphModel.Stencil;
+        string GetUniqueOutputName(string proposedName)
+        {
+            // Make sure this name can't be interpreted as a path
+            // TODO (Joe): It'd be better to separate the display and data names
+            proposedName = proposedName.Replace('.', '_');
+
+            if (!m_ContextNodeModel.TryGetNodeReader(out var nodeHandler)) return proposedName;
 
             var existingNames = nodeHandler.GetPorts().Select(p => p.ID.LocalPath);
-            var entryName = ObjectNames.GetUniqueName(existingNames.ToArray(), "New");
-            var type = ShaderGraphStencil.k_SupportedBlackboardTypes.Select(t => stencil.TypeMetadataResolver.Resolve(t)?.FriendlyName ?? t.Name).ToList().IndexOf(selectedItemString.ToString());
+            return ObjectNames.GetUniqueName(existingNames.ToArray(), proposedName);
+        }
 
-            m_OwnerElement.RootView.Dispatch(new AddContextEntryCommand(contextNodeModel, entryName, ShaderGraphStencil.k_SupportedBlackboardTypes[type]));
+        void OnAddMenuItemSelected(object selectedTypeData)
+        {
+            var entryName = GetUniqueOutputName("New");
+            m_OwnerElement.RootView.Dispatch(new AddContextEntryCommand(m_ContextNodeModel, entryName, (TypeHandle)selectedTypeData));
         }
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
             yield return new LabelPropertyField("Inputs", m_OwnerElement.RootView);
-            yield return m_ListField;
+            yield return m_OutputRowListField;
         }
 
         protected override void UpdatePartFromModel()
         {
             base.UpdatePartFromModel();
 
-            if (m_Model is not GraphDataContextNodeModel contextNodeModel) return;
-            if (!contextNodeModel.TryGetNodeReader(out var nodeHandler)) return;
+            if (!m_ContextNodeModel.TryGetNodeReader(out var nodeHandler)) return;
 
-            m_Outputs.Clear();
-            foreach (var portReader in nodeHandler.GetPorts())
+            m_OutputRows.Clear();
+            foreach (var portHandler in nodeHandler.GetPorts())
             {
-                if (!portReader.IsHorizontal || !portReader.IsInput)
+                if (!portHandler.IsHorizontal || !portHandler.IsInput)
+                {
                     continue;
+                }
 
-                m_Outputs.Add((portReader.ID.LocalPath, Array.IndexOf(ShaderGraphStencil.k_SupportedBlackboardTypes, ShaderGraphExampleTypes.GetGraphType(portReader))));
+                m_OutputRows.Add(new SubgraphOutputRow {Name = portHandler.ID.LocalPath, TypeIndex = Array.IndexOf(m_AvailableTypes, ShaderGraphExampleTypes.GetGraphType(portHandler))});
             }
 
-            m_ListField.listView.itemsSource = m_Outputs;
-            m_ListField.listView.Rebuild();
+            m_OutputRowListField.listView.itemsSource = m_OutputRows;
+            m_OutputRowListField.listView.Rebuild();
         }
 
         public override bool IsEmpty() => false;

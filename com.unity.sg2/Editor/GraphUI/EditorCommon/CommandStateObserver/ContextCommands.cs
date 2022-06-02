@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -71,7 +72,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
             RenameContextEntryCommand command)
         {
             using var graphUpdater = graphModelState.UpdateScope;
-            command.m_Model.RenameEntry(command.m_OldName, command.m_NewName);
+
+            var model = command.m_Model;
+            var oldPort = model.GetInputPortForEntry(command.m_OldName);
+
+            if (oldPort == null) {
+                return;
+            }
+
+            var currentType = oldPort.DataTypeHandle;
+            model.CreateEntry(command.m_NewName, currentType);
+
+            var newPort = model.GetInputPortForEntry(command.m_NewName);
+            foreach (var edge in oldPort.GetConnectedEdges().ToList())
+            {
+                edge.ToPort = newPort;
+                graphUpdater.MarkChanged(edge);
+            }
+
+            model.RemoveEntry(command.m_OldName);
             graphUpdater.MarkChanged(command.m_Model);
         }
     }
@@ -95,7 +114,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
             ChangeContextEntryTypeCommand command)
         {
             using var graphUpdater = graphModelState.UpdateScope;
-            command.m_Model.ChangeEntryType(command.m_Name, command.m_NewType);
+
+            var model = command.m_Model;
+            var oldPort = model.GetInputPortForEntry(command.m_Name);
+            var oldEdges = oldPort.GetConnectedEdges().ToList();
+            model.GraphModel.DeleteEdges(oldEdges);
+            graphUpdater.MarkDeleted(oldEdges);
+
+            model.RemoveEntry(command.m_Name);
+            model.CreateEntry(command.m_Name, command.m_NewType);
+
             graphUpdater.MarkChanged(command.m_Model);
         }
     }
