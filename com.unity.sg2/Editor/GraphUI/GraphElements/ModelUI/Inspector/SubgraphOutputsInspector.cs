@@ -48,7 +48,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_OutputRowListField = new ListPropertyField<SubgraphOutputRow>(
                 m_OwnerElement.RootView,
                 m_OutputRows,
-                getAddItemData: () => m_AvailableTypes.Cast<object>().ToList(), // NOTE: OnAddMenuItemSelected will cast these back to TypeHandle.
+                // NOTE: OnAddMenuItemSelected will cast the objects in the collection below back to TypeHandles
+                // TODO (Joe): SG1 doesn't show a menu when pressing the + button
+                getAddItemData: () => m_AvailableTypes.Cast<object>().ToList(),
                 getAddItemMenuString: obj => GetTypeDisplayName((TypeHandle)obj),
                 onAddItemClicked: OnAddMenuItemSelected,
                 onSelectionChanged: _ => { }, // Not used
@@ -56,6 +58,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 makeOptionsUnique: false,
                 makeListReorderable: false
             );
+
+            m_OutputRowListField.listView.name = "sg-subgraph-output-list";
 
             var controller = new SubgraphOutputListViewController();
             controller.beforeItemsRemoved += indices =>
@@ -71,6 +75,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_OutputRowListField.listView.makeItem = () =>
             {
                 var ve = new VisualElement();
+                // TODO (Joe): SG1's fields use the style of labels, with no field background.
                 GraphElementHelper.LoadTemplateAndStylesheet(ve, "SubgraphOutputRow", "sg-subgraph-output-row");
                 ve.Q<DropdownField>().choices = typeNames;
                 return ve;

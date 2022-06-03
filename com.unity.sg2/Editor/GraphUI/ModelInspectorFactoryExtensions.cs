@@ -21,19 +21,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     case SectionType.Settings:
                     {
-                        if (model.GraphModel is not ShaderGraphModel {IsSubGraph: true})
-                        {
-                            break;
-                        }
-
-                        if (!model.TryGetNodeReader(out var reader))
-                        {
-                            break;
-                        }
-
-                        var contextDescriptor = reader.GetMetadata<RegistryKey>("_contextDescriptor");
-                        var outputContext = Registry.ResolveKey<ShaderGraphContext>();
-                        if (contextDescriptor.Name != outputContext.Name)
+                        if (model.GraphModel is not ShaderGraphModel {IsSubGraph: true} ||
+                            !model.TryGetNodeReader(out var reader) ||
+                            reader.ID.LocalPath != Registry.ResolveKey<ShaderGraphContext>().Name)
                         {
                             break;
                         }

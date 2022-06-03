@@ -2,6 +2,7 @@
     flex-direction: row;
 }
 
+/* TODO (Joe): SG1 styles text fields to look like labels */
 .sg-subgraph-output-row TextField {
     width: 50%;
 }

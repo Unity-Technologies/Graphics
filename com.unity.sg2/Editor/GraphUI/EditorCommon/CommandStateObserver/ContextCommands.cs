@@ -1,6 +1,5 @@
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -25,6 +24,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphModelStateComponent graphModelState,
             AddContextEntryCommand command)
         {
+            using (var undoStateUpdater = undoState.UpdateScope)
+            {
+                undoStateUpdater.SaveSingleState(graphModelState, command);
+            }
+
             using var graphUpdater = graphModelState.UpdateScope;
             command.m_Model.CreateEntry(command.m_Name, command.m_Type);
             graphUpdater.MarkChanged(command.m_Model);
@@ -47,7 +51,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphModelStateComponent graphModelState,
             RemoveContextEntryCommand command)
         {
+            using (var undoStateUpdater = undoState.UpdateScope)
+            {
+                undoStateUpdater.SaveSingleState(graphModelState, command);
+            }
+
             using var graphUpdater = graphModelState.UpdateScope;
+
+            var model = command.m_Model;
+            var oldPort = model.GetInputPortForEntry(command.m_Name);
+            var oldEdges = oldPort.GetConnectedEdges().ToList();
+            model.GraphModel.DeleteEdges(oldEdges);
+            graphUpdater.MarkDeleted(oldEdges);
+
             command.m_Model.RemoveEntry(command.m_Name);
             graphUpdater.MarkChanged(command.m_Model);
         }
@@ -71,12 +87,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphModelStateComponent graphModelState,
             RenameContextEntryCommand command)
         {
+            using (var undoStateUpdater = undoState.UpdateScope)
+            {
+                undoStateUpdater.SaveSingleState(graphModelState, command);
+            }
+
             using var graphUpdater = graphModelState.UpdateScope;
 
             var model = command.m_Model;
             var oldPort = model.GetInputPortForEntry(command.m_OldName);
-
-            if (oldPort == null) {
+            if (oldPort == null)
+            {
                 return;
             }
 
@@ -113,8 +134,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphModelStateComponent graphModelState,
             ChangeContextEntryTypeCommand command)
         {
+            using (var undoStateUpdater = undoState.UpdateScope)
+            {
+                undoStateUpdater.SaveSingleState(graphModelState, command);
+            }
+
             using var graphUpdater = graphModelState.UpdateScope;
 
+            // TODO (Joe): SG1 preserves edges, even if the type is invalid. Figure out how we can represent that.
             var model = command.m_Model;
             var oldPort = model.GetInputPortForEntry(command.m_Name);
             var oldEdges = oldPort.GetConnectedEdges().ToList();
