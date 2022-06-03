@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEditor.ShaderGraph.Configuration;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.IContextDescriptor;
 
