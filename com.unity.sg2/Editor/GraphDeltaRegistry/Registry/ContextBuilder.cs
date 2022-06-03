@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
 
 
-        static public void AddContextEntry(NodeHandler contextNode, IContextDescriptor.ContextEntry entry, Registry registry)
+        static public void AddContextEntry(NodeHandler contextNode, ContextEntry entry, Registry registry)
         {
             // TODO/Problem: Only good for GraphType
             var inPort = contextNode.AddPort<GraphType>(entry.fieldName, true, registry);
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         public static void AddReferableEntry(NodeHandler contextNode,
-                                             IContextDescriptor.ContextEntry entry,
+                                             ContextEntry entry,
                                              Registry registry,
                                              PropertyBlockUsage usage = PropertyBlockUsage.Excluded,
                                              DataSource source = DataSource.Global,
@@ -46,10 +46,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void BuildNode(NodeHandler node, Registry registry)
         {
-            var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
-            var context = registry.GetContextDescriptor(contextKey);
-            foreach (var entry in context.GetEntries())
-                AddContextEntry(node, entry, registry);
+            //This should do nothing, but temporarily keeping this in
+            try
+            {
+                var contextKey = node.GetMetadata<RegistryKey>("_contextDescriptor");
+                var context = registry.GetContextDescriptor(contextKey);
+                foreach (var entry in context.GetEntries())
+                    AddContextEntry(node, entry, registry);
+            }
+            catch
+            {
+
+            }
         }
 
         public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)

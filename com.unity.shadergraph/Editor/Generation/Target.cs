@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Configuration;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable, GenerationAPI] // TODO: Public
-    internal abstract class Target : JsonObject
+    internal abstract class Target : JsonObject, ITargetProvider
     {
         public string displayName { get; set; }
         public bool isHidden { get; set; }

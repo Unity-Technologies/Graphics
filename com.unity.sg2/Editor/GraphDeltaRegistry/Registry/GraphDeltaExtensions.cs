@@ -92,6 +92,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return handler.AddEdge(srcPortHandler.ID, dstPortHandler.ID) != null;
         }
 
+        public static void Disconnect(this GraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
+        {
+            var dstNodeHandler = handler.GetNode(dstNode);
+            var dstPortHandler = dstNodeHandler.GetPort(dstPort);
+            var srcPortHandler = handler.GetNode(srcNode).GetPort(srcPort);
+            handler.RemoveEdge(srcPortHandler.ID, dstPortHandler.ID);
+        }
+
         public static T GetField<T>(this NodeHandler node, string fieldName)
         {
             return node.GetField<T>(fieldName).GetData();
