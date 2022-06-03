@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -83,6 +84,32 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void RemoveNode(string name) =>
             graphDelta.RemoveNode(name);
+
+        public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges)
+        {
+            Debug.Log("GraphHandler.DuplicateNode: Currently not implemented!");
+            return null;
+        }
+
+        public void DuplicateNodes(List<NodeHandler> sourceNodes, bool copyInternalEdges, bool copyExternalEdges)
+        {
+            Debug.Log("GraphHandler.DuplicateNodes: Currently not implemented!");
+        }
+
+        public void DuplicateContextEntry(string existingEntryName)
+        {
+            Debug.Log("GraphHandler.DuplicateContextEntry: Currently not implemented!");
+        }
+
+        string Copy(List<GraphDataHandler> sourceGraphElements)
+        {
+            return String.Empty;
+        }
+
+        void Paste(string graphDataJSON)
+        {
+            return;
+        }
 
         public IEnumerable<NodeHandler> GetNodes() =>
             graphDelta.GetNodes(registry);

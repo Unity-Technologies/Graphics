@@ -255,6 +255,40 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return base.IsCompatiblePort(startPortModel, compatiblePortModel);
         }
 
+        /// <summary>
+        /// Called by PasteSerializedDataCommand to handle node duplication
+        /// </summary>
+        /// <param name="sourceNode"> The Original node we are duplicating, that has been JSON serialized/deserialized to create this instance </param>
+        /// <param name="delta"> Position delta on the graph between original and duplicated node </param>
+        /// <returns></returns>
+        public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta)
+        {
+            var pastedNodeModel = sourceNode.Clone();
+            if (pastedNodeModel is GraphDataNodeModel newCopiedNode
+                && sourceNode is GraphDataNodeModel sourceGraphDataNode)
+            {
+                // Set graphmodel BEFORE define node as it is commonly use during Define
+                pastedNodeModel.GraphModel = this;
+                pastedNodeModel.AssignNewGuid();
+
+                newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
+                GraphHandler.AddNode(sourceGraphDataNode.duplicationRegistryKey, newCopiedNode.graphDataName);
+                pastedNodeModel.OnDuplicateNode(sourceNode);
+
+                AddNode(pastedNodeModel);
+                pastedNodeModel.Position += delta;
+
+                if (pastedNodeModel is IGraphElementContainer container)
+                {
+                    foreach (var element in container.GraphElementModels)
+                        RecursivelyRegisterAndAssignNewGuid(element);
+                }
+
+            }
+
+            return pastedNodeModel;
+        }
+
         public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
         {
             return this.VariableDeclarations;
@@ -361,20 +395,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     action(TryGetNodeModel(shaderGraphModel, connectedNode));
                 }
             }
-
-            /* Custom Interpolator Blocks have implied connections to their Custom Interpolator Nodes...
-            if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
-            {
-                foreach (var cin in CustomInterpolatorUtils.GetCustomBlockNodeDependents(bnode))
-                {
-                    action(cin);
-                }
-            }
-            // ... Just as custom Interpolator Nodes have implied connections to their custom interpolator blocks
-            if (dir == PropagationDirection.Upstream && node is CustomInterpolatorNode ciNode && ciNode.e_targetBlockNode != null)
-            {
-                action(ciNode.e_targetBlockNode);
-            } */
         }
 
         public IEnumerable<GraphDataNodeModel> GetNodesInHierarchyFromSources(IEnumerable<GraphDataNodeModel> nodeSources, PropagationDirection propagationDirection)
