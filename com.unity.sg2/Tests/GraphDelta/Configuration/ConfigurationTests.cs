@@ -7,9 +7,5 @@ using UnityEditor.Rendering.Universal;
 [TestFixture]
 public class ConfigurationTests
 {
-    [Test]
-    public void TestGatherProviderCPIO()
-    {
-        //CPGraphDataProvider.GatherProviderCPIO(SimpleSampleBuilder.GetTarget())
-    }
+    //TODO LIZ: Tests as configuration comes online
 }
