@@ -1771,7 +1771,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         visibilityShader,
                         materialDepthShader,
                         analyzeCS,
-                        copyBufferCS);
+                        copyBufferCS,
+                        defaultResources?.shaders.depthPyramidCS);
                     //#endif
                     if (camera.cameraType == CameraType.Game)
                     {

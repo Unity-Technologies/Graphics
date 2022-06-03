@@ -10,7 +10,7 @@ Shader "Hidden/HDRP/MaterialDepth"
 
         Pass
         {
-			Cull Front
+			Cull Back
 			ZWrite On
 			ZTest Off 
 		

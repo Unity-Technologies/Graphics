@@ -1276,7 +1276,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             visibilityShader,
                             materialDepthShader,
                             analyzeCS,
-                            copyBufferCS);
+                            copyBufferCS,
+                            passData.resources?.shaders.depthPyramidCS);
                         //#endif
                         if (hdCamera.camera.cameraType == CameraType.Game)
                         {
@@ -1297,7 +1298,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.camera.cameraType == CameraType.Game)
             {
-                using (var builder = renderGraph.AddRenderPass<CopyDepthStencilData>("Copy the depth pyramid", out var passData, new ProfilingSampler("Copy the depth")))
+                using (var builder = renderGraph.AddRenderPass<CopyDepthStencilData>("Merge with VBuffer depth", out var passData, new ProfilingSampler("Merge with VBuffer depth")))
                 {
                     passData.depth = builder.WriteTexture(output.resolvedDepthBuffer);
                     passData.propertyBlock = m_CopyDepthPropertyBlock;
@@ -1338,7 +1339,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.camera.cameraType == CameraType.Game)
             {
-                using (var builder = renderGraph.AddRenderPass<MergePredepthData>("Merge the depth pyramid", out var passData, new ProfilingSampler("Copy the depth")))
+                using (var builder = renderGraph.AddRenderPass<MergePredepthData>("Merge with pre-depth", out var passData, new ProfilingSampler("Merge with pre-depth")))
                 {
                     passData.depth = builder.UseDepthBuffer(depth, DepthAccess.ReadWrite);
                     //passData.depth = builder.WriteTexture(output.depthPyramidTexture);

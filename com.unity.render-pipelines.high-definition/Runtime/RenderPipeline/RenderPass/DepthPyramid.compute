@@ -1,15 +1,21 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
+#pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel KDepthDownsample8DualUav  KERNEL_SIZE=8  KERNEL_NAME=KDepthDownsample8DualUav
+#pragma kernel KCopy4_1_x_8   KERNEL_NAME41=KCopy4_1_x_8  KERNEL_SIZE=8
 
 RW_TEXTURE2D_X(float, _DepthMipChain);
+
+RW_TEXTURE2D_X(float1, _Result);
+TEXTURE2D_X(_Source);
 
 CBUFFER_START(cb)
     uint4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
     uint4 _DstOffset;         // {x, y, 0, 0}
+    uint4 _RectOffset;
 CBUFFER_END
 
 #if UNITY_REVERSED_Z
@@ -45,3 +51,12 @@ void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 }
 
 #undef MIN_DEPTH
+
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void KERNEL_NAME41(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 positionSS = _RectOffset + dispatchThreadId.xy;
+    _Result[COORD_TEXTURE2D_X(positionSS)] = LOAD_TEXTURE2D_X(_Source, positionSS).x;
+}
