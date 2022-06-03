@@ -10,9 +10,9 @@ namespace UnityEditor.ShaderGraph.Defs
     /// </summary>
     public class ShaderGraphContext : IContextDescriptor
     {
-        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
+        public IEnumerable<ContextEntry> GetEntries()
         {
-            return new List<IContextDescriptor.ContextEntry>()
+            return new List<ContextEntry>()
                 {
                     new ()
                     {
