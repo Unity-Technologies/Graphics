@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
             flags = data & 3;
         }
 
-        public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
+        public bool NeedsUpdate(Texture texture, bool needMips = false)
         {
             RenderTexture   rt = texture as RenderTexture;
             int             key = GetTextureID(texture);
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
+        public bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
             RenderTexture rtA = textureA as RenderTexture;
             RenderTexture rtB = textureB as RenderTexture;

@@ -455,18 +455,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        internal static bool ShadowIsPendingUpdate(ref HDCachedShadowManagerUnmanaged cachedShadowManager, int shadowIdx, ShadowMapType shadowMapType)
-        {
-            if (shadowMapType == ShadowMapType.PunctualAtlas)
-                return HDCachedShadowAtlas.ShadowIsPendingRendering(ref cachedShadowManager.punctualShadowAtlas, shadowIdx);
-            if (shadowMapType == ShadowMapType.AreaLightAtlas)
-                return HDCachedShadowAtlas.ShadowIsPendingRendering(ref cachedShadowManager.areaShadowAtlas, shadowIdx);
-            if (shadowMapType == ShadowMapType.CascadedDirectional)
-                return cachedShadowManager.directionalShadowPendingUpdate[(uint)shadowIdx];
-
-            return false;
-        }
-
         internal void MarkShadowAsRendered(int shadowIdx, ShadowMapType shadowMapType)
         {
             if (shadowMapType == ShadowMapType.PunctualAtlas)
@@ -480,35 +468,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void MarkShadowAsRendered(ref HDCachedShadowManagerUnmanaged cachedShadowManager, int shadowIdx, ShadowMapType shadowMapType)
-        {
-            if (shadowMapType == ShadowMapType.PunctualAtlas)
-                HDCachedShadowAtlas.MarkAsRendered(ref cachedShadowManager.punctualShadowAtlas, shadowIdx);
-            if (shadowMapType == ShadowMapType.AreaLightAtlas)
-                HDCachedShadowAtlas.MarkAsRendered(ref cachedShadowManager.areaShadowAtlas, shadowIdx);
-            if (shadowMapType == ShadowMapType.CascadedDirectional)
-            {
-                cachedShadowManager.directionalShadowPendingUpdate[(uint)shadowIdx] = false;
-                cachedShadowManager.directionalShadowHasRendered[(uint)shadowIdx] = true;
-            }
-        }
-
         internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx, ShadowMapType shadowMapType)
         {
             if (shadowMapType == ShadowMapType.PunctualAtlas)
                 punctualShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
             else if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 areaShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
-            else if (shadowMapType == ShadowMapType.CascadedDirectional)
-                request.cachedAtlasViewport = request.dynamicAtlasViewport;
-        }
-
-        internal static void UpdateResolutionRequest(ref HDCachedShadowManagerUnmanaged shadowManager, ref HDShadowResolutionRequest request, int shadowIdx, ShadowMapType shadowMapType)
-        {
-            if (shadowMapType == ShadowMapType.PunctualAtlas)
-                HDCachedShadowAtlas.UpdateResolutionRequest(ref shadowManager.punctualShadowAtlas, ref request, shadowIdx);
-            else if (shadowMapType == ShadowMapType.AreaLightAtlas)
-                HDCachedShadowAtlas.UpdateResolutionRequest(ref shadowManager.areaShadowAtlas, ref request, shadowIdx);
             else if (shadowMapType == ShadowMapType.CascadedDirectional)
                 request.cachedAtlasViewport = request.dynamicAtlasViewport;
         }

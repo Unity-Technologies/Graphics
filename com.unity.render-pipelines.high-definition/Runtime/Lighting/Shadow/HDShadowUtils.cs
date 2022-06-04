@@ -1,5 +1,6 @@
 using UnityEngine.Rendering;
 using Unity.Collections;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -295,7 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return  CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
         }
 
-        static unsafe Matrix4x4 ExtractPointLightMatrix(NativeArray<Matrix4x4> cubemapFaces, VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, bool usesReversedZInfo, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        static unsafe void ExtractPointLightMatrix(NativeArray<Matrix4x4> cubemapFaces, VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, bool usesReversedZInfo, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 deviceProjYFlip, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
         {
             if (faceIdx > (uint)CubemapFace.NegativeZ)
                 Debug.LogError($"Tried to extract cubemap face {faceIdx}.");
@@ -333,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < 6; i++)
                 splitData.SetCullingPlane(i, planes[i]);
 
-            return devProjView;
+            //return devProjView;
         }
 
          public static unsafe void CalculateFrustumPlanes(ref Matrix4x4 finalMatrix, Plane* outPlanes)
@@ -484,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float leftNormalZ = otherVec[2] + tmpVec[2];
             float leftDistance = otherVec[3] + tmpVec[3];
             float leftDot = leftNormalX * leftNormalX + leftNormalY * leftNormalY + leftNormalZ * leftNormalZ;
-            float leftMagnitude = Mathf.Sqrt(leftDot);
+            float leftMagnitude = math.sqrt(leftDot);
             float leftInvMagnitude = 1.0f / leftMagnitude;
             leftNormalX *= leftInvMagnitude;
             leftNormalY *= leftInvMagnitude;
@@ -497,7 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float rightNormalZ = -otherVec[2] + tmpVec[2];
             float rightDistance = -otherVec[3] + tmpVec[3];
             float rightDot = rightNormalX * rightNormalX + rightNormalY * rightNormalY + rightNormalZ * rightNormalZ;
-            float rightMagnitude = Mathf.Sqrt(rightDot);
+            float rightMagnitude = math.sqrt(rightDot);
             float rightInvMagnitude = 1.0f / rightMagnitude;
             rightNormalX *= rightInvMagnitude;
             rightNormalY *= rightInvMagnitude;
@@ -516,7 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float bottomNormalZ = otherVec[2] + tmpVec[2];
             float bottomDistance = otherVec[3] + tmpVec[3];
             float bottomDot = bottomNormalX * bottomNormalX + bottomNormalY * bottomNormalY + bottomNormalZ * bottomNormalZ;
-            float bottomMagnitude = Mathf.Sqrt(bottomDot);
+            float bottomMagnitude = math.sqrt(bottomDot);
             float bottomInvMagnitude = 1.0f / bottomMagnitude;
             bottomNormalX *= bottomInvMagnitude;
             bottomNormalY *= bottomInvMagnitude;
@@ -529,7 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float topNormalZ = -otherVec[2] + tmpVec[2];
             float topDistance = -otherVec[3] + tmpVec[3];
             float topDot = topNormalX * topNormalX + topNormalY * topNormalY + topNormalZ * topNormalZ;
-            float topMagnitude = Mathf.Sqrt(topDot);
+            float topMagnitude = math.sqrt(topDot);
             float topInvMagnitude = 1.0f / topMagnitude;
             topNormalX *= topInvMagnitude;
             topNormalY *= topInvMagnitude;
@@ -548,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float nearNormalZ = otherVec[2] + tmpVec[2];
             float nearDistance = otherVec[3] + tmpVec[3];
             float nearDot = nearNormalX * nearNormalX + nearNormalY * nearNormalY + nearNormalZ * nearNormalZ;
-            float nearMagnitude = Mathf.Sqrt(nearDot);
+            float nearMagnitude = math.sqrt(nearDot);
             float nearInvMagnitude = 1.0f / nearMagnitude;
             nearNormalX *= nearInvMagnitude;
             nearNormalY *= nearInvMagnitude;
@@ -561,7 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float farNormalZ = -otherVec[2] + tmpVec[2];
             float farDistance = -otherVec[3] + tmpVec[3];
             float farDot = farNormalX * farNormalX + farNormalY * farNormalY + farNormalZ * farNormalZ;
-            float farMagnitude = Mathf.Sqrt(farDot);
+            float farMagnitude = math.sqrt(farDot);
             float farInvMagnitude = 1.0f / farMagnitude;
             farNormalX *= farInvMagnitude;
             farNormalY *= farInvMagnitude;
@@ -574,11 +575,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             float angleInRad  = angleInDeg * 0.5f * Mathf.Deg2Rad;
             float res         = 2.0f / resolution;
-            float texelSize   = Mathf.Cos(angleInRad) * res;
+            float texelSize   = math.cos(angleInRad) * res;
             float beta        = normalBiasMax * texelSize * 1.4142135623730950488016887242097f;
-            float guardAngle  = Mathf.Atan(beta);
-            texelSize   = Mathf.Tan(angleInRad + guardAngle) * res;
-            guardAngle  = Mathf.Atan((resolution + Mathf.Ceil(filterWidth)) * texelSize * 0.5f) * 2.0f * Mathf.Rad2Deg - angleInDeg;
+            float guardAngle  = math.atan(beta);
+            texelSize   = math.tan(angleInRad + guardAngle) * res;
+            guardAngle  = math.atan((resolution + math.ceil(filterWidth)) * texelSize * 0.5f) * 2.0f * Mathf.Rad2Deg - angleInDeg;
             guardAngle *= 2.0f;
 
             return guardAngle < guardAngleMaxInDeg ? guardAngle : guardAngleMaxInDeg;
@@ -587,6 +588,40 @@ namespace UnityEngine.Rendering.HighDefinition
         public static float GetSlopeBias(float baseBias, float normalizedSlopeBias)
         {
             return normalizedSlopeBias * baseBias;
+        }
+
+        internal static float3 QuaternionToEulerZXY(quaternion q)
+        {
+            const float epsilon = 1e-6f;
+
+            //prepare the data
+            var qv = q.value;
+            var d1 = qv * qv.wwww * new float4(2.0f); //xw, yw, zw, ww
+            var d2 = qv * qv.yzxw * new float4(2.0f); //xy, yz, zx, ww
+            var d3 = qv * qv;
+            var euler = new float3(0.0f);
+
+            const float CUTOFF = (1.0f - 2.0f * epsilon) * (1.0f - 2.0f * epsilon);
+
+            var y1 = d2.y - d1.x;
+            if (y1 * y1 < CUTOFF)
+            {
+                var x1 = d2.x + d1.z;
+                var x2 = d3.y + d3.w - d3.x - d3.z;
+                var z1 = d2.z + d1.y;
+                var z2 = d3.z + d3.w - d3.x - d3.y;
+                euler = new float3(math.atan2(x1, x2), -math.asin(y1), math.atan2(z1, z2));
+            }
+            else //zxz
+            {
+                y1 = math.clamp(y1, -1.0f, 1.0f);
+                var abcd = new float4(d2.z, d1.y, d2.y, d1.x);
+                var x1 = 2.0f * (abcd.x * abcd.w + abcd.y * abcd.z); //2(ad+bc)
+                var x2 = math.csum(abcd * abcd * new float4(-1.0f, 1.0f, -1.0f, 1.0f));
+                euler = new float3(math.atan2(x1, x2), -math.asin(y1), 0.0f);
+            }
+
+            return euler.yzx;
         }
     }
 }

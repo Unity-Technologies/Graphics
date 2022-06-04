@@ -603,22 +603,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RecordsPendingPlacement.ContainsKey(lightIdxForCachedShadows));
         }
 
-        internal static bool LightIsPendingPlacement(ref HDCachedShadowAtlasUnmanaged cachedShadowAtlas, int lightIdxForCachedShadows)
-        {
-            return (cachedShadowAtlas.registeredLightDataPendingPlacement.ContainsKey(lightIdxForCachedShadows) ||
-                    cachedShadowAtlas.recordsPendingPlacement.ContainsKey(lightIdxForCachedShadows));
-        }
-
         internal bool ShadowIsPendingRendering(int shadowIdx)
         {
             return m_ShadowsPendingRendering.ContainsKey(shadowIdx);
         }
-
-        internal static bool ShadowIsPendingRendering(ref HDCachedShadowAtlasUnmanaged cachedShadowAtlas, int shadowIdx)
-        {
-            return cachedShadowAtlas.shadowsPendingRendering.ContainsKey(shadowIdx);
-        }
-
         internal bool ShadowHasRenderedAtLeastOnce(int shadowIdx)
         {
             return m_ShadowsWithValidData.ContainsKey(shadowIdx);
@@ -717,35 +705,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void MarkAsRendered(ref HDCachedShadowAtlasUnmanaged cachedShadowAtlas, int shadowIdx)
-        {
-            if (cachedShadowAtlas.shadowsPendingRendering.ContainsKey(shadowIdx))
-            {
-                cachedShadowAtlas.shadowsPendingRendering.Remove(shadowIdx);
-                cachedShadowAtlas.shadowsWithValidData.Add(shadowIdx, shadowIdx);
-            }
-        }
-
         // Used to update the resolution request processed by the light loop
         internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx)
         {
             CachedShadowRecord record;
             bool valueFound = m_PlacedShadows.TryGetValue(shadowIdx, out record);
-
-            if (!valueFound)
-            {
-                Debug.LogWarning("Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
-            }
-
-            request.cachedAtlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
-            request.resolution = new Vector2(record.viewportSize, record.viewportSize);
-        }
-
-        // Used to update the resolution request processed by the light loop
-        internal static void UpdateResolutionRequest(ref HDCachedShadowAtlasUnmanaged cachedShadowAtlas, ref HDShadowResolutionRequest request, int shadowIdx)
-        {
-            CachedShadowRecord record;
-            bool valueFound = cachedShadowAtlas.placedShadows.TryGetValue(shadowIdx, out record);
 
             if (!valueFound)
             {

@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDCachedShadowManagerUnmanaged cachedShadowManager;
 
-        public void UpdateShadowRequest(int index, HDShadowRequestHandle shadowRequest, ShadowMapUpdateType updateType, ShadowMapType shadowMapType, bool isMixedCache)
+        public void UpdateShadowRequest(int index, HDShadowRequestHandle shadowRequest, ShadowMapUpdateType updateType, ShadowMapType shadowMapType)
         {
             if (index >= fields[0].m_ShadowRequestCount)
                 return;
@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         atlas.AddShadowRequest(shadowRequest);
                         if(updateType == ShadowMapUpdateType.Mixed)
-                            atlas.AddRequestToPendingBlitFromCache(shadowRequest, isMixedCache);
+                            atlas.AddRequestToPendingBlitFromCache(shadowRequest);
                     }
 
                     break;
@@ -456,13 +456,51 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         areaShadowAtlas.AddShadowRequest(shadowRequest);
                         if (updateType == ShadowMapUpdateType.Mixed)
-                            areaShadowAtlas.AddRequestToPendingBlitFromCache(shadowRequest, isMixedCache);
+                            areaShadowAtlas.AddRequestToPendingBlitFromCache(shadowRequest);
                     }
 
                     break;
                 }
             };
         }
+
+        public void WriteShadowRequestIndex(int index, int shadowRequestCount, HDShadowRequestHandle shadowRequest)
+        {
+            if (index >= shadowRequestCount)
+                return;
+
+            shadowRequests[index] = shadowRequest;
+        }
+
+        public void UpdateCachedPunctualShadowRequest(HDShadowRequestHandle shadowRequest)
+        {
+            cachedShadowManager.punctualShadowAtlas.AddShadowRequest(shadowRequest);
+        }
+
+        public void UpdateDynamicPunctualShadowRequest(HDShadowRequestHandle shadowRequest, ShadowMapUpdateType updateType)
+        {
+            atlas.AddShadowRequest(shadowRequest);
+            if(updateType == ShadowMapUpdateType.Mixed)
+                atlas.AddRequestToPendingBlitFromCache(shadowRequest);
+        }
+
+        public void UpdateCachedAreaShadowRequest(HDShadowRequestHandle shadowRequest)
+        {
+            cachedShadowManager.punctualShadowAtlas.AddShadowRequest(shadowRequest);
+        }
+
+        public void UpdateDynamicAreaShadowRequest(HDShadowRequestHandle shadowRequest, ShadowMapUpdateType updateType)
+        {
+            atlas.AddShadowRequest(shadowRequest);
+            if(updateType == ShadowMapUpdateType.Mixed)
+                atlas.AddRequestToPendingBlitFromCache(shadowRequest);
+        }
+
+        public void UpdateCascadedDirectionalShadowRequest(HDShadowRequestHandle shadowRequest)
+        {
+            cascadeShadowAtlas.AddShadowRequest(shadowRequest);
+        }
+
     }
 
     internal struct HDDynamicShadowAtlasUnmanaged
@@ -476,10 +514,9 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequests.Add(shadowRequest);
         }
 
-        public void AddRequestToPendingBlitFromCache(HDShadowRequestHandle request, bool isMixedCache)
+        public void AddRequestToPendingBlitFromCache(HDShadowRequestHandle request)
         {
-            if (isMixedCache)
-                mixedRequestsPendingBlits.Add(request);
+            mixedRequestsPendingBlits.Add(request);
         }
     }
 
@@ -503,24 +540,25 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public bool NeedRenderingDueToTransformChange(ref HDAdditionalLightDataUpdateInfo updateInfo, ref VisibleLight lightData, HDLightType lightType)
+        public bool NeedRenderingDueToTransformChange(in HDAdditionalLightDataUpdateInfo updateInfo, in VisibleLight lightData, HDLightType lightType)
         {
             if(updateInfo.updateUponLightMovement)
             {
                 if (lightType == HDLightType.Directional)
                 {
                     float angleDiffThreshold = updateInfo.cachedShadowAngleUpdateThreshold;
-                    Vector3 eulerAngles = ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
+                    Vector3 eulerAngles = HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
+                    //Vector3 eulerAngles = ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
                     Vector3 angleDiff = cachedDirectionalAngles - eulerAngles;
                     return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
                 }
                 else if (lightType == HDLightType.Area)
                 {
-                    return areaShadowAtlas.NeedRenderingDueToTransformChange(ref lightData, ref updateInfo, lightType);
+                    return areaShadowAtlas.NeedRenderingDueToTransformChange(in lightData, in updateInfo, lightType);
                 }
                 else
                 {
-                    return punctualShadowAtlas.NeedRenderingDueToTransformChange(ref lightData, ref updateInfo, lightType);
+                    return punctualShadowAtlas.NeedRenderingDueToTransformChange(in lightData, in updateInfo, lightType);
                 }
             }
 
@@ -582,15 +620,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     recordsPendingPlacement.ContainsKey(lightIdxForCachedShadows));
         }
 
-        public bool NeedRenderingDueToTransformChange(ref VisibleLight lightData, ref HDAdditionalLightDataUpdateInfo updateInfo, HDLightType lightType)
+        public bool NeedRenderingDueToTransformChange(in VisibleLight lightData, in HDAdditionalLightDataUpdateInfo updateInfo, HDLightType lightType)
         {
             bool needUpdate = false;
 
             if (transformCaches.TryGetValue(updateInfo.lightIdxForCachedShadows, out HDCachedShadowAtlas.CachedTransform cachedTransform))
             {
                 float positionThreshold = updateInfo.cachedShadowTranslationUpdateThreshold;
-                Vector3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
-                float positionDiff = Vector3.Dot(positionDiffVec, positionDiffVec);
+                float3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
+                float positionDiff = math.dot(positionDiffVec, positionDiffVec);
                 if (positionDiff > positionThreshold * positionThreshold)
                 {
                     needUpdate = true;
@@ -598,9 +636,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if(lightType != HDLightType.Point)
                 {
                     float angleDiffThreshold = updateInfo.cachedShadowAngleUpdateThreshold;
-                    Vector3 angleDiff = cachedTransform.angles - ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
+                    float3 cachedAngles = cachedTransform.angles;
+                    float3 angleDiff = cachedAngles - HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
                     // Any angle difference
-                    if (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold)
+                    if (math.abs(angleDiff.x) > angleDiffThreshold || math.abs(angleDiff.y) > angleDiffThreshold || math.abs(angleDiff.z) > angleDiffThreshold)
                     {
                         needUpdate = true;
                     }
@@ -608,11 +647,73 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (needUpdate)
                 {
-                    // Update the record (CachedTransform is a struct, so we remove old one and replace with a new one)
-                    transformCaches.Remove(updateInfo.lightIdxForCachedShadows);
+                    // Update the record
                     cachedTransform.position = lightData.GetPosition();
-                    cachedTransform.angles = ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
-                    transformCaches.Add(updateInfo.lightIdxForCachedShadows, cachedTransform);
+                    cachedTransform.angles = HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
+                    transformCaches[updateInfo.lightIdxForCachedShadows] = cachedTransform;
+                }
+            }
+
+            return needUpdate;
+        }
+
+        public bool PointLightNeedRenderingDueToTransformChange(in VisibleLight lightData, in HDAdditionalLightDataUpdateInfo updateInfo)
+        {
+            bool needUpdate = false;
+
+            if (transformCaches.TryGetValue(updateInfo.lightIdxForCachedShadows, out HDCachedShadowAtlas.CachedTransform cachedTransform))
+            {
+                float positionThreshold = updateInfo.cachedShadowTranslationUpdateThreshold;
+                float3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
+                float positionDiff = math.dot(positionDiffVec, positionDiffVec);
+                //Vector3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
+                //float positionDiff = Vector3.Dot(positionDiffVec, positionDiffVec);
+                if (positionDiff > positionThreshold * positionThreshold)
+                {
+                    needUpdate = true;
+                }
+
+                if (needUpdate)
+                {
+                    // Update the record
+                    cachedTransform.position = lightData.GetPosition();
+                    //cachedTransform.angles = ((Quaternion)new quaternion(lightData.localToWorldMatrix)).eulerAngles;
+                    cachedTransform.angles = HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
+                    transformCaches[updateInfo.lightIdxForCachedShadows] = cachedTransform;
+                }
+            }
+
+            return needUpdate;
+        }
+
+        public bool NonPointLightNeedsRenderingDueToTransformChange(in VisibleLight lightData, in HDAdditionalLightDataUpdateInfo updateInfo)
+        {
+            bool needUpdate = false;
+
+            if (transformCaches.TryGetValue(updateInfo.lightIdxForCachedShadows, out HDCachedShadowAtlas.CachedTransform cachedTransform))
+            {
+                float positionThreshold = updateInfo.cachedShadowTranslationUpdateThreshold;
+                float3 positionDiffVec = cachedTransform.position - lightData.GetPosition();
+                float positionDiff = math.dot(positionDiffVec, positionDiffVec);
+                if (positionDiff > positionThreshold * positionThreshold)
+                {
+                    needUpdate = true;
+                }
+                float angleDiffThreshold = updateInfo.cachedShadowAngleUpdateThreshold;
+                float3 cachedAngles = cachedTransform.angles;
+                float3 angleDiff = cachedAngles - HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
+                // Any angle difference
+                if (math.abs(angleDiff.x) > angleDiffThreshold || math.abs(angleDiff.y) > angleDiffThreshold || math.abs(angleDiff.z) > angleDiffThreshold)
+                {
+                    needUpdate = true;
+                }
+
+                if (needUpdate)
+                {
+                    // Update the record
+                    cachedTransform.position = lightData.GetPosition();
+                    cachedTransform.angles = HDShadowUtils.QuaternionToEulerZXY(new quaternion(lightData.localToWorldMatrix));
+                    transformCaches[updateInfo.lightIdxForCachedShadows] = cachedTransform;
                 }
             }
 
@@ -986,54 +1087,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_AreaLightShadowAtlas.AddShadowRequest(shadowRequest);
                         if (updateType == ShadowMapUpdateType.Mixed)
                             m_AreaLightShadowAtlas.AddRequestToPendingBlitFromCache(shadowRequest, isMixedCache);
-                    }
-
-                    break;
-                }
-            };
-        }
-
-        internal static void UpdateShadowRequest(ref HDShadowManagerUnmanaged shadowManager, int index, HDShadowRequestHandle shadowRequest, ShadowMapUpdateType updateType, ShadowMapType shadowMapType, bool isMixedCache)
-        {
-            if (index >= shadowManager.fields[0].m_ShadowRequestCount)
-                return;
-
-            shadowManager.shadowRequests[index] = shadowRequest;
-
-            bool addToCached = updateType == ShadowMapUpdateType.Cached || updateType == ShadowMapUpdateType.Mixed;
-            bool addDynamic = updateType == ShadowMapUpdateType.Dynamic || updateType == ShadowMapUpdateType.Mixed;
-
-            switch (shadowMapType)
-            {
-                case ShadowMapType.PunctualAtlas:
-                {
-                    if (addToCached)
-                        cachedShadowManager.punctualShadowAtlas.AddShadowRequest(shadowRequest);
-                    if (addDynamic)
-                    {
-                        HDShadowAtlas.AddShadowRequest(ref shadowManager.atlas, shadowRequest);
-                        if(updateType == ShadowMapUpdateType.Mixed)
-                            HDDynamicShadowAtlas.AddRequestToPendingBlitFromCache(ref shadowManager.atlas, shadowRequest, isMixedCache);
-                    }
-
-                    break;
-                }
-                case ShadowMapType.CascadedDirectional:
-                {
-                    HDShadowAtlas.AddShadowRequest(ref shadowManager.cascadeShadowAtlas, shadowRequest);
-                    break;
-                }
-                case ShadowMapType.AreaLightAtlas:
-                {
-                    if (addToCached)
-                    {
-                        cachedShadowManager.areaShadowAtlas.AddShadowRequest(shadowRequest);
-                    }
-                    if (addDynamic)
-                    {
-                        HDShadowAtlas.AddShadowRequest(ref shadowManager.areaShadowAtlas, shadowRequest);
-                        if (updateType == ShadowMapUpdateType.Mixed)
-                            HDDynamicShadowAtlas.AddRequestToPendingBlitFromCache(ref shadowManager.areaShadowAtlas, shadowRequest, isMixedCache);
                     }
 
                     break;
