@@ -4,8 +4,7 @@
     "references": [
         "ContextLayeredDataStorage",
         "Unity.ShaderFoundry.Editor",
-        "Unity.ShaderGraph.Editor",
-        "UnityEditor.ShaderGraph.Generation"
+        "Unity.ShaderGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"

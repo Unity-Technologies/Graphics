@@ -12,4 +12,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Industrial.Materials.AVRD.Editor")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests")]
 [assembly: InternalsVisibleTo("Unity.ShaderGraph.GraphDeltaRegistry")]
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.GraphDelta.Tests")]
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.Generation.Tests")]
 [assembly: InternalsVisibleTo("Unity.ShaderGraph.GraphUI")]

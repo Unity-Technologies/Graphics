@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public class PropertyContext : IContextDescriptor // TODO: Delete me.
     {
         // TODO: Refactor ContextNode/Descriptor/AddContextNode eg. FunctionNodeDescriptor...
-        public IEnumerable<IContextDescriptor.ContextEntry> GetEntries() => new List<IContextDescriptor.ContextEntry>();
+        public IEnumerable<ContextEntry> GetEntries() => new List<ContextEntry>();
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
     }

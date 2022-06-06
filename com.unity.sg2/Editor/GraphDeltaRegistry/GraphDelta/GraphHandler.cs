@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEditor.ShaderGraph.Configuration;
 using UnityEngine;
+using static UnityEditor.ShaderGraph.Configuration.CPGraphDataProvider;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -55,13 +57,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public NodeHandler AddNode(RegistryKey key, string name) =>
             graphDelta.AddNode(key, name, registry);
 
-        [Obsolete("AddContextNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
+        [Obsolete("AddContextNode with a provided Registry is obselete; GraphHandler can now use its own Registry. " +
             "Use AddContextNode(RegistryKey key) for updated behavior")]
         public NodeHandler AddContextNode(RegistryKey key, Registry registry) =>
             graphDelta.AddContextNode(key, registry);
 
-        public NodeHandler AddContextNode(RegistryKey key) =>
-            graphDelta.AddContextNode(key, registry);
+        [Obsolete("AddContextNode with a RegistryKey is obselete; GraphHandler will now setup registry keys based " +
+            "on CustomizationPoints")]
+        public NodeHandler AddContextNode(RegistryKey key) => AddContextNode(key, registry);
+
+        public NodeHandler AddContextNode(string name) =>
+            graphDelta.AddContextNode(name, registry);
 
         [Obsolete("ReconcretizeNode with a provided Registry is obselete; GraphHanlder can now use its own Registry. " +
             "Use ReconcretizeNode(string name) for updated behavior")]
@@ -150,6 +156,61 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<PortHandler> GetConnectedPorts(ElementID portID) => graphDelta.GetConnectedPorts(portID, registry);
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
+
+public void RebuildContextData(ElementID contextNode, ITargetProvider target, string templateName, string cpName, bool input)
+        {
+            void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
+            {
+                ContextBuilder.AddReferableEntry(context,
+                    new ContextEntry
+                    {
+                        fieldName = desc.name,
+                        height = desc.type.IsMatrix ? (GraphType.Height)desc.type.MatrixRows : GraphType.Height.One,
+                        length = desc.type.IsVector ? (GraphType.Length)desc.type.VectorDimension : GraphType.Length.One,
+                        primitive = GraphType.Primitive.Float,
+                        precision = GraphType.Precision.Fixed
+                    },
+                    registry);
+            }
+
+            var context = GetNode(contextNode);
+            if(context == null)
+            {
+                return;
+            }
+            context.ClearLayerData(GraphDelta.k_concrete);
+            context.DefaultLayer = GraphDelta.k_concrete;
+
+            GatherProviderCPIO(target, out var descriptors);
+            foreach(var descriptor in descriptors)
+            {
+                if(descriptor.templateName.Equals(templateName, StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach(var cpio in descriptor.CPIO)
+                    {
+                        if(cpio.customizationPointName.Equals(cpName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if(input)
+                            {
+                                foreach(var i in cpio.inputs)
+                                {
+                                    AddEntry(context, i);
+                                }
+                            }
+                            else
+                            {
+                                foreach(var o in cpio.outputs)
+                                {
+                                    AddEntry(context, o);
+                                }
+                            }
+                            context.AddField("_CustomizationPointName", cpName);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
 
         public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges)
         {

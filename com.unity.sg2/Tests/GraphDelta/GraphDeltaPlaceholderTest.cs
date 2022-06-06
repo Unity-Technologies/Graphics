@@ -160,11 +160,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             public class TestDescriptor : IContextDescriptor
             {
-                public IEnumerable<IContextDescriptor.ContextEntry> GetEntries()
+                public IEnumerable<ContextEntry> GetEntries()
                 {
-                    return new List<IContextDescriptor.ContextEntry>()
+                    return new List<ContextEntry>()
                     {
-                        new IContextDescriptor.ContextEntry()
+                        new ContextEntry()
                         {
                             fieldName = "Foo",
                             primitive = GraphType.Primitive.Int,
@@ -313,7 +313,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 graphHandler.AddContextNode(Registry.ResolveKey<TestDescriptor>());
                 var contextNode = graphHandler.GetNode("TestContextDescriptor");
 
-                IContextDescriptor.ContextEntry entry = new()
+                ContextEntry entry = new()
                 {
                     fieldName = "TestContextEntry",
                     precision = GraphType.Precision.Single,
