@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DynamicGIBakingStage dynamicGIBakingStage;
             if (ProbeVolume.preparingMixedLights)
                 dynamicGIBakingStage = DynamicGIBakingStage.MixedLights;
-            else if (ProbeVolume.preparingMixedRadiance)
+            else if (ProbeVolume.preparingForBake)
                 dynamicGIBakingStage = DynamicGIBakingStage.FallbackRadiance;
             else
                 dynamicGIBakingStage = DynamicGIBakingStage.Neighborhood;
@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 ProbeVolume.preparingMixedLights = dynamicGIBakingStage == DynamicGIBakingStage.MixedLights;
-                ProbeVolume.preparingMixedRadiance = dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance;
+                ProbeVolume.preparingForBake = dynamicGIBakingStage == DynamicGIBakingStage.FallbackRadiance;
             }
 
             EditorGUILayout.Space();
@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (GUI.Button(resetButtonRect, Styles.k_DynamicResetPipelineOverridesLabel))
                 {
                     ProbeVolume.preparingMixedLights = false;
-                    ProbeVolume.preparingMixedRadiance = false;
+                    ProbeVolume.preparingForBake = false;
                 }
             }
         }

@@ -2114,7 +2114,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool dynamicGIEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI);
                 bool dynamicGIMixedOnly =
 #if UNITY_EDITOR
-                    ProbeVolume.preparingMixedRadiance ||
+                    ProbeVolume.preparingForBake ||
 #endif
                     hdCamera.frameSettings.probeVolumeDynamicGIMixedLightMode == ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
 

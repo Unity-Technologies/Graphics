@@ -627,7 +627,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             {
 #if UNITY_EDITOR
-                if (ProbeVolume.preparingMixedRadiance)
+                if (ProbeVolume.preparingForBake)
                 {
                     mixedLightMode = ProbeVolumeDynamicGIMixedLightMode.MixedOnly;
                     cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);
@@ -704,7 +704,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if UNITY_EDITOR
-            if (ProbeVolume.preparingMixedRadiance)
+            if (ProbeVolume.preparingForBake)
             {
                 propagationQuality = PropagationQuality.High;
                 cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", float.MaxValue);

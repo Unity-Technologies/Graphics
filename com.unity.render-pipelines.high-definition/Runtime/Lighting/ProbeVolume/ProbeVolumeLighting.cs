@@ -1120,7 +1120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         
                         bool requiresSimulation;
 #if UNITY_EDITOR
-                        if (ProbeVolume.preparingMixedRadiance)
+                        if (ProbeVolume.preparingForBake)
                         {
                             // Force simulation at any distance when preparing for baking.
                             requiresSimulation = true;

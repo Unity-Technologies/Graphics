@@ -1699,7 +1699,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static bool preparingMixedLights;
-        internal static bool preparingMixedRadiance;
+        internal static bool preparingForBake;
 #endif
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline
