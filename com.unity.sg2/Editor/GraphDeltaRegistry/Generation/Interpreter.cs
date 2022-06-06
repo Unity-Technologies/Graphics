@@ -12,8 +12,11 @@ namespace UnityEditor.ShaderGraph.Generation
         public static string GetFunctionCode(NodeHandler node, Registry registry)
         {
             var builder = new ShaderBuilder();
-            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry);
+            List<ShaderFunction> dependencies = new();
+            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, new ShaderContainer(), registry, ref dependencies);
             builder.AddDeclarationString(func);
+            foreach (var dep in dependencies)
+                builder.AddDeclarationString(dep);
             return builder.ConvertToString();
         }
 
@@ -378,18 +381,24 @@ namespace UnityEditor.ShaderGraph.Generation
             Registry registry)
         {
             var nodeBuilder = registry.GetNodeBuilder(node.GetRegistryKey());
-            var func = nodeBuilder.GetShaderFunction(node, container, registry);
+            List<ShaderFunction> localDependencies = new();
+            var func = nodeBuilder.GetShaderFunction(node, container, registry, ref localDependencies);
+            localDependencies.Add(func);
             bool shouldAdd = true;
-            foreach(var existing in shaderFunctions)
+
+            foreach (var function in localDependencies)
             {
-                if(FunctionsAreEqual(existing, func))
+                foreach (var existing in shaderFunctions)
                 {
-                    shouldAdd = false;
+                    if (FunctionsAreEqual(existing, function))
+                    {
+                        shouldAdd = false;
+                    }
                 }
-            }
-            if(shouldAdd)
-            {
-                shaderFunctions.Add(func);
+                if (shouldAdd)
+                {
+                    shaderFunctions.Add(function);
+                }
             }
             string arguments = "";
             foreach (var param in func.Parameters)
