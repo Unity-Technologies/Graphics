@@ -302,37 +302,19 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             foreach(var elem in src.Children)
             {
-                var recurse = new Element($"{dst.ID.FullPath}.{elem.ID.LocalPath}", this, dst.Header.MakeCopy());
+                var recurse = elem.MakeCopy();
+                recurse.ID = $"{dst.ID.FullPath}{elem.ID.FullPath.Replace(src.ID.FullPath, "")}";
                 AddChild(dst,recurse);
+                UpdateFlattenedStructureAdd(recurse);
                 CopyDataBranch(elem, recurse);
             }
         }
 
-        //Liz: I want to maintain the contract of readers and writers to use their included functions, but that does make this copy a touch
-        //messy - I may ditch this in favor of creating a DataWriter AddChild that take in an element or DataWriter?
+        //Liz:This breaks our contract in having the readers and writers directly acess their elements, but
+        // to unblock work we will allow this for now
         public void CopyDataBranch(DataReader src, DataWriter dst)
         {
-            foreach(var child in src.GetChildren().ToList())
-            {
-                var copy = child.Element.MakeCopy();
-                var elemType = copy.GetType();
-                DataWriter recurse = null;
-                if (elemType.IsGenericType)
-                {
-                    var type = elemType.GetGenericArguments()[0];
-                    var method = elemType.GetMethod("GetData");
-                    var constructed = method.MakeGenericMethod(type);
-                    var res = constructed.Invoke(child.Element, new object[] { });
-                    var dw = typeof(DataWriter);
-                    var addChild = dw.GetMethods().Where(x => x.IsGenericMethodDefinition && x.GetParameters().Length == 2).First().MakeGenericMethod(new Type[] { type });
-                    recurse = (DataWriter)addChild.Invoke(dst, new object[] { copy.ID.LocalPath, res });
-                }
-                else
-                {
-                    recurse = dst.AddChild(copy.ID.LocalPath);
-                }
-                CopyDataBranch(child, recurse);
-            }
+            CopyDataBranch(src.Element, dst.Element);
         }
 
         public DataReader Search(ElementID lookup)

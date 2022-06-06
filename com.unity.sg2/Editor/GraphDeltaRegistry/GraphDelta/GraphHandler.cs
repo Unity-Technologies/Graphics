@@ -235,6 +235,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges, ElementID duplicatedNodeID)
         {
             var copy = graphDelta.DuplicateNode(sourceNode, registry, duplicatedNodeID);
+            graphDelta.ReconcretizeNode(copy.ID, registry);
             if(copyExternalEdges)
             {
                 foreach(var port in sourceNode.GetPorts())
@@ -248,7 +249,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     }
                 }
             }
-            graphDelta.ReconcretizeNode(copy.ID, registry);
             return copy;
         }
 
