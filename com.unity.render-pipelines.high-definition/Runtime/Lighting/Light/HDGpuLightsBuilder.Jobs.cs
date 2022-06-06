@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             public bool dynamicGIPreparingMixedLights;
+            public bool dynamicGIPreparingForBake;
 #endif
 
             public static CreateGpuLightDataJobGlobalConfig Create(
@@ -35,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
                     dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+                    dynamicGIPreparingForBake = ProbeVolume.preparingForBake
 #endif
                 };
             }
@@ -320,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var distanceToCamera = processedEntity.distanceToCamera;
                 float shadowDistanceFade;
 #if UNITY_EDITOR
-                if (globalConfig.dynamicGIPreparingMixedLights)
+                if (globalConfig.dynamicGIPreparingMixedLights || globalConfig.dynamicGIPreparingForBake)
                 {
                     shadowDistanceFade = 1f;
                 }

@@ -625,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (probeVolumeAtlasOctahedralDepth.IsTextureSlotAllocated(usedKey)) { probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(usedKey); }
             }
-            
+
             usedKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
         }
 
@@ -644,7 +644,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     probeVolumeAtlasOctahedralDepth.ReleaseTextureSlot(usedKey);
                 }
-                
+
                 usedKey = ProbeVolume.ProbeVolumeAtlasKey.empty;
             }
         }
@@ -659,7 +659,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(size > 0, "ProbeVolume: Encountered probe volume with resolution set to zero on all three axes.");
 
             ProbeVolume.ProbeVolumeAtlasKey key = volume.ComputeProbeVolumeAtlasKey();
-            
+
             ref var pipelineData = ref volume.GetPipelineData();
 
             // Currently atlas allocator only handles splitting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
@@ -1112,6 +1112,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Update Probe Volume Data via Dynamic GI Propagation
                     ProbeVolumeDynamicGI.instance.ResetSimulationRequests();
                     float maxRange = Mathf.Max(data.giSettings.rangeBehindCamera.value, data.giSettings.rangeInFrontOfCamera.value);
+                    int maxSimulationsPerFrame = data.maxSimulationsPerFrameOverride;
+
+#if UNITY_EDITOR
+                    if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake)
+                    {
+                        maxSimulationsPerFrame = -1;
+                    }
+#endif
 
                     // add simulation requests
                     for (int probeVolumeIndex = 0; probeVolumeIndex < data.volumes.Count; ++probeVolumeIndex)
@@ -1120,7 +1128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         
                         bool requiresSimulation;
 #if UNITY_EDITOR
-                        if (ProbeVolume.preparingForBake)
+                        if (ProbeVolume.preparingMixedLights || ProbeVolume.preparingForBake)
                         {
                             // Force simulation at any distance when preparing for baking.
                             requiresSimulation = true;
@@ -1140,7 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // dispatch max number of simulation requests this frame
-                    var sortedRequests = ProbeVolumeDynamicGI.instance.SortSimulationRequests(data.maxSimulationsPerFrameOverride, out var numSimulationRequests);
+                    var sortedRequests = ProbeVolumeDynamicGI.instance.SortSimulationRequests(maxSimulationsPerFrame, out var numSimulationRequests);
                     for (int i = 0; i < numSimulationRequests; ++i)
                     {
                         var simulationRequest = sortedRequests[i];
