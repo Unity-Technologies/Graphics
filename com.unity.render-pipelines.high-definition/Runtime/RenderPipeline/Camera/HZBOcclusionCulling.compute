@@ -49,6 +49,8 @@ struct ShadowVolume
 #pragma kernel InstanceCull
 #pragma kernel ClusterCull
 #pragma kernel LODCalculation
+#pragma kernel PostInstanceCull
+#pragma kernel PostClusterCull
 #pragma enable_d3d11_debug_symbols
 
 #pragma multi_compile _ CHECK_CULLING_SCENE_MASK
@@ -93,11 +95,26 @@ TEXTURE2D_X_FLOAT(_DepthPyramid);
 // Structured Buffers
 //--------------------------------------------------------------------------------------
 
+// All clusters' bounding spheres
 StructuredBuffer<float4> _ClusterShpereBuffer;
-//StructuredBuffer<uint4> _DepthMipmapOffset;
+
+// The visible instances in the first and post culling, it is a final result
 AppendStructuredBuffer<InstanceVisible> _AppendInstanceIDBuffer;
+// The culled instances in the first culling
+AppendStructuredBuffer<InstanceVisible> _AppendCulledInstanceIDBuffer;
+StructuredBuffer<InstanceVisible> _CulledInstanceIDBuffer;
+// The visible instances in the post culling
+AppendStructuredBuffer<InstanceVisible> _AppendPostCullingVisibleInstanceIDBuffer;
+
+// The visible clusters in the first culling
 AppendStructuredBuffer<ClusterIDs> _AppendClusterIDBuffer;
 AppendStructuredBuffer<ClusterIDs> _AppendClusterIDBuffer_CCW;
+// The culled clusters in the first culling
+AppendStructuredBuffer<ClusterIDs> _AppendCulledClusterIDBuffer;
+
+// The visible clusters in the post culling
+AppendStructuredBuffer<ClusterIDs> _AppendPostCullingClusterIDBuffer;
+AppendStructuredBuffer<ClusterIDs> _AppendPostCullingClusterIDBuffer_CCW;
 uniform uint _CurrentBufferIndex;
 
 uniform uint _LODProxyCount;
@@ -128,7 +145,7 @@ inline uint IsViewerOutsideObjBounds(float3 pos, float3 minPos, float3 maxPos)
 }
 
 
-inline float GatherFarestDepth4PointInDepthBuffer(float2 minXY, float2 maxXY, uint mip, int id)
+inline float GatherFarestDepth4PointInDepthBuffer(float2 minXY, float2 maxXY, uint mip)
 {
 	//float2 scale = _ViewportSize / _DepthMipmapOffset[0].zw;
     float2 scale = float2(1, 1);
@@ -197,7 +214,7 @@ inline uint isCascadeVisibleFromDepth(float clipMinZ, float depth)
 
 
 // Hi-Z Culling
-inline uint isVisibleInDepthBuffer(float3 clipMin, float3 clipMax, int id)
+inline uint isVisibleInDepthBuffer(float3 clipMin, float3 clipMax)
 {
     // Change it to 0 - 1 range 
     float2 minXY = float2(clipMin.x, clipMin.y) * 0.5f + 0.5f;
@@ -215,7 +232,7 @@ inline uint isVisibleInDepthBuffer(float3 clipMin, float3 clipMax, int id)
 	//	mip = clamp(mip, 0, 10);
 
     float farestDepth = -1;
-    farestDepth = GatherFarestDepth4PointInDepthBuffer(minXY, maxXY, mip, id);
+    farestDepth = GatherFarestDepth4PointInDepthBuffer(minXY, maxXY, mip);
     if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 1))
         farestDepth = GatherFarestDepthInDepthBuffer(minXY, maxXY, mip - 1);
     if ((_UseHighPrecision > 0 && isCascadeVisibleFromDepth(clipMin.z, farestDepth) < 1 && mip > 2))
@@ -405,7 +422,7 @@ inline uint IsVisibleInDepthBuffer(ShadowVolume shadowVolume, int id)
     
 	//isCascadeVisible *= (isCascadeVisible > 0)? isCascadeVisibleInDepthBuffer(clipMinCameraSpace, clipMaxCameraSpace, id): 0;
 	if (isCascadeVisible > 0)
-        isCascadeVisible *= isVisibleInDepthBuffer(clipMin, clipMax, id);
+        isCascadeVisible *= isVisibleInDepthBuffer(clipMin, clipMax);
 	//isCascadeVisible *= (isCascadeVisible > 0)? isCascadeVisibleInDepthBuffer(clipMin, clipMax, id): 0;
 	
 	//_debugBuffer[id].minMaxXYInLightSpace.xyz = boundsExtents;
@@ -524,6 +541,39 @@ uint IsCCW(uint mask)
     }
     return 0;
 }
+
+uint IsClusterVisible(ClusterIDs id, float4x4 worldMatrix, out uint frustumCulled)
+{
+    float4 sphere = _ClusterShpereBuffer[id.clusterID];
+    
+    float3 center, extents;
+    center = mul(worldMatrix, float4(sphere.xyz, 1.0f)).xyz;
+    float3 radius3 = mul(worldMatrix, float4(sphere.w, 0.0f, 0.0f, 0.0f)).xyz;
+    float radius = length(radius3);
+    //radius = sphere.w * instance.scale;
+    CalculateBoundings(float4(center, radius), center, extents);
+    uint isVisible = FrustumCullingEx(center, extents);
+    frustumCulled = isVisible;
+    float3 minPos = center - extents;
+    float3 maxPos = center + extents;
+    
+    float4 boxCorners[8];
+    boxCorners[0] = float4(minPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[1] = float4(minPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[2] = float4(minPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[3] = float4(minPos.x, maxPos.y, maxPos.z, 1.0);
+    boxCorners[4] = float4(maxPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
+
+    float3 clipMin, clipMax;
+    CalculateMinMaxWithLinearZ(boxCorners, _UNITY_MATRIX_VP1, clipMin, clipMax);
+    isVisible *= DetailCulling(clipMin, clipMax);
+    isVisible *= isVisibleInDepthBuffer(clipMin, clipMax);
+
+    return isVisible;
+}
 //--------------------------------------------------------------------------------------
 // Kernels
 //--------------------------------------------------------------------------------------
@@ -549,7 +599,8 @@ void InstanceCull (
     uint isVisible = FastCheckInstanceVisible(instance.layer, instance.mask, cullingSceneMask);
     //float3 boundsCenter = instance.worldMatrix._m03_m13_m23;
     float3 boundsCenter = instance.boundsCenter;
-    isVisible *= FrustumCullingEx(boundsCenter, instance.boundsExtents);
+    uint frustumVisible = FrustumCullingEx(boundsCenter, instance.boundsExtents);
+    isVisible *= frustumVisible;
     uint lodStatus = CheckLOD(instance.lodProxyIndex, instance.mask);
     isVisible *= lodStatus;
 	
@@ -565,23 +616,24 @@ void InstanceCull (
     boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
     boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
     boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
-		
+
     float3 clipMin, clipMax;
     CalculateMinMaxWithLinearZ(boxCorners, _UNITY_MATRIX_VP1, clipMin, clipMax);
 	if (IsViewerOutsideObjBounds(_CamPosition, minPos, maxPos))
 	{
-        isVisible *= isVisibleInDepthBuffer(clipMin, clipMax, tID);
+        isVisible *= isVisibleInDepthBuffer(clipMin, clipMax);
     }
-    //isVisible = 1;
+    
+    //isVisible = 0;
+
+    InstanceVisible visibleInfo = (InstanceVisible) 0;
+    visibleInfo.instanceID = tID;
+    visibleInfo.meshHash = instance.meshHash;
+    visibleInfo.rendererHash = instance.rendererHash;
+    visibleInfo.lodProxyIndex = instance.lodProxyIndex << 4;
+    visibleInfo.lodProxyIndex |= lodStatus;
     if (isVisible > 0)
     {
-        InstanceVisible visibleInfo = (InstanceVisible)0;
-        visibleInfo.instanceID = tID;
-        visibleInfo.meshHash = instance.meshHash;
-        visibleInfo.rendererHash = instance.rendererHash;
-        //visibleInfo.lodProxyIndex = instance.mask >> 8 & 0xFF;
-        visibleInfo.lodProxyIndex = instance.lodProxyIndex << 4;
-        visibleInfo.lodProxyIndex |= lodStatus;
         _AppendInstanceIDBuffer.Append(visibleInfo);
         
         // check it used GPU Driven
@@ -621,6 +673,10 @@ void InstanceCull (
             _AppendClusterIDBuffer.Append(id);
         }
     }
+    else if (frustumVisible > 0 && lodStatus > 0)
+    {
+        _AppendCulledInstanceIDBuffer.Append(visibleInfo);
+    }
 }
 
 
@@ -631,54 +687,25 @@ void ClusterCull(
         in uint3 _groupID : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
         in uint3 _groupThreadID : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
     )
-{
-    // Calculate the instance index, only correct if the THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z
-	// and dipathed group num Y and Z are all 1. 
+{ 
     uint tID = _dispatchThreadID.x;
-    
-    uint isVisible = 0;
     ClusterIDs id = _ClusterIDBuffer[tID];
     if (id.instanceID == ~0u || id.clusterID == ~0u || id.meshHash == 0)
         return;
-    
-    float4 sphere = _ClusterShpereBuffer[id.clusterID];
-    InstanceHeader instance = _InstanceHeaderBuffer[id.instanceID];
-    
-    float3 center, extents;
-    center = mul(instance.worldMatrix, float4(sphere.xyz, 1.0f)).xyz;
-    float4x4 worldMatrixNoTranslate = instance.worldMatrix;
-    worldMatrixNoTranslate._m03_m13_m23_m33 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    float3 radius3 = mul(instance.worldMatrix, float4(sphere.w, 0.0f, 0.0f, 0.0f)).xyz;
-    float radius = length(radius3);
-    //radius = sphere.w * instance.scale;
-    CalculateBoundings(float4(center, radius), center, extents);
-    isVisible = FrustumCullingEx(center, extents);
-    //isVisible = 1;
-    // Check if the instance is visible
-    float3 minPos = center - extents;
-    float3 maxPos = center + extents;
-    
-    float4 boxCorners[8];
-    boxCorners[0] = float4(minPos.x, minPos.y, minPos.z, 1.0);
-    boxCorners[1] = float4(minPos.x, minPos.y, maxPos.z, 1.0);
-    boxCorners[2] = float4(minPos.x, maxPos.y, minPos.z, 1.0);
-    boxCorners[3] = float4(minPos.x, maxPos.y, maxPos.z, 1.0);
-    boxCorners[4] = float4(maxPos.x, minPos.y, minPos.z, 1.0);
-    boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
-    boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
-    boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
 
-    float3 clipMin, clipMax;
-    CalculateMinMaxWithLinearZ(boxCorners, _UNITY_MATRIX_VP1, clipMin, clipMax);
-    isVisible *= DetailCulling(clipMin, clipMax);
-    isVisible *= isVisibleInDepthBuffer(clipMin, clipMax, tID);
-    
+    InstanceHeader instance = _InstanceHeaderBuffer[id.instanceID];
+    uint frustumCulled = 0;
+    uint isVisible = IsClusterVisible(id, instance.worldMatrix, frustumCulled);
     if (isVisible > 0)
     {
         if (IsCCW(instance.mask))
             _AppendClusterIDBuffer_CCW.Append(id);
         else
             _AppendClusterIDBuffer.Append(id);
+    }
+    else if (frustumCulled > 0)
+    {
+        _AppendCulledClusterIDBuffer.Append(id);
     }
 }
 
@@ -719,5 +746,115 @@ inline void LODCalculation(in uint3 _dispatchThreadID : SV_DispatchThreadID)
         _LODIndexMaskBuffer[_dispatchThreadID.x] = 0;
         _LODIndexMaskBuffer[_dispatchThreadID.x] |= curIndexMask << 16;
         _LODIndexMaskBuffer[_dispatchThreadID.x] |= 0xFFFF;
+    }
+}
+
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+void PostInstanceCull(
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint _groupIndex : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    // Calculate the instance index, only correct if the THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z
+	// and dipathed group num Y and Z are all 1. 
+    uint tID = _dispatchThreadID.x;
+  
+    // Get the instance data
+    InstanceVisible visibleInfo = _CulledInstanceIDBuffer[tID];
+    if (visibleInfo.meshHash == 0)
+        return;
+    
+    InstanceHeader instance = _InstanceHeaderBuffer[visibleInfo.instanceID];
+    uint2 cullingSceneMask = uint2(~0u, ~0u);
+#if CHECK_CULLING_SCENE_MASK
+    cullingSceneMask = (uint2)instance.cullingSceneMask;
+#endif
+    uint isVisible = FastCheckInstanceVisible(instance.layer, instance.mask, cullingSceneMask);
+    //float3 boundsCenter = instance.worldMatrix._m03_m13_m23;
+    float3 boundsCenter = instance.boundsCenter;
+	
+    // Check if the instance is visible
+    float3 minPos = boundsCenter - instance.boundsExtents;
+    float3 maxPos = boundsCenter + instance.boundsExtents + 0.01f;
+    float4 boxCorners[8];
+    boxCorners[0] = float4(minPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[1] = float4(minPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[2] = float4(minPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[3] = float4(minPos.x, maxPos.y, maxPos.z, 1.0);
+    boxCorners[4] = float4(maxPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
+		
+    float3 clipMin, clipMax;
+    CalculateMinMaxWithLinearZ(boxCorners, _UNITY_MATRIX_VP1, clipMin, clipMax);
+    if (IsViewerOutsideObjBounds(_CamPosition, minPos, maxPos))
+    {
+        isVisible *= isVisibleInDepthBuffer(clipMin, clipMax);
+    }
+    //isVisible = 1;
+    if (isVisible > 0)
+    {
+        _AppendInstanceIDBuffer.Append(visibleInfo);
+        _AppendPostCullingVisibleInstanceIDBuffer.Append(visibleInfo);
+        
+        // check it used GPU Driven
+        if ((instance.mask & 1 << 4) == 0)
+            return;
+        if (instance.geometryIndex == ~0u)
+            return;
+        GeometryInfo geometry = _GeometryBuffer[instance.geometryIndex];
+        if (geometry.clusterBegin == ~0u)
+            return;
+        
+        for (uint i = 0; i != geometry.clusterCount; ++i)
+        {
+            uint offset = geometry.clusterBegin;
+            uint clusterIndex = i;
+            clusterIndex += offset;
+            ClusterIDs id = (ClusterIDs) 0;
+            id.clusterID = clusterIndex;
+            id.instanceID = visibleInfo.instanceID;
+            id.meshHash = instance.meshHash;
+            id.rendererHash = instance.rendererHash;
+            id.geometryID = instance.geometryIndex;
+            _AppendCulledClusterIDBuffer.Append(id);
+        }
+    }
+}
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+void PostClusterCull(
+        in uint3 _dispatchThreadID : SV_DispatchThreadID, // DispatchThreadID  = dot(GroupID, numthreads) + GroupThreadId;
+        in uint _groupIndex : SV_GroupIndex, // uint GroupIndex = unique index of a thread inside a group
+        in uint3 _groupID : SV_GroupID, // GroupID = index for each dimension inside a ThreadGroupCount 
+        in uint3 _groupThreadID : SV_GroupThreadID // uint3 GroupThreadId = indices for each dimension inside a group of the current thread
+    )
+{
+    // Calculate the instance index, only correct if the THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z
+	// and dipathed group num Y and Z are all 1. 
+    uint tID = _dispatchThreadID.x;
+    ClusterIDs id = _ClusterIDBuffer[tID];
+    if (id.instanceID == ~0u || id.clusterID == ~0u || id.meshHash == 0)
+        return;
+
+    InstanceHeader instance = _InstanceHeaderBuffer[id.instanceID];
+    uint frustumCulled = 0;
+    uint isVisible = IsClusterVisible(id, instance.worldMatrix, frustumCulled);
+    if (isVisible > 0)
+    {
+        if (IsCCW(instance.mask))
+        {
+            _AppendPostCullingClusterIDBuffer_CCW.Append(id);
+            //_AppendClusterIDBuffer_CCW.Append(id);
+        }  
+        else
+        {
+            _AppendPostCullingClusterIDBuffer.Append(id);
+            //_AppendClusterIDBuffer.Append(id);
+        }
     }
 }

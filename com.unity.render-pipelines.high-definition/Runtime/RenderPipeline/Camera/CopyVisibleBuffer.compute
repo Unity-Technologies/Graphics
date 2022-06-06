@@ -116,6 +116,7 @@ inline void CSMain_AppendVisibleBuffer(in uint3 _dispatchThreadID : SV_DispatchT
 {
     if (_dispatchThreadID.x < _BufferSize[kBufferSize_ClusterCCW])
     {
+        _AppendIDBuffer.IncrementCounter();
         _AppendIDBuffer[_BufferSize[kBufferSize_ClusterCW] + _dispatchThreadID.x] = _MergedIDBuffer[_dispatchThreadID.x];
     }
 }
