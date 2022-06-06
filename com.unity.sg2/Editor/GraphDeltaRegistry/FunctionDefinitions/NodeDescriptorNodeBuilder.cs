@@ -102,7 +102,8 @@ namespace UnityEditor.ShaderGraph.Defs
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
             NodeHandler node,
             ShaderContainer container,
-            Registry registry)
+            Registry registry,
+            ref List<ShaderFunction> dependencies)
         {
             FunctionDescriptor selectedFunction = (FunctionDescriptor)m_defaultFunction;
 

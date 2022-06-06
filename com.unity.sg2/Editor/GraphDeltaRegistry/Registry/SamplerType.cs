@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         RegistryKey IRegistryEntry.GetRegistryKey() => new RegistryKey { Name = "SamplerStateExampleNode", Version = 1 };
 
-        ShaderFunction INodeDefinitionBuilder.GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+        ShaderFunction INodeDefinitionBuilder.GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, ref List<ShaderFunction> dependencies)
         {
             // This example just naively inlines a sampler state type so we can test if connections are working correctly.
             // (since textures nodes shouldn't generate sampler states if they are not connected, they should just use the one that comes w/the texture).

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -37,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             else builder.AddOutput(shaderType, name);
         }
 
-        public ShaderFoundry.ShaderFunction GetShaderFunction(NodeHandler node, ShaderFoundry.ShaderContainer container, Registry registry)
+        public ShaderFoundry.ShaderFunction GetShaderFunction(NodeHandler node, ShaderFoundry.ShaderContainer container, Registry registry, ref List<ShaderFunction> dependencies)
         {
             var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, GetRegistryKey().Name);
 
@@ -90,7 +91,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var output = node.AddPort<GradientType>(kOutput, false, registry);
         }
 
-        public ShaderFoundry.ShaderFunction GetShaderFunction(NodeHandler node, ShaderFoundry.ShaderContainer container, Registry registry)
+        public ShaderFoundry.ShaderFunction GetShaderFunction(NodeHandler node, ShaderFoundry.ShaderContainer container, Registry registry, ref List<ShaderFunction> dependencies)
         {
             var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, GetRegistryKey().Name);
             var port = node.GetPort(kInlineStatic);

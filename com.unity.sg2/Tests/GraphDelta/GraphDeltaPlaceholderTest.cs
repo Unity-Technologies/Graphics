@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                         field.SetData(field.GetData() + 1);
                     }
                     else
-                    { 
+                    {
                         node.AddField(k_counter,1,false);
                     }
                     node.DefaultLayer = GraphDelta.k_concrete;
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     return new RegistryKey() { Name = "TestNode", Version = 1 };
                 }
 
-                public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry)
+                public ShaderFunction GetShaderFunction(NodeHandler node, ShaderContainer container, Registry registry, ref List<ShaderFunction> dependencies)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -354,7 +354,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 var data = field.GetData<int>();
                 Assert.AreEqual(data, 45);
             }
-			
+
             [Test]
             public void ConcretizationTests()
             {
@@ -372,14 +372,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
                 graphHandler.AddEdge("test1.Output", "test2.Input");
                 Assert.AreEqual(3, cCounter2.GetData()); //Connecting an edge should reconcretize downstream
-                Assert.AreEqual(1, cCounter1.GetData()); //Connecting an edge should not affect source node 
+                Assert.AreEqual(1, cCounter1.GetData()); //Connecting an edge should not affect source node
 
                 test1.SetPortField("Input", "Length", Length.Two); //Should cause reconcretization downstream, includind test1
-                Assert.AreEqual(4, cCounter2.GetData()); 
+                Assert.AreEqual(4, cCounter2.GetData());
                 Assert.AreEqual(2, cCounter1.GetData());
 
                 graphHandler.RemoveEdge("test1.Output", "test2.Input");
-                Assert.AreEqual(5, cCounter2.GetData()); 
+                Assert.AreEqual(5, cCounter2.GetData());
                 Assert.AreEqual(2, cCounter1.GetData());
             }
 

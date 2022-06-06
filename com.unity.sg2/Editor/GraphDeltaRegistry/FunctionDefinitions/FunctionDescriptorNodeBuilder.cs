@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -37,7 +38,8 @@ namespace UnityEditor.ShaderGraph.Defs
         ShaderFunction INodeDefinitionBuilder.GetShaderFunction(
             NodeHandler data,
             ShaderContainer container,
-            Registry registry)
+            Registry registry,
+            ref List<ShaderFunction> dependencies)
         {
             // Get a builder from ShaderFoundry
             var shaderFunctionBuilder = new ShaderFunction.Builder(container, m_functionDescriptor.Name);
