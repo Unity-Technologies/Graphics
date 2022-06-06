@@ -5,7 +5,7 @@ namespace UnityEditor.ContextLayeredDataStorage
     public class DataWriter
     {
         private WeakReference<Element> m_element;
-        protected Element Element
+        internal Element Element
         {
             get
             {

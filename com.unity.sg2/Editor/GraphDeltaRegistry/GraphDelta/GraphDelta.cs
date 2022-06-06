@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
@@ -228,6 +229,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
 
             }
+        }
+
+        public NodeHandler DuplicateNode(NodeHandler sourceNode, Registry registry)
+        {
+            NodeHandler output = AddNode(sourceNode.GetRegistryKey(), m_data.GetLayerRoot(k_user).GetUniqueLocalID(sourceNode.ID.LocalPath), registry);
+            m_data.CopyDataBranch(sourceNode, output);
+            return output;
         }
 
         public void RemoveNode(string id)

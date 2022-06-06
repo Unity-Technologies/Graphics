@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using UnityEngine;
@@ -295,6 +296,43 @@ namespace UnityEditor.ContextLayeredDataStorage
                 RemoveData(elem);
             }
             RemoveData(root);
+        }
+
+        protected void CopyDataBranch(Element src, Element dst)
+        {
+            foreach(var elem in src.Children)
+            {
+                var recurse = new Element($"{dst.ID.FullPath}.{elem.ID.LocalPath}", this, dst.Header.MakeCopy());
+                AddChild(dst,recurse);
+                CopyDataBranch(elem, recurse);
+            }
+        }
+
+        //Liz: I want to maintain the contract of readers and writers to use their included functions, but that does make this copy a touch
+        //messy - I may ditch this in favor of creating a DataWriter AddChild that take in an element or DataWriter?
+        public void CopyDataBranch(DataReader src, DataWriter dst)
+        {
+            foreach(var child in src.GetChildren().ToList())
+            {
+                var copy = child.Element.MakeCopy();
+                var elemType = copy.GetType();
+                DataWriter recurse = null;
+                if (elemType.IsGenericType)
+                {
+                    var type = elemType.GetGenericArguments()[0];
+                    var method = elemType.GetMethod("GetData");
+                    var constructed = method.MakeGenericMethod(type);
+                    var res = constructed.Invoke(child.Element, new object[] { });
+                    var dw = typeof(DataWriter);
+                    var addChild = dw.GetMethods().Where(x => x.IsGenericMethodDefinition && x.GetParameters().Length == 2).First().MakeGenericMethod(new Type[] { type });
+                    recurse = (DataWriter)addChild.Invoke(dst, new object[] { copy.ID.LocalPath, res });
+                }
+                else
+                {
+                    recurse = dst.AddChild(copy.ID.LocalPath);
+                }
+                CopyDataBranch(child, recurse);
+            }
         }
 
         public DataReader Search(ElementID lookup)
@@ -606,6 +644,18 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Debug.LogError("How did we reach this state???");
                 return int.MinValue;
             }
+        }
+
+        internal IEnumerable<Element> GetFlatImmediateChildList(Element root)
+        {
+            foreach (var (key, value) in FlatStructureLookup)
+            {
+                if (root.ID.IsImmediateSubpathOf(key))
+                {
+                    yield return value;
+                }
+            }
+
         }
     }
 }

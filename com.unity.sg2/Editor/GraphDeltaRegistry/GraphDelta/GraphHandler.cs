@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -149,5 +150,45 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<PortHandler> GetConnectedPorts(ElementID portID) => graphDelta.GetConnectedPorts(portID, registry);
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
+
+        public NodeHandler DuplicateNode(NodeHandler sourceNode, bool copyExternalEdges)
+        {
+            var copy = graphDelta.DuplicateNode(sourceNode, registry);
+            if(copyExternalEdges)
+            {
+                foreach(var port in sourceNode.GetPorts())
+                {
+                    if(port.IsInput)
+                    {
+                        foreach(var p in port.GetConnectedPorts())
+                        {
+                            AddEdge(p.ID, $"{copy.ID.FullPath}.{port.ID.LocalPath}");
+                        }
+                    }
+                }
+            }
+            graphDelta.ReconcretizeNode(copy.ID, registry);
+            return copy;
+        }
+
+        public void DuplicateNodes(List<NodeHandler> sourceNodes, bool copyInternalEdges, bool copyExternalEdges)
+        {
+            Debug.Log("GraphHandler.DuplicateNodes: Currently not implemented!");
+        }
+
+        public void DuplicateContextEntry(string existingEntryName)
+        {
+            Debug.Log("GraphHandler.DuplicateContextEntry: Currently not implemented!");
+        }
+
+        string Copy(List<GraphDataHandler> sourceGraphElements)
+        {
+            return String.Empty;
+        }
+
+        void Paste(string graphDataJSON)
+        {
+            return;
+        }
     }
 }
