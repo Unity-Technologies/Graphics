@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 if (!existsInGraphData) return m_PreviewRegistryKey;
 
-                Assert.IsTrue(TryGetNodeReader(out var reader));
+                Assert.IsTrue(TryGetNodeHandler(out var reader));
                 // Store the registry key to use for node duplication
                 duplicationRegistryKey = reader.GetRegistryKey();
                 return reader.GetRegistryKey();
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// node should be treated as a searcher preview.
         /// </summary>
         public bool existsInGraphData =>
-            m_GraphDataName != null && TryGetNodeReader(out _);
+            m_GraphDataName != null && TryGetNodeHandler(out _);
 
         GraphHandler graphHandler =>
             ((ShaderGraphModel)GraphModel).GraphHandler;
@@ -94,18 +94,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         Dictionary<PortHandler, IPortModel> m_PortMappings = new();
         public Dictionary<PortHandler, IPortModel> PortMappings => m_PortMappings;
 
-        public bool TryGetNodeWriter(out NodeHandler writer)
-        {
-            if (graphDataName == null)
-            {
-                writer = null;
-                return false;
-            }
-
-            writer = graphHandler.GetNode(graphDataName);
-            return writer != null;
-        }
-
         public bool TryGetPortModel(PortHandler portReader, out IPortModel matchingPortModel)
         {
             foreach (var nodePortReader in PortMappings.Keys)
@@ -118,7 +106,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return false;
         }
 
-        public bool TryGetNodeReader(out NodeHandler reader)
+        public bool TryGetNodeHandler(out NodeHandler reader)
         {
             try
             {
@@ -255,7 +243,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            if (!TryGetNodeReader(out var nodeReader))
+            if (!TryGetNodeHandler(out var nodeReader))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
                 return;

@@ -252,6 +252,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return output;
         }
 
+        public NodeHandler DuplicateNode(NodeHandler sourceNode, Registry registry, ElementID copiedNodeID)
+        {
+            NodeHandler output = AddNode(sourceNode.GetRegistryKey(), copiedNodeID, registry);
+            m_data.CopyDataBranch(sourceNode, output);
+            return output;
+        }
+
         public void RemoveNode(string id)
         {
             m_data.RemoveHandler(id);

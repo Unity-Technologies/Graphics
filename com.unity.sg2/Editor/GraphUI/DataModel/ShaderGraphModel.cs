@@ -272,9 +272,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 pastedNodeModel.AssignNewGuid();
 
                 newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
-                GraphHandler.AddNode(sourceGraphDataNode.duplicationRegistryKey, newCopiedNode.graphDataName);
-                pastedNodeModel.OnDuplicateNode(sourceNode);
-
+                var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
+                GraphHandler.DuplicateNode(sourceNodeHandler, true, newCopiedNode.graphDataName);
                 AddNode(pastedNodeModel);
                 pastedNodeModel.Position += delta;
 
@@ -376,7 +375,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         static void ForeachConnectedNode(GraphDataNodeModel sourceNode, PropagationDirection dir, Action<GraphDataNodeModel> action)
         {
-            sourceNode.TryGetNodeReader(out var nodeReader);
+            sourceNode.TryGetNodeHandler(out var nodeReader);
 
             ShaderGraphModel shaderGraphModel = sourceNode.GraphModel as ShaderGraphModel;
 
@@ -407,7 +406,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
         {
             bool nodeRequiresTime = false;
-            if (graphDataNodeModel.TryGetNodeReader(out var _))
+            if (graphDataNodeModel.TryGetNodeHandler(out var _))
             {
                 // TODO: Some way of making nodes be marked as requiring time or not
                 // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,

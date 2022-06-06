@@ -242,7 +242,7 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             try
             {
                 var pixelColor = rt.GetPixel(127, 0);
-                Assert.IsTrue((new Color(1f, 0f, 0f) - pixelColor).maxColorComponent < 0.01f); 
+                Assert.IsTrue((new Color(1f, 0f, 0f) - pixelColor).maxColorComponent < 0.01f);
                 pixelColor = rt.GetPixel(127, 127);
                 Assert.IsTrue((new Color(1f, 1f, 0f) - pixelColor).maxColorComponent < 0.01f);
                 pixelColor = rt.GetPixel(0, 0);
@@ -257,6 +257,11 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             }
         }
 
+        [Test]
+        public void FieldTest()
+        {
+            graph.DuplicateNode(graph.GetNode("Add1"), true, "GTF_ID_Add");
+        }
     }
 
 }

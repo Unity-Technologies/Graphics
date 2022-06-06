@@ -38,8 +38,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveSingleState(graphViewState, command);
             }
 
-            if (!command.m_GraphDataNodeModel.TryGetNodeWriter(out var nodeWriter)) return;
-            var field = nodeWriter.GetPort(command.m_PortName).GetTypeField();
+            if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            var field = nodeHandler.GetPort(command.m_PortName).GetTypeField();
             GraphTypeHelpers.SetComponents(field, 0, command.m_Values);
 
             object propertyBlockValue = command.m_Values[0];
@@ -97,8 +97,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveSingleState(graphViewState, command);
             }
 
-            if (!command.m_GraphDataNodeModel.TryGetNodeWriter(out var nodeWriter)) return;
-            var portWriter = nodeWriter.GetPort(command.m_PortName);
+            if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            var portWriter = nodeHandler.GetPort(command.m_PortName);
 
             GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
             previewManager.OnLocalPropertyChanged(command.m_GraphDataNodeModel.graphDataName, command.m_PortName, command.m_Value);

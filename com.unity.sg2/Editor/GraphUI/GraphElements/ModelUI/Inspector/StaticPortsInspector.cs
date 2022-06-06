@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
             if (m_Model is not GraphDataNodeModel nodeModel) yield break;
-            if (!nodeModel.TryGetNodeReader(out var nodeReader)) yield break;
+            if (!nodeModel.TryGetNodeHandler(out var nodeReader)) yield break;
 
             var graphModel = (ShaderGraphModel)nodeModel.GraphModel;
             var stencil = (ShaderGraphStencil)graphModel.Stencil;
