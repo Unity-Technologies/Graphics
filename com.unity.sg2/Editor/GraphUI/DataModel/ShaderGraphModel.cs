@@ -264,25 +264,41 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override INodeModel DuplicateNode(INodeModel sourceNode, Vector2 delta)
         {
             var pastedNodeModel = sourceNode.Clone();
-            if (pastedNodeModel is GraphDataNodeModel newCopiedNode
-                && sourceNode is GraphDataNodeModel sourceGraphDataNode)
+            // Set graphmodel BEFORE define node as it is commonly use during Define
+            pastedNodeModel.GraphModel = this;
+            pastedNodeModel.AssignNewGuid();
+
+            switch (pastedNodeModel)
             {
-                // Set graphmodel BEFORE define node as it is commonly use during Define
-                pastedNodeModel.GraphModel = this;
-                pastedNodeModel.AssignNewGuid();
-
-                newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
-                var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
-                GraphHandler.DuplicateNode(sourceNodeHandler, true, newCopiedNode.graphDataName);
-                AddNode(pastedNodeModel);
-                pastedNodeModel.Position += delta;
-
-                if (pastedNodeModel is IGraphElementContainer container)
+                case GraphDataNodeModel newCopiedNode when sourceNode is GraphDataNodeModel sourceGraphDataNode:
                 {
-                    foreach (var element in container.GraphElementModels)
-                        RecursivelyRegisterAndAssignNewGuid(element);
+                    newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
+                    var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
+                    GraphHandler.DuplicateNode(sourceNodeHandler, true, newCopiedNode.graphDataName);
+                    break;
                 }
+                case GraphDataVariableNodeModel newCopiedVariableNode:
+                {
+                    newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
 
+                    var contextName = Registry.ResolveKey<PropertyContext>().Name;
+
+                    // Every time a variable node is added to the graph, add a reference node pointing back
+                    // to the variable/property that is wrapped by the VariableDeclarationModel, on the CLDS level
+
+                    // TODO: (Need the variable declaration model's guid/graphDataName for the contextEntryName parameter)
+                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, contextName, newCopiedVariableNode.DisplayTitle, RegistryInstance.Registry);
+                    break;
+                }
+            }
+
+            pastedNodeModel.Position += delta;
+            AddNode(pastedNodeModel);
+
+            if (pastedNodeModel is IGraphElementContainer container)
+            {
+                foreach (var element in container.GraphElementModels)
+                    RecursivelyRegisterAndAssignNewGuid(element);
             }
 
             return pastedNodeModel;
