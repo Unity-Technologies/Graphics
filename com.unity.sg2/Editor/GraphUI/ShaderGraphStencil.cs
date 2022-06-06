@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool CanPasteNode(INodeModel originalModel, IGraphModel graph)
         {
-            throw new NotImplementedException();
+            return originalModel is not GraphDataContextNodeModel;
         }
 
         public override bool CanPasteVariable(IVariableDeclarationModel originalModel, IGraphModel graph)

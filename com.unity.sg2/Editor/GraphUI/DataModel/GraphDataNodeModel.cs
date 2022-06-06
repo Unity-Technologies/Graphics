@@ -60,9 +60,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!existsInGraphData) return m_PreviewRegistryKey;
 
                 Assert.IsTrue(TryGetNodeReader(out var reader));
+                // Store the registry key to use for node duplication
+                duplicationRegistryKey = reader.GetRegistryKey();
                 return reader.GetRegistryKey();
             }
         }
+
+        /// <summary>
+        /// GTF handles copy/pasting of graph elements by serializing the original graph element models to JSON
+        /// and deserializing that JSON to get an instance that can be cloned to create our new node model
+        /// We need a field that can copy the registry key in order to use for creating the duplicated node
+        /// See ShaderGraphModel.DuplicateNode() and ViewSelection.DuplicateSelection
+        /// </summary>
+        [field: SerializeField]
+        public RegistryKey duplicationRegistryKey { get; private set; }
 
         /// <summary>
         /// Determines whether or not this node has a valid backing representation at the data layer. If false, this

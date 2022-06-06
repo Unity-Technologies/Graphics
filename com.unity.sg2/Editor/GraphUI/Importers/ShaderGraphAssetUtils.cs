@@ -109,6 +109,10 @@ namespace UnityEditor.ShaderGraph
 
         public void OnBeforeSerialize()
         {
+            // Cloning node models (i.e. GTFs model of cloning a scriptable object,
+            // triggers a serialize on the cloned node before it has a graph handler reference
+            if (m_graph == null)
+                return;
             json = m_graph.ToSerializedFormat();
         }
 
