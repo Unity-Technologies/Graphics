@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<NodeHandler> GetConnectedNodes(ElementID nodeID) => graphDelta.GetConnectedNodes(nodeID, registry);
 
-public void RebuildContextData(ElementID contextNode, ITargetProvider target, string templateName, string cpName, bool input)
+        public void RebuildContextData(ElementID contextNode, ITargetProvider target, string templateName, string cpName, bool input)
         {
             void AddEntry(NodeHandler context, CPDataEntryDescriptor desc)
             {
