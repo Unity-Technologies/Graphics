@@ -498,27 +498,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update dynamic area other:
             using (dynamicAreaOtherRequestsMarker.Auto())
+            {
                 UpdateNonDirectionalDynamicRequests(ShadowMapType.PunctualAtlas, HDLightType.Area,
                     dynamicAreaOtherVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicAreaOtherUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicAreaOtherCount, shadowManagerRequestCount);
-            UpdateDynamicAreaShadowRequestsAndResolutionRequests(dynamicAreaOtherUpdateInfos);
+                UpdateDynamicAreaShadowRequestsAndResolutionRequests(dynamicAreaOtherUpdateInfos);
+            }
+            
 
             // Update dynamic point:
             using (dynamicPointRequestsMarker.Auto())
+            {
                 UpdateNonDirectionalDynamicRequests(ShadowMapType.PunctualAtlas, HDLightType.Point,
                     dynamicPointVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicPointUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicPointCount, shadowManagerRequestCount);
-            UpdateDynamicPointShadowRequestsAndResolutionRequests();
+                UpdateDynamicPointShadowRequestsAndResolutionRequests();
+            }
+
 
             // Update dynamic point:
             using (dynamicSpotRequestsMarker.Auto())
+            {
                 UpdateNonDirectionalDynamicRequests(ShadowMapType.PunctualAtlas, HDLightType.Spot,
                     dynamicSpotVisibleLightsAndIndices, packedShadowRequestSetHandles, requestStorage, requestIndicesStorage, hdShadowResolutionRequestStorage, dynamicSpotUpdateInfos,
                     shadowManager.cachedShadowManager.punctualShadowAtlas.shadowRequests, shadowManager.atlas.shadowRequests,
                     shadowManager.atlas.mixedRequestsPendingBlits, dynamicSpotCount, shadowManagerRequestCount);
-            UpdateDynamicSpotShadowRequestsAndResolutionRequests();
+                UpdateDynamicSpotShadowRequestsAndResolutionRequests();
+            }
         }
 
         public void UpdateCachedPointShadowRequestsAndResolutionRequests()
