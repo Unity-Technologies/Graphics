@@ -75,8 +75,8 @@ void Frag(  Varyings varInput,
     float requestsPerRow = ceil(_RequestCount / _RequestsPerColumn);
     float2 drawSize = float2(requestsPerRow, _RequestsPerColumn) * 2;
 
-    int2 texel = floor(input.positionSS.xy);
-    int2 requestCoord = texel / 2;
+    uint2 texel = (uint2)(int2)max(0.0, floor(input.positionSS.xy)); // max just for precision - not technically necessary.
+    uint2 requestCoord = texel >> 1;
     int localIdx = requestCoord.y * requestsPerRow + requestCoord.x;
 
     // Silence compiler warning about potentially uninitialized variable.
@@ -87,7 +87,7 @@ void Frag(  Varyings varInput,
         ExtraDataRequest req = _RequestsInputData[localIdx];
 
         // Modify input with hit data
-        int2 requestFragment = texel % 2;
+        uint2 requestFragment = texel & 1u;
 
         float2 uv = req.uv + req.uvDdx * requestFragment.x + req.uvDdy * requestFragment.y;
         float3 position = req.position + req.positionDdx * requestFragment.x + req.positionDdy * requestFragment.y;

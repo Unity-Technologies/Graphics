@@ -1619,7 +1619,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Support dynamic GI mixed mode for directional lights.
             // When baking mixed lights for dynamic GI we leave shadow distance not limited by settings.
             // This doesn't work well for directional light shadows, so mixed mode is not really supported for them.
-            if (!ProbeVolume.preparingMixedLights)
+            if (!ProbeVolume.preparingMixedLights && !ProbeVolume.preparingMixedLights)
 #endif
             {
                 var shadowMaxDistance = hdCamera.volumeStack.GetComponent<HDShadowSettings>().maxShadowDistance.value;
@@ -1719,38 +1719,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        bool TrivialRejectLight(VisibleLight light, HDCamera hdCamera, in AOVRequestData aovRequest)
-        {
-            // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
-            // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
-            const int minimumPixelAreaOnScreen = 1;
-            if ((light.screenRect.height * hdCamera.actualHeight) * (light.screenRect.width * hdCamera.actualWidth) < minimumPixelAreaOnScreen)
-            {
-                return true;
-            }
-
-            if (light.light != null && !aovRequest.IsLightEnabled(light.light.gameObject))
-                return true;
-
-            return false;
-        }
-
-        bool TrivialRejectDynamicGILight(VisibleLight light, HDCamera hdCamera, in AOVRequestData aovRequest, bool isVisible)
-        {
-            // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
-            // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
-            const int minimumPixelAreaOnScreen = 1;
-            if (isVisible && ((light.screenRect.height * hdCamera.actualHeight) * (light.screenRect.width * hdCamera.actualWidth) < minimumPixelAreaOnScreen))
-            {
-                return true;
-            }
-
-            if (light.light != null && !aovRequest.IsLightEnabled(light.light.gameObject))
-                return true;
-
-            return false;
-        }
-
         // This will go through the list of all visible light and do two main things:
         // - Precompute data that will be reused through the light loop
         // - Discard all lights considered unnecessary (too far away, explicitly discarded by type, ...)
@@ -1760,6 +1728,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProcessedLightsBuilder.Build(
                 hdCamera,
                 cullResults,
+                HDAdditionalLightData.s_DynamicGILights,
                 m_ShadowManager,
                 m_ShadowInitParameters,
                 aovRequest,

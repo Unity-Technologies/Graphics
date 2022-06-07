@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             public bool dynamicGIPreparingMixedLights;
+            public bool dynamicGIPreparingForBake;
 #endif
 
             public static CreateGpuLightDataJobGlobalConfig Create(
@@ -35,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
                     dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+                    dynamicGIPreparingForBake = ProbeVolume.preparingForBake
 #endif
                 };
             }
@@ -101,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public NativeArray<VisibleLight> visibleLights;
             [ReadOnly]
-            public NativeArray<VisibleLight> visibleOffscreenLights;
+            public NativeArray<VisibleLight> offscreenDGILights;
             [ReadOnly]
             public NativeArray<LightBakingOutput> visibleLightBakingOutput;
             [ReadOnly]
@@ -320,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var distanceToCamera = processedEntity.distanceToCamera;
                 float shadowDistanceFade;
 #if UNITY_EDITOR
-                if (globalConfig.dynamicGIPreparingMixedLights)
+                if (globalConfig.dynamicGIPreparingMixedLights || globalConfig.dynamicGIPreparingForBake)
                 {
                     shadowDistanceFade = 1f;
                 }
@@ -369,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool isDGI)
             {
                 bool isFromVisibleList = lightIndex < visibleLights.Length;
-                var light = isFromVisibleList ? visibleLights[lightIndex] : visibleOffscreenLights[lightIndex - visibleLights.Length];
+                var light = isFromVisibleList ? visibleLights[lightIndex] : offscreenDGILights[lightIndex - visibleLights.Length];
                 var processedEntity = processedEntities[lightIndex];
                 var lightData = new LightData();
                 ref HDLightRenderData lightRenderData = ref GetLightData(processedEntity.dataIndex);
@@ -788,7 +790,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 dgiSortKeys = visibleLights.sortKeysDGI,
                 processedEntities = visibleLights.processedEntities,
                 visibleLights = cullingResult.visibleLights,
-                visibleOffscreenLights = cullingResult.visibleOffscreenVertexLights,
+                offscreenDGILights = visibleLights.offscreenDynamicGILights,
                 visibleLightBakingOutput = visibleLights.visibleLightBakingOutput,
                 visibleLightShadowCasterMode = visibleLights.visibleLightShadowCasterMode,
                 visibleLightBounceIntensity = visibleLights.visibleLightBounceIntensity,

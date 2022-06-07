@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
             }
 
-            int numLightTypes = Enum.GetValues(typeof(GPULightTypeCountSlots)).Length;
+            int numLightTypes = m_LightTypeCounters.IsCreated ? m_LightTypeCounters.Length : Enum.GetValues(typeof(GPULightTypeCountSlots)).Length;
             if (!m_LightTypeCounters.IsCreated)
                 m_LightTypeCounters.ResizeArray(numLightTypes);
             if (!m_DGILightTypeCounters.IsCreated)

@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public NativeArray<VisibleLight> visibleLights;
             [ReadOnly]
-            public NativeArray<VisibleLight> visibleOffscreenVertexLights;
+            public NativeArray<VisibleLight> offscreenLights;
             [ReadOnly]
             public NativeArray<int> visibleLightEntityDataIndices;
             [ReadOnly]
@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             [ReadOnly]
             public bool dynamicGIPreparingMixedLights;
+            [ReadOnly]
+            public bool dynamicGIPreparingForBake;
 #endif
             [ReadOnly]
             public bool enableRayTracing;
@@ -191,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the shadow is too far away, we don't render it
                 bool isShadowInRange = lightType == HDLightType.Directional || distanceToCamera < shadowFadeDistanceVal;
 #if UNITY_EDITOR
-                isShadowInRange |= dynamicGIPreparingMixedLights;
+                isShadowInRange |= dynamicGIPreparingMixedLights || dynamicGIPreparingForBake;
 #endif
                 if (!isShadowInRange)
                     return flags;
@@ -247,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public void Execute(int index)
             {
                 bool isFromVisibleList = index < visibleLightFromVisibleListCutoffIndex;
-                VisibleLight visibleLight = isFromVisibleList ? visibleLights[index] : visibleOffscreenVertexLights[index - visibleLightFromVisibleListCutoffIndex];
+                VisibleLight visibleLight = isFromVisibleList ? visibleLights[index] : offscreenLights[index - visibleLightFromVisibleListCutoffIndex];
                 int dataIndex = visibleLightEntityDataIndices[index];
                 LightBakingOutput bakingOutput = visibleLightBakingOutput[index];
                 LightShadows shadows = visibleLightShadows[index];
@@ -292,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float lightDistanceFade;
 #if UNITY_EDITOR
-                if (dynamicGIPreparingMixedLights)
+                if (dynamicGIPreparingMixedLights || dynamicGIPreparingForBake)
                 {
                     lightDistanceFade = 1.0f;
                 }
@@ -376,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void StartProcessVisibleLightJob(
             HDCamera hdCamera,
             NativeArray<VisibleLight> visibleLights,
-            NativeArray<VisibleLight> visibleOffscreenVertexLights,
+            NativeArray<VisibleLight> offscreenLights,
             in GlobalLightLoopSettings lightLoopSettings,
             DebugDisplaySettings debugDisplaySettings,
             bool processDynamicGI)
@@ -396,6 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableDynamicGI = processDynamicGI,
 #if UNITY_EDITOR
                 dynamicGIPreparingMixedLights = ProbeVolume.preparingMixedLights,
+                dynamicGIPreparingForBake = ProbeVolume.preparingForBake,
 #endif
                 enableRayTracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing),
                 showDirectionalLight = debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight,
@@ -413,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //data of all visible light entities.
                 visibleLights = visibleLights,
-                visibleOffscreenVertexLights = visibleOffscreenVertexLights,
+                offscreenLights = offscreenLights,
                 visibleLightEntityDataIndices = m_VisibleLightEntityDataIndices,
                 visibleLightBakingOutput = m_VisibleLightBakingOutput,
                 visibleLightShadows = m_VisibleLightShadows,
