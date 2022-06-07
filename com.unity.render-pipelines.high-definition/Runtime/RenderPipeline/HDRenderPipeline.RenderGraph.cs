@@ -311,78 +311,90 @@ namespace UnityEngine.Rendering.HighDefinition
                     SendColorBuffer(m_RenderGraph, colorBuffer);
             }
 
-            // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
-            var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
-
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers);
-
-            if (aovRequest.isValid)
+            // Only in merger mode we do all the rest rendering
+            if (GetDistributedMode() == DistributedMode.Merger || GetDistributedMode() == DistributedMode.None)
             {
-                aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
-            }
+                // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
+                var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
 
-            TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
-
-            // If requested, compute histogram of the very final image
-            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
-            {
-                GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
-            }
-            PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
-
-            ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
-
-            RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
-
-            CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
-
-            // In developer build, we always render post process in an intermediate buffer at (0,0) in which we will then render debug.
-            // Because of this, we need another blit here to the final render target at the right viewport.
-            if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
-            {
-                hdCamera.ExecuteCaptureActions(m_RenderGraph, postProcessDest);
-
-                postProcessDest = RenderDebug(  m_RenderGraph,
-                                                hdCamera,
-                                                postProcessDest,
-                                                prepassOutput.resolvedDepthBuffer,
-                                                prepassOutput.depthPyramidTexture,
-                                                colorPickerTexture,
-                                                gpuLightListOutput,
-                                                shadowResult,
-                                                cullingResults);
-
-                StopXRSinglePass(m_RenderGraph, hdCamera);
-
-                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                {
-                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, viewIndex);
-                }
+                RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers);
 
                 if (aovRequest.isValid)
-                    aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, postProcessDest, aovBuffers);
-            }
-
-            // This code is only for planar reflections. Given that the depth texture cannot be shared currently with the other depth copy that we do
-            // we need to do this seperately.
-            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-            {
-                if (target.targetDepth != null)
                 {
-                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), viewIndex);
+                    aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
+                }
+
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
+
+                // If requested, compute histogram of the very final image
+                if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+                {
+                    GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
+                }
+                PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
+
+                ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
+
+                RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
+
+                CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
+
+                // In developer build, we always render post process in an intermediate buffer at (0,0) in which we will then render debug.
+                // Because of this, we need another blit here to the final render target at the right viewport.
+                if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
+                {
+                    hdCamera.ExecuteCaptureActions(m_RenderGraph, postProcessDest);
+
+                    postProcessDest = RenderDebug(  m_RenderGraph,
+                                                    hdCamera,
+                                                    postProcessDest,
+                                                    prepassOutput.resolvedDepthBuffer,
+                                                    prepassOutput.depthPyramidTexture,
+                                                    colorPickerTexture,
+                                                    gpuLightListOutput,
+                                                    shadowResult,
+                                                    cullingResults);
+
+                    StopXRSinglePass(m_RenderGraph, hdCamera);
+
+                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    {
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, viewIndex);
+                    }
+
+                    if (aovRequest.isValid)
+                        aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, postProcessDest, aovBuffers);
+                }
+
+                // This code is only for planar reflections. Given that the depth texture cannot be shared currently with the other depth copy that we do
+                // we need to do this seperately.
+                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                {
+                    if (target.targetDepth != null)
+                    {
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), viewIndex);
+                    }
+                }
+
+                // XR mirror view and blit do device
+                EndCameraXR(m_RenderGraph, hdCamera);
+
+                SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
+
+                SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
+
+                RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
+
+                RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
+            }
+            else
+            {
+                // In renderer mode we only blit the current sent color buffer to backbuffer
+                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                {
+                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, colorBuffer, backBuffer, viewIndex);
                 }
             }
-
-            // XR mirror view and blit do device
-            EndCameraXR(m_RenderGraph, hdCamera);
-
-            SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
-
-            SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
-
-            RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
-
-            RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
             m_RenderGraph.Execute();
 
