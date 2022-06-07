@@ -199,27 +199,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public NativeArray<HDAdditionalLightDataUpdateInfo> additionalLightDataUpdateInfos => m_AdditionalLightDataUpdateInfos;
 
-        public NativeList<VisibleLightAndIndices> visibleLightsAndIndicesBuffer => m_VisibleLightsAndIndicesBuffer;
-        public NativeList<VisibleLightAndIndices> splitVisibleLightsAndIndicesBuffer => m_SplitVisibleLightsAndIndicesBuffer;
+        public NativeList<ShadowIndicesAndVisibleLightData> visibleLightsAndIndicesBuffer => m_VisibleLightsAndIndicesBuffer;
+        public NativeList<ShadowIndicesAndVisibleLightData> splitVisibleLightsAndIndicesBuffer => m_SplitVisibleLightsAndIndicesBuffer;
 
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> cachedPointUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> cachedSpotUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> cachedAreaRectangleUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> cachedAreaOtherUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> cachedDirectionalUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> dynamicPointUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> dynamicSpotUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> dynamicAreaRectangleUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> dynamicAreaOtherUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo> dynamicDirectionalUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-        // One per HDLightType
-        // public NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>[] shadowRequestDataLists = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>[]
-        // {
-        //     new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent),
-        //     new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent),
-        //     new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent),
-        //     new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent),
-        // };
+        public NativeList<ShadowRequestIntermediateUpdateData> cachedPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> cachedSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> cachedAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> cachedAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> cachedDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> dynamicPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> dynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> dynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> dynamicAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        public NativeList<ShadowRequestIntermediateUpdateData> dynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
 
         public NativeArray<Matrix4x4> cachedCubeMapFaces => m_CachedCubeMapFaces;
 
@@ -321,8 +313,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!m_VisibleLightsAndIndicesBuffer.IsCreated)
             {
-                m_VisibleLightsAndIndicesBuffer = new NativeList<VisibleLightAndIndices>(Allocator.Persistent);
-                m_SplitVisibleLightsAndIndicesBuffer = new NativeList<VisibleLightAndIndices>(Allocator.Persistent);
+                m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
+                m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
                 m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
             }
 
@@ -335,16 +327,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // }
             if (!cachedPointUpdateInfos.IsCreated)
             {
-                cachedPointUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                cachedSpotUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                cachedAreaRectangleUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                cachedAreaOtherUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                cachedDirectionalUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                dynamicPointUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                dynamicSpotUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                dynamicAreaRectangleUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                dynamicAreaOtherUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
-                dynamicDirectionalUpdateInfos = new NativeList<HDAdditionalLightData.ShadowRequestDataUpdateInfo>(Allocator.Persistent);
+                cachedPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                cachedSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                cachedAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                cachedAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                cachedDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                dynamicPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                dynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                dynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                dynamicAreaOtherUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                dynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
             }
         }
 
@@ -601,8 +593,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeList<LightEntityInfo> m_LightEntities = new NativeList<LightEntityInfo>(Allocator.Persistent);
         private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
         private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetPackedHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
-        private NativeList<VisibleLightAndIndices> m_VisibleLightsAndIndicesBuffer = new NativeList<VisibleLightAndIndices>(Allocator.Persistent);
-        private NativeList<VisibleLightAndIndices> m_SplitVisibleLightsAndIndicesBuffer = new NativeList<VisibleLightAndIndices>(Allocator.Persistent);
+        private NativeList<ShadowIndicesAndVisibleLightData> m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
+        private NativeList<ShadowIndicesAndVisibleLightData> m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
         private NativeBitArray m_IsValidIndexScratchpadArray = new NativeBitArray(256, Allocator.Persistent);
 #if UNITY_EDITOR
         NativeArray<int> m_ShadowRequestCountsScratchpad;
@@ -642,7 +634,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AdditionalLightDataUpdateInfos.ResizeArray(m_Capacity);
         }
 
-        private unsafe void RemoveAtSwapBackArrays(int removeIndexAt)
+        private void RemoveAtSwapBackArrays(int removeIndexAt)
         {
             int lastIndex = m_LightCount - 1;
             m_HDAdditionalLightData[removeIndexAt] = m_HDAdditionalLightData[lastIndex];
@@ -703,7 +695,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-
             m_HDShadowRequestStorage.Dispose();
             m_HDShadowRequestStorage = default;
             m_HDShadowRequestIndicesStorage.Dispose();
@@ -712,11 +703,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FrustumPlanesStorage = default;
             m_HDShadowRequestsCreated = false;
 
-            // for (int i = 0; i < shadowRequestDataLists.Length; i++)
-            // {
-            //     shadowRequestDataLists[i].Dispose();
-            //     shadowRequestDataLists[i] = default;
-            // }
             if (cachedPointUpdateInfos.IsCreated)
             {
                 cachedPointUpdateInfos.Dispose();
