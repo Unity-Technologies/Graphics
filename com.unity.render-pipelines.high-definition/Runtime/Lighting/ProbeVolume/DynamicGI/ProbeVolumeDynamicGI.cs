@@ -872,7 +872,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", dynamicAmount);
 
-            cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", giSettings.bakeAmount.value);
+            cmd.SetComputeFloatParam(shader, "_BakedLightingContribution", giSettings.fallbackAmount.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
             cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
