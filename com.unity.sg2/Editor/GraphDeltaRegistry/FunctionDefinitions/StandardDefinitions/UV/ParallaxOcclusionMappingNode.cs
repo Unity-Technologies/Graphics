@@ -300,6 +300,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
                 ),
                 new ParameterUIDescriptor(
                     name: "HeightmapSampler",
+                    displayName:"Heightmap Sampler",
                     tooltip: "the sampler to sample Heightmap with"
                 ),
                 new ParameterUIDescriptor(
@@ -321,6 +322,7 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
                 ),
                new ParameterUIDescriptor(
                     name: "LODThreshold",
+                    displayName:"LOD Threshold",
                     tooltip: "The Heightmap mip level where the Parallax Occlusion Mapping effect begins to fade out."
                 ),
                new ParameterUIDescriptor(
@@ -333,10 +335,12 @@ float ComputePerPixelHeightDisplacement_ParallaxOcclusionMapping(float2 texOffse
                 ),
                 new ParameterUIDescriptor(
                     name: "PixelDepthOffset",
+                    displayName:"Pixel Depth Offset",
                     tooltip: "The offset to apply to the depth buffer to produce the illusion of depth."
                 ),
                 new ParameterUIDescriptor(
                     name: "ParallaxUVs",
+                    displayName:"Parallax UVs",
                     tooltip: "the UVs after adding the parallax offset"
                 )
             }

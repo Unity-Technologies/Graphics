@@ -119,10 +119,12 @@ float2 Unity_Voronoi_RandomVector_LegacySine_float (float2 UV, float offset)
                 ),
                 new ParameterUIDescriptor(
                     name: "AngleOffset",
+                    displayName:"Angle Offset",
                     tooltip: "offset value for cell center points"
                 ),
                 new ParameterUIDescriptor(
                     name: "CellDensity",
+                    displayName:"Cell Density",
                     tooltip: "scale of generated cells"
                 ),
                 new ParameterUIDescriptor(

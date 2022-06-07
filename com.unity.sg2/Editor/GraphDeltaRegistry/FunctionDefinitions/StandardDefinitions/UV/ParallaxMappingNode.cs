@@ -96,6 +96,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "HeightmapSampler",
+                    displayName:"Heightmap Sampler",
                     tooltip: "the sampler to sample Heightmap with"
                 ),
                 new ParameterUIDescriptor(
@@ -109,6 +110,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "ParallaxUVs",
+                    displayName:"Parallax UVs",
                     tooltip: "the UVs after adding the parallax offset"
                 )
             }

@@ -11,10 +11,10 @@ namespace UnityEditor.ShaderGraph.Defs
         public static FunctionDescriptor FunctionDescriptor => new(
             Version,
             Name,
-            //TODO: Add all of the code that needs to exist outside this main body function in order for this to work.
+//TODO: Add all of the code that needs to exist outside this main body function in order for this to work.
 @"#if defined(UNITY_DOTS_INSTANCING_ENABLED)
 	//TODO: this line only gets added if GenerationMode is set to ForReals
-    functionNameHere(VertexID, DeformedPosition, DeformedNormal, DeformedTangent);
+    Unity_ComputeDeformedVertex(VertexID, DeformedPosition, DeformedNormal, DeformedTangent);
 #else
     DeformedPosition = PositionOS;
 	DeformedNormal = NormalOS;
